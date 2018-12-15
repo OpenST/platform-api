@@ -42,7 +42,7 @@ class ConfigStrategyModel extends ModelBase {
   /*
   * inserts the config strategy params, kind, managed address salt and sha encryption of config strategy params.
   *
-  * @param kind(eg. dynamo,dax etc)
+  * @param kind(eg. dynamo, memcached etc)
   * @param managedAddressSaltId
   * @param configStrategyParams: It contains complete configuration of any particular kind
   * @param group_id: Group Id to associate for the given params.(optional)
@@ -119,9 +119,7 @@ class ConfigStrategyModel extends ModelBase {
       logger.info('The given params is already present in database with id:', strategyIdPresentInDB);
       return Promise.resolve(responseHelper.successWithData(strategyIdPresentInDB));
     } else {
-
-      console.log('hashNotToEncrypt=====', configStrategyParams);
-
+      
       let separateHashesResponse = await oThis._getSeparateHashes(kind, configStrategyParams);
       if (separateHashesResponse.isFailure()) {
         logger.error('Error while segregating params into encrypted hash and unencrypted hash');
@@ -138,8 +136,6 @@ class ConfigStrategyModel extends ModelBase {
       let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
         hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
         encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, managedAddressSaltId);
-
-      console.log('hashNotToEncrypt=====', hashNotToEncrypt);
 
       if (encryptedHashResponse.isFailure()) {
         logger.error('Error while encrypting data');
@@ -164,7 +160,7 @@ class ConfigStrategyModel extends ModelBase {
         managed_address_salts_id: managedAddressSaltId,
         hashed_params: hashedConfigStrategyParams
       };
-
+      
       const dbId = await oThis.insert(data).fire();
 
       return Promise.resolve(responseHelper.successWithData(dbId.insertId));
@@ -227,14 +223,7 @@ class ConfigStrategyModel extends ModelBase {
         configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
 
       localDecryptedJsonObj = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
-
-      let Result = {},
-        strategyKind = kinds[queryResult[i].kind];
-
-      console.log(strategyKind, "----3-----configStrategyHash---configStrategyHash---configStrategyHash---", localDecryptedJsonObj);
-
-      // Result[strategyKind] = localDecryptedJsonObj;
-      // console.log(strategyKind, "----3-----Result---", Result);
+      
       finalResult[queryResult[i].id] = localDecryptedJsonObj;
     }
 
@@ -592,8 +581,6 @@ class ConfigStrategyModel extends ModelBase {
 
     let hashToEncrypt = {},
       hashNotToEncrypt = configStrategyParams;
-
-    console.log('strategyKindName===strategyKindNamestrategyKindName=====', strategyKindName);
 
     if(strategyKindName == configStrategyConstants.dynamodb){
       let dynamoApiSecret = hashNotToEncrypt[configStrategyConstants.dynamodb].apiSecret,
