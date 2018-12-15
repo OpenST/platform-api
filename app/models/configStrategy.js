@@ -8,7 +8,7 @@
 
 const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  ModelBaseKlass = require(rootPrefix + '/app/models/base'),
+  ModelBase = require(rootPrefix + '/app/models/base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -29,7 +29,7 @@ const kinds = configStrategyConstants.kinds,
  * constructor
  * @constructor
  */
-class ConfigStrategyModel extends ModelBaseKlass {
+class ConfigStrategyModel extends ModelBase {
 
   constructor() {
     super({ dbName: dbName });

@@ -2,11 +2,11 @@
 
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ModelBaseKlass = require(rootPrefix + '/app/models/base');
+  ModelBase = require(rootPrefix + '/app/models/base');
 
 const dbName = 'saas_client_economy_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
-class ManagedAddressSaltModel extends ModelBaseKlass {
+class ManagedAddressSaltModel extends ModelBase {
 
   constructor() {
     super({ dbName: dbName });

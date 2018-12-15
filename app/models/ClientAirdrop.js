@@ -3,7 +3,7 @@
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   util = require(rootPrefix + '/lib/util'),
-  ModelBaseKlass = require(rootPrefix + '/app/models/base');
+  ModelBase = require(rootPrefix + '/app/models/base');
 
 const dbName = 'saas_airdrop_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT,
   statuses = {
@@ -21,7 +21,7 @@ const dbName = 'saas_airdrop_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConst
   invertedStatuses = util.invert(statuses),
   invertedStepsComplete = util.invert(stepsComplete);
 
-class ClientAirdropModel extends ModelBaseKlass{
+class ClientAirdropModel extends ModelBase{
 
   constructor() {
 
