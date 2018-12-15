@@ -34,14 +34,8 @@ class ConfigStrategyByGroupId {
   }
 
   /**
-   * -This function will give a complete hash for the group id passed.
-   * -If group id is not set in the constructor this function will return an consolidated hash of all those strategy ids for which
-   *  group id is not set.
    *
-   *  [IMPORTANT][ASSUMPTION]: For one group id only one service will be present for a kind. This means there cannot be
-   *  multiple rows of same group id and kind. (Eg. For group id 1 only one dynamo kind will be present. Similarly for others.)
-   *
-   * @returns {Promise<*>} Returns a flat hash of strategies
+   * @returns {Promise<*>} Returns a hash of strategies
    */
   async get() {
     const oThis = this,
@@ -54,29 +48,23 @@ class ConfigStrategyByGroupId {
       whereClause = ['group_id IS NULL'];
     }
 
-    let strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause);
+    let finalConfigHash = {},
+      strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause),
+      configCacheResponse = await oThis._getConfigStrategyByStrategyId(strategyIdsArray),
+      cacheConfig = configCacheResponse.data;
 
-    // to not replicate the decryption logic, we are calling the cache for the same.
-
-    let fetchConfigStrategyRsp = await oThis._getConfigStrategyByStrategyId(strategyIdsArray);
-
-    if (fetchConfigStrategyRsp.isFailure()) {
-      logger.error('Error in fetching config strategy flat hash');
-      return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_01'));
+    for(let i = 0; i < strategyIdsArray.length; i++){
+      Object.assign(finalConfigHash, cacheConfig[strategyIdsArray[i]]);
     }
-    let finalFlatHash = oThis._cacheResponseFlatHashProvider(fetchConfigStrategyRsp);
 
-    return Promise.resolve(responseHelper.successWithData(finalFlatHash));
+    return Promise.resolve(responseHelper.successWithData(finalConfigHash));
   }
 
   /**
-   * This function gives a complete flat hash of all the strategies including the ones whose group id is NULL.
    *
-   * [IMPORTANT][ASSUMPTION]: Multiple value_geth, constants, in_memory, value_constants kinds will not be present in the table.
-   * @param gethEndPointType - read_only or read_write(DEFAULT value)
    * @returns {Promise<*>}
    */
-  async getCompleteHash(gethEndPointType) {
+  async getCompleteHash() {
     const oThis = this,
       groupId = oThis.groupId;
 
@@ -85,34 +73,21 @@ class ConfigStrategyByGroupId {
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_02'));
     }
 
-    let whereClause = ['group_id = ? OR group_id IS NULL', groupId],
-      strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause);
+    let finalConfigHash = {},
+      whereClause = ['group_id = ? OR group_id IS NULL', groupId],
+      strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause),
+      configCacheResponse = await oThis._getConfigStrategyByStrategyId(strategyIdsArray),
+      cacheConfig = configCacheResponse.data;
 
-    let fetchConfigStrategyRsp = await oThis._getConfigStrategyByStrategyId(strategyIdsArray);
-
-    if (fetchConfigStrategyRsp.isFailure()) {
-      logger.error('Error in fetching config strategy flat hash');
-      return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_03'));
+    for(let i = 0; i < strategyIdsArray.length; i++){
+      Object.assign(finalConfigHash, cacheConfig[strategyIdsArray[i]]);
     }
 
-    let finalFlatHash = oThis._cacheResponseFlatHashProvider(fetchConfigStrategyRsp, gethEndPointType);
-
-    return Promise.resolve(responseHelper.successWithData(finalFlatHash));
+    return Promise.resolve(responseHelper.successWithData(finalConfigHash));
   }
 
   /**
-   * This function gives a hash for the kind provided.
-   * It returns hash whose key is the strategy id and value is the flat hash of the strategy.
-   * Eg:
-   * {
-   *    1: {
-   *          OS_DYNAMODB_ACCESS_KEY_ID : 'xyz',
-   *          OS_DYNAMODB_SECRET_ACCESS_KEY: 'x',
-   *          .
-   *          .
-   *          .
-   *       }
-   * }
+   *
    * @param kind
    * @returns {Promise<*>}
    */
@@ -147,18 +122,7 @@ class ConfigStrategyByGroupId {
   }
 
   /**
-   * This function gives a hash with active status for the kind provided.
-   * It returns hash whose key is the strategy id and value is the flat hash of the strategy.
-   * Eg:
-   * {
-   *    1: {
-   *          OS_DYNAMODB_ACCESS_KEY_ID : 'xyz',
-   *          OS_DYNAMODB_SECRET_ACCESS_KEY: 'x',
-   *          .
-   *          .
-   *          .
-   *       }
-   * }
+   *
    * @param kind
    * @returns {Promise<*>}
    */
@@ -221,10 +185,10 @@ class ConfigStrategyByGroupId {
    *
    * @param {string} kind (Eg:'dynamo')
    * @param {object} params - Hash of config params related to this kind
-   * @param {number} managed_address_salt_id - managed_address_salt_id from managed_address_salt table
+   * @param {number} managedAddressSaltId - managed_address_salt_id from managed_address_salt table
    * @returns {Promise<never>}
    */
-  async addForKind(kind, params, managed_address_salt_id) {
+  async addForKind(kind, params, managedAddressSaltId) {
     const oThis = this,
       groupId = oThis.groupId,
       strategyIdInt = configStrategyConstants.invertedKinds[kind];
@@ -235,8 +199,6 @@ class ConfigStrategyByGroupId {
       logger.error('Provided kind is not proper. Please check kind');
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_07'));
     }
-
-    let managedAddressSaltId = managed_address_salt_id;
 
     if (configStrategyConstants.kindsWithoutGroupId.includes(kind)) {
       // If group id is present, reject
@@ -253,9 +215,9 @@ class ConfigStrategyByGroupId {
         logger.error(`[${kind}] already exist in the table.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_09'));
       }
-
+      
       let configStrategyModelObj = new ConfigStrategyModel();
-
+      
       insertResponse = await configStrategyModelObj.create(kind, managedAddressSaltId, params);
 
       if (insertResponse.isFailure()) {
@@ -421,11 +383,9 @@ class ConfigStrategyByGroupId {
    * If the kind is to be updated is value_geth or utility_geth the old_data parameters
    * @param {string} kind
    * @param params
-   * @param {object} OPTIONAL old_data (old_data = {'WS_Provider': '127.0.0.1:8545','RPC_Provider':'127.0.0.1:1845' }). This the old
-   * data which is to be replaced.
    * @returns {Promise<never>}
    */
-  async updateForKind(kind, params, old_data) {
+  async updateForKind(kind, params) {
     const oThis = this,
       groupId = oThis.groupId,
       strategyIdInt = configStrategyConstants.invertedKinds[kind];
@@ -472,7 +432,7 @@ class ConfigStrategyByGroupId {
     let currentStatus = existingData[0].status,
       existingStrategyId = existingData[0].id;
 
-    let configStrategyFetchCacheObj = new configStrategyCacheKlass({ strategyIds: [existingStrategyId] }),
+    let configStrategyFetchCacheObj = new ConfigStrategyCache({ strategyIds: [existingStrategyId] }),
       configStrategyFetchRsp = await configStrategyFetchCacheObj.fetch(),
       existingDataInDb = configStrategyFetchRsp.data[existingStrategyId][kind];
 
@@ -500,7 +460,7 @@ class ConfigStrategyByGroupId {
     }
 
     //clearing the cache
-    let configStrategyCacheObj = new configStrategyCacheKlass({ strategyIds: [existingStrategyId] }),
+    let configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: [existingStrategyId] }),
       configStrategyRsp = await configStrategyCacheObj.clear();
 
     return Promise.resolve(responseHelper.successWithData({}));
@@ -538,47 +498,13 @@ class ConfigStrategyByGroupId {
   }
 
   /**
-   * This function helps in preparing flat hash from the response given by cache
-   * @param configStrategyResponse
-   * @param gethEndPointType - read_only or read_write(DEFAULT value)
-   * @private
-   */
-  _cacheResponseFlatHashProvider(configStrategyResponse, gethEndPointType) {
-    const oThis = this;
-
-    let configStrategyIdToDetailMap = configStrategyResponse.data,
-      finalConfigStrategyFlatHash = {};
-
-    gethEndPointType = gethEndPointType ? gethEndPointType : 'read_write';
-
-    for (let configStrategyId in configStrategyIdToDetailMap) {
-      let configStrategy = configStrategyIdToDetailMap[configStrategyId];
-
-      for (let strategyKind in configStrategy) {
-        let partialConfig = configStrategy[strategyKind];
-
-        if (strategyKind == 'utility_geth') {
-          let tempConfig = partialConfig[gethEndPointType];
-          delete partialConfig['read_write'];
-          delete partialConfig['read_only'];
-          Object.assign(partialConfig, tempConfig);
-        }
-
-        Object.assign(finalConfigStrategyFlatHash, partialConfig);
-      }
-    }
-
-    return finalConfigStrategyFlatHash;
-  }
-
-  /**
    * This function returns config strategy of the strategy ids passed as argument
    * @param {array}strategyIdsArray
    * @returns {Promise<*>}
    * @private
    */
   async _getConfigStrategyByStrategyId(strategyIdsArray) {
-    let configStrategyCacheObj = new configStrategyCacheKlass({ strategyIds: strategyIdsArray }),
+    let configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),
       configStrategyFetchRsp = await configStrategyCacheObj.fetch();
 
     if (configStrategyFetchRsp.isFailure()) {

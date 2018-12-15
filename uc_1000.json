@@ -1,67 +1,116 @@
 {
-  "OS_DYNAMODB_ACCESS_KEY_ID": "x",
-  "OS_DYNAMODB_SECRET_ACCESS_KEY": "x",
-  "OS_DYNAMODB_SSL_ENABLED": "0",
-  "OS_DYNAMODB_ENDPOINT": "http://localhost:8000",
-  "OS_DYNAMODB_API_VERSION": "2012-08-10",
-  "OS_DYNAMODB_REGION": "localhost",
-  "OS_DYNAMODB_LOGGING_ENABLED": "0",
-  "OS_DYNAMODB_TABLE_NAME_PREFIX": "d_pk_",
+  "ddbTablePrefix": "de_ma_",
 
-  "OS_DAX_API_VERSION": "2017-04-19",
-  "OS_DAX_ACCESS_KEY_ID": "x",
-  "OS_DAX_SECRET_ACCESS_KEY": "x",
-  "OS_DAX_REGION": "localhost",
-  "OS_DAX_ENDPOINT": "http://localhost:8000",
-  "OST_NONCE_MEMCACHE_SERVERS": "127.0.0.1:11211",
-  "OST_MEMCACHE_SERVERS": "127.0.0.1:11211",
-  "OST_INMEMORY_CACHE_NAMESPACE": "d_pk_1000_",
-  "OS_AUTOSCALING_API_VERSION": "2016-02-06",
-  "OS_AUTOSCALING_ACCESS_KEY_ID": "x",
-  "OS_AUTOSCALING_SECRET_ACCESS_KEY": "x",
-  "OS_AUTOSCALING_REGION": "localhost",
-  "OS_AUTOSCALING_ENDPOINT": "http://localhost:8000",
-  "OS_AUTOSCALING_SSL_ENABLED": "0",
-  "OS_AUTOSCALING_LOGGING_ENABLED": "0",
-  "OST_CACHING_ENGINE": "memcached",
-  "OST_DEFAULT_TTL": 3600,
-  "CR_ES_HOST": "http://localhost:9200",
-  "AWS_ES_ACCESS_KEY": "AKIAJUDRALNURKAVS5IQ",
-  "AWS_ES_SECRET_KEY": "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",
-  "AWS_ES_REGION": "us-east-1",
-
-  "OST_UTILITY_GETH_RPC_PROVIDER": "http://127.0.0.1:9547",
-  "OST_UTILITY_GETH_WS_PROVIDER": "ws://127.0.0.1:19547",
-  "OST_UTILITY_GETH_RPC_PROVIDERS": [
-    "http://127.0.0.1:9547"
+  "cache": {
+    "engine": "memcached",
+    "servers": [
+      "127.0.0.1:11211"
+    ],
+    "defaultTtl": 36000,
+    "consistentBehavior": 1
+  },
+  "storage": {
+    "endpoint": "http://localhost:8000",
+    "region": "localhost",
+    "apiKey": "X",
+    "apiSecret": "dhananjay",
+    "apiVersion": "2012-08-10",
+    "enableSsl": "0",
+    "enableLogging": "0",
+    "enableAutoscaling": "0",
+    "autoScaling": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "dhananjay",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0"
+    }
+  },
+  "chains": [
+    {
+      "chainId": 1000,
+      "cache": {
+        "engine": "memcached",
+        "servers": [
+          "127.0.0.1:11211"
+        ],
+        "defaultTtl": 36000
+      },
+      "storage": {
+        "endpoint": "http://localhost:8000",
+        "region": "localhost",
+        "apiKey": "X",
+        "apiSecret": "X",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0",
+        "enableLogging": "0",
+        "enableAutoscaling": "0",
+        "autoScaling": {
+          "endpoint": "http://localhost:8000",
+          "region": "localhost",
+          "apiKey": "X",
+          "apiSecret": "X",
+          "apiVersion": "2012-08-10",
+          "enableSsl": "0"
+        }
+      },
+      "nodes": [
+        {
+          "client": "geth",
+          "wsEndpoint": "ws://127.0.0.1:19547",
+          "rpcEndpoint": "http://127.0.0.1:9547"
+        }
+      ]
+    },
+    {
+      "chainId": 2001,
+      "cache": {
+        "engine": "memcached",
+        "servers": [
+          "127.0.0.1:11211"
+        ],
+        "defaultTtl": 36000
+      },
+      "storage": {
+        "endpoint": "http://localhost:8000",
+        "region": "localhost",
+        "apiKey": "X",
+        "apiSecret": "X",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0",
+        "enableLogging": "0",
+        "enableAutoscaling": "0",
+        "autoScaling": {
+          "endpoint": "http://localhost:8000",
+          "region": "localhost",
+          "apiKey": "X",
+          "apiSecret": "X",
+          "apiVersion": "2012-08-10",
+          "enableSsl": "0"
+        }
+      },
+      "nodes": [
+        {
+          "client": "geth",
+          "wsEndpoint": "ws://127.0.0.1:8546",
+          "rpcEndpoint": "http://127.0.0.1:8545"
+        }
+      ]
+    }
   ],
-  "OST_UTILITY_GETH_WS_PROVIDERS": [
-    "ws://127.0.0.1:19547"
-  ],
-  "OST_UTILITY_CHAIN_ID": 1000,
-  "OST_UTILITY_CHAIN_TYPE": "geth",
-
-  "OST_VALUE_GETH_RPC_PROVIDER": "http://127.0.0.1:8545",
-  "OST_VALUE_GETH_WS_PROVIDER": "ws://127.0.0.1:18545",
-  "OST_VALUE_GETH_RPC_PROVIDERS": [
-    "http://127.0.0.1:8545"
-  ],
-  "OST_VALUE_GETH_WS_PROVIDERS": [
-    "ws://127.0.0.1:18545"
-  ],
-  "OST_VALUE_CHAIN_ID": 2001,
-  "OST_VALUE_CHAIN_TYPE": "geth",
-  "OST_RMQ_SUPPORT": "0",
-  "USE_MOCK_SIMPLE_TOKEN": "0",
-  "OST_SEALER_ADDR": "0xfb628249d7ab95a86ac9913f81bc7caf40c3e04e",
-  "OST_DEBUG_ENABLED": 1,
-  "OS_DAX_ENABLED": 0,
-  "OST_CACHE_CONSISTENT_BEHAVIOR": "0",
-  "OS_DAX_SSL_ENABLED": "0",
-  "AUTO_SCALE_DYNAMO": "0",
-  "OST_RMQ_USERNAME": "guest",
-  "OST_RMQ_PASSWORD": "guest",
-  "OST_RMQ_HOST": "127.0.0.1",
-  "OST_RMQ_PORT": "5672",
-  "OST_RMQ_HEARTBEATS": "30"
+  "extraStorageColumns": {
+    "chains": {
+      "chainName": {
+        "shortName": "cnm",
+        "dataType": "S"
+      }
+    },
+    "blocks":{
+      "totalTokenTransfers": {
+        "shortName": "ttt",
+        "dataType": "N"
+      }
+    }
+  }
 }

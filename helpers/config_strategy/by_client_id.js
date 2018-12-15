@@ -21,10 +21,11 @@ class ConfigStrategyByClientId {
   }
 
   /**
-   * Get final hash of config strategy
-   * @returns {Promise<*>}
+   * Get final hash of config strategy according to the geth endpoint type
+   *
+   * @returns {Promise<>}
    */
-  async get(gethEndPointType) {
+  async get() {
     const oThis = this;
 
     let clientId = oThis.clientId;
@@ -40,7 +41,7 @@ class ConfigStrategyByClientId {
       );
     }
 
-    let clientConfigStrategyCacheObj = new clientConfigStrategyCacheKlass({ clientIds: [clientId] }),
+    let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
       fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
 
     if (fetchCacheRsp.isFailure()) {
@@ -50,42 +51,27 @@ class ConfigStrategyByClientId {
     let cacheData = fetchCacheRsp.data[clientId];
 
     let strategyIdsArray = cacheData.configStrategyIds,
-      configStrategyCacheObj = new configStrategyCacheKlass({ strategyIds: strategyIdsArray }),
-      configStrategyFetchRsp = await configStrategyCacheObj.fetch(),
-      finalConfigStrategyFlatHash = cacheData.shard_names; //Setting the shard names for the client in the initial array itself.
+      configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),
+      configStrategyFetchRsp = await configStrategyCacheObj.fetch();
 
     if (configStrategyFetchRsp.isFailure()) {
       return Promise.reject(configStrategyFetchRsp);
     }
 
-    let configStrategyIdToDetailMap = configStrategyFetchRsp.data;
-
-    gethEndPointType = gethEndPointType ? gethEndPointType : 'read_write';
+    let finalConfigHash = {},
+      configStrategyIdToDetailMap = configStrategyFetchRsp.data;
 
     for (let configStrategyId in configStrategyIdToDetailMap) {
-      let configStrategy = configStrategyIdToDetailMap[configStrategyId];
-
-      for (let strategyKind in configStrategy) {
-        let partialConfig = configStrategy[strategyKind];
-
-        if (strategyKind == 'utility_geth') {
-          let tempConfig = partialConfig[gethEndPointType];
-          delete partialConfig['read_write'];
-          delete partialConfig['read_only'];
-          Object.assign(partialConfig, tempConfig);
-        }
-
-        Object.assign(finalConfigStrategyFlatHash, partialConfig);
-      }
+      Object.assign(finalConfigHash, configStrategyIdToDetailMap[configStrategyId]);
     }
 
-    return Promise.resolve(responseHelper.successWithData(finalConfigStrategyFlatHash));
+    return Promise.resolve(responseHelper.successWithData(finalConfigHash));
   }
 
   /**
    *
    * This function will return config strategy hash for the kind passed as an argument.
-   * @param(string) kind - kind should be provided as a string. (Eg. dynamo or dax etc)
+   * @param {string} kind - kind should be provided as a string. (Eg. dynamo or dax etc)
    * @returns {Promise<*>}
    */
   async getForKind(kind) {
@@ -103,7 +89,7 @@ class ConfigStrategyByClientId {
       );
     }
 
-    let clientConfigStrategyCacheObj = new clientConfigStrategyCacheKlass({ clientIds: [clientId] }),
+    let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
       strategyIdsFetchRsp = await clientConfigStrategyCacheObj.fetch();
 
     if (strategyIdsFetchRsp.isFailure()) {
@@ -143,22 +129,17 @@ class ConfigStrategyByClientId {
     }
 
     let strategyId = specificStrategyIdArray[0].id,
-      strategyIdArray = [strategyId];
-
-    let configStrategyCacheObj = new configStrategyCacheKlass({ strategyIds: strategyIdArray }),
+      strategyIdArray = [strategyId],
+      configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdArray }),
       configStrategyFetchRsp = await configStrategyCacheObj.fetch();
 
     if (configStrategyFetchRsp.isFailure()) {
       return Promise.reject(configStrategyFetchRsp);
     }
 
-    //prepare a hash and return
-    let configStrategyIdToDetailMap = configStrategyFetchRsp.data,
-      finalConfigStrategyHash = strategyIdsFetchRsp.data[clientId].shard_names; //Initializing the final array with auxilary data.
+    let finalConfigHash = configStrategyFetchRsp.data;
 
-    finalConfigStrategyHash[strategyId] = configStrategyIdToDetailMap[strategyId][kind];
-
-    return Promise.resolve(responseHelper.successWithData(finalConfigStrategyHash));
+    return Promise.resolve(responseHelper.successWithData(finalConfigHash));
   }
 
 }

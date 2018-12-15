@@ -9,7 +9,7 @@ class CoreConstant {
   }
 
   get SHARED_MEMCACHE_SERVERS() {
-    return process.env.OST_SHARED_MEMCACHE_SERVERS;
+    return (process.env.OST_SHARED_MEMCACHE_SERVERS).split(',');
   }
 
   get ENVIRONMENT() {
