@@ -15,7 +15,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/configStrategy'),
-  ClientConfigStrategyModel = require(rootPrefix + '/app/models/clientConfigStrategies'),
+  ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategies'),
   configStrategyCacheKlass = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 /**
