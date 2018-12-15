@@ -8,7 +8,7 @@
 
 const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  ModelBase = require(rootPrefix + '/app/models/base'),
+  ModelBase = require(rootPrefix + '/app/models/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),

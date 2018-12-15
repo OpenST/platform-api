@@ -8,7 +8,7 @@
 
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/core_constants'),
-  ModelBase = require(rootPrefix + '/app/models/base');
+  ModelBase = require(rootPrefix + '/app/models/Base');
 
 const dbName = 'saas_config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 

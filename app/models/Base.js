@@ -12,7 +12,7 @@ const rootPrefix = '../..',
   mysqlWrapper = require(rootPrefix + '/lib/mysqlWrapper'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
-class ModelBaseKlass extends MysqlQueryKlass {
+class ModelBase extends MysqlQueryKlass {
 
   constructor(params){
     super(params);
@@ -201,4 +201,4 @@ class ModelBaseKlass extends MysqlQueryKlass {
   }
 }
 
-module.exports = ModelBaseKlass;
+module.exports = ModelBase;

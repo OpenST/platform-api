@@ -2,7 +2,7 @@
 
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ModelBase = require(rootPrefix + '/app/models/base');
+  ModelBase = require(rootPrefix + '/app/models/Base');
 
 const dbName = 'saas_client_economy_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
