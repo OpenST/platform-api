@@ -188,11 +188,11 @@ class ModelBase extends MysqlQueryKlass {
   findValueOfBit(bitName) {
     const oThis = this;
 
-    for (let i = 0, keys = Object.keys(oThis.bitColumns), ii = keys.length; i < ii; i++) {
-      let columnName = keys[i];
-      let columnBits = Object.keys(oThis.bitColumns[columnName]);
-      if (columnBits.includes(bitName)) {
-        let bitValue = oThis.bitColumns[columnName][bitName];
+    for (let columnName in oThis.bitColumns) {
+      let bitNameTobitValueMap = oThis.bitColumns[columnName];
+
+      if (bitNameTobitValueMap[bitName]) {
+        let bitValue = bitNameTobitValueMap[bitName];
         return { column: columnName, bitValue: bitValue };
       }
     }
