@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * @fileoverview Base class for models
+ *
+ * @author Alpesh Modi
+ * @reviewer Kedar Chandrayan
+ */
+
 const rootPrefix = '../..',
   MysqlQueryKlass = require(rootPrefix + '/lib/queryBuilders/mysql'),
   mysqlWrapper = require(rootPrefix + '/lib/mysqlWrapper'),
@@ -25,26 +32,6 @@ class ModelBaseKlass extends MysqlQueryKlass {
   // on write connection
   onWriteConnection() {
     return mysqlWrapper.getPoolFor(this.dbName, 'master');
-  }
-
-  convertEnumForDB(params, readable) {
-    const oThis = this,
-      enumKeys = Object.keys(oThis.enums);
-
-    for (var i = 0; i < enumKeys.length; i++) {
-      var enum_k = enumKeys[i];
-
-      if (params[enum_k]) {
-        params[enum_k] = readable
-          ? oThis.enums[enum_k]['val'][params[enum_k]]
-          : oThis.enums[enum_k]['inverted'][params[enum_k]];
-      }
-    }
-    return params;
-  }
-
-  convertEnumForResult(params) {
-    return this.convertEnumForDB(params, true);
   }
 
   fire() {

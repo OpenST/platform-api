@@ -8,11 +8,11 @@
 
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/core_constants'),
-  ModelBaseKlass = require(rootPrefix + '/app/models/base');
+  ModelBase = require(rootPrefix + '/app/models/base');
 
 const dbName = 'saas_config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
-class ClientConfigStrategiesModel extends ModelBaseKlass{
+class ClientConfigStrategiesModel extends ModelBase{
 
   constructor() {
     super({ dbName: dbName });
