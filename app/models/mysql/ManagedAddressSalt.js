@@ -1,6 +1,6 @@
 'use strict';
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 

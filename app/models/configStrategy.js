@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   kmsWrapperKlass = require(rootPrefix + '/lib/authentication/kmsWrapper'),
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
-  ManagedAddressSaltModel = require(rootPrefix + '/app/models/managedAddressSalt'),
+  ManagedAddressSaltModel = require(rootPrefix + '/app/models/mysql/ManagedAddressSalt'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
