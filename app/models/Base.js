@@ -43,11 +43,11 @@ class ModelBase extends MysqlQueryKlass {
         //logger.log(queryGenerator.data.query, queryGenerator.data.queryData);
       }
 
-      var pre_query = Date.now();
-      var qry = oThis
+      let preQuery = Date.now();
+      let qry = oThis
         .onWriteConnection()
         .query(queryGenerator.data.query, queryGenerator.data.queryData, function(err, result, fields) {
-          logger.info('(' + (Date.now() - pre_query) + ' ms)', qry.sql);
+          logger.info('(' + (Date.now() - preQuery) + ' ms)', qry.sql);
           if (err) {
             onReject(err);
           } else {
