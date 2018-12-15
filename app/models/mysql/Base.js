@@ -7,7 +7,7 @@
  * @reviewer Kedar Chandrayan
  */
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   MysqlQueryKlass = require(rootPrefix + '/lib/queryBuilders/mysql'),
   mysqlWrapper = require(rootPrefix + '/lib/mysqlWrapper'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');

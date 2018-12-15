@@ -3,7 +3,7 @@
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   util = require(rootPrefix + '/lib/util'),
-  ModelBase = require(rootPrefix + '/app/models/Base');
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
 const dbName = 'saas_airdrop_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT,
   statuses = {
