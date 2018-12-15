@@ -6,7 +6,7 @@
  * @module /app/models/mysql/ClientConfigStrategies
  */
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/core_constants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 

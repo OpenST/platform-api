@@ -9,7 +9,7 @@ const rootPrefix = '../..',
   clientConfigStrategyCacheKlass = require(rootPrefix + '/sharedCacheMultiManagement/clientConfigStrategies'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ConfigStrategyModel = require(rootPrefix + '/app/models/configStrategy'),
+  ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   configStrategyCacheKlass = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 class ConfigStrategyByClientId {

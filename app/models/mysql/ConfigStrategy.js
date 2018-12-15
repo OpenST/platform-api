@@ -3,10 +3,10 @@
 /**
  * Model to get config strategies details.
  *
- * @module app/models/config_strategy
+ * @module app/models/mysql/ConfigStrategy
  */
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
