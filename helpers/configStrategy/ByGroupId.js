@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategies'),
-  configStrategyCacheKlass = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
+  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 /**
  * group_id is optional
@@ -27,10 +27,10 @@ const rootPrefix = '../..',
  */
 class ConfigStrategyByGroupId {
 
-  constructor(group_id) {
+  constructor(groupId) {
     const oThis = this;
 
-    oThis.groupId = group_id;
+    oThis.groupId = groupId;
   }
 
   /**
@@ -559,10 +559,11 @@ class ConfigStrategyByGroupId {
    */
   _validateUtilityGethParams(kind, params) {
     const oThis = this,
-      validKeys = ['read_only', 'read_write', 'OST_UTILITY_CHAIN_ID'];
+      validKeys = ['readOnly', 'readWrite', 'chainId', 'client'];
 
-    if (kind == 'utility_geth') {
-      let keys = Object.keys(params);
+    if (kind == configStrategyConstants.auxGeth) {
+      let auxGethParams = params[configStrategyConstants.auxGeth],
+        keys = Object.keys(auxGethParams);
 
       for (let i = 0; i < validKeys.length; i++) {
         if (!keys.includes(validKeys[i])) {
@@ -574,8 +575,8 @@ class ConfigStrategyByGroupId {
       for (let i = 0; i < keys.length; i++) {
         if (['read_only', 'read_write'].includes(keys[i])) {
           if (
-            !(params[keys[i]].OST_UTILITY_GETH_RPC_PROVIDERS instanceof Array) ||
-            !(params[keys[i]].OST_UTILITY_GETH_WS_PROVIDERS instanceof Array)
+            !(auxGethParams[keys[i]].rpcProviders instanceof Array) ||
+            !(auxGethParams[keys[i]].wsProviders instanceof Array)
           ) {
             logger.error('Expecting', keys[i], "key's value to be an array");
             return oThis._errorResponseHandler('h_cs_bgi_32');

@@ -8,16 +8,16 @@
 
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
-  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  kmsWrapperKlass = require(rootPrefix + '/lib/authentication/kmsWrapper'),
+  KmsWrapper = require(rootPrefix + '/lib/authentication/kmsWrapper'),
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
   ManagedAddressSaltModel = require(rootPrefix + '/app/models/mysql/ManagedAddressSalt'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 const dbName = 'saas_config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
@@ -411,7 +411,7 @@ class ConfigStrategyModel extends ModelBase {
       }));
     }
 
-    let KMSObject = new kmsWrapperKlass('managedAddresses');
+    let KMSObject = new KmsWrapper('managedAddresses');
     let decryptedSalt = await KMSObject.decrypt(addrSalt[0]['managed_address_salt']);
     if (!decryptedSalt['Plaintext']) {
       return Promise.reject(responseHelper.error({

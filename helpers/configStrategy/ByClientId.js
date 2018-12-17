@@ -2,15 +2,20 @@
 
 /**
  * This script provides config strategy on the basis of client id.
+ * This provides functionality to
+ * 1. Get Config Strategy Hash - get()
+ * 2. Get Config Strategy Hash for given kind - getForKind()
+ * 3. Get Config Strategy Ids for given kind - getStrategyIdForKind()
+ *
  * @type {string}
  */
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  clientConfigStrategyCacheKlass = require(rootPrefix + '/sharedCacheMultiManagement/clientConfigStrategies'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
-  configStrategyCacheKlass = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
+  ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategies'),
+  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 class ConfigStrategyByClientId {
 
@@ -21,7 +26,7 @@ class ConfigStrategyByClientId {
   }
 
   /**
-   * Get final hash of config strategy according to the geth endpoint type
+   * Get final hash of config strategy.
    *
    * @returns {Promise<>}
    */
@@ -140,6 +145,34 @@ class ConfigStrategyByClientId {
     let finalConfigHash = configStrategyFetchRsp.data;
 
     return Promise.resolve(responseHelper.successWithData(finalConfigHash));
+  }
+  
+  async getStrategyIdForKind(kind) {
+    const oThis = this;
+    
+    let clientId = oThis.clientId,
+      strategyIdForKind = [],
+      clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
+      strategyIdsFetchRsp = await clientConfigStrategyCacheObj.fetch();
+    
+    if (strategyIdsFetchRsp.isFailure()) {
+      return Promise.reject(strategyIdsFetchRsp);
+    }
+    
+    let strategyIdsArray = strategyIdsFetchRsp.data[clientId].configStrategyIds;
+    
+    let strategyKindtoIdMapRsp = await new ConfigStrategyModel()
+      .select(['id', 'kind'])
+      .where(['id in (?)', strategyIdsArray])
+      .fire();
+    
+    for (let index = 0; index < strategyKindtoIdMapRsp.length; index++) {
+      if (String(strategyKindtoIdMapRsp[index].kind) === configStrategyConstants.invertedKinds[kind]) {
+        strategyIdForKind.push(strategyKindtoIdMapRsp[index].id);
+      }
+    }
+    
+    return Promise.resolve(responseHelper.successWithData(strategyIdForKind));
   }
 
 }

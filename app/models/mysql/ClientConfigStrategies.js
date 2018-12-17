@@ -7,12 +7,12 @@
  */
 
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/core_constants'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
 const dbName = 'saas_config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
-class ClientConfigStrategiesModel extends ModelBase{
+class ClientConfigStrategiesModel extends ModelBase {
 
   constructor() {
     super({ dbName: dbName });
