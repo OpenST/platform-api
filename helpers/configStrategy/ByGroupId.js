@@ -3,7 +3,7 @@
 /**
  * CRUD for config_strategies table
  * This provides functionality to
- * 1. Get Config Strategy Hash - getCompleteHash, getForKind, getByGroupId
+ * 1. Get Config Strategy Hash - getCompleteHash, getForKind, getByChainId
  * 2. Add Config Strategy for given kind - addForKind
  * 3. Set status active/inactive - activateByStrategyId, activate, deactivate
  * 4. Update strategy for given kind - updateForKind
@@ -19,18 +19,18 @@ const rootPrefix = '../..',
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 /**
- * group_id is optional
+ * chain_id is optional
  *
- * @param group_id
+ * @param chain_id
  *
  * @constructor
  */
-class ConfigStrategyByGroupId {
+class ConfigStrategyByChainId {
 
-  constructor(groupId) {
+  constructor(chainId) {
     const oThis = this;
 
-    oThis.groupId = groupId;
+    oThis.chainId = chainId;
   }
 
   /**
@@ -39,13 +39,13 @@ class ConfigStrategyByGroupId {
    */
   async get() {
     const oThis = this,
-      groupId = oThis.groupId;
+      chainId = oThis.chainId;
 
-    let whereClause = ['group_id = ?', groupId];
+    let whereClause = ['chain_id = ?', chainId];
 
-    //where clause will return where group Ids are NULL
-    if (groupId === undefined) {
-      whereClause = ['group_id IS NULL'];
+    //where clause will return where chain Ids are NULL
+    if (chainId === undefined) {
+      whereClause = ['chain_id IS NULL'];
     }
 
     let finalConfigHash = {},
@@ -66,15 +66,15 @@ class ConfigStrategyByGroupId {
    */
   async getCompleteHash() {
     const oThis = this,
-      groupId = oThis.groupId;
+      chainId = oThis.chainId;
 
-    if (groupId === undefined) {
-      logger.error('Group Id is not defined. To get complete hash group id is compulsory.');
+    if (chainId === undefined) {
+      logger.error('Chain Id is not defined. To get complete hash chain id is compulsory.');
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_02'));
     }
 
     let finalConfigHash = {},
-      whereClause = ['group_id = ? OR group_id IS NULL', groupId],
+      whereClause = ['chain_id = ? OR chain_id IS NULL', chainId],
       strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause),
       configCacheResponse = await oThis._getConfigStrategyByStrategyId(strategyIdsArray),
       cacheConfig = configCacheResponse.data;
@@ -93,7 +93,7 @@ class ConfigStrategyByGroupId {
    */
   async getForKind(kind) {
     const oThis = this,
-      groupId = oThis.groupId;
+      chainId = oThis.chainId;
 
     let strategyIdInt = configStrategyConstants.invertedKinds[kind],
       whereClause = null;
@@ -103,19 +103,19 @@ class ConfigStrategyByGroupId {
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_04'));
     }
 
-    //Check if group id is needed for the given kind or not.
-    if (configStrategyConstants.kindsWithoutGroupId.includes(kind)) {
-      if (groupId) {
-        logger.error(`To get [${kind}] group id is not required.`);
+    //Check if chain id is needed for the given kind or not.
+    if (configStrategyConstants.kindsWithoutChainId.includes(kind)) {
+      if (chainId) {
+        logger.error(`To get [${kind}] chain id is not required.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_30'));
       }
-      whereClause = ['group_id IS NULL AND kind = ?', strategyIdInt];
+      whereClause = ['chain_id IS NULL AND kind = ?', strategyIdInt];
     } else {
-      if (groupId === undefined) {
-        logger.error(`Group id is mandatory for this kind. [${kind}]`);
+      if (chainId === undefined) {
+        logger.error(`chain id is mandatory for this kind. [${kind}]`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_29'));
       }
-      whereClause = ['group_id = ? AND kind = ?', groupId, strategyIdInt];
+      whereClause = ['chain_id = ? AND kind = ?', chainId, strategyIdInt];
     }
 
     return oThis._getByKindAndGroup(whereClause);
@@ -138,8 +138,8 @@ class ConfigStrategyByGroupId {
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_04'));
     }
 
-    if (oThis.groupId) {
-      whereClause = ['group_id = ? AND kind = ? AND status = ?', oThis.groupId, strategyIdInt, activeStatus];
+    if (oThis.chainId) {
+      whereClause = ['chain_id = ? AND kind = ? AND status = ?', oThis.chainId, strategyIdInt, activeStatus];
     } else {
       whereClause = ['kind = ? AND status = ?', strategyIdInt, activeStatus];
     }
@@ -154,7 +154,7 @@ class ConfigStrategyByGroupId {
     let strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause);
 
     if (strategyIdsArray.length === 0) {
-      logger.error('Strategy Id for the provided kind not found OR kind for the given group id does not exist');
+      logger.error('Strategy Id for the provided kind not found OR kind for the given chain id does not exist');
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_05'));
     }
 
@@ -190,7 +190,7 @@ class ConfigStrategyByGroupId {
    */
   async addForKind(kind, params, managedAddressSaltId) {
     const oThis = this,
-      groupId = oThis.groupId,
+      chainId = oThis.chainId,
       strategyIdInt = configStrategyConstants.invertedKinds[kind];
 
     let insertResponse;
@@ -200,10 +200,10 @@ class ConfigStrategyByGroupId {
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_07'));
     }
 
-    if (configStrategyConstants.kindsWithoutGroupId.includes(kind)) {
-      // If group id is present, reject
-      if (groupId) {
-        logger.error(`To insert [${kind}] group id is not required.`);
+    if (configStrategyConstants.kindsWithoutChainId.includes(kind)) {
+      // If chain id is present, reject
+      if (chainId) {
+        logger.error(`To insert [${kind}] chain id is not required.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_08'));
       }
 
@@ -225,19 +225,19 @@ class ConfigStrategyByGroupId {
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_10'));
       }
     } else {
-      //Group id is mandatory for the kind passed as argument.
-      //Check if same group id and kind does not exist in the table
-      if (groupId === undefined) {
-        logger.error(`To insert [${kind}] group id is mandatory.`);
+      //chain id is mandatory for the kind passed as argument.
+      //Check if same chain id and kind does not exist in the table
+      if (chainId === undefined) {
+        logger.error(`To insert [${kind}] chain id is mandatory.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_11'));
       }
 
       //Check if same kind is present in the table already.
-      let whereClause = ['group_id = ? AND kind = ?', groupId, strategyIdInt],
+      let whereClause = ['chain_id = ? AND kind = ?', chainId, strategyIdInt],
         queryResponse = await oThis._strategyIdsArrayProvider(whereClause);
 
       if (queryResponse.length > 0) {
-        logger.error(`Group Id [${groupId}] with kind [${kind}] already exists in the table.`);
+        logger.error(`chain Id [${chainId}] with kind [${kind}] already exists in the table.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_12'));
       }
 
@@ -250,7 +250,7 @@ class ConfigStrategyByGroupId {
 
       let configStrategyModelObj = new ConfigStrategyModel();
 
-      insertResponse = await configStrategyModelObj.create(kind, managedAddressSaltId, params, groupId);
+      insertResponse = await configStrategyModelObj.create(kind, managedAddressSaltId, params, chainId);
 
       if (insertResponse.isFailure()) {
         logger.error('Error while inserting data in config strategy table ');
@@ -291,28 +291,28 @@ class ConfigStrategyByGroupId {
   }
 
   /**
-   * This function updates and sets status 'active' for given group_id.
+   * This function updates and sets status 'active' for given chain_id.
    *
    * @returns {Promise<*>}
    */
   async activate() {
     const oThis = this,
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus],
-      groupId = oThis.groupId;
+      chainId = oThis.chainId;
 
-    if (groupId === undefined) {
-      logger.error(`Group id is mandatory for this function.`);
+    if (chainId === undefined) {
+      logger.error(`chain id is mandatory for this function.`);
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_16'));
     }
 
-    //This query includes NULL value of group_ids. This is done to activate the strategies for which group_ids are not needed.
+    //This query includes NULL value of chain_ids. This is done to activate the strategies for which chain_ids are not needed.
     let strategyIdResponse = await new ConfigStrategyModel()
       .update({ status: activeStatus })
-      .where(['group_id = ? OR group_id IS NULL', groupId])
+      .where(['chain_id = ? OR chain_id IS NULL', chainId])
       .fire();
 
     if (strategyIdResponse) {
-      logger.info(`Group id [${groupId}] successfully activated.`);
+      logger.info(`Chain id [${chainId}] successfully activated.`);
       //return Promise.resolve(responseHelper.successWithData({}));
     } else {
       logger.error('Error while activating strategy');
@@ -323,27 +323,27 @@ class ConfigStrategyByGroupId {
   }
 
   /**
-   * This function deactivates strategies of given group id.
+   * This function deactivates strategies of given chain id.
    *
-   * 1. get all strategy ids for the given group_id.
+   * 1. get all strategy ids for the given chain_id.
    * 2. Check if any row contains these strategy ids in client_config_strategies table.
-   * 3. Only if response array's length is 0. then deactivate those group ids.
+   * 3. Only if response array's length is 0. then deactivate those chain ids.
    *
    * @returns {Promise<*>}
    */
   async deactivate() {
     const oThis = this,
-      groupId = oThis.groupId;
+      chainId = oThis.chainId;
 
-    if (groupId === undefined) {
-      logger.error(`Group id is mandatory for this function.`);
+    if (chainId === undefined) {
+      logger.error(`chain id is mandatory for this function.`);
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_18'));
     }
 
-    let whereClause = ['group_id = ?', groupId],
+    let whereClause = ['chain_id = ?', chainId],
       distinctStrategyIdArray = await oThis._strategyIdsArrayProvider(whereClause);
 
-    //Check in client_config_strategy if those strategy ids exist in the table then don't deactivate those group ids.
+    //Check in client_config_strategy if those strategy ids exist in the table then don't deactivate those chain ids.
 
     let clientIdQueryResponse = await new ClientConfigStrategyModel()
       .select(['client_id'])
@@ -351,7 +351,7 @@ class ConfigStrategyByGroupId {
       .fire();
 
     if (clientIdQueryResponse.length > 0) {
-      logger.error(`The given group id [${groupId}] has been assigned to some existing clients. Cannot deactivate`);
+      logger.error(`The given chain id [${chainId}] has been assigned to some existing clients. Cannot deactivate`);
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_19'));
     }
 
@@ -359,15 +359,15 @@ class ConfigStrategyByGroupId {
     let inActiveStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.inActiveStatus],
       queryResponse = await new ConfigStrategyModel()
         .update({ status: inActiveStatus })
-        .where(['group_id = ?', groupId])
+        .where(['chain_id = ?', chainId])
         .fire();
 
     if (!queryResponse) {
-      logger.error('Error in Deactivating group id');
+      logger.error('Error in Deactivating chain id');
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_20'));
     }
     if (queryResponse.affectedRows > 0) {
-      logger.info(`Status of group id: [${groupId}] is now deactive.`);
+      logger.info(`Status of chain id: [${chainId}] is now deactive.`);
       //return Promise.resolve(responseHelper.successWithData({}));
     } else {
       logger.error('Strategy Id not present in the table');
@@ -387,7 +387,7 @@ class ConfigStrategyByGroupId {
    */
   async updateForKind(kind, params) {
     const oThis = this,
-      groupId = oThis.groupId,
+      chainId = oThis.chainId,
       strategyIdInt = configStrategyConstants.invertedKinds[kind];
 
     if (strategyIdInt === undefined) {
@@ -396,22 +396,22 @@ class ConfigStrategyByGroupId {
     }
 
     let whereClause = null;
-    if (configStrategyConstants.kindsWithoutGroupId.includes(kind)) {
-      //Should not have group id
-      if (groupId) {
-        logger.error(`To insert [${kind}] group id is not required.`);
+    if (configStrategyConstants.kindsWithoutChainId.includes(kind)) {
+      //Should not have chain id
+      if (chainId) {
+        logger.error(`To insert [${kind}] chain id is not required.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_23'));
       }
 
-      whereClause = ['group_id IS NULL AND kind = ?', strategyIdInt];
+      whereClause = ['chain_id IS NULL AND kind = ?', strategyIdInt];
     } else {
-      //should have group id
-      if (groupId === undefined) {
-        logger.error(`To insert [${kind}] group id is mandatory.`);
+      //should have chain id
+      if (chainId === undefined) {
+        logger.error(`To insert [${kind}] chain id is mandatory.`);
         return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_24'));
       }
 
-      whereClause = ['group_id = ? AND kind = ?', groupId, strategyIdInt];
+      whereClause = ['chain_id = ? AND kind = ?', chainId, strategyIdInt];
     }
 
     let existingData = await new ConfigStrategyModel()
@@ -420,12 +420,12 @@ class ConfigStrategyByGroupId {
       .fire();
 
     if (existingData.length === 0) {
-      logger.error('Strategy Id for the provided kind not found OR kind for the given group id does not exist');
+      logger.error('Strategy Id for the provided kind not found OR kind for the given chain id does not exist');
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_25'));
     }
 
     if (existingData.length > 1) {
-      logger.error('Multiple entries(rows) found for the same group id and kind combination');
+      logger.error('Multiple entries(rows) found for the same chain id and kind combination');
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_26'));
     }
 
@@ -479,14 +479,14 @@ class ConfigStrategyByGroupId {
 
   async getStrategyIds() {
     const oThis = this;
-    let groupId = oThis.groupId;
+    let chainId = oThis.chainId;
 
-    if (groupId === undefined) {
-      logger.error(`Group id is mandatory.`);
+    if (chainId === undefined) {
+      logger.error(`Chain id is mandatory.`);
       return Promise.reject(oThis._errorResponseHandler('h_cs_bgi_29'));
     }
 
-    let whereClause = ['group_id = ? OR group_id IS NULL', groupId],
+    let whereClause = ['chain_id = ? OR chain_id IS NULL', chainId],
       strategyIdArray = await oThis._strategyIdsArrayProvider(whereClause);
 
     if (strategyIdArray.length > 0) {
@@ -615,4 +615,4 @@ class ConfigStrategyByGroupId {
 
 }
 
-module.exports = ConfigStrategyByGroupId;
+module.exports = ConfigStrategyByChainId;

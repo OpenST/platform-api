@@ -66,7 +66,7 @@ class ClientConfigStrategiesModel extends ModelBase {
     const oThis = this;
 
     return oThis
-      .select(['client_id', 'config_strategy_id', 'auxilary_data'])
+      .select(['client_id', 'config_strategy_id'])
       .where({ client_id: clientId })
       .fire();
   }
@@ -82,7 +82,7 @@ class ClientConfigStrategiesModel extends ModelBase {
     const oThis = this;
 
     return oThis
-      .select(['client_id', 'config_strategy_id', 'auxilary_data'])
+      .select(['client_id', 'config_strategy_id'])
       .where(['client_id IN (?)', clientIds])
       .fire();
   }
