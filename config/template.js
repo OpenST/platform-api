@@ -13,6 +13,7 @@ configTemplate['rootLevelEntities'][configStrategyConstants.originGeth] = "origi
 configTemplate['rootLevelEntities'][configStrategyConstants.auxGeth] = "auxGethEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = "elasticSearchEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = "rabbitmqEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.sharedRabbitmq] = "sharedRabbitmqEntity";
 
 configTemplate['entitiesMap'] = {
 
@@ -182,6 +183,17 @@ configTemplate['entitiesMap'] = {
     entityType: 'string'
   },
 
+  sharedRabbitmqEntity: {
+    entityType: 'object',
+    entitiesPresent: {
+      username: 'usernameEntity',
+      password: 'passwordEntity',
+      host: 'hostEntity',
+      port: 'portEntity',
+      heartbeats: 'heartbeatsEntity',
+      clusterNodes: 'clusterNodesEntity'
+    }
+  },
   rabbitmqEntity: {
     entityType: 'object',
     entitiesPresent: {

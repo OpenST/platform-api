@@ -245,6 +245,10 @@ class ConfigStrategyModel extends ModelBase {
 
       configStrategyHash[configStrategyConstants.rabbitmq].password = decryptedJsonObj.rmqPassword;
 
+    } else if(kinds[strategyKind]== configStrategyConstants.sharedRabbitmq){
+
+      configStrategyHash[configStrategyConstants.sharedRabbitmq].password = decryptedJsonObj.rmqPassword;
+
     }
     return configStrategyHash;
   }
@@ -604,6 +608,13 @@ class ConfigStrategyModel extends ModelBase {
       let rmqPassword = hashNotToEncrypt[configStrategyConstants.rabbitmq].password;
 
       hashNotToEncrypt[configStrategyConstants.rabbitmq].password = "{{rmqPassword}}";
+      hashToEncrypt["rmqPassword"] = rmqPassword;
+
+    } else if (strategyKindName == configStrategyConstants.sharedRabbitmq){
+
+      let rmqPassword = hashNotToEncrypt[configStrategyConstants.sharedRabbitmq].password;
+
+      hashNotToEncrypt[configStrategyConstants.sharedRabbitmq].password = "{{rmqPassword}}";
       hashToEncrypt["rmqPassword"] = rmqPassword;
 
     }
