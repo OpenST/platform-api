@@ -25,7 +25,7 @@ const rootPrefix = '../..',
  *
  * @constructor
  */
-class ConfigStrategyByChainId {
+class ConfigStrategyByGroupId {
 
   constructor(chainId) {
     const oThis = this;
@@ -615,4 +615,4 @@ class ConfigStrategyByChainId {
 
 }
 
-module.exports = ConfigStrategyByChainId;
+module.exports = ConfigStrategyByGroupId;
