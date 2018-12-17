@@ -56,30 +56,6 @@ class CoreConstant {
     return process.env.CR_ECONOMY_DB_MYSQL_PASSWORD;
   }
 
-  get OST_RMQ_HOST() {
-    return process.env.OST_RMQ_HOST;
-  }
-
-  get OST_RMQ_PORT() {
-    return process.env.OST_RMQ_PORT;
-  }
-
-  get OST_RMQ_USERNAME() {
-    return process.env.OST_RMQ_USERNAME;
-  }
-
-  get OST_RMQ_PASSWORD() {
-    return process.env.OST_RMQ_PASSWORD;
-  }
-
-  get OST_RMQ_HEARTBEATS() {
-    return process.env.OST_RMQ_HEARTBEATS;
-  }
-
-  get OST_RMQ_SUPPORT() {
-    return process.env.OST_RMQ_SUPPORT;
-  }
-
   get CR_TRANSACTION_DB_MYSQL_HOST() {
     return process.env.CR_TRANSACTION_DB_MYSQL_HOST;
   }

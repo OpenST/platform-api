@@ -219,7 +219,8 @@ if (cluster.isMaster) {
 
   //  Called when all workers are disconnected and handles are closed.
   cluster.on('disconnect', function(worker) {
-    logger.notify('a_3', `[worker-${worker.id}] is disconnected`);
+    //TODO:- temp change (remove this and use notify of platform)
+    logger.error('a_3', `[worker-${worker.id}] is disconnected`);
     // when a worker disconnects, decrement the online worker count
     onlineWorker = onlineWorker - 1;
   });
@@ -231,13 +232,15 @@ if (cluster.isMaster) {
       logger.info(`[worker-${worker.id}] voluntary exit. signal: ${signal}. code: ${code}`);
     } else {
       // restart worker as died unexpectedly
-      logger.notify(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
+      //TODO:- temp change (remove this and use notify of platform)
+      logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
       cluster.fork();
     }
   });
   // Exception caught
   process.on('uncaughtException', function(err) {
-    logger.notify('app_crash_1', 'app server exited unexpectedly. Reason: ', err);
+    //TODO:- temp change (remove this and use notify of platform)
+    logger.error('app_crash_1', 'app server exited unexpectedly. Reason: ', err);
     process.exit(1);
   });
   // When someone try to kill the master process
@@ -321,7 +324,8 @@ if (cluster.isMaster) {
   // error handler
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    logger.notify('a_6', 'Something went wrong', err);
+    //TODO:- temp change (remove this and use notify of platform)
+    logger.error('a_6', 'Something went wrong', err);
     return responseHelper
       .error({
         internal_error_identifier: 'a_6',
@@ -387,11 +391,13 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      logger.notify('a_6', bind + ' requires elevated privileges');
+      //TODO:- temp change (remove this and use notify of platform)
+      logger.error('a_6', bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      logger.notify('a_7', bind + ' is already in use');
+      //TODO:- temp change (remove this and use notify of platform)
+      logger.error('a_7', bind + ' is already in use');
       process.exit(1);
       break;
     default:
