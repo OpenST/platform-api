@@ -32,7 +32,7 @@ class CronProcessesModel extends ModelBaseKlass{
   
   /**
    *
-   * @param id
+   * @param {Number} id
    * @returns {Promise<>}
    */
   get(id) {
@@ -47,15 +47,16 @@ class CronProcessesModel extends ModelBaseKlass{
   }
 
   /**
+   * This method inserts an entry in the table.
    *
-   * @param params
-   *        params.kind {string}
-   *        params.ipAddress {string}
-   *        params.groupId {number}
-   *        params.params {string}
-   *        params.status {string}
-   *        params.lastStartTime {number}
-   *        params.lastEndTime {number}
+   * @param {Object} params
+   * @param {String} params.kind
+   * @param {String} params.ipAddress
+   * @param {Number} params.groupId
+   * @param {String} params.params
+   * @param {String} params.status
+   * @param {Number} params.lastStartTime
+   * @param {Number} params.lastEndTime
    * @returns {*}
    */
   insertRecord(params) {
@@ -81,12 +82,13 @@ class CronProcessesModel extends ModelBaseKlass{
   }
 
   /**
+   * This method updates the last start time and status of an entry.
    *
-   * @param params
-   * @param params.id {number}
-   * @param params.kind {string}
-   * @param params.newLastStartTime {string}
-   * @param params.newStatus {string}
+   * @param {Object} params
+   * @param {Number} params.id
+   * @param {String} params.kind
+   * @param {String} params.newLastStartTime
+   * @param {String} params.newStatus
    * @returns {Promise<*>}
    */
   async updateLastStartTimeAndStatus(params) {
@@ -112,11 +114,12 @@ class CronProcessesModel extends ModelBaseKlass{
   }
 
   /**
+   * This method updates the last end time and status of an entry.
    *
-   * @param params
-   *        params.id {number}
-   *        params.newLastEndTime {number}
-   *        params.newStatus {string}
+   * @param {Object} params
+   * @param {Number} params.id
+   * @param {Number} params.newLastEndTime
+   * @param {String} params.newStatus
    * @returns {Promise<*>}
    */
   async updateLastEndTimeAndStatus(params) {
