@@ -1,20 +1,27 @@
 'use strict';
-
 /**
  * Model to get cron process and its details.
  *
- * @module /app/models/cron_processes
+ * @module /app/models/mysql/cronProcesses
  */
-
-const rootPrefix = '../..',
-  coreConstants = require(rootPrefix + '/config/core_constants'),
-  ModelBaseKlass = require(rootPrefix + '/app/models/base'),
+const rootPrefix = '../../..',
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 const dbName = 'saas_config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
+/**
+ * Class for cron process model
+ *
+ * @class
+ */
 class CronProcessesModel extends ModelBaseKlass{
-  
+  /**
+   * Constructor for cron process model
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
     
@@ -127,7 +134,5 @@ class CronProcessesModel extends ModelBaseKlass{
       .fire();
   }
 }
-
-Object.assign(CronProcessesModel.prototype, CronProcessInfoModelSpecificPrototype);
 
 module.exports = CronProcessesModel;
