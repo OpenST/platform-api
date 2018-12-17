@@ -17,6 +17,7 @@ const rootPrefix = '../../..',
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
   ManagedAddressSaltModel = require(rootPrefix + '/app/models/mysql/ManagedAddressSalt'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  configValidator = require(rootPrefix + '/helpers/configValidator'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
@@ -45,11 +46,11 @@ class ConfigStrategyModel extends ModelBase {
   * @param kind(eg. dynamo, memcached etc)
   * @param managedAddressSaltId
   * @param configStrategyParams: It contains complete configuration of any particular kind
-  * @param group_id: Group Id to associate for the given params.(optional)
+  * @param chainId: Group Id to associate for the given params.(optional)
   * @return {Promise<integer>} - returns a Promise with integer of strategy id.
   *
   */
-  async create(kind, managedAddressSaltId, configStrategyParams, groupId) {
+  async create(kind, managedAddressSaltId, configStrategyParams, chainId) {
     const oThis = this,
       strategyKindInt = invertedKinds[kind];
 
@@ -65,8 +66,8 @@ class ConfigStrategyModel extends ModelBase {
       );
     }
 
-    if (groupId === undefined) {
-      groupId = null;
+    if (chainId === undefined) {
+      chainId = null;
     }
 
     if (!configStrategyParams) {
@@ -81,10 +82,10 @@ class ConfigStrategyModel extends ModelBase {
       );
     }
 
-    let validation = await oThis._validateSpecificParameterKeys(kind, configStrategyParams);
+    let validationResult = configValidator.validateConfigStrategy(kind, configStrategyParams);
 
-    if (validation.isFailure()) {
-      logger.error('Specific validation failed');
+    if (validationResult === false) {
+      logger.error('Config validation failed');
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_mo_cs_c_15',
@@ -111,8 +112,6 @@ class ConfigStrategyModel extends ModelBase {
     let hashedConfigStrategyParams = hashedConfigStrategyParamsResponse.data;
 
     let strategyIdPresentInDB = await new ConfigStrategyModel().getByParams(hashedConfigStrategyParams);
-    logger.info('strategyIdPresentInDB------', strategyIdPresentInDB);
-
 
     if (strategyIdPresentInDB !== null) {
       //If configStrategyParamsNotToEncrypt is already present in database then id of that param is sent
@@ -153,7 +152,7 @@ class ConfigStrategyModel extends ModelBase {
         hashNotToEncryptString = JSON.stringify(hashNotToEncrypt);
 
       const data = {
-        group_id: groupId,
+        chain_id: chainId,
         kind: strategyKindInt,
         encrypted_params: encryptedHash,
         unencrypted_params: hashNotToEncryptString,
@@ -229,7 +228,14 @@ class ConfigStrategyModel extends ModelBase {
 
     return Promise.resolve(finalResult);
   }
-
+  
+  /**
+   *
+   * @param strategyKind
+   * @param configStrategyHash
+   * @param decryptedJsonObj
+   * @return configStrategyHash
+   */
   mergeConfigResult(strategyKind, configStrategyHash, decryptedJsonObj) {
 
     if(kinds[strategyKind]== configStrategyConstants.dynamodb) {
@@ -252,42 +258,26 @@ class ConfigStrategyModel extends ModelBase {
     }
     return configStrategyHash;
   }
-
+  
   /**
+   *
+   * @param kind
+   * @param chainId
+   * @return {Promise<any>}
    * @private
-   *
-   * This function is used by JSON.parse to check the key and value before returning.
-   *
    */
-  _dataReviver(key, value) {
-    if (
-      key == 'OST_UTILITY_GETH_RPC_PROVIDERS' ||
-      key == 'OST_UTILITY_GETH_WS_PROVIDERS' ||
-      key == 'OST_VALUE_GETH_RPC_PROVIDERS' ||
-      key == 'OST_VALUE_GETH_WS_PROVIDERS'
-    ) {
-      return JSON.parse(value);
-    }
-    return value;
-  }
-
-  /*
-   *
-   * @param {string}:
-   */
-  async _getStrategyIdsByKindAndGroupId(kind, group_id) {
+  async _getStrategyIdsByKindAndChainId(kind, chainId) {
     const oThis = this,
-      strategyKindInt = invertedKinds[kind],
-      groupId = group_id;
+      strategyKindInt = invertedKinds[kind];
 
-    if (strategyKindInt == undefined) {
+    if (strategyKindInt === undefined) {
       throw 'Error: Improper kind parameter';
     }
 
-    let query = oThis.select(['id', 'group_id']).where('kind = ' + strategyKindInt);
+    let query = oThis.select(['id', 'chain_id']).where('kind = ' + strategyKindInt);
 
-    if (group_id) {
-      query.where([' (group_id = ? OR group_id IS NULL)', group_id]);
+    if (chainId) {
+      query.where([' (chain_id = ? OR chain_id IS NULL)', chainId]);
     }
 
     let queryResult = await query.fire();
@@ -297,35 +287,35 @@ class ConfigStrategyModel extends ModelBase {
 
   /*
    *
-   * This function returns distinct group ids whose status is currently 'active':
+   * This function returns distinct chain-ids whose status is currently 'active':
    *
    * @return [Array]
    */
-  async getDistinctActiveGroupIds() {
+  async getDistinctActiveChainIds() {
     const oThis = this;
 
     let distinctGroupIdArray = [],
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus];
 
     let query = oThis
-        .select('group_id')
+        .select('chain_id')
         .where(['status = ?', activeStatus])
-        .group_by('group_id'),
+        .group_by('chain_id'),
       queryResult = await query.fire();
 
     for (let i = 0; i < queryResult.length; i++) {
-      distinctGroupIdArray.push(queryResult[i].group_id);
+      distinctGroupIdArray.push(queryResult[i].chain_id);
     }
 
-    return Promise.resolve(responseHelper.successWithData(distinctGroupIdArray));
+    return Promise.resolve(responseHelper.successWithData(distinctChainIdArray));
   }
 
   /**
-   * This function returns group ids of the strategy ids passed as an array
+   * This function returns chain ids of the strategy ids passed as an array
    * @param strategyIdsArray
    * @returns {Promise<*>}
    */
-  async getGroupIdsByStrategyIds(strategyIdsArray) {
+  async getChainIdsByStrategyIds(strategyIdsArray) {
     const oThis = this;
 
     if (strategyIdsArray.length === 0) {
@@ -341,7 +331,7 @@ class ConfigStrategyModel extends ModelBase {
     }
 
     const queryResult = await oThis
-      .select(['id', 'group_id'])
+      .select(['id', 'chain_id'])
       .where(['id IN (?)', strategyIdsArray])
       .fire();
 
@@ -395,12 +385,12 @@ class ConfigStrategyModel extends ModelBase {
 
     return Promise.resolve(responseHelper.successWithData({ addressSalt: configSalt }));
   }
-
+  
   /**
-   * @private
    *
    * @param managedAddressSaltId
-   *
+   * @return {Promise<*>}
+   * @private
    */
 
   async _fetchAddressSalt(managedAddressSaltId) {
@@ -462,10 +452,10 @@ class ConfigStrategyModel extends ModelBase {
       managedAddressSaltId = queryResult[0].managed_address_salts_id,
       strategyKindName = configStrategyConstants.kinds[strategyKind];
 
-    let validation = await oThis._validateSpecificParameterKeys(strategyKindName, configStrategyParams);
+    let validationResult = configValidator.validateConfigStrategy(strategyKindName, configStrategyParams);
 
-    if (validation.isFailure()) {
-      logger.error('Specific validation failed');
+    if (validationResult === false) {
+      logger.error('Config validation failed');
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_mo_cs_c_16',
@@ -560,7 +550,7 @@ class ConfigStrategyModel extends ModelBase {
 
   /**
    *
-   * @param (object) paramsHash (complete hash of that strategy)
+   * @param {object} paramsHash (complete hash of that strategy)
    *
    * @return {Promise<Promise<never> | Promise<any>>}
    *
@@ -575,10 +565,12 @@ class ConfigStrategyModel extends ModelBase {
   }
 
   /**
+   * Segregate encrypted and un-encrypted config hash
    *
-   * @param(string) strategyKind
-   * @param(object) configStrategyParams
-   * @returns {Promise<any>}
+   * @param {string} strategyKindName
+   * @param {object} configStrategyParams
+   *
+   * @returns {Promise<hash>}
    * @private
    */
   async _getSeparateHashes(strategyKindName, configStrategyParams) {
@@ -628,9 +620,10 @@ class ConfigStrategyModel extends ModelBase {
   }
 
   /**
+   * Encrypt params using salt
    *
-   * @param(object) paramsToEncrypt
-   * @param(integer) managed_address_salt_id
+   * @param{Object} paramsToEncrypt
+   * @param {number} managedAddressSaltId
    * @returns {Promise<*>}
    * @private
    */
@@ -652,47 +645,6 @@ class ConfigStrategyModel extends ModelBase {
       encryptedConfigStrategyParams = localCipher.encrypt(response.data.addressSalt, paramsToEncryptString);
 
     return Promise.resolve(responseHelper.successWithData(encryptedConfigStrategyParams));
-  }
-
-  /**
-   * This function will validate only utility constants, value_geth and utility_geth
-   * @param strategyKind
-   * @param paramsToValidate
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _validateSpecificParameterKeys(strategyKind, paramsToValidate) {
-
-
-    return Promise.resolve(responseHelper.successWithData({}));
-  }
-
-  async _validateUtilityProviderForUniqueness(paramsToValidate) {
-    let keyWhoseValueShouldBeAnObject = ['read_only', 'read_write'],
-      keysWhoseValueShouldBeAnArray = ['OST_UTILITY_GETH_RPC_PROVIDERS', 'OST_UTILITY_GETH_WS_PROVIDERS'];
-
-    for (let index in keyWhoseValueShouldBeAnObject) {
-      let keyWhoseValueToCheck = keyWhoseValueShouldBeAnObject[index],
-        value = paramsToValidate[keyWhoseValueToCheck];
-
-      for (let i in keysWhoseValueShouldBeAnArray) {
-        let keyName = keysWhoseValueShouldBeAnArray[i],
-          providerArray = value[keyName];
-
-        if (providerArray.length !== new Set(providerArray).size) {
-          logger.error(`[${keysWhoseValueShouldBeAnArray[i]}] contains non-unique endpoints.`);
-          return Promise.reject(
-            responseHelper.error({
-              internal_error_identifier: 'm_tb_dshh_y_5',
-              api_error_identifier: 'something_went_wrong',
-              debug_options: {}
-            })
-          );
-        }
-      }
-    }
-
-    return Promise.resolve(responseHelper.successWithData({}));
   }
 }
 

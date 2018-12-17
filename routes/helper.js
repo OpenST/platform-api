@@ -5,7 +5,7 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   apiParamsValidator = require(rootPrefix + '/lib/validators/apiParams'),
-  //ConfigStrategyHelper = require(rootPrefix + '/helpers/config_strategy/by_client_id'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   OSTBase = require("@openstfoundation/openst-base"),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -21,7 +21,8 @@ class RouteMethods {
         if (responseHelper.isCustomResult(error)) {
           error.renderResponse(res, errorConfig);
         } else {
-          logger.notify(errorCode, 'Something went wrong', error);
+          //TODO:- temp change (remove this and use notify of platform)
+          logger.error(errorCode, 'Something went wrong', error);
 
           responseHelper
             .error({
@@ -88,9 +89,9 @@ class RouteMethods {
     return data;
   }
 
-  static async _fetchConfigStrategy(client_id) {
+  static async _fetchConfigStrategy(clientId) {
 
-    let configStrategyHelper = new ConfigStrategyHelper(client_id),
+    let configStrategyHelper = new ConfigStrategyHelper(clientId),
       configStrategyRsp = await configStrategyHelper.get();
 
     if (configStrategyRsp.isFailure()) {

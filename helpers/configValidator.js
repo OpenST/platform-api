@@ -26,19 +26,16 @@ class ConfigurationHelper {
       rootLevelEntities = configTemplate.rootLevelEntities,
       entitiesMap = configTemplate.entitiesMap;
 
-    console.log("entityName-----", entityName);
-
     let returnFlag = true,
       configEntityName = rootLevelEntities[entityName];
 
     if(!configEntityName || !entitiesMap[configEntityName]){
       returnFlag = false;
     } else {
-      console.log("configuration-----", configuration);
-      console.log("configEntityName-----", configEntityName);
-      console.log("configuration[entityName]-----", configuration[entityName]);
 
-      console.log("entitiesMap[configEntityName]-----", entitiesMap[configEntityName]);
+      logger.log("configuration[entityName]-----", configuration[entityName]);
+      logger.log("entitiesMap[configEntityName]-----", entitiesMap[configEntityName]);
+      
       if (entitiesMap[configEntityName]['entityType'] === 'object') {
         returnFlag = returnFlag && oThis._validateObjectTypeEntity(configEntityName, configuration[entityName]);
       } else if (entitiesMap[configEntityName]['entityType'] === 'array') {
@@ -73,23 +70,16 @@ class ConfigurationHelper {
 
     let returnFlag = true;
 
-    console.log("\n\n\nentityName, configToValidate-----", entityName, configToValidate);
-
     //validation if the configToValidate is present and it is an object
     if (!configToValidate || typeof configToValidate !== 'object') {
-      logger.error(`${entityName} is either not present or it is not an object.`);
+      logger.error(`${configToValidate} : re${entityName} is either not present or it is not an object.`);
       returnFlag = false;
       return returnFlag;
     }
-
-    console.log("\n\n\nentitiesMap[entityName]['entitiesPresent']-----", entitiesMap[entityName]['entitiesPresent']);
     for (let secondLevelEntity in entitiesMap[entityName]['entitiesPresent']) {
       //eg. secondLevelEntity="engine"
       let secondLevelEntityName = entitiesMap[entityName]['entitiesPresent'][secondLevelEntity]; //eg. secondLevelEntityName = "engineEntity"
 
-
-      console.log("\n\n\nsecondLevelEntity-----", secondLevelEntity);
-      console.log("\n\n\nconfigToValidate[secondLevelEntity]-----", configToValidate[secondLevelEntity]);
       if (entitiesMap[secondLevelEntityName]['entityType'] === 'string') {
         if (!oThis._validateStringTypeEntity(configToValidate[secondLevelEntity])) {
           logger.error(`${secondLevelEntity} value should be string in ${entityName}`);
