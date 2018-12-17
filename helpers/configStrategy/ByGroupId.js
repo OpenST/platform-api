@@ -13,8 +13,8 @@
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategies'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 

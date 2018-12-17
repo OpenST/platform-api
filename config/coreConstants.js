@@ -173,6 +173,10 @@ class CoreConstant {
     return process.env.BUFFER_VALUE_GAS_PRICE;
   }
 
+  get blockRetryCount() {
+    return 10;
+  }
+
 }
 
 module.exports = new CoreConstant();
