@@ -35,7 +35,7 @@ class BasicHelperKlass {
   /**
    * Check if amount is valid wei number and not zero
    *
-   * @param {number} amountInWei - amount in wei
+   * @param {Number} amountInWei - amount in wei
    *
    * @return {boolean}
    */
@@ -53,16 +53,21 @@ class BasicHelperKlass {
       }
     }
 
-    return !(!bigNumAmount || bigNumAmount.lessThan(1) || bigNumAmount.isNaN() || !bigNumAmount.isFinite() ||
-    bigNumAmount.mod(oneForMod) != 0);
+    return !(
+      !bigNumAmount ||
+      bigNumAmount.lessThan(1) ||
+      bigNumAmount.isNaN() ||
+      !bigNumAmount.isFinite() ||
+      bigNumAmount.mod(oneForMod) != 0
+    );
   }
 
   /**
    * Convert wei to proper string. Make sure it's a valid number
    *
-   * @param {number} amountInWei - amount in wei to be formatted
+   * @param {Number} amountInWei - amount in wei to be formatted
    *
-   * @return {string}
+   * @return {String}
    */
   formatWeiToString(amountInWei) {
     const oThis = this;
@@ -72,7 +77,7 @@ class BasicHelperKlass {
   /**
    * Convert number to big number. Make sure it's a valid number
    *
-   * @param {number} number - number to be formatted
+   * @param {Number} number - number to be formatted
    *
    * @return {BigNumber}
    */
@@ -83,7 +88,7 @@ class BasicHelperKlass {
   /**
    * Convert number to Hex
    *
-   * @param {number} number - number to be formatted
+   * @param {Number} number - number to be formatted
    *
    * @return {BigNumber}
    */
@@ -94,7 +99,7 @@ class BasicHelperKlass {
   /**
    * Check if address is valid or not
    *
-   * @param {string} address - Address
+   * @param {String} address - Address
    *
    * @return {boolean}
    */
@@ -108,7 +113,7 @@ class BasicHelperKlass {
   /**
    * Check if branded token name is valid or not
    *
-   * @param {string} name - Branded token name
+   * @param {String} name - Branded token name
    *
    * @return {boolean}
    */
@@ -123,7 +128,7 @@ class BasicHelperKlass {
   /**
    * Check if transaction kind name is valid or not
    *
-   * @param {string} name - Tx Kind name
+   * @param {String} name - Tx Kind name
    *
    * @return {boolean}
    */
@@ -137,7 +142,7 @@ class BasicHelperKlass {
   /**
    * Check if user name is valid or not
    *
-   * @param {string} name - username
+   * @param {String} name - username
    *
    * @return {boolean}
    */
@@ -152,7 +157,7 @@ class BasicHelperKlass {
   /**
    * Check if branded token symbol is valid or not
    *
-   * @param {string} symbol - Branded token symbol
+   * @param {String} symbol - Branded token symbol
    *
    * @return {boolean}
    */
@@ -166,7 +171,7 @@ class BasicHelperKlass {
   /**
    * Check if branded token conversion rate is valid or not
    *
-   * @param {number} conversionRate - Branded token conversion rate
+   * @param {Number} conversionRate - Branded token conversion rate
    *
    * @return {boolean}
    */
@@ -177,7 +182,7 @@ class BasicHelperKlass {
   /**
    * Check if uuid is valid or not
    *
-   * @param {string} uuid - UUID of user, branded token etc.
+   * @param {String} uuid - UUID of user, branded token etc.
    *
    * @return {boolean}
    */
@@ -192,7 +197,7 @@ class BasicHelperKlass {
   /**
    * Check if Token UUID is valid or not (hex format)
    *
-   * @param {string} uuid - Branded Token UUID
+   * @param {String} uuid - Branded Token UUID
    *
    * @return {boolean}
    */
@@ -206,7 +211,7 @@ class BasicHelperKlass {
   /**
    * Check if eth address is valid or not
    *
-   * @param {string} address - address
+   * @param {String} address - address
    *
    * @return {boolean}
    */
@@ -220,7 +225,7 @@ class BasicHelperKlass {
   /**
    * Check if string has stop words
    *
-   * @param {string} string
+   * @param {String} string
    *
    * @return {boolean}
    */
@@ -255,7 +260,7 @@ class BasicHelperKlass {
    *
    * @param {String} apiVersion
    *
-   * @return {object}
+   * @return {Object}
    */
   fetchErrorConfig(apiVersion) {
     let paramErrorConfig;

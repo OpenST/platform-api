@@ -29,7 +29,6 @@ const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
  * @constructor
  */
 class ConfigStrategyModel extends ModelBase {
-
   constructor() {
     super({ dbName: dbName });
 
@@ -41,11 +40,11 @@ class ConfigStrategyModel extends ModelBase {
   /**
    * Create record of config strategy
    *
-   * @param kind {string} - kind string
-   * @param chainId {number} - chain id
-   * @param groupId {number} - group id
-   * @param allParams {object} - all params object
-   * @param encryptionSaltId {number} (optional) - encryption salt id - presently the id of managed_address_salts table
+   * @param kind {String} - kind string
+   * @param chainId {Number} - chain id
+   * @param groupId {Number} - group id
+   * @param allParams {Object} - all params object
+   * @param encryptionSaltId {Number} (optional) - encryption salt id - presently the id of managed_address_salts table
    *
    * @returns {Promise<*>}
    */
@@ -85,10 +84,12 @@ class ConfigStrategyModel extends ModelBase {
       logger.info('The given params is already present in database with id:', strategyIdPresentInDB);
       return Promise.resolve(responseHelper.successWithData(strategyIdPresentInDB));
     } else {
-      
       let separateHashesResponse = await oThis._getSeparateHashes(kind, allParams);
       if (separateHashesResponse.isFailure()) {
-        return oThis._customError('a_mo_m_cs_8', 'Error while segregating params into encrypted hash and unencrypted hash');
+        return oThis._customError(
+          'a_mo_m_cs_8',
+          'Error while segregating params into encrypted hash and unencrypted hash'
+        );
       }
 
       let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
@@ -112,7 +113,7 @@ class ConfigStrategyModel extends ModelBase {
         hashed_params: hashedConfigStrategyParams,
         status: 2
       };
-      
+
       const dbId = await oThis.insert(data).fire();
 
       return Promise.resolve(responseHelper.successWithData(dbId.insertId));
@@ -175,13 +176,13 @@ class ConfigStrategyModel extends ModelBase {
         configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
 
       localDecryptedJsonObj = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
-      
+
       finalResult[queryResult[i].id] = localDecryptedJsonObj;
     }
 
     return Promise.resolve(finalResult);
   }
-  
+
   /**
    *
    * @param strategyKind
@@ -190,24 +191,23 @@ class ConfigStrategyModel extends ModelBase {
    * @return configStrategyHash
    */
   mergeConfigResult(strategyKind, configStrategyHash, decryptedJsonObj) {
-
-    if(kinds[strategyKind] == configStrategyConstants.dynamodb || kinds[strategyKind] == configStrategyConstants.globalDynamo) {
-
+    if (
+      kinds[strategyKind] == configStrategyConstants.dynamodb ||
+      kinds[strategyKind] == configStrategyConstants.globalDynamo
+    ) {
       configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.dynamoApiSecret;
       configStrategyHash[kinds[strategyKind]].autoScaling.apiSecret = decryptedJsonObj.dynamoAutoscalingApiSecret;
-
-    } else if(kinds[strategyKind] == configStrategyConstants.elasticSearch){
-
+    } else if (kinds[strategyKind] == configStrategyConstants.elasticSearch) {
       configStrategyHash[kinds[strategyKind]].secretKey = decryptedJsonObj.esSecretKey;
-
-    } else if(kinds[strategyKind] == configStrategyConstants.rabbitmq || kinds[strategyKind] == configStrategyConstants.globalRabbitmq){
-
+    } else if (
+      kinds[strategyKind] == configStrategyConstants.rabbitmq ||
+      kinds[strategyKind] == configStrategyConstants.globalRabbitmq
+    ) {
       configStrategyHash[kinds[strategyKind]].password = decryptedJsonObj.rmqPassword;
-
     }
     return configStrategyHash;
   }
-  
+
   /**
    *
    * @param kind
@@ -334,7 +334,7 @@ class ConfigStrategyModel extends ModelBase {
 
     return Promise.resolve(responseHelper.successWithData({ addressSalt: configSalt }));
   }
-  
+
   /**
    *
    * @param managedAddressSaltId
@@ -343,25 +343,28 @@ class ConfigStrategyModel extends ModelBase {
    */
 
   async _fetchAddressSalt(managedAddressSaltId) {
-
     let addrSalt = await new ManagedAddressSaltModel().getById(managedAddressSaltId);
 
     if (!addrSalt[0]) {
-      return Promise.reject(responseHelper.error({
-        internal_error_identifier: 'cm_mas_1',
-        api_error_identifier: 'invalid_params',
-        error_config: errorConfig
-      }));
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'cm_mas_1',
+          api_error_identifier: 'invalid_params',
+          error_config: errorConfig
+        })
+      );
     }
 
     let KMSObject = new KmsWrapper('managedAddresses');
     let decryptedSalt = await KMSObject.decrypt(addrSalt[0]['managed_address_salt']);
     if (!decryptedSalt['Plaintext']) {
-      return Promise.reject(responseHelper.error({
-        internal_error_identifier: 'cm_mas_2',
-        api_error_identifier: 'invalid_params',
-        error_config: errorConfig
-      }));
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'cm_mas_2',
+          api_error_identifier: 'invalid_params',
+          error_config: errorConfig
+        })
+      );
     }
 
     let salt = decryptedSalt['Plaintext'];
@@ -372,7 +375,7 @@ class ConfigStrategyModel extends ModelBase {
   /**
    *
    * @param {integer} strategy_id
-   * @param {object} config_strategy_params
+   * @param {Object} config_strategy_params
    * @returns {Promise<*>}
    */
   async updateStrategyId(strategy_id, config_strategy_params) {
@@ -419,13 +422,19 @@ class ConfigStrategyModel extends ModelBase {
 
     if (strategyIdPresentInDB !== null && strategyIdPresentInDB != strategyId) {
       //If configStrategyParams is already present in database then id of that param is sent
-      return oThis._customError('mo_m_cs_usi_4', 'The config strategy is already present in database with id: ' + strategyIdPresentInDB);
+      return oThis._customError(
+        'mo_m_cs_usi_4',
+        'The config strategy is already present in database with id: ' + strategyIdPresentInDB
+      );
     }
 
     //Segregate data to encrypt and data not to encrypt
     let separateHashesResponse = await oThis._getSeparateHashes(strategyKindName, configStrategyParams);
     if (separateHashesResponse.isFailure()) {
-      return oThis._customError('mo_m_cs_usi_5', 'Error while segregating params into encrypted hash and unencrypted hash');
+      return oThis._customError(
+        'mo_m_cs_usi_5',
+        'Error while segregating params into encrypted hash and unencrypted hash'
+      );
     }
 
     let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
@@ -451,14 +460,13 @@ class ConfigStrategyModel extends ModelBase {
 
   /**
    *
-   * @param {object} paramsHash (complete hash of that strategy)
+   * @param {Object} paramsHash (complete hash of that strategy)
    *
    * @return {Promise<Promise<never> | Promise<any>>}
    *
    * @private
    */
   async _getSHAOf(paramsHash) {
-
     let finalHashToGetShaOfString = JSON.stringify(paramsHash),
       shaOfStrategyParams = localCipher.getShaHashedText(finalHashToGetShaOfString);
 
@@ -468,41 +476,41 @@ class ConfigStrategyModel extends ModelBase {
   /**
    * Segregate encrypted and un-encrypted config hash
    *
-   * @param {string} strategyKindName
-   * @param {object} configStrategyParams
+   * @param {String} strategyKindName
+   * @param {Object} configStrategyParams
    *
    * @returns {Promise<hash>}
    * @private
    */
   async _getSeparateHashes(strategyKindName, configStrategyParams) {
-
     let hashToEncrypt = {},
       hashNotToEncrypt = configStrategyParams;
 
-    if(strategyKindName == configStrategyConstants.dynamodb || strategyKindName == configStrategyConstants.globalDynamodb){
+    if (
+      strategyKindName == configStrategyConstants.dynamodb ||
+      strategyKindName == configStrategyConstants.globalDynamodb
+    ) {
       let dynamoApiSecret = hashNotToEncrypt[strategyKindName].apiSecret,
         dynamoAutoscalingApiSecret = hashNotToEncrypt[strategyKindName].autoScaling.apiSecret;
 
-      hashNotToEncrypt[strategyKindName].apiSecret = "{{dynamoApiSecret}}";
-      hashToEncrypt["dynamoApiSecret"] = dynamoApiSecret;
+      hashNotToEncrypt[strategyKindName].apiSecret = '{{dynamoApiSecret}}';
+      hashToEncrypt['dynamoApiSecret'] = dynamoApiSecret;
 
-      hashNotToEncrypt[strategyKindName].autoScaling.apiSecret = "{{dynamoAutoscalingApiSecret}}";
-      hashToEncrypt["dynamoAutoscalingApiSecret"] = dynamoAutoscalingApiSecret;
-
-    } else if (strategyKindName == configStrategyConstants.elasticSearch){
-
+      hashNotToEncrypt[strategyKindName].autoScaling.apiSecret = '{{dynamoAutoscalingApiSecret}}';
+      hashToEncrypt['dynamoAutoscalingApiSecret'] = dynamoAutoscalingApiSecret;
+    } else if (strategyKindName == configStrategyConstants.elasticSearch) {
       let esSecretKey = hashNotToEncrypt[strategyKindName].secretKey;
 
-      hashNotToEncrypt[strategyKindName].secretKey = "{{esSecretKey}}";
-      hashToEncrypt["esSecretKey"] = esSecretKey;
-
-    } else if (strategyKindName == configStrategyConstants.rabbitmq || strategyKindName == configStrategyConstants.globalRabbitmq){
-
+      hashNotToEncrypt[strategyKindName].secretKey = '{{esSecretKey}}';
+      hashToEncrypt['esSecretKey'] = esSecretKey;
+    } else if (
+      strategyKindName == configStrategyConstants.rabbitmq ||
+      strategyKindName == configStrategyConstants.globalRabbitmq
+    ) {
       let rmqPassword = hashNotToEncrypt[strategyKindName].password;
 
-      hashNotToEncrypt[strategyKindName].password = "{{rmqPassword}}";
-      hashToEncrypt["rmqPassword"] = rmqPassword;
-
+      hashNotToEncrypt[strategyKindName].password = '{{rmqPassword}}';
+      hashToEncrypt['rmqPassword'] = rmqPassword;
     }
 
     let returnHash = {
@@ -517,7 +525,7 @@ class ConfigStrategyModel extends ModelBase {
    * Encrypt params using salt
    *
    * @param{Object} paramsToEncrypt
-   * @param {number} managedAddressSaltId
+   * @param {Number} managedAddressSaltId
    * @returns {Promise<*>}
    * @private
    */
@@ -544,7 +552,7 @@ class ConfigStrategyModel extends ModelBase {
   /**
    * Sets the status of given strategy id as active.
    *
-   * @param {number}id - config_strategy_id from config_strategies table
+   * @param {Number}id - config_strategy_id from config_strategies table
    * @returns {Promise<*>}
    */
   async activateById(id) {
@@ -582,7 +590,7 @@ class ConfigStrategyModel extends ModelBase {
       responseHelper.error({
         internal_error_identifier: errCode,
         api_error_identifier: 'something_went_wrong',
-        debug_options: {errMsg: errMsg},
+        debug_options: { errMsg: errMsg },
         error_config: errorConfig
       })
     );

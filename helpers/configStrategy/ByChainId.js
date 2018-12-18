@@ -92,8 +92,12 @@ class ConfigStrategyByChainId {
     let strategyKindIntValue = await configStrategyValidator.getStrategyKindInt(kind),
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus];
 
-    return oThis._fetchAndCombineConfig(['chain_id = ? AND kind = ? AND status = ?',
-      oThis.chainId, strategyKindIntValue, activeStatus]);
+    return oThis._fetchAndCombineConfig([
+      'chain_id = ? AND kind = ? AND status = ?',
+      oThis.chainId,
+      strategyKindIntValue,
+      activeStatus
+    ]);
   }
 
   /**
@@ -146,8 +150,12 @@ class ConfigStrategyByChainId {
       .fire();
 
     if (clientIdQueryResponse.length > 0) {
-      return Promise.reject(oThis._customError('h_cs_bgi_19',
-        `The given chain id [${chainId}] has been assigned to some existing clients. Cannot deactivate`));
+      return Promise.reject(
+        oThis._customError(
+          'h_cs_bgi_19',
+          `The given chain id [${chainId}] has been assigned to some existing clients. Cannot deactivate`
+        )
+      );
     }
 
     //now set status as inactive
@@ -211,11 +219,12 @@ class ConfigStrategyByChainId {
       queryResponse = await oThis._strategyIdsArrayProvider(whereClause);
 
     if (queryResponse.length > 0) {
-      return Promise.reject(oThis._customError('h_cs_bgi_12',
-        `chain Id [${chainId}] with kind [${kind}] already exists in the table.`));
+      return Promise.reject(
+        oThis._customError('h_cs_bgi_12', `chain Id [${chainId}] with kind [${kind}] already exists in the table.`)
+      );
     }
 
-    return new ConfigStrategyModel().create(kind, chainId, oThis.groupId, allParams, encryptionSaltId );
+    return new ConfigStrategyModel().create(kind, chainId, oThis.groupId, allParams, encryptionSaltId);
   }
 
   /**
@@ -239,13 +248,18 @@ class ConfigStrategyByChainId {
       .fire();
 
     if (existingData.length === 0) {
-      return Promise.reject(oThis._customError('h_cs_bgi_25',
-        'Strategy Id for the provided kind not found OR kind for the given chain id does not exist'));
+      return Promise.reject(
+        oThis._customError(
+          'h_cs_bgi_25',
+          'Strategy Id for the provided kind not found OR kind for the given chain id does not exist'
+        )
+      );
     }
 
     if (existingData.length > 1) {
-      return Promise.reject(oThis._customError('h_cs_bgi_26',
-        'Multiple entries(rows) found for the same chain id and kind combination'));
+      return Promise.reject(
+        oThis._customError('h_cs_bgi_26', 'Multiple entries(rows) found for the same chain id and kind combination')
+      );
     }
 
     let existingStrategyId = existingData[0].id;
@@ -269,7 +283,7 @@ class ConfigStrategyByChainId {
     let chainId = oThis.chainId;
 
     if (chainId === undefined) {
-      return oThis._customError('h_cs_bgi_29', "Chain id is mandatory.");
+      return oThis._customError('h_cs_bgi_29', 'Chain id is mandatory.');
     }
 
     let whereClause = ['chain_id = ? OR chain_id = 0', chainId],
@@ -284,7 +298,7 @@ class ConfigStrategyByChainId {
 
   /**
    * This function returns config strategy of the strategy ids passed as argument
-   * @param {array}strategyIdsArray
+   * @param {Array}strategyIdsArray
    * @returns {Promise<*>}
    * @private
    */
@@ -365,12 +379,11 @@ class ConfigStrategyByChainId {
       responseHelper.error({
         internal_error_identifier: errCode,
         api_error_identifier: 'something_went_wrong',
-        debug_options: {errMsg: errMsg},
+        debug_options: { errMsg: errMsg },
         error_config: errorConfig
       })
     );
   }
-
 }
 
 module.exports = ConfigStrategyByChainId;

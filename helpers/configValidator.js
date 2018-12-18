@@ -16,8 +16,8 @@ class ConfigurationHelper {
   /**
    * This function returns true if the given configuration is as per the template format
    *
-   * @param {string} entityName //eg. entityName=cacheEntity, configuration[key] = {"engine":"memcache" ....}
-   * @param {object} configuration
+   * @param {String} entityName //eg. entityName=cacheEntity, configuration[key] = {"engine":"memcache" ....}
+   * @param {Object} configuration
    *
    * @returns {boolean}
    */
@@ -29,13 +29,12 @@ class ConfigurationHelper {
     let returnFlag = true,
       configEntityName = rootLevelEntities[entityName];
 
-    if(!configEntityName || !entitiesMap[configEntityName]){
+    if (!configEntityName || !entitiesMap[configEntityName]) {
       returnFlag = false;
     } else {
+      logger.log('configuration[entityName]-----', configuration[entityName]);
+      logger.log('entitiesMap[configEntityName]-----', entitiesMap[configEntityName]);
 
-      logger.log("configuration[entityName]-----", configuration[entityName]);
-      logger.log("entitiesMap[configEntityName]-----", entitiesMap[configEntityName]);
-      
       if (entitiesMap[configEntityName]['entityType'] === 'object') {
         returnFlag = returnFlag && oThis._validateObjectTypeEntity(configEntityName, configuration[entityName]);
       } else if (entitiesMap[configEntityName]['entityType'] === 'array') {
@@ -51,7 +50,6 @@ class ConfigurationHelper {
           returnFlag = false;
         }
       }
-
     }
 
     return returnFlag;
@@ -70,7 +68,7 @@ class ConfigurationHelper {
 
     let returnFlag = true;
 
-    console.trace('configToValidate-----', configToValidate)
+    console.trace('configToValidate-----', configToValidate);
     //validation if the configToValidate is present and it is an object
     if (!configToValidate || typeof configToValidate !== 'object') {
       logger.error(`${configToValidate} : ${entityName} is either not present or it is not an object.`);

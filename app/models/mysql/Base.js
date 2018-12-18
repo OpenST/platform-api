@@ -13,15 +13,13 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 class ModelBase extends MysqlQueryKlass {
-
-  constructor(params){
+  constructor(params) {
     super(params);
 
     const oThis = this;
     oThis.dbName = params.dbName;
 
     oThis.bitColumns = {};
-
   }
 
   // get read connection
@@ -67,7 +65,7 @@ class ModelBase extends MysqlQueryKlass {
   /**
    * Validate all Bitwise columns of a model for uniqueness.
    *
-   * @return {string}
+   * @return {String}
    */
   validateBitColumns() {
     const oThis = this;
@@ -96,7 +94,7 @@ class ModelBase extends MysqlQueryKlass {
    *
    * @param bitName
    * @param previousValue
-   * @return {number}
+   * @return {Number}
    */
   setBit(bitName, previousValue) {
     const oThis = this;
@@ -116,7 +114,7 @@ class ModelBase extends MysqlQueryKlass {
    *
    * @param bitName
    * @param previousValue
-   * @return {number}
+   * @return {Number}
    */
   unsetBit(bitName, previousValue) {
     const oThis = this;
