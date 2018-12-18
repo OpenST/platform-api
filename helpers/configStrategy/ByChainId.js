@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  * CRUD for config_strategies table
  * This provides functionality to
@@ -8,7 +7,7 @@
  * 3. Set status active/inactive - activateByStrategyId, activate, deactivate
  * 4. Update strategy for given kind - updateForKind
  * 5. Get all strategy kinds present - getAllKinds
- * @type {string}
+ * @module helpers/configStrategy/ByChainId
  */
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -20,18 +19,24 @@ const rootPrefix = '../..',
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
 
 /**
- * chain_id is optional
+ * Class for config strategy by chain id helper.
  *
- * @param chain_id
- *
- * @constructor
+ * @class
  */
-class ConfigStrategyByGroupId {
-
-  constructor(chainId) {
+class ConfigStrategyByChainId {
+  /**
+   * Constructor for config strategy by chain id helper.
+   *
+   * @param {Number} [chainId]
+   * @param {Number} [groupId]
+   *
+   * @constructor
+   */
+  constructor(chainId, groupId) {
     const oThis = this;
 
     oThis.chainId = chainId;
+    oThis.groupId = groupId;
   }
 
   /**
@@ -59,7 +64,7 @@ class ConfigStrategyByGroupId {
   /**
    * Get config for a kind and a chain id
    *
-   * @param kind
+   * @param {String} kind
    *
    * @returns {Promise<*>}
    */
@@ -77,7 +82,7 @@ class ConfigStrategyByGroupId {
   /**
    * Get for kind - rows which have active status
    *
-   * @param kind {number} - kind
+   * @param kind {Number} - kind
    *
    * @returns {Promise<any>}
    */
@@ -169,7 +174,7 @@ class ConfigStrategyByGroupId {
   /**
    * Get all kinds
    *
-   * @returns {object}
+   * @returns {Object}
    */
   getAllKinds() {
     return configStrategyConstants.kinds;
@@ -179,17 +184,17 @@ class ConfigStrategyByGroupId {
    * This function adds a strategy in config_strategies table. If the kind being inserted in value_geth or utility_geth then
    * WS provider and RPC provider is also inserted in the chain_geth_providers table.
    *
-   * @param {string} kind (Eg:'dynamo')
-   * @param {object} params - Hash of config params related to this kind
-   * @param {number} encryptionSaltId - managed_address_salt_id from managed_address_salt table
+   * @param {String} kind (Eg:'dynamo')
+   * @param {Object} params - Hash of config params related to this kind
+   * @param {Number} encryptionSaltId - managed_address_salt_id from managed_address_salt table
    * @returns {Promise<never>}
    */
   /**
    * Insert into config_strategies
    *
-   * @param kind {string} - kind
-   * @param allParams {object} - all params
-   * @param encryptionSaltId {number} - encryption salt id
+   * @param {String} kind: kind
+   * @param {Object} allParams: all params
+   * @param {Number} encryptionSaltId: encryption salt id
    *
    * @returns {Promise<*>}
    */
@@ -201,7 +206,7 @@ class ConfigStrategyByGroupId {
 
     await configStrategyValidator.validateChainIdKindCombination(kind, chainId);
 
-    // check if kind is already present for this chain id. If yes, reject.
+    // Check if kind is already present for this chain id. If yes, reject.
     let whereClause = ['chain_id = ? AND kind = ?', chainId, strategyKindInt],
       queryResponse = await oThis._strategyIdsArrayProvider(whereClause);
 
@@ -210,14 +215,14 @@ class ConfigStrategyByGroupId {
         `chain Id [${chainId}] with kind [${kind}] already exists in the table.`));
     }
 
-    return new ConfigStrategyModel().create(kind, encryptionSaltId, allParams, chainId);
+    return new ConfigStrategyModel().create(kind, chainId, oThis.groupId, allParams, encryptionSaltId );
   }
 
   /**
    * Update Strategy by kind and chain id.
    *
-   * @param kind {string}
-   * @param params {object}
+   * @param kind {String}
+   * @param params {Object}
    *
    * @returns {Promise<>}
    */
@@ -325,7 +330,7 @@ class ConfigStrategyByGroupId {
   /**
    * Given a where clause, fetch all the config rows and merge them and return the final hash
    *
-   * @param whereClause {string} - where clause
+   * @param whereClause {Array} - where clause
    *
    * @returns {Promise<any>}
    *
@@ -368,4 +373,4 @@ class ConfigStrategyByGroupId {
 
 }
 
-module.exports = ConfigStrategyByGroupId;
+module.exports = ConfigStrategyByChainId;

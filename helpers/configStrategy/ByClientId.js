@@ -7,7 +7,7 @@
  * 2. Get Config Strategy Hash for given kind - getForKind()
  * 3. Get Config Strategy Ids for given kind - getStrategyIdForKind()
  *
- * @type {string}
+ * @type {String}
  */
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -70,7 +70,7 @@ class ConfigStrategyByClientId {
   /**
    *
    * This function will return config strategy hash for the kind passed as an argument.
-   * @param {string} kind - kind should be provided as a string. (Eg. dynamo or dax etc)
+   * @param {String} kind - kind should be provided as a string. (Eg. dynamo or dax etc)
    * @returns {Promise<*>}
    */
   async getForKind(kind) {

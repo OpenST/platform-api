@@ -1,25 +1,23 @@
 'use strict';
-
 /**
  * Model to get config strategies details.
  *
  * @module app/models/mysql/ConfigStrategy
  */
-
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
-  KmsWrapper = require(rootPrefix + '/lib/authentication/kmsWrapper'),
-  InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
-  ManagedAddressSaltModel = require(rootPrefix + '/app/models/mysql/ManagedAddressSalt'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   configValidator = require(rootPrefix + '/helpers/configValidator'),
+  KmsWrapper = require(rootPrefix + '/lib/authentication/kmsWrapper'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
+  InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
+  configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  ManagedAddressSaltModel = require(rootPrefix + '/app/models/mysql/ManagedAddressSalt');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
   dbName = 'config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT,
@@ -70,7 +68,7 @@ class ConfigStrategyModel extends ModelBase {
 
     // check if proper keys are present in all params
     if (!configValidator.validateConfigStrategy(kind, allParams)) {
-      return oThis._customError('a_mo_m_cs_6', 'Config params validation failed for:', JSON.stringify(allParams));
+      return oThis._customError('a_mo_m_cs_6', 'Config params validation failed for: ' + JSON.stringify(allParams));
     }
 
     let hashedConfigStrategyParamsResponse = await oThis._getSHAOf(allParams),
@@ -91,7 +89,6 @@ class ConfigStrategyModel extends ModelBase {
       let separateHashesResponse = await oThis._getSeparateHashes(kind, allParams);
       if (separateHashesResponse.isFailure()) {
         return oThis._customError('a_mo_m_cs_8', 'Error while segregating params into encrypted hash and unencrypted hash');
-        logger.error('Error while segregating params into encrypted hash and unencrypted hash');
       }
 
       let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
@@ -194,16 +191,16 @@ class ConfigStrategyModel extends ModelBase {
    */
   mergeConfigResult(strategyKind, configStrategyHash, decryptedJsonObj) {
 
-    if(kinds[strategyKind]== configStrategyConstants.dynamodb || kinds[strategyKind]== configStrategyConstants.globalDynamo) {
+    if(kinds[strategyKind] == configStrategyConstants.dynamodb || kinds[strategyKind] == configStrategyConstants.globalDynamo) {
 
       configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.dynamoApiSecret;
       configStrategyHash[kinds[strategyKind]].autoScaling.apiSecret = decryptedJsonObj.dynamoAutoscalingApiSecret;
 
-    } else if(kinds[strategyKind]== configStrategyConstants.elasticSearch){
+    } else if(kinds[strategyKind] == configStrategyConstants.elasticSearch){
 
       configStrategyHash[kinds[strategyKind]].secretKey = decryptedJsonObj.esSecretKey;
 
-    } else if(kinds[strategyKind]== configStrategyConstants.rabbitmq || kinds[strategyKind]== configStrategyConstants.globalRabbitmq){
+    } else if(kinds[strategyKind] == configStrategyConstants.rabbitmq || kinds[strategyKind] == configStrategyConstants.globalRabbitmq){
 
       configStrategyHash[kinds[strategyKind]].password = decryptedJsonObj.rmqPassword;
 

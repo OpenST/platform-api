@@ -13,10 +13,13 @@ configTemplate['rootLevelEntities'][configStrategyConstants.dynamodb] = "dynamod
 configTemplate['rootLevelEntities'][configStrategyConstants.globalDynamo] = "dynamodbEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.inMemoryCache] = "inMemoryCacheEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.originGeth] = "originGethEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.originConstants] = "originConstantsEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.auxGeth] = "auxGethEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.auxConstants] = "auxConstantsEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = "elasticSearchEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = "rabbitmqEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.globalRabbitmq] = "globalRabbitmqEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.constants] = "constantsEntity";
 
 configTemplate['entitiesMap'] = {
 
@@ -148,6 +151,18 @@ configTemplate['entitiesMap'] = {
   gethClientEntity: {
     entityType: 'string'
   },
+
+  originConstantsEntity: {
+    entityType: 'object',
+    entitiesPresent: {
+      dummy1: 'dummyEntity',
+      dummy2: 'dummyEntity',
+    }
+  },
+  dummyEntity: {
+    entityType: 'string'
+  },
+
   auxGethEntity: {
     entityType: 'object',
     entitiesPresent: {
@@ -164,6 +179,14 @@ configTemplate['entitiesMap'] = {
       rpcProviders: 'rpcProvidersEntity',
       wsProvider: 'wsProviderEntity',
       wsProviders: 'wsProvidersEntity',
+    }
+  },
+
+  auxConstantsEntity: {
+    entityType: 'object',
+    entitiesPresent: {
+      dummy3: 'dummyEntity',
+      dummy4: 'dummyEntity',
     }
   },
 
@@ -226,6 +249,13 @@ configTemplate['entitiesMap'] = {
   },
   clusterNodeEntity: {
     entityType: 'string'
+  },
+
+  constantsEntity: {
+    entityType: 'object',
+    entitiesPresent: {
+      originChainId: 'chainIdEntity'
+    }
   }
 
 };
