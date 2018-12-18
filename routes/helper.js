@@ -1,12 +1,14 @@
 'use strict';
 
+const OSTBase = require("@openstfoundation/openst-base");
+
 const rootPrefix = '..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   apiParamsValidator = require(rootPrefix + '/lib/validators/apiParams'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
-  OSTBase = require("@openstfoundation/openst-base"),
   InstanceComposer = OSTBase.InstanceComposer;
 
 class RouteMethods {
@@ -72,7 +74,7 @@ class RouteMethods {
 
     let instanceComposer = new InstanceComposer(configStrategy);
 
-    let Klass = instanceComposer.getShadowedClassFor('saas::SaasNamespace', CallerKlassGetter);
+    let Klass = instanceComposer.getShadowedClassFor(coreConstants.icNameSpace, CallerKlassGetter);
 
     return new Klass(req.serviceParams).perform().then(handleResponse);
   }

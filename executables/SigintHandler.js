@@ -1,28 +1,40 @@
 'use strict';
-
+/**
+ * This code handles sigint and sigterm signals.
+ *
+ * @module executables/sigintHandler
+ */
 const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessHandler = require(rootPrefix + '/lib/cronProcessesHandler'),
   cronProcessHandlerObject = new cronProcessHandler();
 
-// Constructor
-class SigIntHandler {
-
+/**
+ * Class for sigint handler
+ *
+ * @class
+ */
+class SigintHandler {
+  /**
+   * Constructor for sigint handler
+   *
+   * @constructor
+   */
   constructor(params) {
     const oThis = this;
+
     oThis.idToBeKilled = params.id;
 
     oThis.attachHandlers();
   }
 
   /**
-   * attachHandlers - Attach SIGINT/SIGTERM handlers to the current process
-   *
+   * Attach SIGINT/SIGTERM handlers to the current process.
    */
   attachHandlers() {
     const oThis = this;
 
-    oThis.pendingTasksDone(); // Throw if the method is not implemented by caller
+    oThis.pendingTasksDone(); // Throw if the method is not implemented by caller.
 
     let handle = function() {
       oThis.stopPickingUpNewTasks();
@@ -59,8 +71,7 @@ class SigIntHandler {
   }
 
   /**
-   * This function provides info whether the process has to exit
-   *
+   * This function provides info whether the process has to exit.
    */
   pendingTasksDone() {
     throw 'pendingTasksDone method should be implemented by the caller for SIGINT handling';
@@ -68,4 +79,4 @@ class SigIntHandler {
 
 }
 
-module.exports = SigIntHandler;
+module.exports = SigintHandler;
