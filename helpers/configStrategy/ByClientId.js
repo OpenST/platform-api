@@ -15,7 +15,8 @@ const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategies'),
-  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
+  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy'),
+  configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
 
 class ConfigStrategyByClientId {
 
@@ -36,14 +37,7 @@ class ConfigStrategyByClientId {
     let clientId = oThis.clientId;
 
     if (clientId === undefined) {
-      logger.error('client Id is not defined. To get complete hash client id is compulsory.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'h_cs_bci_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
+      return oThis._customError('h_cs_bci_1', 'client Id is not defined. To get complete hash client id is compulsory.')
     }
 
     let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
@@ -84,14 +78,7 @@ class ConfigStrategyByClientId {
       clientId = oThis.clientId;
 
     if (clientId === undefined) {
-      logger.error('client Id is not defined. To get complete hash client id is compulsory.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'h_cs_bci_3',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
+      return oThis._customError('h_cs_bci_2', 'client Id is not defined. To get complete hash client id is compulsory.');
     }
 
     let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
@@ -100,37 +87,17 @@ class ConfigStrategyByClientId {
     if (strategyIdsFetchRsp.isFailure()) {
       return Promise.reject(strategyIdsFetchRsp);
     }
-
-    let strategyIdInt = configStrategyConstants.invertedKinds[kind];
-
-    if (strategyIdInt === undefined) {
-      logger.error('Provided kind is not proper. Please check kind');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'h_cs_bci_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-
     let strategyIdsArray = strategyIdsFetchRsp.data[clientId].configStrategyIds;
 
+    let strategyKindInt = await configStrategyValidator.getStrategyKindInt(kind);
     //Following is to fetch specific strategy id for the kind passed.
     let specificStrategyIdArray = await new ConfigStrategyModel()
       .select(['id'])
-      .where(['id in (?) AND kind = ?', strategyIdsArray, strategyIdInt])
+      .where(['id in (?) AND kind = ?', strategyIdsArray, strategyKindInt])
       .fire();
 
     if (specificStrategyIdArray.length !== 1) {
-      logger.error('Strategy Id for the provided kind not found.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'h_cs_bci_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
+      return oThis._customError('h_cs_bci_4', 'Strategy Id for the provided kind not found');
     }
 
     let strategyId = specificStrategyIdArray[0].id,
@@ -173,6 +140,27 @@ class ConfigStrategyByClientId {
     }
     
     return Promise.resolve(responseHelper.successWithData(strategyIdForKind));
+  }
+
+
+  /**
+   * Custom error
+   *
+   * @param errCode
+   * @param errMsg
+   * @returns {Promise<never>}
+   * @private
+   */
+  _customError(errCode, errMsg) {
+    logger.error(errMsg);
+    return Promise.reject(
+      responseHelper.error({
+        internal_error_identifier: errCode,
+        api_error_identifier: 'something_went_wrong',
+        debug_options: {errMsg: errMsg},
+        error_config: errorConfig
+      })
+    );
   }
 
 }

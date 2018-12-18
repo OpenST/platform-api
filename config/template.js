@@ -6,14 +6,17 @@ const rootPrefix = '..',
 let configTemplate = {'entitiesMap': {}, 'rootLevelEntities': {}};
 
 configTemplate['rootLevelEntities'][configStrategyConstants.memcached] = "memcachedEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.globalMemcached] = "memcachedEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.nonceMemcached] = "memcachedEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.globalNonceMemcached] = "memcachedEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.dynamodb] = "dynamodbEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.globalDynamo] = "dynamodbEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.inMemoryCache] = "inMemoryCacheEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.originGeth] = "originGethEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.auxGeth] = "auxGethEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = "elasticSearchEntity";
 configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = "rabbitmqEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.sharedRabbitmq] = "sharedRabbitmqEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.globalRabbitmq] = "globalRabbitmqEntity";
 
 configTemplate['entitiesMap'] = {
 
@@ -183,7 +186,7 @@ configTemplate['entitiesMap'] = {
     entityType: 'string'
   },
 
-  sharedRabbitmqEntity: {
+  globalRabbitmqEntity: {
     entityType: 'object',
     entitiesPresent: {
       username: 'usernameEntity',

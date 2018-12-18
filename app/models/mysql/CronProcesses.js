@@ -9,7 +9,7 @@ const rootPrefix = '../../..',
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
-const dbName = 'saas_config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
+const dbName = 'config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
 /**
  * Class for cron process model
