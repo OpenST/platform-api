@@ -10,6 +10,7 @@
     "@openstfoundation/openst-base": "0.9.3-beta.12",
     "@openstfoundation/openst-cache": "1.0.6-beta.10",
     "@openstfoundation/openst-notification": "1.0.6-beta.6",
+    "@openstfoundation/openst-block-scanner": "0.0.1-beta.26",
     "abi-decoder": "1.2.0",
     "aws-sdk": "2.373.0",
     "bn.js": "4.11.8",

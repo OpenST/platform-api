@@ -70,9 +70,10 @@ class ConfigurationHelper {
 
     let returnFlag = true;
 
+    console.trace('configToValidate-----', configToValidate)
     //validation if the configToValidate is present and it is an object
     if (!configToValidate || typeof configToValidate !== 'object') {
-      logger.error(`${configToValidate} : re${entityName} is either not present or it is not an object.`);
+      logger.error(`${configToValidate} : ${entityName} is either not present or it is not an object.`);
       returnFlag = false;
       return returnFlag;
     }
