@@ -343,6 +343,8 @@ class BlockScanner extends SigIntHandler {
               new oThis.TokenTransferParser(chainId, oThis.rawBlock, processedReceipts, nodes)
                 .perform()
                 .then(function() {  // Token transfer parser was successful.
+                  //TODO: Add dirty balances entry in MySQL.
+                  //TODO: Chainable
                   unAckCount--;
                   logger.debug('------unAckCount -> ', unAckCount);
                   // ACK RMQ.
