@@ -479,7 +479,7 @@ class ConfigStrategyModel extends ModelBase {
     let hashToEncrypt = {},
       hashNotToEncrypt = configStrategyParams;
 
-    if(strategyKindName == configStrategyConstants.dynamodb || strategyKindName == configStrategyConstants.globalDynamo){
+    if(strategyKindName == configStrategyConstants.dynamodb || strategyKindName == configStrategyConstants.globalDynamodb){
       let dynamoApiSecret = hashNotToEncrypt[strategyKindName].apiSecret,
         dynamoAutoscalingApiSecret = hashNotToEncrypt[strategyKindName].autoScaling.apiSecret;
 
