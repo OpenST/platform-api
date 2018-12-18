@@ -15,21 +15,20 @@ const OSTBase = require('@openstfoundation/openst-base');
 const rootPrefix = '../..',
   InstanceComposer = OSTBase.InstanceComposer,
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   SigIntHandler = require(rootPrefix + '/executables/SigintHandler'),
   CronProcessesHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
-  StrategyByGroupHelper = require(rootPrefix + '/helpers/configStrategy/ByGroupId'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   CronProcessHandlerObject = new CronProcessesHandler();
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/providers/blockScanner');
-
 /**
- * This function demonstrates how to use the transaction delegator cron.
+ * This function demonstrates how to use the block scanner worker cron.
  */
 const usageDemo = function() {
   logger.log('Usage:', 'node executables/blockScanner/Worker.js processLockId');
@@ -118,7 +117,7 @@ class BlockScanner extends SigIntHandler {
     await oThis.warmUpWeb3Pool();
 
     // Initialize certain variables.
-    oThis.init();
+    await oThis.init();
 
     // Initialize certain variables.
     await oThis.startSubscription();
@@ -156,27 +155,27 @@ class BlockScanner extends SigIntHandler {
    *
    * @returns {Promise<void>}
    */
-  //TODO: Fetch config strategy by chainId.
   async warmUpWeb3Pool() {
+    // Fetch config strategy by chainId.
     const oThis = this,
-      utilityGethType = 'read_only',
-      strategyByGroupHelperObj = new StrategyByGroupHelper(groupId),
-      configStrategyResp = await strategyByGroupHelperObj.getCompleteHash(utilityGethType);
+      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+      configStrategyResp = await strategyByChainHelperObj.getComplete();
 
     if (configStrategyResp.isFailure()) {
-      logger.log('=====');
-      process.exit(1);
+      logger.error('Could not fetch configStrategy. Exiting the process.');
+      process.emit('SIGINT');
     }
 
     const configStrategy = configStrategyResp.data;
     oThis.ic = new InstanceComposer(configStrategy);
 
-    let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
+    let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE,
+      wsProviders = configStrategy.auxGeth.readOnly.wsProviders;
 
-    logger.log('====Warming up geth pool for providers', configStrategy.OST_UTILITY_GETH_WS_PROVIDERS);
+    logger.log('====Warming up geth pool for providers====', wsProviders);
 
-    for (let ind = 0; ind < configStrategy.OST_UTILITY_GETH_WS_PROVIDERS.length; ind++) {
-      let provider = configStrategy.OST_UTILITY_GETH_WS_PROVIDERS[ind];
+    for (let index = 0; index < configStrategy.wsProviders.length; index++) {
+      let provider = configStrategy.wsProviders[index];
       for (let i = 0; i < web3PoolSize; i++) {
         web3InteractFactory.getInstance(provider);
       }
@@ -187,7 +186,7 @@ class BlockScanner extends SigIntHandler {
    * Initializes Promise queue manager, transaction parser service and transfer
    * parser service.
    */
-  init() {
+  async init() {
     const oThis = this;
 
     // Initialize PromiseQueueManager.
@@ -202,14 +201,13 @@ class BlockScanner extends SigIntHandler {
       }
     });
 
-    // Get blockScanner provider.
-    const blockScannerProvider = oThis.ic.getInstanceFor(coreConstants.icNameSpace, 'blockScannerProvider');
-
     // Get blockScanner object.
-    oThis.blockScannerObj = blockScannerProvider.getInstance();
+    oThis.blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
 
     oThis.TransactionParser = oThis.blockScannerObj.transaction.Parser;
     oThis.TokenTransferParser = oThis.blockScannerObj.transfer.Parser;
+
+    return Promise.resolve();
   }
 
   /**
@@ -454,7 +452,7 @@ class BlockScanner extends SigIntHandler {
 // Check whether the cron can be started or not.
 CronProcessHandlerObject.canStartProcess({
   id: +processLockId, // Implicit string to int conversion.
-  cron_kind: cronKind
+  cronKind: cronKind
 }).then(function(dbResponse) {
   let cronParams;
 

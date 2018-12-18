@@ -10,23 +10,19 @@
  *
  * @module executables/blockScanner/Delegator
  */
-const OSTBase = require('@openstfoundation/openst-base');
-
 const rootPrefix = '../..',
-  InstanceComposer = OSTBase.InstanceComposer,
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   SigIntHandler = require(rootPrefix + '/executables/SigintHandler'),
   CronProcessesHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
-  StrategyByGroupHelper = require(rootPrefix + '/helpers/configStrategy/ByGroupId'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   CronProcessHandlerObject = new CronProcessesHandler();
-
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/providers/blockScanner');
 
 /**
  * This function demonstrates how to use the transaction delegator cron.
@@ -176,21 +172,29 @@ class TransactionDelegator extends SigIntHandler {
    * @returns {Promise<void>}
    */
   async validateChainId() {
-    const oThis = this;
+    // Fetch config strategy by chainId.
+    const oThis = this,
+      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+      configStrategyResp = await strategyByChainHelperObj.getComplete();
 
-    // TODO: Fetch configStrategy from the chainId.
-    const configStrategy = "";
-    oThis.ic = new InstanceComposer(configStrategy);
+    if (configStrategyResp.isFailure()) {
+      logger.error('Could not fetch configStrategy. Exiting the process.');
+      process.emit('SIGINT');
+    }
 
-    // Get blockScanner provider.
-    const blockScannerProvider = oThis.ic.getInstanceFor(coreConstants.icNameSpace, 'blockScannerProvider');
+    const configStrategy = configStrategyResp.data;
+
+    // Fetching wsProviders for warmUpWeb3Pool method.
+    oThis.wsProviders = configStrategy.auxGeth.readOnly.wsProviders;
 
     // Get blockScanner object.
-    oThis.blockScannerObj = blockScannerProvider.getInstance();
+    oThis.blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
 
     // Get ChainModel.
-    const ChainModel = oThis.blockScannerObj.model.ChainModel,
-      chainExists = await new ChainModel({}).checkIfChainIdExists();
+    const ChainModel = oThis.blockScannerObj.model.Chain,
+      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
+
+    console.log('---chainExists--', chainExists);
 
     if (!chainExists) {
       logger.error('ChainId does not exist in the chains table.');
@@ -203,27 +207,15 @@ class TransactionDelegator extends SigIntHandler {
    *
    * @returns {Promise<void>}
    */
-    //TODO: Fetch config strategy by chainId.
   async warmUpWeb3Pool() {
-    const oThis = this,
-      utilityGethType = 'read_only',
-      strategyByGroupHelperObj = new StrategyByGroupHelper(groupId),
-      configStrategyResp = await strategyByGroupHelperObj.getCompleteHash(utilityGethType);
-
-    if (configStrategyResp.isFailure()) {
-      logger.log('=====');
-      process.exit(1);
-    }
-
-    const configStrategy = configStrategyResp.data;
-    oThis.ic = new InstanceComposer(configStrategy);
+    const oThis = this;
 
     let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
 
-    logger.log('====Warming up geth pool for providers', configStrategy.OST_UTILITY_GETH_WS_PROVIDERS);
+    logger.log('====Warming up geth pool for providers====', oThis.wsProviders);
 
-    for (let ind = 0; ind < configStrategy.OST_UTILITY_GETH_WS_PROVIDERS.length; ind++) {
-      let provider = configStrategy.OST_UTILITY_GETH_WS_PROVIDERS[ind];
+    for (let index = 0; index < oThis.wsProviders.length; index++) {
+      let provider = oThis.wsProviders[index];
       for (let i = 0; i < web3PoolSize; i++) {
         web3InteractFactory.getInstance(provider);
       }
@@ -342,15 +334,13 @@ class TransactionDelegator extends SigIntHandler {
 
       if (batchedTxHashes.length === 0) break;
 
-      let chainId = oThis.ic.configStrategy.OST_UTILITY_CHAIN_ID; // TODO: Fetch auxiliary chainID.
-
       let messageParams = {
-        topics: ['block_scanner_execute_' + chainId],
+        topics: ['block_scanner_execute_' + oThis.chainId],
         publisher: 'OST',
         message: {
           kind: 'background_job',
           payload: {
-            chainId: chainId,
+            chainId: oThis.chainId,
             blockHash: oThis.blockHash,
             transactionHashes: batchedTxHashes,
             blockNumber: oThis.currentBlock,
@@ -405,7 +395,7 @@ class TransactionDelegator extends SigIntHandler {
 // Check whether the cron can be started or not.
 CronProcessHandlerObject.canStartProcess({
   id: +processLockId, // Implicit string to int conversion
-  cron_kind: cronKind
+  cronKind: cronKind
 }).then(function(dbResponse) {
 
   let cronParams, transactionDelegatorObj;
