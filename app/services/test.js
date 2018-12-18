@@ -1,6 +1,7 @@
 "use strict";
 
 const rootPrefix = '../..',
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   OSTBase = require("@openstfoundation/openst-base"),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -18,6 +19,6 @@ class TestApiClass {
 
 }
 
-InstanceComposer.registerAsShadowableClass(TestApiClass, 'saas::SaasNamespace', 'getTestApiClass');
+InstanceComposer.registerAsShadowableClass(TestApiClass, coreConstants.icNameSpace, 'getTestApiClass');
 
 module.exports = TestApiClass;
