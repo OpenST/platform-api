@@ -31,8 +31,10 @@ class CronProcessesModel extends ModelBaseKlass{
   }
   
   /**
+   * This method gets the response for the id passed.
    *
    * @param {Number} id
+   *
    * @returns {Promise<>}
    */
   get(id) {
@@ -127,7 +129,7 @@ class CronProcessesModel extends ModelBaseKlass{
 
     // Perform validations.
     if (!params.id || !params.newLastEndTime || !params.newStatus) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {id, new_last_end_time, new_status}';
+      throw 'Mandatory parameters are missing. Expected an object with the following keys: {id, newLastEndTime, newStatus}';
     }
     params.newStatus = cronProcessesConstant.invertedStatuses[params.newStatus];
 
