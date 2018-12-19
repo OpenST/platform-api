@@ -70,54 +70,38 @@ class ConfigStrategyModel extends ModelBase {
       return oThis._customError('a_mo_m_cs_6', 'Config params validation failed for: ' + JSON.stringify(allParams));
     }
 
-    let hashedConfigStrategyParamsResponse = await oThis._getSHAOf(allParams),
-      hashedConfigStrategyParams = hashedConfigStrategyParamsResponse.data;
-    if (hashedConfigStrategyParamsResponse.isFailure()) {
-      return oThis._customError('a_mo_m_cs_7', 'Error while creating SHA of params');
+    let separateHashesResponse = await oThis._getSeparateHashes(kind, allParams);
+    if (separateHashesResponse.isFailure()) {
+      return oThis._customError(
+        'a_mo_m_cs_8',
+        'Error while segregating params into encrypted hash and unencrypted hash'
+      );
     }
 
-    // try to fetch config strategy using the hashed params: if fetched, error out
-    let strategyIdPresentInDB = await new ConfigStrategyModel().getByParams(hashedConfigStrategyParams);
+    let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
+      hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
+      encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
 
-    if (strategyIdPresentInDB !== null) {
-      //If configStrategyParamsNotToEncrypt is already present in database then id of that param is sent
-      logger.info('The given params is already present in database with id:', strategyIdPresentInDB);
-      return Promise.resolve(responseHelper.successWithData(strategyIdPresentInDB));
-    } else {
-      let separateHashesResponse = await oThis._getSeparateHashes(kind, allParams);
-      if (separateHashesResponse.isFailure()) {
-        return oThis._customError(
-          'a_mo_m_cs_8',
-          'Error while segregating params into encrypted hash and unencrypted hash'
-        );
-      }
-
-      let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
-        hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
-        encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
-
-      if (encryptedHashResponse.isFailure()) {
-        return oThis._customError('a_mo_m_cs_9', 'Error while encrypting data');
-      }
-
-      let encryptedHash = encryptedHashResponse.data,
-        hashNotToEncryptString = JSON.stringify(hashNotToEncrypt);
-
-      const data = {
-        chain_id: chainId,
-        kind: strategyKindInt,
-        group_id: groupId,
-        encrypted_params: encryptedHash,
-        unencrypted_params: hashNotToEncryptString,
-        managed_address_salts_id: encryptionSaltId,
-        hashed_params: hashedConfigStrategyParams,
-        status: 2
-      };
-
-      const dbId = await oThis.insert(data).fire();
-
-      return Promise.resolve(responseHelper.successWithData(dbId.insertId));
+    if (encryptedHashResponse.isFailure()) {
+      return oThis._customError('a_mo_m_cs_9', 'Error while encrypting data');
     }
+
+    let encryptedHash = encryptedHashResponse.data,
+      hashNotToEncryptString = JSON.stringify(hashNotToEncrypt);
+
+    let insertData = {
+      chain_id: chainId,
+      kind: strategyKindInt,
+      group_id: groupId,
+      encrypted_params: encryptedHash,
+      unencrypted_params: hashNotToEncryptString,
+      managed_address_salts_id: encryptionSaltId,
+      status: 2
+    };
+
+    const insertResult = await oThis.insert(insertData).fire();
+
+    return Promise.resolve(responseHelper.successWithData(insertResult.insertId));
   }
 
   /*
@@ -185,8 +169,8 @@ class ConfigStrategyModel extends ModelBase {
 
   /**
    *
-   * @param strategyKind
-   * @param configStrategyHash
+   * @param strategyKind {string} - strategy kind
+   * @param configStrategyHash {}
    * @param decryptedJsonObj
    * @return configStrategyHash
    */
@@ -287,28 +271,6 @@ class ConfigStrategyModel extends ModelBase {
     return Promise.resolve(responseHelper.successWithData(queryResult));
   }
 
-  /*
-  * Get strategy id by passing SHA encryption of params hash.<br><br>
-  *
-  * @param {Object} params - hashed_params - SHA of config strategy params.
-  * @return {Promise<value>} - returns a Promise with a value of strategy id if it already exists.
-  *
-  */
-  async getByParams(shaParams) {
-    const oThis = this;
-
-    let returnValue = null;
-
-    let query = oThis.select('id').where({ hashed_params: shaParams }),
-      queryResult = await query.fire();
-
-    if (queryResult.length !== 0) {
-      returnValue = queryResult[0].id;
-    }
-
-    return Promise.resolve(returnValue);
-  }
-
   /**
    * Get Decrypted Config Strategy Salt from Cache or fetch.<br><br>
    *
@@ -402,32 +364,6 @@ class ConfigStrategyModel extends ModelBase {
       return oThis._customError('mo_m_cs_usi_2', 'Config validation failed');
     }
 
-    let shaEncryptionOfStrategyParamsResponse = await oThis._getSHAOf(configStrategyParams);
-    if (shaEncryptionOfStrategyParamsResponse.isFailure()) {
-      return oThis._customError('mo_m_cs_usi_3', 'Error while creating SHA of params');
-    }
-
-    let shaEncryptionOfStrategyParams = shaEncryptionOfStrategyParamsResponse.data,
-      strategyIdPresentInDB = null;
-
-    //Checks if the data sent to update is already present in database at some other row.
-    await new ConfigStrategyModel()
-      .getByParams(shaEncryptionOfStrategyParams)
-      .then(function(result) {
-        strategyIdPresentInDB = result;
-      })
-      .catch(function(err) {
-        logger.error('Error', err);
-      });
-
-    if (strategyIdPresentInDB !== null && strategyIdPresentInDB != strategyId) {
-      //If configStrategyParams is already present in database then id of that param is sent
-      return oThis._customError(
-        'mo_m_cs_usi_4',
-        'The config strategy is already present in database with id: ' + strategyIdPresentInDB
-      );
-    }
-
     //Segregate data to encrypt and data not to encrypt
     let separateHashesResponse = await oThis._getSeparateHashes(strategyKindName, configStrategyParams);
     if (separateHashesResponse.isFailure()) {
@@ -448,7 +384,6 @@ class ConfigStrategyModel extends ModelBase {
 
     finalDataToInsertInDb.encrypted_params = encryptedHash;
     finalDataToInsertInDb.unencrypted_params = JSON.stringify(hashNotToEncrypt);
-    finalDataToInsertInDb.hashed_params = shaEncryptionOfStrategyParams;
 
     const dbId = await new ConfigStrategyModel()
       .update(finalDataToInsertInDb)
@@ -456,21 +391,6 @@ class ConfigStrategyModel extends ModelBase {
       .fire();
 
     return Promise.resolve(responseHelper.successWithData({}));
-  }
-
-  /**
-   *
-   * @param {Object} paramsHash (complete hash of that strategy)
-   *
-   * @return {Promise<Promise<never> | Promise<any>>}
-   *
-   * @private
-   */
-  async _getSHAOf(paramsHash) {
-    let finalHashToGetShaOfString = JSON.stringify(paramsHash),
-      shaOfStrategyParams = localCipher.getShaHashedText(finalHashToGetShaOfString);
-
-    return Promise.resolve(responseHelper.successWithData(shaOfStrategyParams));
   }
 
   /**
