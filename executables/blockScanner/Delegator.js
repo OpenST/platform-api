@@ -45,10 +45,7 @@ if (!processLockId) {
   process.exit(1);
 }
 
-let chainId,
-  endBlockNumber,
-  startBlockNumber,
-  intentionalBlockDelay;
+let chainId, endBlockNumber, startBlockNumber, intentionalBlockDelay;
 
 const FAILURE_CODE = -1,
   MAX_TXS_PER_WORKER = 60,
@@ -138,10 +135,8 @@ class TransactionDelegator extends SigIntHandler {
    * before calling the perform method of the class.
    */
   validateAndSanitize() {
-    const oThis = this;
-
     // Validate startBlockNumber.
-    if(!startBlockNumber) {
+    if (!startBlockNumber) {
       logger.warn('startBlockNumber is unavailable. Block parser would select highest block available in the DB.');
     }
     if (startBlockNumber && startBlockNumber < 0) {
@@ -150,7 +145,7 @@ class TransactionDelegator extends SigIntHandler {
     }
 
     // Validate endBlockNumber.
-    if(!endBlockNumber) {
+    if (!endBlockNumber) {
       logger.warn('endBlockNumber is unavailable. Block parser would not stop automatically.');
     }
     if (endBlockNumber && endBlockNumber < 0) {
@@ -163,6 +158,8 @@ class TransactionDelegator extends SigIntHandler {
       logger.error('Invalid intentionalBlockDelay. Exiting the cron.');
       process.emit('SIGINT');
     }
+
+    logger.step('All validations done.');
   }
 
   /**
@@ -194,12 +191,12 @@ class TransactionDelegator extends SigIntHandler {
     const ChainModel = oThis.blockScannerObj.model.Chain,
       chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
 
-    console.log('---chainExists--', chainExists);
-
     if (!chainExists) {
       logger.error('ChainId does not exist in the chains table.');
       process.emit('SIGINT');
     }
+
+    logger.step('ChainID exists in chains table in dynamoDB.');
   }
 
   /**
@@ -220,6 +217,8 @@ class TransactionDelegator extends SigIntHandler {
         web3InteractFactory.getInstance(provider);
       }
     }
+
+    logger.step('Web3 pool warmed up.');
   }
 
   /**
@@ -375,7 +374,7 @@ class TransactionDelegator extends SigIntHandler {
   pendingTasksDone() {
     const oThis = this;
 
-    return oThis.canExit
+    return oThis.canExit;
   }
 
   /**
@@ -397,7 +396,6 @@ CronProcessHandlerObject.canStartProcess({
   id: +processLockId, // Implicit string to int conversion
   cronKind: cronKind
 }).then(function(dbResponse) {
-
   let cronParams, transactionDelegatorObj;
   try {
     // Fetch params from the DB.
@@ -425,7 +423,8 @@ CronProcessHandlerObject.canStartProcess({
       logger.error('Chain ID is un-available in cron params in the database.');
       process.emit('SIGINT');
     }
-    if (chainId < 0) { // Implicit string to int conversion.
+    if (chainId < 0) {
+      // Implicit string to int conversion.
       logger.error('Chain ID is invalid.');
       process.emit('SIGINT');
     }
