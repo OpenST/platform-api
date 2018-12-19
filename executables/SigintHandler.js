@@ -1,6 +1,7 @@
 'use strict';
 /**
  * This code handles sigint and sigterm signals.
+ * NOTE: Every sub-class should call attachHandlers on their own in the constructor.
  *
  * @module executables/sigintHandler
  */
@@ -24,8 +25,6 @@ class SigintHandler {
     const oThis = this;
 
     oThis.idToBeKilled = params.id;
-
-    oThis.attachHandlers();
   }
 
   /**
@@ -76,7 +75,6 @@ class SigintHandler {
   pendingTasksDone() {
     throw 'pendingTasksDone method should be implemented by the caller for SIGINT handling';
   }
-
 }
 
 module.exports = SigintHandler;
