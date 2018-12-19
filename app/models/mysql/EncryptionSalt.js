@@ -6,7 +6,7 @@ const rootPrefix = '../../..',
 
 const dbName = 'saas_big_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
-class EncryptionSaltModel extends ModelBase {
+class EncryptionSalt extends ModelBase {
   constructor() {
     super({ dbName: dbName });
 
@@ -24,4 +24,4 @@ class EncryptionSaltModel extends ModelBase {
   }
 }
 
-module.exports = EncryptionSaltModel;
+module.exports = EncryptionSalt;

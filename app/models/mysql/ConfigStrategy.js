@@ -17,7 +17,7 @@ const rootPrefix = '../../..',
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSaltModel');
+  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
   dbName = 'config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT,
