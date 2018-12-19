@@ -80,14 +80,19 @@ class ConfigStrategyModel extends ModelBase {
 
     let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
       hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
-      encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
+      encryptedHash = null;
 
-    if (encryptedHashResponse.isFailure()) {
-      return oThis._customError('a_mo_m_cs_9', 'Error while encrypting data');
+    console.log('separateHashesResponse-------------', separateHashesResponse);
+    if (hashToEncrypt) {
+      let encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
+
+      if (encryptedHashResponse.isFailure()) {
+        return oThis._customError('a_mo_m_cs_9', 'Error while encrypting data');
+      }
+      encryptedHash = encryptedHashResponse.data;
     }
 
-    let encryptedHash = encryptedHashResponse.data,
-      hashNotToEncryptString = JSON.stringify(hashNotToEncrypt);
+    let hashNotToEncryptString = JSON.stringify(hashNotToEncrypt);
 
     let insertData = {
       chain_id: chainId,
@@ -151,13 +156,17 @@ class ConfigStrategyModel extends ModelBase {
         decryptedSalts[queryResult[i].encryption_salt_id] = response.data.addressSalt;
       }
 
-      let localDecryptedParams = localCipher.decrypt(
-        decryptedSalts[queryResult[i].encryption_salt_id],
-        queryResult[i].encrypted_params
-      );
+      let localDecryptedJsonObj = {};
 
-      let localDecryptedJsonObj = JSON.parse(localDecryptedParams),
-        configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
+      if (queryResult[i].encrypted_params) {
+        let localDecryptedParams = localCipher.decrypt(
+          decryptedSalts[queryResult[i].encryption_salt_id],
+          queryResult[i].encrypted_params
+        );
+        localDecryptedJsonObj = JSON.parse(localDecryptedParams);
+      }
+
+      let configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
 
       localDecryptedJsonObj = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
 
@@ -177,7 +186,7 @@ class ConfigStrategyModel extends ModelBase {
   mergeConfigResult(strategyKind, configStrategyHash, decryptedJsonObj) {
     if (
       kinds[strategyKind] == configStrategyConstants.dynamodb ||
-      kinds[strategyKind] == configStrategyConstants.globalDynamo
+      kinds[strategyKind] == configStrategyConstants.globalDynamodb
     ) {
       configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.dynamoApiSecret;
       configStrategyHash[kinds[strategyKind]].autoScaling.apiSecret = decryptedJsonObj.dynamoAutoscalingApiSecret;
@@ -375,12 +384,17 @@ class ConfigStrategyModel extends ModelBase {
 
     let hashToEncrypt = separateHashesResponse.data.hashToEncrypt,
       hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
-      encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, managedAddressSaltId);
+      encryptedHash = null;
 
-    if (encryptedHashResponse.isFailure()) {
-      return oThis._customError('mo_m_cs_usi_6', 'Error while encrypting data');
+    console.log('separateHashesResponse-------------', separateHashesResponse);
+    if (hashToEncrypt) {
+      let encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, managedAddressSaltId);
+
+      if (encryptedHashResponse.isFailure()) {
+        return oThis._customError('mo_m_cs_usi_6', 'Error while encrypting data');
+      }
+      encryptedHash = encryptedHashResponse.data;
     }
-    let encryptedHash = encryptedHashResponse.data;
 
     finalDataToInsertInDb.encrypted_params = encryptedHash;
     finalDataToInsertInDb.unencrypted_params = JSON.stringify(hashNotToEncrypt);
@@ -404,7 +418,8 @@ class ConfigStrategyModel extends ModelBase {
    */
   async _getSeparateHashes(strategyKindName, configStrategyParams) {
     let hashToEncrypt = {},
-      hashNotToEncrypt = configStrategyParams;
+      hashNotToEncrypt = configStrategyParams,
+      encryptedKeysFound = false;
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
@@ -418,11 +433,13 @@ class ConfigStrategyModel extends ModelBase {
 
       hashNotToEncrypt[strategyKindName].autoScaling.apiSecret = '{{dynamoAutoscalingApiSecret}}';
       hashToEncrypt['dynamoAutoscalingApiSecret'] = dynamoAutoscalingApiSecret;
+      encryptedKeysFound = true;
     } else if (strategyKindName == configStrategyConstants.elasticSearch) {
       let esSecretKey = hashNotToEncrypt[strategyKindName].secretKey;
 
       hashNotToEncrypt[strategyKindName].secretKey = '{{esSecretKey}}';
       hashToEncrypt['esSecretKey'] = esSecretKey;
+      encryptedKeysFound = true;
     } else if (
       strategyKindName == configStrategyConstants.rabbitmq ||
       strategyKindName == configStrategyConstants.globalRabbitmq
@@ -431,10 +448,11 @@ class ConfigStrategyModel extends ModelBase {
 
       hashNotToEncrypt[strategyKindName].password = '{{rmqPassword}}';
       hashToEncrypt['rmqPassword'] = rmqPassword;
+      encryptedKeysFound = true;
     }
 
     let returnHash = {
-      hashToEncrypt: hashToEncrypt,
+      hashToEncrypt: encryptedKeysFound ? hashToEncrypt : null,
       hashNotToEncrypt: hashNotToEncrypt
     };
 
