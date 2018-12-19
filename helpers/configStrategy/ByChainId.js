@@ -184,8 +184,8 @@ class ConfigStrategyByChainId {
    *
    * @param {String} kind (Eg:'dynamo')
    * @param {Object} params - Hash of config params related to this kind
-   * @param {Number} encryptionSaltId - managed_address_salt_id from managed_address_salt table
-   * @returns {Promise<never>}
+   * @param {Number} encryptionSaltId - encryption salt id
+   * @returns {Promise}
    */
   /**
    * Insert into config_strategies
