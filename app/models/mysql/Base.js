@@ -8,11 +8,11 @@
  */
 
 const rootPrefix = '../../..',
-  MysqlQueryKlass = require(rootPrefix + '/lib/queryBuilders/mysql'),
+  MysqlQueryBuilders = require(rootPrefix + '/lib/queryBuilders/mysql'),
   mysqlWrapper = require(rootPrefix + '/lib/mysqlWrapper'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
-class ModelBase extends MysqlQueryKlass {
+class ModelBase extends MysqlQueryBuilders {
   constructor(params) {
     super(params);
 
