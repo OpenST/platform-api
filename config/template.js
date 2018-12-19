@@ -3,33 +3,32 @@
 const rootPrefix = '..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-let configTemplate = {'entitiesMap': {}, 'rootLevelEntities': {}};
+let configTemplate = { entitiesMap: {}, rootLevelEntities: {} };
 
-configTemplate['rootLevelEntities'][configStrategyConstants.memcached] = "memcachedEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.globalMemcached] = "memcachedEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.nonceMemcached] = "memcachedEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.globalNonceMemcached] = "memcachedEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.dynamodb] = "dynamodbEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.globalDynamodb] = "dynamodbEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.inMemoryCache] = "inMemoryCacheEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.originGeth] = "originGethEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.originConstants] = "originConstantsEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.auxGeth] = "auxGethEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.auxConstants] = "auxConstantsEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = "elasticSearchEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = "rabbitmqEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.globalRabbitmq] = "globalRabbitmqEntity";
-configTemplate['rootLevelEntities'][configStrategyConstants.constants] = "constantsEntity";
+configTemplate['rootLevelEntities'][configStrategyConstants.memcached] = 'memcachedEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.globalMemcached] = 'memcachedEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.nonceMemcached] = 'memcachedEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.globalNonceMemcached] = 'memcachedEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.dynamodb] = 'dynamodbEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.globalDynamodb] = 'dynamodbEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.inMemoryCache] = 'inMemoryCacheEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.originGeth] = 'originGethEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.originConstants] = 'originConstantsEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.auxGeth] = 'auxGethEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.auxConstants] = 'auxConstantsEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = 'elasticSearchEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = 'rabbitmqEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.globalRabbitmq] = 'globalRabbitmqEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.constants] = 'constantsEntity';
 
 configTemplate['entitiesMap'] = {
-
-  memcachedEntity : {
+  memcachedEntity: {
     entityType: 'object',
     entitiesPresent: {
-      engine: "engineEntity",
-      servers: "serversEntity",
-      defaultTtl: "defaultTtlEntity",
-      consistentBehavior: "consistentBehaviorEntity"
+      engine: 'engineEntity',
+      servers: 'serversEntity',
+      defaultTtl: 'defaultTtlEntity',
+      consistentBehavior: 'consistentBehaviorEntity'
     }
   },
   engineEntity: {
@@ -51,16 +50,15 @@ configTemplate['entitiesMap'] = {
   inMemoryCacheEntity: {
     entityType: 'object',
     entitiesPresent: {
-      engine: "engineEntity",
-      defaultTtl: "defaultTtlEntity",
-      namespace: "namespaceEntity",
-      consistentBehavior: "consistentBehaviorEntity"
+      engine: 'engineEntity',
+      defaultTtl: 'defaultTtlEntity',
+      namespace: 'namespaceEntity',
+      consistentBehavior: 'consistentBehaviorEntity'
     }
   },
   namespaceEntity: {
     entityType: 'string'
   },
-
 
   dynamodbEntity: {
     entityType: 'object',
@@ -123,12 +121,10 @@ configTemplate['entitiesMap'] = {
   originGethEntity: {
     entityType: 'object',
     entitiesPresent: {
-      rpcProvider: 'rpcProviderEntity',
-      rpcProviders: 'rpcProvidersEntity',
-      wsProvider: 'wsProviderEntity',
-      wsProviders: 'wsProvidersEntity',
+      readOnly: 'gethProvidersEntity',
+      readWrite: 'gethProvidersEntity',
       chainId: 'chainIdEntity',
-      client: "gethClientEntity"
+      client: 'gethClientEntity'
     }
   },
   rpcProviderEntity: {
@@ -156,7 +152,7 @@ configTemplate['entitiesMap'] = {
     entityType: 'object',
     entitiesPresent: {
       dummy1: 'dummyEntity',
-      dummy2: 'dummyEntity',
+      dummy2: 'dummyEntity'
     }
   },
   dummyEntity: {
@@ -166,19 +162,19 @@ configTemplate['entitiesMap'] = {
   auxGethEntity: {
     entityType: 'object',
     entitiesPresent: {
-      readOnly: 'auxGethProvidersEntity',
-      readWrite: "auxGethProvidersEntity",
+      readOnly: 'gethProvidersEntity',
+      readWrite: 'gethProvidersEntity',
       chainId: 'chainIdEntity',
       client: 'gethClientEntity'
     }
   },
-  auxGethProvidersEntity: {
+  gethProvidersEntity: {
     entityType: 'object',
     entitiesPresent: {
       rpcProvider: 'rpcProviderEntity',
       rpcProviders: 'rpcProvidersEntity',
       wsProvider: 'wsProviderEntity',
-      wsProviders: 'wsProvidersEntity',
+      wsProviders: 'wsProvidersEntity'
     }
   },
 
@@ -186,7 +182,7 @@ configTemplate['entitiesMap'] = {
     entityType: 'object',
     entitiesPresent: {
       dummy3: 'dummyEntity',
-      dummy4: 'dummyEntity',
+      dummy4: 'dummyEntity'
     }
   },
 
@@ -243,7 +239,7 @@ configTemplate['entitiesMap'] = {
   heartbeatsEntity: {
     entityType: 'string'
   },
-  clusterNodesEntity:{
+  clusterNodesEntity: {
     entityType: 'array',
     entitiesPresent: 'clusterNodeEntity'
   },
@@ -254,11 +250,14 @@ configTemplate['entitiesMap'] = {
   constantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      originChainId: 'chainIdEntity'
+      originChainId: 'chainIdEntity',
+      originDdbTablePrefix: 'ddbTablePrefixEntity',
+      auxDdbTablePrefix: 'ddbTablePrefixEntity'
     }
+  },
+  ddbTablePrefixEntity: {
+    entityType: 'string'
   }
-
 };
-
 
 module.exports = configTemplate;
