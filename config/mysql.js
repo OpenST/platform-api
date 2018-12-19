@@ -35,9 +35,9 @@ const mysqlConfig = {
     },
     cluster3: {
       master: {
-        host: coreConstants.CR_ECONOMY_DB_MYSQL_HOST,
-        user: coreConstants.CR_ECONOMY_DB_MYSQL_USER,
-        password: coreConstants.CR_ECONOMY_DB_MYSQL_PASSWORD
+        host: coreConstants.CR_BIG_DB_MYSQL_HOST,
+        user: coreConstants.CR_BIG_DB_MYSQL_USER,
+        password: coreConstants.CR_BIG_DB_MYSQL_PASSWORD
       }
     },
     cluster4: {
@@ -69,8 +69,6 @@ mysqlConfig['databases']['company_saas_shared_' + coreConstants.SUB_ENVIRONMENT 
   'cluster2'
 ];
 
-mysqlConfig['databases']['config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = [
-  'cluster3'
-];
+mysqlConfig['databases']['config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = ['cluster3'];
 
 module.exports = mysqlConfig;

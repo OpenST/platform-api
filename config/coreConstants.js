@@ -1,7 +1,6 @@
 'use strict';
 
 class CoreConstant {
-
   constructor() {}
 
   get SAAS_ONLY_SHARED_CACHE_ENGINE() {
@@ -9,7 +8,7 @@ class CoreConstant {
   }
 
   get SHARED_MEMCACHE_SERVERS() {
-    return (process.env.OST_SHARED_MEMCACHE_SERVERS).split(',');
+    return process.env.OST_SHARED_MEMCACHE_SERVERS.split(',');
   }
 
   get ENVIRONMENT() {
@@ -44,16 +43,16 @@ class CoreConstant {
     return process.env.CR_DEFAULT_MYSQL_PASSWORD;
   }
 
-  get CR_ECONOMY_DB_MYSQL_HOST() {
-    return process.env.CR_ECONOMY_DB_MYSQL_HOST;
+  get CR_BIG_DB_MYSQL_HOST() {
+    return process.env.CR_BIG_DB_MYSQL_HOST;
   }
 
-  get CR_ECONOMY_DB_MYSQL_USER() {
-    return process.env.CR_ECONOMY_DB_MYSQL_USER;
+  get CR_BIG_DB_MYSQL_USER() {
+    return process.env.CR_BIG_DB_MYSQL_USER;
   }
 
-  get CR_ECONOMY_DB_MYSQL_PASSWORD() {
-    return process.env.CR_ECONOMY_DB_MYSQL_PASSWORD;
+  get CR_BIG_DB_MYSQL_PASSWORD() {
+    return process.env.CR_BIG_DB_MYSQL_PASSWORD;
   }
 
   get CR_TRANSACTION_DB_MYSQL_HOST() {
@@ -180,7 +179,6 @@ class CoreConstant {
   get blockRetryCount() {
     return 10;
   }
-
 }
 
 module.exports = new CoreConstant();
