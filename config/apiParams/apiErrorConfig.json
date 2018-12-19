@@ -389,6 +389,11 @@
     "code": "REQUEST_FORBIDDEN",
     "message": "The request is prohibited in the Main Environment."
   },
+  "action_prohibited_in_prod_main": {
+    "http_code": "403",
+    "code": "REQUEST_FORBIDDEN",
+    "message": "This action is prohibited in the Production Main Environment."
+  },
   "invalid_shard_name": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
