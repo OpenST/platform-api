@@ -82,7 +82,6 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
       encryptedHash = null;
 
-    console.log('separateHashesResponse-------------', separateHashesResponse);
     if (hashToEncrypt) {
       let encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
 
@@ -101,6 +100,7 @@ class ConfigStrategyModel extends ModelBase {
       encrypted_params: encryptedHash,
       unencrypted_params: hashNotToEncryptString,
       encryption_salt_id: encryptionSaltId,
+      is_available_for_allocation: 1,
       status: 2
     };
 
@@ -386,7 +386,6 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
       encryptedHash = null;
 
-    console.log('separateHashesResponse-------------', separateHashesResponse);
     if (hashToEncrypt) {
       let encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, managedAddressSaltId);
 
