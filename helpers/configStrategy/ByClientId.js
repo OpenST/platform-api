@@ -16,7 +16,11 @@ const rootPrefix = '../..',
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategy'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy'),
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
+
+const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 class ConfigStrategyByClientId {
   constructor(clientId) {

@@ -15,9 +15,6 @@ const rootPrefix = '..',
 class ConfigurationHelper {
   constructor() {}
 
-
-  // TODO: PENDING validate dDBtableprefix
-  // TODO: PENDING exclude origin chain while get chain data
   /**
    * This function returns true if the given configuration is as per the template format
    *
@@ -61,9 +58,7 @@ class ConfigurationHelper {
     return returnFlag;
   }
 
-  _validateDdbTablePrefix() {
-
-  }
+  _validateDdbTablePrefix() {}
 
   /**
    *
@@ -90,7 +85,9 @@ class ConfigurationHelper {
 
       if (entitiesMap[secondLevelEntityName]['entityType'] === 'string') {
         let valueCheckNeeded = entitiesMap[secondLevelEntityName]['valueCheckNeeded'];
-        if (!oThis._validateStringTypeEntity(secondLevelEntityName, configToValidate[secondLevelEntity], valueCheckNeeded)) {
+        if (
+          !oThis._validateStringTypeEntity(secondLevelEntityName, configToValidate[secondLevelEntity], valueCheckNeeded)
+        ) {
           logger.error(`${secondLevelEntity} value should be string in ${entityName}`);
           returnFlag = false;
         }
@@ -168,12 +165,11 @@ class ConfigurationHelper {
    * @private
    */
   _validateStringTypeEntity(entityName, entityValue, valueCheckNeeded) {
-
     const oThis = this;
     console.log('-------------------------------------------------', entityName, entityValue, valueCheckNeeded);
-    let b = (entityValue && typeof entityValue === 'string');
-    if(!b) return b;
-    if(valueCheckNeeded){
+    let b = entityValue && typeof entityValue === 'string';
+    if (!b) return b;
+    if (valueCheckNeeded) {
       return oThis._validateValueFor(entityName, entityValue);
     }
     return true;
@@ -196,45 +192,39 @@ class ConfigurationHelper {
    *
    * @private
    */
-  _validateValueFor(entityName, entityValue){
-
+  _validateValueFor(entityName, entityValue) {
     switch (entityName) {
       case 'originDdbTablePrefixEntity':
-
-        if (!basicHelper.isProduction()){
+        if (!basicHelper.isProduction()) {
           return true;
         }
 
         let oSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'mn_' : 'tn_';
-        let oDdbTablePrefix = coreConstants.environmentShort + "_" + oSubEnvPrefix;
-        if (oDdbTablePrefix == entityValue){
-          logger.error("originDdbTablePrefix should be of format", oDdbTablePrefix);
+        let oDdbTablePrefix = coreConstants.environmentShort + '_' + oSubEnvPrefix;
+        if (oDdbTablePrefix == entityValue) {
+          logger.error('originDdbTablePrefix should be of format', oDdbTablePrefix);
           return false;
         }
 
         break;
 
       case 'auxDdbTablePrefixEntity':
-
-        if (!basicHelper.isProduction()){
+        if (!basicHelper.isProduction()) {
           return true;
         }
 
         let aSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'ma_' : 'sb_';
-        let aDdbTablePrefix = coreConstants.environmentShort + "_" + aSubEnvPrefix;
-        if (aDdbTablePrefix !== entityValue){
-          logger.error("auxDdbTablePrefix should be of format", aDdbTablePrefix);
+        let aDdbTablePrefix = coreConstants.environmentShort + '_' + aSubEnvPrefix;
+        if (aDdbTablePrefix !== entityValue) {
+          logger.error('auxDdbTablePrefix should be of format', aDdbTablePrefix);
           return false;
         }
 
         break;
-
     }
 
     return true;
-
   }
-
 }
 
 module.exports = new ConfigurationHelper();

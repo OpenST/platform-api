@@ -6,7 +6,11 @@ const rootPrefix = '../..',
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategy'),
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
+
+const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 /**
  * Class for config strategy by chain id helper.
