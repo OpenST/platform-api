@@ -3,7 +3,7 @@
 /**
  * Model to get client config strategy details.
  *
- * @module /app/models/mysql/ClientConfigStrategies
+ * @module /app/models/mysql/ClientConfigStrategy
  */
 
 const rootPrefix = '../../..',

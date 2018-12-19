@@ -1,20 +1,10 @@
 'use strict';
-/**
- * CRUD for config_strategies table
- * This provides functionality to
- * 1. Get Config Strategy Hash - getCompleteHash, getForKind, getByChainId
- * 2. Add Config Strategy for given kind - addForKind
- * 3. Set status active/inactive - activateByStrategyId, activate, deactivate
- * 4. Update strategy for given kind - updateForKind
- * 5. Get all strategy kinds present - getAllKinds
- * @module helpers/configStrategy/ByChainId
- */
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategies'),
+  ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategy'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
 
