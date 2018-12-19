@@ -95,7 +95,7 @@ class ConfigStrategyModel extends ModelBase {
       group_id: groupId,
       encrypted_params: encryptedHash,
       unencrypted_params: hashNotToEncryptString,
-      managed_address_salts_id: encryptionSaltId,
+      encryption_salt_id: encryptionSaltId,
       status: 2
     };
 
@@ -126,7 +126,7 @@ class ConfigStrategyModel extends ModelBase {
     }
 
     const queryResult = await oThis
-      .select(['id', 'encrypted_params', 'unencrypted_params', 'kind', 'managed_address_salts_id'])
+      .select(['id', 'encrypted_params', 'unencrypted_params', 'kind', 'encryption_salt_id'])
       .where(['id IN (?)', ids])
       .fire();
 
@@ -135,8 +135,8 @@ class ConfigStrategyModel extends ModelBase {
 
     for (let i = 0; i < queryResult.length; i++) {
       //Following logic is added so that decrypt call is not given for already decrypted salts.
-      if (decryptedSalts[queryResult[i].managed_address_salts_id] == null) {
-        let response = await oThis.getDecryptedSalt(queryResult[i].managed_address_salts_id);
+      if (decryptedSalts[queryResult[i].encryption_salt_id] == null) {
+        let response = await oThis.getDecryptedSalt(queryResult[i].encryption_salt_id);
         if (response.isFailure()) {
           return Promise.reject(
             responseHelper.error({
@@ -148,11 +148,11 @@ class ConfigStrategyModel extends ModelBase {
           );
         }
 
-        decryptedSalts[queryResult[i].managed_address_salts_id] = response.data.addressSalt;
+        decryptedSalts[queryResult[i].encryption_salt_id] = response.data.addressSalt;
       }
 
       let localDecryptedParams = localCipher.decrypt(
-        decryptedSalts[queryResult[i].managed_address_salts_id],
+        decryptedSalts[queryResult[i].encryption_salt_id],
         queryResult[i].encrypted_params
       );
 
@@ -345,7 +345,7 @@ class ConfigStrategyModel extends ModelBase {
       strategyId = strategy_id,
       configStrategyParams = config_strategy_params,
       queryResult = await new ConfigStrategyModel()
-        .select(['managed_address_salts_id', 'kind'])
+        .select(['encryption_salt_id', 'kind'])
         .where({ id: strategyId })
         .fire();
 
@@ -355,7 +355,7 @@ class ConfigStrategyModel extends ModelBase {
 
     let finalDataToInsertInDb = {},
       strategyKind = queryResult[0].kind,
-      managedAddressSaltId = queryResult[0].managed_address_salts_id,
+      managedAddressSaltId = queryResult[0].encryption_salt_id,
       strategyKindName = configStrategyConstants.kinds[strategyKind];
 
     let validationResult = configValidator.validateConfigStrategy(strategyKindName, configStrategyParams);

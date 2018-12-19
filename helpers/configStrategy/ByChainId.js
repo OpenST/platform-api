@@ -3,10 +3,10 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
+  configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategy'),
-  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy'),
-  configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
+  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 /**
  * Class for config strategy by chain id helper.

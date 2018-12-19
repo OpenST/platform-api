@@ -47,6 +47,7 @@ configTemplate['entitiesMap'] = {
   consistentBehaviorEntity: {
     entityType: 'string'
   },
+
   inMemoryCacheEntity: {
     entityType: 'object',
     entitiesPresent: {
