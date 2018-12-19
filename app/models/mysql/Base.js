@@ -1,12 +1,5 @@
 'use strict';
 
-/**
- * @fileoverview Base class for models
- *
- * @author Alpesh Modi
- * @reviewer Kedar Chandrayan
- */
-
 const rootPrefix = '../../..',
   MysqlQueryBuilders = require(rootPrefix + '/lib/queryBuilders/mysql'),
   mysqlWrapper = require(rootPrefix + '/lib/mysqlWrapper'),
@@ -37,9 +30,6 @@ class ModelBase extends MysqlQueryBuilders {
 
     return new Promise(function(onResolve, onReject) {
       const queryGenerator = oThis.generate();
-      if (queryGenerator.isSuccess()) {
-        //logger.log(queryGenerator.data.query, queryGenerator.data.queryData);
-      }
 
       let preQuery = Date.now();
       let qry = oThis
@@ -56,13 +46,6 @@ class ModelBase extends MysqlQueryBuilders {
   }
 
   /**
-   * Set all data as hashmap for performing bitwise operations
-   */
-  setBitColumns() {
-    throw 'SubClass to Implement';
-  }
-
-  /**
    * Validate all Bitwise columns of a model for uniqueness.
    *
    * @return {String}
@@ -74,13 +57,14 @@ class ModelBase extends MysqlQueryBuilders {
     if (Object.keys(oThis.bitColumns).length > 0) {
       let allBits = [];
 
-      for (let i = 0, keys = Object.keys(oThis.bitColumns), ii = keys.length; i < ii; i++) {
-        let columnBits = Object.keys(oThis.bitColumns[keys[i]]);
-        for (let j = 0; j < columnBits.length; j++) {
-          if (allBits.includes(columnBits[j])) {
+      for (let columnName in oThis.bitColumns) {
+        let bitNameTobitValueMap = oThis.bitColumns[columnName];
+
+        for (let bitName in bitNameTobitValueMap) {
+          if (allBits.includes(bitName)) {
             throw 'Bit Keys name should be unique across all columns of model.';
           } else {
-            allBits.push(columnBits[j]);
+            allBits.push(bitName);
           }
         }
       }
@@ -196,6 +180,13 @@ class ModelBase extends MysqlQueryBuilders {
     }
 
     return null;
+  }
+
+  /**
+   * Set all data as hashmap for performing bitwise operations
+   */
+  setBitColumns() {
+    throw 'SubClass to Implement';
   }
 }
 

@@ -52,8 +52,13 @@ morgan.token('endDateTime', function getEndDateTime(req) {
 });
 
 const assignParams = function(req) {
-
-  let message = "Started '" + customUrlParser.parse(req.originalUrl).pathname + "'  '" + req.method + "' at " + basicHelper.logDateFormat();
+  let message =
+    "Started '" +
+    customUrlParser.parse(req.originalUrl).pathname +
+    "'  '" +
+    req.method +
+    "' at " +
+    basicHelper.logDateFormat();
   logger.info(message);
 
   if (req.method == 'POST') {
@@ -92,7 +97,13 @@ const validateApiSignature = function(req, res, next) {
 
 // before action for verifying the jwt token and setting the decoded info in req obj
 const decodeJwt = function(req, res, next) {
-  let message = "Started '" + customUrlParser.parse(req.originalUrl).pathname + "'  '" + req.method + "' at " + basicHelper.logDateFormat();
+  let message =
+    "Started '" +
+    customUrlParser.parse(req.originalUrl).pathname +
+    "'  '" +
+    req.method +
+    "' at " +
+    basicHelper.logDateFormat();
   logger.info(message);
 
   if (req.method == 'POST') {
@@ -121,7 +132,6 @@ const decodeJwt = function(req, res, next) {
 
   // Verify token
   Promise.resolve(jwtAuth.verifyToken(token, 'saasApi').then(jwtOnResolve, jwtOnReject)).catch(function(err) {
-
     //TODO:ALPESH:  Decide whether notify required here.
     logger.error('a_3', 'JWT Decide Failed', { token: token });
 
@@ -187,7 +197,7 @@ const appendV2Version = function(req, res, next) {
 
 const killMasterIfAllWorkersDied = function() {
   if (onlineWorker == 0) {
-    console.log('Killing master as all workers are died.');
+    logger.log('Killing master as all workers are dead.');
     process.exit(1);
   }
 };
@@ -308,8 +318,13 @@ if (cluster.isMaster) {
 
   // catch 404 and forward to error handler
   app.use(function(req, res, next) {
-
-    let message = "Started '" + customUrlParser.parse(req.originalUrl).pathname + "'  '" + req.method + "' at " + basicHelper.logDateFormat();
+    let message =
+      "Started '" +
+      customUrlParser.parse(req.originalUrl).pathname +
+      "'  '" +
+      req.method +
+      "' at " +
+      basicHelper.logDateFormat();
     logger.info(message);
 
     return responseHelper

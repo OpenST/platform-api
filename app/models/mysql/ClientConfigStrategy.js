@@ -3,7 +3,7 @@
 /**
  * Model to get client config strategy details.
  *
- * @module /app/models/mysql/ClientConfigStrategies
+ * @module /app/models/mysql/ClientConfigStrategy
  */
 
 const rootPrefix = '../../..',
@@ -13,14 +13,12 @@ const rootPrefix = '../../..',
 const dbName = 'config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
 class ClientConfigStrategiesModel extends ModelBase {
-
   constructor() {
     super({ dbName: dbName });
 
     const oThis = this;
 
     oThis.tableName = 'client_config_strategies';
-
   }
 
   /**
@@ -252,7 +250,6 @@ class ClientConfigStrategiesModel extends ModelBase {
 
     return Promise.resolve({ deletedClientIds: clientIds });
   }
-
 }
 
 module.exports = ClientConfigStrategiesModel;

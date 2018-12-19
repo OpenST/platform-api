@@ -14,12 +14,11 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
-  ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategies'),
+  ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategy'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
 
 class ConfigStrategyByClientId {
-
   constructor(clientId) {
     const oThis = this;
 
@@ -37,7 +36,10 @@ class ConfigStrategyByClientId {
     let clientId = oThis.clientId;
 
     if (clientId === undefined) {
-      return oThis._customError('h_cs_bci_1', 'client Id is not defined. To get complete hash client id is compulsory.')
+      return oThis._customError(
+        'h_cs_bci_1',
+        'client Id is not defined. To get complete hash client id is compulsory.'
+      );
     }
 
     let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
@@ -78,7 +80,10 @@ class ConfigStrategyByClientId {
       clientId = oThis.clientId;
 
     if (clientId === undefined) {
-      return oThis._customError('h_cs_bci_2', 'client Id is not defined. To get complete hash client id is compulsory.');
+      return oThis._customError(
+        'h_cs_bci_2',
+        'client Id is not defined. To get complete hash client id is compulsory.'
+      );
     }
 
     let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
@@ -113,35 +118,34 @@ class ConfigStrategyByClientId {
 
     return Promise.resolve(responseHelper.successWithData(finalConfigHash));
   }
-  
+
   async getStrategyIdForKind(kind) {
     const oThis = this;
-    
+
     let clientId = oThis.clientId,
       strategyIdForKind = [],
       clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
       strategyIdsFetchRsp = await clientConfigStrategyCacheObj.fetch();
-    
+
     if (strategyIdsFetchRsp.isFailure()) {
       return Promise.reject(strategyIdsFetchRsp);
     }
-    
+
     let strategyIdsArray = strategyIdsFetchRsp.data[clientId].configStrategyIds;
-    
+
     let strategyKindtoIdMapRsp = await new ConfigStrategyModel()
       .select(['id', 'kind'])
       .where(['id in (?)', strategyIdsArray])
       .fire();
-    
+
     for (let index = 0; index < strategyKindtoIdMapRsp.length; index++) {
       if (String(strategyKindtoIdMapRsp[index].kind) === configStrategyConstants.invertedKinds[kind]) {
         strategyIdForKind.push(strategyKindtoIdMapRsp[index].id);
       }
     }
-    
+
     return Promise.resolve(responseHelper.successWithData(strategyIdForKind));
   }
-
 
   /**
    * Custom error
@@ -157,12 +161,11 @@ class ConfigStrategyByClientId {
       responseHelper.error({
         internal_error_identifier: errCode,
         api_error_identifier: 'something_went_wrong',
-        debug_options: {errMsg: errMsg},
+        debug_options: { errMsg: errMsg },
         error_config: errorConfig
       })
     );
   }
-
 }
 
 module.exports = ConfigStrategyByClientId;
