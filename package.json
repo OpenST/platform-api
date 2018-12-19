@@ -15,7 +15,6 @@
     "@ostdotcom/ost-price-oracle": "1.0.5-beta.7",
     "mosaic-tbd": "git@github.com:OpenSTFoundation/mosaic-tbd.git#master",
     "abi-decoder": "1.2.0",
-    "mosaic-tbd": "git@github.com:OpenSTFoundation/mosaic-tbd.git#master",
     "aws-sdk": "2.373.0",
     "bn.js": "4.11.8",
     "body-parser": "1.18.3",
