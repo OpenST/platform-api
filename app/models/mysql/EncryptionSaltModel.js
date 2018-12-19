@@ -4,16 +4,15 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
-const dbName = 'saas_client_economy_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
+const dbName = 'saas_big_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
 
-class ManagedAddressSaltModel extends ModelBase {
-
+class EncryptionSaltModel extends ModelBase {
   constructor() {
     super({ dbName: dbName });
 
     const oThis = this;
 
-    oThis.tableName = 'managed_address_salts';
+    oThis.tableName = 'encryption_salts';
   }
 
   getById(id) {
@@ -25,4 +24,4 @@ class ManagedAddressSaltModel extends ModelBase {
   }
 }
 
-module.exports = ManagedAddressSaltModel;
+module.exports = EncryptionSaltModel;
