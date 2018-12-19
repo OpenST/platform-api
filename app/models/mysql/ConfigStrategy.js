@@ -17,7 +17,7 @@ const rootPrefix = '../../..',
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ManagedAddressSaltModel = require(rootPrefix + '/app/models/mysql/ManagedAddressSalt');
+  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSaltModel');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
   dbName = 'config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT,
@@ -343,7 +343,7 @@ class ConfigStrategyModel extends ModelBase {
    */
 
   async _fetchAddressSalt(managedAddressSaltId) {
-    let addrSalt = await new ManagedAddressSaltModel().getById(managedAddressSaltId);
+    let addrSalt = await new EncryptionSaltModel().getById(managedAddressSaltId);
 
     if (!addrSalt[0]) {
       return Promise.reject(
