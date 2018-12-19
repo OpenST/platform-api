@@ -250,13 +250,19 @@ configTemplate['entitiesMap'] = {
   constantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      originChainId: 'chainIdEntity',
-      originDdbTablePrefix: 'ddbTablePrefixEntity',
-      auxDdbTablePrefix: 'ddbTablePrefixEntity'
+      originDdbTablePrefix: 'originDdbTablePrefixEntity',
+      auxDdbTablePrefix: 'auxDdbTablePrefixEntity',
+      originChainId: 'chainIdEntity'
     }
   },
-  ddbTablePrefixEntity: {
-    entityType: 'string'
+
+  originDdbTablePrefixEntity: {
+    entityType: 'string',
+    valueCheckNeeded: 1
+  },
+  auxDdbTablePrefixEntity: {
+    entityType: 'string',
+    valueCheckNeeded: 1
   }
 };
 

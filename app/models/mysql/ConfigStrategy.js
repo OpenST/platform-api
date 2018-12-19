@@ -20,7 +20,7 @@ const rootPrefix = '../../..',
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
-  dbName = 'config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT,
+  dbName = 'config_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = configStrategyConstants.kinds,
   invertedKinds = configStrategyConstants.invertedKinds;
 

@@ -51,24 +51,26 @@ const mysqlConfig = {
   databases: {}
 };
 
-mysqlConfig['databases']['saas_airdrop_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = [
+mysqlConfig['databases']['saas_airdrop_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
   'cluster1'
 ];
 
-mysqlConfig['databases']['saas_big_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = ['cluster1'];
+mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster1'];
 
-mysqlConfig['databases']['saas_client_economy_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = [
+mysqlConfig['databases']['saas_client_economy_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
   'cluster3'
 ];
 
-mysqlConfig['databases']['saas_transaction_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = [
+mysqlConfig['databases']['saas_transaction_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
   'cluster4'
 ];
 
-mysqlConfig['databases']['kit_saas_shared_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = [
+mysqlConfig['databases']['kit_saas_shared_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
   'cluster2'
 ];
 
-mysqlConfig['databases']['config_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT] = ['cluster3'];
+mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
+  'cluster3'
+];
 
 module.exports = mysqlConfig;

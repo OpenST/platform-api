@@ -8,11 +8,16 @@
 
 const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   configTemplate = require(rootPrefix + '/config/template');
 
 class ConfigurationHelper {
   constructor() {}
 
+
+  // TODO: PENDING validate dDBtableprefix
+  // TODO: PENDING exclude origin chain while get chain data
   /**
    * This function returns true if the given configuration is as per the template format
    *
@@ -40,7 +45,8 @@ class ConfigurationHelper {
       } else if (entitiesMap[configEntityName]['entityType'] === 'array') {
         returnFlag = returnFlag && oThis._validateArrayTypeEntity(configEntityName, configuration[entityName]);
       } else if (entitiesMap[configEntityName]['entityType'] === 'string') {
-        if (!oThis._validateStringTypeEntity(configuration[entityName])) {
+        let valueCheckNeeded = entitiesMap[configEntityName]['valueCheckNeeded'];
+        if (!oThis._validateStringTypeEntity(configEntityName, configuration[entityName], valueCheckNeeded)) {
           logger.error(`${key} value should be string at root level`);
           returnFlag = false;
         }
@@ -53,6 +59,10 @@ class ConfigurationHelper {
     }
 
     return returnFlag;
+  }
+
+  _validateDdbTablePrefix() {
+
   }
 
   /**
@@ -79,7 +89,8 @@ class ConfigurationHelper {
       let secondLevelEntityName = entitiesMap[entityName]['entitiesPresent'][secondLevelEntity]; //eg. secondLevelEntityName = "engineEntity"
 
       if (entitiesMap[secondLevelEntityName]['entityType'] === 'string') {
-        if (!oThis._validateStringTypeEntity(configToValidate[secondLevelEntity])) {
+        let valueCheckNeeded = entitiesMap[secondLevelEntityName]['valueCheckNeeded'];
+        if (!oThis._validateStringTypeEntity(secondLevelEntityName, configToValidate[secondLevelEntity], valueCheckNeeded)) {
           logger.error(`${secondLevelEntity} value should be string in ${entityName}`);
           returnFlag = false;
         }
@@ -120,11 +131,12 @@ class ConfigurationHelper {
 
     let arrayEntityType = entitiesMap[entityName]['entityType'], //eg. array
       nameOfEntitiesPresentInArray = entitiesMap[entityName]['entitiesPresent'], // eg. serverEntity
-      typeOfEntitiesPresentInArray = entitiesMap[nameOfEntitiesPresentInArray]['entityType']; //eg. string
+      typeOfEntitiesPresentInArray = entitiesMap[nameOfEntitiesPresentInArray]['entityType'], //eg. string
+      valueCheckNeeded = entitiesMap[nameOfEntitiesPresentInArray]['valueCheckNeeded'];
 
     for (let index in configToValidate) {
       if (typeOfEntitiesPresentInArray === 'string') {
-        if (!oThis._validateStringTypeEntity(configToValidate[index])) {
+        if (!oThis._validateStringTypeEntity(nameOfEntitiesPresentInArray, configToValidate[index], valueCheckNeeded)) {
           logger.error(`${configToValidate} value should be an array strings in ${entityName}`);
           returnFlag = false;
         }
@@ -145,13 +157,26 @@ class ConfigurationHelper {
   }
 
   /**
+   * Check value type and if required value content also.
    *
-   * @param value
-   * @returns {*|boolean}
+   * @param entityName {string}
+   * @param entityValue {string}
+   * @param valueCheckNeeded {number}
+   *
+   * @returns {boolean}
+   *
    * @private
    */
-  _validateStringTypeEntity(value) {
-    return value && typeof value === 'string';
+  _validateStringTypeEntity(entityName, entityValue, valueCheckNeeded) {
+
+    const oThis = this;
+    console.log('-------------------------------------------------', entityName, entityValue, valueCheckNeeded);
+    let b = (entityValue && typeof entityValue === 'string');
+    if(!b) return b;
+    if(valueCheckNeeded){
+      return oThis._validateValueFor(entityName, entityValue);
+    }
+    return true;
   }
 
   /**
@@ -163,6 +188,53 @@ class ConfigurationHelper {
   _validateNumberTypeEntity(value) {
     return value && typeof value === 'number';
   }
+
+  /**
+   *
+   * @param entityName
+   * @param entityValue
+   *
+   * @private
+   */
+  _validateValueFor(entityName, entityValue){
+
+    switch (entityName) {
+      case 'originDdbTablePrefixEntity':
+
+        if (!basicHelper.isProduction()){
+          return true;
+        }
+
+        let oSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'mn_' : 'tn_';
+        let oDdbTablePrefix = coreConstants.environmentShort + "_" + oSubEnvPrefix;
+        if (oDdbTablePrefix == entityValue){
+          logger.error("originDdbTablePrefix should be of format", oDdbTablePrefix);
+          return false;
+        }
+
+        break;
+
+      case 'auxDdbTablePrefixEntity':
+
+        if (!basicHelper.isProduction()){
+          return true;
+        }
+
+        let aSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'ma_' : 'sb_';
+        let aDdbTablePrefix = coreConstants.environmentShort + "_" + aSubEnvPrefix;
+        if (aDdbTablePrefix !== entityValue){
+          logger.error("auxDdbTablePrefix should be of format", aDdbTablePrefix);
+          return false;
+        }
+
+        break;
+
+    }
+
+    return true;
+
+  }
+
 }
 
 module.exports = new ConfigurationHelper();

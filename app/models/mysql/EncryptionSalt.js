@@ -4,7 +4,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
-const dbName = 'saas_big_' + coreConstants.SUB_ENVIRONMENT + '_' + coreConstants.ENVIRONMENT;
+const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 class EncryptionSalt extends ModelBase {
   constructor() {

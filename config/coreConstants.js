@@ -11,19 +11,19 @@ class CoreConstant {
     return process.env.OST_SHARED_MEMCACHE_SERVERS.split(',');
   }
 
-  get ENVIRONMENT() {
+  get environment() {
     return process.env.CR_ENVIRONMENT;
   }
 
-  get SUB_ENVIRONMENT() {
+  get subEnvironment() {
     return process.env.CR_SUB_ENVIRONMENT;
   }
 
-  get ENVIRONMENT_SHORT() {
+  get environmentShort() {
     return process.env.CR_ENVIRONMENT.substring(0, 2);
   }
 
-  get SUB_ENVIRONMENT_SHORT() {
+  get subEnvironmentShort() {
     return process.env.CR_SUB_ENVIRONMENT.substring(0, 2);
   }
 

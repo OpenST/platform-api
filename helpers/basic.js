@@ -310,7 +310,7 @@ class BasicHelperKlass {
    * @return {Boolean}
    */
   isProduction() {
-    return coreConstants.ENVIRONMENT == 'production';
+    return coreConstants.environment == 'production';
   }
 
   /**
@@ -319,7 +319,7 @@ class BasicHelperKlass {
    * @return {Boolean}
    */
   isMainSubEnvironment() {
-    return coreConstants.SUB_ENVIRONMENT == 'main';
+    return coreConstants.subEnvironment == 'main';
   }
 
   /**
@@ -328,7 +328,7 @@ class BasicHelperKlass {
    * @return {Boolean}
    */
   isSandboxSubEnvironment() {
-    return coreConstants.SUB_ENVIRONMENT == 'sandbox';
+    return coreConstants.subEnvironment == 'sandbox';
   }
 
   /**
