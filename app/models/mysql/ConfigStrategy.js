@@ -44,7 +44,7 @@ class ConfigStrategyModel extends ModelBase {
    * @param chainId {Number} - chain id
    * @param groupId {Number} - group id
    * @param allParams {Object} - all params object
-   * @param encryptionSaltId {Number} (optional) - encryption salt id - presently the id of managed_address_salts table
+   * @param encryptionSaltId {Number} (optional) - encryption salt id - presently the id of encryption_salts table
    *
    * @returns {Promise<*>}
    */
@@ -318,7 +318,7 @@ class ConfigStrategyModel extends ModelBase {
     }
 
     let KMSObject = new KmsWrapper('knownAddresses');
-    let decryptedSalt = await KMSObject.decrypt(addrSalt[0]['managed_address_salt']);
+    let decryptedSalt = await KMSObject.decrypt(addrSalt[0]['salt']);
     if (!decryptedSalt['Plaintext']) {
       return Promise.reject(
         responseHelper.error({
