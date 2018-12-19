@@ -317,7 +317,7 @@ class ConfigStrategyModel extends ModelBase {
       );
     }
 
-    let KMSObject = new KmsWrapper('managedAddresses');
+    let KMSObject = new KmsWrapper('knownAddresses');
     let decryptedSalt = await KMSObject.decrypt(addrSalt[0]['managed_address_salt']);
     if (!decryptedSalt['Plaintext']) {
       return Promise.reject(
