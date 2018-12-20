@@ -54,11 +54,12 @@ class CronProcessesModel extends ModelBaseKlass {
    * @param {Object} params
    * @param {String} params.kind
    * @param {String} params.ipAddress
-   * @param {Number} params.groupId
+   * @param {Number} params.chainId
    * @param {String} params.params
    * @param {String} params.status
    * @param {Number} params.lastStartTime
    * @param {Number} params.lastEndTime
+   *
    * @returns {*}
    */
   insertRecord(params) {
@@ -67,14 +68,14 @@ class CronProcessesModel extends ModelBaseKlass {
     // Perform validations.
     if (
       !params.hasOwnProperty('kind') ||
-      !params.hasOwnProperty('ipAddress') ||
+      !params.hasOwnProperty('ip_address') ||
       !params.hasOwnProperty('status') ||
-      !params.hasOwnProperty('groupId')
+      !params.hasOwnProperty('chain_id')
     ) {
       throw 'Mandatory parameters are missing.';
     }
 
-    if (typeof params.kind !== 'string' || typeof params.ipAddress !== 'string' || typeof params.status !== 'string') {
+    if (typeof params.kind !== 'string' || typeof params.ip_address !== 'string' || typeof params.status !== 'string') {
       throw TypeError('Insertion parameters are of wrong params types.');
     }
     params.status = cronProcessesConstant.invertedStatuses[params.status];

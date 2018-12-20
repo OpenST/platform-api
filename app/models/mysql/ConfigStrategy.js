@@ -138,7 +138,6 @@ class ConfigStrategyModel extends ModelBase {
     let decryptedSalts = {},
       finalResult = {};
 
-    console.log('---------------queryResult-----', queryResult);
     for (let i = 0; i < queryResult.length; i++) {
       //Following logic is added so that decrypt call is not given for already decrypted salts.
       if (decryptedSalts[queryResult[i].encryption_salt_id] == null) {
@@ -169,7 +168,6 @@ class ConfigStrategyModel extends ModelBase {
         configStrategyHash = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
       }
 
-      console.log('---------------localDecryptedJsonObj-----', configStrategyHash);
       finalResult[queryResult[i].id] = configStrategyHash;
     }
 
