@@ -82,7 +82,7 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
       encryptedHash = null;
 
-    if (hashToEncrypt && false) {
+    if (hashToEncrypt) {
       let encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
 
       if (encryptedHashResponse.isFailure()) {
@@ -419,6 +419,11 @@ class ConfigStrategyModel extends ModelBase {
     let hashToEncrypt = {},
       hashNotToEncrypt = configStrategyParams,
       encryptedKeysFound = false;
+
+    return {
+      hashToEncrypt: null,
+      hashNotToEncrypt: hashNotToEncrypt
+    };
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
