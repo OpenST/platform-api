@@ -6,22 +6,14 @@ const rootPrefix = '../../..',
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
-class EncryptionSalt extends ModelBase {
+class ChainAddress extends ModelBase {
   constructor() {
     super({ dbName: dbName });
 
     const oThis = this;
 
-    oThis.tableName = 'encryption_salts';
-  }
-
-  getById(id) {
-    const oThis = this;
-    return oThis
-      .select('*')
-      .where(['id=?', id])
-      .fire();
+    oThis.tableName = 'chain_addresses';
   }
 }
 
-module.exports = EncryptionSalt;
+module.exports = ChainAddress;

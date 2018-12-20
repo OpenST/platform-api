@@ -43,6 +43,18 @@ class CoreConstant {
     return process.env.CR_DEFAULT_MYSQL_PASSWORD;
   }
 
+  get CR_CONFIG_DB_MYSQL_HOST() {
+    return process.env.CR_CONFIG_DB_MYSQL_HOST;
+  }
+
+  get CR_CONFIG_DB_MYSQL_USER() {
+    return process.env.CR_CONFIG_DB_MYSQL_USER;
+  }
+
+  get CR_CONFIG_DB_MYSQL_PASSWORD() {
+    return process.env.CR_CONFIG_DB_MYSQL_PASSWORD;
+  }
+
   get CR_BIG_DB_MYSQL_HOST() {
     return process.env.CR_BIG_DB_MYSQL_HOST;
   }
