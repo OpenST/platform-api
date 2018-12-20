@@ -66,9 +66,7 @@ mysqlConfig['databases']['saas_transaction_' + coreConstants.subEnvironment + '_
   'cluster4'
 ];
 
-mysqlConfig['databases']['kit_saas_shared_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
-  'cluster2'
-];
+mysqlConfig['databases']['kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster2'];
 
 mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster5'];
 
