@@ -82,7 +82,7 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt = separateHashesResponse.data.hashNotToEncrypt,
       encryptedHash = null;
 
-    if (hashToEncrypt) {
+    if (hashToEncrypt && false) {
       let encryptedHashResponse = await oThis._getEncryption(hashToEncrypt, encryptionSaltId);
 
       if (encryptedHashResponse.isFailure()) {
