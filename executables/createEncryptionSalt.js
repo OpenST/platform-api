@@ -10,6 +10,7 @@
 
 const rootPrefix = '..',
   KmsWrapper = require(rootPrefix + '/lib/authentication/kmsWrapper'),
+  encryptionSaltConst = require(rootPrefix + '/lib/globalConstant/encryptionSalt'),
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
 
 const InsertSaltID = {
@@ -19,7 +20,12 @@ const InsertSaltID = {
     KMSObject.generateDataKey().then(async function(a) {
       const addressSalt = a['CiphertextBlob'];
 
-      let insertedRec = await new EncryptionSaltModel().insert({ salt: addressSalt }).fire();
+      let insertedRec = await new EncryptionSaltModel()
+        .insert({
+          kind: encryptionSaltConst.invertedKinds[encryptionSaltConst.configStrategyKind],
+          salt: addressSalt
+        })
+        .fire();
 
       console.log('Encryption Salt ID: ', insertedRec.insertId);
       process.exit(0);

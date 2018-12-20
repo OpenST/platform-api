@@ -2,10 +2,9 @@
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  knownAddressConstant = require(rootPrefix + '/lib/globalConstant/knownAddress');
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
-const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 class KnownAddress extends ModelBase {
   constructor() {
@@ -14,6 +13,15 @@ class KnownAddress extends ModelBase {
     const oThis = this;
 
     oThis.tableName = 'known_addresses';
+  }
+
+  getByAddressesSecure(addresses) {
+    const oThis = this;
+
+    return oThis
+      .select(['address', 'encryption_salt', 'private_key'])
+      .where(['address IN (?)', addresses])
+      .fire();
   }
 }
 

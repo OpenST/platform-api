@@ -46,20 +46,21 @@ const mysqlConfig = {
         user: coreConstants.CR_TRANSACTION_DB_MYSQL_USER,
         password: coreConstants.CR_TRANSACTION_DB_MYSQL_PASSWORD
       }
+    },
+    cluster5: {
+      master: {
+        host: coreConstants.CR_CONFIG_DB_MYSQL_HOST,
+        user: coreConstants.CR_CONFIG_DB_MYSQL_USER,
+        password: coreConstants.CR_CONFIG_DB_MYSQL_PASSWORD
+      }
     }
   },
   databases: {}
 };
 
-mysqlConfig['databases']['saas_airdrop_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
-  'cluster1'
-];
+mysqlConfig['databases']['saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster1'];
 
-mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster1'];
-
-mysqlConfig['databases']['saas_client_economy_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
-  'cluster3'
-];
+mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
 
 mysqlConfig['databases']['saas_transaction_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
   'cluster4'
@@ -69,8 +70,6 @@ mysqlConfig['databases']['kit_saas_shared_' + coreConstants.subEnvironment + '_'
   'cluster2'
 ];
 
-mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
-  'cluster3'
-];
+mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster5'];
 
 module.exports = mysqlConfig;
