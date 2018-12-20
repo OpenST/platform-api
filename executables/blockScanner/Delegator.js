@@ -117,16 +117,13 @@ class TransactionDelegator extends SigIntHandler {
     const oThis = this;
 
     // Validate and sanitize input parameters.
-    oThis.validateAndSanitize();
+    oThis._validateAndSanitize();
 
     // Validate whether chainId exists in the chains table.
-    await oThis.validateChainId();
+    await oThis._validateChainId();
 
     // Warm up web3 pool.
     await oThis.warmUpWeb3Pool();
-
-    // Initialize certain variables.
-    await oThis.init();
 
     // Parse blocks.
     await oThis.parseBlocks();
@@ -135,8 +132,10 @@ class TransactionDelegator extends SigIntHandler {
   /**
    * Sanitizes and validates the input parameters. ChainId is not validated here as it is already validated
    * before calling the perform method of the class.
+   *
+   * @private
    */
-  validateAndSanitize() {
+  _validateAndSanitize() {
     // Validate startBlockNumber.
     if (startBlockNumber === null || startBlockNumber === undefined) {
       logger.warn('startBlockNumber is unavailable. Block parser would select highest block available in the DB.');
@@ -166,11 +165,14 @@ class TransactionDelegator extends SigIntHandler {
 
   /**
    * This method validates whether the chainId passed actually exists in the chains
-   * table in DynamoDB or not.
+   * table in DynamoDB or not. This method internally initialises certain services
+   * sets some variables as well.
+   *
+   * @private
    *
    * @returns {Promise<void>}
    */
-  async validateChainId() {
+  async _validateChainId() {
     // Fetch config strategy by chainId.
     const oThis = this,
       strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
@@ -187,16 +189,19 @@ class TransactionDelegator extends SigIntHandler {
     oThis.wsProviders = configStrategy.auxGeth.readOnly.wsProviders;
 
     // Get blockScanner object.
-    oThis.blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
+    const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
 
     // Get ChainModel.
-    const ChainModel = oThis.blockScannerObj.model.Chain,
+    const ChainModel = blockScannerObj.model.Chain,
       chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
 
     if (!chainExists) {
       logger.error('ChainId does not exist in the chains table.');
       process.emit('SIGINT');
     }
+
+    // Initialize certain variables.
+    oThis._init(blockScannerObj);
 
     logger.step('ChainID exists in chains table in dynamoDB.');
   }
@@ -225,12 +230,16 @@ class TransactionDelegator extends SigIntHandler {
 
   /**
    * Initializes block parser service and blockToProcess.
+   *
+   * @param {Object} blockScannerObj
+   *
+   * @private
    */
-  init() {
+  _init(blockScannerObj) {
     const oThis = this;
 
     // Initialize BlockParser.
-    oThis.BlockParser = oThis.blockScannerObj.block.Parser;
+    oThis.BlockParser = blockScannerObj.block.Parser;
 
     // Initialize blockToProcess.
     if (oThis.startBlockNumber >= 0) {
@@ -238,6 +247,8 @@ class TransactionDelegator extends SigIntHandler {
     } else {
       oThis.blockToProcess = 0;
     }
+
+    logger.step('Services initialised.');
   }
 
   /**
