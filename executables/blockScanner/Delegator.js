@@ -3,10 +3,10 @@
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * block scanner worker processes.
  *
- * Usage: node executables/block_scanner/transaction_delegator.js processLockId
+ * Usage: node executables/block_scanner/transaction_delegator.js cronProcessId
  *
  * Command Line Parameters Description:
- * processLockId: used for ensuring that no other process with the same processLockId can run on a given machine.
+ * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
  * @module executables/blockScanner/Delegator
  */
@@ -21,26 +21,28 @@ const rootPrefix = '../..',
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  CronProcessHandlerObject = new CronProcessesHandler();
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
+
+const cronProcessHandler = new CronProcessesHandler();
 
 /**
  * This function demonstrates how to use the transaction delegator cron.
  */
+// TODO - use commander
 const usageDemo = function() {
-  logger.log('Usage:', 'node executables/blockScanner/Delegator.js processLockId');
+  logger.log('Usage:', 'node executables/blockScanner/Delegator.js cronProcessId');
   logger.log(
-    '* processLockId is used for ensuring that no other process with the same processLockId can run on a given machine.'
+    '* cronProcessId is used for ensuring that no other process with the same cronProcessId can run on a given machine.'
   );
 };
 
 // Declare variables.
 const args = process.argv,
-  processLockId = args[2];
+  cronProcessId = args[2];
 
-// Validate if processLockId was passed or not.
-if (!processLockId) {
-  logger.error('Process Lock id NOT passed in the arguments.');
+// Validate if cronProcessId was passed or not.
+if (!cronProcessId) {
+  logger.error('Cron process id NOT passed in the arguments.');
   usageDemo();
   process.exit(1);
 }
@@ -73,7 +75,7 @@ class TransactionDelegator extends SigIntHandler {
    */
   constructor(params) {
     super({
-      id: processLockId
+      id: cronProcessId
     });
 
     const oThis = this;
@@ -84,6 +86,8 @@ class TransactionDelegator extends SigIntHandler {
     oThis.intentionalBlockDelay = params.intentionalBlockDelay || 0;
 
     oThis.canExit = true; // Denotes whether process can exit or not.
+
+    oThis.attachHandlers(); // Attaching handlers from sigint handler.
   }
 
   /**
@@ -93,6 +97,8 @@ class TransactionDelegator extends SigIntHandler {
    */
   perform() {
     const oThis = this;
+
+    logger.step('Block parser process started.');
 
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
@@ -120,7 +126,7 @@ class TransactionDelegator extends SigIntHandler {
     // Validate whether chainId exists in the chains table.
     await oThis.validateChainId();
 
-    // Warm up web3 pool. TODO: Complete this method.
+    // Warm up web3 pool.
     await oThis.warmUpWeb3Pool();
 
     // Initialize certain variables.
@@ -136,7 +142,7 @@ class TransactionDelegator extends SigIntHandler {
    */
   validateAndSanitize() {
     // Validate startBlockNumber.
-    if (!startBlockNumber) {
+    if (startBlockNumber === null || startBlockNumber === undefined) {
       logger.warn('startBlockNumber is unavailable. Block parser would select highest block available in the DB.');
     }
     if (startBlockNumber && startBlockNumber < 0) {
@@ -145,7 +151,7 @@ class TransactionDelegator extends SigIntHandler {
     }
 
     // Validate endBlockNumber.
-    if (!endBlockNumber) {
+    if (endBlockNumber === null || endBlockNumber === undefined) {
       logger.warn('endBlockNumber is unavailable. Block parser would not stop automatically.');
     }
     if (endBlockNumber && endBlockNumber < 0) {
@@ -254,7 +260,8 @@ class TransactionDelegator extends SigIntHandler {
       oThis.canExit = false;
 
       let blockParser = new oThis.BlockParser(oThis.chainId, {
-          blockDelay: oThis.intentionalBlockDelay
+          blockDelay: oThis.intentionalBlockDelay,
+          blockToProcess: oThis.blockToProcess
         }),
         blockParserResponse = await blockParser.perform();
 
@@ -267,28 +274,21 @@ class TransactionDelegator extends SigIntHandler {
           nextBlockToProcess = blockParserData.nextBlockToProcess,
           transactions = rawCurrentBlock.transactions || [];
 
-        oThis.blockHash = rawCurrentBlock.hash;
-
-        // If the block contains transactions, distribute those transactions.
-        if (transactions.length > 0) {
-          await oThis.distributeTransactions(rawCurrentBlock, nodesWithBlock);
-        }
-
-        logger.step('Current Processed block: ', oThis.blockToProcess, 'with Tx Count: ', transactions.length);
-
         // If current block is not same as nextBlockToProcess, it means there
         // are more blocks to process; so sleep time is less.
         if (currentBlock !== nextBlockToProcess) {
+          // If the block contains transactions, distribute those transactions.
+          if (transactions.length > 0) {
+            await oThis.distributeTransactions(rawCurrentBlock, nodesWithBlock);
+          }
           await oThis.sleep(10);
         } else {
           await oThis.sleep(2000);
         }
 
-        oThis.currentBlock = currentBlock;
-
-        logger.step('Next Block To Process---------:', nextBlockToProcess);
-
         oThis.blockToProcess = nextBlockToProcess;
+
+        logger.step('Current Processed block: ', currentBlock, 'with Tx Count: ', transactions.length);
       } else {
         // If blockParser returns an error then sleep for 10 ms and try again.
         await oThis.sleep(10);
@@ -305,12 +305,15 @@ class TransactionDelegator extends SigIntHandler {
    *
    * @param {Object} rawCurrentBlock
    * @param {Array} nodesWithBlock
+   *
    * @returns {Promise<number>}
    */
   async distributeTransactions(rawCurrentBlock, nodesWithBlock) {
     const oThis = this;
 
-    let transactionsInCurrentBlock = rawCurrentBlock.transactions,
+    let blockHash = rawCurrentBlock.hash,
+      blockNumber = rawCurrentBlock.number,
+      transactionsInCurrentBlock = rawCurrentBlock.transactions,
       totalTransactionCount = transactionsInCurrentBlock.length,
       perBatchCount = totalTransactionCount / nodesWithBlock.length,
       offset = 0;
@@ -340,9 +343,9 @@ class TransactionDelegator extends SigIntHandler {
           kind: 'background_job',
           payload: {
             chainId: oThis.chainId,
-            blockHash: oThis.blockHash,
+            blockHash: blockHash,
             transactionHashes: batchedTxHashes,
-            blockNumber: oThis.currentBlock,
+            blockNumber: blockNumber,
             nodes: nodesWithBlock
           }
         }
@@ -360,8 +363,8 @@ class TransactionDelegator extends SigIntHandler {
         return FAILURE_CODE;
       }
 
-      logger.debug('===Published======batchedTxHashes', batchedTxHashes, '====from block: ', oThis.currentBlock);
-      logger.log('====Published', batchedTxHashes.length, 'transactions', '====from block: ', oThis.currentBlock);
+      logger.debug('===Published======batchedTxHashes', batchedTxHashes, '====from block: ', blockNumber);
+      logger.log('====Published', batchedTxHashes.length, 'transactions', '====from block: ', blockNumber);
       loopCount++;
     }
   }
@@ -392,52 +395,56 @@ class TransactionDelegator extends SigIntHandler {
 }
 
 // Check whether the cron can be started or not.
-CronProcessHandlerObject.canStartProcess({
-  id: +processLockId, // Implicit string to int conversion
-  cronKind: cronKind
-}).then(function(dbResponse) {
-  let cronParams, transactionDelegatorObj;
-  try {
-    // Fetch params from the DB.
-    cronParams = JSON.parse(dbResponse.data.params);
-    // Fetch and sanitize the params. Implicitly converting type from string to int.
-    chainId = +cronParams.chainId;
-    startBlockNumber = cronParams.startBlockNumber ? +cronParams.startBlockNumber : null;
-    endBlockNumber = cronParams.endBlockNumber ? +cronParams.endBlockNumber : null;
-    intentionalBlockDelay = cronParams.intentionalBlockDelay ? +cronParams.intentionalBlockDelay : 0;
+cronProcessHandler
+  .canStartProcess({
+    id: +cronProcessId, // Implicit string to int conversion
+    cronKind: cronKind
+  })
+  .then(function(dbResponse) {
+    let cronParams, transactionDelegatorObj;
 
-    const params = {
-      chainId: chainId,
-      startBlockNumber: startBlockNumber,
-      endBlockNumber: endBlockNumber,
-      intentionalBlockDelay: intentionalBlockDelay
-    };
+    try {
+      // Fetch params from the DB.
+      cronParams = JSON.parse(dbResponse.data.params);
+      // Fetch and sanitize the params. Implicitly converting type from string to int.
+      chainId = +cronParams.chainId;
+      startBlockNumber = cronParams.startBlockNumber ? +cronParams.startBlockNumber : null;
+      endBlockNumber = cronParams.endBlockNumber ? +cronParams.endBlockNumber : null;
+      intentionalBlockDelay = cronParams.intentionalBlockDelay ? +cronParams.intentionalBlockDelay : 0;
 
-    // We are creating the object before validation since we need to attach the methods of SigInt handler to the
-    // prototype of this class.
-    transactionDelegatorObj = new TransactionDelegator(params);
+      const params = {
+        chainId: chainId,
+        startBlockNumber: startBlockNumber,
+        endBlockNumber: endBlockNumber,
+        intentionalBlockDelay: intentionalBlockDelay
+      };
 
-    // Validate if the chainId exists in the DB or not. We are not validating other parameters as they are
-    // optional parameters.
-    if (!chainId) {
-      logger.error('Chain ID is un-available in cron params in the database.');
-      process.emit('SIGINT');
-    }
-    if (chainId < 0) {
-      // Implicit string to int conversion.
-      logger.error('Chain ID is invalid.');
-      process.emit('SIGINT');
+      // We are creating the object before validation since we need to attach the methods of SigInt handler to the
+      // prototype of this class.
+      transactionDelegatorObj = new TransactionDelegator(params);
+
+      // Validate if the chainId exists in the DB or not. We are not validating other parameters as they are
+      // optional parameters.
+      if (!chainId) {
+        logger.error('Chain ID is un-available in cron params in the database.');
+        process.emit('SIGINT');
+      }
+      if (chainId < 0) {
+        // Implicit string to int conversion.
+        logger.error('Chain ID is invalid.');
+        process.emit('SIGINT');
+      }
+    } catch (err) {
+      logger.error('Cron parameters stored in INVALID format in the DB.');
+      logger.error(
+        'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron.'
+      );
+      logger.error('Error: ', err);
+      process.exit(1);
     }
 
     // Perform action if cron can be started.
-    transactionDelegatorObj.perform().then(function(r) {
-      logger.win('Block parser process started.');
+    transactionDelegatorObj.perform().then(function() {
+      logger.win('Block parser process finished working.');
     });
-  } catch (err) {
-    logger.error('Cron parameters stored in INVALID format in the DB.');
-    logger.error(
-      'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron.'
-    );
-    process.exit(1);
-  }
-});
+  });

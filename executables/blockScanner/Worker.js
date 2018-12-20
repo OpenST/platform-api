@@ -3,17 +3,16 @@
  * This code acts as a worker process for block scanner, which takes the transactions from delegator
  * and processes them.
  *
- * Usage: node executables/blockScanner/Worker.js processLockId
+ * Usage: node executables/blockScanner/Worker.js cronProcessId
  *
  * Command Line Parameters Description:
- * processLockId: used for ensuring that no other process with the same processLockId can run on a given machine.
+ * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
  * @module executables/blockScanner/Worker.
  */
 const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
-  InstanceComposer = OSTBase.InstanceComposer,
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -24,26 +23,28 @@ const rootPrefix = '../..',
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  CronProcessHandlerObject = new CronProcessesHandler();
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
+
+const cronProcessHandler = new CronProcessesHandler();
 
 /**
  * This function demonstrates how to use the block scanner worker cron.
  */
+// TODO - use commander
 const usageDemo = function() {
-  logger.log('Usage:', 'node executables/blockScanner/Worker.js processLockId');
+  logger.log('Usage:', 'node executables/blockScanner/Worker.js cronProcessId');
   logger.log(
-    '* processLockId is used for ensuring that no other process with the same processLockId can run on a given machine.'
+    '* processLockId is used for ensuring that no other process with the same cronProcessId can run on a given machine.'
   );
 };
 
 // Declare variables.
 const args = process.argv,
-  processLockId = args[2];
+  cronProcessId = args[2];
 
 // Validate if processLockId was passed or not.
-if (!processLockId) {
-  logger.error('Process Lock id NOT passed in the arguments.');
+if (!cronProcessId) {
+  logger.error('Cron process id NOT passed in the arguments.');
   usageDemo();
   process.exit(1);
 }
@@ -59,11 +60,9 @@ let unAckCount = 0,
  *
  * @class
  */
-class BlockScanner extends SigIntHandler {
+class BlockScannerWorker extends SigIntHandler {
   /**
    * Constructor for block scanner worker
-   *
-   * @augments SigIntHandler
    *
    * @param {Object} params
    * @param {Number} params.chainId
@@ -73,13 +72,35 @@ class BlockScanner extends SigIntHandler {
    */
   constructor(params) {
     super({
-      id: processLockId
+      id: cronProcessId
     });
 
     const oThis = this;
 
     oThis.chainId = params.chainId;
     oThis.prefetchCount = params.prefetchCount;
+
+    // Initialize PromiseQueueManager.
+    oThis.PromiseQueueManager = new OSTBase.OSTPromise.QueueManager(
+      function(...args) {
+        // Promise executor should be a static method by itself. We declared an unnamed function
+        // which was a static method, and promiseExecutor was passed in the same scope as that
+        // of the class with oThis preserved.
+        oThis._promiseExecutor(...args);
+      },
+      {
+        name: 'blockscanner_promise_queue_manager',
+        timeoutInMilliSecs: 3 * 60 * 1000, //3 minutes
+        maxZombieCount: Math.round(oThis.prefetchCount * 0.25),
+        onMaxZombieCountReached: function() {
+          logger.warn('e_bs_w_1', 'maxZombieCount reached. Triggering SIGTERM.');
+          // Trigger gracefully shutdown of process.
+          process.kill(process.pid, 'SIGTERM'); // TODO: Get this verified.
+        }
+      }
+    );
+
+    oThis.attachHandlers(); // Attaching handlers from sigint handler.
   }
 
   /**
@@ -90,12 +111,13 @@ class BlockScanner extends SigIntHandler {
   perform() {
     const oThis = this;
 
+    logger.step('Block scanner worker process started.');
+
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
-      oThis.canExit = true;
       logger.error(' In catch block of executables/blockScanner/Worker.js');
       return responseHelper.error({
-        internal_error_identifier: 'e_bs_w_1',
+        internal_error_identifier: 'e_bs_w_2',
         api_error_identifier: 'something_went_wrong',
         debug_options: err
       });
@@ -113,7 +135,7 @@ class BlockScanner extends SigIntHandler {
     // Validate and sanitize input parameters.
     oThis.validateAndSanitize();
 
-    // Warm up web3 pool. TODO: Complete this method.
+    // Warm up web3 pool.
     await oThis.warmUpWeb3Pool();
 
     // Initialize certain variables.
@@ -168,16 +190,14 @@ class BlockScanner extends SigIntHandler {
       process.emit('SIGINT');
     }
 
-    const configStrategy = configStrategyResp.data;
-    oThis.ic = new InstanceComposer(configStrategy);
-
-    let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE,
+    const configStrategy = configStrategyResp.data,
+      web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE,
       wsProviders = configStrategy.auxGeth.readOnly.wsProviders;
 
     logger.log('====Warming up geth pool for providers====', wsProviders);
 
-    for (let index = 0; index < configStrategy.wsProviders.length; index++) {
-      let provider = configStrategy.wsProviders[index];
+    for (let index = 0; index < wsProviders.length; index++) {
+      let provider = wsProviders[index];
       for (let i = 0; i < web3PoolSize; i++) {
         web3InteractFactory.getInstance(provider);
       }
@@ -187,23 +207,10 @@ class BlockScanner extends SigIntHandler {
   }
 
   /**
-   * Initializes Promise queue manager, transaction parser service and transfer
-   * parser service.
+   * Initializes block scanner service provider, transaction parser service and transfer parser service.
    */
   async init() {
     const oThis = this;
-
-    // Initialize PromiseQueueManager.
-    oThis.PromiseQueueManager = new OSTBase.OSTPromise.QueueManager(oThis._promiseExecutor, {
-      name: 'blockscanner_promise_queue_manager',
-      timeoutInMilliSecs: 3 * 60 * 1000, //3 minutes
-      maxZombieCount: Math.round(oThis.prefetchCount * 0.25),
-      onMaxZombieCountReached: function() {
-        logger.warn('e_bs_w_2', 'maxZombieCount reached. Triggering SIGTERM.');
-        // Trigger gracefully shutdown of process.
-        process.emit('SIGTERM'); // TODO: Get this verified.
-      }
-    });
 
     // Get blockScanner object.
     oThis.blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
@@ -211,7 +218,7 @@ class BlockScanner extends SigIntHandler {
     oThis.TransactionParser = oThis.blockScannerObj.transaction.Parser;
     oThis.TokenTransferParser = oThis.blockScannerObj.transfer.Parser;
 
-    return Promise.resolve();
+    logger.step('Services initialised.');
   }
 
   /**
@@ -249,165 +256,153 @@ class BlockScanner extends SigIntHandler {
   }
 
   /**
+   * This method calls the transaction parser and token transfer parser services as needed.
+   *
+   * @param {String} params
+   *
+   * @returns {Promise<*>}
+   */
+  async transactionParserExecutor(params) {
+    unAckCount++;
+
+    const oThis = this;
+
+    // Process request
+    const parsedParams = JSON.parse(params),
+      payload = parsedParams.message.payload;
+
+    // Fetch params from payload.
+    const chainId = payload.chainId.toString(),
+      blockHash = payload.blockHash,
+      transactionHashes = payload.transactionHashes,
+      blockNumber = payload.blockNumber,
+      nodes = payload.nodes;
+
+    const blockValidationResponse = await oThis._verifyBlockNumberAndBlockHash(blockNumber, blockHash, nodes),
+      blockVerified = blockValidationResponse.blockVerified,
+      rawBlock = blockValidationResponse.rawBlock;
+
+    // Block hash of block number passed and block hash received from params don't match.
+    if (!blockVerified) {
+      logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
+      // logger.notify(); TODO: Add this.
+      logger.debug('------unAckCount -> ', unAckCount);
+      // ACK RMQ.
+      return Promise.resolve();
+    } else {
+      // Block hash of block number passed and block hash received from params are the same.
+
+      // Create object of transaction parser.
+      let transactionParser = new oThis.TransactionParser(chainId, rawBlock, transactionHashes, nodes);
+
+      // Start transaction parser service.
+      const transactionParserResponse = await transactionParser.perform();
+
+      if (transactionParserResponse.isSuccess()) {
+        // Fetch data from transaction parser response.
+        let transactionReceiptMap = transactionParserResponse.data.transactionReceiptMap || {},
+          unprocessedItems = transactionParserResponse.data.unprocessedTransactions || [],
+          processedReceipts = {};
+
+        let unprocessedItemsMap = {},
+          tokenParserNeeded = false;
+
+        for (let index = 0; index < unprocessedItems.length; index++) {
+          unprocessedItemsMap[unprocessedItems[index]] = 1;
+        }
+
+        for (let txHash in transactionReceiptMap) {
+          if (!unprocessedItemsMap[txHash] && transactionReceiptMap[txHash]) {
+            processedReceipts[txHash] = transactionReceiptMap[txHash];
+            tokenParserNeeded = true;
+          }
+        }
+
+        // Call token parser if it is needed.
+        if (tokenParserNeeded) {
+          const tokenTransferParserResponse = await new oThis.TokenTransferParser(
+            chainId,
+            rawBlock,
+            processedReceipts,
+            nodes
+          ).perform();
+
+          if (tokenTransferParserResponse.isSuccess()) {
+            // Token transfer parser was successful.
+            // TODO: Add dirty balances entry in MySQL.
+            // TODO: Chainable
+            logger.debug('------unAckCount -> ', unAckCount);
+            // ACK RMQ.
+            return Promise.resolve();
+          } else {
+            // If token transfer parsing failed.
+
+            logger.error(
+              'e_bs_w_3',
+              'Token transfer parsing unsuccessful. unAckCount ->',
+              unAckCount,
+              'Token transfer parsing response: ',
+              tokenTransferParserResponse
+            );
+            // ACK RMQ.
+            return Promise.resolve();
+          }
+        } else {
+          // If token transfer parsing not needed.
+
+          logger.log('Token transfer parsing not needed.');
+          logger.debug('------unAckCount -> ', unAckCount);
+          // ACK RMQ.
+          return Promise.resolve();
+        }
+      } else {
+        // Transaction parsing response was unsuccessful.
+
+        logger.error(
+          'e_bs_w_4',
+          'Error in transaction parsing. unAckCount ->',
+          unAckCount,
+          'Transaction parsing response: ',
+          transactionParserResponse
+        );
+        // ACK RMQ.
+        return Promise.resolve();
+      }
+    }
+  }
+
+  /**
    * This method executes the promises.
    *
    * @param onResolve
    * @param onReject
-   * @param {Object} params
+   * @param {String} params
    *
    * @returns {*}
    *
    * @private
    */
   _promiseExecutor(onResolve, onReject, params) {
-    unAckCount++;
-
-    let payload;
     const oThis = this;
 
-    // Trying because of JSON.parse.
-    try {
-      // Process request
-      const parsedParams = JSON.parse(params);
-      payload = parsedParams.message.payload;
-    } catch (error) {
-      unAckCount--;
-      logger.error(
-        'e_bs_w_3',
-        'Error in parsing the message. unAckCount ->',
-        unAckCount,
-        'Error: ',
-        error,
-        'Params: ',
-        params
-      );
-      // ACK RMQ
-      return onResolve();
-    }
-
-    // Fetch params from payload.
-    const chainId = payload.chainId,
-      blockHash = payload.blockHash,
-      transactionHashes = payload.transactionHashes,
-      blockNumber = payload.blockNumber,
-      nodes = payload.nodes;
-
-    // Verify blockNumber and blockHash.
     oThis
-      ._verifyBlockNumberAndBlockHash(blockNumber, blockHash)
-      .then(function(response) {
-        // Block hash of block number passed and block hash received from params don't match.
-        if (!response) {
-          logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
-          logger.notify(); // TODO: Add this.
-          unAckCount--;
-          logger.debug('------unAckCount -> ', unAckCount);
-          // ACK RMQ.
-          return onResolve();
-        }
-        // Block hash of block number passed and block hash received from params are the same.
-        else {
-          // Create object of transaction parser.
-          let transactionParser = new oThis.TransactionParser(chainId, oThis.rawBlock, transactionHashes, nodes);
-
-          // Start transaction parser service.
-          transactionParser
-            .perform()
-            .then(function(transactionParserResponse) {
-              // If transaction parser was successful then only token transfer parser would work.
-              if (transactionParserResponse.isSuccess()) {
-                // Fetch data from transaction parser response.
-                let transactionReceiptMap = transactionParserResponse.data.transactionReceiptMap || {},
-                  unprocessedItems = transactionParserResponse.data.unprocessedTransactions || [],
-                  processedReceipts = {};
-
-                let unprocessedItemsMap = {},
-                  tokenParserNeeded = false;
-
-                for (let index = 0; index < unprocessedItems.length; index++) {
-                  unprocessedItemsMap[unprocessedItems[index]] = 1;
-                }
-
-                for (let txHash in transactionReceiptMap) {
-                  if (!unprocessedItemsMap[txHash] && transactionReceiptMap[txHash]) {
-                    processedReceipts[txHash] = transactionReceiptMap[txHash];
-                    tokenParserNeeded = true;
-                  }
-                }
-
-                // Call token parser if it is needed.
-                if (tokenParserNeeded) {
-                  new oThis.TokenTransferParser(chainId, oThis.rawBlock, processedReceipts, nodes)
-                    .perform()
-                    .then(function() {
-                      // Token transfer parser was successful.
-                      //TODO: Add dirty balances entry in MySQL.
-                      //TODO: Chainable
-                      unAckCount--;
-                      logger.debug('------unAckCount -> ', unAckCount);
-                      // ACK RMQ.
-                      return onResolve();
-                    })
-                    .catch(function(error) {
-                      // Catch of token transfer service performer.
-                      unAckCount--;
-                      logger.error(
-                        'e_bs_w_4',
-                        'Error in token transfer parsing. unAckCount ->',
-                        unAckCount,
-                        'Error: ',
-                        error,
-                        'Params: ',
-                        params
-                      );
-                      // ACK RMQ.
-                      return onResolve();
-                    });
-                }
-                // If token transfer parsing is not needed.
-                else {
-                  unAckCount--;
-                  logger.log('Token transfer parsing not needed.');
-                  logger.debug('------unAckCount -> ', unAckCount);
-                  // ACK RMQ.
-                  return onResolve();
-                }
-              }
-              // Transaction parsing response was unsuccessful.
-              else {
-                unAckCount--;
-                logger.error(
-                  'e_bs_w_5',
-                  'Error in transaction parsing. unAckCount ->',
-                  unAckCount,
-                  'Transaction parsing response: ',
-                  transactionParserResponse
-                );
-                // ACK RMQ.
-                return onResolve();
-              }
-            })
-            .catch(function(error) {
-              // Catch of transaction parser service performer.
-              unAckCount--;
-              logger.error(
-                'e_bs_w_6',
-                'Error while executing transaction parser service. unAckCount -> ',
-                unAckCount,
-                'Error: ',
-                error
-              );
-              // ACK RMQ
-              return onResolve();
-            });
-        }
+      .transactionParserExecutor(params)
+      .then(function() {
+        unAckCount--;
+        onResolve();
       })
       .catch(function(error) {
-        // Catch of _verifyBlockNumberAndBlockHash method.
         unAckCount--;
-        logger.error('e_bs_w_7', 'Error while fetching block. unAckCount -> ', unAckCount, 'Error: ', error);
-        // ACK RMQ
-        return onResolve();
+        logger.error(
+          'e_bs_w_5',
+          'Error in token transfer parsing. unAckCount ->',
+          unAckCount,
+          'Error: ',
+          error,
+          'Params: ',
+          params
+        );
+        onResolve();
       });
   }
 
@@ -417,22 +412,26 @@ class BlockScanner extends SigIntHandler {
    *
    * @param {Number} blockNumber
    * @param {String} blockHash
+   * @param {Array} nodes
+   *
    * @returns {Promise<Boolean>}
    *
    * @private
    */
-  async _verifyBlockNumberAndBlockHash(blockNumber, blockHash) {
+  async _verifyBlockNumberAndBlockHash(blockNumber, blockHash, nodes) {
     const oThis = this;
 
-    oThis.rawBlock = await web3InteractFactory.getBlock(blockNumber);
+    const web3Interact = web3InteractFactory.getInstance(nodes[0]),
+      rawBlock = await web3Interact.getBlock(blockNumber);
 
-    const correctBlockHash = oThis.rawBlock.hash;
+    const correctBlockHash = rawBlock.hash,
+      blockVerified = correctBlockHash === blockHash;
+    // We are not setting rawBlock in oThis as it might change during the course of execution of process.
 
-    if (correctBlockHash === blockHash) {
-      return Promise.resolve(true);
-    } else {
-      return Promise.resolve(false);
-    }
+    return Promise.resolve({
+      blockVerified: blockVerified,
+      rawBlock: rawBlock
+    });
   }
 
   /**
@@ -451,39 +450,46 @@ class BlockScanner extends SigIntHandler {
 }
 
 // Check whether the cron can be started or not.
-CronProcessHandlerObject.canStartProcess({
-  id: +processLockId, // Implicit string to int conversion.
-  cronKind: cronKind
-}).then(function(dbResponse) {
-  let cronParams;
+cronProcessHandler
+  .canStartProcess({
+    id: +cronProcessId, // Implicit string to int conversion.
+    cronKind: cronKind
+  })
+  .then(function(dbResponse) {
+    let cronParams, blockScannerWorkerObj;
 
-  try {
-    // Fetch params from the DB.
-    cronParams = JSON.parse(dbResponse.data.params);
-    chainId = +cronParams.chainId;
-    prefetchCount = +cronParams.prefetchCount;
+    try {
+      // Fetch params from the DB.
+      cronParams = JSON.parse(dbResponse.data.params);
+      chainId = +cronParams.chainId;
+      prefetchCount = +cronParams.prefetchCount;
 
-    const params = {
-      chainId: chainId,
-      prefetchCount: prefetchCount
-    };
+      const params = {
+        chainId: chainId,
+        prefetchCount: prefetchCount
+      };
 
-    const blockScanner = new BlockScanner(params);
-    blockScanner.perform().catch(function(err) {
-      logger.error(err);
+      // We are creating the object before validation since we need to attach the methods of SigInt handler to the
+      // prototype of this class.
+      blockScannerWorkerObj = new BlockScannerWorker(params);
+    } catch (err) {
+      logger.error('cronParams stored in INVALID format in the DB.');
+      logger.error(
+        'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron'
+      );
+      logger.error('Error: ', err);
+      process.exit(1);
+    }
+
+    // Perform action if cron can be started.
+    blockScannerWorkerObj.perform().then(function() {
+      logger.win('Block scanner worker process promise received.');
     });
-  } catch (err) {
-    logger.error('cronParams stored in INVALID format in the DB.');
-    logger.error(
-      'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron'
-    );
-    process.exit(1);
-  }
-});
+  });
 
 function ostRmqError(err) {
   logger.info('ostRmqError occurred.', err);
   process.emit('SIGINT');
 }
 
-CronProcessHandlerObject.endAfterTime({ time_in_minutes: 45 });
+cronProcessHandler.endAfterTime({ timeInMinutes: 45 });

@@ -7,6 +7,7 @@ class CoreConstant {
     return process.env.CR_ONLY_SHARED_CACHE_ENGINE;
   }
 
+  // TODO - check and remove env vars
   get SHARED_MEMCACHE_SERVERS() {
     return process.env.OST_SHARED_MEMCACHE_SERVERS.split(',');
   }
