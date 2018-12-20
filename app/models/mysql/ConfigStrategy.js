@@ -138,6 +138,7 @@ class ConfigStrategyModel extends ModelBase {
     let decryptedSalts = {},
       finalResult = {};
 
+    console.log('---------------queryResult-----', queryResult);
     for (let i = 0; i < queryResult.length; i++) {
       //Following logic is added so that decrypt call is not given for already decrypted salts.
       if (decryptedSalts[queryResult[i].encryption_salt_id] == null) {
@@ -157,6 +158,7 @@ class ConfigStrategyModel extends ModelBase {
       }
 
       let localDecryptedJsonObj = {};
+      let configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
 
       if (queryResult[i].encrypted_params) {
         let localDecryptedParams = localCipher.decrypt(
@@ -164,13 +166,11 @@ class ConfigStrategyModel extends ModelBase {
           queryResult[i].encrypted_params
         );
         localDecryptedJsonObj = JSON.parse(localDecryptedParams);
+        configStrategyHash = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
       }
 
-      let configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
-
-      localDecryptedJsonObj = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
-
-      finalResult[queryResult[i].id] = localDecryptedJsonObj;
+      console.log('---------------localDecryptedJsonObj-----', configStrategyHash);
+      finalResult[queryResult[i].id] = configStrategyHash;
     }
 
     return Promise.resolve(finalResult);
@@ -420,12 +420,14 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt = configStrategyParams,
       encryptedKeysFound = false;
 
+    // TODO:: URGENT:: Below is temp commit to disable encryption.
     return Promise.resolve(
       responseHelper.successWithData({
         hashToEncrypt: null,
         hashNotToEncrypt: hashNotToEncrypt
       })
     );
+    // TODO:: URGENT:: above is temp commit to disable encryption.
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
