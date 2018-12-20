@@ -360,6 +360,23 @@ class ConfigStrategyByChainId {
   }
 
   /**
+   * This function returns array of read-write type of endpoints from client config.
+   *
+   * @return {Promise<>}
+   */
+  async getAuxProviders() {
+    const oThis = this;
+
+    let configResponse = await oThis.getComplete(),
+      config = configResponse.data,
+      readWriteConfig = config[configStrategyConstants.auxGeth][configStrategyConstants.gethReadWrite];
+
+    let providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
+
+    return Promise.resolve(responseHelper.successWithData(providers));
+  }
+
+  /**
    * Custom error
    *
    * @param errCode
