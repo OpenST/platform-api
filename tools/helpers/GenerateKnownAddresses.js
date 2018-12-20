@@ -15,14 +15,16 @@ const rootPrefix = '../..',
  *
  * @param {object} params -
  *                  addressCount - number of addresses to generate.
- *                  kind - type fo address
+ *                  addressKind - type fo address
+ *                  chainKind - chain kind
  *                  chainId - chain for this this would be used
  */
 const generateInternalAddressesKlass = function(params) {
   const oThis = this;
 
   oThis.addrGenerationCount = params.addressCount;
-  oThis.kind = params.kind;
+  oThis.addressKind = params.addressKind;
+  oThis.chainKind = params.chainKind;
   oThis.chainId = params.chainId;
 };
 
@@ -39,7 +41,8 @@ generateInternalAddressesKlass.prototype = {
 
     for (let i = 0; i < oThis.addrGenerationCount; i++) {
       const generateEthAddress = new GenerateKnownAddress({
-        kind: oThis.kind,
+        addressKind: oThis.addressKind,
+        chainKind: oThis.chainKind,
         chainId: oThis.chainId
       });
 
