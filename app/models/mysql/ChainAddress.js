@@ -4,7 +4,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
-const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 class ChainAddress extends ModelBase {
   constructor() {
