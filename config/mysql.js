@@ -21,53 +21,56 @@ const mysqlConfig = {
   clusters: {
     cluster1: {
       master: {
-        host: coreConstants.DEFAULT_MYSQL_HOST,
-        user: coreConstants.DEFAULT_MYSQL_USER,
-        password: coreConstants.DEFAULT_MYSQL_PASSWORD
+        host: coreConstants.SAAS_SUBENV_MYSQL_HOST,
+        user: coreConstants.SAAS_SUBENV_MYSQL_USER,
+        password: coreConstants.SAAS_SUBENV_MYSQL_PASSWORD
       }
     },
     cluster2: {
       master: {
-        host: coreConstants.CA_SHARED_MYSQL_HOST,
-        user: coreConstants.CA_SHARED_MYSQL_USER,
-        password: coreConstants.CA_SHARED_MYSQL_PASSWORD
+        host: coreConstants.KIT_SAAS_SUBENV_MYSQL_HOST,
+        user: coreConstants.KIT_SAAS_SUBENV_MYSQL_USER,
+        password: coreConstants.KIT_SAAS_SUBENV_MYSQL_PASSWORD
       }
     },
     cluster3: {
       master: {
-        host: coreConstants.CR_BIG_DB_MYSQL_HOST,
-        user: coreConstants.CR_BIG_DB_MYSQL_USER,
-        password: coreConstants.CR_BIG_DB_MYSQL_PASSWORD
+        host: coreConstants.SAAS_BIG_SUBENV_MYSQL_HOST,
+        user: coreConstants.SAAS_BIG_SUBENV_MYSQL_USER,
+        password: coreConstants.SAAS_BIG_SUBENV_MYSQL_PASSWORD
       }
     },
     cluster4: {
       master: {
-        host: coreConstants.CR_TRANSACTION_DB_MYSQL_HOST,
-        user: coreConstants.CR_TRANSACTION_DB_MYSQL_USER,
-        password: coreConstants.CR_TRANSACTION_DB_MYSQL_PASSWORD
+        host: coreConstants.CONFIG_SUBENV_MYSQL_HOST,
+        user: coreConstants.CONFIG_SUBENV_MYSQL_USER,
+        password: coreConstants.CONFIG_SUBENV_MYSQL_PASSWORD
       }
     },
     cluster5: {
       master: {
-        host: coreConstants.CR_CONFIG_DB_MYSQL_HOST,
-        user: coreConstants.CR_CONFIG_DB_MYSQL_USER,
-        password: coreConstants.CR_CONFIG_DB_MYSQL_PASSWORD
+        host: coreConstants.KIT_SAAS_MYSQL_HOST,
+        user: coreConstants.KIT_SAAS_MYSQL_USER,
+        password: coreConstants.KIT_SAAS_MYSQL_PASSWORD
       }
     }
   },
   databases: {}
 };
 
+// saas_subenv database
 mysqlConfig['databases']['saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster1'];
 
-mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
-
-mysqlConfig['databases']['saas_transaction_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
-  'cluster4'
-];
-
+// kit_saas_subenv database
 mysqlConfig['databases']['kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster2'];
 
-mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster5'];
+// saas_big_subenv database
+mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
+
+// config_subenv database
+mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster4'];
+
+// kit_saas database
+mysqlConfig['databases']['kit_saas_' + coreConstants.environment] = ['cluster5'];
 
 module.exports = mysqlConfig;

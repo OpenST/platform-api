@@ -4,7 +4,7 @@ class CoreConstant {
   constructor() {}
 
   get SAAS_ONLY_SHARED_CACHE_ENGINE() {
-    return process.env.CR_ONLY_SHARED_CACHE_ENGINE;
+    return process.env.SA_ONLY_SHARED_CACHE_ENGINE;
   }
 
   // TODO - check and remove env vars
@@ -13,111 +13,111 @@ class CoreConstant {
   }
 
   get environment() {
-    return process.env.CR_ENVIRONMENT;
+    return process.env.SA_ENVIRONMENT;
   }
 
   get subEnvironment() {
-    return process.env.CR_SUB_ENVIRONMENT;
+    return process.env.SA_SUB_ENVIRONMENT;
   }
 
   get environmentShort() {
-    return process.env.CR_ENVIRONMENT.substring(0, 2);
+    return process.env.SA_ENVIRONMENT.substring(0, 2);
   }
 
   get subEnvironmentShort() {
-    return process.env.CR_SUB_ENVIRONMENT.substring(0, 2);
+    return process.env.SA_SUB_ENVIRONMENT.substring(0, 2);
   }
 
   get MYSQL_CONNECTION_POOL_SIZE() {
-    return process.env.CR_MYSQL_CONNECTION_POOL_SIZE;
+    return process.env.SA_MYSQL_CONNECTION_POOL_SIZE;
   }
 
-  get DEFAULT_MYSQL_HOST() {
-    return process.env.CR_DEFAULT_MYSQL_HOST;
+  get SAAS_SUBENV_MYSQL_HOST() {
+    return process.env.SA_SAAS_SUBENV_MYSQL_HOST;
   }
 
-  get DEFAULT_MYSQL_USER() {
-    return process.env.CR_DEFAULT_MYSQL_USER;
+  get SAAS_SUBENV_MYSQL_USER() {
+    return process.env.SA_SAAS_SUBENV_MYSQL_USER;
   }
 
-  get DEFAULT_MYSQL_PASSWORD() {
-    return process.env.CR_DEFAULT_MYSQL_PASSWORD;
+  get SAAS_SUBENV_MYSQL_PASSWORD() {
+    return process.env.SA_SAAS_SUBENV_MYSQL_PASSWORD;
   }
 
-  get CR_CONFIG_DB_MYSQL_HOST() {
-    return process.env.CR_CONFIG_DB_MYSQL_HOST;
+  get CONFIG_SUBENV_MYSQL_HOST() {
+    return process.env.SA_CONFIG_SUBENV_MYSQL_HOST;
   }
 
-  get CR_CONFIG_DB_MYSQL_USER() {
-    return process.env.CR_CONFIG_DB_MYSQL_USER;
+  get CONFIG_SUBENV_MYSQL_USER() {
+    return process.env.SA_CONFIG_SUBENV_MYSQL_USER;
   }
 
-  get CR_CONFIG_DB_MYSQL_PASSWORD() {
-    return process.env.CR_CONFIG_DB_MYSQL_PASSWORD;
+  get CONFIG_SUBENV_MYSQL_PASSWORD() {
+    return process.env.SA_CONFIG_SUBENV_MYSQL_PASSWORD;
   }
 
-  get CR_BIG_DB_MYSQL_HOST() {
-    return process.env.CR_BIG_DB_MYSQL_HOST;
+  get SAAS_BIG_SUBENV_MYSQL_HOST() {
+    return process.env.SA_SAAS_BIG_SUBENV_MYSQL_HOST;
   }
 
-  get CR_BIG_DB_MYSQL_USER() {
-    return process.env.CR_BIG_DB_MYSQL_USER;
+  get SAAS_BIG_SUBENV_MYSQL_USER() {
+    return process.env.SA_SAAS_BIG_SUBENV_MYSQL_USER;
   }
 
-  get CR_BIG_DB_MYSQL_PASSWORD() {
-    return process.env.CR_BIG_DB_MYSQL_PASSWORD;
+  get SAAS_BIG_SUBENV_MYSQL_PASSWORD() {
+    return process.env.SA_SAAS_BIG_SUBENV_MYSQL_PASSWORD;
   }
 
-  get CR_TRANSACTION_DB_MYSQL_HOST() {
-    return process.env.CR_TRANSACTION_DB_MYSQL_HOST;
+  get KIT_SAAS_SUBENV_MYSQL_HOST() {
+    return process.env.SA_KIT_SAAS_SUBENV_MYSQL_HOST;
   }
 
-  get CR_TRANSACTION_DB_MYSQL_USER() {
-    return process.env.CR_TRANSACTION_DB_MYSQL_USER;
+  get KIT_SAAS_SUBENV_MYSQL_USER() {
+    return process.env.SA_KIT_SAAS_SUBENV_MYSQL_USER;
   }
 
-  get CR_TRANSACTION_DB_MYSQL_PASSWORD() {
-    return process.env.CR_TRANSACTION_DB_MYSQL_PASSWORD;
+  get KIT_SAAS_SUBENV_MYSQL_PASSWORD() {
+    return process.env.SA_KIT_SAAS_SUBENV_MYSQL_PASSWORD;
   }
 
-  get CA_SHARED_MYSQL_HOST() {
-    return process.env.CR_CA_SHARED_MYSQL_HOST;
+  get KIT_SAAS_MYSQL_HOST(){
+    return process.env.SA_KIT_SAAS_MYSQL_HOST;
   }
 
-  get CA_SHARED_MYSQL_USER() {
-    return process.env.CR_CA_SHARED_MYSQL_USER;
+  get KIT_SAAS_MYSQL_USER(){
+    return process.env.SA_KIT_SAAS_MYSQL_USER;
   }
 
-  get CA_SHARED_MYSQL_PASSWORD() {
-    return process.env.CR_CA_SHARED_MYSQL_PASSWORD;
+  get KIT_SAAS_MYSQL_PASSWORD(){
+    return process.env.SA_KIT_SAAS_MYSQL_PASSWORD;
   }
 
   get AWS_ACCESS_KEY() {
-    return process.env.CR_AWS_ACCESS_KEY;
+    return process.env.SA_AWS_ACCESS_KEY;
   }
 
   get AWS_SECRET_KEY() {
-    return process.env.CR_AWS_SECRET_KEY;
+    return process.env.SA_AWS_SECRET_KEY;
   }
 
   get AWS_REGION() {
-    return process.env.CR_AWS_REGION;
+    return process.env.SA_AWS_REGION;
   }
 
   get KMS_API_KEY_ARN() {
-    return process.env.CR_API_KEY_KMS_ARN;
+    return process.env.SA_API_KEY_KMS_ARN;
   }
 
   get KMS_API_KEY_ID() {
-    return process.env.CR_API_KEY_KMS_ID;
+    return process.env.SA_API_KEY_KMS_ID;
   }
 
   get KMS_MANAGED_ADDR_KEY_ARN() {
-    return process.env.CR_MANAGED_ADDRESS_KMS_ARN;
+    return process.env.SA_MANAGED_ADDRESS_KMS_ARN;
   }
 
   get KMS_MANAGED_ADDR_KEY_ID() {
-    return process.env.CR_MANAGED_ADDRESS_KMS_ID;
+    return process.env.SA_MANAGED_ADDRESS_KMS_ID;
   }
 
   // JWT details
@@ -143,7 +143,7 @@ class CoreConstant {
   get ACCEPTED_PRICE_FLUCTUATION_FOR_PAYMENT() {
     let accepted_margin = {};
     try {
-      accepted_margin = JSON.parse(process.env.CR_ACCEPTED_PRICE_FLUCTUATION_FOR_PAYMENT);
+      accepted_margin = JSON.parse(process.env.SA_ACCEPTED_PRICE_FLUCTUATION_FOR_PAYMENT);
     } catch (err) {}
 
     return accepted_margin;
