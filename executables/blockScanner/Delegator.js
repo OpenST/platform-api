@@ -140,7 +140,7 @@ class TransactionDelegator extends SigIntHandler {
     if (startBlockNumber === null || startBlockNumber === undefined) {
       logger.warn('startBlockNumber is unavailable. Block parser would select highest block available in the DB.');
     }
-    if (startBlockNumber && startBlockNumber < 0) {
+    if (startBlockNumber && startBlockNumber < -1) {
       logger.error('Invalid startBlockNumber. Exiting the cron.');
       process.emit('SIGINT');
     }
@@ -149,7 +149,7 @@ class TransactionDelegator extends SigIntHandler {
     if (endBlockNumber === null || endBlockNumber === undefined) {
       logger.warn('endBlockNumber is unavailable. Block parser would not stop automatically.');
     }
-    if (endBlockNumber && endBlockNumber < 0) {
+    if (endBlockNumber && endBlockNumber < -1) {
       logger.error('Invalid endBlockNumber. Exiting the cron.');
       process.emit('SIGINT');
     }
@@ -242,10 +242,10 @@ class TransactionDelegator extends SigIntHandler {
     oThis.BlockParser = blockScannerObj.block.Parser;
 
     // Initialize blockToProcess.
-    if (oThis.startBlockNumber >= 0) {
-      oThis.blockToProcess = oThis.startBlockNumber;
+    if (startBlockNumber >= 0) {
+      oThis.blockToProcess = startBlockNumber;
     } else {
-      oThis.blockToProcess = 0;
+      oThis.blockToProcess = null;
     }
 
     logger.step('Services initialised.');
@@ -260,17 +260,28 @@ class TransactionDelegator extends SigIntHandler {
     const oThis = this;
 
     while (true) {
-      if ((oThis.endBlockNumber && oThis.blockToProcess > oThis.endBlockNumber) || oThis.stopPickingUpNewWork) {
+      if ((oThis.endBlockNumber >= 0 && oThis.blockToProcess > oThis.endBlockNumber) || oThis.stopPickingUpNewWork) {
         oThis.canExit = true;
         break;
       }
       oThis.canExit = false;
 
-      let blockParser = new oThis.BlockParser(oThis.chainId, {
+      let blockParser, blockParserResponse;
+
+      // If blockToProcess is null, don't pass that.
+
+      if (oThis.blockToProcess === null) {
+        blockParser = new oThis.BlockParser(oThis.chainId, {
+          blockDelay: oThis.intentionalBlockDelay
+        });
+        blockParserResponse = await blockParser.perform();
+      } else {
+        blockParser = new oThis.BlockParser(oThis.chainId, {
           blockDelay: oThis.intentionalBlockDelay,
           blockToProcess: oThis.blockToProcess
-        }),
+        });
         blockParserResponse = await blockParser.perform();
+      }
 
       if (blockParserResponse.isSuccess()) {
         // Load the obtained block level data into variables
