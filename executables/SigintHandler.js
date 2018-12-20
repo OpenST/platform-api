@@ -41,7 +41,7 @@ class SigintHandler {
       if (oThis.pendingTasksDone()) {
         logger.info(':: No pending tasks. Changing the status ');
         cronProcessHandlerObject.stopProcess(oThis.idToBeKilled).then(function() {
-          logger.info('Status and last_end_time updated in table. Killing process.');
+          logger.info('Status and last_ended_at updated in table. Killing process.');
 
           // Stop the process only after the entry has been updated in the table.
           process.exit(1);

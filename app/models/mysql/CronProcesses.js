@@ -9,14 +9,14 @@ const rootPrefix = '../../..',
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
-const dbName = 'config_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
  * Class for cron process model
  *
  * @class
  */
-class CronProcessesModel extends ModelBaseKlass{
+class CronProcessesModel extends ModelBaseKlass {
   /**
    * Constructor for cron process model
    *
@@ -24,12 +24,12 @@ class CronProcessesModel extends ModelBaseKlass{
    */
   constructor() {
     super({ dbName: dbName });
-    
+
     const oThis = this;
-    
+
     oThis.tableName = 'cron_processes';
   }
-  
+
   /**
    * This method gets the response for the id passed.
    *
@@ -41,7 +41,7 @@ class CronProcessesModel extends ModelBaseKlass{
     const oThis = this;
 
     let response = oThis
-      .select(['kind', 'ip_address', 'group_id', 'params', 'status', 'last_start_time', 'last_end_time'])
+      .select(['kind', 'ip_address', 'group_id', 'params', 'status', 'last_started_at', 'last_ended_at'])
       .where({ id: id })
       .fire();
 
@@ -110,7 +110,7 @@ class CronProcessesModel extends ModelBaseKlass{
     params.kind = cronProcessesConstant.invertedKinds[params.kind];
 
     return oThis
-      .update({ last_start_time: params.newLastStartTime, status: params.newStatus })
+      .update({ last_started_at: params.newLastStartTime, status: params.newStatus })
       .where({ id: params.id })
       .fire();
   }
@@ -134,7 +134,7 @@ class CronProcessesModel extends ModelBaseKlass{
     params.newStatus = cronProcessesConstant.invertedStatuses[params.newStatus];
 
     await oThis
-      .update({ last_end_time: params.newLastEndTime, status: params.newStatus })
+      .update({ last_ended_at: params.newLastEndTime, status: params.newStatus })
       .where({ id: params.id })
       .fire();
   }

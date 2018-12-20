@@ -129,13 +129,13 @@ class BlockScannerWorker extends SigIntHandler {
     const oThis = this;
 
     // Validate and sanitize input parameters.
-    oThis.validateAndSanitize();
+    oThis._validateAndSanitize();
 
     // Warm up web3 pool.
     await oThis.warmUpWeb3Pool();
 
     // Initialize certain variables.
-    await oThis.init();
+    await oThis._init();
 
     // Initialize certain variables.
     await oThis.startSubscription();
@@ -143,8 +143,10 @@ class BlockScannerWorker extends SigIntHandler {
 
   /**
    * Sanitizes and validates the input parameters.
+   *
+   * @private
    */
-  validateAndSanitize() {
+  _validateAndSanitize() {
     const oThis = this;
 
     if (!oThis.chainId) {
@@ -204,8 +206,10 @@ class BlockScannerWorker extends SigIntHandler {
 
   /**
    * Initializes block scanner service provider, transaction parser service and transfer parser service.
+   *
+   * @private
    */
-  async init() {
+  async _init() {
     const oThis = this;
 
     // Get blockScanner object.
