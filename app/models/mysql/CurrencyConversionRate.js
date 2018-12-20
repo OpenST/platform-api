@@ -9,7 +9,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
-const dbName = 'kit_saas_shared_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 class CurrencyConversionRateModel extends ModelBase {
   /**
