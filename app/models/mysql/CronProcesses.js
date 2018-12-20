@@ -9,14 +9,14 @@ const rootPrefix = '../../..',
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
-const dbName = 'config_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
  * Class for cron process model
  *
  * @class
  */
-class CronProcessesModel extends ModelBaseKlass{
+class CronProcessesModel extends ModelBaseKlass {
   /**
    * Constructor for cron process model
    *
@@ -24,12 +24,12 @@ class CronProcessesModel extends ModelBaseKlass{
    */
   constructor() {
     super({ dbName: dbName });
-    
+
     const oThis = this;
-    
+
     oThis.tableName = 'cron_processes';
   }
-  
+
   /**
    * This method gets the response for the id passed.
    *
