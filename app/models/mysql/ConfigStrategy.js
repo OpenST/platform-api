@@ -420,10 +420,12 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt = configStrategyParams,
       encryptedKeysFound = false;
 
-    return {
-      hashToEncrypt: null,
-      hashNotToEncrypt: hashNotToEncrypt
-    };
+    return Promise.resolve(
+      responseHelper.successWithData({
+        hashToEncrypt: null,
+        hashNotToEncrypt: hashNotToEncrypt
+      })
+    );
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
