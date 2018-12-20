@@ -13,6 +13,7 @@
 const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
+  program = require('commander'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -27,28 +28,23 @@ const rootPrefix = '../..',
 
 const cronProcessHandler = new CronProcessesHandler();
 
-/**
- * This function demonstrates how to use the block scanner worker cron.
- */
-// TODO - use commander
-const usageDemo = function() {
-  logger.log('Usage:', 'node executables/blockScanner/Worker.js cronProcessId');
-  logger.log(
-    '* processLockId is used for ensuring that no other process with the same cronProcessId can run on a given machine.'
-  );
-};
+program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-// Declare variables.
-const args = process.argv,
-  cronProcessId = args[2];
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log('    node executables/blockScanner/Worker.js --cronProcessId 1');
+  logger.log('');
+  logger.log('');
+});
 
-// Validate if processLockId was passed or not.
-if (!cronProcessId) {
-  logger.error('Cron process id NOT passed in the arguments.');
-  usageDemo();
+if (!program.cronProcessId) {
+  program.help();
   process.exit(1);
 }
 
+// Declare variables.
 const cronKind = cronProcessesConstants.blockScannerWorker;
 
 let unAckCount = 0,
@@ -72,7 +68,7 @@ class BlockScannerWorker extends SigIntHandler {
    */
   constructor(params) {
     super({
-      id: cronProcessId
+      id: program.cronProcessId
     });
 
     const oThis = this;
@@ -452,7 +448,7 @@ class BlockScannerWorker extends SigIntHandler {
 // Check whether the cron can be started or not.
 cronProcessHandler
   .canStartProcess({
-    id: +cronProcessId, // Implicit string to int conversion.
+    id: +program.cronProcessId, // Implicit string to int conversion.
     cronKind: cronKind
   })
   .then(function(dbResponse) {
