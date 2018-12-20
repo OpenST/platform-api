@@ -41,7 +41,7 @@ class CronProcessesModel extends ModelBaseKlass{
     const oThis = this;
 
     let response = oThis
-      .select(['kind', 'ip_address', 'group_id', 'params', 'status', 'last_start_time', 'last_end_time'])
+      .select(['kind', 'ip_address', 'group_id', 'params', 'status', 'last_started_at', 'last_ended_at'])
       .where({ id: id })
       .fire();
 
@@ -110,7 +110,7 @@ class CronProcessesModel extends ModelBaseKlass{
     params.kind = cronProcessesConstant.invertedKinds[params.kind];
 
     return oThis
-      .update({ last_start_time: params.newLastStartTime, status: params.newStatus })
+      .update({ last_started_at: params.newLastStartTime, status: params.newStatus })
       .where({ id: params.id })
       .fire();
   }
@@ -134,7 +134,7 @@ class CronProcessesModel extends ModelBaseKlass{
     params.newStatus = cronProcessesConstant.invertedStatuses[params.newStatus];
 
     await oThis
-      .update({ last_end_time: params.newLastEndTime, status: params.newStatus })
+      .update({ last_ended_at: params.newLastEndTime, status: params.newStatus })
       .where({ id: params.id })
       .fire();
   }
