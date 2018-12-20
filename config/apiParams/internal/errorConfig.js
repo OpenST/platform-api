@@ -106,6 +106,21 @@ const errorConfig = {
     parameter: 'start_client_id',
     code: 'missing',
     message: 'Invalid start client id'
+  },
+  missing_signer: {
+    parameter: 'signer',
+    code: 'missing',
+    message: 'Invalid Signer'
+  },
+  missing_personal_sign: {
+    parameter: 'personal_sign',
+    code: 'missing',
+    message: 'Invalid personal_sign'
+  },
+  missing_message_to_sign: {
+    parameter: 'message_to_sign',
+    code: 'missing',
+    message: 'Invalid message_to_sign'
   }
 };
 

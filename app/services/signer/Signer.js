@@ -29,9 +29,9 @@ class Signer {
   constructor(params) {
     const oThis = this;
 
-    oThis.signer = params.signer;
-    oThis.personalSign = params.personalSign;
-    oThis.messageToSign = params.messageToSign;
+    oThis.signer = params.signer.toLowerCase();
+    oThis.personalSign = params.personal_sign;
+    oThis.messageToSign = params.message_to_sign;
   }
 
   /**
@@ -85,7 +85,8 @@ class Signer {
       );
     }
 
-    logger.debug('accountAddress------', accountAddress);
+    logger.info('accountAddress------', accountAddress);
+    logger.info('oThis.signer------', oThis.signer);
 
     if (oThis.signer != accountAddress) {
       logger.error('Input owner address does not matches recovered address');

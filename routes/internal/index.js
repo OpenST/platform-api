@@ -2,8 +2,11 @@
 
 const express = require('express');
 
-const rootPrefix = '../..';
+const rootPrefix = '../..',
+  signerRoutes = require(rootPrefix + '/routes/internal/signer');
 
-var router = express.Router();
+let router = express.Router();
+
+router.use('/signer', signerRoutes);
 
 module.exports = router;

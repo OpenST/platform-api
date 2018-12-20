@@ -1,29 +1,23 @@
 'use strict';
 
 const signature = {
-
-  start_on_boarding: {
+  verifySigner: {
     mandatory: [
       {
-        parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        parameter: 'signer',
+        error_identifier: 'missing_signer'
       },
       {
-        parameter: 'token_symbol',
-        error_identifier: 'missing_token_symbol'
+        parameter: 'personal_sign',
+        error_identifier: 'missing_personal_sign'
       },
       {
-        parameter: 'stake_and_mint_params',
-        error_identifier: 'missing_stake_and_mint_params'
-      },
-      {
-        parameter: 'client_token_id',
-        error_identifier: 'missing_client_token_id'
+        parameter: 'message_to_sign',
+        error_identifier: 'missing_message_to_sign'
       }
     ],
-    optional: ['airdrop_params']
+    optional: []
   }
-
 };
 
 module.exports = signature;
