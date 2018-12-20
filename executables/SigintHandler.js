@@ -7,7 +7,7 @@
  */
 const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  cronProcessHandler = require(rootPrefix + '/lib/cronProcessesHandler'),
+  cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   cronProcessHandlerObject = new cronProcessHandler();
 
 /**
