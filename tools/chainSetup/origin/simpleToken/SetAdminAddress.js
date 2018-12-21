@@ -48,12 +48,12 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
 
     let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
-    console.log('params', {
+    let params = {
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
       gasPrice: oThis.gasPrice,
       gas: 30677
-    });
+    };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
     simpleTokenContractObj.options.address =
@@ -61,12 +61,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
 
     let setAdminRsp = await simpleTokenContractObj.methods
       .setAdminAddress(oThis.adminAddress)
-      .send({
-        from: oThis.signerAddress,
-        nonce: nonceRsp.data['nonce'],
-        gasPrice: oThis.gasPrice,
-        gas: 30677
-      })
+      .send(params)
       .catch(function(errorResponse) {
         return errorResponse;
       });

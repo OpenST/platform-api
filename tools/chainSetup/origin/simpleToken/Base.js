@@ -117,29 +117,6 @@ class SetupSimpleTokenBase {
       chainId: originGethConstants.chainId
     }).getNonce();
   }
-
-  // /**
-  //  * fetch private key
-  //  *
-  //  * @ignore
-  //  *
-  //  * @param {string} address
-  //  *
-  //  * @return {Promise}
-  //  */
-  // async fetchPrivateKey(address) {
-  //
-  //   const oThis = this;
-  //
-  //   let fetchPrivateKeyRsp = await new AddressPrivateKeyCache({address: address}).fetchDecryptedData();
-  //
-  //   if (fetchPrivateKeyRsp.isFailure()) {
-  //     throw 'private key not found';
-  //   }
-  //
-  //   return fetchPrivateKeyRsp.data['private_key_d'];
-  //
-  // }
 }
 
 InstanceComposer.registerAsShadowableClass(SetupSimpleTokenBase, coreConstants.icNameSpace, 'SetupSimpleTokenBase');
