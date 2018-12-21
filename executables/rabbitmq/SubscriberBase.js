@@ -8,7 +8,6 @@ const rootPrefix = '../..',
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
-
 class SubscriberBase extends CronBase {
   /**
    * Subscriber base constructor
@@ -191,29 +190,25 @@ class SubscriberBase extends CronBase {
     process.kill(process.pid, 'SIGTERM');
   }
 
-  get prefetchCount() {
-    throw 'sub class to implement.'
-  }
-
   get _topicsToSubscribe() {
-    throw 'sub class to implement.'
+    throw 'sub class to implement.';
   }
 
   get _queueName() {
-    throw 'sub class to implement.'
+    throw 'sub class to implement.';
   }
 
   get _processNamePrefix() {
-    throw 'sub class to implement.'
+    throw 'sub class to implement.';
   }
 
   _specificValidations() {
-    throw 'sub class to implement.'
+    throw 'sub class to implement.';
   }
 
   _processMessage() {
-    throw 'sub class to implement.'
+    throw 'sub class to implement.';
   }
-
-
 }
+
+module.exports = SubscriberBase;

@@ -37,7 +37,7 @@ class CronBase {
 
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
-      logger.error('error in executables/rabbitmq/SubscriberBase');
+      logger.error('error in executables/CronBase.js');
       return responseHelper.error({
         internal_error_identifier: 'e_bs_w_2',
         api_error_identifier: 'something_went_wrong',
@@ -104,17 +104,17 @@ class CronBase {
   async _validateCronProcess() {
     const oThis = this;
 
-    let response = await cronProcessHandler.canStartProcess({
-        id: oThis.cronProcessId, // Implicit string to int conversion.
-        cronKind: oThis._cronKind
-      });
+    let response = await cronProcessHandlerObject.canStartProcess({
+      id: oThis.cronProcessId, // Implicit string to int conversion.
+      cronKind: oThis._cronKind
+    });
 
     try {
       // Fetch params from the DB.
       let cronParams = JSON.parse(response.data.params);
 
-      for(let k in cronParams) {
-        oThis[k] = cronParams[k]
+      for (let k in cronParams) {
+        oThis[k] = cronParams[k];
       }
     } catch (err) {
       logger.error('cronParams stored in INVALID format in the DB.');
