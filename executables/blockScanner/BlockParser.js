@@ -1,4 +1,5 @@
 'use strict';
+
 /**
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * Transaction parser processes.
@@ -13,18 +14,14 @@
 const rootPrefix = '../..',
   program = require('commander'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
-  CronBase = require(rootPrefix + '/executables/CronBase'),
-  CronProcessesHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
+  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
-
-const cronProcessHandler = new CronProcessesHandler();
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -42,80 +39,34 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-// Declare variables.
-let chainId, endBlockNumber, startBlockNumber, intentionalBlockDelay;
-
 const FAILURE_CODE = -1,
   MAX_TXS_PER_WORKER = 60,
-  MIN_TXS_PER_WORKER = 10,
-  cronKind = cronProcessesConstants.blockParser;
+  MIN_TXS_PER_WORKER = 10;
 
 /**
  * Class for Block parser
  *
  * @class
  */
-class BlockParser extends CronBase {
+class BlockParser extends PublisherBase {
   /**
-   * Constructor for Block parser
+   * Constructor for transaction parser
    *
-   * @param {Object} params
-   * @param {Number} params.chainId
-   * @param {Number} params.startBlockNumber
-   * @param {Number} params.endBlockNumber
-   * @param {Number} params.intentionalBlockDelay
+   * @param params {object} - params object
+   * @param params.cronProcessId {number} - cron_processes table id
    *
    * @constructor
    */
   constructor(params) {
-    super({
-      cronProcessId: program.cronProcessId
-    });
+    super(params);
 
     const oThis = this;
-
-    oThis.chainId = params.chainId;
-    oThis.startBlockNumber = params.startBlockNumber || 0;
-    oThis.endBlockNumber = params.endBlockNumber || 0;
-    oThis.intentionalBlockDelay = params.intentionalBlockDelay || 0;
 
     oThis.canExit = true; // Denotes whether process can exit or not.
-
-    oThis.attachHandlers(); // Attaching handlers from sigint handler.
   }
 
-  /**
-   * Main performer method for the class.
-   *
-   * @returns {Promise<>}
-   */
-  perform() {
+  async _start() {
     const oThis = this;
-
-    logger.step('Block parser process started.');
-
-    return oThis.asyncPerform().catch(function(err) {
-      // If asyncPerform fails, run the below catch block.
-      oThis.canExit = true;
-      logger.error(' In catch block of executables/blockScanner/BlockParser.js');
-      return responseHelper.error({
-        internal_error_identifier: 'e_bs_d_1',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: err
-      });
-    });
-  }
-
-  /**
-   * Async performer.
-   *
-   * @returns {Promise<void>}
-   */
-  async asyncPerform() {
-    const oThis = this;
-
-    // Validate and sanitize input parameters.
-    oThis._validateAndSanitize();
 
     // Validate whether chainId exists in the chains table.
     await oThis._validateChainId();
@@ -133,27 +84,29 @@ class BlockParser extends CronBase {
    *
    * @private
    */
-  _validateAndSanitize() {
+  _specificValidations() {
+    const oThis = this;
+
     // Validate startBlockNumber.
-    if (startBlockNumber === null || startBlockNumber === undefined) {
+    if (oThis.startBlockNumber === null || oThis.startBlockNumber === undefined) {
       logger.warn('startBlockNumber is unavailable. Block parser would select highest block available in the DB.');
     }
-    if (startBlockNumber && startBlockNumber < -1) {
+    if (oThis.startBlockNumber && oThis.startBlockNumber < -1) {
       logger.error('Invalid startBlockNumber. Exiting the cron.');
       process.emit('SIGINT');
     }
 
     // Validate endBlockNumber.
-    if (endBlockNumber === null || endBlockNumber === undefined) {
+    if (oThis.endBlockNumber === null || oThis.endBlockNumber === undefined) {
       logger.warn('endBlockNumber is unavailable. Block parser would not stop automatically.');
     }
-    if (endBlockNumber && endBlockNumber < -1) {
+    if (oThis.endBlockNumber && oThis.endBlockNumber < -1) {
       logger.error('Invalid endBlockNumber. Exiting the cron.');
       process.emit('SIGINT');
     }
 
     // Validate intentionalBlockDelay
-    if (intentionalBlockDelay < 0) {
+    if (oThis.intentionalBlockDelay < 0) {
       logger.error('Invalid intentionalBlockDelay. Exiting the cron.');
       process.emit('SIGINT');
     }
@@ -240,8 +193,8 @@ class BlockParser extends CronBase {
     oThis.BlockParser = blockScannerObj.block.Parser;
 
     // Initialize blockToProcess.
-    if (startBlockNumber >= 0) {
-      oThis.blockToProcess = startBlockNumber;
+    if (oThis.startBlockNumber >= 0) {
+      oThis.blockToProcess = oThis.startBlockNumber;
     } else {
       oThis.blockToProcess = null;
     }
@@ -353,10 +306,10 @@ class BlockParser extends CronBase {
       if (batchedTxHashes.length === 0) break;
 
       let messageParams = {
-        topics: ['transaction_parser_' + oThis.chainId],
-        publisher: 'OST',
+        topics: oThis._topicsToPublish,
+        publisher: oThis._publisher,
         message: {
-          kind: 'background_job',
+          kind: oThis._messageKind,
           payload: {
             chainId: oThis.chainId,
             blockHash: blockHash,
@@ -385,82 +338,29 @@ class BlockParser extends CronBase {
     }
   }
 
-  /**
-   * This function checks if there are any pending tasks left or not.
-   *
-   * @returns {Boolean}
-   */
-  _pendingTasksDone() {
+  get _topicsToPublish() {
     const oThis = this;
 
-    return oThis.canExit;
+    return ['transaction_parser_' + oThis.chainId];
   }
 
-  /**
-   * Sleep for particular time
-   *
-   * @param ms {Number}: time in ms
-   *
-   * @returns {Promise<any>}
-   */
-  sleep(ms) {
-    return new Promise(function(resolve) {
-      setTimeout(resolve, ms);
-    });
+  get _publisher() {
+    const oThis = this;
+
+    return 'OST';
+  }
+
+  get _messageKind() {
+    const oThis = this;
+
+    return 'background_job';
+  }
+
+  get _cronKind() {
+    return cronProcessesConstants.blockParser;
   }
 }
 
-// Check whether the cron can be started or not.
-cronProcessHandler
-  .canStartProcess({
-    id: +program.cronProcessId, // Implicit string to int conversion
-    cronKind: cronKind
-  })
-  .then(function(dbResponse) {
-    let cronParams, blockParserObj;
+logger.step('Block parser process started.');
 
-    try {
-      // Fetch params from the DB.
-      cronParams = JSON.parse(dbResponse.data.params);
-      // Fetch and sanitize the params. Implicitly converting type from string to int.
-      chainId = +cronParams.chainId;
-      startBlockNumber = cronParams.startBlockNumber ? +cronParams.startBlockNumber : null;
-      endBlockNumber = cronParams.endBlockNumber ? +cronParams.endBlockNumber : null;
-      intentionalBlockDelay = cronParams.intentionalBlockDelay ? +cronParams.intentionalBlockDelay : 0;
-
-      const params = {
-        chainId: chainId,
-        startBlockNumber: startBlockNumber,
-        endBlockNumber: endBlockNumber,
-        intentionalBlockDelay: intentionalBlockDelay
-      };
-
-      // We are creating the object before validation since we need to attach the methods of SigInt handler to the
-      // prototype of this class.
-      blockParserObj = new BlockParser(params);
-
-      // Validate if the chainId exists in the DB or not. We are not validating other parameters as they are
-      // optional parameters.
-      if (!chainId) {
-        logger.error('Chain ID is un-available in cron params in the database.');
-        process.emit('SIGINT');
-      }
-      if (chainId < 0) {
-        // Implicit string to int conversion.
-        logger.error('Chain ID is invalid.');
-        process.emit('SIGINT');
-      }
-    } catch (err) {
-      logger.error('Cron parameters stored in INVALID format in the DB.');
-      logger.error(
-        'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron.'
-      );
-      logger.error('Error: ', err);
-      process.exit(1);
-    }
-
-    // Perform action if cron can be started.
-    blockParserObj.perform().then(function() {
-      logger.win('Block parser process finished working.');
-    });
-  });
+new BlockParser({ cronProcessId: +program.cronProcessId }).perform();

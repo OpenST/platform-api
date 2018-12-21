@@ -33,8 +33,6 @@ class CronBase {
   perform() {
     const oThis = this;
 
-    logger.step('Transaction parser process started.');
-
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
       logger.error('error in executables/CronBase.js');

@@ -292,10 +292,11 @@ class TransactionParser extends SubscriberBase {
   }
 }
 
+logger.step('Transaction parser process started.');
 
-(new TransactionParser({cronProcessId: +program.cronProcessId})).perform();
+new TransactionParser({ cronProcessId: +program.cronProcessId }).perform();
 
 setInterval(function() {
   logger.info('Ending the process.');
   process.emit('SIGINT');
-}, 45 * 1000);
+}, 45 * 60 * 1000);
