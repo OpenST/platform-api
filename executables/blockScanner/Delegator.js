@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
-  SigIntHandler = require(rootPrefix + '/executables/SigintHandler'),
+  CronBase = require(rootPrefix + '/executables/CronBase'),
   CronProcessesHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -55,11 +55,9 @@ const FAILURE_CODE = -1,
  *
  * @class
  */
-class TransactionDelegator extends SigIntHandler {
+class TransactionDelegator extends CronBase {
   /**
    * Constructor for Transaction Delegator
-   *
-   * @augments SigIntHandler
    *
    * @param {Object} params
    * @param {Number} params.chainId
@@ -71,7 +69,7 @@ class TransactionDelegator extends SigIntHandler {
    */
   constructor(params) {
     super({
-      id: program.cronProcessId
+      cronProcessId: program.cronProcessId
     });
 
     const oThis = this;
@@ -355,7 +353,7 @@ class TransactionDelegator extends SigIntHandler {
       if (batchedTxHashes.length === 0) break;
 
       let messageParams = {
-        topics: ['block_scanner_execute_' + oThis.chainId],
+        topics: ['transaction_parser_' + oThis.chainId],
         publisher: 'OST',
         message: {
           kind: 'background_job',
@@ -392,7 +390,7 @@ class TransactionDelegator extends SigIntHandler {
    *
    * @returns {Boolean}
    */
-  pendingTasksDone() {
+  _pendingTasksDone() {
     const oThis = this;
 
     return oThis.canExit;

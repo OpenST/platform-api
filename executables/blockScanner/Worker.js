@@ -10,23 +10,16 @@
  *
  * @module executables/blockScanner/Worker.
  */
-const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
   program = require('commander'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
-  SigIntHandler = require(rootPrefix + '/executables/SigintHandler'),
-  CronProcessesHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
-
-const cronProcessHandler = new CronProcessesHandler();
+  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -44,109 +37,59 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-// Declare variables.
-const cronKind = cronProcessesConstants.blockScannerWorker;
-
-let unAckCount = 0,
-  chainId,
-  prefetchCount;
-
-/**
- * Class for block scanner worker
- *
- * @class
- */
-class BlockScannerWorker extends SigIntHandler {
+class BlockScannerWorker extends SubscriberBase {
   /**
-   * Constructor for block scanner worker
+   * Constructor for transaction parser
    *
-   * @param {Object} params
-   * @param {Number} params.chainId
-   * @param {Number} params.prefetchCount
+   * @param params {object} - params object
+   * @param params.cronProcessId {number} - cron_processes table id
    *
    * @constructor
    */
   constructor(params) {
-    super({
-      id: program.cronProcessId
-    });
-
-    const oThis = this;
-
-    oThis.chainId = params.chainId;
-    oThis.prefetchCount = params.prefetchCount;
-
-    // Initialize PromiseQueueManager.
-    oThis.PromiseQueueManager = new OSTBase.OSTPromise.QueueManager(
-      function(...args) {
-        // Promise executor should be a static method by itself. We declared an unnamed function
-        // which was a static method, and promiseExecutor was passed in the same scope as that
-        // of the class with oThis preserved.
-        oThis._promiseExecutor(...args);
-      },
-      {
-        name: 'blockscanner_promise_queue_manager',
-        timeoutInMilliSecs: 3 * 60 * 1000, //3 minutes
-        maxZombieCount: Math.round(oThis.prefetchCount * 0.25),
-        onMaxZombieCountReached: function() {
-          logger.warn('e_bs_w_1', 'maxZombieCount reached. Triggering SIGTERM.');
-          // Trigger gracefully shutdown of process.
-          process.kill(process.pid, 'SIGTERM'); // TODO: Get this verified.
-        }
-      }
-    );
-
-    oThis.attachHandlers(); // Attaching handlers from sigint handler.
+    super(params);
   }
 
   /**
-   * Main performer method for the class.
+   * process name prefix
    *
-   * @returns {Promise<>}
+   * @returns {string}
+   * @private
    */
-  perform() {
-    const oThis = this;
-
-    logger.step('Block scanner worker process started.');
-
-    return oThis.asyncPerform().catch(function(err) {
-      // If asyncPerform fails, run the below catch block.
-      logger.error(' In catch block of executables/blockScanner/Worker.js');
-      return responseHelper.error({
-        internal_error_identifier: 'e_bs_w_2',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: err
-      });
-    });
+  get _processNamePrefix() {
+    return 'transaction_parser';
   }
 
   /**
-   * Async performer.
+   * topics to subscribe
    *
-   * @returns {Promise<void>}
+   * @returns {*[]}
+   * @private
    */
-  async asyncPerform() {
+  get _topicsToSubscribe() {
     const oThis = this;
 
-    // Validate and sanitize input parameters.
-    oThis._validateAndSanitize();
-
-    // Warm up web3 pool.
-    await oThis.warmUpWeb3Pool();
-
-    // Initialize certain variables.
-    await oThis._init();
-
-    // Initialize certain variables.
-    await oThis.startSubscription();
+    return ['transaction_parser_' + oThis.chainId];
   }
 
   /**
-   * Sanitizes and validates the input parameters.
+   * queue name
+   *
+   * @returns {string}
+   * @private
+   */
+  get _queueName() {
+    const oThis = this;
+
+    return 'transaction_parser_' + oThis.chainId;
+  }
+
+  /**
+   * Specific validations apart from common validations
    *
    * @private
    */
-  _validateAndSanitize() {
+  _specificValidations() {
     const oThis = this;
 
     if (!oThis.chainId) {
@@ -158,26 +101,18 @@ class BlockScannerWorker extends SigIntHandler {
       logger.error('Chain ID is invalid.');
       process.emit('SIGINT');
     }
+  }
 
-    if (!oThis.prefetchCount) {
-      logger.error('Prefetch count un-available in cron params in the database.');
-      process.emit('SIGINT');
-    }
-
-    if (oThis.prefetchCount < 0) {
-      logger.error('Prefetch count is invalid.');
-      process.emit('SIGINT');
-    }
-
-    logger.step('All validations done.');
+  get _cronKind() {
+    return cronProcessesConstants.blockScannerWorker;
   }
 
   /**
-   * Warm up web3 pool.
+   * Warm up web3 pool before init
    *
    * @returns {Promise<void>}
    */
-  async warmUpWeb3Pool() {
+  async _beforeSubscribe() {
     // Fetch config strategy by chainId.
     const oThis = this,
       strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
@@ -202,15 +137,6 @@ class BlockScannerWorker extends SigIntHandler {
     }
 
     logger.step('Web3 pool warmed up.');
-  }
-
-  /**
-   * Initializes block scanner service provider, transaction parser service and transfer parser service.
-   *
-   * @private
-   */
-  async _init() {
-    const oThis = this;
 
     // Get blockScanner object.
     oThis.blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
@@ -222,53 +148,19 @@ class BlockScannerWorker extends SigIntHandler {
   }
 
   /**
-   * Start subscription.
-   *
-   * @returns {Promise<void>}
-   */
-  async startSubscription() {
-    const oThis = this;
-
-    const openStNotification = await sharedRabbitMqProvider.getInstance({
-      connectionWaitSeconds: connectionTimeoutConst.crons,
-      switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-    });
-    openStNotification.subscribeEvent
-      .rabbit(
-        ['block_scanner_execute_' + oThis.chainId],
-        {
-          queue: 'block_scanner_execute_' + oThis.chainId,
-          ackRequired: 1,
-          prefetch: oThis.prefetchCount
-        },
-        function(params) {
-          // Promise is required to be returned to manually ack messages in RMQ
-          return oThis.PromiseQueueManager.createPromise(params);
-        },
-        function(consumerTag) {
-          oThis.consumerTag = consumerTag;
-        }
-      )
-      .catch(function(error) {
-        logger.error('Error in subscription', error);
-        ostRmqError();
-      });
-  }
-
-  /**
    * This method calls the transaction parser and token transfer parser services as needed.
    *
-   * @param {String} params
+   * @param {String} messageParams
    *
    * @returns {Promise<*>}
    */
-  async transactionParserExecutor(params) {
-    unAckCount++;
-
+  async _processMessage(messageParams) {
     const oThis = this;
 
+    oThis.unAckCount++;
+
     // Process request
-    const parsedParams = JSON.parse(params),
+    const parsedParams = JSON.parse(messageParams),
       payload = parsedParams.message.payload;
 
     // Fetch params from payload.
@@ -286,7 +178,7 @@ class BlockScannerWorker extends SigIntHandler {
     if (!blockVerified) {
       logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
       // logger.notify(); TODO: Add this.
-      logger.debug('------unAckCount -> ', unAckCount);
+      logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
       return Promise.resolve();
     } else {
@@ -331,7 +223,7 @@ class BlockScannerWorker extends SigIntHandler {
             // Token transfer parser was successful.
             // TODO: Add dirty balances entry in MySQL.
             // TODO: Chainable
-            logger.debug('------unAckCount -> ', unAckCount);
+            logger.debug('------unAckCount -> ', oThis.unAckCount);
             // ACK RMQ.
             return Promise.resolve();
           } else {
@@ -340,7 +232,7 @@ class BlockScannerWorker extends SigIntHandler {
             logger.error(
               'e_bs_w_3',
               'Token transfer parsing unsuccessful. unAckCount ->',
-              unAckCount,
+              oThis.unAckCount,
               'Token transfer parsing response: ',
               tokenTransferParserResponse
             );
@@ -351,7 +243,7 @@ class BlockScannerWorker extends SigIntHandler {
           // If token transfer parsing not needed.
 
           logger.log('Token transfer parsing not needed.');
-          logger.debug('------unAckCount -> ', unAckCount);
+          logger.debug('------unAckCount -> ', oThis.unAckCount);
           // ACK RMQ.
           return Promise.resolve();
         }
@@ -361,7 +253,7 @@ class BlockScannerWorker extends SigIntHandler {
         logger.error(
           'e_bs_w_4',
           'Error in transaction parsing. unAckCount ->',
-          unAckCount,
+          oThis.unAckCount,
           'Transaction parsing response: ',
           transactionParserResponse
         );
@@ -369,41 +261,6 @@ class BlockScannerWorker extends SigIntHandler {
         return Promise.resolve();
       }
     }
-  }
-
-  /**
-   * This method executes the promises.
-   *
-   * @param onResolve
-   * @param onReject
-   * @param {String} params
-   *
-   * @returns {*}
-   *
-   * @private
-   */
-  _promiseExecutor(onResolve, onReject, params) {
-    const oThis = this;
-
-    oThis
-      .transactionParserExecutor(params)
-      .then(function() {
-        unAckCount--;
-        onResolve();
-      })
-      .catch(function(error) {
-        unAckCount--;
-        logger.error(
-          'e_bs_w_5',
-          'Error in token transfer parsing. unAckCount ->',
-          unAckCount,
-          'Error: ',
-          error,
-          'Params: ',
-          params
-        );
-        onResolve();
-      });
   }
 
   /**
@@ -433,63 +290,12 @@ class BlockScannerWorker extends SigIntHandler {
       rawBlock: rawBlock
     });
   }
-
-  /**
-   * This function checks if there are any pending tasks left or not.
-   *
-   * @returns {Boolean}
-   */
-  pendingTasksDone() {
-    const oThis = this;
-
-    if (unAckCount !== oThis.PromiseQueueManager.getPendingCount()) {
-      logger.error('ERROR :: unAckCount and pending counts are not in sync.');
-    }
-    return !oThis.PromiseQueueManager.getPendingCount() && !unAckCount;
-  }
 }
 
-// Check whether the cron can be started or not.
-cronProcessHandler
-  .canStartProcess({
-    id: +program.cronProcessId, // Implicit string to int conversion.
-    cronKind: cronKind
-  })
-  .then(function(dbResponse) {
-    let cronParams, blockScannerWorkerObj;
 
-    try {
-      // Fetch params from the DB.
-      cronParams = JSON.parse(dbResponse.data.params);
-      chainId = +cronParams.chainId;
-      prefetchCount = +cronParams.prefetchCount;
+(new BlockScannerWorker({cronProcessId: +program.cronProcessId})).perform();
 
-      const params = {
-        chainId: chainId,
-        prefetchCount: prefetchCount
-      };
-
-      // We are creating the object before validation since we need to attach the methods of SigInt handler to the
-      // prototype of this class.
-      blockScannerWorkerObj = new BlockScannerWorker(params);
-    } catch (err) {
-      logger.error('cronParams stored in INVALID format in the DB.');
-      logger.error(
-        'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron'
-      );
-      logger.error('Error: ', err);
-      process.exit(1);
-    }
-
-    // Perform action if cron can be started.
-    blockScannerWorkerObj.perform().then(function() {
-      logger.win('Block scanner worker process promise received.');
-    });
-  });
-
-function ostRmqError(err) {
-  logger.info('ostRmqError occurred.', err);
+setInterval(function() {
+  logger.info('Ending the process.');
   process.emit('SIGINT');
-}
-
-cronProcessHandler.endAfterTime({ timeInMinutes: 45 });
+}, 45 * 1000);
