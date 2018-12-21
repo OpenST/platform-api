@@ -25,6 +25,7 @@ class DeployHelperKlass {
    * @param {number} params.gasPrice - gasPrice to be used for deployment
    * @param {object} params.web3Provider - web3Provider to be used
    * @param {object} params.contractBin - contractBin to be used
+   * @param {object} params.nonce - nonce to be used
    * @param {object} params.constructorArgs - constructorArgs to be passed to contract's constructor
    *
    * @constructor
@@ -39,6 +40,7 @@ class DeployHelperKlass {
     oThis.contractBin = params['contractBin'];
     oThis.contractAbi = params['contractAbi'];
     oThis.constructorArgs = params['constructorArgs'];
+    oThis.nonce = params['nonce'];
   }
 
   /**
@@ -52,7 +54,8 @@ class DeployHelperKlass {
       txParams = {
         from: oThis.deployerAddr,
         gas: oThis.gas,
-        gasPrice: oThis.gasPrice
+        gasPrice: oThis.gasPrice,
+        nonce: oThis.nonce
       };
 
     const options = {

@@ -148,12 +148,15 @@ configTemplate['entitiesMap'] = {
   gethClientEntity: {
     entityType: 'string'
   },
+  addressEntity: {
+    entityType: 'string'
+  },
 
   originConstantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      dummy1: 'dummyEntity',
-      dummy2: 'dummyEntity'
+      deployerAddr: 'addressEntity',
+      simpleTokenContractAddr: 'addressEntity'
     }
   },
   dummyEntity: {

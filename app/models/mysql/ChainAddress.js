@@ -22,7 +22,7 @@ class ChainAddress extends ModelBase {
    *
    * @param {object} params - external passed parameters
    * @param {String} params.address - address
-   * @param {String} params.chainId - address
+   * @param {String} params.chainId - chainId
    *
    * @return {Promise}
    */
