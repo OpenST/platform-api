@@ -85,9 +85,6 @@ class Signer {
       );
     }
 
-    logger.info('accountAddress------', accountAddress);
-    logger.info('oThis.signer------', oThis.signer);
-
     if (oThis.signer != accountAddress) {
       logger.error('Input owner address does not matches recovered address');
       return Promise.resolve(
