@@ -29,7 +29,7 @@ class ChainAddress extends ModelBase {
   async insertSimpleTokenOwnerAddress(params) {
     const oThis = this;
 
-    let existingRows = oThis
+    let existingRows = await oThis
       .select('*')
       .where(['kind=?', chainAddressConst.invertedKinds[chainAddressConst.simpleTokenOwnerKind]])
       .fire();
@@ -49,7 +49,7 @@ class ChainAddress extends ModelBase {
         chain_id: params.chainId,
         kind: chainAddressConst.invertedKinds[chainAddressConst.simpleTokenOwnerKind],
         chain_kind: chainAddressConst.invertedChainKinds[chainAddressConst.originChainKind],
-        address: oThis.ethAddress
+        address: params.address
       })
       .fire();
 
@@ -78,7 +78,7 @@ class ChainAddress extends ModelBase {
   async insertSimpleTokenAdminAddress(params) {
     const oThis = this;
 
-    let existingRows = oThis
+    let existingRows = await oThis
       .select('*')
       .where(['kind=?', chainAddressConst.invertedKinds[chainAddressConst.simpleTokenAdminKind]])
       .fire();
@@ -98,7 +98,7 @@ class ChainAddress extends ModelBase {
         chain_id: params.chainId,
         kind: chainAddressConst.invertedKinds[chainAddressConst.simpleTokenAdminKind],
         chain_kind: chainAddressConst.invertedChainKinds[chainAddressConst.originChainKind],
-        address: oThis.ethAddress
+        address: params.address
       })
       .fire();
 

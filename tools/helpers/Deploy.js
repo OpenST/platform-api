@@ -68,7 +68,7 @@ class DeployHelperKlass {
       options.arguments = oThis.constructorArgs;
     }
 
-    const contract = new web3Provider.eth.Contract(
+    const contract = new oThis.web3Provider.eth.Contract(
       oThis.contractAbi,
       null, // since addr is not known yet
       options
@@ -129,7 +129,7 @@ class DeployHelperKlass {
     logger.info('Contract Address:', contractAddress);
     logger.info('Gas used:', transactionReceipt.gasUsed);
 
-    return Promise.resolve({
+    return responseHelper.successWithData({
       transactionHash: transactionHash,
       transactionReceipt: transactionReceipt,
       contractAddress: contractAddress

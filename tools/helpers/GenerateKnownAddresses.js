@@ -8,6 +8,7 @@
 
 const rootPrefix = '../..',
   GenerateKnownAddress = require(rootPrefix + '/lib/GenerateKnownAddress'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 /**
@@ -56,7 +57,7 @@ generateInternalAddressesKlass.prototype = {
       addressesArr.push(r.data['address']);
     }
 
-    return Promise.resolve(addressesArr);
+    return responseHelper.successWithData({ addresses: addressesArr });
   }
 };
 

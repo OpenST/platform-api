@@ -5,9 +5,10 @@
  *
  * @module tools/chainSetup/origin/simpleToken/SetAdminAddress
  */
-const rootPrefix = '../..',
+const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis');
@@ -45,7 +46,14 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
-    let nonceRsp = oThis.fetchNonce(oThis.signerAddress);
+    let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
+
+    console.log('params', {
+      from: oThis.signerAddress,
+      nonce: nonceRsp.data['nonce'],
+      gasPrice: oThis.gasPrice,
+      gas: 30677
+    });
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
     simpleTokenContractObj.options.address =
@@ -57,13 +65,15 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
         from: oThis.signerAddress,
         nonce: nonceRsp.data['nonce'],
         gasPrice: oThis.gasPrice,
-        gas: 45677 // change
+        gas: 30677
       })
       .catch(function(errorResponse) {
         return errorResponse;
       });
 
     oThis.removeKeyFromWallet();
+
+    console.log('setAdminRsp', setAdminRsp);
 
     return setAdminRsp;
   }

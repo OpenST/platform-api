@@ -5,14 +5,13 @@
  *
  * @module tools/chainSetup/origin/simpleToken/Base
  */
-const rootPrefix = '../..',
+const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  // AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -113,16 +112,10 @@ class SetupSimpleTokenBase {
     const oThis = this,
       originGethConstants = oThis.configStrategy[configStrategyConstants.originGeth];
 
-    let fetchNonceRsp = await new NonceManager({
+    return new NonceManager({
       address: address,
-      chainKind: chainAddressConstants.originChainKind,
-      chainClient: originGethConstants.client,
-      chainId: originGethConstants.chainId,
-      chainWsProviders: originGethConstants.readWrite.wsProviders,
-      chainRpcProviders: originGethConstants.readWrite.rpcProviders
+      chainId: originGethConstants.chainId
     }).getNonce();
-
-    return fetchNonceRsp.data['nonce'];
   }
 
   // /**

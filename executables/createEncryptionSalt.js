@@ -9,7 +9,7 @@
 */
 
 const rootPrefix = '..',
-  KmsWrapper = require(rootPrefix + '/lib/authentication/kmsWrapper'),
+  KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   encryptionSaltConst = require(rootPrefix + '/lib/globalConstant/encryptionSalt'),
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
 

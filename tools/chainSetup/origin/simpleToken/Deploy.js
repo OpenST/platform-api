@@ -5,9 +5,10 @@
  *
  * @module tools/chainSetup/origin/simpleToken/Deploy
  */
-const rootPrefix = '../..',
+const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   DeployerKlass = require(rootPrefix + '/tools/helpers/deploy'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
@@ -43,7 +44,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
-    let nonceRsp = oThis.fetchNonce(oThis.signerAddress);
+    let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
     let deployParams = {
       deployerAddr: oThis.signerAddress,
@@ -57,10 +58,13 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     let deployerObj = new DeployerKlass(deployParams),
       deployerResponse = await deployerObj.perform().catch(function(errorResponse) {
+        console.error(errorResponse);
         return errorResponse;
       });
 
     oThis.removeKeyFromWallet();
+
+    console.log(deployerResponse);
 
     if (deployerResponse.isSuccess()) {
       //TODO: append data for config strategy update

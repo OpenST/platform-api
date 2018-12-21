@@ -20,6 +20,7 @@ class GenerateRawKeyKlass {
    */
   perform() {
     const web3Object = new Web3();
+    //TODO - verify entropy standard
     let newAddress = web3Object.eth.accounts.create(web3Object.utils.randomHex(32));
 
     return responseHelper.successWithData({ address: newAddress.address, privateKey: newAddress.privateKey });

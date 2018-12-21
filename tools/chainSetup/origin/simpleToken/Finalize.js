@@ -5,9 +5,10 @@
  *
  * @module tools/chainSetup/origin/simpleToken/Finalize
  */
-const rootPrefix = '../..',
+const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
@@ -42,7 +43,14 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
-    let nonceRsp = oThis.fetchNonce(oThis.signerAddress);
+    let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
+
+    let params = {
+      from: oThis.signerAddress,
+      nonce: nonceRsp.data['nonce'],
+      gasPrice: oThis.gasPrice,
+      gas: 28555
+    };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
     simpleTokenContractObj.options.address =
@@ -50,12 +58,7 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     let setAdminRsp = await simpleTokenContractObj.methods
       .finalize()
-      .send({
-        from: oThis.signerAddress,
-        nonce: nonceRsp.data['nonce'],
-        gasPrice: oThis.gasPrice,
-        gas: 45677 // change
-      })
+      .send(params)
       .catch(function(errorResponse) {
         return errorResponse;
       });
