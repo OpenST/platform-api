@@ -1,14 +1,14 @@
 'use strict';
 /**
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
- * block scanner worker processes.
+ * Transaction parser processes.
  *
- * Usage: node executables/blockScanner/Delegator.js cronProcessId
+ * Usage: node executables/blockScanner/BlockParser.js cronProcessId
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/Delegator
+ * @module executables/blockScanner/BlockParser
  */
 const rootPrefix = '../..',
   program = require('commander'),
@@ -32,7 +32,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/blockScanner/Delegator.js --cronProcessId 1');
+  logger.log('    node executables/blockScanner/BlockParser.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });
@@ -48,16 +48,16 @@ let chainId, endBlockNumber, startBlockNumber, intentionalBlockDelay;
 const FAILURE_CODE = -1,
   MAX_TXS_PER_WORKER = 60,
   MIN_TXS_PER_WORKER = 10,
-  cronKind = cronProcessesConstants.transactionDelegator;
+  cronKind = cronProcessesConstants.blockParser;
 
 /**
- * Class for Transaction Delegator
+ * Class for Block parser
  *
  * @class
  */
-class TransactionDelegator extends CronBase {
+class BlockParser extends CronBase {
   /**
-   * Constructor for Transaction Delegator
+   * Constructor for Block parser
    *
    * @param {Object} params
    * @param {Number} params.chainId
@@ -97,7 +97,7 @@ class TransactionDelegator extends CronBase {
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
       oThis.canExit = true;
-      logger.error(' In catch block of executables/blockScanner/Delegator.js');
+      logger.error(' In catch block of executables/blockScanner/BlockParser.js');
       return responseHelper.error({
         internal_error_identifier: 'e_bs_d_1',
         api_error_identifier: 'something_went_wrong',
@@ -417,7 +417,7 @@ cronProcessHandler
     cronKind: cronKind
   })
   .then(function(dbResponse) {
-    let cronParams, transactionDelegatorObj;
+    let cronParams, blockParserObj;
 
     try {
       // Fetch params from the DB.
@@ -437,7 +437,7 @@ cronProcessHandler
 
       // We are creating the object before validation since we need to attach the methods of SigInt handler to the
       // prototype of this class.
-      transactionDelegatorObj = new TransactionDelegator(params);
+      blockParserObj = new BlockParser(params);
 
       // Validate if the chainId exists in the DB or not. We are not validating other parameters as they are
       // optional parameters.
@@ -460,7 +460,7 @@ cronProcessHandler
     }
 
     // Perform action if cron can be started.
-    transactionDelegatorObj.perform().then(function() {
+    blockParserObj.perform().then(function() {
       logger.win('Block parser process finished working.');
     });
   });

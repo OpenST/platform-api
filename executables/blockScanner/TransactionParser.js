@@ -1,14 +1,14 @@
 'use strict';
 /**
- * This code acts as a worker process for block scanner, which takes the transactions from delegator
+ * This code acts as a worker process for block scanner, which takes the transactions from block parser
  * and processes them.
  *
- * Usage: node executables/blockScanner/Worker.js cronProcessId
+ * Usage: node executables/blockScanner/TransactionParser.js cronProcessId
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/Worker.
+ * @module executables/blockScanner/TransactionParser.
  */
 
 const rootPrefix = '../..',
@@ -27,7 +27,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/blockScanner/Worker.js --cronProcessId 1');
+  logger.log('    node executables/blockScanner/TransactionParser.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });
@@ -37,7 +37,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-class BlockScannerWorker extends SubscriberBase {
+class TransactionParser extends SubscriberBase {
   /**
    * Constructor for transaction parser
    *
@@ -104,7 +104,7 @@ class BlockScannerWorker extends SubscriberBase {
   }
 
   get _cronKind() {
-    return cronProcessesConstants.blockScannerWorker;
+    return cronProcessesConstants.transactionParser;
   }
 
   /**
@@ -293,7 +293,7 @@ class BlockScannerWorker extends SubscriberBase {
 }
 
 
-(new BlockScannerWorker({cronProcessId: +program.cronProcessId})).perform();
+(new TransactionParser({cronProcessId: +program.cronProcessId})).perform();
 
 setInterval(function() {
   logger.info('Ending the process.');
