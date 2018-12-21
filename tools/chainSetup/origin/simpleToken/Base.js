@@ -12,6 +12,8 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -60,7 +62,7 @@ class SetupSimpleTokenBase {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error(`${__filename}::perform::catch`);
+        logger.error('tools/chainSetup/origin/simpleToken/Base::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 't_cs_o_st_b_1',
@@ -116,6 +118,35 @@ class SetupSimpleTokenBase {
       address: address,
       chainId: originGethConstants.chainId
     }).getNonce();
+  }
+
+  /**
+   * Insert entry into chain setup logs table.
+   *
+   * @param step
+   * @param response
+   * @return {Promise<void>}
+   */
+  async insertIntoChainSetupLogs(step, response) {
+    const oThis = this;
+
+    let insertParams = {};
+
+    insertParams['chainId'] = oThis.configStrategy[configStrategyConstants.originGeth].chainId;
+    insertParams['chainKind'] = oThis.configStrategy[configStrategyConstants.originGeth];
+    insertParams['stepKind'] = chainSetupConstants[step];
+
+    if (response.isSuccess()) {
+      insertParams['status'] = chainSetupConstants.successStatus;
+      insertParams['debugParams'] = JSON.stringify(response.data.debugParams);
+      insertParams['transactionHash'] = response.data.transactionHash;
+    } else {
+      insertParams['status'] = chainSetupConstants.failureStatus;
+      insertParams['debugParams'] = JSON.stringify(response.data.debugParams);
+      insertParams['transactionHash'] = response.data.transactionHash;
+    }
+
+    let queryResponse = new ChainSetupLogsModel().insertRecord(insertParams);
   }
 }
 
