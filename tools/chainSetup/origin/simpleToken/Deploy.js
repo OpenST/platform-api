@@ -118,8 +118,8 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
     await new ChainAddressModel().insertAddress({
       address: deployerResponse.data['contractAddress'],
       chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.invertedKinds[chainAddressConstants.simpleTokenContractKind],
-      chainKind: chainAddressConstants.invertedChainKinds[chainAddressConstants.originChainKind]
+      kind: chainAddressConstants.simpleTokenContractKind,
+      chainKind: chainAddressConstants.originChainKind
     });
   }
 }
