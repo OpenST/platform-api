@@ -9,8 +9,8 @@ const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis');
 
 /**
@@ -46,6 +46,26 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
+    let setAdminRsp = await oThis._setAdminAddress();
+
+    oThis.removeKeyFromWallet();
+
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.setSimpleTokenAdmin, setAdminRsp);
+
+    return setAdminRsp;
+  }
+
+  /***
+   *
+   * set admin address
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _setAdminAddress() {
+    const oThis = this;
+
     let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
     let params = {
@@ -56,19 +76,24 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
     };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
-    simpleTokenContractObj.options.address =
-      oThis.configStrategy[configStrategyConstants.originConstants].simpleTokenContractAddr;
+    simpleTokenContractObj.options.address = await oThis.getSimpleTokenContractAddr();
 
     let setAdminRsp = await simpleTokenContractObj.methods
       .setAdminAddress(oThis.adminAddress)
       .send(params)
       .catch(function(errorResponse) {
+        console.error(errorResponse);
         return errorResponse;
       });
 
-    oThis.removeKeyFromWallet();
-
-    console.log('setAdminRsp', setAdminRsp);
+    setAdminRsp.debugOptions = {
+      inputParams: {
+        signerAddress: oThis.signerAddress
+      },
+      transactionParams: {
+        adminAddress: oThis.adminAddress
+      }
+    };
 
     return setAdminRsp;
   }

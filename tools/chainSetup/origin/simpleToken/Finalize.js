@@ -11,7 +11,7 @@ const rootPrefix = '../../../..',
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
  *
@@ -43,6 +43,26 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
+    let finalizeRsp = await oThis._finalizeSimpleToken();
+
+    oThis.removeKeyFromWallet();
+
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.finalizeSimpleToken, finalizeRsp);
+
+    return finalizeRsp;
+  }
+
+  /***
+   *
+   * finallize simple token
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _finalizeSimpleToken() {
+    const oThis = this;
+
     let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
     let params = {
@@ -53,19 +73,23 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
     };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
-    simpleTokenContractObj.options.address =
-      oThis.configStrategy[configStrategyConstants.originConstants].simpleTokenContractAddr;
+    simpleTokenContractObj.options.address = await oThis.getSimpleTokenContractAddr();
 
-    let setAdminRsp = await simpleTokenContractObj.methods
+    let finalizeRsp = await simpleTokenContractObj.methods
       .finalize()
       .send(params)
       .catch(function(errorResponse) {
         return errorResponse;
       });
 
-    oThis.removeKeyFromWallet();
+    finalizeRsp.debugOptions = {
+      inputParams: {
+        signerAddress: oThis.signerAddress
+      },
+      transactionParams: {}
+    };
 
-    return setAdminRsp;
+    return finalizeRsp;
   }
 }
 

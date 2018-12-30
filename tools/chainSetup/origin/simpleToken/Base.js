@@ -10,8 +10,9 @@ const rootPrefix = '../../../..',
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
@@ -154,9 +155,28 @@ class SetupSimpleTokenBase {
       insertParams['status'] = chainSetupConstants.failureStatus;
     }
 
-    let queryResponse = await new ChainSetupLogsModel().insertRecord(insertParams);
+    await new ChainSetupLogsModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
+  }
+
+  /***
+   *
+   * get simple token contract addr
+   *
+   * @return {Promise}
+   *
+   */
+  async getSimpleTokenContractAddr() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.configStrategyObject.originChainId,
+      kind: chainAddressConstants.simpleTokenContractKind,
+      chainKind: chainAddressConstants.originChainKind
+    });
+
+    return fetchAddrRsp.data['address'];
   }
 }
 

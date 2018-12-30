@@ -86,6 +86,56 @@ class ChainAddress extends ModelBase {
 
     return responseHelper.successWithData({ chainAddressId: insertedRec.id });
   }
+
+  /**
+   * fetch address
+   *
+   * @param {object} params - external passed parameters
+   * @param {Integer} params.chainId - chainId
+   * @param {String} params.chainKind - chain kind
+   * @param {String} params.kind - address kind
+   *
+   * @return {Promise}
+   */
+  async fetchAddress(params) {
+    const oThis = this,
+      addressKind = params['kind'],
+      addressKindInt = chainAddressConst.invertedKinds[addressKind];
+
+    if (!addressKindInt) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_es_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    let existingRows = await oThis
+      .select('*')
+      .where([
+        'chain_id = ? AND kind = ? AND chain_kind = ?',
+        params.chainId,
+        chainAddressConst.invertedKinds[params.kind],
+        chainAddressConst.invertedChainKinds[params.chainKind]
+      ])
+      .fire();
+
+    if (existingRows.length === 0) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_es_5',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    return responseHelper.successWithData({
+      address: existingRows[0].address
+    });
+  }
 }
 
 module.exports = ChainAddress;
