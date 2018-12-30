@@ -115,14 +115,12 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     if (deployerResponse.isFailure()) return deployerResponse;
 
-    await new ChainAddressModel()
-      .insert({
-        address: deployerResponse.data['contractAddress'],
-        chain_id: oThis.configStrategyObject.originChainId,
-        kind: chainAddressConstants.invertedKinds[chainAddressConstants.simpleTokenContractKind],
-        chain_kind: chainAddressConstants.invertedChainKinds[chainAddressConstants.originChainKind]
-      })
-      .fire();
+    await new ChainAddressModel().insertAddress({
+      address: deployerResponse.data['contractAddress'],
+      chainId: oThis.configStrategyObject.originChainId,
+      kind: chainAddressConstants.invertedKinds[chainAddressConstants.simpleTokenContractKind],
+      chainKind: chainAddressConstants.invertedChainKinds[chainAddressConstants.originChainKind]
+    });
   }
 }
 
