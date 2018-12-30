@@ -18,86 +18,58 @@ class ChainAddress extends ModelBase {
   }
 
   /**
-   * parameters
+   * insert address
    *
    * @param {object} params - external passed parameters
    * @param {String} params.address - address
-   * @param {String} params.chainId - chainId
+   * @param {Integer} params.chainId - chainId
+   * @param {String} params.chainKind - chain kind
+   * @param {String} params.kind - address kind
    *
    * @return {Promise}
    */
-  async insertSimpleTokenOwnerAddress(params) {
-    const oThis = this;
+  async insertAddress(params) {
+    const oThis = this,
+      addressKind = params['kind'],
+      addressKindInt = chainAddressConst.invertedKinds[addressKind];
 
-    let existingRows = await oThis
-      .select('*')
-      .where(['kind=?', chainAddressConst.invertedKinds[chainAddressConst.simpleTokenOwnerKind]])
-      .fire();
-
-    if (existingRows.length > 0) {
+    if (!addressKindInt) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'm_m_es_1',
-          api_error_identifier: 'duplicate_entry',
-          debug_options: {}
-        })
-      );
-    }
-
-    let insertedRec = await new ChainAddress()
-      .insert({
-        chain_id: params.chainId,
-        kind: chainAddressConst.invertedKinds[chainAddressConst.simpleTokenOwnerKind],
-        chain_kind: chainAddressConst.invertedChainKinds[chainAddressConst.originChainKind],
-        address: params.address
-      })
-      .fire();
-
-    if (insertedRec.affectedRows === 0) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'm_m_es_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
       );
     }
 
-    return responseHelper.successWithData({ chainAddressId: insertedRec.id });
-  }
+    if (chainAddressConst.uniqueKinds.indexOf(addressKind) > -1) {
+      let existingRows = await oThis
+        .select('*')
+        .where([
+          'chain_id = ? AND kind = ? AND chain_kind = ?',
+          params.chainId,
+          chainAddressConst.invertedKinds[params.kind],
+          chainAddressConst.invertedChainKinds[params.chainKind]
+        ])
+        .fire();
 
-  /**
-   * parameters
-   *
-   * @param {object} params - external passed parameters
-   * @param {String} params.address - address
-   * @param {String} params.chainId - address
-   *
-   * @return {Promise}
-   */
-  async insertSimpleTokenAdminAddress(params) {
-    const oThis = this;
-
-    let existingRows = await oThis
-      .select('*')
-      .where(['kind=?', chainAddressConst.invertedKinds[chainAddressConst.simpleTokenAdminKind]])
-      .fire();
-
-    if (existingRows.length > 0) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'm_m_es_3',
-          api_error_identifier: 'duplicate_entry',
-          debug_options: {}
-        })
-      );
+      if (existingRows.length > 0) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'm_m_es_2',
+            api_error_identifier: 'duplicate_entry',
+            debug_options: {}
+          })
+        );
+      }
     }
 
     let insertedRec = await new ChainAddress()
       .insert({
         chain_id: params.chainId,
-        kind: chainAddressConst.invertedKinds[chainAddressConst.simpleTokenAdminKind],
-        chain_kind: chainAddressConst.invertedChainKinds[chainAddressConst.originChainKind],
+        kind: addressKindInt,
+        chain_kind: chainAddressConst.invertedChainKinds[params.chainKind],
         address: params.address
       })
       .fire();
@@ -105,7 +77,7 @@ class ChainAddress extends ModelBase {
     if (insertedRec.affectedRows === 0) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_es_4',
+          internal_error_identifier: 'm_m_es_3',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

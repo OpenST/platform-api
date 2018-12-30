@@ -38,7 +38,7 @@ class ChainSetupLogs extends ModelBase {
         chain_id: params.chainId,
         chain_kind: chainSetupLogsConst.invertedChainKinds[params.chainKind],
         step_kind: chainSetupLogsConst.invertedStepKinds[params.stepKind],
-        debug_params: params.debugParams,
+        debug_params: JSON.stringify(params.debugParams),
         transaction_hash: params.transactionHash,
         status: chainSetupLogsConst.invertedStatus[params.status]
       })

@@ -11,7 +11,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
@@ -38,6 +38,7 @@ class SetupSimpleTokenBase {
     oThis.signerKey = params['signerKey'];
 
     oThis.web3InstanceObj = null;
+    oThis.configStrategyObj = null;
   }
 
   /**
@@ -78,10 +79,17 @@ class SetupSimpleTokenBase {
     return oThis.ic().configStrategy;
   }
 
+  get configStrategyObject() {
+    const oThis = this;
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
+    return oThis.configStrategyObj;
+  }
+
   get web3Instance() {
     const oThis = this;
     if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
-    const chainEndpoint = oThis.configStrategy[configStrategyConstants.originGeth].readWrite.wsProvider;
+    const chainEndpoint = oThis.configStrategyObject.originChainWsProvider('readWrite');
     oThis.web3InstanceObj = web3Provider.getInstance(chainEndpoint).web3WsProvider;
     return oThis.web3InstanceObj;
   }
@@ -111,42 +119,44 @@ class SetupSimpleTokenBase {
    * @return {Promise}
    */
   async fetchNonce(address) {
-    const oThis = this,
-      originGethConstants = oThis.configStrategy[configStrategyConstants.originGeth];
+    const oThis = this;
 
     return new NonceManager({
       address: address,
-      chainId: originGethConstants.chainId
+      chainId: oThis.configStrategyObject.originChainId
     }).getNonce();
   }
 
   /**
    * Insert entry into chain setup logs table.
    *
+   * @ignore
+   *
    * @param step
    * @param response
+   *
    * @return {Promise<void>}
    */
-  async insertIntoChainSetupLogs(step, response) {
+  async _insertIntoChainSetupLogs(step, response) {
     const oThis = this;
 
     let insertParams = {};
 
-    insertParams['chainId'] = oThis.configStrategy[configStrategyConstants.originGeth].chainId;
-    insertParams['chainKind'] = oThis.configStrategy[configStrategyConstants.originGeth];
-    insertParams['stepKind'] = chainSetupConstants[step];
+    insertParams['chainId'] = oThis.configStrategyObject.originChainId;
+    insertParams['chainKind'] = chainSetupConstants.originChainKind;
+    insertParams['stepKind'] = step;
+    insertParams['debugParams'] = response.debugOptions;
+    insertParams['transactionHash'] = response.data.transactionHash;
 
     if (response.isSuccess()) {
       insertParams['status'] = chainSetupConstants.successStatus;
-      insertParams['debugParams'] = JSON.stringify(response.data.debugParams);
-      insertParams['transactionHash'] = response.data.transactionHash;
     } else {
       insertParams['status'] = chainSetupConstants.failureStatus;
-      insertParams['debugParams'] = JSON.stringify(response.data.debugParams);
-      insertParams['transactionHash'] = response.data.transactionHash;
     }
 
-    let queryResponse = new ChainSetupLogsModel().insertRecord(insertParams);
+    let queryResponse = await new ChainSetupLogsModel().insertRecord(insertParams);
+
+    return responseHelper.successWithData({});
   }
 }
 

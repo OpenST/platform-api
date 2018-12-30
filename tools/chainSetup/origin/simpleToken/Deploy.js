@@ -8,7 +8,11 @@
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   DeployerKlass = require(rootPrefix + '/tools/helpers/deploy'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
@@ -44,6 +48,28 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
+    let deployerResponse = await oThis._deployContract();
+
+    oThis.removeKeyFromWallet();
+
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.deploySimpleToken, deployerResponse);
+
+    oThis._insertIntoChainAddress(deployerResponse);
+
+    return deployerResponse;
+  }
+
+  /***
+   *
+   * deploy contract
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _deployContract() {
+    const oThis = this;
+
     let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
     let deployParams = {
@@ -58,19 +84,45 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     let deployerObj = new DeployerKlass(deployParams),
       deployerResponse = await deployerObj.perform().catch(function(errorResponse) {
-        console.error(errorResponse);
+        logger.error(errorResponse);
         return errorResponse;
       });
 
-    oThis.removeKeyFromWallet();
-
-    console.log(deployerResponse);
+    deployerResponse.debugOptions = {
+      inputParams: {
+        deployerAddr: oThis.signerAddress
+      },
+      transactionParams: {}
+    };
 
     if (deployerResponse.isSuccess()) {
       //TODO: append data for config strategy update
     }
 
     return deployerResponse;
+  }
+
+  /***
+   *
+   * insert simple token contract address into chain address
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _insertIntoChainAddress(deployerResponse) {
+    const oThis = this;
+
+    if (deployerResponse.isFailure()) return deployerResponse;
+
+    await new ChainAddressModel()
+      .insert({
+        address: deployerResponse.data['contractAddress'],
+        chain_id: oThis.configStrategyObject.originChainId,
+        kind: chainAddressConstants.invertedKinds[chainAddressConstants.simpleTokenContractKind],
+        chain_kind: chainAddressConstants.invertedChainKinds[chainAddressConstants.originChainKind]
+      })
+      .fire();
   }
 }
 
