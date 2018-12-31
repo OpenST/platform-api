@@ -122,19 +122,21 @@ class ChainAddress extends ModelBase {
       ])
       .fire();
 
-    if (existingRows.length === 0) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'm_m_es_5',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
+    let returnData;
+
+    switch (existingRows.length) {
+      case 1:
+        returnData = { address: existingRows[0].address };
+        break;
+      default:
+        let addresses = [];
+        for (let i = 0; i < existingRows.length; i++) {
+          addresses.push(existingRows[i].address);
+        }
+        returnData = { addresses: addresses };
     }
 
-    return responseHelper.successWithData({
-      address: existingRows[0].address
-    });
+    return responseHelper.successWithData(returnData);
   }
 }
 

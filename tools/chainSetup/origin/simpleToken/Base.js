@@ -75,11 +75,23 @@ class SetupSimpleTokenBase {
     });
   }
 
+  /***
+   *
+   * config strategy
+   *
+   * @return {object}
+   */
   get configStrategy() {
     const oThis = this;
     return oThis.ic().configStrategy;
   }
 
+  /***
+   *
+   * object of config strategy klass
+   *
+   * @return {object}
+   */
   get configStrategyObject() {
     const oThis = this;
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
@@ -87,6 +99,12 @@ class SetupSimpleTokenBase {
     return oThis.configStrategyObj;
   }
 
+  /***
+   *
+   * get web3instance to interact with chain
+   *
+   * @return {Object}
+   */
   get web3Instance() {
     const oThis = this;
     if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
@@ -172,7 +190,7 @@ class SetupSimpleTokenBase {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.simpleTokenContractKind,
+      kind: chainAddressConstants.baseContractKind,
       chainKind: chainAddressConstants.originChainKind
     });
 

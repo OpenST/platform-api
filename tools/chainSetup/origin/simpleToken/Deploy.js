@@ -118,7 +118,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
     await new ChainAddressModel().insertAddress({
       address: deployerResponse.data['contractAddress'],
       chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.simpleTokenContractKind,
+      kind: chainAddressConstants.baseContractKind,
       chainKind: chainAddressConstants.originChainKind
     });
   }
