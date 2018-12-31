@@ -155,8 +155,8 @@ configTemplate['entitiesMap'] = {
   originConstantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      deployerAddr: 'addressEntity',
-      simpleTokenContractAddr: 'addressEntity'
+      dummy1: 'dummyEntity',
+      dummy2: 'dummyEntity'
     }
   },
   dummyEntity: {
