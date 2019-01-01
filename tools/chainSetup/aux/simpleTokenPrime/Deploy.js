@@ -170,7 +170,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
-      kind: chainAddressConstants.organizationKind,
+      kind: chainAddressConstants.baseContractOrganizationKind,
       chainKind: chainAddressConstants.auxChainKind
     });
 

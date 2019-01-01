@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * setup organization for ST Prime
+ * setup simpleToken Base
  *
- * @module tools/chainSetup/aux/SetupOrganization
+ * @module tools/chainSetup/SetupAnchorOrganization
  */
-const rootPrefix = '../../..',
+const rootPrefix = '../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -22,17 +22,22 @@ const rootPrefix = '../../..',
  *
  * @class
  */
-class SetupAuxOrganization {
+class SetupAnchorOrganization {
   /**
    * Constructor
    *
    * @param {Object} params
+   * @param {String} params.chainKind - origin / aux (chain kind for which anchor org is to be setup)
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
 
+    oThis.chainKind = params['chainKind'];
+
+    oThis.chainId = null;
+    oThis.gasPrice = null;
     oThis.configStrategyObj = null;
   }
 
@@ -53,7 +58,7 @@ class SetupAuxOrganization {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_1',
+          internal_error_identifier: 't_cs_sao_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -70,16 +75,18 @@ class SetupAuxOrganization {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._initializeVars();
+
     let signerAddress = await oThis._getDeployerAddr(),
       ownerAddress = await oThis._getOwnerAddr(),
       adminAddress = await oThis._getAdminAddr(),
       workerAddresses = await oThis._getWorkerAddresses();
 
     let setupOrganization = new SetupOrganization({
-      chainId: oThis._auxChainId,
+      chainId: oThis.chainId,
       signerAddress: signerAddress,
-      chainEndpoint: oThis._auxChainEndpoint,
-      gasPrice: '0x0',
+      chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
+      gasPrice: oThis.gasPrice,
       ownerAddress: ownerAddress,
       adminAddress: adminAddress,
       workerAddresses: workerAddresses
@@ -91,7 +98,7 @@ class SetupAuxOrganization {
       inputParams: {},
       transactionParams: {
         signerAddress: oThis.signerAddress,
-        chainId: oThis._auxChainId,
+        chainId: oThis.chainId,
         ownerAddress: ownerAddress,
         adminAddress: adminAddress,
         workerAddresses: workerAddresses
@@ -107,6 +114,29 @@ class SetupAuxOrganization {
 
   /***
    *
+   * init vars on the basis of chain kind
+   *
+   * @private
+   */
+  async _initializeVars() {
+    const oThis = this;
+
+    switch (oThis.chainKind) {
+      case chainAddressConstants.originChainKind:
+        oThis.chainId = oThis._configStrategyObject.originChainId;
+        oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
+        break;
+      case chainAddressConstants.auxChainKind:
+        oThis.chainId = oThis._configStrategyObject.auxChainId;
+        oThis.gasPrice = '0x0';
+        break;
+      default:
+        throw `unsupported chainKind: ${oThis.chainKind}`;
+    }
+  }
+
+  /***
+   *
    * get STPrime org contract addr
    *
    * @private
@@ -118,9 +148,9 @@ class SetupAuxOrganization {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
+      chainId: oThis.chainId,
       kind: chainAddressConstants.deployerKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -148,9 +178,9 @@ class SetupAuxOrganization {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
+      chainId: oThis.chainId,
       kind: chainAddressConstants.baseContractOwnerKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -178,9 +208,9 @@ class SetupAuxOrganization {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
+      chainId: oThis.chainId,
       kind: chainAddressConstants.baseContractAdminKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -208,9 +238,9 @@ class SetupAuxOrganization {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
+      chainId: oThis.chainId,
       kind: chainAddressConstants.workerKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.addresses) {
@@ -239,9 +269,9 @@ class SetupAuxOrganization {
 
     let insertParams = {};
 
-    insertParams['chainId'] = oThis._auxChainId;
-    insertParams['chainKind'] = chainSetupLogsConstants.auxChainKind;
-    insertParams['stepKind'] = chainSetupLogsConstants.setupBaseContractOrganizationStepKind;
+    insertParams['chainId'] = oThis.chainId;
+    insertParams['chainKind'] = oThis.chainKind;
+    insertParams['stepKind'] = chainSetupLogsConstants.setupAnchorOrganizationStepKind;
     insertParams['debugParams'] = response.debugOptions;
     insertParams['transactionHash'] = response.data.transactionHash;
 
@@ -274,9 +304,9 @@ class SetupAuxOrganization {
 
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
-      chainId: oThis._auxChainId,
-      kind: chainAddressConstants.baseContractOrganizationKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainId: oThis.chainId,
+      kind: chainAddressConstants.anchorOrganizationKind,
+      chainKind: oThis.chainKind
     });
   }
 
@@ -303,18 +333,12 @@ class SetupAuxOrganization {
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
     return oThis.configStrategyObj;
   }
-
-  get _auxChainId() {
-    const oThis = this;
-    return oThis._configStrategyObject.auxChainId;
-  }
-
-  get _auxChainEndpoint() {
-    const oThis = this;
-    return oThis._configStrategyObject.auxChainWsProvider('readWrite');
-  }
 }
 
-InstanceComposer.registerAsShadowableClass(SetupAuxOrganization, coreConstants.icNameSpace, 'SetupAuxOrganization');
+InstanceComposer.registerAsShadowableClass(
+  SetupAnchorOrganization,
+  coreConstants.icNameSpace,
+  'SetupAnchorOrganization'
+);
 
-module.exports = SetupAuxOrganization;
+module.exports = SetupAnchorOrganization;

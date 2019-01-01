@@ -97,6 +97,24 @@ class ConfigStrategyObject {
     }
   }
 
+  chainRpcProvider(chainId, intent) {
+    const oThis = this;
+    if (oThis.auxChainId == chainId) {
+      return oThis.auxChainRpcProvider(intent);
+    } else {
+      return oThis.originChainRpcProvider(intent);
+    }
+  }
+
+  chainWsProvider(chainId, intent) {
+    const oThis = this;
+    if (oThis.auxChainId == chainId) {
+      return oThis.auxChainWsProvider(intent);
+    } else {
+      return oThis.originChainWsProvider(intent);
+    }
+  }
+
   chainKind(chainId) {
     const oThis = this;
     if (oThis.auxChainId == chainId) {
