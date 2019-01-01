@@ -149,7 +149,7 @@ class SetupAuxOrganization {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
-      kind: chainAddressConstants.baseContractOwnerKind,
+      kind: chainAddressConstants.ownerKind,
       chainKind: chainAddressConstants.auxChainKind
     });
 
@@ -179,7 +179,7 @@ class SetupAuxOrganization {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
-      kind: chainAddressConstants.baseContractAdminKind,
+      kind: chainAddressConstants.adminKind,
       chainKind: chainAddressConstants.auxChainKind
     });
 

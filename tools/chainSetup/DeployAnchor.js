@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * setup simpleToken Base
+ * deploy anchor contract
  *
  * @module tools/chainSetup/DeployAnchor
  */
