@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * setup organization class
+ * deploy anchor contract class
  *
- * @module tools/chainSetup/common/SetupOrganization
+ * @module tools/commonSetup/DeployAnchor
  */
 const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -15,7 +15,7 @@ const rootPrefix = '../..',
  *
  * @class
  */
-class SetupOrganization extends CommonSetupBase {
+class DeployAnchor extends CommonSetupBase {
   /**
    * Constructor
    *
@@ -24,9 +24,7 @@ class SetupOrganization extends CommonSetupBase {
    * @param {String} params.signerAddress - address who signs Tx
    * @param {String} params.chainEndpoint - url to connect to chain
    * @param {String} params.gasPrice -  gas price to use
-   * @param {String} params.ownerAddress - address which would become owner of this organization contract
-   * @param {String} params.adminAddress - address which would become admin of this organization contract
-   * @param {Array<String>} params.workerAddresses - whitelisted worker addresses of this organization contract
+   * @param {String} params.organizationAddress - organization address for this contract
    *
    * @constructor
    */
@@ -35,11 +33,11 @@ class SetupOrganization extends CommonSetupBase {
 
     const oThis = this;
 
-    oThis.ownerAddress = params['ownerAddress'];
-    oThis.adminAddress = params['adminAddress'];
-    oThis.workerAddresses = params['workerAddresses'];
+    oThis.organizationAddress = params['organizationAddress'];
 
-    oThis.expirationHeight = '10000000';
+    oThis.maxStateRoots = 100; //TODO: Change later
+
+    oThis.latestBlock = null;
   }
 
   /**
@@ -52,20 +50,29 @@ class SetupOrganization extends CommonSetupBase {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._fetchLatestBlock();
+
     let nonceRsp = await oThis._fetchNonce(),
       signerKey = await oThis._fetchSignerKey();
 
     oThis._addKeyToWallet(signerKey);
 
-    let deployParams = {
+    let txOptions = {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce']
     };
 
-    let orgHelperObj = new SetupOrganization.OrganizationHelper(oThis._web3Instance),
-      deployRsp = await orgHelperObj
-        .deploy(oThis.ownerAddress, oThis.adminAddress, oThis.workerAddresses, oThis.expirationHeight, deployParams)
+    let anchorHelperObj = new DeployAnchor.AnchorHelper(oThis._web3Instance),
+      deployRsp = await anchorHelperObj
+        .deploy(
+          oThis.chainId,
+          oThis.latestBlock.number,
+          oThis.latestBlock.stateRoot,
+          oThis.maxStateRoots,
+          oThis.organizationAddress,
+          txOptions
+        )
         .then(function(txReceipt) {
           logger.debug('txReceipt', txReceipt);
           return responseHelper.successWithData({
@@ -77,7 +84,7 @@ class SetupOrganization extends CommonSetupBase {
         .catch(function(errorResponse) {
           logger.error(errorResponse);
           return responseHelper.error({
-            internal_error_identifier: 't_cos_so_1',
+            internal_error_identifier: 't_cos_da_1',
             api_error_identifier: 'unhandled_catch_response',
             debug_options: {}
           });
@@ -88,9 +95,18 @@ class SetupOrganization extends CommonSetupBase {
     return Promise.resolve(deployRsp);
   }
 
-  static get OrganizationHelper() {
-    return MosaicTbd.ChainSetup.OrganizationHelper;
+  /***
+   *
+   * @private
+   */
+  async _fetchLatestBlock() {
+    const oThis = this;
+    oThis.latestBlock = await oThis._web3Instance.eth.getBlock('latest');
+  }
+
+  static get AnchorHelper() {
+    return MosaicTbd.ChainSetup.AnchorHelper;
   }
 }
 
-module.exports = SetupOrganization;
+module.exports = DeployAnchor;
