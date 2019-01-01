@@ -8,23 +8,22 @@
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  MosaicTbd = require('mosaic-tbd'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
-  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
-  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3');
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey'),
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
  *
  * @class
  */
-class SetupSimpleTokenBase {
+class SetupSTPrimeBase {
   /**
    * Constructor
    *
@@ -34,9 +33,6 @@ class SetupSimpleTokenBase {
    */
   constructor(params) {
     const oThis = this;
-
-    oThis.signerAddress = params['signerAddress'];
-    oThis.signerKey = params['signerKey'];
 
     oThis.web3InstanceObj = null;
     oThis.configStrategyObj = null;
@@ -52,27 +48,38 @@ class SetupSimpleTokenBase {
   perform() {
     const oThis = this;
 
-    if (basicHelper.isProduction() && basicHelper.isMainSubEnvironment()) {
-      return responseHelper.error({
-        internal_error_identifier: 't_cs_o_st_b_2',
-        api_error_identifier: 'action_prohibited_in_prod_main',
-        debug_options: {}
-      });
-    }
-
-    return oThis.asyncPerform().catch(function(error) {
+    return oThis._asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('tools/chainSetup/origin/simpleToken/Base::perform::catch');
+        logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_o_st_b_1',
+          internal_error_identifier: 't_cs_o_stp_b_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
       }
     });
+  }
+
+  static get STPrimeSetupHelper() {
+    return MosaicTbd.ChainSetup.OSTPrimeHelper;
+  }
+
+  /**
+   * fetch nonce (calling this method means incrementing nonce in cache, use judiciouly)
+   *
+   * @ignore
+   *
+   * @return {Promise}
+   */
+  async _fetchNonce(address) {
+    const oThis = this;
+    return new NonceManager({
+      address: address,
+      chainId: oThis._auxChainId
+    }).getNonce();
   }
 
   /***
@@ -81,7 +88,7 @@ class SetupSimpleTokenBase {
    *
    * @return {object}
    */
-  get configStrategy() {
+  get _configStrategy() {
     const oThis = this;
     return oThis.ic().configStrategy;
   }
@@ -92,10 +99,10 @@ class SetupSimpleTokenBase {
    *
    * @return {object}
    */
-  get configStrategyObject() {
+  get _configStrategyObject() {
     const oThis = this;
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
     return oThis.configStrategyObj;
   }
 
@@ -105,45 +112,57 @@ class SetupSimpleTokenBase {
    *
    * @return {Object}
    */
-  get web3Instance() {
+  get _web3Instance() {
     const oThis = this;
     if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
-    const chainEndpoint = oThis.configStrategyObject.originChainWsProvider('readWrite');
+    const chainEndpoint = oThis._configStrategyObject.auxChainWsProvider('readWrite');
     oThis.web3InstanceObj = web3Provider.getInstance(chainEndpoint).web3WsProvider;
     return oThis.web3InstanceObj;
   }
 
-  get gasPrice() {
-    //TODO: Add dynamic gas logic here
-    return '0x3B9ACA00';
-  }
-
-  addKeyToWallet() {
+  get _auxChainId() {
     const oThis = this;
-    oThis.web3Instance.eth.accounts.wallet.add(oThis.signerKey);
+    return oThis._configStrategyObject.auxChainId;
   }
 
-  removeKeyFromWallet() {
+  get _originChainId() {
     const oThis = this;
-    oThis.web3Instance.eth.accounts.wallet.remove(oThis.signerKey);
+    return oThis._configStrategyObject.originChainId;
   }
 
-  /**
-   * fetch nonce (calling this method means incrementing nonce in cache, use judiciouly)
+  /***
    *
-   * @ignore
-   *
-   * @param {string} address
-   *
-   * @return {Promise}
+   * @param key
+   * @private
    */
-  async fetchNonce(address) {
+  _addKeyToWallet(key) {
     const oThis = this;
+    oThis._web3Instance.eth.accounts.wallet.add(key);
+  }
 
-    return new NonceManager({
-      address: address,
-      chainId: oThis.configStrategyObject.originChainId
-    }).getNonce();
+  /***
+   *
+   * @param key
+   * @private
+   */
+  _removeKeyFromWallet(key) {
+    const oThis = this;
+    oThis._web3Instance.eth.accounts.wallet.remove(key);
+  }
+
+  /***
+   *
+   * get private key from cache
+   *
+   * @param {String} address
+   *
+   * @return {String}
+   */
+  async _fetchPrivateKey(address) {
+    const oThis = this,
+      addressPrivateKeyCache = new AddressPrivateKeyCache({ address: address }),
+      cacheFetchRsp = await addressPrivateKeyCache.fetchDecryptedData();
+    return cacheFetchRsp.data['private_key_d'];
   }
 
   /**
@@ -161,8 +180,8 @@ class SetupSimpleTokenBase {
 
     let insertParams = {};
 
-    insertParams['chainId'] = oThis.configStrategyObject.originChainId;
-    insertParams['chainKind'] = chainSetupConstants.originChainKind;
+    insertParams['chainId'] = oThis._auxChainId;
+    insertParams['chainKind'] = chainSetupConstants.auxChainKind;
     insertParams['stepKind'] = step;
     insertParams['debugParams'] = response.debugOptions;
     insertParams['transactionHash'] = response.data.transactionHash;
@@ -178,27 +197,8 @@ class SetupSimpleTokenBase {
 
     return responseHelper.successWithData({});
   }
-
-  /***
-   *
-   * get simple token contract addr
-   *
-   * @return {Promise}
-   *
-   */
-  async getSimpleTokenContractAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: chainAddressConstants.originChainKind
-    });
-
-    return fetchAddrRsp.data['address'];
-  }
 }
 
-InstanceComposer.registerAsShadowableClass(SetupSimpleTokenBase, coreConstants.icNameSpace, 'SetupSimpleTokenBase');
+InstanceComposer.registerAsShadowableClass(SetupSTPrimeBase, coreConstants.icNameSpace, 'SetupSTPrimeBase');
 
-module.exports = SetupSimpleTokenBase;
+module.exports = SetupSTPrimeBase;

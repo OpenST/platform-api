@@ -124,16 +124,14 @@ class ChainAddress extends ModelBase {
 
     let returnData;
 
-    switch (existingRows.length) {
-      case 1:
-        returnData = { address: existingRows[0].address };
-        break;
-      default:
-        let addresses = [];
-        for (let i = 0; i < existingRows.length; i++) {
-          addresses.push(existingRows[i].address);
-        }
-        returnData = { addresses: addresses };
+    if (chainAddressConst.uniqueKinds.indexOf(addressKind) > -1) {
+      returnData = { address: (existingRows[0] || {}).address };
+    } else {
+      let addresses = [];
+      for (let i = 0; i < existingRows.length; i++) {
+        addresses.push(existingRows[i].address);
+      }
+      returnData = { addresses: addresses };
     }
 
     return responseHelper.successWithData(returnData);

@@ -50,7 +50,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
 
     oThis.removeKeyFromWallet();
 
-    await oThis._insertIntoChainSetupLogs(chainSetupConstants.setSimpleTokenAdmin, setAdminRsp);
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.setBaseContractAdminStepKind, setAdminRsp);
 
     return setAdminRsp;
   }

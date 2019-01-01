@@ -47,7 +47,7 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     oThis.removeKeyFromWallet();
 
-    await oThis._insertIntoChainSetupLogs(chainSetupConstants.finalizeSimpleToken, finalizeRsp);
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.initializeBaseContractStepKind, finalizeRsp);
 
     return finalizeRsp;
   }

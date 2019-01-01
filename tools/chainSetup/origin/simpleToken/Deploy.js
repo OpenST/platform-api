@@ -52,7 +52,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     oThis.removeKeyFromWallet();
 
-    await oThis._insertIntoChainSetupLogs(chainSetupConstants.deploySimpleToken, deployerResponse);
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.deployBaseContractStepKind, deployerResponse);
 
     oThis._insertIntoChainAddress(deployerResponse);
 
