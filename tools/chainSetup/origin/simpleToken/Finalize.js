@@ -86,7 +86,7 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
       inputParams: {
         signerAddress: oThis.signerAddress
       },
-      transactionParams: {}
+      processedParams: {}
     };
 
     return finalizeRsp;

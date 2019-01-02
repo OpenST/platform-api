@@ -90,7 +90,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
       inputParams: {
         signerAddress: oThis.signerAddress
       },
-      transactionParams: {
+      processedParams: {
         adminAddress: oThis.adminAddress
       }
     };

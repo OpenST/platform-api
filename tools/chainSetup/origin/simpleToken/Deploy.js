@@ -90,14 +90,10 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     deployerResponse.debugOptions = {
       inputParams: {
-        deployerAddr: oThis.signerAddress
+        signerAddress: oThis.signerAddress
       },
-      transactionParams: {}
+      processedParams: {}
     };
-
-    if (deployerResponse.isSuccess()) {
-      //TODO: append data for config strategy update
-    }
 
     return deployerResponse;
   }

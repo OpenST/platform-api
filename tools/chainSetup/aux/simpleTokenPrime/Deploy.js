@@ -81,7 +81,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
 
     deployerResponse.debugOptions = {
       inputParams: {},
-      transactionParams: {
+      processedParams: {
         chainId: oThis._auxChainId,
         deployerAddress: oThis.deployerAddress,
         simpleTokenAddress: simpleTokenAddress,

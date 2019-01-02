@@ -94,7 +94,7 @@ class DeployAnchor {
 
     setupRsp.debugOptions = {
       inputParams: {},
-      transactionParams: params
+      processedParams: params
     };
 
     await oThis._insertIntoChainSetupLogs(setupRsp);

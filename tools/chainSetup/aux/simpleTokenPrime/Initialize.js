@@ -79,7 +79,7 @@ class InitializeSimpleTokenPrime extends SetupSTPrimeBase {
 
     initializeResponse.debugOptions = {
       inputParams: {},
-      transactionParams: {
+      processedParams: {
         chainId: oThis._auxChainId,
         STPrimeContractAddress: stPrimeContractAddr
       }
