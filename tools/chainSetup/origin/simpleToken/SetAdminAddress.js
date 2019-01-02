@@ -11,6 +11,8 @@ const rootPrefix = '../../../..',
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis');
 
 /**
@@ -72,26 +74,36 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
       gasPrice: oThis.gasPrice,
-      gas: 30677
+      gas: 40000
     };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
     simpleTokenContractObj.options.address = await oThis.getSimpleTokenContractAddr();
 
-    let setAdminRsp = await simpleTokenContractObj.methods
+    let transactionReceipt = await simpleTokenContractObj.methods
       .setAdminAddress(oThis.adminAddress)
       .send(params)
       .catch(function(errorResponse) {
-        console.error(errorResponse);
-        return errorResponse;
+        logger.error(errorResponse);
+        return responseHelper.error({
+          internal_error_identifier: 't_cs_o_ag_st_saa_1',
+          api_error_identifier: 'unhandled_catch_response',
+          debug_options: { error: errorResponse }
+        });
       });
+
+    let setAdminRsp = responseHelper.successWithData({
+      transactionHash: transactionReceipt.transactionHash,
+      transactionReceipt: transactionReceipt
+    });
 
     setAdminRsp.debugOptions = {
       inputParams: {
         signerAddress: oThis.signerAddress
       },
       processedParams: {
-        adminAddress: oThis.adminAddress
+        adminAddress: oThis.adminAddress,
+        simpleTokenContractAddress: simpleTokenContractObj.options.address
       }
     };
 

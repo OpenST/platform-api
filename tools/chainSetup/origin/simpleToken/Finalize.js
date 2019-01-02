@@ -11,6 +11,8 @@ const rootPrefix = '../../../..',
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
@@ -75,12 +77,22 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
     simpleTokenContractObj.options.address = await oThis.getSimpleTokenContractAddr();
 
-    let finalizeRsp = await simpleTokenContractObj.methods
+    let transactionReceipt = await simpleTokenContractObj.methods
       .finalize()
       .send(params)
       .catch(function(errorResponse) {
-        return errorResponse;
+        logger.error(errorResponse);
+        return responseHelper.error({
+          internal_error_identifier: 't_cs_o_ag_st_f_1',
+          api_error_identifier: 'unhandled_catch_response',
+          debug_options: { error: errorResponse }
+        });
       });
+
+    let finalizeRsp = responseHelper.successWithData({
+      transactionHash: transactionReceipt.transactionHash,
+      transactionReceipt: transactionReceipt
+    });
 
     finalizeRsp.debugOptions = {
       inputParams: {
