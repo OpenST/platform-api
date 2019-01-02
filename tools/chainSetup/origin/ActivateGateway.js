@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * deploy lib
+ * activate gateway contract
  *
- * @module tools/chainSetup/DeployLib
+ * @module tools/chainSetup/origin/activateGateway
  */
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -15,35 +15,27 @@ const rootPrefix = '../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
-  DeployLibs = require(rootPrefix + '/tools/commonSetup/DeployLibs'),
+  ActivateGatewayHelper = require(rootPrefix + '/tools/commonSetup/ActivateGateway'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
  *
  * @class
  */
-class DeployLib {
+class ActivateGateway {
   /**
    * Constructor
    *
    * @param {Object} params
-   * @param {String} params.chainKind - origin / aux (chain kind for which anchor org is to be setup)
-   * @param {String} params.libKind - merklePatriciaProof / messageBus / gateway
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
 
-    oThis.chainKind = params['chainKind'];
-    oThis.libKind = params['libKind'];
-
     oThis.chainId = null;
     oThis.gasPrice = null;
     oThis.configStrategyObj = null;
-    oThis.merklePatriciaProofAddress = null;
-    oThis.stepKind = null;
-    oThis.chainAddressKind = null;
   }
 
   /**
@@ -63,7 +55,7 @@ class DeployLib {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_dl_1',
+          internal_error_identifier: 't_cs_o_ag_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -82,95 +74,68 @@ class DeployLib {
 
     await oThis._initializeVars();
 
+    let signerAddress = await oThis._getOwnerAddr(),
+      gatewayContractAddress = await oThis._getGatewayContractAddr(),
+      coGatewayContractAddress = await oThis._getCoGatewayContractAddr();
+
     let params = {
       chainId: oThis.chainId,
-      libKind: oThis.libKind,
-      signerAddress: await oThis._getDeployerAddr(),
-      chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
+      signerAddress: signerAddress,
+      chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      merklePatriciaProofAddress: oThis.merklePatriciaProofAddress
+      gatewayAddress: gatewayContractAddress,
+      coGatewayAddress: coGatewayContractAddress
     };
 
-    let deployHelper = new DeployLibs(params);
+    let helper = new ActivateGatewayHelper(params);
 
-    let setupRsp = await deployHelper.perform();
+    let activateRsp = await helper.perform();
 
-    setupRsp.debugOptions = {
+    activateRsp.debugOptions = {
       inputParams: {},
       transactionParams: params
     };
 
-    await oThis._insertIntoChainSetupLogs(setupRsp);
+    await oThis._insertIntoChainSetupLogs(activateRsp);
 
-    await oThis._insertIntoChainAddress(setupRsp);
-
-    return setupRsp;
+    return activateRsp;
   }
 
   /***
    *
-   * init vars on the basis of chain kind
+   * init vars
    *
    * @private
    */
   async _initializeVars() {
     const oThis = this;
-
-    switch (oThis.chainKind) {
-      case chainAddressConstants.originChainKind:
-        oThis.chainId = oThis._configStrategyObject.originChainId;
-        oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
-        break;
-      case chainAddressConstants.auxChainKind:
-        oThis.chainId = oThis._configStrategyObject.auxChainId;
-        oThis.gasPrice = '0x0';
-        break;
-      default:
-        throw `unsupported chainKind: ${oThis.chainKind}`;
-    }
-
-    switch (oThis.libKind) {
-      case 'merklePatriciaProof':
-        oThis.stepKind = chainSetupLogsConstants.deployMerklePatriciaProofLibStepKind;
-        oThis.chainAddressKind = chainAddressConstants.merklePatriciaProofLibKind;
-        break;
-      case 'messageBus':
-        oThis.stepKind = chainSetupLogsConstants.deployMessageBusLibStepKind;
-        oThis.chainAddressKind = chainAddressConstants.messageBusLibKind;
-        oThis.merklePatriciaProofAddress = await oThis._merklePatriciaProofAddr();
-        break;
-      case 'gateway':
-        oThis.stepKind = chainSetupLogsConstants.deployGatewayLibStepKind;
-        oThis.chainAddressKind = chainAddressConstants.gatewayLibKind;
-        oThis.merklePatriciaProofAddress = await oThis._merklePatriciaProofAddr();
-        break;
-      default:
-        throw `unsupported libLind ${oThis.libKind}`;
-    }
+    oThis.chainId = oThis._configStrategyObject.originChainId;
+    oThis.chainKind = chainAddressConstants.originChainKind;
+    oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
   }
 
   /***
    *
-   * get deployer addr
+   * get owner addr
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getDeployerAddr() {
+  async _getOwnerAddr() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind,
+      kind: chainAddressConstants.ownerKind,
       chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_dl_3',
+          internal_error_identifier: 't_cs_o_ag_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -181,26 +146,56 @@ class DeployLib {
 
   /***
    *
-   * get org contract addr
+   * get gateway contract addr
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _merklePatriciaProofAddr() {
+  async _getGatewayContractAddr() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.merklePatriciaProofLibKind,
+      kind: chainAddressConstants.gatewayContractKind,
       chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_dl_4',
+          internal_error_identifier: 't_cs_o_ag_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return fetchAddrRsp.data.address;
+  }
+
+  /***
+   *
+   * get co gateway contract addr
+   *
+   * @private
+   *
+   * @return {Promise}
+   *
+   */
+  async _getCoGatewayContractAddr() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis._configStrategyObject.auxChainId,
+      kind: chainAddressConstants.coGatewayContractKind,
+      chainKind: chainAddressConstants.auxChainKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_o_ag_4',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -225,7 +220,7 @@ class DeployLib {
 
     insertParams['chainId'] = oThis.chainId;
     insertParams['chainKind'] = oThis.chainKind;
-    insertParams['stepKind'] = oThis.stepKind;
+    insertParams['stepKind'] = chainSetupLogsConstants.activateGatewayStepKind;
     insertParams['debugParams'] = response.debugOptions;
     insertParams['transactionHash'] = response.data.transactionHash;
 
@@ -239,29 +234,6 @@ class DeployLib {
     await new ChainSetupLogsModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
-  }
-
-  /***
-   *
-   * insert anchor contract address into chain address
-   *
-   * @param {Result} response
-   *
-   * @return {Promise}
-   *
-   * @private
-   */
-  async _insertIntoChainAddress(response) {
-    const oThis = this;
-
-    if (response.isFailure()) return response;
-
-    await new ChainAddressModel().insertAddress({
-      address: response.data['contractAddress'],
-      chainId: oThis.chainId,
-      kind: oThis.chainAddressKind,
-      chainKind: oThis.chainKind
-    });
   }
 
   /***
@@ -289,6 +261,6 @@ class DeployLib {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(DeployLib, coreConstants.icNameSpace, 'DeployLib');
+InstanceComposer.registerAsShadowableClass(ActivateGateway, coreConstants.icNameSpace, 'ActivateGateway');
 
-module.exports = DeployLib;
+module.exports = ActivateGateway;

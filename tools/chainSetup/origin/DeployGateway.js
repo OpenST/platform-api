@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * setup organization for anchor contract
+ * deploy gateway contract
  *
- * @module tools/chainSetup/SetupAnchorOrganization
+ * @module tools/chainSetup/origin/DeployGateway
  */
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -15,26 +15,23 @@ const rootPrefix = '../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
-  SetupOrganization = require(rootPrefix + '/tools/commonSetup/SetupOrganization'),
+  DeployGatewayHelper = require(rootPrefix + '/tools/commonSetup/DeployGateway'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
  *
  * @class
  */
-class SetupAnchorOrganization {
+class DeployGateway {
   /**
    * Constructor
    *
    * @param {Object} params
-   * @param {String} params.chainKind - origin / aux (chain kind for which anchor org is to be setup)
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
-
-    oThis.chainKind = params['chainKind'];
 
     oThis.chainId = null;
     oThis.gasPrice = null;
@@ -58,7 +55,7 @@ class SetupAnchorOrganization {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_sao_1',
+          internal_error_identifier: 't_cs_o_dg_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -78,23 +75,29 @@ class SetupAnchorOrganization {
     await oThis._initializeVars();
 
     let signerAddress = await oThis._getDeployerAddr(),
-      ownerAddress = await oThis._getOwnerAddr(),
-      adminAddress = await oThis._getAdminAddr(),
-      workerAddresses = await oThis._getWorkerAddresses();
+      organizationAddress = await oThis._getOrganizationAddr(),
+      simpleTokenContractAddress = await oThis._getSimpleTokenContractAddr(),
+      stPrimeContractAddress = await oThis._getSTPrimeContractAddr(),
+      anchorAddress = await oThis._getAnchorAddr(),
+      messageBusLibAddress = await oThis._getMessageBusLibAddr(),
+      gatewayLibAddress = await oThis._getGatewayLibAddr();
 
     let params = {
       chainId: oThis.chainId,
       signerAddress: signerAddress,
-      chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
+      chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      ownerAddress: ownerAddress,
-      adminAddress: adminAddress,
-      workerAddresses: workerAddresses
+      organizationAddress: organizationAddress,
+      originContractAddress: simpleTokenContractAddress,
+      auxContractAddress: stPrimeContractAddress,
+      anchorAddress: anchorAddress,
+      messageBusLibAddress: messageBusLibAddress,
+      gatewayLibAddress: gatewayLibAddress
     };
 
-    let setupOrganization = new SetupOrganization(params);
+    let deployHelper = new DeployGatewayHelper(params);
 
-    let setupRsp = await setupOrganization.perform();
+    let setupRsp = await deployHelper.perform();
 
     setupRsp.debugOptions = {
       inputParams: {},
@@ -110,30 +113,20 @@ class SetupAnchorOrganization {
 
   /***
    *
-   * init vars on the basis of chain kind
+   * init vars
    *
    * @private
    */
   async _initializeVars() {
     const oThis = this;
-
-    switch (oThis.chainKind) {
-      case chainAddressConstants.originChainKind:
-        oThis.chainId = oThis._configStrategyObject.originChainId;
-        oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
-        break;
-      case chainAddressConstants.auxChainKind:
-        oThis.chainId = oThis._configStrategyObject.auxChainId;
-        oThis.gasPrice = '0x0';
-        break;
-      default:
-        throw `unsupported chainKind: ${oThis.chainKind}`;
-    }
+    oThis.chainId = oThis._configStrategyObject.originChainId;
+    oThis.chainKind = chainAddressConstants.originChainKind;
+    oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
   }
 
   /***
    *
-   * get STPrime org contract addr
+   * get deployer addr
    *
    * @private
    *
@@ -152,7 +145,7 @@ class SetupAnchorOrganization {
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_2',
+          internal_error_identifier: 't_cs_o_dg_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -163,26 +156,26 @@ class SetupAnchorOrganization {
 
   /***
    *
-   * get STPrime org contract addr
+   * get org contract addr
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getOwnerAddr() {
+  async _getOrganizationAddr() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.ownerKind,
+      kind: chainAddressConstants.baseContractOrganizationKind,
       chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_3',
+          internal_error_identifier: 't_cs_o_dg_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -193,26 +186,26 @@ class SetupAnchorOrganization {
 
   /***
    *
-   * get STPrime org contract addr
+   * get simple token contract addr
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getAdminAddr() {
+  async _getSimpleTokenContractAddr() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.adminKind,
+      kind: chainAddressConstants.baseContractKind,
       chainKind: oThis.chainKind
     });
 
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_4',
+          internal_error_identifier: 't_cs_o_dg_4',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -223,32 +216,122 @@ class SetupAnchorOrganization {
 
   /***
    *
-   * get worker addresses
+   * get simple token prime contract addr
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getWorkerAddresses() {
+  async _getSTPrimeContractAddr() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.workerKind,
+      kind: chainAddressConstants.baseContractKind,
       chainKind: oThis.chainKind
     });
 
-    if (!fetchAddrRsp.data.addresses) {
+    if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_5',
+          internal_error_identifier: 't_cs_o_dg_5',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.addresses;
+    return fetchAddrRsp.data.address;
+  }
+
+  /***
+   *
+   * get anchor contract addr
+   *
+   * @private
+   *
+   * @return {Promise}
+   *
+   */
+  async _getAnchorAddr() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.chainId,
+      kind: chainAddressConstants.anchorContractKind,
+      chainKind: oThis.chainKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_o_dg_6',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return fetchAddrRsp.data.address;
+  }
+
+  /***
+   *
+   * get message bus lib addr
+   *
+   * @private
+   *
+   * @return {Promise}
+   *
+   */
+  async _getMessageBusLibAddr() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.chainId,
+      kind: chainAddressConstants.messageBusLibKind,
+      chainKind: oThis.chainKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_o_dg_7',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return fetchAddrRsp.data.address;
+  }
+
+  /***
+   *
+   * get gateway bus lib addr
+   *
+   * @private
+   *
+   * @return {Promise}
+   *
+   */
+  async _getGatewayLibAddr() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.chainId,
+      kind: chainAddressConstants.gatewayLibKind,
+      chainKind: oThis.chainKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_o_dg_8',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return fetchAddrRsp.data.address;
   }
 
   /**
@@ -267,7 +350,7 @@ class SetupAnchorOrganization {
 
     insertParams['chainId'] = oThis.chainId;
     insertParams['chainKind'] = oThis.chainKind;
-    insertParams['stepKind'] = chainSetupLogsConstants.setupAnchorOrganizationStepKind;
+    insertParams['stepKind'] = chainSetupLogsConstants.deployGatewayStepKind;
     insertParams['debugParams'] = response.debugOptions;
     insertParams['transactionHash'] = response.data.transactionHash;
 
@@ -285,7 +368,7 @@ class SetupAnchorOrganization {
 
   /***
    *
-   * insert organization contract address into chain address
+   * insert anchor contract address into chain address
    *
    * @param {Result} response
    *
@@ -301,7 +384,7 @@ class SetupAnchorOrganization {
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
       chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorOrganizationKind,
+      kind: chainAddressConstants.gatewayContractKind,
       chainKind: oThis.chainKind
     });
   }
@@ -331,10 +414,6 @@ class SetupAnchorOrganization {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(
-  SetupAnchorOrganization,
-  coreConstants.icNameSpace,
-  'SetupAnchorOrganization'
-);
+InstanceComposer.registerAsShadowableClass(DeployGateway, coreConstants.icNameSpace, 'DeployGateway');
 
-module.exports = SetupAnchorOrganization;
+module.exports = DeployGateway;
