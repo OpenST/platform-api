@@ -73,7 +73,6 @@ configTemplate['entitiesMap'] = {
       tablePrefix: 'tablePrefixEntity',
       enableLogging: 'enableLoggingEntity',
       enableAutoscaling: 'enableAutoscalingEntity',
-      maxRetryCount: 'maxRetryCountEntity',
       autoScaling: 'autoScalingEntity'
     }
   },
@@ -102,9 +101,6 @@ configTemplate['entitiesMap'] = {
     entityType: 'string'
   },
   enableAutoscalingEntity: {
-    entityType: 'string'
-  },
-  maxRetryCountEntity: {
     entityType: 'string'
   },
   autoScalingEntity: {
