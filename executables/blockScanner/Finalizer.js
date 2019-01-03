@@ -142,6 +142,7 @@ class Finalizer extends PublisherBase {
 
     // Initialize BlockParser.
     oThis.Finalizer = blockScannerObj.block.Finalize;
+    oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
 
     logger.step('Services initialised.');
   }
@@ -171,6 +172,8 @@ class Finalizer extends PublisherBase {
       }
 
       if (finalizerResponse.data.processedBlock) {
+        await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
+
         await oThis._publishBlock(finalizerResponse.data.processedBlock);
       }
       oThis.canExit = true;
@@ -188,6 +191,24 @@ class Finalizer extends PublisherBase {
     return new Promise(function(resolve) {
       setTimeout(resolve, ms);
     });
+  }
+
+  /**
+   * updateLastProcessedBlock
+   *
+   * @return {Promise<void>}
+   */
+  async _updateLastProcessedBlock(blockNumber) {
+    const oThis = this;
+
+    let chainCronDataObj = new oThis.chainCronDataModel({});
+
+    let updateParams = {
+      chainId: oThis.chainId,
+      lastFinalizedBlock: blockNumber
+    };
+
+    return chainCronDataObj.updateItem(updateParams);
   }
 
   /**
