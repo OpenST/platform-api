@@ -70,7 +70,6 @@ configTemplate['entitiesMap'] = {
       apiSecret: 'apiSecretEntity',
       apiVersion: 'apiVersionEntity',
       enableSsl: 'enableSslEntity',
-      tablePrefix: 'tablePrefixEntity',
       enableLogging: 'enableLoggingEntity',
       enableAutoscaling: 'enableAutoscalingEntity',
       autoScaling: 'autoScalingEntity'
@@ -92,9 +91,6 @@ configTemplate['entitiesMap'] = {
     entityType: 'string'
   },
   enableSslEntity: {
-    entityType: 'string'
-  },
-  tablePrefixEntity: {
     entityType: 'string'
   },
   enableLoggingEntity: {
