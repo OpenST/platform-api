@@ -252,7 +252,7 @@ class TransactionParser extends SubscriberBase {
         // Transaction parsing response was unsuccessful.
 
         logger.error(
-          'e_bs_w_4',
+          'e_bs_tp_4',
           'Error in transaction parsing. unAckCount ->',
           oThis.unAckCount,
           'Transaction parsing response: ',

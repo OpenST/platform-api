@@ -164,7 +164,7 @@ class Aggregator extends SubscriberBase {
       // Aggregation was unsuccessful.
 
       logger.error(
-        'e_bs_w_4',
+        'e_bs_a_1',
         'Error in aggregation. unAckCount ->',
         oThis.unAckCount,
         'Aggregation response: ',
