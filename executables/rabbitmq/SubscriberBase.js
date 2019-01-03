@@ -5,6 +5,7 @@ const OSTBase = require('@openstfoundation/openst-base');
 const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
@@ -47,16 +48,21 @@ class SubscriberBase extends CronBase {
       process.emit('SIGINT');
     }
 
+    if (!CommonValidators.isVarInteger(oThis.prefetchCount)) {
+      logger.error('Prefetch count is not an integer.');
+      process.emit('SIGINT');
+    }
+
     if (oThis.prefetchCount < 0) {
       logger.error('Prefetch count is invalid.');
       process.emit('SIGINT');
     }
 
-    logger.step('common validations done.');
+    logger.step('Common validations done.');
 
     oThis._specificValidations();
 
-    logger.step('specific validations done.');
+    logger.step('Specific validations done.');
   }
 
   /**

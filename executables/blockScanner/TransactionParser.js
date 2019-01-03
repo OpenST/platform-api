@@ -61,9 +61,10 @@ class TransactionParser extends SubscriberBase {
   }
 
   /**
-   * topics to subscribe
+   * Topics to subscribe
    *
    * @returns {*[]}
+   *
    * @private
    */
   get _topicsToSubscribe() {
