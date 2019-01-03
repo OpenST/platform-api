@@ -48,6 +48,8 @@ class SubscriberBase extends CronBase {
       process.emit('SIGINT');
     }
 
+    oThis.prefetchCount = parseInt(oThis.prefetchCount);
+
     if (!CommonValidators.isVarInteger(oThis.prefetchCount)) {
       logger.error('Prefetch count is not an integer.');
       process.emit('SIGINT');

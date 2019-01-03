@@ -15,9 +15,9 @@ const rootPrefix = '../../..',
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
+  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
   dbName = 'config_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
@@ -157,7 +157,6 @@ class ConfigStrategyModel extends ModelBase {
       }
 
       let localDecryptedJsonObj = {};
-      let configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
 
       if (queryResult[i].encrypted_params) {
         let localDecryptedParams = localCipher.decrypt(
@@ -165,10 +164,13 @@ class ConfigStrategyModel extends ModelBase {
           queryResult[i].encrypted_params
         );
         localDecryptedJsonObj = JSON.parse(localDecryptedParams);
-        configStrategyHash = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
       }
 
-      finalResult[queryResult[i].id] = configStrategyHash;
+      let configStrategyHash = JSON.parse(queryResult[i].unencrypted_params);
+
+      localDecryptedJsonObj = oThis.mergeConfigResult(queryResult[i].kind, configStrategyHash, localDecryptedJsonObj);
+
+      finalResult[queryResult[i].id] = localDecryptedJsonObj;
     }
 
     return Promise.resolve(finalResult);
@@ -176,7 +178,7 @@ class ConfigStrategyModel extends ModelBase {
 
   /**
    *
-   * @param strategyKind {string} - strategy kind
+   * @param strategyKind {String} - strategy kind
    * @param configStrategyHash {}
    * @param decryptedJsonObj
    * @return configStrategyHash
@@ -417,15 +419,6 @@ class ConfigStrategyModel extends ModelBase {
     let hashToEncrypt = {},
       hashNotToEncrypt = configStrategyParams,
       encryptedKeysFound = false;
-
-    // TODO:: URGENT:: Below is temp commit to disable encryption.
-    return Promise.resolve(
-      responseHelper.successWithData({
-        hashToEncrypt: null,
-        hashNotToEncrypt: hashNotToEncrypt
-      })
-    );
-    // TODO:: URGENT:: above is temp commit to disable encryption.
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
