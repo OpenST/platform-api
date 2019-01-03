@@ -41,7 +41,7 @@ class PublisherBase extends CronBase {
     return oThis.canExit;
   }
 
-  //TODO - following can be moved to common place.
+  // TODO - following can be moved to common place.
   /**
    * Sleep for particular time
    *
