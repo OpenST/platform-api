@@ -8,6 +8,7 @@ const rootPrefix = '../..',
   ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategy'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  ChainConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheManagement/chainConfigStrategyIds'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
@@ -51,8 +52,7 @@ class ConfigStrategyByChainId {
   getComplete() {
     const oThis = this;
 
-    // where chain id is the one passed here OR 0
-    return oThis._fetchAndCombineConfig(['chain_id = ? OR chain_id = 0', oThis.chainId]);
+    return oThis._fetchAndCombineConfig();
   }
 
   /**
@@ -336,9 +336,25 @@ class ConfigStrategyByChainId {
   }
 
   /**
+   * It returns strategyIdsArray from query on Config Strategy Model.
+   *
+   * @return {Promise<*[]|*|Array>}
+   * @private
+   */
+  async _strategyIdProviderForChain() {
+    const oThis = this;
+
+    let chainConfigStrategyCache = new ChainConfigStrategyCache({ chainId: oThis.chainId });
+
+    let chainConfigCacheRsp = await chainConfigStrategyCache.fetch();
+
+    return chainConfigCacheRsp.data.strategyIds;
+  }
+
+  /**
    * Given a where clause, fetch all the config rows and merge them and return the final hash
    *
-   * @param whereClause {Array} - where clause
+   * @param whereClause {Array} - where clause, optional
    *
    * @returns {Promise<any>}
    *
@@ -347,8 +363,14 @@ class ConfigStrategyByChainId {
   async _fetchAndCombineConfig(whereClause) {
     const oThis = this;
 
+    let strategyIdsArray = [];
+    if (whereClause) {
+      strategyIdsArray = await oThis._strategyIdsArrayProvider();
+    } else {
+      strategyIdsArray = await oThis._strategyIdProviderForChain();
+    }
+
     let finalConfigHash = {},
-      strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause),
       configCacheResponse = await oThis._getConfigStrategyByStrategyId(strategyIdsArray),
       cacheConfig = configCacheResponse.data;
 
