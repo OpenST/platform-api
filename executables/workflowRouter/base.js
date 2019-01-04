@@ -154,7 +154,7 @@ class workflowRouterBase {
       //Fetch parent record details
       let parentRecord = (await new WorkflowStepsModel()
         .select('*')
-        .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
+        .where(['id in (?)', [oThis.parentStepId]])
         .fire())[0];
 
       if (!parentRecord) {
