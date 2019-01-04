@@ -13,11 +13,10 @@ const rootPrefix = '../..',
   program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -159,7 +158,7 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = true;
       if (currentBlockNotProcessable) {
-        console.log('===Waiting for 2 secs');
+        logger.log('===Waiting for 2 secs');
         await oThis.sleep(2000);
       } else {
         if (finalizerResponse.data.processedBlock) {
@@ -168,7 +167,7 @@ class Finalizer extends PublisherBase {
           await oThis._publishBlock(finalizerResponse.data.processedBlock);
         }
         oThis.canExit = true;
-        console.log('===Waiting for 10 milli-secs');
+        logger.log('===Waiting for 10 milli-secs');
         await oThis.sleep(10);
       }
     }

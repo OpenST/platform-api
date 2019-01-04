@@ -17,9 +17,9 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
