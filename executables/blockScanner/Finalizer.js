@@ -101,16 +101,7 @@ class Finalizer extends PublisherBase {
    */
   async _validateChainId() {
     // Fetch config strategy by chainId.
-    const oThis = this,
-      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
-      configStrategyResp = await strategyByChainHelperObj.getComplete();
-
-    if (configStrategyResp.isFailure()) {
-      logger.error('Could not fetch configStrategy. Exiting the process.');
-      process.emit('SIGINT');
-    }
-
-    const configStrategy = configStrategyResp.data;
+    const oThis = this;
 
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
