@@ -142,8 +142,7 @@ class Aggregator extends SubscriberBase {
     oThis.unAckCount++;
 
     // Process request
-    const parsedParams = JSON.parse(messageParams),
-      payload = parsedParams.message.payload;
+    const payload = messageParams.message.payload;
 
     // Fetch params from payload.
     const chainId = payload.chainId.toString(),
