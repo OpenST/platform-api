@@ -152,10 +152,10 @@ class workflowRouterBase {
     const oThis = this;
     if (oThis.parentStepId) {
       //Fetch parent record details
-      let workflowRecords = await new WorkflowStepsModel()
+      let parentRecord = (await new WorkflowStepsModel()
         .select('*')
         .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
-        .fire();
+        .fire())[0];
 
       if (!parentRecord) {
         return Promise.reject(
