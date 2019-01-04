@@ -74,7 +74,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
       gasPrice: oThis.gasPrice,
-      gas: 40000
+      gas: 4000000
     };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
