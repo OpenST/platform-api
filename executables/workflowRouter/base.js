@@ -54,7 +54,7 @@ class workflowRouterBase {
         logger.error('executables/workflowRouter/base::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 'e_wr_tpr_1',
+          internal_error_identifier: 'e_wr_b_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -96,7 +96,7 @@ class workflowRouterBase {
       );
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_wr_tpr_4',
+          internal_error_identifier: 'e_wr_b_4',
           api_error_identifier: 'something_went_wrong',
           debug_options: { taskStatus: oThis.taskStatus }
         })
@@ -127,7 +127,7 @@ class workflowRouterBase {
     if (!oThis.currentStepDetails) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_wr_tpr_3',
+          internal_error_identifier: 'e_wr_b_3',
           api_error_identifier: 'something_went_wrong',
           debug_options: { stepKind: oThis.stepKind }
         })
@@ -152,13 +152,29 @@ class workflowRouterBase {
     const oThis = this;
     if (oThis.parentStepId) {
       //Fetch parent record details
-      // set oThis.requestParams, oThis.clientId, oThis.chainId
+      let workflowRecords = await new WorkflowStepsModel()
+        .select('*')
+        .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
+        .fire();
+
+      if (!parentRecord) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'e_wr_b_6',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: { parentStepId: oThis.parentStepId }
+          })
+        );
+      }
+      oThis.requestParams = parentRecord.request_params;
+      oThis.clientId = parentRecord.client_id;
+      oThis.chainId = parentRecord.chain_id;
     }
 
     if (!oThis.requestParams || !oThis.clientId || !oThis.chainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_wr_tpr_5',
+          internal_error_identifier: 'e_wr_b_5',
           api_error_identifier: 'something_went_wrong',
           debug_options: { parentStepId: oThis.parentStepId }
         })
@@ -209,9 +225,18 @@ class workflowRouterBase {
     const oThis = this;
 
     for (let index = 0; index < oThis.nextSteps.length; index++) {
+      let nextStep = oThis.nextSteps[index];
+
+      let dependencyResponse = await oThis.checkDependencies(nextStep);
+
+      console.log('-----------------------dependencyResponse----------', dependencyResponse);
+      if (!dependencyResponse.data.dependencyResolved) {
+        continue;
+      }
+
       let insertRsp = await new WorkflowStepsModel()
         .insert({
-          kind: new WorkflowStepsModel().invertedKinds[oThis.nextSteps[index]],
+          kind: new WorkflowStepsModel().invertedKinds[nextStep],
           client_id: oThis.clientId,
           chain_id: oThis.chainId,
           parent_id: oThis.parentStepId,
@@ -228,6 +253,48 @@ class workflowRouterBase {
       // }
     }
     return Promise.resolve(responseHelper.successWithData({}));
+  }
+
+  /**
+   *
+   * ch
+   * @param nextStep
+   * @returns {Promise<any>}
+   */
+  async checkDependencies(nextStep) {
+    const oThis = this;
+
+    let nextStepDetails = await oThis.getNextStepDetails(nextStep),
+      prerequisitesIds = [];
+
+    if (nextStepDetails.prerequisites) {
+      for (let i = 0; i < nextStepDetails.prerequisites.length; i++) {
+        let invertedKind = new WorkflowStepsModel().invertedKinds[nextStepDetails.prerequisites[i]];
+        if (invertedKind) {
+          prerequisitesIds.push(invertedKind);
+        }
+      }
+    }
+
+    if (prerequisitesIds.length > 0) {
+      let prerequisitesRecords = await new WorkflowStepsModel()
+        .select('*')
+        .where(['id in (?)', prerequisitesIds])
+        .fire();
+      if (prerequisitesRecords.length != nextStepDetails.prerequisites.length) {
+        return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
+      }
+      for (let i = 0; i < prerequisitesRecords.length; i++) {
+        if (
+          prerequisitesRecords[i].status !=
+          new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus]
+        ) {
+          return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
+        }
+      }
+    }
+
+    return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 1 }));
   }
 }
 

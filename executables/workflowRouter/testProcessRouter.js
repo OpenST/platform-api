@@ -2,6 +2,12 @@
 
 const rootPrefix = '../..',
   testStepss1 = require(rootPrefix + '/lib/workflow/testSteps/s1'),
+  testStepss2 = require(rootPrefix + '/lib/workflow/testSteps/s2'),
+  testStepss33 = require(rootPrefix + '/lib/workflow/testSteps/s33'),
+  testStepss4 = require(rootPrefix + '/lib/workflow/testSteps/s4'),
+  testStepss5 = require(rootPrefix + '/lib/workflow/testSteps/s5'),
+  testStepss6 = require(rootPrefix + '/lib/workflow/testSteps/s6'),
+  testStepss7 = require(rootPrefix + '/lib/workflow/testSteps/s7'),
   testStepDetails = require(rootPrefix + '/executables/workflowRouter/testStepsDetails'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -26,6 +32,18 @@ class testProcessRouter extends workflowRouterBase {
 
       case workflowStepConstants.s1:
         return new testStepss1().perform();
+      case workflowStepConstants.s2:
+        return new testStepss2().perform();
+      case workflowStepConstants.s33:
+        return new testStepss33().perform();
+      case workflowStepConstants.s4:
+        return new testStepss4().perform();
+      case workflowStepConstants.s5:
+        return new testStepss5().perform();
+      case workflowStepConstants.s6:
+        return new testStepss6().perform();
+      case workflowStepConstants.s7:
+        return new testStepss7().perform();
 
       default:
         return Promise.reject(
@@ -36,6 +54,10 @@ class testProcessRouter extends workflowRouterBase {
           })
         );
     }
+  }
+
+  getNextStepDetails(nextStep) {
+    return testStepDetails[nextStep];
   }
 }
 
