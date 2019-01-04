@@ -143,7 +143,12 @@ class SubscriberBase extends CronBase {
    */
   _promiseExecutor(onResolve, onReject, messageParams) {
     const oThis = this;
-
+    try {
+      messageParams = JSON.parse(messageParams);
+    } catch (err) {
+      logger.error('Error in JSON parse ', err);
+      return onResolve();
+    }
     oThis
       ._processMessage(messageParams)
       .then(function() {
@@ -154,7 +159,7 @@ class SubscriberBase extends CronBase {
         oThis.unAckCount--;
         logger.error(
           'e_bs_w_5',
-          'Error in token transfer parsing. unAckCount ->',
+          'Error in process message from rmq. unAckCount ->',
           oThis.unAckCount,
           'Error: ',
           error,

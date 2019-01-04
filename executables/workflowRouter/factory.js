@@ -14,7 +14,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/workflowRouter/base.js --cronProcessId 1');
+  logger.log('    node executables/workflowRouter/factory.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });
@@ -115,7 +115,7 @@ class workflowRouterFactory extends SubscriberBase {
     switch (messageParams.topics[0]) {
       case workflowTopicConstant.test:
         const testProcessRouter = require(rootPrefix + '/executables/workflowRouter/testProcessRouter');
-        return new testProcessRouter(messageParams).perform();
+        return new testProcessRouter(messageParams.message.payload).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];

@@ -4,7 +4,10 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowSteps');
+  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
+  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowSteps'),
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  WorkFlowTopics = require(rootPrefix + '/lib/globalConstant/workflowTopic');
 
 class workflowRouterBase {
   /**
@@ -234,25 +237,70 @@ class workflowRouterBase {
         continue;
       }
 
+      let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
+        nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
       let insertRsp = await new WorkflowStepsModel()
         .insert({
-          kind: new WorkflowStepsModel().invertedKinds[nextStep],
+          kind: nextStepKind,
           client_id: oThis.clientId,
           chain_id: oThis.chainId,
           parent_id: oThis.parentStepId,
-          status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus]
+          status: nextStepStatus
         })
         .fire();
 
       let nextStepId = insertRsp.insertId;
 
-      //publish
-      // a = {
-      //   currentStepId: nextStepId,
-      //   parentStepId: oThis.parentStepId
-      // }
+      let messageParams = {
+        topics: [WorkFlowTopics.test],
+        publisher: oThis._publisher,
+        message: {
+          kind: oThis._messageKind,
+          payload: {
+            stepKind: nextStep,
+            taskStatus: workflowStepConstants.taskReadyToStart,
+            currentStepId: nextStepId,
+            parentStepId: oThis.parentStepId
+          }
+        }
+      };
+
+      let openSTNotification = await sharedRabbitMqProvider.getInstance({
+          connectionWaitSeconds: connectionTimeoutConst.crons,
+          switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+        }),
+        setToRMQ = await openSTNotification.publishEvent.perform(messageParams);
+
+      // If could not set to RMQ run in async.
+      if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
+        logger.error("====Couldn't publish the message to RMQ====");
+        return Promise.reject({ err: "Couldn't publish next step in Rmq" });
+      }
     }
     return Promise.resolve(responseHelper.successWithData({}));
+  }
+
+  /**
+   *
+   *
+   * @returns {string}
+   * @private
+   */
+  get _publisher() {
+    const oThis = this;
+
+    return 'OST_Workflow';
+  }
+
+  /**
+   *
+   * @returns {string}
+   * @private
+   */
+  get _messageKind() {
+    const oThis = this;
+
+    return 'background_job';
   }
 
   /**
