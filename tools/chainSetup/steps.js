@@ -503,7 +503,7 @@ deployLib(chainAddressConstants.originChainKind, 'gateway')
   .then(console.log)
   .catch(console.log);
 
-// 14. ORIGIN -> Deploy Libs
+// 14. AUX -> Deploy Libs
 
 /////////// a. Deploy merklePatriciaProof lib
 

@@ -54,7 +54,8 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
     let txOptions = {
       gasPrice: '0x0',
       from: deployerAddress,
-      nonce: nonceRsp.data['nonce']
+      nonce: nonceRsp.data['nonce'],
+      chainId: 2000 //TODO: remove hardcoding
     };
 
     let helperObj = new SetupSTPrimeBase.STPrimeSetupHelper(oThis._web3Instance),
