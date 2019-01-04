@@ -9,6 +9,10 @@ const rootPrefix = '..',
 /**
  * Class for sigint handler
  *
+ * This class has 2 responsibilities
+ * 1. sigint handling
+ * 2. cron processes table queries and validations
+ *
  * @class
  */
 class CronBase {

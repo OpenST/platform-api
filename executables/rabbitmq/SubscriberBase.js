@@ -198,6 +198,10 @@ class SubscriberBase extends CronBase {
     process.kill(process.pid, 'SIGTERM');
   }
 
+  async _beforeSubscribe() {
+    throw 'sub class to implement.';
+  }
+
   get _topicsToSubscribe() {
     throw 'sub class to implement.';
   }

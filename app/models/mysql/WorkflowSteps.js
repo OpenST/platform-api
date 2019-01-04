@@ -8,21 +8,27 @@
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  workflowSetupConstants = require(rootPrefix + '/lib/globalConstant/workflowSteps'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   statuses = {
-    '1': workflowSetupConstants.queuedStatus,
-    '2': workflowSetupConstants.pendingStatus,
-    '3': workflowSetupConstants.processedStatus,
-    '4': workflowSetupConstants.failedStatus,
-    '5': workflowSetupConstants.timeoutStatus
+    '1': workflowStepConstants.queuedStatus,
+    '2': workflowStepConstants.pendingStatus,
+    '3': workflowStepConstants.processedStatus,
+    '4': workflowStepConstants.failedStatus,
+    '5': workflowStepConstants.timeoutStatus
   },
   invertedStatuses = util.invert(statuses),
   kinds = {
-    '1': workflowSetupConstants.s1,
-    '2': workflowSetupConstants.s2
+    '1': workflowStepConstants.init,
+    '2': workflowStepConstants.s1,
+    '3': workflowStepConstants.s2,
+    '4': workflowStepConstants.s33,
+    '5': workflowStepConstants.s4,
+    '6': workflowStepConstants.s5,
+    '7': workflowStepConstants.s6,
+    '8': workflowStepConstants.s7
   },
   invertedKinds = util.invert(kinds);
 
@@ -35,6 +41,22 @@ class WorkflowSteps extends ModelBase {
     oThis.tableName = 'workflow_steps';
   }
 
+  get statuses() {
+    return statuses;
+  }
+
+  get invertedStatuses() {
+    return invertedStatuses;
+  }
+
+  get kinds() {
+    return kinds;
+  }
+
+  get invertedKinds() {
+    return invertedKinds;
+  }
+
   /**
    * This function will mark the step as success
    *
@@ -44,7 +66,7 @@ class WorkflowSteps extends ModelBase {
     const oThis = this;
 
     return oThis
-      .update({ status: invertedStatuses[workflowSetupConstants.processedStatus] })
+      .update({ status: invertedStatuses[workflowStepConstants.processedStatus] })
       .where({ id: id })
       .fire();
   }
@@ -57,7 +79,25 @@ class WorkflowSteps extends ModelBase {
     const oThis = this;
 
     return oThis
-      .update({ status: invertedStatuses[workflowSetupConstants.queuedStatus] })
+      .update({ status: invertedStatuses[workflowStepConstants.queuedStatus] })
+      .where({ id: id })
+      .fire();
+  }
+
+  markAsFailed(id) {
+    const oThis = this;
+
+    return oThis
+      .update({ status: invertedStatuses[workflowStepConstants.failedStatus] })
+      .where({ id: id })
+      .fire();
+  }
+
+  markAsPending(id) {
+    const oThis = this;
+
+    return oThis
+      .update({ status: invertedStatuses[workflowStepConstants.pendingStatus] })
       .where({ id: id })
       .fire();
   }

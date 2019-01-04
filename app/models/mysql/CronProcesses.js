@@ -7,9 +7,24 @@
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
-  cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  util = require(rootPrefix + '/lib/util');
 
-const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
+  kinds = {
+    '1': cronProcessesConstant.blockParser,
+    '2': cronProcessesConstant.transactionParser,
+    '3': cronProcessesConstant.blockFinalizer,
+    '4': cronProcessesConstant.economyAggregator,
+    '5': cronProcessesConstant.workflowWorker
+  },
+  statuses = {
+    '1': cronProcessesConstant.runningStatus,
+    '2': cronProcessesConstant.stoppedStatus,
+    '3': cronProcessesConstant.inactiveStatus
+  },
+  invertedKinds = util.invert(kinds),
+  invertedStatuses = util.invert(statuses);
 
 /**
  * Class for cron process model
@@ -28,6 +43,22 @@ class CronProcessesModel extends ModelBaseKlass {
     const oThis = this;
 
     oThis.tableName = 'cron_processes';
+  }
+
+  get kinds() {
+    return kind;
+  }
+
+  get statuses() {
+    return statuses;
+  }
+
+  get invertedKinds() {
+    return invertedKinds;
+  }
+
+  get invertedStatuses() {
+    return invertedStatuses;
   }
 
   /**
@@ -78,8 +109,8 @@ class CronProcessesModel extends ModelBaseKlass {
     if (typeof params.kind !== 'string' || typeof params.ip_address !== 'string' || typeof params.status !== 'string') {
       throw TypeError('Insertion parameters are of wrong params types.');
     }
-    params.status = cronProcessesConstant.invertedStatuses[params.status];
-    params.kind = cronProcessesConstant.invertedKinds[params.kind];
+    params.status = oThis.invertedStatuses[params.status];
+    params.kind = oThis.invertedKinds[params.kind];
 
     return oThis.insert(params).fire();
   }
@@ -107,8 +138,8 @@ class CronProcessesModel extends ModelBaseKlass {
       throw 'Mandatory parameters are missing. Expected an object with the following keys: {id, kind, newLastStartTime, newStatus}';
     }
 
-    params.newStatus = cronProcessesConstant.invertedStatuses[params.newStatus];
-    params.kind = cronProcessesConstant.invertedKinds[params.kind];
+    params.newStatus = oThis.invertedStatuses[params.newStatus];
+    params.kind = oThis.invertedKinds[params.kind];
 
     return oThis
       .update({ last_started_at: params.newLastStartTime, status: params.newStatus })
@@ -132,7 +163,7 @@ class CronProcessesModel extends ModelBaseKlass {
     if (!params.id || !params.newLastEndTime || !params.newStatus) {
       throw 'Mandatory parameters are missing. Expected an object with the following keys: {id, newLastEndTime, newStatus}';
     }
-    params.newStatus = cronProcessesConstant.invertedStatuses[params.newStatus];
+    params.newStatus = oThis.invertedStatuses[params.newStatus];
 
     await oThis
       .update({ last_ended_at: params.newLastEndTime, status: params.newStatus })
