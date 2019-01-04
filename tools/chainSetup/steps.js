@@ -190,26 +190,6 @@ async function insertSimpleTokenAdminInDb(chainId, address) {
 
 insertSimpleTokenAdminInDb(originChainId, simpleTokenAdminAddr);
 
-/////////// c. SimpleTokenContractAddress
-
-async function insertSimpleTokenContractAddressInDb(chainId, address) {
-  let rootPrefix = '.';
-
-  let Klass = require('./app/models/mysql/ChainAddress.js');
-  let chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress');
-  let obj = new Klass();
-  let rsp = await obj.insertAddress({
-    address: address,
-    chainId: chainId,
-    kind: chainAddressConst.baseContractKind,
-    chainKind: chainAddressConst.originChainKind
-  });
-  return rsp;
-}
-
-let simpleTokenContractAddress = '';
-insertSimpleTokenContractAddressInDb(originChainId, simpleTokenContractAddress);
-
 // 5. ORIGIN -> Setup organizations
 
 async function setupOriginOrganization(addressKind) {
