@@ -365,7 +365,7 @@ class ConfigStrategyByChainId {
 
     let strategyIdsArray = [];
     if (whereClause) {
-      strategyIdsArray = await oThis._strategyIdsArrayProvider();
+      strategyIdsArray = await oThis._strategyIdsArrayProvider(whereClause);
     } else {
       strategyIdsArray = await oThis._strategyIdProviderForChain();
     }
