@@ -56,7 +56,8 @@ class SetCoAnchor extends CommonSetupBase {
     let txOptions = {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce']
+      nonce: nonceRsp.data['nonce'],
+      chainId: oThis.chainId
     };
 
     let anchorHelperObj = new SetCoAnchor.AnchorHelper(oThis._web3Instance),
