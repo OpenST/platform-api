@@ -164,19 +164,22 @@ class Finalizer extends PublisherBase {
       oThis.canExit = false;
       let finalizerResponse = await finalizer.perform();
 
-      if (!finalizerResponse.data.blockProcessable && !finalizerResponse.data.processedBlock) {
-        oThis.canExit = true;
+      let currentBlockNotProcessable = !finalizerResponse.data.blockProcessable;
+
+      oThis.canExit = true;
+      if (currentBlockNotProcessable) {
         console.log('===Waiting for 2 secs');
         await oThis.sleep(2000);
-        continue;
-      }
+      } else {
+        if (finalizerResponse.data.processedBlock) {
+          await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
 
-      if (finalizerResponse.data.processedBlock) {
-        await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
-
-        await oThis._publishBlock(finalizerResponse.data.processedBlock);
+          await oThis._publishBlock(finalizerResponse.data.processedBlock);
+        }
+        oThis.canExit = true;
+        console.log('===Waiting for 10 milli-secs');
+        await oThis.sleep(10);
       }
-      oThis.canExit = true;
     }
   }
 
