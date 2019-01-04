@@ -77,9 +77,11 @@ class workflowRouterBase {
     await oThis.validateAndSanitize();
 
     // set requestParams using parent id
-    await oThis.getRequestParams();
+    await oThis.getWorkflowRecords();
 
     if (oThis.taskStatus == workflowStepConstants.taskReadyToStart) {
+      await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
+
       let response = await oThis.stepsFactory();
 
       console.log('------------------after---stepsFactory------------asyncPerform---');
@@ -109,8 +111,6 @@ class workflowRouterBase {
     if (oThis.taskDone) {
       await new WorkflowStepsModel().markAsSuccess(oThis.currentStepId);
       await oThis.insertAndPublishNextSteps(oThis.nextSteps);
-    } else {
-      await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
     }
 
     return Promise.resolve(responseHelper.successWithData({}));
@@ -151,15 +151,40 @@ class workflowRouterBase {
    * @sets oThis.requestParams, oThis.clientId, oThis.chainId
    *
    */
-  async getRequestParams() {
+  async getWorkflowRecords() {
     const oThis = this;
     if (oThis.parentStepId) {
-      //Fetch parent record details
-      let parentRecord = (await new WorkflowStepsModel()
-        .select('*')
-        .where(['id in (?)', [oThis.parentStepId]])
-        .fire())[0];
+      let workflowRecordsMap = {};
 
+      let workflowRecords = await new WorkflowStepsModel()
+        .select('*')
+        .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
+        .fire();
+
+      for (let i = 0; i < workflowRecords.length; i++) {
+        workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
+      }
+      let parentRecord = workflowRecordsMap[oThis.parentStepId],
+        currentRecord = workflowRecordsMap[oThis.currentStepId];
+
+      // check for parent current
+      if (
+        !currentRecord ||
+        !(
+          currentRecord.status == new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus] ||
+          currentRecord.status == new WorkflowStepsModel().invertedStatuses[workflowStepConstants.pendingStatus]
+        )
+      ) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'e_wr_b_7',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: { parentStepId: oThis.parentStepId }
+          })
+        );
+      }
+
+      // check for parent record present
       if (!parentRecord) {
         return Promise.reject(
           responseHelper.error({
@@ -169,7 +194,7 @@ class workflowRouterBase {
           })
         );
       }
-      oThis.requestParams = parentRecord.request_params;
+      oThis.requestParams = JSON.parse(parentRecord.request_params);
       oThis.clientId = parentRecord.client_id;
       oThis.chainId = parentRecord.chain_id;
     }
@@ -204,7 +229,7 @@ class workflowRouterBase {
         kind: new WorkflowStepsModel().invertedKinds[oThis.stepKind],
         client_id: oThis.clientId,
         chain_id: oThis.chainId,
-        request_params: oThis.requestParams,
+        request_params: JSON.stringify(oThis.requestParams),
         status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus]
       })
       .fire();

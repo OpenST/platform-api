@@ -14,7 +14,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/workflowRouter/factory.js --cronProcessId 1');
+  logger.log('    node executables/workflowRouter/factory.js --cronProcessId 3');
   logger.log('');
   logger.log('');
 });
