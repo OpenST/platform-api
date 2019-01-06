@@ -389,7 +389,7 @@ async function initializeSTPrime() {
 
   let InitializeSimpleTokenPrime = ic.getShadowedClassFor(coreConstants.icNameSpace, 'InitializeSimpleTokenPrime');
 
-  return await new InitializeSimpleTokenPrime({}).perform();
+  return await new InitializeSimpleTokenPrime({ chainId: chainId }).perform();
 }
 
 initializeSTPrime()

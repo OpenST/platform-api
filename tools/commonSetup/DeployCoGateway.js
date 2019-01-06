@@ -68,7 +68,8 @@ class DeployCoGateway extends CommonSetupBase {
     let txOptions = {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce']
+      nonce: nonceRsp.data['nonce'],
+      chainId: oThis.chainId
     };
 
     let helperObj = new DeployCoGateway.CoGatewayHelper(oThis._web3Instance),

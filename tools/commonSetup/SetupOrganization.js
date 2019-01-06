@@ -60,7 +60,8 @@ class SetupOrganization extends CommonSetupBase {
     let deployParams = {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce']
+      nonce: nonceRsp.data['nonce'],
+      chainId: oThis.chainId
     };
 
     let orgHelperObj = new SetupOrganization.OrganizationHelper(oThis._web3Instance),

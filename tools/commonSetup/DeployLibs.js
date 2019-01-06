@@ -84,7 +84,8 @@ class DeployLibs extends CommonSetupBase {
       txOptions = {
         gasPrice: oThis.gasPrice,
         from: oThis.signerAddress,
-        nonce: nonceRsp.data['nonce']
+        nonce: nonceRsp.data['nonce'],
+        chainId: oThis.chainId
       };
 
     let libsHelperObj = new DeployLibs.LibsHelper(oThis._web3Instance);
