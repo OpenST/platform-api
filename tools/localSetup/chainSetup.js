@@ -1,17 +1,20 @@
 'use strict';
 
-const rootPrefix = '../..',
-  program = require('commander'),
+const program = require('commander'),
   Web3 = require('web3'),
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@openstfoundation/openst-base');
+
+const rootPrefix = '../..',
   InstanceComposer = OSTBase.InstanceComposer,
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
   GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey');
@@ -19,6 +22,8 @@ const GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/Generat
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Deploy.js');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/SetAdminAddress');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Finalize');
+require(rootPrefix + '/tools/chainSetup/SetupOrganization');
+require(rootPrefix + '/tools/chainSetup/DeployAnchor');
 
 program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
 program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
@@ -64,25 +69,37 @@ class chainSetup {
     await oThis.generateAndFundOriginAddr();
 
     logger.step('3] a). generate SimpleTokenOwner & SimpleTokenAdmin private keys.');
-    let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey();
-    let SimpleTokenAdminDetails = await oThis.generateAddrAndPrivateKey();
+    let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey(),
+      SimpleTokenAdminDetails = await oThis.generateAddrAndPrivateKey(),
+      simpleTokenOwnerAddress = SimpleTokenOwnerDetails.address,
+      simpleTokenOwnerPrivateKey = SimpleTokenOwnerDetails.privateKey,
+      simpleTokenAdmin = SimpleTokenAdminDetails.address,
+      simpleTokenAdminPrivateKey = SimpleTokenAdminDetails.privateKey;
 
     logger.step('3] b). Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain.');
     await oThis._fundAddressWithEth(oThis.originChainId, SimpleTokenOwnerDetails.address, 2);
     await oThis._fundAddressWithEth(oThis.originChainId, SimpleTokenAdminDetails.address, 2);
 
     logger.step('3] c). Deploy Simple Token.');
-    await oThis.deploySimpleToken(SimpleTokenOwnerDetails.address, SimpleTokenOwnerDetails.privateKey);
+    await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
 
     logger.step('3] d). Set Simple Token Admin.');
-    await oThis.setSimpleTokenAdmin(
-      SimpleTokenOwnerDetails.address,
-      SimpleTokenOwnerDetails.privateKey,
-      SimpleTokenAdminDetails.address
-    );
+    await oThis.setSimpleTokenAdmin(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey, simpleTokenAdmin);
 
     logger.step('3] e). Finalize SimpleToken');
-    await oThis.finalizeSimpleTokenAdmin(SimpleTokenAdminDetails.address, SimpleTokenAdminDetails.privateKey);
+    await oThis.finalizeSimpleTokenAdmin(simpleTokenAdmin, simpleTokenAdminPrivateKey);
+
+    logger.step('4. Insert simple token admin and owner address into chain addresses table.');
+    await oThis.insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddress, simpleTokenAdmin);
+
+    logger.step('5] a) Setup organization for simple token contract');
+    await oThis.setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind);
+
+    logger.step('5] a) Setup organization for anchor');
+    await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
+
+    logger.step('6. Deploying origin anchor.');
+    await oThis.deployOriginAnchor();
 
     return Promise.resolve();
   }
@@ -120,8 +137,6 @@ class chainSetup {
   }
 
   async deploySimpleToken(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey) {
-    const oThis = this;
-
     let configStrategyHelper = new ConfigStrategyHelper(0, 0),
       configRsp = await configStrategyHelper.getComplete(),
       ic = new InstanceComposer(configRsp.data);
@@ -136,8 +151,6 @@ class chainSetup {
   }
 
   async setSimpleTokenAdmin(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey, simpleTokenAdminAddr) {
-    const oThis = this;
-
     let configStrategyHelper = new ConfigStrategyHelper(0, 0),
       configRsp = await configStrategyHelper.getComplete(),
       ic = new InstanceComposer(configRsp.data);
@@ -153,8 +166,6 @@ class chainSetup {
   }
 
   async finalizeSimpleTokenAdmin(simpleTokenAdminAddr, simpleTokenAdminPrivateKey) {
-    const oThis = this;
-
     let configStrategyHelper = new ConfigStrategyHelper(0, 0),
       configRsp = await configStrategyHelper.getComplete(),
       ic = new InstanceComposer(configRsp.data);
@@ -166,6 +177,47 @@ class chainSetup {
       });
 
     return await finalizeSimpleToken.perform();
+  }
+
+  async insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddr, simpleTokenAdmin) {
+    const oThis = this,
+      chainAddressObj = new ChainAddressModel();
+
+    await chainAddressObj.insertAddress({
+      address: simpleTokenOwnerAddr,
+      chainId: oThis.originChainId,
+      chainKind: chainAddressConstants.originChainKind,
+      kind: chainAddressConstants.simpleTokenOwnerKind
+    });
+    await chainAddressObj.insertAddress({
+      address: simpleTokenAdmin,
+      chainId: oThis.originChainId,
+      chainKind: chainAddressConstants.originChainKind,
+      kind: chainAddressConstants.simpleTokenAdminKind
+    });
+  }
+
+  async setupOriginOrganization(addressKind) {
+    const oThis = this,
+      rsp = await chainConfigProvider.getFor([oThis.originChainId]),
+      config = rsp[oThis.originChainId],
+      ic = new InstanceComposer(config),
+      SetupOrganization = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetupOrganization');
+
+    return await new SetupOrganization({
+      chainKind: chainAddressConstants.originChainKind,
+      addressKind: addressKind
+    }).perform();
+  }
+
+  async deployOriginAnchor() {
+    const oThis = this,
+      rsp = await chainConfigProvider.getFor([oThis.originChainId]),
+      config = rsp[oThis.originChainId],
+      ic = new InstanceComposer(config),
+      DeployAnchor = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
+
+    return await new DeployAnchor({ chainKind: chainAddressConstants.originChainKind }).perform();
   }
 
   async _fundAddressWithEth(chainId, address, value) {
@@ -198,8 +250,6 @@ class chainSetup {
   }
 
   async _getProvidersFromConfig(chainId) {
-    const oThis = this;
-
     let csHelper = new ConfigStrategyHelper(chainId),
       csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
       configForChain = csResponse.data[configStrategyConstants.originGeth],
