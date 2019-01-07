@@ -17,6 +17,19 @@ const signature = {
       }
     ],
     optional: []
+  },
+  tokenDetailsAggregated: {
+    mandatory: [
+      {
+        parameter: 'chain_id',
+        error_identifier: 'missing_chain_id'
+      },
+      {
+        parameter: 'contract_address',
+        error_identifier: 'missing_contract_address'
+      }
+    ],
+    optional: []
   }
 };
 

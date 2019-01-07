@@ -121,6 +121,16 @@ const errorConfig = {
     parameter: 'message_to_sign',
     code: 'missing',
     message: 'Invalid message_to_sign'
+  },
+  missing_chain_id: {
+    parameter: 'chain_id',
+    code: 'missing',
+    message: 'Invalid chain_id'
+  },
+  missing_contract_address: {
+    parameter: 'contract_address',
+    code: 'missing',
+    message: 'Invalid contract_address'
   }
 };
 
