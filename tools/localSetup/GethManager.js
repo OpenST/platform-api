@@ -88,9 +88,9 @@ class GethManager {
     // If the file doesn't exist, the content will be an empty object by default.
     const file = editJsonFile(chainGenesisLocation);
 
-    if(!allocAddressToAmountMap){
-      file.set('alloc', {});
-    } else{
+    if (!allocAddressToAmountMap) {
+      file.set('alloc.' + sealerAddress + '.balance', '0xe567bd7e886312a0cf7397bb73650d2280400000000000000'); //this is hardcoded, because we dont know the address at the time of chain setup
+    } else {
       // Alloc balance to required address
       file.set('alloc.' + allocAddress + '.balance', allocAmount);
     }

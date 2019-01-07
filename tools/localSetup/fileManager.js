@@ -46,8 +46,6 @@ class FileManager {
   mkdir(relativePath) {
     const folder = localSetupHelper.setupFolderAbsolutePath() + '/' + relativePath;
 
-    console.log('---folder---', folder);
-
     return localSetupHelper.handleShellResponse(shell.exec('mkdir ' + folder));
   }
 

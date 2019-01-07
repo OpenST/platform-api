@@ -136,7 +136,7 @@ OriginConstants config strategy
 ```js
 let originConstantDetails = {
   "originConstants": {
-    "gethPort": 30301,
+    "gethPort": 30310,
     "networkId": 1000
   }
 };

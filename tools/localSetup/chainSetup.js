@@ -69,7 +69,7 @@ class chainSetup {
     const oThis = this;
 
     return oThis._asyncPerform().catch(function(error) {
-      logger.error("##### Delete sealer address entry from chain addresses for next re-run ####");
+      logger.error('##### Delete sealer address entry from chain addresses for next re-run ####');
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
@@ -94,7 +94,7 @@ class chainSetup {
   async _asyncPerform() {
     const oThis = this;
 
-    logger.step("**** Starting fresh setup *****");
+    logger.step('**** Starting fresh setup *****');
     await fileManager.freshSetup();
 
     logger.step('**** Generating addresses and init geth with genesis ******');
@@ -292,12 +292,19 @@ class chainSetup {
       web3ProviderInstance = await web3Provider.getInstance(provider),
       web3Instance = await web3ProviderInstance.web3WsProvider;
 
-    let web3 = new Web3(web3Provider),
-      txParams = {
-        from: '0xead909d381251ee6976bf8e5b3ab667b092577e6', // address from keystore file is used as coinbase
-        to: address,
-        value: '2000000000000000000' //transfer amt in wei
-      };
+    let sealerAddress = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.chainId,
+      chainKind: chainAddressConstants.auxChainKind,
+      kind: chainAddressConstants.sealerKind
+    });
+
+    logger.debug('sealerAddress------', sealerAddress);
+
+    let txParams = {
+      from: sealerAddress.data.address,
+      to: address,
+      value: '2000000000000000000' //transfer amt in wei
+    };
 
     await web3Instance.eth
       .sendTransaction(txParams)
