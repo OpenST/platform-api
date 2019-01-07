@@ -4,8 +4,7 @@
  *
  * @module tools/localSetup/serviceManager
  */
-const shellAsyncCmd = require('node-cmd'),
-  shellSource = require('shell-source');
+const shellAsyncCmd = require('node-cmd');
 
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
