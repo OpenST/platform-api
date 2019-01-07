@@ -132,6 +132,18 @@ let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(2000, 1).addForKind('auxGeth', auxGethDetails, 1)
 ```
 
+OriginConstants config strategy
+```js
+let originConstantDetails = {
+  "originConstants": {
+    "gethPort": 30301,
+    "networkId": 1000
+  }
+};
+ConfigModel = require('./helpers/configStrategy/ByChainId')
+new ConfigModel(0, 0).addForKind('originConstants', originConstantDetails, 1)
+```
+
 Activating global config
 ```js
 let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
