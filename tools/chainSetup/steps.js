@@ -51,7 +51,6 @@ function generatePrivateKey() {
   let Klass = require('./tools/helpers/GeneratePrivateKey.js');
   let obj = new Klass();
   let rsp = obj.perform();
-  console.log(rsp);
   return rsp;
 }
 

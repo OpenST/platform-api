@@ -50,7 +50,7 @@ class chainSetup {
    */
   constructor(params) {
     const oThis = this;
-    oThis.originChainId = params.originChainId;
+    oThis.chainId = params.originChainId;
   }
 
   /**
@@ -138,20 +138,25 @@ class chainSetup {
         chainAddressConstants.workerKind
       ],
       chainKind: chainAddressConstants.originChainKind,
-      chainId: oThis.originChainId
+      chainId: oThis.chainId
     });
 
     let generateOriginAddrRsp = await generateChainKnownAddresses.perform();
 
-    console.log('Origin Addresses Response: ', generateOriginAddrRsp.toHash());
+    if (generateOriginAddrRsp.isSuccess()) {
+      logger.log('Origin Addresses Response: ', generateOriginAddrRsp.toHash());
 
-    let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
-      deployerAddr = addresses['deployer'],
-      ownerAddr = addresses['owner'];
+      let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
+        deployerAddr = addresses['deployer'],
+        ownerAddr = addresses['owner'];
 
-    logger.step('2. Funding Addresses with ETH.');
-    await oThis._fundAddressWithEth(deployerAddr);
-    await oThis._fundAddressWithEth(ownerAddr);
+      logger.step('2. Funding Addresses with ETH.');
+      await oThis._fundAddressWithEth(deployerAddr);
+      await oThis._fundAddressWithEth(ownerAddr);
+    } else {
+      logger.error('deploySimpleToken failed');
+      return Promise.reject();
+    }
   }
 
   generateAddrAndPrivateKey() {
@@ -177,7 +182,7 @@ class chainSetup {
       return Promise.resolve();
     } else {
       logger.error('deploySimpleToken failed');
-      Promise.reject();
+      return Promise.reject();
     }
   }
 
@@ -199,7 +204,7 @@ class chainSetup {
       return Promise.resolve();
     } else {
       logger.error('setSimpleTokenAdmin failed');
-      Promise.reject();
+      return Promise.reject();
     }
   }
 
@@ -220,7 +225,7 @@ class chainSetup {
       return Promise.resolve();
     } else {
       logger.error('finalizeSimpleToken failed');
-      Promise.reject();
+      return Promise.reject();
     }
   }
 
@@ -229,13 +234,13 @@ class chainSetup {
 
     await new ChainAddressModel().insertAddress({
       address: simpleTokenOwnerAddr,
-      chainId: oThis.originChainId,
+      chainId: oThis.chainId,
       chainKind: chainAddressConstants.originChainKind,
       kind: chainAddressConstants.simpleTokenOwnerKind
     });
     await new ChainAddressModel().insertAddress({
       address: simpleTokenAdmin,
-      chainId: oThis.originChainId,
+      chainId: oThis.chainId,
       chainKind: chainAddressConstants.originChainKind,
       kind: chainAddressConstants.simpleTokenAdminKind
     });
@@ -243,8 +248,8 @@ class chainSetup {
 
   async setupOriginOrganization(addressKind) {
     const oThis = this,
-      rsp = await chainConfigProvider.getFor([oThis.originChainId]),
-      config = rsp[oThis.originChainId],
+      rsp = await chainConfigProvider.getFor([oThis.chainId]),
+      config = rsp[oThis.chainId],
       ic = new InstanceComposer(config),
       SetupOrganization = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetupOrganization');
 
@@ -256,8 +261,8 @@ class chainSetup {
 
   async deployOriginAnchor() {
     const oThis = this,
-      rsp = await chainConfigProvider.getFor([oThis.originChainId]),
-      config = rsp[oThis.originChainId],
+      rsp = await chainConfigProvider.getFor([oThis.chainId]),
+      config = rsp[oThis.chainId],
       ic = new InstanceComposer(config),
       DeployAnchor = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
 
