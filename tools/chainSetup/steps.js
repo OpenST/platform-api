@@ -58,15 +58,15 @@ function generatePrivateKey() {
 generatePrivateKey();
 generatePrivateKey();
 
+let simpleTokenOwnerAddr = '0xB368987E5aF24f8B0FfB10E8bE8cd204E13427b0';
+let simpleTokenOwnerPrivateKey = '0x4612ec3c2d59732a1949f003b3d3eb0b5922cac625c82e17e5522c3a02d690d3';
+
+let simpleTokenAdminAddr = '0x33A8Ad5aED5eF619033b84916E99b856F33b1005';
+let simpleTokenAdminPrivateKey = '0xe5cd83683b0637adbe6ea5bca5583ad07a42745308dc50ba82312b6729d823ae';
+
 ///////////  b. Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain
 
 ///////////  c. Deploy Simple Token
-
-let simpleTokenOwnerAddr = '0x7D7B4bb9d87b43ad1869C0652455F9BedDBe6b34';
-let simpleTokenOwnerPrivateKey = '0x620887204dddb25fad1898789f7c111a6adc50623db6a991bee8b1afcc97b458';
-
-let simpleTokenAdminAddr = '0xa6DF122c6E902802b56e77b94B8018da71d0B28a';
-let simpleTokenAdminPrivateKey = '0x23ff308bf825352c962dd0dc16df29a93cefe37a096b946d17dfebb47a0e6dc4';
 
 async function deploySimpleToken(signerAddress, signerKey) {
   let rootPrefix = '.';
