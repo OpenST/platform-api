@@ -17,6 +17,7 @@ const rootPrefix = '../..',
 
 // Declare variables.
 const hexStartsWith = '0x',
+  sealerPassPhrase = 'testtest',
   genesisTemplateLocation = Path.join(__dirname);
 
 /**
@@ -43,8 +44,6 @@ class GethManager {
    * @private
    */
   _generateAddress(gethPath, passwordFilePath) {
-    const oThis = this;
-
     let addressGenerationResponse = fileManager.exec(
       'geth --datadir ' + gethPath + ' account new --password ' + passwordFilePath
     );
@@ -134,8 +133,12 @@ class GethManager {
   async initChain(chainType, chainId, allocAddressToAmountMap) {
     const oThis = this,
       chainFolder = localSetupHelper.gethFolderFor(chainType, chainId),
-      passwordFilePath = Path.join(chainFolder, '/pwd'),
-      sealerAddress = oThis._generateAddress(chainFolder, passwordFilePath),
+      passwordFilePath = Path.join(chainFolder, '/pwd');
+
+    // Create password file.
+    fileManager.touch(passwordFilePath, sealerPassPhrase);
+
+    const sealerAddress = oThis._generateAddress(chainFolder, passwordFilePath),
       chainGenesisTemplateLocation = genesisTemplateLocation + 'poaGenesisTemplate' + '.json',
       chainGenesisLocation = chainFolder + '/genesis' + '.json';
 
@@ -159,8 +162,8 @@ class GethManager {
     oThis._modifyGenesisFile(chainType, chainId, chainGenesisLocation, allocAddressToAmountMap, sealerAddress);
 
     // Alloc balance in genesis files.
-    //TODO: logger.info('* Init ' + chainType + '-' + chainId + ' chain.');
-    //oThis._initChain(chainFolder, chainGenesisLocation);
+    logger.info('* Init ' + chainType + '-' + chainId + ' chain.');
+    oThis._initChain(chainFolder, chainGenesisLocation);
   }
 }
 
