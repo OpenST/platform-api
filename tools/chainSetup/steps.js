@@ -62,6 +62,12 @@ generatePrivateKey();
 
 ///////////  c. Deploy Simple Token
 
+let simpleTokenOwnerAddr = '0x7D7B4bb9d87b43ad1869C0652455F9BedDBe6b34';
+let simpleTokenOwnerPrivateKey = '0x620887204dddb25fad1898789f7c111a6adc50623db6a991bee8b1afcc97b458';
+
+let simpleTokenAdminAddr = '0xa6DF122c6E902802b56e77b94B8018da71d0B28a';
+let simpleTokenAdminPrivateKey = '0x23ff308bf825352c962dd0dc16df29a93cefe37a096b946d17dfebb47a0e6dc4';
+
 async function deploySimpleToken(signerAddress, signerKey) {
   let rootPrefix = '.';
 
@@ -88,8 +94,6 @@ async function deploySimpleToken(signerAddress, signerKey) {
   return await obj.perform();
 }
 
-let simpleTokenOwnerAddr = '0x7D7B4bb9d87b43ad1869C0652455F9BedDBe6b34';
-let simpleTokenOwnerPrivateKey = '0x620887204dddb25fad1898789f7c111a6adc50623db6a991bee8b1afcc97b458';
 deploySimpleToken(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey);
 
 /////////// d. Set Simple Token Admin
@@ -121,7 +125,6 @@ async function setSimpleTokenAdmin(signerAddress, signerKey, adminAddress) {
   return await obj.perform();
 }
 
-let simpleTokenAdminAddr = '0xa6DF122c6E902802b56e77b94B8018da71d0B28a';
 setSimpleTokenAdmin(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey, simpleTokenAdminAddr);
 
 ///////////  e. finalize simple token address
@@ -152,7 +155,6 @@ async function finalizeSimpleTokenAdmin(signerAddress, signerKey) {
   return await obj.perform();
 }
 
-let simpleTokenAdminPrivateKey = '0x23ff308bf825352c962dd0dc16df29a93cefe37a096b946d17dfebb47a0e6dc4';
 finalizeSimpleTokenAdmin(simpleTokenAdminAddr, simpleTokenAdminPrivateKey);
 
 // ############################################ 3. (END: For Non Production Main Env ONLY)  #################
