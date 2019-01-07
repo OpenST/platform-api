@@ -3,7 +3,7 @@
 /**
  * Deploy simpleToken
  *
- * @module tools/chainSetup/origin/simpleToken/Deploy
+ * @module tools/chainSetup/origin/simpleTokenPrime/Deploy
  */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),

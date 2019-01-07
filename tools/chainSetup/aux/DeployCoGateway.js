@@ -1,7 +1,6 @@
 'use strict';
-
 /**
- * deploy CoGateway contract
+ * Deploy CoGateway contract
  *
  * @module tools/chainSetup/origin/DeployCoGateway
  */
@@ -19,12 +18,13 @@ const rootPrefix = '../../..',
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
+ * Class for CoGateway deployment
  *
  * @class
  */
 class DeployCoGateway {
   /**
-   * Constructor
+   * Constructor for CoGateway deployment
    *
    * @param {Object} params
    *
@@ -128,7 +128,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get deployer addr
+   * Get deployer addr
    *
    * @private
    *
@@ -158,7 +158,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get org contract addr
+   * Get org contract addr
    *
    * @private
    *
@@ -188,7 +188,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get simple token contract addr
+   * Get simple token contract addr
    *
    * @private
    *
@@ -218,7 +218,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get simple token prime contract addr
+   * Get simple token prime contract addr
    *
    * @private
    *
@@ -248,7 +248,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get anchor contract addr
+   * Get anchor contract addr
    *
    * @private
    *
@@ -278,7 +278,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get gateway contract addr
+   * Get gateway contract addr
    *
    * @private
    *
@@ -308,7 +308,7 @@ class DeployCoGateway {
 
   /***
    *
-   * get message bus lib addr
+   * Get message bus lib addr
    *
    * @private
    *
@@ -423,25 +423,29 @@ class DeployCoGateway {
 
   /***
    *
-   * config strategy
+   * Config strategy
    *
-   * @return {object}
+   * @return {Object}
    */
   get _configStrategy() {
     const oThis = this;
+
     return oThis.ic().configStrategy;
   }
 
   /***
    *
-   * object of config strategy klass
+   * Object of config strategy klass
    *
-   * @return {object}
+   * @return {Object}
    */
   get _configStrategyObject() {
     const oThis = this;
+
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+
     return oThis.configStrategyObj;
   }
 }

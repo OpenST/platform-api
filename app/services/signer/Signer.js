@@ -68,8 +68,7 @@ class Signer {
 
     let providers = await oThis._getProvidersFromConfig(),
       provider = providers.data[0], //select one provider from provider endpoints array
-      web3ProviderInstance = await web3Provider.getInstance(provider),
-      web3Instance = await web3ProviderInstance.web3WsProvider;
+      web3Instance = web3Provider.getInstance(provider).web3WsProvider;
 
     logger.debug('provider------', provider);
 

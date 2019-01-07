@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * Transaction parser processes.
@@ -52,8 +51,8 @@ class BlockParser extends PublisherBase {
   /**
    * Constructor for transaction parser
    *
-   * @param params {object} - params object
-   * @param params.cronProcessId {number} - cron_processes table id
+   * @param params {Object} - params object
+   * @param params.cronProcessId {Number} - cron_processes table id
    *
    * @constructor
    */
@@ -345,14 +344,10 @@ class BlockParser extends PublisherBase {
   }
 
   get _publisher() {
-    const oThis = this;
-
     return 'OST';
   }
 
   get _messageKind() {
-    const oThis = this;
-
     return 'background_job';
   }
 
