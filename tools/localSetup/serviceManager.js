@@ -167,10 +167,10 @@ class ServiceManager {
       gasPrice = purpose === 'deployment' && chainType === 'aux' ? zeroGas : coreConstants.OST_ORIGIN_GAS_PRICE,
       chainFolder = setupHelper.gethFolderFor(chainType, chainId),
       sealerPassword = 'testtest',
-      rpcProviderHostPort = chainConfigStrategy.auxGeth.readOnly.rpcProvider.replace('http://', '').split(':'),
+      rpcProviderHostPort = chainConfigStrategy[chainType].readOnly.rpcProvider.replace('http://', '').split(':'),
       rpcHost = rpcProviderHostPort[0],
       rpcPort = rpcProviderHostPort[1],
-      wsProviderHostPort = chainConfigStrategy.auxGeth.readOnly.wsProvider.replace('ws://', '').split(':'),
+      wsProviderHostPort = chainConfigStrategy[chainType].readOnly.wsProvider.replace('ws://', '').split(':'),
       wsHost = wsProviderHostPort[0],
       wsPort = wsProviderHostPort[1];
 

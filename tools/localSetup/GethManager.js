@@ -88,8 +88,12 @@ class GethManager {
     // If the file doesn't exist, the content will be an empty object by default.
     const file = editJsonFile(chainGenesisLocation);
 
-    // Alloc balance to required address
-    file.set('alloc.' + allocAddress + '.balance', allocAmount);
+    if (!allocAddressToAmountMap) {
+      file.set('alloc', {});
+    } else {
+      // Alloc balance to required address
+      file.set('alloc.' + allocAddress + '.balance', allocAmount);
+    }
 
     // Set chainId.
     file.set('config.chainId', chainId);
@@ -134,8 +138,8 @@ class GethManager {
     const oThis = this,
       chainFolder = localSetupHelper.gethFolderFor(chainType, chainId),
       chainFolderAbsolutePath = localSetupHelper.setupFolderAbsolutePath() + '/' + chainFolder,
-      passwordFilePath = Path.join(chainFolder, '/pwd'),
-      passwordFileAbsolutePath = Path.join(chainFolderAbsolutePath, '/pwd');
+      passwordFilePath = Path.join(chainFolder, '/sealer-passphrase'),
+      passwordFileAbsolutePath = Path.join(chainFolderAbsolutePath, '/sealer-passphrase');
 
     // Create chain folder.
     logger.info('* Creating ' + chainType + '-' + chainId + ' folder.');
