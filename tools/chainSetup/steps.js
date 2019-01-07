@@ -34,7 +34,7 @@ generateOriginAddresses();
 
 // 2. ORIGIN -> Fund deployer & owner addresses
 
-// ############################################ 3. ORIGIN -> (START: For Non Production Main Env ONLY)  #################
+// 3. ORIGIN -> (START: For Non Production Main Env ONLY)
 //
 
 ///////////  a. generate SimpleTokenOwner & SimpleTokenAdmin private keys
