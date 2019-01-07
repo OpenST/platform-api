@@ -51,6 +51,8 @@ generatePrivateKey();
 generatePrivateKey();
 
 ///////////  b. Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain
+// geth attach http://127.0.0.1:8545
+// eth.sendTransaction({from:eth.coinbase, to:'0x....', value: web3.toWei(2, "ether")})
 
 ///////////  c. Deploy Simple Token
 
