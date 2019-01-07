@@ -157,11 +157,14 @@ class ServiceManager {
   async _startGethCommand(chainType, chainId, purpose) {
     const oThis = this,
       chainConfigStrategy = await oThis.fetchConfig(chainId),
-      networkId = chainId,
+      networkId =
+        chainType === chainAddressConst.auxChainKind
+          ? chainConfigStrategy.auxConstants.networkId
+          : chainConfigStrategy.originConstants.networkId,
       chainPort =
         chainType === chainAddressConst.auxChainKind
-          ? chainConfigStrategy.auxConstants.auxChainGethPort
-          : chainConfigStrategy.originConstants.originChainGethPort,
+          ? chainConfigStrategy.auxConstants.gethPort
+          : chainConfigStrategy.originConstants.gethPort,
       zeroGas = coreConstants.OST_AUX_GAS_PRICE_FOR_DEPLOYMENT,
       gasLimit = { utility: coreConstants.OST_AUX_GAS_LIMIT, value: coreConstants.OST_ORIGIN_GAS_LIMIT },
       gasPrice = purpose === 'deployment' && chainType === 'aux' ? zeroGas : coreConstants.OST_ORIGIN_GAS_PRICE,
