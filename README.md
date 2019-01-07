@@ -52,7 +52,7 @@ geth --datadir ~/openst-setup/geth/aux-2000 init $WORKSPACE/saas-api/tools/local
 
 Start aux Geth
 ```
-geth --datadir ~/openst-setup/geth/aux-2000 --networkid 2000 --port 30311 --rpc --rpcapi eth,net,web3,personal,txpool --wsapi eth,net,web3,personal,txpool --rpcaddr 127.0.0.1 --rpcport 9545 --ws --wsaddr 127.0.0.1 --wsport 9546 --wsorigins ‘*’ --etherbase 0xfc8d8fb384d3dc57aacda5bb584d6c63ca476911 --mine --minerthreads 1 --targetgaslimit 9000000  --gasprice 0x0 --unlock 0xfc8d8fb384d3dc57aacda5bb584d6c63ca476911 --password ~/openst-setup/geth/aux-2000/pwd
+geth --datadir ~/openst-setup/geth/aux-2000 --networkid 2000 --port 30311 --rpc --rpcapi eth,net,web3,personal,txpool --wsapi eth,net,web3,personal,txpool --rpcaddr 127.0.0.1 --rpcport 9545 --ws --wsaddr 127.0.0.1 --wsport 9546 --wsorigins '*' --etherbase 0xfc8d8fb384d3dc57aacda5bb584d6c63ca476911 --mine --minerthreads 1 --targetgaslimit 9000000  --gasprice 0x0 --unlock 0xfc8d8fb384d3dc57aacda5bb584d6c63ca476911 --password ~/openst-setup/geth/aux-2000/sealer-passphrase
 ```
 
 Follow steps in tools/chainSetup/steps.js

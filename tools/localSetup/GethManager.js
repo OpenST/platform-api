@@ -66,7 +66,7 @@ class GethManager {
    *
    * @private
    */
-  _modifyGenesisFile(chainType, chainId, chainGenesisLocation, allocAddressToAmountMap, sealerAddress) {
+  _modifyGenesisFile(chainType, chainId, chainGenesisLocation, sealerAddress, allocAddressToAmountMap) {
     const gasLimitOn = {
       aux: coreConstants.OST_AUX_GAS_LIMIT,
       origin: coreConstants.OST_ORIGIN_GAS_LIMIT
@@ -88,26 +88,23 @@ class GethManager {
     // If the file doesn't exist, the content will be an empty object by default.
     const file = editJsonFile(chainGenesisLocation);
 
-    if (!allocAddressToAmountMap) {
+    if(!allocAddressToAmountMap){
       file.set('alloc', {});
-    } else {
+    } else{
       // Alloc balance to required address
       file.set('alloc.' + allocAddress + '.balance', allocAmount);
     }
 
     // Set chainId.
-    file.set('config.chainId', chainId);
+    file.set('config.chainId', parseInt(chainId));
 
     // Set gas limit.
     file.set('gasLimit', gasLimit);
 
     // Add extra data.
-    if (chainType === chainAddressConstants.auxChainKind) {
-      file.set('extraData', extraData);
-    }
+    file.set('extraData', extraData);
 
     file.save();
-
     return true;
   }
 
@@ -167,7 +164,7 @@ class GethManager {
 
     // Alloc balance in genesis files.
     logger.info('* Modifying ' + chainType + '-' + chainId + ' genesis file.');
-    oThis._modifyGenesisFile(chainType, chainId, chainGenesisLocation, allocAddressToAmountMap, sealerAddress);
+    oThis._modifyGenesisFile(chainType, chainId, chainGenesisLocation, sealerAddress, allocAddressToAmountMap);
 
     // Alloc balance in genesis files.
     logger.info('* Init ' + chainType + '-' + chainId + ' chain.');

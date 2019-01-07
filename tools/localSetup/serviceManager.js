@@ -13,6 +13,7 @@ const rootPrefix = '../..',
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
 const sealerPassphraseFile = 'sealer-passphrase';
@@ -166,14 +167,15 @@ class ServiceManager {
           ? chainConfigStrategy.auxConstants.gethPort
           : chainConfigStrategy.originConstants.gethPort,
       zeroGas = coreConstants.OST_AUX_GAS_PRICE_FOR_DEPLOYMENT,
-      gasLimit = { utility: coreConstants.OST_AUX_GAS_LIMIT, value: coreConstants.OST_ORIGIN_GAS_LIMIT },
+      gasLimit = { aux: coreConstants.OST_AUX_GAS_LIMIT, origin: coreConstants.OST_ORIGIN_GAS_LIMIT },
       gasPrice = purpose === 'deployment' && chainType === 'aux' ? zeroGas : coreConstants.OST_ORIGIN_GAS_PRICE,
       chainFolder = setupHelper.gethFolderFor(chainType, chainId),
       sealerPassword = 'testtest',
-      rpcProviderHostPort = chainConfigStrategy[chainType].readOnly.rpcProvider.replace('http://', '').split(':'),
+      chainTypeString = chainType === 'aux' ? 'auxGeth' : 'originGeth',
+      rpcProviderHostPort = chainConfigStrategy[chainTypeString].readOnly.rpcProvider.replace('http://', '').split(':'),
       rpcHost = rpcProviderHostPort[0],
       rpcPort = rpcProviderHostPort[1],
-      wsProviderHostPort = chainConfigStrategy[chainType].readOnly.wsProvider.replace('ws://', '').split(':'),
+      wsProviderHostPort = chainConfigStrategy[chainTypeString].readOnly.wsProvider.replace('ws://', '').split(':'),
       wsHost = wsProviderHostPort[0],
       wsPort = wsProviderHostPort[1];
 
@@ -185,13 +187,19 @@ class ServiceManager {
 
     const sealerAddr = sealerAddress.data.address;
 
+
     // Creating password file in a temp location
     fileManager.touch(chainFolder + '/' + sealerPassphraseFile, sealerPassword);
+    fileManager.mkdir('logs/' +  chainType + '-' + chainId.toString());
+    fileManager.touch( 'logs/' + chainType + '-'
+      + chainId.toString() + '/' + chainType + '-chain-'
+      + chainId.toString() + '.log');
+
 
     return (
       'geth --networkid ' +
       networkId +
-      ' --datadir ' +
+      ' --datadir ' + setupHelper.setupFolderAbsolutePath() + '/' +
       chainFolder +
       ' --port ' +
       chainPort +
@@ -212,7 +220,7 @@ class ServiceManager {
       gasPrice +
       '" --unlock ' +
       sealerAddr +
-      ' --password ' +
+      ' --password ' + setupHelper.setupFolderAbsolutePath() + '/' +
       chainFolder +
       '/' +
       sealerPassphraseFile +
@@ -239,10 +247,12 @@ class ServiceManager {
     const oThis = this;
 
     // Start Geth
-    logger.info('* Starting ' + chainType + '-' + chainId.toString() + ' chain');
+    logger.info('* Starting ' + chainType + '-' + chainId + ' chain');
     const cmd = await oThis._startGethCommand(chainType, chainId, purpose);
     logger.info(cmd);
     shellAsyncCmd.run(cmd);
+
+    await basicHelper.pauseForMilliSeconds(3 * 1000);
   }
 
   /**

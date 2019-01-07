@@ -15,6 +15,11 @@ const rootPrefix = '../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
+  gethManager = new GethManager(),
+  ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
+  serviceManager = new ServiceManager(),
+  fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
@@ -64,6 +69,7 @@ class chainSetup {
     const oThis = this;
 
     return oThis._asyncPerform().catch(function(error) {
+      logger.error("##### Delete sealer address entry from chain addresses for next re-run ####");
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
@@ -87,6 +93,15 @@ class chainSetup {
    */
   async _asyncPerform() {
     const oThis = this;
+
+    logger.step("**** Starting fresh setup *****");
+    await fileManager.freshSetup();
+
+    logger.step('**** Generating addresses and init geth with genesis ******');
+    await gethManager.initChain(chainAddressConstants.originChainKind, oThis.chainId);
+
+    logger.step('**** Starting Origin Geth ******');
+    await serviceManager.startGeth(chainAddressConstants.originChainKind, oThis.chainId, 'deployment');
 
     logger.step('1. Origin Addresses Generation');
     await oThis.generateAndFundOriginAddr();

@@ -119,7 +119,7 @@ class ChainAddress extends ModelBase {
         params.chainId,
         chainAddressConst.invertedKinds[params.kind],
         chainAddressConst.invertedChainKinds[params.chainKind]
-      ])
+      ]).order_by('created_at DESC').limit(1)
       .fire();
 
     let returnData;
