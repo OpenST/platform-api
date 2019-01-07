@@ -9,6 +9,7 @@ const rootPrefix = '../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
@@ -26,18 +27,17 @@ require(rootPrefix + '/tools/chainSetup/SetupOrganization');
 require(rootPrefix + '/tools/chainSetup/DeployAnchor');
 
 program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
-program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
 
 program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node tools/localSetup/chainSetup.js --originChainId 1000 --auxChainId 2000');
+  logger.log('    node tools/localSetup/chainSetup.js --originChainId 1000');
   logger.log('');
   logger.log('');
 });
 
-if (!program.originChainId || !program.auxChainId) {
+if (!program.originChainId) {
   program.help();
   process.exit(1);
 }
@@ -51,7 +51,31 @@ class chainSetup {
   constructor(params) {
     const oThis = this;
     oThis.originChainId = params.originChainId;
-    oThis.auxChainId = params.auxChainId;
+  }
+
+  /**
+   *
+   * Perform
+   *
+   * @return {Promise<result>}
+   *
+   */
+  perform() {
+    const oThis = this;
+
+    return oThis._asyncPerform().catch(function(error) {
+      if (responseHelper.isCustomResult(error)) {
+        return error;
+      } else {
+        logger.error('tools/localSetup/chainSetup.js::perform::catch');
+        logger.error(error);
+        return responseHelper.error({
+          internal_error_identifier: 't_ls_cs_1',
+          api_error_identifier: 'unhandled_catch_response',
+          debug_options: {}
+        });
+      }
+    });
   }
 
   /**
@@ -65,7 +89,6 @@ class chainSetup {
     const oThis = this;
 
     logger.step('1. Origin Addresses Generation');
-    logger.step('2. Funding Addresses with ETH.');
     await oThis.generateAndFundOriginAddr();
 
     logger.step('3] a). generate SimpleTokenOwner & SimpleTokenAdmin private keys.');
@@ -77,8 +100,8 @@ class chainSetup {
       simpleTokenAdminPrivateKey = SimpleTokenAdminDetails.privateKey;
 
     logger.step('3] b). Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain.');
-    await oThis._fundAddressWithEth(oThis.originChainId, SimpleTokenOwnerDetails.address, 2);
-    await oThis._fundAddressWithEth(oThis.originChainId, SimpleTokenAdminDetails.address, 2);
+    await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
+    await oThis._fundAddressWithEth(SimpleTokenAdminDetails.address);
 
     logger.step('3] c). Deploy Simple Token.');
     await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
@@ -126,8 +149,9 @@ class chainSetup {
       deployerAddr = addresses['deployer'],
       ownerAddr = addresses['owner'];
 
-    await oThis._fundAddressWithEth(deployerAddr, 2);
-    await oThis._fundAddressWithEth(ownerAddr, 2);
+    logger.step('2. Funding Addresses with ETH.');
+    await oThis._fundAddressWithEth(deployerAddr);
+    await oThis._fundAddressWithEth(ownerAddr);
   }
 
   generateAddrAndPrivateKey() {
@@ -147,7 +171,14 @@ class chainSetup {
         signerKey: simpleTokenOwnerPrivateKey
       });
 
-    return await deploySimpleToken.perform();
+    let deploySimpleTokenRsp = await deploySimpleToken.perform();
+
+    if (deploySimpleTokenRsp.isSuccess()) {
+      return Promise.resolve();
+    } else {
+      logger.error('deploySimpleToken failed');
+      Promise.reject();
+    }
   }
 
   async setSimpleTokenAdmin(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey, simpleTokenAdminAddr) {
@@ -162,7 +193,14 @@ class chainSetup {
         adminAddress: simpleTokenAdminAddr
       });
 
-    return await setSimpleTokenAdmin.perform();
+    let setSimpleTokenAdminRsp = await setSimpleTokenAdmin.perform();
+
+    if (setSimpleTokenAdminRsp.isSuccess()) {
+      return Promise.resolve();
+    } else {
+      logger.error('setSimpleTokenAdmin failed');
+      Promise.reject();
+    }
   }
 
   async finalizeSimpleTokenAdmin(simpleTokenAdminAddr, simpleTokenAdminPrivateKey) {
@@ -176,20 +214,26 @@ class chainSetup {
         signerKey: simpleTokenAdminPrivateKey
       });
 
-    return await finalizeSimpleToken.perform();
+    let finalizeSimpleTokenRsp = await finalizeSimpleToken.perform();
+
+    if (finalizeSimpleTokenRsp.isSuccess()) {
+      return Promise.resolve();
+    } else {
+      logger.error('finalizeSimpleToken failed');
+      Promise.reject();
+    }
   }
 
   async insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddr, simpleTokenAdmin) {
-    const oThis = this,
-      chainAddressObj = new ChainAddressModel();
+    const oThis = this;
 
-    await chainAddressObj.insertAddress({
+    await new ChainAddressModel().insertAddress({
       address: simpleTokenOwnerAddr,
       chainId: oThis.originChainId,
       chainKind: chainAddressConstants.originChainKind,
       kind: chainAddressConstants.simpleTokenOwnerKind
     });
-    await chainAddressObj.insertAddress({
+    await new ChainAddressModel().insertAddress({
       address: simpleTokenAdmin,
       chainId: oThis.originChainId,
       chainKind: chainAddressConstants.originChainKind,
@@ -220,21 +264,19 @@ class chainSetup {
     return await new DeployAnchor({ chainKind: chainAddressConstants.originChainKind }).perform();
   }
 
-  async _fundAddressWithEth(chainId, address, value) {
+  async _fundAddressWithEth(address) {
     const oThis = this;
 
-    let providers = await oThis._getProvidersFromConfig(chainId),
+    let providers = await oThis._getProvidersFromConfig(),
       provider = providers.data[0], //select one provider from provider endpoints array
       web3ProviderInstance = await web3Provider.getInstance(provider),
       web3Instance = await web3ProviderInstance.web3WsProvider;
 
-    console.log('provider------', provider);
-
     let web3 = new Web3(web3Provider),
       txParams = {
-        from: 'eth.coinbase',
+        from: '0xead909d381251ee6976bf8e5b3ab667b092577e6', // address from keystore file is used as coinbase
         to: address,
-        value: web3.toWei(value, 'ether')
+        value: '2000000000000000000' //transfer amt in wei
       };
 
     await web3Instance.eth
@@ -249,8 +291,8 @@ class chainSetup {
       });
   }
 
-  async _getProvidersFromConfig(chainId) {
-    let csHelper = new ConfigStrategyHelper(chainId),
+  async _getProvidersFromConfig() {
+    let csHelper = new ConfigStrategyHelper(0),
       csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
       configForChain = csResponse.data[configStrategyConstants.originGeth],
       readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
@@ -260,4 +302,4 @@ class chainSetup {
   }
 }
 
-new chainSetup({ originChainId: program.originChainId, auxChainId: program.auxChainId }).perform();
+new chainSetup({ originChainId: program.originChainId }).perform();
