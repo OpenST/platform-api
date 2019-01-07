@@ -66,6 +66,12 @@ let simpleTokenAdminPrivateKey = '0xe5cd83683b0637adbe6ea5bca5583ad07a42745308dc
 
 ///////////  b. Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain
 
+// eth.sendTransaction({from:eth.coinbase, to:simpleTokenOwnerAddr, value: web3.toWei(2, "ether")})
+// eth.sendTransaction({from:eth.coinbase, to:simpleTokenAdminAddr, value: web3.toWei(2, "ether")})
+// Check balance
+// eth.getBalance(simpleTokenOwnerAddr)
+// eth.getBalance(simpleTokenAdminAddr)
+
 ///////////  c. Deploy Simple Token
 
 async function deploySimpleToken(signerAddress, signerKey) {
