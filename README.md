@@ -45,3 +45,4 @@ Start origin Geth
 geth --datadir ~/openst-setup/geth/origin-1000 --networkid 1000 --port 30310 --rpc --rpcapi eth,net,web3,personal,txpool --wsapi eth,net,web3,personal,txpool --rpcaddr 127.0.0.1 --rpcport 8545 --ws --wsaddr 127.0.0.1 --wsport 8546 --wsorigins '*' --etherbase 0xfc8d8fb384d3dc57aacda5bb584d6c63ca476911 --mine --minerthreads 1 --targetgaslimit 9000000  --gasprice 0x3B9ACA00 --unlock 0xfc8d8fb384d3dc57aacda5bb584d6c63ca476911 --password ~/openst-setup/geth/origin-1000/pwd
 ```
 
+Follow steps in tools/chainSetup/steps.js
