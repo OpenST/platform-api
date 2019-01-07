@@ -1,13 +1,22 @@
 'use strict';
 
-class CoreConstant {
+/**
+ * Class for core constants
+ *
+ * @class
+ */
+class CoreConstants {
+  /**
+   * Constructor for core constants
+   *
+   * @constructor
+   */
   constructor() {}
 
   get SAAS_ONLY_SHARED_CACHE_ENGINE() {
     return process.env.SA_ONLY_SHARED_CACHE_ENGINE;
   }
 
-  // TODO - check and remove env vars
   get SHARED_MEMCACHE_SERVERS() {
     return process.env.OST_SHARED_MEMCACHE_SERVERS.split(',');
   }
@@ -80,15 +89,15 @@ class CoreConstant {
     return process.env.SA_KIT_SAAS_SUBENV_MYSQL_PASSWORD;
   }
 
-  get KIT_SAAS_MYSQL_HOST(){
+  get KIT_SAAS_MYSQL_HOST() {
     return process.env.SA_KIT_SAAS_MYSQL_HOST;
   }
 
-  get KIT_SAAS_MYSQL_USER(){
+  get KIT_SAAS_MYSQL_USER() {
     return process.env.SA_KIT_SAAS_MYSQL_USER;
   }
 
-  get KIT_SAAS_MYSQL_PASSWORD(){
+  get KIT_SAAS_MYSQL_PASSWORD() {
     return process.env.SA_KIT_SAAS_MYSQL_PASSWORD;
   }
 
@@ -189,9 +198,33 @@ class CoreConstant {
     return 'saas::SaasNamespace';
   }
 
+  get OST_ORIGIN_GAS_LIMIT() {
+    return 4700000;
+  }
+
+  get OST_AUX_GAS_LIMIT() {
+    return 9000000;
+  }
+
+  get OST_AUX_STPRIME_TOTAL_SUPPLY() {
+    return '800000000';
+  }
+
   get blockRetryCount() {
     return 10;
   }
+
+  get OST_AUX_GAS_PRICE_FOR_DEPLOYMENT() {
+    return '0x0';
+  }
+
+  get OST_ORIGIN_GAS_PRICE() {
+    return '0xBA43B7400';
+  }
+
+  get OST_AUX_GAS_PRICE() {
+    return '0x3B9ACA00';
+  }
 }
 
-module.exports = new CoreConstant();
+module.exports = new CoreConstants();

@@ -147,12 +147,11 @@ configTemplate['entitiesMap'] = {
   originConstantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      dummy1: 'dummyEntity',
-      dummy2: 'dummyEntity'
+      originChainGethPort: 'chainGethPort'
     }
   },
-  dummyEntity: {
-    entityType: 'string'
+  chainGethPort: {
+    entityType: 'number'
   },
 
   auxGethEntity: {
@@ -177,8 +176,7 @@ configTemplate['entitiesMap'] = {
   auxConstantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      dummy3: 'dummyEntity',
-      dummy4: 'dummyEntity'
+      auxChainGethPort: 'chainGethPort'
     }
   },
 
