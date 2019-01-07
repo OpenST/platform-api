@@ -34,10 +34,13 @@ generateOriginAddresses();
 
 // 2. ORIGIN -> Fund deployer & owner addresses
 // geth attach http://127.0.0.1:8545
-// deployer = '0xd625b061c5944Be6e36D82766446477002a2fC34'
-// owner = '0xed647695a94A9B311cDCDF74E242417C5da1e580'
+// deployer = '0xB0ccC0D9Dba9697633889aA59561C657887146b0'
+// owner = '0x1f94cBdf28f825D2f679d1DE065c7AA8A5B96b9d'
 // eth.sendTransaction({from:eth.coinbase, to:deployer, value: web3.toWei(2, "ether")})
 // eth.sendTransaction({from:eth.coinbase, to:owner, value: web3.toWei(2, "ether")})
+// Check balance
+// eth.getBalance(deployer)
+// eth.getBalance(owner)
 
 // 3. ORIGIN -> (START: For Non Production Main Env ONLY)
 //
