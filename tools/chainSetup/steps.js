@@ -3,9 +3,7 @@
 // a. Deployer
 // b. STPrimeOwner
 // c. STPrimeAdmin
-// d. ChainOwner
-// e. Worker
-//
+// d. Worker
 
 async function generateOriginAddresses() {
   let rootPrefix = '.',
