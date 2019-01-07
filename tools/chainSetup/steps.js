@@ -73,7 +73,6 @@ let simpleTokenAdminPrivateKey = '0xe5cd83683b0637adbe6ea5bca5583ad07a42745308dc
 // eth.getBalance(simpleTokenAdminAddr)
 
 ///////////  c. Deploy Simple Token
-
 async function deploySimpleToken(signerAddress, signerKey) {
   let rootPrefix = '.';
 
@@ -237,7 +236,7 @@ async function setupOriginOrganization(addressKind) {
 
 let chainAddressConstants = require('./lib/globalConstant/chainAddress');
 
-/////////// a. For Simple Token contract
+/////////// a. For Simple Token Prime contract
 setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind)
   .then(console.log)
   .catch(console.log);
