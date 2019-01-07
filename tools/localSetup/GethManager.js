@@ -74,7 +74,7 @@ class GethManager {
 
     let allocAddress, allocAmount;
     for (let allocationAddress in allocAddressToAmountMap) {
-      allocAddress = allocAddressToAmountMap[allocationAddress];
+      allocAddress = allocationAddress;
       allocAmount = allocAddressToAmountMap[allocAddress];
     }
 
@@ -126,21 +126,28 @@ class GethManager {
    *
    * @param {String} chainType: 'origin' or 'aux'
    * @param {Number/String} chainId
-   * @param {Object} allocAddressToAmountMap: {allocAddress: allocAmount}
+   * @param {Object} allocAddressToAmountMap: {chainOwnerAllocAddress: allocAmount}
    *
    * @return {Promise<void>}
    */
   async initChain(chainType, chainId, allocAddressToAmountMap) {
     const oThis = this,
       chainFolder = localSetupHelper.gethFolderFor(chainType, chainId),
-      passwordFilePath = Path.join(chainFolder, '/pwd');
+      chainFolderAbsolutePath = localSetupHelper.setupFolderAbsolutePath() + '/' + chainFolder,
+      passwordFilePath = Path.join(chainFolder, '/pwd'),
+      passwordFileAbsolutePath = Path.join(chainFolderAbsolutePath, '/pwd');
+
+    // Create chain folder.
+    logger.info('* Creating ' + chainType + '-' + chainId + ' folder.');
+    fileManager.mkdir(chainFolder);
 
     // Create password file.
+    logger.info('* Creating password file.');
     fileManager.touch(passwordFilePath, sealerPassPhrase);
 
-    const sealerAddress = oThis._generateAddress(chainFolder, passwordFilePath),
-      chainGenesisTemplateLocation = genesisTemplateLocation + 'poaGenesisTemplate' + '.json',
-      chainGenesisLocation = chainFolder + '/genesis' + '.json';
+    const sealerAddress = oThis._generateAddress(chainFolderAbsolutePath, passwordFileAbsolutePath),
+      chainGenesisTemplateLocation = genesisTemplateLocation + '/poaGenesisTemplate' + '.json',
+      chainGenesisLocation = chainFolderAbsolutePath + '/genesis' + '.json';
 
     // Adds sealer address to the DB.
     await new ChainAddressModel().insertAddress({
@@ -150,9 +157,6 @@ class GethManager {
       chainKind: chainAddressConstants.auxChainKind
     });
 
-    // Create chain folder.
-    logger.info('* Creating ' + chainType + '-' + chainId + ' folder.');
-    fileManager.mkdir(chainFolder);
     // Copy genesis template file in chain folder
     logger.info('* Copying POA genesis template file.');
     fileManager.exec('cp ' + chainGenesisTemplateLocation + ' ' + chainGenesisLocation);
@@ -163,7 +167,7 @@ class GethManager {
 
     // Alloc balance in genesis files.
     logger.info('* Init ' + chainType + '-' + chainId + ' chain.');
-    oThis._initChain(chainFolder, chainGenesisLocation);
+    oThis._initChain(chainFolderAbsolutePath, chainGenesisLocation);
   }
 }
 

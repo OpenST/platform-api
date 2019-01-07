@@ -117,7 +117,7 @@ class LocalSetupHelper {
   gethFolderFor(chainType, chainId) {
     const oThis = this;
 
-    return oThis.gethFolderAbsolutePath() + '/' + chainType + '-' + chainId.toString();
+    return oThis.masterGethFolder() + '/' + chainType + '-' + chainId.toString();
   }
 
   /**
