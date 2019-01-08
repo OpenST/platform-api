@@ -15,9 +15,11 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
+  GethChecker = require(rootPrefix + '/tools/localSetup/GethChecker'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ConfigStrategyByChainId = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
 require(rootPrefix + '/tools/chainSetup/DeployLib');
@@ -30,7 +32,10 @@ require(rootPrefix + '/tools/chainSetup/origin/ActivateGateway');
 require(rootPrefix + '/tools/chainSetup/aux/simpleTokenPrime/Deploy');
 require(rootPrefix + '/tools/chainSetup/aux/simpleTokenPrime/Initialize');
 
-program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
+program
+  .option('--originChainId <originChainId>', 'origin ChainId')
+  .option('--auxChainId <auxChainId>', 'aux ChainId')
+  .parse(process.argv);
 
 program.on('--help', function() {
   logger.log('');
@@ -49,6 +54,7 @@ if (!program.auxChainId) {
 class AuxChainSetup {
   constructor(params) {
     const oThis = this;
+    oThis.originChainId = params.originChainId;
     oThis.auxChainId = params.auxChainId;
   }
 
@@ -161,6 +167,17 @@ class AuxChainSetup {
     oThis.ic = new InstanceComposer(config);
   }
 
+  async getOriginIc() {}
+
+  // async checkOriginGeth() {
+  //   const oThis = this,
+  //     configStrategyByChainId = new ConfigStrategyByChainId(oThis.originChainId,0),
+  //     gethChecker = new GethChecker();
+  //
+  //   gethChecker.perform()
+  //
+  // }
+
   async generateAuxAddresses() {
     const oThis = this;
     let generateChainKnownAddressObj = new GenerateChainKnownAddresses({
@@ -226,8 +243,12 @@ class AuxChainSetup {
   }
 
   async deployGatewayContract() {
+    // Deployment of gateway contract is done on origin chain.
     const oThis = this,
-      DeployGateway = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployGateway');
+      rsp = await chainConfigProvider.getFor([oThis.originChainId]),
+      config = rsp[oThis.originChainId],
+      ic = new InstanceComposer(config),
+      DeployGateway = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployGateway');
     return await new DeployGateway({}).perform();
   }
   async deployCoGatewayContract() {
@@ -243,4 +264,4 @@ class AuxChainSetup {
   }
 }
 
-new AuxChainSetup({ auxChainId: program.auxChainId }).perform();
+new AuxChainSetup({ originChainId: program.originChainId, auxChainId: program.auxChainId }).perform();
