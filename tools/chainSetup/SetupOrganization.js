@@ -131,6 +131,7 @@ class SetupOrganization {
         break;
       case chainAddressConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
+        // TODO :: Gasprice should not be 0 hardcoded.
         oThis.gasPrice = '0x0';
         break;
       default:

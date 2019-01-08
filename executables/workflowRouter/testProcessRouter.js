@@ -8,7 +8,7 @@ const rootPrefix = '../..',
   testStepss5 = require(rootPrefix + '/lib/workflow/testSteps/s5'),
   testStepss6 = require(rootPrefix + '/lib/workflow/testSteps/s6'),
   testStepss7 = require(rootPrefix + '/lib/workflow/testSteps/s7'),
-  testStepDetails = require(rootPrefix + '/executables/workflowRouter/testStepsDetails'),
+  testStepsConfigs = require(rootPrefix + '/executables/workflowRouter/testStepsConfigs'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base');
@@ -19,7 +19,7 @@ class testProcessRouter extends workflowRouterBase {
 
     const oThis = this;
 
-    oThis.currentStepDetails = testStepDetails[oThis.stepKind];
+    oThis.currentStepConfig = testStepsConfigs[oThis.stepKind];
   }
 
   async stepsFactory() {
@@ -56,8 +56,8 @@ class testProcessRouter extends workflowRouterBase {
     }
   }
 
-  getNextStepDetails(nextStep) {
-    return testStepDetails[nextStep];
+  getNextStepConfigs(nextStep) {
+    return testStepsConfigs[nextStep];
   }
 }
 

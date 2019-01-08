@@ -32,9 +32,10 @@ class workflowRouterBase {
     oThis.clientId = params.clientId;
     oThis.chainId = params.chainId;
 
-    oThis.requestParams = params.requestParams;
+    oThis.requestParams = params.requestParams || {};
     oThis.taskDone = false;
     oThis.nextSteps = [];
+    oThis.workflowRecordsMap = {};
   }
 
   /**
@@ -74,10 +75,11 @@ class workflowRouterBase {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis.validateAndSanitize();
+    await oThis.validateAndConfig();
 
-    // set requestParams using parent id
     await oThis.getWorkflowRecords();
+
+    await oThis.validateAndSanitize();
 
     if (oThis.taskStatus == workflowStepConstants.taskReadyToStart) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
@@ -124,10 +126,10 @@ class workflowRouterBase {
    *
    * @sets oThis.nextSteps
    */
-  async validateAndSanitize() {
+  async validateAndConfig() {
     const oThis = this;
 
-    if (!oThis.currentStepDetails) {
+    if (!oThis.currentStepConfig) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_wr_b_3',
@@ -137,7 +139,8 @@ class workflowRouterBase {
       );
     }
 
-    oThis.nextSteps = oThis.currentStepDetails.onSuccess;
+    oThis.nextSteps = oThis.currentStepConfig.onSuccess || [];
+    oThis.readDataFromSteps = oThis.currentStepConfig.readDataFrom || [];
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
@@ -154,20 +157,45 @@ class workflowRouterBase {
   async getWorkflowRecords() {
     const oThis = this;
     if (oThis.parentStepId) {
-      let workflowRecordsMap = {};
+      let workflowRecordsIds = [oThis.parentStepId, oThis.currentStepId];
+
+      for (let i = 0; i < oThis.readDataFromSteps.length; i++) {
+        let invertedKind = new WorkflowStepsModel().invertedKinds[oThis.readDataFromSteps[i]];
+        if (invertedKind) {
+          workflowRecordsIds.push(invertedKind);
+        }
+      }
 
       let workflowRecords = await new WorkflowStepsModel()
         .select('*')
-        .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
+        .where(['id in (?)', workflowRecordsIds])
         .fire();
 
       for (let i = 0; i < workflowRecords.length; i++) {
-        workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
+        oThis.workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
       }
-      let parentRecord = workflowRecordsMap[oThis.parentStepId],
-        currentRecord = workflowRecordsMap[oThis.currentStepId];
+    }
 
-      // check for parent current
+    return Promise.resolve(responseHelper.successWithData({}));
+  }
+
+  /**
+   *
+   * Set data from workflow records.
+   *
+   * @returns {Promise<>}
+   *
+   * @sets oThis.requestParams, oThis.clientId, oThis.chainId
+   *
+   */
+  async validateAndSanitize() {
+    const oThis = this;
+
+    let parentRecord = oThis.workflowRecordsMap[oThis.parentStepId],
+      currentRecord = oThis.workflowRecordsMap[oThis.currentStepId];
+
+    if (oThis.parentStepId) {
+      // check for parent and current records
       if (
         !currentRecord ||
         !(
@@ -194,12 +222,19 @@ class workflowRouterBase {
           })
         );
       }
+
       oThis.requestParams = JSON.parse(parentRecord.request_params);
       oThis.clientId = parentRecord.client_id;
       oThis.chainId = parentRecord.chain_id;
     }
 
-    if (!oThis.requestParams || !oThis.clientId || !oThis.chainId) {
+    for (let i = 0; i < oThis.readDataFromSteps.length; i++) {
+      if (oThis.readDataFromSteps[i].response_data) {
+        Object.assign(oThis.requestParams, JSON.parse(oThis.readDataFromSteps.response_data));
+      }
+    }
+
+    if (!oThis.clientId || !oThis.chainId) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_wr_b_5',
@@ -211,7 +246,6 @@ class workflowRouterBase {
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
-
   /**
    *
    * First step of any workflow.
@@ -337,7 +371,7 @@ class workflowRouterBase {
   async checkDependencies(nextStep) {
     const oThis = this;
 
-    let nextStepDetails = await oThis.getNextStepDetails(nextStep),
+    let nextStepDetails = await oThis.getNextStepConfigs(nextStep),
       prerequisitesIds = [];
 
     if (nextStepDetails.prerequisites) {

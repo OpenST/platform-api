@@ -68,6 +68,7 @@ class SetupOrganization extends CommonSetupBase {
       deployRsp = await orgHelperObj
         .deploy(oThis.ownerAddress, oThis.adminAddress, oThis.workerAddresses, oThis.expirationHeight, deployParams)
         .then(function(txReceipt) {
+          //TODO:: May be not wait till txReceipt...
           logger.debug('txReceipt', txReceipt);
           return responseHelper.successWithData({
             transactionReceipt: txReceipt,
