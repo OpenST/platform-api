@@ -274,4 +274,4 @@ class ServiceManager {
   }
 }
 
-module.exports = ServiceManager;
+module.exports = new ServiceManager();

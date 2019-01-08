@@ -30,6 +30,8 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
    */
   constructor(params) {
     super(params);
+    const oThis = this;
+    oThis.chainId = params.chainId;
   }
 
   /**
@@ -55,7 +57,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
       gasPrice: '0x0',
       from: deployerAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: 2000 //TODO: remove hardcoding
+      chainId: oThis.chainId
     };
 
     let helperObj = new SetupSTPrimeBase.STPrimeSetupHelper(oThis._web3Instance),

@@ -172,4 +172,4 @@ class GethManager {
   }
 }
 
-module.exports = GethManager;
+module.exports = new GethManager();

@@ -1,8 +1,14 @@
 'use strict';
 /**
- * Script for aux chain setup.
+ * Executable script for auxiliary chain setup.
+ * This script generates addresses and performs contract deployments on origin chain.
  *
- * @module tools/localSetup/auxChainSetup.js
+ * Prerequisites:-
+ * 1. Origin Geth should be running already.
+ *
+ * Usage:- node tools/localSetup/auxChainSetup.js --originChainId 1000 --auxChainId 2000
+ *
+ * @module tools/localSetup/auxChainSetup
  */
 
 // load shelljs and disable output
@@ -18,9 +24,9 @@ const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
+  gethManager = require(rootPrefix + '/tools/localSetup/gethManager'),
+  serviceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
@@ -43,7 +49,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node tools/localSetup/auxChainSetup.js --auxChainId 2000');
+  logger.log('    node tools/localSetup/auxChainSetup.js --originChainId 1000 --auxChainId 2000');
   logger.log('');
   logger.log('');
 });
@@ -95,8 +101,6 @@ class AuxChainSetup {
     logger.step('Generate aux addresses');
     let generatedAddresses = await oThis.generateAuxAddresses(),
       allocAddressToAmountMap = {},
-      gethManager = new GethManager(),
-      serviceManager = new ServiceManager(),
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
     allocAddressToAmountMap[chainOwnerAddr] = '0xe567bd7e886312a0cf7397bb73650d2280400000000000000';
     let rsp = await gethManager.initChain(

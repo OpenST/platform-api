@@ -120,7 +120,7 @@ class FileManager {
     oThis.mkdir('');
 
     // Create master GETH folder
-    logger.info('* Creating master GETH folder');
+    logger.info('* Creating geth folder');
     oThis.mkdir(localSetupHelper.masterGethFolder());
 
     // Creating bin folder

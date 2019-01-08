@@ -1,5 +1,19 @@
 'use strict';
-
+/**
+ * Executable script for origin chain setup.
+ * This script generates addresses and performs contract deployments on origin chain.
+ *
+ * Prerequisites:-
+ * 1. mysql tables - chain_addresses, known_addresses and chain_setup_logs
+ * 2. origin chain entries in config_strategies table.
+ *
+ * Note:-
+ * If you want to re-run this script, please ensure you have deleted sealer address entry in chain_addresses table.
+ *
+ * Usage:- node tools/localSetup/chainSetup.js --originChainId 1000
+ *
+ * @module tools/localSetup/auxChainSetup
+ */
 const program = require('commander'),
   OSTBase = require('@openstfoundation/openst-base');
 
@@ -8,27 +22,25 @@ const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
-  GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
+  gethManager = require(rootPrefix + '/tools/localSetup/gethManager'),
+  serviceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-const gethManager = new GethManager(),
-  serviceManager = new ServiceManager(),
-  GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey'),
+const GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey'),
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
+require(rootPrefix + '/tools/chainSetup/DeployAnchor');
+require(rootPrefix + '/tools/chainSetup/SetupOrganization');
+require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Finalize');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Deploy.js');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/SetAdminAddress');
-require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Finalize');
-require(rootPrefix + '/tools/chainSetup/SetupOrganization');
-require(rootPrefix + '/tools/chainSetup/DeployAnchor');
 
 program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
 
@@ -68,7 +80,6 @@ class chainSetup {
     const oThis = this;
 
     return oThis._asyncPerform().catch(function(error) {
-      logger.error('##### Delete sealer address entry from chain addresses for next re-run ####');
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
