@@ -54,6 +54,7 @@ class SetCoAnchor extends CommonSetupBase {
     oThis._addKeyToWallet(signerKey);
 
     let txOptions = {
+      gas: 4000000,
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],

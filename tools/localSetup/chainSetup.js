@@ -118,26 +118,42 @@ class chainSetup {
     await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
     await oThis._fundAddressWithEth(SimpleTokenAdminDetails.address);
 
+    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('3] c). Deploy Simple Token.');
     await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
+
+    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('3] d). Set Simple Token Admin.');
     await oThis.setSimpleTokenAdmin(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey, simpleTokenAdmin);
 
+    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('3] e). Finalize SimpleToken');
     await oThis.finalizeSimpleTokenAdmin(simpleTokenAdmin, simpleTokenAdminPrivateKey);
+
+    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('4. Insert simple token admin and owner address into chain addresses table.');
     await oThis.insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddress, simpleTokenAdmin);
 
+    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('5] a) Setup organization for simple token contract');
     await oThis.setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind);
+
+    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('5] a) Setup organization for anchor');
     await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
 
+    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('6. Deploying origin anchor.');
     await oThis.deployOriginAnchor();
+
+    logger.win('Deployment steps uccessfully performed on origin chain.');
 
     return Promise.resolve();
   }
@@ -309,7 +325,7 @@ class chainSetup {
     await web3Instance.eth
       .sendTransaction(txParams)
       .then(function(response) {
-        logger.info('Successfully funded', response);
+        console.log('Successfully funded:: addresse-> ', response.data.to);
         Promise.resolve();
       })
       .catch(function(error) {

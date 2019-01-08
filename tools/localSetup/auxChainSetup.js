@@ -95,9 +95,13 @@ class AuxChainSetup {
       serviceManager = new ServiceManager(),
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
     allocAddressToAmountMap[chainOwnerAddr] = '0xe567bd7e886312a0cf7397bb73650d2280400000000000000';
-    let rsp = await gethManager.initChain('aux', oThis.auxChainId, allocAddressToAmountMap);
+    let rsp = await gethManager.initChain(
+      chainAddressConstants.auxChainKind,
+      oThis.auxChainId,
+      allocAddressToAmountMap
+    );
 
-    await serviceManager.startGeth('aux', oThis.auxChainId, 'deployment');
+    await serviceManager.startGeth(chainAddressConstants.auxChainKind, oThis.auxChainId, 'deployment');
     await basicHelper.pauseForMilliSeconds(10000);
 
     logger.step('Setup aux organization for St prime');
@@ -118,6 +122,7 @@ class AuxChainSetup {
 
     logger.step('Deploying aux anchor');
     await oThis.deployAuxAnchor();
+    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Set Origin Co anchor');
     await oThis.setCoAnchor(chainAddressConstants.originChainKind);
