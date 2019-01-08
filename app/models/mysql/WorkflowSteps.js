@@ -62,6 +62,20 @@ class WorkflowSteps extends ModelBase {
    *
    * @param id
    */
+  async updateRecord(id, updateData) {
+    const oThis = this;
+
+    return oThis
+      .update(updateData)
+      .where({ id: id })
+      .fire();
+  }
+
+  /**
+   * This function will mark the step as success
+   *
+   * @param id
+   */
   async markAsSuccess(id) {
     const oThis = this;
 

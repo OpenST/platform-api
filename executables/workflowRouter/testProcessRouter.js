@@ -41,6 +41,7 @@ class testProcessRouter extends workflowRouterBase {
       case workflowStepConstants.s5:
         return new testStepss5().perform();
       case workflowStepConstants.s6:
+        console.log('-------oThis.requestParams--in router----', JSON.stringify(oThis.requestParams));
         return new testStepss6().perform();
       case workflowStepConstants.s7:
         return new testStepss7().perform();

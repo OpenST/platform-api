@@ -5,6 +5,11 @@
  * @module tools/localSetup/auxChainSetup.js
  */
 
+// load shelljs and disable output
+const shell = require('shelljs'),
+  shellAsyncCmd = require('node-cmd');
+shell.config.silent = true;
+
 const program = require('commander'),
   OSTBase = require('@openstfoundation/openst-base');
 
@@ -20,7 +25,8 @@ const rootPrefix = '../..',
   ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ConfigStrategyByChainId = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
+  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
+  SharedMemcachedProvider = require(rootPrefix + '/lib/providers/sharedMemcached');
 
 require(rootPrefix + '/tools/chainSetup/DeployLib');
 require(rootPrefix + '/tools/chainSetup/SetCoAnchor');
@@ -46,7 +52,7 @@ program.on('--help', function() {
   logger.log('');
 });
 
-if (!program.auxChainId) {
+if (!program.originChainId || !program.auxChainId) {
   program.help();
   process.exit(1);
 }
@@ -86,6 +92,8 @@ class AuxChainSetup {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis.checkOriginGeth();
+
     await oThis.getIc();
 
     logger.step('Generate aux addresses');
@@ -95,32 +103,43 @@ class AuxChainSetup {
       serviceManager = new ServiceManager(),
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
     allocAddressToAmountMap[chainOwnerAddr] = '0xe567bd7e886312a0cf7397bb73650d2280400000000000000';
-    let rsp = await gethManager.initChain('aux', oThis.auxChainId, allocAddressToAmountMap);
+    let rsp = await gethManager.initChain(
+      chainAddressConstants.auxChainKind,
+      oThis.auxChainId,
+      allocAddressToAmountMap
+    );
 
-    await serviceManager.startGeth('aux', oThis.auxChainId, 'deployment');
+    await serviceManager.startGeth(chainAddressConstants.auxChainKind, oThis.auxChainId, 'deployment');
     await basicHelper.pauseForMilliSeconds(10000);
 
     logger.step('Setup aux organization for St prime');
     await oThis.setupAuxOrganization(chainAddressConstants.baseContractOrganizationKind);
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Setup aux organization for Anchor');
     await oThis.setupAuxOrganization(chainAddressConstants.anchorOrganizationKind);
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploy ST Prime');
     await oThis.deploySTPrime();
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Initialize ST Prime');
     await oThis.initializeSTPrime();
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploying aux anchor');
     await oThis.deployAuxAnchor();
+    oThis.clearCache();
+    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Set Origin Co anchor');
     await oThis.setCoAnchor(chainAddressConstants.originChainKind);
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Set Aux Co anchor');
@@ -129,35 +148,44 @@ class AuxChainSetup {
 
     logger.step('Origin: Deploy merklePatriciaProof lib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'merklePatriciaProof');
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
     logger.step('Origin:  Deploy messageBus lib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'messageBus');
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
     logger.step('Origin:  Deploy gateway lib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'gateway');
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Aux: Deploy merklePatriciaProof lib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'merklePatriciaProof');
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
     logger.step('Aux:  Deploy messageBus lib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'messageBus');
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
     logger.step('Aux:  Deploy gateway lib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'gateway');
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploying gateway contract');
     await oThis.deployGatewayContract();
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploying co gateway contract');
+    //TODO: add cogateway addres to ostPtime
     await oThis.deployCoGatewayContract();
+    oThis.clearCache();
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Activate co gateway contract');
     await oThis.activateGatewayContract();
-    logger.info('Done.');
+    logger.win('Deployment steps successfully performed on aux chain.');
   }
 
   async getIc() {
@@ -167,16 +195,20 @@ class AuxChainSetup {
     oThis.ic = new InstanceComposer(config);
   }
 
-  async getOriginIc() {}
+  async checkOriginGeth() {
+    const oThis = this;
+    let cmd =
+      'ps aux | grep geth | grep origin-' + oThis.originChainId + " | grep -v grep | tr -s ' ' | cut -d ' ' -f2";
+    let processId = shell.exec(cmd).stdout;
 
-  // async checkOriginGeth() {
-  //   const oThis = this,
-  //     configStrategyByChainId = new ConfigStrategyByChainId(oThis.originChainId,0),
-  //     gethChecker = new GethChecker();
-  //
-  //   gethChecker.perform()
-  //
-  // }
+    console.log('processId', processId);
+    if (processId === '') {
+      logger.error('Please start origin geth.');
+      process.exit(1);
+    } else {
+      logger.info('Origin Geth running.');
+    }
+  }
 
   async generateAuxAddresses() {
     const oThis = this;
@@ -261,6 +293,15 @@ class AuxChainSetup {
     const oThis = this,
       ActivateGateway = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateGateway');
     return await new ActivateGateway({}).perform();
+  }
+
+  async clearCache() {
+    let cacheObject = SharedMemcachedProvider.getInstance('0'),
+      cacheImplementer = cacheObject.cacheInstance;
+
+    cacheImplementer.delAll().then(function() {
+      console.log('--------Flushed memcached--------');
+    });
   }
 }
 
