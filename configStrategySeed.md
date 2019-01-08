@@ -128,8 +128,8 @@ let auxGethDetails = {
     "client": "geth"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(2000, 1).addForKind('auxGeth', auxGethDetails, 1)
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(2000, 1).addForKind('auxGeth', auxGethDetails, 1);
 ```
 
 OriginConstants config strategy
@@ -140,8 +140,8 @@ let originConstantDetails = {
     "networkId": 1000
   }
 };
-ConfigModel = require('./helpers/configStrategy/ByChainId')
-new ConfigModel(0, 0).addForKind('originConstants', originConstantDetails, 1)
+ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(0, 0).addForKind('originConstants', originConstantDetails, 1);
 ```
 
 AuxConstants config strategy
@@ -152,8 +152,8 @@ let auxConstantDetails = {
     "networkId": 2000
   }
 };
-ConfigModel = require('./helpers/configStrategy/ByChainId')
-new ConfigModel(2000, 1).addForKind('auxConstants', auxConstantDetails, 1)
+ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(2000, 1).addForKind('auxConstants', auxConstantDetails, 1);
 ```
 
 Activating global config
