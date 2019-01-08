@@ -145,24 +145,33 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    while (true) {
-      let finalizer = new oThis.Finalizer({
-        chainId: oThis.chainId,
-        blockDelay: oThis.blockDelay
-      });
+    let finalizer = new oThis.Finalizer({
+      chainId: oThis.chainId,
+      blockDelay: oThis.blockDelay
+    });
 
+    oThis.openSTNotification = await sharedRabbitMqProvider.getInstance({
+      connectionWaitSeconds: connectionTimeoutConst.crons,
+      switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+    });
+
+    while (true) {
       oThis.canExit = false;
+
       let finalizerResponse = await finalizer.perform();
 
       let currentBlockNotProcessable = !finalizerResponse.data.blockProcessable;
 
       oThis.canExit = true;
+
       if (currentBlockNotProcessable) {
         logger.log('===Waiting for 2 secs');
         await oThis.sleep(2000);
       } else {
         if (finalizerResponse.data.processedBlock) {
           await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
+
+          logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
 
           await oThis._publishBlock(finalizerResponse.data.processedBlock);
         }
@@ -226,11 +235,7 @@ class Finalizer extends PublisherBase {
       }
     };
 
-    let openSTNotification = await sharedRabbitMqProvider.getInstance({
-        connectionWaitSeconds: connectionTimeoutConst.crons,
-        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-      }),
-      setToRMQ = await openSTNotification.publishEvent.perform(messageParams);
+    let setToRMQ = await oThis.openSTNotification.publishEvent.perform(messageParams);
 
     // If could not set to RMQ run in async.
     if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
