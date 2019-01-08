@@ -6,8 +6,7 @@
  */
 
 // load shelljs and disable output
-const shell = require('shelljs'),
-  shellAsyncCmd = require('node-cmd');
+const shell = require('shelljs');
 shell.config.silent = true;
 
 const program = require('commander'),
@@ -20,13 +19,10 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
-  GethChecker = require(rootPrefix + '/tools/localSetup/GethChecker'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ConfigStrategyByChainId = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
-  SharedMemcachedProvider = require(rootPrefix + '/lib/providers/sharedMemcached');
+  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
 require(rootPrefix + '/tools/chainSetup/DeployLib');
 require(rootPrefix + '/tools/chainSetup/SetCoAnchor');
@@ -114,78 +110,53 @@ class AuxChainSetup {
 
     logger.step('Setup aux organization for St prime');
     await oThis.setupAuxOrganization(chainAddressConstants.baseContractOrganizationKind);
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Setup aux organization for Anchor');
     await oThis.setupAuxOrganization(chainAddressConstants.anchorOrganizationKind);
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploy ST Prime');
     await oThis.deploySTPrime();
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Initialize ST Prime');
     await oThis.initializeSTPrime();
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploying aux anchor');
     await oThis.deployAuxAnchor();
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Set Origin Co anchor');
     await oThis.setCoAnchor(chainAddressConstants.originChainKind);
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Set Aux Co anchor');
     await oThis.setCoAnchor(chainAddressConstants.auxChainKind);
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Origin: Deploy merklePatriciaProof lib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'merklePatriciaProof');
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('Origin:  Deploy messageBus lib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'messageBus');
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('Origin:  Deploy gateway lib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'gateway');
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Aux: Deploy merklePatriciaProof lib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'merklePatriciaProof');
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('Aux:  Deploy messageBus lib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'messageBus');
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
+
     logger.step('Aux:  Deploy gateway lib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'gateway');
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploying gateway contract');
     await oThis.deployGatewayContract();
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('Deploying co gateway contract');
-    //TODO: add cogateway addres to ostPtime
-    await oThis.deployCoGatewayContract();
-    oThis.clearCache();
-    await basicHelper.pauseForMilliSeconds(5000);
+    await oThis.deployCoGatewayContract(); //TODO: add cogateway addres to ostPtime
 
     logger.step('Activate co gateway contract');
     await oThis.activateGatewayContract();
     logger.win('Deployment steps successfully performed on aux chain.');
+    process.exit(1);
   }
 
   async getIc() {
@@ -293,15 +264,6 @@ class AuxChainSetup {
     const oThis = this,
       ActivateGateway = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateGateway');
     return await new ActivateGateway({}).perform();
-  }
-
-  async clearCache() {
-    let cacheObject = SharedMemcachedProvider.getInstance('0'),
-      cacheImplementer = cacheObject.cacheInstance;
-
-    cacheImplementer.delAll().then(function() {
-      console.log('--------Flushed memcached--------');
-    });
   }
 }
 
