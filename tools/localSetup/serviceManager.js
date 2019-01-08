@@ -16,7 +16,8 @@ const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
-const sealerPassphraseFile = 'sealer-passphrase';
+const sealerPassphraseFile = 'sealer-passphrase',
+  sealerPassword = 'testtest';
 
 /**
  * Class for service manager
@@ -170,7 +171,6 @@ class ServiceManager {
       gasLimit = { aux: coreConstants.OST_AUX_GAS_LIMIT, origin: coreConstants.OST_ORIGIN_GAS_LIMIT },
       gasPrice = purpose === 'deployment' && chainType === 'aux' ? zeroGas : coreConstants.OST_ORIGIN_GAS_PRICE,
       chainFolder = setupHelper.gethFolderFor(chainType, chainId),
-      sealerPassword = 'testtest',
       chainTypeString = chainType === 'aux' ? 'auxGeth' : 'originGeth',
       rpcProviderHostPort = chainConfigStrategy[chainTypeString].readOnly.rpcProvider.replace('http://', '').split(':'),
       rpcHost = rpcProviderHostPort[0],
@@ -187,19 +187,19 @@ class ServiceManager {
 
     const sealerAddr = sealerAddress.data.address;
 
-
     // Creating password file in a temp location
     fileManager.touch(chainFolder + '/' + sealerPassphraseFile, sealerPassword);
-    fileManager.mkdir('logs/' +  chainType + '-' + chainId.toString());
-    fileManager.touch( 'logs/' + chainType + '-'
-      + chainId.toString() + '/' + chainType + '-chain-'
-      + chainId.toString() + '.log');
-
+    fileManager.mkdir('logs/' + chainType + '-' + chainId.toString());
+    fileManager.touch(
+      'logs/' + chainType + '-' + chainId.toString() + '/' + chainType + '-chain-' + chainId.toString() + '.log'
+    );
 
     return (
       'geth --networkid ' +
       networkId +
-      ' --datadir ' + setupHelper.setupFolderAbsolutePath() + '/' +
+      ' --datadir ' +
+      setupHelper.setupFolderAbsolutePath() +
+      '/' +
       chainFolder +
       ' --port ' +
       chainPort +
@@ -220,7 +220,9 @@ class ServiceManager {
       gasPrice +
       '" --unlock ' +
       sealerAddr +
-      ' --password ' + setupHelper.setupFolderAbsolutePath() + '/' +
+      ' --password ' +
+      setupHelper.setupFolderAbsolutePath() +
+      '/' +
       chainFolder +
       '/' +
       sealerPassphraseFile +
