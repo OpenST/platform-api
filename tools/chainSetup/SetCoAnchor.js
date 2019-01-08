@@ -16,7 +16,8 @@ const rootPrefix = '../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
   SetCoAnchorHelper = require(rootPrefix + '/tools/commonSetup/SetCoAnchor'),
-  chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
+  chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
  *
@@ -119,7 +120,12 @@ class SetCoAnchor {
       case chainAddressConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
         oThis.otherChainId = oThis._configStrategyObject.auxChainId;
-        oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
+
+        let gasPriceCacheObj = new gasPriceCacheKlass(),
+          garPriceRsp = await gasPriceCacheObj.fetch();
+        oThis.gasPrice = garPriceRsp.data;
+
+        //oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here Done
         oThis.otherChainKind = chainAddressConstants.auxChainKind;
         break;
       case chainAddressConstants.auxChainKind:

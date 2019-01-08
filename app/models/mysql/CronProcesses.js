@@ -16,7 +16,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '2': cronProcessesConstant.transactionParser,
     '3': cronProcessesConstant.blockFinalizer,
     '4': cronProcessesConstant.economyAggregator,
-    '5': cronProcessesConstant.workflowWorker
+    '5': cronProcessesConstant.workflowWorker,
+    '6': cronProcessesConstant.updateRealtimeGasPrice
   },
   statuses = {
     '1': cronProcessesConstant.runningStatus,

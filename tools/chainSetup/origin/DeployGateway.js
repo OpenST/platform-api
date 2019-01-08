@@ -16,7 +16,8 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
   DeployGatewayHelper = require(rootPrefix + '/tools/commonSetup/DeployGateway'),
-  chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
+  chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
  *
@@ -121,7 +122,11 @@ class DeployGateway {
     const oThis = this;
     oThis.chainId = oThis._configStrategyObject.originChainId;
     oThis.chainKind = chainAddressConstants.originChainKind;
-    oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here
+
+    let gasPriceCacheObj = new gasPriceCacheKlass(),
+      gasPriceRsp = await gasPriceCacheObj.fetch();
+    oThis.gasPrice = gasPriceRsp.data;
+    //oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here:Done
   }
 
   /***
