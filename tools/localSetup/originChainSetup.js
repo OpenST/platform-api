@@ -1,30 +1,28 @@
 'use strict';
 
 const program = require('commander'),
-  Web3 = require('web3'),
   OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
   InstanceComposer = OSTBase.InstanceComposer,
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
+  GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  GethManager = require(rootPrefix + '/tools/localSetup/GethManager'),
-  gethManager = new GethManager(),
-  ServiceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
-  serviceManager = new ServiceManager(),
-  fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
-  SharedMemcachedProvider = require(rootPrefix + '/lib/providers/sharedMemcached'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-const GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
-  GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey');
+const gethManager = new GethManager(),
+  serviceManager = new ServiceManager(),
+  GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey'),
+  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Deploy.js');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/SetAdminAddress');
@@ -38,7 +36,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node tools/localSetup/chainSetup.js --originChainId 1000');
+  logger.log('    node tools/localSetup/originChainSetup.js --originChainId 1000');
   logger.log('');
   logger.log('');
 });
@@ -106,7 +104,6 @@ class chainSetup {
 
     logger.step('1. Origin Addresses Generation');
     await oThis.generateAndFundOriginAddr();
-    await oThis.clearCache();
 
     logger.step('3] a). generate SimpleTokenOwner & SimpleTokenAdmin private keys.');
     let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey(),
@@ -118,51 +115,40 @@ class chainSetup {
 
     logger.step('3] b). Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain.');
     await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
-    await oThis.clearCache();
     await oThis._fundAddressWithEth(SimpleTokenAdminDetails.address);
-    await oThis.clearCache();
-
-    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('3] c). Deploy Simple Token.');
     await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
-    await oThis.clearCache();
 
-    await basicHelper.pauseForMilliSeconds(5000);
+    await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('3] d). Set Simple Token Admin.');
     await oThis.setSimpleTokenAdmin(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey, simpleTokenAdmin);
-    await oThis.clearCache();
 
-    await basicHelper.pauseForMilliSeconds(5000);
+    await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('3] e). Finalize SimpleToken');
     await oThis.finalizeSimpleTokenAdmin(simpleTokenAdmin, simpleTokenAdminPrivateKey);
-    await oThis.clearCache();
 
-    await basicHelper.pauseForMilliSeconds(5000);
+    await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('4. Insert simple token admin and owner address into chain addresses table.');
     await oThis.insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddress, simpleTokenAdmin);
-    await oThis.clearCache();
 
-    await basicHelper.pauseForMilliSeconds(5000);
+    await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('5] a) Setup organization for simple token contract');
     await oThis.setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind);
-    await oThis.clearCache();
 
-    await basicHelper.pauseForMilliSeconds(5000);
+    await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('5] a) Setup organization for anchor');
     await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
-    await oThis.clearCache();
 
-    await basicHelper.pauseForMilliSeconds(5000);
+    await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('6. Deploying origin anchor.');
     await oThis.deployOriginAnchor();
-    await oThis.clearCache();
 
     logger.win('Deployment steps successfully performed on origin chain.');
 
@@ -336,7 +322,7 @@ class chainSetup {
     await web3Instance.eth
       .sendTransaction(txParams)
       .then(function(response) {
-        logger.info('Successfully funded to address-> ', response.to);
+        logger.info('Successfully funded to address -> ', response.to);
         Promise.resolve();
       })
       .catch(function(error) {
@@ -353,15 +339,6 @@ class chainSetup {
       providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
 
     return Promise.resolve(responseHelper.successWithData(providers));
-  }
-
-  async clearCache() {
-    let cacheObject = SharedMemcachedProvider.getInstance('0'),
-      cacheImplementer = cacheObject.cacheInstance;
-
-    cacheImplementer.delAll().then(function() {
-      console.log('--------Flushed memcached--------');
-    });
   }
 }
 
