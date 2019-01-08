@@ -13,10 +13,13 @@ class workflowRouterBase {
   /**
    *
    * @param params {Object}
-   * @param params.stepKind {string} Which step to execute in router
    * @param params.currentStepId {number} id of process parent
    * @param params.parentStepId {number} id of process parent
-   * @param params.status {string}
+   * @param params.stepKind {string} Which step to execute in router
+   * @param params.taskStatus {string} task is 'taskReadyToStart' or 'taskDone' status.
+   * @param params.taskResponseData {object} when task is 'taskDone', send taskResponseData if required.
+   * @param params.clientId {number}
+   * @param params.chainId {number}
    * @param params.payload {object}
    *
    * @constructor
@@ -29,11 +32,13 @@ class workflowRouterBase {
 
     oThis.stepKind = params.stepKind;
     oThis.taskStatus = params.taskStatus;
+    oThis.taskResponseData = params.taskResponseData;
     oThis.clientId = params.clientId;
     oThis.chainId = params.chainId;
 
     oThis.requestParams = params.requestParams || {};
     oThis.taskDone = false;
+    oThis.taskResponseData = null;
     oThis.nextSteps = [];
     oThis.workflowRecordsMap = {};
   }
@@ -94,6 +99,7 @@ class workflowRouterBase {
         return Promise.reject(response);
       } else {
         oThis.taskDone = response.data.taskDone;
+        oThis.taskResponseData = response.data.taskResponseData;
       }
     } else if (oThis.taskStatus == workflowStepConstants.taskDone) {
       oThis.taskDone = true;
@@ -110,9 +116,17 @@ class workflowRouterBase {
       );
     }
 
+    let updateData = {};
+    if (oThis.taskResponseData) {
+      updateData.response_data = JSON.stringify(oThis.taskResponseData);
+    }
     if (oThis.taskDone) {
-      await new WorkflowStepsModel().markAsSuccess(oThis.currentStepId);
+      updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus];
+      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
+
       await oThis.insertAndPublishNextSteps(oThis.nextSteps);
+    } else if (updateData.response_data) {
+      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
     }
 
     return Promise.resolve(responseHelper.successWithData({}));
@@ -157,18 +171,45 @@ class workflowRouterBase {
   async getWorkflowRecords() {
     const oThis = this;
     if (oThis.parentStepId) {
-      let workflowRecordsIds = [oThis.parentStepId, oThis.currentStepId];
+      let workflowRecords = await new WorkflowStepsModel()
+        .select('*')
+        .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
+        .fire();
+
+      for (let i = 0; i < workflowRecords.length; i++) {
+        oThis.workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
+      }
+
+      await oThis.getDependentWorkflowRecords();
+    }
+
+    return Promise.resolve(responseHelper.successWithData({}));
+  }
+
+  /**
+   *
+   * Get request params using parentId
+   *
+   * @returns {Promise<any>}
+   *
+   * @sets oThis.requestParams, oThis.clientId, oThis.chainId
+   *
+   */
+  async getDependentWorkflowRecords() {
+    const oThis = this;
+    if (oThis.readDataFromSteps.length > 0) {
+      let workflowRecordsKinds = [];
 
       for (let i = 0; i < oThis.readDataFromSteps.length; i++) {
         let invertedKind = new WorkflowStepsModel().invertedKinds[oThis.readDataFromSteps[i]];
         if (invertedKind) {
-          workflowRecordsIds.push(invertedKind);
+          workflowRecordsKinds.push(invertedKind);
         }
       }
 
       let workflowRecords = await new WorkflowStepsModel()
         .select('*')
-        .where(['id in (?)', workflowRecordsIds])
+        .where(['parent_id = ? AND kind in (?)', oThis.parentStepId, workflowRecordsKinds])
         .fire();
 
       for (let i = 0; i < workflowRecords.length; i++) {
@@ -228,12 +269,14 @@ class workflowRouterBase {
       oThis.chainId = parentRecord.chain_id;
     }
 
-    for (let i = 0; i < oThis.readDataFromSteps.length; i++) {
-      if (oThis.readDataFromSteps[i].response_data) {
-        Object.assign(oThis.requestParams, JSON.parse(oThis.readDataFromSteps.response_data));
+    for (let workflowId in oThis.workflowRecordsMap) {
+      let workflowData = oThis.workflowRecordsMap[workflowId];
+      if (workflowData.response_data) {
+        Object.assign(oThis.requestParams, JSON.parse(workflowData.response_data));
       }
     }
 
+    console.log('-------oThis.requestParams------', JSON.stringify(oThis.requestParams));
     if (!oThis.clientId || !oThis.chainId) {
       return Promise.reject(
         responseHelper.error({
@@ -372,21 +415,21 @@ class workflowRouterBase {
     const oThis = this;
 
     let nextStepDetails = await oThis.getNextStepConfigs(nextStep),
-      prerequisitesIds = [];
+      prerequisitesKinds = [];
 
     if (nextStepDetails.prerequisites) {
       for (let i = 0; i < nextStepDetails.prerequisites.length; i++) {
         let invertedKind = new WorkflowStepsModel().invertedKinds[nextStepDetails.prerequisites[i]];
         if (invertedKind) {
-          prerequisitesIds.push(invertedKind);
+          prerequisitesKinds.push(invertedKind);
         }
       }
     }
 
-    if (prerequisitesIds.length > 0) {
+    if (prerequisitesKinds.length > 0) {
       let prerequisitesRecords = await new WorkflowStepsModel()
         .select('*')
-        .where(['id in (?)', prerequisitesIds])
+        .where(['parent_id = ? AND kind in (?)', oThis.parentStepId, prerequisitesKinds])
         .fire();
       if (prerequisitesRecords.length != nextStepDetails.prerequisites.length) {
         return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));

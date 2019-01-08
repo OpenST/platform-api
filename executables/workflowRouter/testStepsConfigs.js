@@ -38,7 +38,7 @@ const steps = {
     kind: 's6',
     onFailure: '',
     onSuccess: [workflowStepConstants.s7],
-    readDataFrom: [workflowStepConstants.s33, workflowStepConstants.s4],
+    readDataFrom: [workflowStepConstants.s5, workflowStepConstants.s4],
     prerequisites: [workflowStepConstants.s4, workflowStepConstants.s5]
   },
   [workflowStepConstants.s7]: {
