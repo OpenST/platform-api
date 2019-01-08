@@ -46,6 +46,8 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis.setGasPrice();
+
     oThis.addKeyToWallet();
 
     let deployerResponse = await oThis._deployContract();

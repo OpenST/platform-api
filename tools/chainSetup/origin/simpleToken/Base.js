@@ -18,7 +18,8 @@ const rootPrefix = '../../../..',
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3');
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
  *
@@ -40,6 +41,7 @@ class SetupSimpleTokenBase {
 
     oThis.web3InstanceObj = null;
     oThis.configStrategyObj = null;
+    oThis.gasPrice = null;
   }
 
   /**
@@ -113,9 +115,13 @@ class SetupSimpleTokenBase {
     return oThis.web3InstanceObj;
   }
 
-  get gasPrice() {
-    //TODO: Add dynamic gas logic here
-    return '0x3B9ACA00';
+  async setGasPrice() {
+    //TODO: Add dynamic gas logic here: Done
+    const oThis = this;
+
+    let gasPriceCacheObj = new gasPriceCacheKlass(),
+      gasPriceRsp = await gasPriceCacheObj.fetch();
+    oThis.gasPrice = gasPriceRsp.data;
   }
 
   addKeyToWallet() {

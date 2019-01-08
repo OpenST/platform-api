@@ -46,6 +46,8 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis.setGasPrice();
+
     oThis.addKeyToWallet();
 
     let setAdminRsp = await oThis._setAdminAddress();

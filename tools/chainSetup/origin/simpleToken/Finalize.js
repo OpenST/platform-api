@@ -43,6 +43,8 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis.setGasPrice();
+
     oThis.addKeyToWallet();
 
     let finalizeRsp = await oThis._finalizeSimpleToken();
