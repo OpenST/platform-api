@@ -156,13 +156,16 @@ class Finalizer extends PublisherBase {
     });
 
     while (true) {
+      // SIGINT Received
+      if (oThis.stopPickingUpNewWork) {
+        break;
+      }
+
       oThis.canExit = false;
 
       let finalizerResponse = await finalizer.perform();
 
       let currentBlockNotProcessable = !finalizerResponse.data.blockProcessable;
-
-      oThis.canExit = true;
 
       if (currentBlockNotProcessable) {
         logger.log('===Waiting for 2 secs');
@@ -175,10 +178,11 @@ class Finalizer extends PublisherBase {
 
           await oThis._publishBlock(finalizerResponse.data.processedBlock);
         }
-        oThis.canExit = true;
         logger.log('===Waiting for 10 milli-secs');
         await oThis.sleep(10);
       }
+
+      oThis.canExit = true;
     }
   }
 

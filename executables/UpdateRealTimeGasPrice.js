@@ -51,6 +51,8 @@ class UpdateRealTimeGasPrice extends CronBase {
   constructor() {
     let params = { cronProcessId: cronProcessId };
     super(params);
+    const oThis = this;
+    oThis.canExit = true;
   }
 
   /**
@@ -62,6 +64,8 @@ class UpdateRealTimeGasPrice extends CronBase {
     const oThis = this,
       strategyByGroupHelperObj = new StrategyByChainIdHelper(oThis.chainId, oThis.groupId),
       configStrategyResp = await strategyByGroupHelperObj.getForKind(configStrategyConstants.originConstants);
+
+    oThis.canExit = false;
 
     let configStrategy = configStrategyResp.data,
       chainIdInternal = configStrategy.originConstants.networkId;
@@ -101,6 +105,7 @@ class UpdateRealTimeGasPrice extends CronBase {
       return Promise.resolve(responseHelper.successWithData(gasPriceToBeSubmittedHex));
     }
     logger.info('Origin chain gas price cache is not set');
+    oThis.canExit = true;
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
@@ -111,7 +116,9 @@ class UpdateRealTimeGasPrice extends CronBase {
    * @private
    */
   _pendingTasksDone() {
-    return 'true';
+    const oThis = this;
+
+    return oThis.canExit;
   }
 
   /**
