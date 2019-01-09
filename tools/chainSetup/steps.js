@@ -129,7 +129,6 @@ async function setSimpleTokenAdmin(signerAddress, signerKey, adminAddress) {
   return await obj.perform();
 }
 
-//TODO:- nonce too low error, review nonce manager
 setSimpleTokenAdmin(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey, simpleTokenAdminAddr);
 
 ///////////  e. finalize simple token address

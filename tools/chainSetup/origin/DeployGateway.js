@@ -126,7 +126,6 @@ class DeployGateway {
     let gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
     oThis.gasPrice = gasPriceRsp.data;
-    //oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here:Done
   }
 
   /***

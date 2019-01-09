@@ -125,7 +125,6 @@ class SetCoAnchor {
           garPriceRsp = await gasPriceCacheObj.fetch();
         oThis.gasPrice = garPriceRsp.data;
 
-        //oThis.gasPrice = '0x3B9ACA00'; //TODO: Add dynamic gas logic here Done
         oThis.otherChainKind = chainAddressConstants.auxChainKind;
         break;
       case chainAddressConstants.auxChainKind:

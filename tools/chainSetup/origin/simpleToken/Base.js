@@ -116,7 +116,6 @@ class SetupSimpleTokenBase {
   }
 
   async setGasPrice() {
-    //TODO: Add dynamic gas logic here: Done
     const oThis = this;
 
     let gasPriceCacheObj = new gasPriceCacheKlass(),

@@ -166,7 +166,6 @@ class ConfigurationHelper {
    */
   _validateStringTypeEntity(entityName, entityValue, valueCheckNeeded) {
     const oThis = this;
-    console.log('-------------------------------------------------', entityName, entityValue, valueCheckNeeded);
     let b = entityValue && typeof entityValue === 'string';
     if (!b) return b;
     if (valueCheckNeeded) {
