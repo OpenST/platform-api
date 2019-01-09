@@ -125,6 +125,9 @@ class AuxChainSetup {
     logger.step('** Initialize STPrime Contract');
     await oThis.initializeSTPrime();
 
+    logger.step('** Deploying origin anchor contract.');
+    await oThis.deployOriginAnchor();
+
     logger.step('** Deploying auxiliary anchor contract.');
     await oThis.deployAuxAnchor();
 
@@ -231,16 +234,32 @@ class AuxChainSetup {
     return await new InitializeSimpleTokenPrime({ chainId: oThis.auxChainId }).perform();
   }
 
+  async deployOriginAnchor() {
+    const oThis = this,
+      rsp = await chainConfigProvider.getFor([oThis.originChainId]),
+      config = rsp[oThis.originChainId],
+      ic = new InstanceComposer(config),
+      DeployAnchor = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
+
+    return await new DeployAnchor({
+      chainKind: chainAddressConstants.originChainKind,
+      auxChainId: oThis.auxChainId
+    }).perform();
+  }
+
   async deployAuxAnchor() {
     const oThis = this;
     let DeployAnchor = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
-    return await new DeployAnchor({ chainKind: chainAddressConstants.auxChainKind }).perform();
+    return await new DeployAnchor({
+      chainKind: chainAddressConstants.auxChainKind,
+      auxChainId: oThis.auxChainId
+    }).perform();
   }
 
   async setCoAnchor(chainKind) {
     const oThis = this,
       SetCoAnchor = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetCoAnchor');
-    return await new SetCoAnchor({ chainKind: chainKind }).perform();
+    return await new SetCoAnchor({ chainKind: chainKind, auxChainId: oThis.auxChainId }).perform();
   }
 
   async deployLib(chainKind, libKind) {
@@ -260,12 +279,12 @@ class AuxChainSetup {
       config = rsp[oThis.originChainId],
       ic = new InstanceComposer(config),
       DeployGateway = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployGateway');
-    return await new DeployGateway({}).perform();
+    return await new DeployGateway({ auxChainId: oThis.auxChainId }).perform();
   }
   async deployCoGatewayContract() {
     const oThis = this,
       DeployCoGateway = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployCoGateway');
-    return await new DeployCoGateway({}).perform();
+    return await new DeployCoGateway({ auxChainId: oThis.auxChainId }).perform();
   }
 
   async activateGatewayContract() {

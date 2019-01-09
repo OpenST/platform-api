@@ -155,10 +155,10 @@ class GethManager {
     let chainKind = chainType === 'aux' ? chainAddressConstants.auxChainKind : chainAddressConstants.originChainKind;
     // Adds sealer address to the DB.
     await new ChainAddressModel().insertAddress({
-      address: sealerAddress,
       chainId: chainId,
       chainKind: chainKind,
-      kind: chainAddressConstants.sealerKind
+      kind: chainAddressConstants.sealerKind,
+      address: sealerAddress
     });
 
     // Copy genesis template file in chain folder

@@ -162,7 +162,7 @@ class ActivateGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.gatewayContractKind,
+      kind: chainAddressConstants.originGatewayContractKind,
       chainKind: oThis.chainKind
     });
 
@@ -192,7 +192,7 @@ class ActivateGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._configStrategyObject.auxChainId,
-      kind: chainAddressConstants.coGatewayContractKind,
+      kind: chainAddressConstants.auxCoGatewayContractKind,
       chainKind: chainAddressConstants.auxChainKind
     });
 

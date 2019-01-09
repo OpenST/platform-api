@@ -262,7 +262,8 @@ class DeployGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorContractKind,
+      auxChainId: oThis.chainId, //for gateway deployment, input chainId will always be originChainId.
+      kind: chainAddressConstants.originAnchorContractKind,
       chainKind: oThis.chainKind
     });
 
@@ -388,7 +389,7 @@ class DeployGateway {
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
       chainId: oThis.chainId,
-      kind: chainAddressConstants.gatewayContractKind,
+      kind: chainAddressConstants.originGatewayContractKind,
       chainKind: oThis.chainKind
     });
   }

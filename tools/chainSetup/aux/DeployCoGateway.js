@@ -260,7 +260,8 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorContractKind,
+      auxChainId: oThis.chainId, //for co-gateway deployment, input chainId will always be auxChainId.
+      kind: chainAddressConstants.auxAnchorContractKind,
       chainKind: oThis.chainKind
     });
 
@@ -290,7 +291,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._configStrategyObject.originChainId,
-      kind: chainAddressConstants.gatewayContractKind,
+      kind: chainAddressConstants.originGatewayContractKind,
       chainKind: chainAddressConstants.originChainKind
     });
 
@@ -416,7 +417,7 @@ class DeployCoGateway {
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
       chainId: oThis.chainId,
-      kind: chainAddressConstants.coGatewayContractKind,
+      kind: chainAddressConstants.auxCoGatewayContractKind,
       chainKind: oThis.chainKind
     });
   }

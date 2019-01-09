@@ -36,7 +36,6 @@ const rootPrefix = '../..',
 const GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey'),
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
-require(rootPrefix + '/tools/chainSetup/DeployAnchor');
 require(rootPrefix + '/tools/chainSetup/SetupOrganization');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Finalize');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Deploy.js');
@@ -157,9 +156,6 @@ class chainSetup {
     await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
 
     await basicHelper.pauseForMilliSeconds(200);
-
-    logger.step('** Deploying anchor contract.');
-    await oThis.deployOriginAnchor();
 
     logger.win('Deployment steps successfully performed on origin chain.');
 
@@ -297,16 +293,6 @@ class chainSetup {
       chainKind: chainAddressConstants.originChainKind,
       addressKind: addressKind
     }).perform();
-  }
-
-  async deployOriginAnchor() {
-    const oThis = this,
-      rsp = await chainConfigProvider.getFor([oThis.chainId]),
-      config = rsp[oThis.chainId],
-      ic = new InstanceComposer(config),
-      DeployAnchor = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
-
-    return await new DeployAnchor({ chainKind: chainAddressConstants.originChainKind }).perform();
   }
 
   async _fundAddressWithEth(address) {

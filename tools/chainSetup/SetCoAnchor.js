@@ -29,6 +29,7 @@ class SetCoAnchor {
    *
    * @param {Object} params
    * @param {String} params.chainKind - origin / aux (chain kind for which anchor org is to be setup)
+   * @param {Integer} params.auxChainId - auxChainId (for which aux chain, we want to set co-anchor.)
    *
    * @constructor
    */
@@ -36,6 +37,9 @@ class SetCoAnchor {
     const oThis = this;
 
     oThis.chainKind = params['chainKind'];
+    oThis.auxChainId = params['auxChainId'];
+
+    console.log('params---------', params);
 
     oThis.chainId = null;
     oThis.otherChainId = null;
@@ -119,7 +123,7 @@ class SetCoAnchor {
     switch (oThis.chainKind) {
       case chainAddressConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
-        oThis.otherChainId = oThis._configStrategyObject.auxChainId;
+        oThis.otherChainId = oThis.auxChainId;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           garPriceRsp = await gasPriceCacheObj.fetch();
@@ -128,7 +132,7 @@ class SetCoAnchor {
         oThis.otherChainKind = chainAddressConstants.auxChainKind;
         break;
       case chainAddressConstants.auxChainKind:
-        oThis.chainId = oThis._configStrategyObject.auxChainId;
+        oThis.chainId = oThis.auxChainId;
         oThis.otherChainId = oThis._configStrategyObject.originChainId;
         oThis.gasPrice = '0x0';
         oThis.otherChainKind = chainAddressConstants.originChainKind;
@@ -182,7 +186,8 @@ class SetCoAnchor {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorContractKind,
+      auxChainId: oThis.auxChainId,
+      kind: chainAddressConstants.originAnchorContractKind,
       chainKind: oThis.chainKind
     });
 
@@ -211,8 +216,9 @@ class SetCoAnchor {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.otherChainId,
-      kind: chainAddressConstants.anchorContractKind,
+      chainId: oThis.auxChainId,
+      auxChainId: oThis.auxChainId,
+      kind: chainAddressConstants.auxAnchorContractKind,
       chainKind: oThis.otherChainKind
     });
 

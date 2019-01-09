@@ -23,8 +23,10 @@ class ChainAddress extends ModelBase {
    * @param {object} params - external passed parameters
    * @param {String} params.address - address
    * @param {Integer} params.chainId - chainId
+   * @param {Integer} params.auxChainId - auxChainId
    * @param {String} params.chainKind - chain kind
    * @param {String} params.kind - address kind
+   * @param {Integer} params.status - status
    *
    * @return {Promise}
    */
@@ -32,6 +34,8 @@ class ChainAddress extends ModelBase {
     const oThis = this,
       addressKind = params['kind'],
       addressKindInt = chainAddressConst.invertedKinds[addressKind];
+
+    console.log('----insertAddress-------', params);
 
     if (!addressKindInt) {
       return Promise.reject(
@@ -68,9 +72,11 @@ class ChainAddress extends ModelBase {
     let insertedRec = await new ChainAddress()
       .insert({
         chain_id: params.chainId,
+        aux_chain_id: params.auxChainId,
         kind: addressKindInt,
         chain_kind: chainAddressConst.invertedChainKinds[params.chainKind],
-        address: params.address
+        address: params.address,
+        status: chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
       })
       .fire();
 
@@ -92,6 +98,7 @@ class ChainAddress extends ModelBase {
    *
    * @param {object} params - external passed parameters
    * @param {Integer} params.chainId - chainId
+   * @param {Integer} params.auxChainId - auxChainId
    * @param {String} params.chainKind - chain kind
    * @param {String} params.kind - address kind
    *
@@ -112,15 +119,37 @@ class ChainAddress extends ModelBase {
       );
     }
 
-    let existingRows = await oThis
-      .select('*')
-      .where([
-        'chain_id = ? AND kind = ? AND chain_kind = ?',
+    let whereClause = null;
+
+    console.log('-----fetch------', params);
+
+    if (params.auxChainId) {
+      whereClause = [
+        'chain_id = ? AND aux_chain_id = ? AND kind = ? AND chain_kind = ? AND status = ?',
+        params.chainId,
+        params.auxChainId,
+        chainAddressConst.invertedKinds[params.kind],
+        chainAddressConst.invertedChainKinds[params.chainKind],
+        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
+      ];
+    } else {
+      whereClause = [
+        'chain_id = ? AND kind = ? AND chain_kind = ? AND status = ?',
         params.chainId,
         chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedChainKinds[params.chainKind]
-      ]).order_by('created_at DESC').limit(1)
+        chainAddressConst.invertedChainKinds[params.chainKind],
+        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
+      ];
+    }
+
+    console.log('whereClause----', whereClause);
+
+    let existingRows = await oThis
+      .select('*')
+      .where(whereClause)
       .fire();
+
+    console.log('existingRows-----', existingRows);
 
     let returnData;
 

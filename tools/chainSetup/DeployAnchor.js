@@ -29,6 +29,7 @@ class DeployAnchor {
    *
    * @param {Object} params
    * @param {String} params.chainKind - origin / aux (chain kind for which anchor org is to be setup)
+   * @param {String} params.auxChainId - auxChainId
    *
    * @constructor
    */
@@ -38,6 +39,8 @@ class DeployAnchor {
     oThis.chainKind = params['chainKind'];
 
     oThis.chainId = null;
+    oThis.anchorKind = null;
+    oThis.auxChainId = params.auxChainId;
     oThis.gasPrice = null;
     oThis.configStrategyObj = null;
   }
@@ -117,6 +120,7 @@ class DeployAnchor {
     switch (oThis.chainKind) {
       case chainAddressConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
+        oThis.anchorKind = chainAddressConstants.originAnchorContractKind;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           gasPriceRsp = await gasPriceCacheObj.fetch();
@@ -124,6 +128,7 @@ class DeployAnchor {
         break;
       case chainAddressConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
+        oThis.anchorKind = chainAddressConstants.auxAnchorContractKind;
         oThis.gasPrice = '0x0';
         break;
       default:
@@ -241,7 +246,8 @@ class DeployAnchor {
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
       chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorContractKind,
+      auxChainId: oThis.auxChainId,
+      kind: oThis.anchorKind,
       chainKind: oThis.chainKind
     });
   }
