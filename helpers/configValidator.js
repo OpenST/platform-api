@@ -166,8 +166,8 @@ class ConfigurationHelper {
    */
   _validateStringTypeEntity(entityName, entityValue, valueCheckNeeded) {
     const oThis = this;
-    let b = entityValue && typeof entityValue === 'string';
-    if (!b) return b;
+    if (typeof entityValue !== 'string') return false; //If specific value check is needed then valueCheckNeeded parameter should be added in the template and check will be added in _validateValueFor function.
+
     if (valueCheckNeeded) {
       return oThis._validateValueFor(entityName, entityValue);
     }
