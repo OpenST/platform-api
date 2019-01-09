@@ -5,7 +5,7 @@
 
 # saas-api
 
-## Setup
+### Setup
 Install all the packages.
 ```
 npm install
@@ -21,13 +21,17 @@ npm install
 source set_env_vars.sh
 ```
 
-Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
+### Config Strategies Creation
+
+- Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
+
+### Local Chain Setup
 
 * Run following command for origin chain setup.
 ```bash
 > node tools/localSetup/originChainSetup.js --originChainId 1000
 ```
-    NOTE: Make sure you don't exit the tab, so that origin geth will be running.
+   - NOTE: Make sure you don't exit the tab, so that origin geth will be running.
    
    
 * Run following command for aux chain setup.
