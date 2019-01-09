@@ -2,6 +2,7 @@
 
 Create entry in encryption_salts to be used for encrypting the config strategy
 ```
+source source set_env_vars.sh
 node executables/createEncryptionSalt
 ```
 
