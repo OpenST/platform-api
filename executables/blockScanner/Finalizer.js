@@ -12,6 +12,7 @@
 const rootPrefix = '../..',
   program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
@@ -133,6 +134,7 @@ class Finalizer extends PublisherBase {
     // Initialize BlockParser.
     oThis.Finalizer = blockScannerObj.block.Finalize;
     oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
+    oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
 
     logger.step('Services initialised.');
   }
@@ -173,6 +175,10 @@ class Finalizer extends PublisherBase {
       } else {
         if (finalizerResponse.data.processedBlock) {
           await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
+
+          await oThis._checkAfterReceiptTasksAndPublish(finalizerResponse.data);
+
+          await oThis._cleanUpPendingTransactions();
 
           logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
 
@@ -247,6 +253,87 @@ class Finalizer extends PublisherBase {
       return Promise.reject({ err: "Couldn't publish block number" + blockNumber });
     }
     logger.log('====published block', blockNumber);
+  }
+
+  /**
+   * _checkAfterReceiptTasksAndPublish
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _checkAfterReceiptTasksAndPublish(params) {
+    const oThis = this,
+      pendingTransactionModel = new oThis.PendingTransactionModel({
+        chainId: oThis.chainId
+      });
+
+    let transactionHashes = params.processedTransactions;
+
+    if (transactionHashes.length <= 0) return;
+
+    let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
+      oThis.chainId,
+      transactionHashes
+    );
+
+    let pendingTransactionData = pendingTransactionRsp.data;
+
+    oThis.dataToDelete = [];
+    for (let txHash in pendingTransactionData) {
+      let pendingTransactionData = pendingTransactionData[txHash];
+      oThis.dataToDelete.push(pendingTransactionData);
+
+      if (pendingTransactionData.hasOwnProperty('afterReceipt')) {
+        // Publish state root info for workflow to be able to proceed with other steps
+        await oThis._publishAfterReceiptInfo(pendingTransactionData.afterReceipt);
+      }
+    }
+  }
+
+  /**
+   * _cleanupPendingTransactions
+   *
+   * @return {Promise<void>}
+   */
+  async _cleanupPendingTransactions() {
+    const oThis = this,
+      pendingTransactionModel = new oThis.PendingTransactionModel({
+        chainId: oThis.chainId
+      });
+
+    if (oThis.dataToDelete.length > 0) {
+      await pendingTransactionModel.batchDeleteItem(oThis.dataToDelete, coreConstants.batchDeleteRetryCount);
+    }
+  }
+
+  /**
+   * _publishAfterReceiptInfo
+   *
+   * @param params
+   * @return {Promise<never>}
+   * @private
+   */
+  async _publishAfterReceiptInfo(params) {
+    const oThis = this;
+
+    let messageParams = {
+      topics: params.topics,
+      publisher: params.publisher,
+      message: {
+        kind: params.kind,
+        payload: params.payload
+      }
+    };
+
+    let setToRMQ = await oThis.openSTNotification.publishEvent.perform(messageParams);
+
+    // If could not set to RMQ run in async.
+    if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
+      logger.error("====Couldn't publish the message to RMQ====");
+      return Promise.reject({ err: "Couldn't publish block number" + blockNumber });
+    }
+
+    logger.info('==== State root sync transaction published ===');
   }
 
   /**

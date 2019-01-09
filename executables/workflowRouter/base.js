@@ -6,8 +6,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  WorkFlowTopics = require(rootPrefix + '/lib/globalConstant/workflowTopic');
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 class workflowRouterBase {
   /**

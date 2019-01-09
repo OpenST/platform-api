@@ -67,7 +67,7 @@ class StateRootSyncRouter extends WorkflowRouterBase {
     const oThis = this;
 
     let stateRootCommitHistoryModel = new StateRootCommitHistoryModel();
-    return new stateRootCommitHistoryModel().updateStatus(params);
+    return stateRootCommitHistoryModel.updateStatus(params);
   }
 }
 

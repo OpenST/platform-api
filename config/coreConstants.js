@@ -225,6 +225,15 @@ class CoreConstants {
   get OST_AUX_GAS_PRICE() {
     return '0x3B9ACA00';
   }
+
+  /**
+   * Batch delete retry count
+   *
+   * @return {Number}
+   */
+  get batchDeleteRetryCount() {
+    return 10;
+  }
 }
 
 module.exports = new CoreConstants();
