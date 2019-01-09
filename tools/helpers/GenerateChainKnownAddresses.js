@@ -7,34 +7,36 @@
  */
 
 const rootPrefix = '../..',
-  GenerateChainKnownAddress = require(rootPrefix + '/lib/GenerateChainKnownAddress'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  GenerateChainKnownAddress = require(rootPrefix + '/lib/generateKnownAddress/chainSetup');
 
-/**
- * Generate Internal addresses required for setup.
- *
- * @param {object} params - external passed parameters
- * @param {string} params.addressKinds - array of types of address to generate
- * @param {string} params.chainKind - chain kind
- * @param {number} params.chainId - chain id
- */
-const generateInternalAddressesKlass = function(params) {
-  const oThis = this;
+class generateInternalAddresses {
+  /**
+   * Generate Internal addresses required for setup.
+   *
+   * @constructor
+   *
+   * @param {object} params - external passed parameters
+   * @param {string} params.addressKinds - array of types of address to generate
+   * @param {string} params.chainKind - chain kind
+   * @param {number} params.chainId - chain id
+   */
 
-  oThis.addressKinds = params.addressKinds;
-  oThis.chainKind = params.chainKind;
-  oThis.chainId = params.chainId;
-};
+  constructor(params) {
+    const oThis = this;
+    oThis.addressKinds = params.addressKinds;
+    oThis.chainKind = params.chainKind;
+    oThis.chainId = params.chainId;
+  }
 
-generateInternalAddressesKlass.prototype = {
   /**
    * Generate addresses.
    *
    * @return {Promise<Array>}
    */
-  perform: async function() {
+  async perform() {
     const oThis = this;
 
     for (let i = 0; i < oThis.addressKinds.length; i++) {
@@ -66,6 +68,6 @@ generateInternalAddressesKlass.prototype = {
 
     return responseHelper.successWithData({ addressKindToValueMap: addressKindToValueMap });
   }
-};
+}
 
-module.exports = generateInternalAddressesKlass;
+module.exports = generateInternalAddresses;
