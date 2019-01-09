@@ -3,7 +3,7 @@
 /**
  * This is model for workflow_setup table.
  *
- * @module app/models/mysql/WorkflowSteps
+ * @module app/models/mysql/WorkflowStep
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
@@ -32,7 +32,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   },
   invertedKinds = util.invert(kinds);
 
-class WorkflowSteps extends ModelBase {
+class WorkflowStep extends ModelBase {
   constructor() {
     super({ dbName: dbName });
 
@@ -117,4 +117,4 @@ class WorkflowSteps extends ModelBase {
   }
 }
 
-module.exports = WorkflowSteps;
+module.exports = WorkflowStep;

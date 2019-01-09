@@ -5,7 +5,7 @@ const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowSteps'),
+  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   WorkFlowTopics = require(rootPrefix + '/lib/globalConstant/workflowTopic');
 
