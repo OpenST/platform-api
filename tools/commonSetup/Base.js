@@ -117,7 +117,7 @@ class CommonSetupBase {
   }
 
   /**
-   * fetch nonce (calling this method means incrementing nonce in cache, use judiciouly)
+   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
    *
    * @ignore
    *
