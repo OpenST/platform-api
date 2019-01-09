@@ -83,10 +83,10 @@ class chainSetup {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('tools/localSetup/chainSetup.js::perform::catch');
+        logger.error('tools/localSetup/originChainSetup.js::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_ls_cs_1',
+          internal_error_identifier: 't_ls_ocs_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -104,19 +104,19 @@ class chainSetup {
   async _asyncPerform() {
     const oThis = this;
 
-    logger.step('**** Starting fresh setup *****');
+    logger.step('** Starting fresh setup');
     await fileManager.freshSetup();
 
-    logger.step('**** Generating addresses and init geth with genesis ******');
+    logger.step('** Generating sealer address and init geth with genesis');
     await gethManager.initChain(chainAddressConstants.originChainKind, oThis.chainId);
 
-    logger.step('**** Starting Origin Geth ******');
+    logger.step('** Starting origin geth for deployment.');
     await serviceManager.startGeth(chainAddressConstants.originChainKind, oThis.chainId, 'deployment');
 
-    logger.step('1. Origin Addresses Generation');
+    logger.step('** Origin Addresses Generation');
     await oThis.generateAndFundOriginAddr();
 
-    logger.step('3] a). generate SimpleTokenOwner & SimpleTokenAdmin private keys.');
+    logger.step('** Generate SimpleTokenOwner & SimpleTokenAdmin private keys.');
     let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey(),
       SimpleTokenAdminDetails = await oThis.generateAddrAndPrivateKey(),
       simpleTokenOwnerAddress = SimpleTokenOwnerDetails.address,
@@ -124,41 +124,41 @@ class chainSetup {
       simpleTokenAdmin = SimpleTokenAdminDetails.address,
       simpleTokenAdminPrivateKey = SimpleTokenAdminDetails.privateKey;
 
-    logger.step('3] b). Fund SimpleTokenOwner & SimpleTokenAdmin with ETH on origin chain.');
+    logger.step('** Funding SimpleTokenOwner & SimpleTokenAdmin addresses with ETH.');
     await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
     await oThis._fundAddressWithEth(SimpleTokenAdminDetails.address);
 
-    logger.step('3] c). Deploy Simple Token.');
+    logger.step('** Deploying Simple Token Contract');
     await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('3] d). Set Simple Token Admin.');
+    logger.step('** Set Simple Token Admin Address.');
     await oThis.setSimpleTokenAdmin(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey, simpleTokenAdmin);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('3] e). Finalize SimpleToken');
+    logger.step('** Finalize Simple Token Contract');
     await oThis.finalizeSimpleTokenAdmin(simpleTokenAdmin, simpleTokenAdminPrivateKey);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('4. Insert simple token admin and owner address into chain addresses table.');
+    logger.step('** Insert SimpleTokenOwner and SimpleTokenAdmin Address into chain addresses table.');
     await oThis.insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddress, simpleTokenAdmin);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('5] a) Setup organization for simple token contract');
+    logger.step('* Setup base contract organization.');
     await oThis.setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('5] a) Setup organization for anchor');
+    logger.step('* Setup anchor organization.');
     await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('6. Deploying origin anchor.');
+    logger.step('** Deploying anchor contract.');
     await oThis.deployOriginAnchor();
 
     logger.win('Deployment steps successfully performed on origin chain.');
@@ -183,13 +183,13 @@ class chainSetup {
     let generateOriginAddrRsp = await generateChainKnownAddresses.perform();
 
     if (generateOriginAddrRsp.isSuccess()) {
-      logger.log('Origin Addresses Response: ', generateOriginAddrRsp.toHash());
+      logger.log('Generate Addresses Response: ', generateOriginAddrRsp.toHash());
 
       let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
         deployerAddr = addresses['deployer'],
         ownerAddr = addresses['owner'];
 
-      logger.step('2. Funding Addresses with ETH.');
+      logger.log('* Funding Addresses with ETH.');
       await oThis._fundAddressWithEth(deployerAddr);
       await oThis._fundAddressWithEth(ownerAddr);
     } else {
@@ -201,6 +201,7 @@ class chainSetup {
   generateAddrAndPrivateKey() {
     let generatePrivateKey = new GeneratePrivateKey();
     let generatePrivateKeyRsp = generatePrivateKey.perform();
+    logger.log('Generated Address: ', generatePrivateKeyRsp.data);
     return generatePrivateKeyRsp.data;
   }
 
@@ -327,13 +328,13 @@ class chainSetup {
     let txParams = {
       from: sealerAddress.data.address,
       to: address,
-      value: '2000000000000000000' //transfer amt in wei
+      value: '200000000000000000000' //transfer amt in wei
     };
 
     await web3Instance.eth
       .sendTransaction(txParams)
       .then(function(response) {
-        logger.info('Successfully funded to address -> ', response.to);
+        logger.log('Successfully funded to address -> ', response.to);
         Promise.resolve();
       })
       .catch(function(error) {

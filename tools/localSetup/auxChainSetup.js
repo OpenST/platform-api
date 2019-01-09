@@ -94,11 +94,11 @@ class AuxChainSetup {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis.checkOriginGeth();
+    await oThis.checkIfOriginGethIsRunning();
 
-    await oThis.getIc();
+    await oThis._getIc();
 
-    logger.step('Generate aux addresses');
+    logger.step('** Auxiliary Addresses Generation');
     let generatedAddresses = await oThis.generateAuxAddresses(),
       allocAddressToAmountMap = {},
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
@@ -109,79 +109,83 @@ class AuxChainSetup {
       allocAddressToAmountMap
     );
 
+    logger.step('** Starting Auxiliary Geth for deployment.');
     await serviceManager.startGeth(chainAddressConstants.auxChainKind, oThis.auxChainId, 'deployment');
     await basicHelper.pauseForMilliSeconds(10000);
 
-    logger.step('Setup aux organization for St prime');
+    logger.step('* Setup base contract organization.');
     await oThis.setupAuxOrganization(chainAddressConstants.baseContractOrganizationKind);
 
-    logger.step('Setup aux organization for Anchor');
+    logger.step('* Setup auxiliary anchor organization.');
     await oThis.setupAuxOrganization(chainAddressConstants.anchorOrganizationKind);
 
-    logger.step('Deploy ST Prime');
+    logger.step('** Deploying STPrime Contract');
     await oThis.deploySTPrime();
 
-    logger.step('Initialize ST Prime');
+    logger.step('** Initialize STPrime Contract');
     await oThis.initializeSTPrime();
 
-    logger.step('Deploying aux anchor');
+    logger.step('** Deploying auxiliary anchor contract.');
     await oThis.deployAuxAnchor();
 
-    logger.step('Set Origin Co anchor');
+    logger.step('** Set Origin Co anchor');
     await oThis.setCoAnchor(chainAddressConstants.originChainKind);
 
-    logger.step('Set Aux Co anchor');
+    logger.step('** Set Aux Co anchor');
     await oThis.setCoAnchor(chainAddressConstants.auxChainKind);
 
-    logger.step('Origin: Deploy merklePatriciaProof lib');
+    logger.step('** Deploy libraries.');
+
+    logger.log('* [Origin]: Deply MerklePatriciaProof');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'merklePatriciaProof');
 
-    logger.step('Origin:  Deploy messageBus lib');
+    logger.log('* [Origin]: Deploy MessageBus');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'messageBus');
 
-    logger.step('Origin:  Deploy gateway lib');
+    logger.log('* [Origin]: Deploy GatewayLib');
     await oThis.deployLib(chainAddressConstants.originChainKind, 'gateway');
 
-    logger.step('Aux: Deploy merklePatriciaProof lib');
+    logger.log('* [Auxiliary]: Deply MerklePatriciaProof');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'merklePatriciaProof');
 
-    logger.step('Aux:  Deploy messageBus lib');
+    logger.log('* [Auxiliary]: Deploy MessageBus');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'messageBus');
 
-    logger.step('Aux:  Deploy gateway lib');
+    logger.log('* [Auxiliary]: Deploy GatewayLib');
     await oThis.deployLib(chainAddressConstants.auxChainKind, 'gateway');
 
-    logger.step('Deploying gateway contract');
+    logger.step('** Deploying gateway contract');
     await oThis.deployGatewayContract();
 
-    logger.step('Deploying co gateway contract');
-    await oThis.deployCoGatewayContract(); //TODO: add cogateway addres to ostPtime
+    logger.step('** Deploying co gateway contract');
+    await oThis.deployCoGatewayContract(); //TODO: add co-gateway address to OSTPrime contract
 
-    logger.step('Activate co gateway contract');
+    logger.step('** Activate co gateway contract');
     await oThis.activateGatewayContract();
-    logger.win('Deployment steps successfully performed on aux chain.');
+
+    logger.win('Deployment steps successfully performed on auxiliary chain :', oThis.auxChainId);
     process.exit(1);
   }
 
-  async getIc() {
+  async _getIc() {
     const oThis = this,
       rsp = await chainConfigProvider.getFor([oThis.auxChainId]),
       config = rsp[oThis.auxChainId];
     oThis.ic = new InstanceComposer(config);
   }
 
-  async checkOriginGeth() {
+  async checkIfOriginGethIsRunning() {
     const oThis = this;
+    logger.info('Checking if origin geth running.');
     let cmd =
       'ps aux | grep geth | grep origin-' + oThis.originChainId + " | grep -v grep | tr -s ' ' | cut -d ' ' -f2";
     let processId = shell.exec(cmd).stdout;
 
-    console.log('processId', processId);
     if (processId === '') {
       logger.error('Please start origin geth.');
       process.exit(1);
     } else {
-      logger.info('Origin Geth running.');
+      logger.info('Origin geth running.');
     }
   }
 

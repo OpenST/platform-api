@@ -249,12 +249,13 @@ class ServiceManager {
     const oThis = this;
 
     // Start Geth
-    logger.info('* Starting ' + chainType + '-' + chainId + ' chain');
+    logger.info('* Starting ' + chainType + '-' + chainId + ' chain.');
     const cmd = await oThis._startGethCommand(chainType, chainId, purpose);
     logger.info(cmd);
     shellAsyncCmd.run(cmd);
 
     await basicHelper.pauseForMilliSeconds(3 * 1000);
+    logger.info('* ' + chainType + '-' + chainId + ' chain is running.');
   }
 
   /**
