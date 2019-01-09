@@ -29,6 +29,7 @@ class workflowRouterBase {
     const oThis = this;
     oThis.currentStepId = params.currentStepId;
     oThis.parentStepId = params.parentStepId;
+    oThis.topic = params.topic;
 
     oThis.stepKind = params.stepKind;
     oThis.taskStatus = params.taskStatus;
@@ -354,7 +355,7 @@ class workflowRouterBase {
       let nextStepId = insertRsp.insertId;
 
       let messageParams = {
-        topics: [WorkFlowTopics.test],
+        topics: [oThis.topic],
         publisher: oThis._publisher,
         message: {
           kind: oThis._messageKind,

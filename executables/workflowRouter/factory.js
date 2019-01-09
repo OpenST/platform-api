@@ -112,10 +112,16 @@ class workflowRouterFactory extends SubscriberBase {
 
     // identify which file/function to initiate to execute task of specific kind.
     // Query in workflow_steps to get details pf parent id in message params
-    switch (messageParams.topics[0]) {
+    let msgParams = messageParams.message.payload;
+    msgParams.topic = messageParams.topics[0];
+
+    switch (msgParams.topic) {
       case workflowTopicConstant.test:
         const testProcessRouter = require(rootPrefix + '/executables/workflowRouter/testProcessRouter');
-        return new testProcessRouter(messageParams.message.payload).perform();
+        return new testProcessRouter(msgParams).perform();
+      case workflowTopicConstant.stateRootSync:
+        const stateRootSyncRouter = require(rootPrefix + '/executables/workflowRouter/testProcessRouter');
+        return new stateRootSyncRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
