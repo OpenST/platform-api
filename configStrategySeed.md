@@ -81,8 +81,8 @@ let originGethDetails = {
     "client": "geth"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(0, 0).addForKind('originGeth', originGethDetails, 1)
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(0, 0).addForKind('originGeth', originGethDetails, 1);
 ```
 
 Chain specific memcache config strategy
@@ -159,12 +159,12 @@ new ConfigStrategyCrud(2000, 1).addForKind('auxConstants', auxConstantDetails, 1
 
 Activating global config
 ```js
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(0, 0).activate()
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(0, 0).activate();
 ```
 
 Activating chain specific config
 ```js
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(2000, 1).activate()
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(2000, 1).activate();
 ```
