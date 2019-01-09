@@ -100,7 +100,6 @@ class ConfigStrategyModel extends ModelBase {
       encrypted_params: encryptedHash,
       unencrypted_params: hashNotToEncryptString,
       encryption_salt_id: encryptionSaltId,
-      is_available_for_allocation: 1,
       status: 2
     };
 

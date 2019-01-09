@@ -6,6 +6,17 @@ source source set_env_vars.sh
 node executables/createEncryptionSalt
 ```
 
+Create entry in config_groups table
+```js
+let insertParams = {
+  "chainId": 0,
+  "groupId": 0
+}
+let configGroupsClass = require('./app/models/mysql/ConfigGroups'),
+configGroupsObject = new configGroupsClass();
+configGroupsObject.insertRecord(insertParams).then(console.log).catch(console.log)
+```
+
 ## Insert required config strategies
 Global Memcache config strategy
 ```js
