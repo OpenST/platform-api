@@ -7,12 +7,15 @@
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = {
-    '1': ''
+    '1': tokenAddressConstants.ownerAddressKind,
+    '2': tokenAddressConstants.adminAddressKind,
+    '3': tokenAddressConstants.workerAddressKind
   },
   invertedKinds = util.invert(kinds);
 
