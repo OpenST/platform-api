@@ -13,6 +13,14 @@ class CoreConstants {
    */
   constructor() {}
 
+  get originChainKind() {
+    return 'origin';
+  }
+
+  get auxChainKind() {
+    return 'aux';
+  }
+
   get SAAS_ONLY_SHARED_CACHE_ENGINE() {
     return process.env.SA_ONLY_SHARED_CACHE_ENGINE;
   }
