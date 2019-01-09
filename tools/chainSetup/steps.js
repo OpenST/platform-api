@@ -5,7 +5,6 @@
 // c. STPrimeAdmin
 // d. Worker
 
-// TODO - chain id is hardcoded. please remove.
 async function generateOriginAddresses() {
   let rootPrefix = '.',
     chainId = '1000';

@@ -229,7 +229,7 @@ if (cluster.isMaster) {
 
   //  Called when all workers are disconnected and handles are closed.
   cluster.on('disconnect', function(worker) {
-    //TODO:- temp change (remove this and use notify of platform)
+    //TODO:- temp change (remove this and use notify)
     logger.error('a_3', `[worker-${worker.id}] is disconnected`);
     // when a worker disconnects, decrement the online worker count
     onlineWorker = onlineWorker - 1;
@@ -242,14 +242,14 @@ if (cluster.isMaster) {
       logger.info(`[worker-${worker.id}] voluntary exit. signal: ${signal}. code: ${code}`);
     } else {
       // restart worker as died unexpectedly
-      //TODO:- temp change (remove this and use notify of platform)
+      //TODO:- temp change (remove this and use notify)
       logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
       cluster.fork();
     }
   });
   // Exception caught
   process.on('uncaughtException', function(err) {
-    //TODO:- temp change (remove this and use notify of platform)
+    //TODO:- temp change (remove this and use notify)
     logger.error('app_crash_1', 'app server exited unexpectedly. Reason: ', err);
     process.exit(1);
   });
@@ -339,7 +339,7 @@ if (cluster.isMaster) {
   // error handler
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    //TODO:- temp change (remove this and use notify of platform)
+    //TODO:- temp change (remove this and use notify)
     logger.error('a_6', 'Something went wrong', err);
     return responseHelper
       .error({
@@ -406,12 +406,12 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      //TODO:- temp change (remove this and use notify of platform)
+      //TODO:- temp change (remove this and use notify)
       logger.error('a_6', bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      //TODO:- temp change (remove this and use notify of platform)
+      //TODO:- temp change (remove this and use notify)
       logger.error('a_7', bind + ' is already in use');
       process.exit(1);
       break;

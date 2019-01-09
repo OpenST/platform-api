@@ -1,6 +1,6 @@
 'use strict';
 
-const OSTBase = require("@openstfoundation/openst-base");
+const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -12,7 +12,6 @@ const rootPrefix = '..',
   InstanceComposer = OSTBase.InstanceComposer;
 
 class RouteMethods {
-
   static perform(req, res, next, CallerKlassGetter, errorCode, afterValidationFunc, dataFormatterFunc) {
     const oThis = this,
       errorConfig = basicHelper.fetchErrorConfig(req.decodedParams.apiVersion);
@@ -23,7 +22,7 @@ class RouteMethods {
         if (responseHelper.isCustomResult(error)) {
           error.renderResponse(res, errorConfig);
         } else {
-          //TODO:- temp change (remove this and use notify of platform)
+          //TODO:- temp change (remove this and use notify)
           logger.error(errorCode, 'Something went wrong', error);
 
           responseHelper
@@ -70,7 +69,7 @@ class RouteMethods {
 
     console.log('req.serviceParams====req.serviceParams=================================', req.serviceParams);
 
-    let configStrategy = {};//await oThis._fetchConfigStrategy(req.serviceParams['client_id']);
+    let configStrategy = {}; //await oThis._fetchConfigStrategy(req.serviceParams['client_id']);
 
     let instanceComposer = new InstanceComposer(configStrategy);
 
@@ -92,7 +91,6 @@ class RouteMethods {
   }
 
   static async _fetchConfigStrategy(clientId) {
-
     let configStrategyHelper = new ConfigStrategyHelper(clientId),
       configStrategyRsp = await configStrategyHelper.get();
 
@@ -102,7 +100,6 @@ class RouteMethods {
 
     return configStrategyRsp.data;
   }
-
 }
 
 module.exports = RouteMethods;
