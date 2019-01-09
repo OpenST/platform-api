@@ -125,19 +125,17 @@ class ChainAddress extends ModelBase {
 
     if (params.auxChainId) {
       whereClause = [
-        'chain_id = ? AND aux_chain_id = ? AND kind = ? AND chain_kind = ? AND status = ?',
+        'chain_id = ? AND aux_chain_id = ? AND kind = ? AND status = ?',
         params.chainId,
         params.auxChainId,
         chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedChainKinds[params.chainKind],
         chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
       ];
     } else {
       whereClause = [
-        'chain_id = ? AND kind = ? AND chain_kind = ? AND status = ?',
+        'chain_id = ? AND kind = ? AND status = ?',
         params.chainId,
         chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedChainKinds[params.chainKind],
         chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
       ];
     }
