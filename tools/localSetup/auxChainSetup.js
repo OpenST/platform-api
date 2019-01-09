@@ -176,7 +176,7 @@ class AuxChainSetup {
 
   async checkIfOriginGethIsRunning() {
     const oThis = this;
-    logger.info('Checking if origin geth running.');
+    logger.info('** Checking if origin geth running.');
     let cmd =
       'ps aux | grep geth | grep origin-' + oThis.originChainId + " | grep -v grep | tr -s ' ' | cut -d ' ' -f2";
     let processId = shell.exec(cmd).stdout;
@@ -185,7 +185,7 @@ class AuxChainSetup {
       logger.error('Please start origin geth.');
       process.exit(1);
     } else {
-      logger.info('Origin geth running.');
+      logger.info('* Origin geth running.');
     }
   }
 

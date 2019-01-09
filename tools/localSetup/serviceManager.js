@@ -179,11 +179,12 @@ class ServiceManager {
       wsHost = wsProviderHostPort[0],
       wsPort = wsProviderHostPort[1];
 
-    let sealerAddress = await new ChainAddressModel().fetchAddress({
-      chainId: chainId,
-      chainKind: chainAddressConst.auxChainKind,
-      kind: chainAddressConst.sealerKind
-    });
+    let chainKind = chainType === 'aux' ? chainAddressConst.auxChainKind : chainAddressConst.originChainKind,
+      sealerAddress = await new ChainAddressModel().fetchAddress({
+        chainId: chainId,
+        chainKind: chainKind,
+        kind: chainAddressConst.sealerKind
+      });
 
     const sealerAddr = sealerAddress.data.address;
 

@@ -319,7 +319,7 @@ class chainSetup {
 
     let sealerAddress = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      chainKind: chainAddressConstants.auxChainKind,
+      chainKind: chainAddressConstants.originChainKind,
       kind: chainAddressConstants.sealerKind
     });
 
