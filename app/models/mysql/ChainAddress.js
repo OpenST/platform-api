@@ -35,8 +35,6 @@ class ChainAddress extends ModelBase {
       addressKind = params['kind'],
       addressKindInt = chainAddressConst.invertedKinds[addressKind];
 
-    console.log('----insertAddress-------', params);
-
     if (!addressKindInt) {
       return Promise.reject(
         responseHelper.error({
@@ -121,8 +119,6 @@ class ChainAddress extends ModelBase {
 
     let whereClause = null;
 
-    console.log('-----fetch------', params);
-
     if (params.auxChainId) {
       whereClause = [
         'chain_id = ? AND aux_chain_id = ? AND kind = ? AND status = ?',
@@ -140,14 +136,10 @@ class ChainAddress extends ModelBase {
       ];
     }
 
-    console.log('whereClause----', whereClause);
-
     let existingRows = await oThis
       .select('*')
       .where(whereClause)
       .fire();
-
-    console.log('existingRows-----', existingRows);
 
     let returnData;
 

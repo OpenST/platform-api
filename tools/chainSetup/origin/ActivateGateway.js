@@ -28,11 +28,14 @@ class ActivateGateway {
    * Constructor
    *
    * @param {Object} params
+   * @param {String} params.auxChainId - auxChainId for which origin-gateway needs be deployed.
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
+
+    oThis.auxChainId = params['auxChainId'];
 
     oThis.chainId = null;
     oThis.gasPrice = null;
@@ -162,6 +165,7 @@ class ActivateGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.originGatewayContractKind,
       chainKind: oThis.chainKind
     });
@@ -192,6 +196,7 @@ class ActivateGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._configStrategyObject.auxChainId,
+      auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.auxCoGatewayContractKind,
       chainKind: chainAddressConstants.auxChainKind
     });

@@ -27,11 +27,14 @@ class DeployCoGateway {
    * Constructor for CoGateway deployment
    *
    * @param {Object} params
+   * @param {String} params.auxChainId - auxChainId for which origin-gateway needs be deployed.
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
+
+    oThis.auxChainId = params['auxChainId'];
 
     oThis.chainId = null;
     oThis.gasPrice = null;
@@ -260,7 +263,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      auxChainId: oThis.chainId, //for co-gateway deployment, input chainId will always be auxChainId.
+      auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.auxAnchorContractKind,
       chainKind: oThis.chainKind
     });
@@ -415,10 +418,11 @@ class DeployCoGateway {
     if (response.isFailure()) return response;
 
     await new ChainAddressModel().insertAddress({
-      address: response.data['contractAddress'],
       chainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.auxCoGatewayContractKind,
-      chainKind: oThis.chainKind
+      chainKind: oThis.chainKind,
+      address: response.data['contractAddress']
     });
   }
 

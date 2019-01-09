@@ -39,10 +39,8 @@ class SetCoAnchor {
     oThis.chainKind = params['chainKind'];
     oThis.auxChainId = params['auxChainId'];
 
-    console.log('params---------', params);
-
     oThis.chainId = null;
-    oThis.otherChainId = null;
+    oThis.originChainId = null;
     oThis.otherChainKind = null;
     oThis.gasPrice = null;
     oThis.configStrategyObj = null;
@@ -123,7 +121,7 @@ class SetCoAnchor {
     switch (oThis.chainKind) {
       case chainAddressConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
-        oThis.otherChainId = oThis.auxChainId;
+        oThis.originChainId = oThis._configStrategyObject.originChainId;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           garPriceRsp = await gasPriceCacheObj.fetch();
@@ -133,7 +131,7 @@ class SetCoAnchor {
         break;
       case chainAddressConstants.auxChainKind:
         oThis.chainId = oThis.auxChainId;
-        oThis.otherChainId = oThis._configStrategyObject.originChainId;
+        oThis.originChainId = oThis._configStrategyObject.originChainId;
         oThis.gasPrice = '0x0';
         oThis.otherChainKind = chainAddressConstants.originChainKind;
         break;
@@ -185,7 +183,7 @@ class SetCoAnchor {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
+      chainId: oThis.originChainId,
       auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.originAnchorContractKind,
       chainKind: oThis.chainKind

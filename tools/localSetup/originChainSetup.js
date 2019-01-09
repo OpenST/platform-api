@@ -8,7 +8,7 @@
  * 2. origin chain entries in config_strategies table.
  *
  * Note:-
- * If you want to re-run this script, please ensure you have deleted sealer address entry in chain_addresses table.
+ * If you want to re-run this script, please ensure you have deleted origin chain related entries in chain_addresses table.
  *
  * Usage:- node tools/localSetup/chainSetup.js --originChainId 1000
  *

@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- * This is helper class for deploying contract<br><br>
+ * This is helper class for deploying contract.
  *
- * @module lib/chainSetup/helpers/Deploy.js
+ * @module lib/chainSetup/helpers/Deploy
  */
 
 const rootPrefix = '../..',
@@ -114,7 +114,7 @@ class DeployHelperKlass {
         );
       });
 
-    logger.info('* Deploy transactionReceipt ::', transactionReceipt);
+    logger.info('* Deploy transactionReceipt ::\n', transactionReceipt);
 
     const contractAddress = transactionReceipt.contractAddress,
       code = await oThis.web3Provider.eth.getCode(contractAddress);
@@ -126,8 +126,8 @@ class DeployHelperKlass {
     }
 
     // Print summary
-    logger.info('Contract Address:', contractAddress);
-    logger.info('Gas used:', transactionReceipt.gasUsed);
+    logger.info('* Contract Address:', contractAddress);
+    logger.info('* Gas used:', transactionReceipt.gasUsed);
 
     return responseHelper.successWithData({
       transactionHash: transactionHash,

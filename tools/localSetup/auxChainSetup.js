@@ -111,7 +111,7 @@ class AuxChainSetup {
 
     logger.step('** Starting Auxiliary Geth for deployment.');
     await serviceManager.startGeth(chainAddressConstants.auxChainKind, oThis.auxChainId, 'deployment');
-    await basicHelper.pauseForMilliSeconds(10000);
+    await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('* Setup base contract organization.');
     await oThis.setupAuxOrganization(chainAddressConstants.baseContractOrganizationKind);
@@ -290,7 +290,7 @@ class AuxChainSetup {
   async activateGatewayContract() {
     const oThis = this,
       ActivateGateway = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateGateway');
-    return await new ActivateGateway({}).perform();
+    return await new ActivateGateway({ auxChainId: oThis.auxChainId }).perform();
   }
 }
 

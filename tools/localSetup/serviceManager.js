@@ -7,13 +7,13 @@
 const shellAsyncCmd = require('node-cmd');
 
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   setupHelper = require(rootPrefix + '/tools/localSetup/helper'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
 const sealerPassphraseFile = 'sealer-passphrase',
@@ -190,9 +190,18 @@ class ServiceManager {
 
     // Creating password file in a temp location
     fileManager.touch(chainFolder + '/' + sealerPassphraseFile, sealerPassword);
-    fileManager.mkdir('logs/' + chainType + '-' + chainId.toString());
+    fileManager.mkdir(setupHelper.logsFolder() + '/' + chainType + '-' + chainId.toString());
     fileManager.touch(
-      'logs/' + chainType + '-' + chainId.toString() + '/' + chainType + '-chain-' + chainId.toString() + '.log'
+      setupHelper.logsFolder() +
+        '/' +
+        chainType +
+        '-' +
+        chainId.toString() +
+        '/' +
+        chainType +
+        '-chain-' +
+        chainId.toString() +
+        '.log'
     );
 
     return (
@@ -257,6 +266,12 @@ class ServiceManager {
 
     await basicHelper.pauseForMilliSeconds(3 * 1000);
     logger.info('* ' + chainType + '-' + chainId + ' chain is running.');
+
+    let binFolderForGeth = setupHelper.binFolder() + '/' + chainType + '-' + chainId.toString(),
+      gethFilePath = binFolderForGeth + '/' + chainType + '-chain-' + chainId.toString() + '.sh';
+    fileManager.mkdir(binFolderForGeth);
+    fileManager.touch(gethFilePath, '#!/bin/sh');
+    fileManager.append(gethFilePath, cmd);
   }
 
   /**
