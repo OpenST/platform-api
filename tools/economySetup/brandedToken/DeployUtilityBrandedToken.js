@@ -12,6 +12,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   Base = require(rootPrefix + '/tools/economySetup/brandedToken/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
@@ -96,21 +97,22 @@ class DeployUtilityBrandedToken extends Base {
   async _deployUtilityBrandedToken() {
     const oThis = this;
 
-    let deployParams = {
-      deployer: oThis.deployerAddress,
-      token: oThis.brandedTokenContractAddress,
-      symbol: oThis.symbol,
-      name: oThis.name,
-      decimals: oThis.decimal,
-      organization: oThis.organization
-    };
-
     let brandedTokenHelper = new BrandedTokenHelper(oThis.web3Instance);
 
-    await brandedTokenHelper.setup(deployParams); // txOptions, web3 are default, passed in constructor respectively
+    await brandedTokenHelper.deploy(
+      oThis.brandedTokenContractAddress,
+      oThis.symbol,
+      oThis.name,
+      oThis.decimal,
+      oThis.organization
+    ); // txOptions, web3 are default, passed in constructor respectively
   }
 }
 
-InstanceComposer.registerAsShadowableClass(DeployBrandedToken, coreConstants.icNameSpace, 'deployUtilityBrandedToken');
+InstanceComposer.registerAsShadowableClass(
+  DeployUtilityBrandedToken,
+  coreConstants.icNameSpace,
+  'DeployUtilityBrandedToken'
+);
 
 module.exports = DeployUtilityBrandedToken;
