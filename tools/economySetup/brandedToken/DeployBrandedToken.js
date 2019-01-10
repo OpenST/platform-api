@@ -23,6 +23,7 @@ class DeployOriginBrandedToken extends BrandedTokenBase {
     const oThis = this;
     oThis.originChainId = params.originChainId;
     oThis.organizationAddress = params.tokenOriOrgCntrctAddr;
+    oThis.deployToChainKind = coreConstants.originChainKind;
 
     oThis.conversionRateDecimals = 5; //Temp: Need clarificaion from platform team.
   }
@@ -65,6 +66,8 @@ class DeployOriginBrandedToken extends BrandedTokenBase {
       };
 
     oThis.SignerWeb3Instance.removeAddressKey(oThis.deployerAddress);
+
+    await oThis._insertIntoTokenAddresses(deploymentResponse.contractAddress);
 
     return Promise.resolve(
       responseHelper.successWithData({

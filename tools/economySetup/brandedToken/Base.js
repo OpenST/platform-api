@@ -17,6 +17,8 @@ const rootPrefix = '../../..',
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
+  TokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 class DeployBrandedTokenBase {
@@ -56,6 +58,7 @@ class DeployBrandedTokenBase {
       );
     }
 
+    oThis.tokenId = tokenDetails[0].id;
     oThis.tokenName = tokenDetails[0].name;
     oThis.tokenSymbol = tokenDetails[0].symbol;
     oThis.conversionFactor = tokenDetails[0].conversion_factor;
@@ -177,6 +180,39 @@ class DeployBrandedTokenBase {
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
     return oThis.configStrategyObj;
+  }
+
+  /**
+   *
+   * @param organizationContractAddress
+   * @returns {Promise<>}
+   * @private
+   */
+  async _insertIntoTokenAddresses(contractAddress) {
+    const oThis = this;
+    let contractKind = oThis._contractKind();
+
+    await new TokenAddressModel()
+      .insert({
+        token_id: oThis.tokenId,
+        kind: contractKind,
+        address: contractAddress
+      })
+      .fire();
+  }
+
+  /**
+   *
+   * @returns {*}
+   * @private
+   */
+  _contractKind() {
+    const oThis = this;
+    if (oThis.deployToChainKind == coreConstants.originChainKind) {
+      return new TokenAddressModel().invertedKinds[TokenAddressConstants.brandedTokenContract];
+    } else {
+      return new TokenAddressModel().invertedKinds[TokenAddressConstants.utilityBrandedTokenContract];
+    }
   }
 }
 

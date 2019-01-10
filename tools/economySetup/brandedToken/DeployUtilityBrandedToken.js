@@ -28,6 +28,7 @@ class DeployUtilityBrandedToken extends Base {
     oThis.deployerAddress = null;
     oThis.brandedTokenContractAddress = params.btCntrctAddr;
     oThis.organization = params.tokenAuxOrgCntrctAddr;
+    oThis.deployToChainKind = coreConstants.auxChainKind;
   }
 
   /**
@@ -71,6 +72,8 @@ class DeployUtilityBrandedToken extends Base {
     };
 
     oThis.SignerWeb3Instance.removeAddressKey(oThis.deployerAddress);
+
+    await oThis._insertIntoTokenAddresses(deploymentResponse.contractAddress);
 
     return Promise.resolve(
       responseHelper.successWithData({

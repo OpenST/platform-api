@@ -263,8 +263,7 @@ class deployTokenOrganization {
    */
   async _insertIntoTokenAddresses(organizationContractAddress) {
     const oThis = this;
-    let contractKind = null;
-    contractKind = oThis._contractKind(oThis, contractKind);
+    let contractKind = oThis._contractKind();
 
     await new TokenAddressModel()
       .insert({
