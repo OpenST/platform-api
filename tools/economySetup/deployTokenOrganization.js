@@ -110,8 +110,7 @@ class deployTokenOrganization {
     await oThis._insertIntoTokenAddresses(tokenOriginOrganizationContractAddress);
 
     let taskResponseData = {
-      tokenOriginOrganizationDeployTxHash: tokenOriginOrganizationDeployTxHash,
-      tokenOriginOrganizationContractAddress: tokenOriginOrganizationContractAddress
+      [oThis._contractResponseKey()]: tokenOriginOrganizationContractAddress
     };
 
     // if only transaction hash is returned, insert into pendingTransactions.
@@ -267,11 +266,7 @@ class deployTokenOrganization {
   async _insertIntoTokenAddresses(organizationContractAddress) {
     const oThis = this;
     let contractKind = null;
-    if (oThis.deployToChainKind == coreConstants.originChainKind) {
-      contractKind = new TokenAddressModel().invertedKinds[TokenAddressConstants.originOrganizationContract];
-    } else {
-      contractKind = new TokenAddressModel().invertedKinds[TokenAddressConstants.auxOrganizationContract];
-    }
+    contractKind = oThis._contractKind(oThis, contractKind);
 
     await new TokenAddressModel()
       .insert({
@@ -280,6 +275,34 @@ class deployTokenOrganization {
         address: organizationContractAddress
       })
       .fire();
+  }
+
+  /**
+   *
+   * @returns {*}
+   * @private
+   */
+  _contractKind() {
+    const oThis = this;
+    if (oThis.deployToChainKind == coreConstants.originChainKind) {
+      return new TokenAddressModel().invertedKinds[TokenAddressConstants.originOrganizationContract];
+    } else {
+      return new TokenAddressModel().invertedKinds[TokenAddressConstants.auxOrganizationContract];
+    }
+  }
+
+  /**
+   *
+   * @returns {*}
+   * @private
+   */
+  _contractResponseKey() {
+    const oThis = this;
+    if (oThis.deployToChainKind == coreConstants.originChainKind) {
+      return 'tokenOriOrgCntrctAddr';
+    } else {
+      return 'tokenAuxOrgCntrctAddr';
+    }
   }
 }
 
