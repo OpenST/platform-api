@@ -33,7 +33,7 @@ source set_env_vars.sh
 > node tools/localSetup/originChainSetup.js --originChainId 1000
 ```
 
-* Start Origin geth.
+* Start Origin geth with this script.
 ```bash
 > sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
@@ -43,3 +43,9 @@ source set_env_vars.sh
 > source set_env_vars.sh
 > node tools/localSetup/auxChainSetup.js --originChainId 1000 --auxChainId 2000
 ```
+
+* If you need to run auxiliary geth, run this script.
+```bash
+> sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
+```
+
