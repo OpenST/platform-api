@@ -32,7 +32,6 @@ class generateInternalAddresses {
   constructor(params) {
     const oThis = this;
     oThis.tokenId = params.tokenId;
-    oThis.chainKind = params.chainKind;
     oThis.chainId = params.chainId;
     oThis.addressKinds = [
       TokenAddressConstant.ownerAddressKind,
@@ -62,7 +61,6 @@ class generateInternalAddresses {
       const generateEthAddress = new GenerateChainKnownAddress({
         tokenId: oThis.tokenId,
         addressKind: addressKind,
-        chainKind: oThis.chainKind,
         chainId: oThis.chainId
       });
 
@@ -74,7 +72,7 @@ class generateInternalAddresses {
       }
       Object.assign(addressKindToValueMap, r.data);
     }
-    return responseHelper.successWithData({ addressKindToValueMap: addressKindToValueMap });
+    return responseHelper.successWithData({ taskDone: 1, addressKindToValueMap: addressKindToValueMap });
   }
 }
 

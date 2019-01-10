@@ -5,7 +5,6 @@ const rootPrefix = '../..',
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ClientConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ClientConfigStrategy'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ChainConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheManagement/chainConfigStrategyIds'),
@@ -137,20 +136,7 @@ class ConfigStrategyByChainId {
     let whereClause = ['chain_id = ?', chainId],
       configStrategyIds = await oThis._strategyIdsArrayProvider(whereClause);
 
-    //Check in client_config_strategies. If association found, don't deactivate
-    let clientIdQueryResponse = await new ClientConfigStrategyModel()
-      .select(['client_id'])
-      .where(['config_strategy_id IN (?)', configStrategyIds])
-      .fire();
-
-    if (clientIdQueryResponse.length > 0) {
-      return Promise.reject(
-        oThis._customError(
-          'h_cs_bgi_19',
-          `The given chain id [${chainId}] has been assigned to some existing clients. Cannot deactivate`
-        )
-      );
-    }
+    //TODO:: Check in config strategy association already found, don't deactivate
 
     //now set status as inactive
     let inActiveStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.inActiveStatus];

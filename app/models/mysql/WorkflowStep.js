@@ -21,16 +21,23 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   },
   invertedStatuses = util.invert(statuses),
   kinds = {
-    '1': workflowStepConstants.init,
-    '2': workflowStepConstants.s1,
-    '3': workflowStepConstants.s2,
-    '4': workflowStepConstants.s33,
-    '5': workflowStepConstants.s4,
-    '6': workflowStepConstants.s5,
-    '7': workflowStepConstants.s6,
-    '8': workflowStepConstants.s7,
-    '9': workflowStepConstants.commitStateRoot,
-    '10': workflowStepConstants.updateCommittedStateRootInfo
+    '1': workflowStepConstants.economySetupInit,
+    '2': workflowStepConstants.generateTokenAddresses,
+    '3': workflowStepConstants.deployOriginTokenOrganization,
+    '4': workflowStepConstants.deployAuxTokenOrganization,
+
+    '30': workflowStepConstants.commitStateRootInit,
+    '31': workflowStepConstants.commitStateRoot,
+    '32': workflowStepConstants.updateCommittedStateRootInfo,
+
+    '1000': workflowStepConstants.testInit,
+    '1001': workflowStepConstants.s1,
+    '1002': workflowStepConstants.s2,
+    '1003': workflowStepConstants.s33,
+    '1004': workflowStepConstants.s4,
+    '1005': workflowStepConstants.s5,
+    '1006': workflowStepConstants.s6,
+    '1007': workflowStepConstants.s7
   },
   invertedKinds = util.invert(kinds);
 

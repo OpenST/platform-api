@@ -29,6 +29,7 @@ source set_env_vars.sh
 
 * Run following command for origin chain setup.
 ```bash
+> source set_env_vars.sh
 > node tools/localSetup/originChainSetup.js --originChainId 1000
 ```
 
@@ -39,5 +40,6 @@ source set_env_vars.sh
    
 * Run following command for aux chain setup.
 ```bash
+> source set_env_vars.sh
 > node tools/localSetup/auxChainSetup.js --originChainId 1000 --auxChainId 2000
 ```

@@ -122,6 +122,9 @@ class workflowRouterFactory extends SubscriberBase {
       case workflowTopicConstant.stateRootSync:
         const stateRootSyncRouter = require(rootPrefix + '/executables/workflowRouter/StateRootSyncRouter');
         return new stateRootSyncRouter(msgParams).perform();
+      case workflowTopicConstant.economySetup:
+        const economySetupRouter = require(rootPrefix + '/executables/workflowRouter/economySetupRouter');
+        return new economySetupRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];

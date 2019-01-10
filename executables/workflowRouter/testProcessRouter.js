@@ -27,7 +27,7 @@ class testProcessRouter extends workflowRouterBase {
 
     console.log('-----------------------------stepsFactory--');
     switch (oThis.stepKind) {
-      case workflowStepConstants.init:
+      case workflowStepConstants.testInit:
         return oThis.insertInitStep();
 
       case workflowStepConstants.s1:

@@ -4,8 +4,8 @@ const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
 const steps = {
-  [workflowStepConstants.init]: {
-    kind: 'init',
+  [workflowStepConstants.testInit]: {
+    kind: 'testInit',
     onFailure: '',
     onSuccess: [workflowStepConstants.s1]
   },

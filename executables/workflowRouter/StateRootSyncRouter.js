@@ -26,7 +26,7 @@ class StateRootSyncRouter extends WorkflowRouterBase {
     const oThis = this;
 
     switch (oThis.stepKind) {
-      case workflowStepConstants.init:
+      case workflowStepConstants.commitStateRootInit:
         return oThis.insertInitStep();
 
       // commit state root

@@ -19,6 +19,7 @@ class workflowRouterBase {
    * @param params.taskResponseData {object} when task is 'taskDone', send taskResponseData if required.
    * @param params.clientId {number}
    * @param params.chainId {number}
+   * @param params.groupId {number}
    * @param params.payload {object}
    *
    * @constructor
@@ -33,8 +34,10 @@ class workflowRouterBase {
     oThis.stepKind = params.stepKind;
     oThis.taskStatus = params.taskStatus;
     oThis.taskResponseData = params.taskResponseData;
+
     oThis.clientId = params.clientId;
     oThis.chainId = params.chainId;
+    oThis.groupId = params.groupId;
 
     oThis.requestParams = params.requestParams || {};
     oThis.taskDone = false;

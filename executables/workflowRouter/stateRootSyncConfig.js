@@ -4,18 +4,18 @@ const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
 const steps = {
-  [workflowStepConstants.init]: {
-    kind: 'init',
+  [workflowStepConstants.commitStateRootInit]: {
+    kind: workflowStepConstants.commitStateRootInit,
     onFailure: '',
     onSuccess: [workflowStepConstants.commitStateRoot]
   },
   [workflowStepConstants.commitStateRoot]: {
-    kind: 'commitStateRoot',
+    kind: workflowStepConstants.commitStateRoot,
     onFailure: '',
     onSuccess: [workflowStepConstants.updateCommittedStateRootInfo]
   },
   [workflowStepConstants.updateCommittedStateRootInfo]: {
-    kind: 'updateCommittedStateRootInfo',
+    kind: workflowStepConstants.updateCommittedStateRootInfo,
     onFailure: '',
     onSuccess: []
   }
