@@ -38,12 +38,12 @@ class ServiceManager {
    * @param {String/Number} chainId
    */
   stopOriginGeth(chainId) {
-    logger.info('* Stopping all running origin geths');
     const cmd =
-      "ps -ef | grep 'openst-setup' | grep 'openst-geth-origin-" +
+      "ps -ef | grep 'openst-setup' | grep 'origin-" +
       chainId.toString() +
       "' |  grep -v grep | awk '{print $2}' | xargs kill";
     shellAsyncCmd.run(cmd);
+    logger.info('* Stopped running origin geths');
   }
 
   /**
@@ -52,12 +52,12 @@ class ServiceManager {
    * @param {String/Number} chainId
    */
   stopAuxGeth(chainId) {
-    logger.info('* Stopping all running auxiliary geths');
     const cmd =
-      "ps -ef | grep 'openst-setup' | grep 'openst-geth-aux-" +
+      "ps -ef | grep 'openst-setup' | grep 'aux-" +
       chainId.toString() +
       "' |  grep -v grep | awk '{print $2}' | xargs kill";
     shellAsyncCmd.run(cmd);
+    logger.info('* Stopped all running auxiliary geths');
   }
 
   /**

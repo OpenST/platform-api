@@ -159,7 +159,11 @@ class chainSetup {
 
     logger.win('Deployment steps successfully performed on origin chain.');
 
-    return Promise.resolve();
+    logger.step('* Stopping origin geth.');
+    await serviceManager.stopOriginGeth(oThis.chainId);
+    logger.info('** You can start geth from script.');
+
+    process.exit(1);
   }
 
   async generateAndFundOriginAddr() {

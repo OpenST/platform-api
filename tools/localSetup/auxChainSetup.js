@@ -163,6 +163,11 @@ class AuxChainSetup {
     await oThis.activateGatewayContract();
 
     logger.win('Deployment steps successfully performed on auxiliary chain :', oThis.auxChainId);
+
+    logger.step('* Stopping auxiliary geth.');
+    await serviceManager.stopAuxGeth(oThis.auxChainId);
+    logger.info('** You can start this auxiliary geth chain from script.');
+
     process.exit(1);
   }
 
