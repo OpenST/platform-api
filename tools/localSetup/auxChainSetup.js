@@ -238,7 +238,7 @@ class AuxChainSetup {
       DeployAnchor = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
 
     return await new DeployAnchor({
-      chainKind: chainAddressConstants.originChainKind,
+      chainKind: coreConstants.originChainKind,
       auxChainId: oThis.auxChainId
     }).perform();
   }
