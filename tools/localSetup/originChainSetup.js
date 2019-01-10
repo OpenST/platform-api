@@ -36,6 +36,7 @@ const rootPrefix = '../..',
 const GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey'),
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
 
+require(rootPrefix + '/tools/chainSetup/DeployLib');
 require(rootPrefix + '/tools/chainSetup/SetupOrganization');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Finalize');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Deploy.js');
@@ -156,6 +157,17 @@ class chainSetup {
     await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
 
     await basicHelper.pauseForMilliSeconds(200);
+
+    logger.step('** Deploy libraries.');
+
+    logger.log('* [Origin]: Deply MerklePatriciaProof');
+    await oThis.deployLib(coreConstants.originChainKind, 'merklePatriciaProof');
+
+    logger.log('* [Origin]: Deploy MessageBus');
+    await oThis.deployLib(coreConstants.originChainKind, 'messageBus');
+
+    logger.log('* [Origin]: Deploy GatewayLib');
+    await oThis.deployLib(coreConstants.originChainKind, 'gateway');
 
     logger.win('Deployment steps successfully performed on origin chain.');
 
@@ -298,6 +310,20 @@ class chainSetup {
     return await new SetupOrganization({
       chainKind: coreConstants.originChainKind,
       addressKind: addressKind
+    }).perform();
+  }
+
+  async deployLib(chainKind, libKind) {
+    const oThis = this;
+
+    let configStrategyHelper = new ConfigStrategyHelper(0, 0),
+      configRsp = await configStrategyHelper.getComplete(),
+      ic = new InstanceComposer(configRsp.data),
+      DeployLib = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployLib');
+
+    return await new DeployLib({
+      chainKind: chainKind,
+      libKind: libKind
     }).perform();
   }
 

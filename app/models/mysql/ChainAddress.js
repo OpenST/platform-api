@@ -45,15 +45,29 @@ class ChainAddress extends ModelBase {
       );
     }
 
+    let whereClause = null;
+
+    if (params.auxChainId) {
+      whereClause = [
+        'chain_id = ? AND aux_chain_id = ? AND kind = ? AND chain_kind = ?',
+        params.chainId,
+        params.auxChainId,
+        chainAddressConst.invertedKinds[params.kind],
+        chainAddressConst.invertedChainKinds[params.chainKind]
+      ];
+    } else {
+      whereClause = [
+        'chain_id = ? AND kind = ? AND chain_kind = ?',
+        params.chainId,
+        chainAddressConst.invertedKinds[params.kind],
+        chainAddressConst.invertedChainKinds[params.chainKind]
+      ];
+    }
+
     if (chainAddressConst.uniqueKinds.indexOf(addressKind) > -1) {
       let existingRows = await oThis
         .select('*')
-        .where([
-          'chain_id = ? AND kind = ? AND chain_kind = ?',
-          params.chainId,
-          chainAddressConst.invertedKinds[params.kind],
-          chainAddressConst.invertedChainKinds[params.chainKind]
-        ])
+        .where(whereClause)
         .fire();
 
       if (existingRows.length > 0) {

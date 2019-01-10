@@ -135,15 +135,6 @@ class AuxChainSetup {
 
     logger.step('** Deploy libraries.');
 
-    logger.log('* [Origin]: Deply MerklePatriciaProof');
-    await oThis.deployLib(coreConstants.originChainKind, 'merklePatriciaProof');
-
-    logger.log('* [Origin]: Deploy MessageBus');
-    await oThis.deployLib(coreConstants.originChainKind, 'messageBus');
-
-    logger.log('* [Origin]: Deploy GatewayLib');
-    await oThis.deployLib(coreConstants.originChainKind, 'gateway');
-
     logger.log('* [Auxiliary]: Deply MerklePatriciaProof');
     await oThis.deployLib(coreConstants.auxChainKind, 'merklePatriciaProof');
 

@@ -40,6 +40,7 @@ class DeployLib {
     oThis.libKind = params['libKind'];
 
     oThis.chainId = null;
+    oThis.auxChainId = null;
     oThis.gasPrice = null;
     oThis.configStrategyObj = null;
     oThis.merklePatriciaProofAddress = null;
@@ -127,6 +128,7 @@ class DeployLib {
         break;
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
+        oThis.auxChainId = oThis._configStrategyObject.auxChainId;
         oThis.gasPrice = '0x0';
         break;
       default:
@@ -263,6 +265,7 @@ class DeployLib {
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
       chainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
       kind: oThis.chainAddressKind,
       chainKind: oThis.chainKind
     });
