@@ -17,6 +17,11 @@ const steps = {
   [workflowStepConstants.deployOriginTokenOrganization]: {
     kind: workflowStepConstants.deployOriginTokenOrganization,
     onFailure: '',
+    onSuccess: [workflowStepConstants.deployAuxTokenOrganization]
+  },
+  [workflowStepConstants.deployAuxTokenOrganization]: {
+    kind: workflowStepConstants.deployAuxTokenOrganization,
+    onFailure: '',
     onSuccess: []
   }
 };

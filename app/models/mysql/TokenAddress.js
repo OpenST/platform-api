@@ -15,7 +15,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   kinds = {
     '1': tokenAddressConstants.ownerAddressKind,
     '2': tokenAddressConstants.adminAddressKind,
-    '3': tokenAddressConstants.workerAddressKind
+    '3': tokenAddressConstants.workerAddressKind,
+
+    //Contract Kinds
+    '51': tokenAddressConstants.originOrganizationContract,
+    '52': tokenAddressConstants.auxOrganizationContract
   },
   invertedKinds = util.invert(kinds);
 

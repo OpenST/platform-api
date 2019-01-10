@@ -78,11 +78,13 @@ class SetupOrganization extends CommonSetupBase {
         })
         .catch(function(errorResponse) {
           logger.error(errorResponse);
-          return responseHelper.error({
-            internal_error_identifier: 't_cos_so_1',
-            api_error_identifier: 'unhandled_catch_response',
-            debug_options: {}
-          });
+          return Promise.reject(
+            responseHelper.error({
+              internal_error_identifier: 't_cs_so_1',
+              api_error_identifier: 'unhandled_catch_response',
+              debug_options: {}
+            })
+          );
         });
 
     oThis._removeKeyFromWallet(signerKey);

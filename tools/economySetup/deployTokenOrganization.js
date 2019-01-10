@@ -101,14 +101,28 @@ class deployTokenOrganization {
 
     let setupOrganizationHelper = new SetupOrganizationHelper(params);
     let setupRsp = await setupOrganizationHelper.perform();
+    if (setupRsp && setupRsp.isFailure()) {
+      return Promise.reject(setupRsp);
+    }
+    let tokenOriginOrganizationContractAddress = setupRsp.data.contractAddress,
+      tokenOriginOrganizationDeployTxHash = setupRsp.data.transactionHash;
+
+    await oThis._insertIntoTokenAddresses(tokenOriginOrganizationContractAddress);
+
     let taskResponseData = {
-      tokenOriginOrganizationDeployTxHash: setupRsp.transactionHash,
-      tokenOriginOrganizationContractAddress: setupRsp.contractAddress
+      tokenOriginOrganizationDeployTxHash: tokenOriginOrganizationDeployTxHash,
+      tokenOriginOrganizationContractAddress: tokenOriginOrganizationContractAddress
     };
 
     // if only transaction hash is returned, insert into pendingTransactions.
 
-    return Promise.resolve(responseHelper.successWithData({ taskDone: 1, taskResponseData: taskResponseData }));
+    return Promise.resolve(
+      responseHelper.successWithData({
+        taskDone: 1,
+        taskResponseData: taskResponseData,
+        transactionHash: tokenOriginOrganizationDeployTxHash
+      })
+    );
   }
 
   /**
@@ -155,18 +169,17 @@ class deployTokenOrganization {
         'token_id = ? AND kind in (?)',
         oThis.tokenId,
         [
-          new ChainAddressModel().invertedKinds[TokenAddressConstants.ownerAddressKind],
-          new ChainAddressModel().invertedKinds[TokenAddressConstants.adminAddressKind],
-          new ChainAddressModel().invertedKinds[TokenAddressConstants.workerAddressKind]
+          new TokenAddressModel().invertedKinds[TokenAddressConstants.ownerAddressKind],
+          new TokenAddressModel().invertedKinds[TokenAddressConstants.adminAddressKind],
+          new TokenAddressModel().invertedKinds[TokenAddressConstants.workerAddressKind]
         ]
       ])
       .order_by('created_at DESC')
-      .limit(1)
       .fire();
 
     for (let i = 0; i < addresses.length; i++) {
       let addressData = addresses[i],
-        addressKind = new ChainAddressModel().kinds[addressData.kind];
+        addressKind = new TokenAddressModel().kinds[addressData.kind];
       oThis.addressKindMap[addressKind] = oThis.addressKindMap[addressKind] || [];
       oThis.addressKindMap[addressKind].push(addressData.address);
     }
@@ -202,10 +215,12 @@ class deployTokenOrganization {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
+      chainId: oThis.deployChainId,
       kind: chainAddressConstants.deployerKind,
       chainKind: coreConstants.auxChainKind
     });
+    console.log('--------------------------------');
+    console.log(fetchAddrRsp);
 
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
@@ -241,6 +256,30 @@ class deployTokenOrganization {
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
     return oThis.configStrategyObj;
+  }
+
+  /**
+   *
+   * @param organizationContractAddress
+   * @returns {Promise<>}
+   * @private
+   */
+  async _insertIntoTokenAddresses(organizationContractAddress) {
+    const oThis = this;
+    let contractKind = null;
+    if (oThis.deployToChainKind == coreConstants.originChainKind) {
+      contractKind = new TokenAddressModel().invertedKinds[TokenAddressConstants.originOrganizationContract];
+    } else {
+      contractKind = new TokenAddressModel().invertedKinds[TokenAddressConstants.auxOrganizationContract];
+    }
+
+    await new TokenAddressModel()
+      .insert({
+        token_id: oThis.tokenId,
+        kind: contractKind,
+        address: organizationContractAddress
+      })
+      .fire();
   }
 }
 

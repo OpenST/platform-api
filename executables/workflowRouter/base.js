@@ -41,7 +41,6 @@ class workflowRouterBase {
 
     oThis.requestParams = params.requestParams || {};
     oThis.taskDone = false;
-    oThis.taskResponseData = null;
     oThis.nextSteps = [];
     oThis.workflowRecordsMap = {};
   }
@@ -56,15 +55,17 @@ class workflowRouterBase {
     const oThis = this;
 
     return oThis.asyncPerform().catch(async function(error) {
-      if (oThis.currentStepId) {
-        await new WorkflowStepsModel().markAsFailed(oThis.currentStepId);
-      }
-
       if (responseHelper.isCustomResult(error)) {
+        logger.error(error.getDebugData());
+        await new WorkflowStepsModel().updateRecord(oThis.currentStepId, {
+          debug_params: JSON.stringify(error.getDebugData()),
+          status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus]
+        });
         return error;
       } else {
         logger.error('executables/workflowRouter/base::perform::catch');
         logger.error(error);
+        await new WorkflowStepsModel().markAsFailed(oThis.currentStepId);
         return responseHelper.error({
           internal_error_identifier: 'e_wr_b_1',
           api_error_identifier: 'unhandled_catch_response',
@@ -123,6 +124,8 @@ class workflowRouterBase {
     if (oThis.taskResponseData) {
       updateData.response_data = JSON.stringify(oThis.taskResponseData);
     }
+    console.log('------------------------------updateData---');
+    console.log(updateData);
     if (oThis.taskDone) {
       updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus];
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);

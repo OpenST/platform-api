@@ -39,14 +39,24 @@ class economySetupRouter extends workflowRouterBase {
       case workflowStepConstants.generateTokenAddresses:
         return new generateTokenAddresses(oThis.requestParams).perform();
       case workflowStepConstants.deployOriginTokenOrganization:
-        let deployTokenOrganizationKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'deployTokenOrganization');
+        let deployOrigTokenOrganizationKlass = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'deployTokenOrganization'
+        );
         oThis.requestParams.deployToChainKind = coreConstants.originChainKind;
-        return new deployTokenOrganizationKlass(oThis.requestParams).perform();
+        return new deployOrigTokenOrganizationKlass(oThis.requestParams).perform();
+      case workflowStepConstants.deployAuxTokenOrganization:
+        let deployAuxTokenOrganizationKlass = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'deployTokenOrganization'
+        );
+        oThis.requestParams.deployToChainKind = coreConstants.auxChainKind;
+        return new deployAuxTokenOrganizationKlass(oThis.requestParams).perform();
 
       default:
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'e_wr_tpr_1',
+            internal_error_identifier: 'e_wr_esr_1',
             api_error_identifier: 'something_went_wrong',
             debug_options: { parentStepId: oThis.parentStepId }
           })

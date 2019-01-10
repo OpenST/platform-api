@@ -158,8 +158,10 @@ class ServiceManager {
    */
   async _startGethCommand(chainType, chainId, purpose) {
     const oThis = this,
-      chainConfigStrategy = await oThis.fetchConfig(chainId),
-      networkId =
+      chainConfigStrategy = await oThis.fetchConfig(chainId);
+    console.log('chainConfigStrategy.auxConstants', chainConfigStrategy.auxConstants);
+
+    const networkId =
         chainType === coreConstants.auxChainKind
           ? chainConfigStrategy.auxConstants.networkId
           : chainConfigStrategy.originConstants.networkId,
