@@ -267,6 +267,7 @@ class ServiceManager {
     await basicHelper.pauseForMilliSeconds(3 * 1000);
     logger.info('* ' + chainType + '-' + chainId + ' chain is running.');
 
+    // TODO :: add check if the GETH has started generating new blocks.
     let binFolderForGeth = setupHelper.binFolder() + '/' + chainType + '-' + chainId.toString(),
       gethFilePath = binFolderForGeth + '/' + chainType + '-chain-' + chainId.toString() + '.sh';
     fileManager.mkdir(binFolderForGeth);
