@@ -118,7 +118,7 @@ class DeployAnchor {
     const oThis = this;
 
     switch (oThis.chainKind) {
-      case chainAddressConstants.originChainKind:
+      case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
         oThis.anchorKind = chainAddressConstants.originAnchorContractKind;
 
@@ -126,7 +126,7 @@ class DeployAnchor {
           gasPriceRsp = await gasPriceCacheObj.fetch();
         oThis.gasPrice = gasPriceRsp.data;
         break;
-      case chainAddressConstants.auxChainKind:
+      case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
         oThis.anchorKind = chainAddressConstants.auxAnchorContractKind;
         oThis.gasPrice = '0x0';

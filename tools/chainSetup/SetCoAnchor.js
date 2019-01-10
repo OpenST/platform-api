@@ -119,7 +119,7 @@ class SetCoAnchor {
     const oThis = this;
 
     switch (oThis.chainKind) {
-      case chainAddressConstants.originChainKind:
+      case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
         oThis.originChainId = oThis._configStrategyObject.originChainId;
 
@@ -127,13 +127,13 @@ class SetCoAnchor {
           garPriceRsp = await gasPriceCacheObj.fetch();
         oThis.gasPrice = garPriceRsp.data;
 
-        oThis.otherChainKind = chainAddressConstants.auxChainKind;
+        oThis.otherChainKind = coreConstants.auxChainKind;
         break;
-      case chainAddressConstants.auxChainKind:
+      case coreConstants.auxChainKind:
         oThis.chainId = oThis.auxChainId;
         oThis.originChainId = oThis._configStrategyObject.originChainId;
         oThis.gasPrice = '0x0';
-        oThis.otherChainKind = chainAddressConstants.originChainKind;
+        oThis.otherChainKind = coreConstants.originChainKind;
         break;
       default:
         throw `unsupported chainKind: ${oThis.chainKind}`;

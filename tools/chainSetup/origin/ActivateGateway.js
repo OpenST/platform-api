@@ -114,7 +114,7 @@ class ActivateGateway {
   async _initializeVars() {
     const oThis = this;
     oThis.chainId = oThis._configStrategyObject.originChainId;
-    oThis.chainKind = chainAddressConstants.originChainKind;
+    oThis.chainKind = coreConstants.originChainKind;
 
     let gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
@@ -198,7 +198,7 @@ class ActivateGateway {
       chainId: oThis._configStrategyObject.auxChainId,
       auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.auxCoGatewayContractKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: coreConstants.auxChainKind
     });
 
     if (!fetchAddrRsp.data.address) {

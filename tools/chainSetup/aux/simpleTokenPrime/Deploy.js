@@ -114,7 +114,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
       kind: chainAddressConstants.deployerKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: coreConstants.auxChainKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -144,7 +144,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._originChainId,
       kind: chainAddressConstants.baseContractKind,
-      chainKind: chainAddressConstants.originChainKind
+      chainKind: coreConstants.originChainKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -174,7 +174,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
       kind: chainAddressConstants.baseContractOrganizationKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: coreConstants.auxChainKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -206,7 +206,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
       address: deployerResponse.data['contractAddress'],
       chainId: oThis._auxChainId,
       kind: chainAddressConstants.baseContractKind,
-      chainKind: chainAddressConstants.auxChainKind
+      chainKind: coreConstants.auxChainKind
     });
   }
 }

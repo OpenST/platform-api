@@ -121,14 +121,14 @@ class SetupOrganization {
     const oThis = this;
 
     switch (oThis.chainKind) {
-      case chainAddressConstants.originChainKind:
+      case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           gasPriceRsp = await gasPriceCacheObj.fetch();
         oThis.gasPrice = gasPriceRsp.data;
         break;
-      case chainAddressConstants.auxChainKind:
+      case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
         // TODO :: Gasprice should not be 0 hardcoded.
         oThis.gasPrice = '0x0';

@@ -107,10 +107,10 @@ class chainSetup {
     await fileManager.freshSetup();
 
     logger.step('** Generating sealer address and init geth with genesis');
-    await gethManager.initChain(chainAddressConstants.originChainKind, oThis.chainId);
+    await gethManager.initChain(coreConstants.originChainKind, oThis.chainId);
 
     logger.step('** Starting origin geth for deployment.');
-    await serviceManager.startGeth(chainAddressConstants.originChainKind, oThis.chainId, 'deployment');
+    await serviceManager.startGeth(coreConstants.originChainKind, oThis.chainId, 'deployment');
 
     logger.step('** Origin Addresses Generation');
     await oThis.generateAndFundOriginAddr();
@@ -172,7 +172,7 @@ class chainSetup {
         chainAddressConstants.adminKind,
         chainAddressConstants.workerKind
       ],
-      chainKind: chainAddressConstants.originChainKind,
+      chainKind: coreConstants.originChainKind,
       chainId: oThis.chainId
     });
 
@@ -273,13 +273,13 @@ class chainSetup {
     await new ChainAddressModel().insertAddress({
       address: simpleTokenOwnerAddr,
       chainId: oThis.chainId,
-      chainKind: chainAddressConstants.originChainKind,
+      chainKind: coreConstants.originChainKind,
       kind: chainAddressConstants.simpleTokenOwnerKind
     });
     await new ChainAddressModel().insertAddress({
       address: simpleTokenAdmin,
       chainId: oThis.chainId,
-      chainKind: chainAddressConstants.originChainKind,
+      chainKind: coreConstants.originChainKind,
       kind: chainAddressConstants.simpleTokenAdminKind
     });
   }
@@ -292,7 +292,7 @@ class chainSetup {
       SetupOrganization = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetupOrganization');
 
     return await new SetupOrganization({
-      chainKind: chainAddressConstants.originChainKind,
+      chainKind: coreConstants.originChainKind,
       addressKind: addressKind
     }).perform();
   }
@@ -307,7 +307,7 @@ class chainSetup {
 
     let sealerAddress = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      chainKind: chainAddressConstants.originChainKind,
+      chainKind: coreConstants.originChainKind,
       kind: chainAddressConstants.sealerKind
     });
 

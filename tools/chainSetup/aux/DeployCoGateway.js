@@ -125,7 +125,7 @@ class DeployCoGateway {
   async _initializeVars() {
     const oThis = this;
     oThis.chainId = oThis._configStrategyObject.auxChainId;
-    oThis.chainKind = chainAddressConstants.auxChainKind;
+    oThis.chainKind = coreConstants.auxChainKind;
     oThis.gasPrice = '0x0';
   }
 
@@ -295,7 +295,7 @@ class DeployCoGateway {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._configStrategyObject.originChainId,
       kind: chainAddressConstants.originGatewayContractKind,
-      chainKind: chainAddressConstants.originChainKind
+      chainKind: coreConstants.originChainKind
     });
 
     if (!fetchAddrRsp.data.address) {

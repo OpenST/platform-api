@@ -167,7 +167,7 @@ class SetupSimpleTokenBase {
     let insertParams = {};
 
     insertParams['chainId'] = oThis.configStrategyObject.originChainId;
-    insertParams['chainKind'] = chainSetupConstants.originChainKind;
+    insertParams['chainKind'] = coreConstants.originChainKind;
     insertParams['stepKind'] = step;
     insertParams['debugParams'] = response.debugOptions;
     insertParams['transactionHash'] = response.data.transactionHash;
@@ -197,7 +197,7 @@ class SetupSimpleTokenBase {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.configStrategyObject.originChainId,
       kind: chainAddressConstants.baseContractKind,
-      chainKind: chainAddressConstants.originChainKind
+      chainKind: coreConstants.originChainKind
     });
 
     return fetchAddrRsp.data['address'];

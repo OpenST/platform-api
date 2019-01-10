@@ -152,7 +152,7 @@ class GethManager {
       chainGenesisTemplateLocation = genesisTemplateLocation + '/poaGenesisTemplate' + '.json',
       chainGenesisLocation = chainFolderAbsolutePath + '/genesis' + '.json';
 
-    let chainKind = chainType === 'aux' ? chainAddressConstants.auxChainKind : chainAddressConstants.originChainKind;
+    let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind;
     // Adds sealer address to the DB.
     await new ChainAddressModel().insertAddress({
       chainId: chainId,

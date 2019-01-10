@@ -124,7 +124,7 @@ class DeployGateway {
   async _initializeVars() {
     const oThis = this;
     oThis.chainId = oThis._configStrategyObject.originChainId;
-    oThis.chainKind = chainAddressConstants.originChainKind;
+    oThis.chainKind = coreConstants.originChainKind;
 
     let gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();

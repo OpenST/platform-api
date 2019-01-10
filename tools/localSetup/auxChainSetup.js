@@ -103,14 +103,10 @@ class AuxChainSetup {
       allocAddressToAmountMap = {},
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
     allocAddressToAmountMap[chainOwnerAddr] = '0xe567bd7e886312a0cf7397bb73650d2280400000000000000';
-    let rsp = await gethManager.initChain(
-      chainAddressConstants.auxChainKind,
-      oThis.auxChainId,
-      allocAddressToAmountMap
-    );
+    let rsp = await gethManager.initChain(coreConstants.auxChainKind, oThis.auxChainId, allocAddressToAmountMap);
 
     logger.step('** Starting Auxiliary Geth for deployment.');
-    await serviceManager.startGeth(chainAddressConstants.auxChainKind, oThis.auxChainId, 'deployment');
+    await serviceManager.startGeth(coreConstants.auxChainKind, oThis.auxChainId, 'deployment');
     await basicHelper.pauseForMilliSeconds(5000);
 
     logger.step('* Setup base contract organization.');
@@ -132,30 +128,30 @@ class AuxChainSetup {
     await oThis.deployAuxAnchor();
 
     logger.step('** Set Origin Co anchor');
-    await oThis.setCoAnchor(chainAddressConstants.originChainKind);
+    await oThis.setCoAnchor(coreConstants.originChainKind);
 
     logger.step('** Set Aux Co anchor');
-    await oThis.setCoAnchor(chainAddressConstants.auxChainKind);
+    await oThis.setCoAnchor(coreConstants.auxChainKind);
 
     logger.step('** Deploy libraries.');
 
     logger.log('* [Origin]: Deply MerklePatriciaProof');
-    await oThis.deployLib(chainAddressConstants.originChainKind, 'merklePatriciaProof');
+    await oThis.deployLib(coreConstants.originChainKind, 'merklePatriciaProof');
 
     logger.log('* [Origin]: Deploy MessageBus');
-    await oThis.deployLib(chainAddressConstants.originChainKind, 'messageBus');
+    await oThis.deployLib(coreConstants.originChainKind, 'messageBus');
 
     logger.log('* [Origin]: Deploy GatewayLib');
-    await oThis.deployLib(chainAddressConstants.originChainKind, 'gateway');
+    await oThis.deployLib(coreConstants.originChainKind, 'gateway');
 
     logger.log('* [Auxiliary]: Deply MerklePatriciaProof');
-    await oThis.deployLib(chainAddressConstants.auxChainKind, 'merklePatriciaProof');
+    await oThis.deployLib(coreConstants.auxChainKind, 'merklePatriciaProof');
 
     logger.log('* [Auxiliary]: Deploy MessageBus');
-    await oThis.deployLib(chainAddressConstants.auxChainKind, 'messageBus');
+    await oThis.deployLib(coreConstants.auxChainKind, 'messageBus');
 
     logger.log('* [Auxiliary]: Deploy GatewayLib');
-    await oThis.deployLib(chainAddressConstants.auxChainKind, 'gateway');
+    await oThis.deployLib(coreConstants.auxChainKind, 'gateway');
 
     logger.step('** Deploying gateway contract');
     await oThis.deployGatewayContract();
@@ -202,7 +198,7 @@ class AuxChainSetup {
         chainAddressConstants.chainOwnerKind,
         chainAddressConstants.workerKind
       ],
-      chainKind: chainAddressConstants.auxChainKind,
+      chainKind: coreConstants.auxChainKind,
       chainId: oThis.auxChainId
     });
     return await generateChainKnownAddressObj.perform();
@@ -213,7 +209,7 @@ class AuxChainSetup {
       SetupOrganization = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetupOrganization');
 
     return await new SetupOrganization({
-      chainKind: chainAddressConstants.auxChainKind,
+      chainKind: coreConstants.auxChainKind,
       addressKind: addressKind
     }).perform();
   }
@@ -251,7 +247,7 @@ class AuxChainSetup {
     const oThis = this;
     let DeployAnchor = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployAnchor');
     return await new DeployAnchor({
-      chainKind: chainAddressConstants.auxChainKind,
+      chainKind: coreConstants.auxChainKind,
       auxChainId: oThis.auxChainId
     }).perform();
   }

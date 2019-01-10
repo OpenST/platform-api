@@ -160,11 +160,11 @@ class ServiceManager {
     const oThis = this,
       chainConfigStrategy = await oThis.fetchConfig(chainId),
       networkId =
-        chainType === chainAddressConst.auxChainKind
+        chainType === coreConstants.auxChainKind
           ? chainConfigStrategy.auxConstants.networkId
           : chainConfigStrategy.originConstants.networkId,
       chainPort =
-        chainType === chainAddressConst.auxChainKind
+        chainType === coreConstants.auxChainKind
           ? chainConfigStrategy.auxConstants.gethPort
           : chainConfigStrategy.originConstants.gethPort,
       zeroGas = coreConstants.OST_AUX_GAS_PRICE_FOR_DEPLOYMENT,
@@ -179,7 +179,7 @@ class ServiceManager {
       wsHost = wsProviderHostPort[0],
       wsPort = wsProviderHostPort[1];
 
-    let chainKind = chainType === 'aux' ? chainAddressConst.auxChainKind : chainAddressConst.originChainKind,
+    let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind,
       sealerAddress = await new ChainAddressModel().fetchAddress({
         chainId: chainId,
         chainKind: chainKind,

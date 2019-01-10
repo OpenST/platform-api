@@ -181,7 +181,7 @@ class SetupSTPrimeBase {
     let insertParams = {};
 
     insertParams['chainId'] = oThis._auxChainId;
-    insertParams['chainKind'] = chainSetupConstants.auxChainKind;
+    insertParams['chainKind'] = coreConstants.auxChainKind;
     insertParams['stepKind'] = step;
     insertParams['debugParams'] = response.debugOptions;
     insertParams['transactionHash'] = response.data.transactionHash;
