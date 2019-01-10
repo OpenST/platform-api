@@ -43,6 +43,7 @@ class workflowRouterBase {
     oThis.taskDone = false;
     oThis.nextSteps = [];
     oThis.workflowRecordsMap = {};
+    oThis.transactionHash = null;
   }
 
   /**
@@ -104,6 +105,7 @@ class workflowRouterBase {
       } else {
         oThis.taskDone = response.data.taskDone;
         oThis.taskResponseData = response.data.taskResponseData;
+        oThis.transactionHash = response.data.transactionHash;
       }
     } else if (oThis.taskStatus == workflowStepConstants.taskDone) {
       oThis.taskDone = true;
@@ -121,6 +123,9 @@ class workflowRouterBase {
     }
 
     let updateData = {};
+    if (oThis.transactionHash) {
+      updateData.transaction_hash = oThis.transactionHash;
+    }
     if (oThis.taskResponseData) {
       updateData.response_data = JSON.stringify(oThis.taskResponseData);
     }
