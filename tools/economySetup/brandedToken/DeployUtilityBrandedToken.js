@@ -7,6 +7,8 @@
  */
 
 const rootPrefix = '../..',
+  OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer,
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
@@ -108,5 +110,7 @@ class DeployUtilityBrandedToken extends Base {
     await brandedTokenHelper.setup(deployParams); // txOptions, web3 are default, passed in constructor respectively
   }
 }
+
+InstanceComposer.registerAsShadowableClass(DeployBrandedToken, coreConstants.icNameSpace, 'deployUtilityBrandedToken');
 
 module.exports = DeployUtilityBrandedToken;
