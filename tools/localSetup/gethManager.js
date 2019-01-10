@@ -120,7 +120,6 @@ class GethManager {
    */
   _initChain(chainDataDir, chainGenesisLocation) {
     let cmd = 'geth --datadir "' + chainDataDir + '" init ' + chainGenesisLocation;
-    logger.log('Initializing geth with -', cmd);
     fileManager.exec(cmd);
   }
 

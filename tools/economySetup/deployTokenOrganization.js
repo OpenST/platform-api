@@ -218,8 +218,6 @@ class deployTokenOrganization {
       kind: chainAddressConstants.deployerKind,
       chainKind: coreConstants.auxChainKind
     });
-    console.log('--------------------------------');
-    console.log(fetchAddrRsp);
 
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(

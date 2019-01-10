@@ -163,8 +163,7 @@ class SetupOrganization {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.deployerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -193,8 +192,7 @@ class SetupOrganization {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.ownerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.ownerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -223,8 +221,7 @@ class SetupOrganization {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.adminKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.adminKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -253,8 +250,7 @@ class SetupOrganization {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.workerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.workerKind
     });
 
     if (!fetchAddrRsp.data.addresses) {

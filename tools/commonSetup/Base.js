@@ -22,6 +22,7 @@ class CommonSetupBase {
    *
    * @param {Object} params
    * @param {Number} params.chainId - chain id on which this is to be performed
+   * @param {Number} params.remoteChainId - pass auxChainId, for anchor contract deployment
    * @param {String} params.signerAddress - address who signs Tx
    * @param {String} params.chainEndpoint - url to connect to chain
    * @param {String} params.gasPrice -  gas price to use
@@ -32,6 +33,7 @@ class CommonSetupBase {
     const oThis = this;
 
     oThis.chainId = params['chainId'];
+    oThis.remoteChainId = params['remoteChainId'];
     oThis.chainEndpoint = params['chainEndpoint'];
     oThis.signerAddress = params['signerAddress'];
     oThis.gasPrice = params['gasPrice'];
