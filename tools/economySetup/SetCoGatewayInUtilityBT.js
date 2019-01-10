@@ -3,7 +3,7 @@
 /*
  *  tools/economySetup/SetCoGatewayInUtilityBT.js
  *
- *  This class helps in setting co-gateway
+ *  This class helps in setting co-gateway in UBT contract
  */
 
 const rootPrefix = '../..',
