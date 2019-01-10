@@ -15,6 +15,8 @@ const rootPrefix = '../..',
 const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/tools/economySetup/deployTokenOrganization');
+require(rootPrefix + '/tools/economySetup/brandedToken/DeployBrandedToken');
+require(rootPrefix + '/tools/economySetup/brandedToken/DeployUtilityBrandedToken');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -31,7 +33,7 @@ class economySetupRouter extends workflowRouterBase {
     const configStrategy = await oThis.getConfigStrategy(),
       ic = new InstanceComposer(configStrategy);
 
-    console.log('-----------------------------stepsFactory--');
+    console.log('-----------------------------stepsFactory--', oThis.requestParams);
     switch (oThis.stepKind) {
       case workflowStepConstants.economySetupInit:
         return oThis.insertInitStep();
@@ -45,6 +47,9 @@ class economySetupRouter extends workflowRouterBase {
         );
         oThis.requestParams.deployToChainKind = coreConstants.originChainKind;
         return new deployOrigTokenOrganizationKlass(oThis.requestParams).perform();
+      case workflowStepConstants.deployOriginBrandedToken:
+        let deployBrandeTokenKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'deployBrandedToken');
+        return new deployBrandeTokenKlass(oThis.requestParams).perform();
       case workflowStepConstants.deployAuxTokenOrganization:
         let deployAuxTokenOrganizationKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
@@ -52,7 +57,12 @@ class economySetupRouter extends workflowRouterBase {
         );
         oThis.requestParams.deployToChainKind = coreConstants.auxChainKind;
         return new deployAuxTokenOrganizationKlass(oThis.requestParams).perform();
-
+      case workflowStepConstants.deployUtilityBrandedToken:
+        let deployUtilityBrandeTokenKlass = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'deployUtilityBrandedToken'
+        );
+        return new deployUtilityBrandeTokenKlass(oThis.requestParams).perform();
       default:
         return Promise.reject(
           responseHelper.error({

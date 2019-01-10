@@ -7,20 +7,22 @@
  * @module tools/economySetup/DeployBrandedToken
  */
 
-const brandedTokenSetupHelper = require('branded-token.js');
+const brandedTokenSetupHelper = require('branded-token.js'),
+  OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../../..',
+  InstanceComposer = OSTBase.InstanceComposer,
+  BrandedTokenBase = require(rootPrefix + '/tools/economySetup/brandedToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  brandedTokenBase = require(rootPrefix + '/tools/economySetup/brandedToken/Base');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
-class DeployBrandedToken extends brandedTokenBase {
+class DeployOriginBrandedToken extends BrandedTokenBase {
   constructor(params) {
     super(params);
     const oThis = this;
+    oThis.originChainId = params.originChainId;
+    oThis.organizationAddress = params.tokenOriOrgCntrctAddr;
 
     oThis.conversionRateDecimals = 5; //Temp: Need clarificaion from platform team.
   }
@@ -57,13 +59,20 @@ class DeployBrandedToken extends brandedTokenBase {
 
     await oThis.initializeVars();
 
-    let deploymentResponse = await oThis.deployBrandedToken(),
+    let deploymentResponse = await oThis._deployBrandedToken(),
       taskResponseData = {
-        brandedTokenDeployTxHash: deploymentResponse.transactionHash,
-        brandedTokenContractAddress: deploymentResponse.contractAddress
+        btCntrctAddr: deploymentResponse.contractAddress
       };
 
-    return Promise.resolve(responseHelper.successWithData({ taskDone: 1, taskResponseData: taskResponseData }));
+    oThis.SignerWeb3Instance.removeAddressKey(oThis.deployerAddress);
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        taskDone: 1,
+        taskResponseData: taskResponseData,
+        transactionHash: deploymentResponse.transactionHash
+      })
+    );
   }
 
   /**
@@ -74,8 +83,10 @@ class DeployBrandedToken extends brandedTokenBase {
   async initializeVars() {
     const oThis = this;
 
+    oThis.deployChainId = oThis._configStrategyObject.originChainId;
     await oThis._fetchAndSetTokenDetails();
-    await oThis._fetchAndSetDeployerAddress(oThis.originChainId);
+    await oThis._fetchAndSetDeployerAddress();
+    await oThis._fetchAndSetSimpleTokenAddress();
     await oThis._fetchAndSetGasPrice(coreConstants.originChainKind);
     await oThis._setWeb3Instance();
   }
@@ -84,7 +95,7 @@ class DeployBrandedToken extends brandedTokenBase {
    *
    * @returns {Promise<void>}
    */
-  async deployBrandedToken() {
+  async _deployBrandedToken() {
     const oThis = this;
 
     let BrandedTokenHelper = brandedTokenSetupHelper.EconomySetup.BrandedTokenHelper,
@@ -95,12 +106,13 @@ class DeployBrandedToken extends brandedTokenBase {
       gasPrice: oThis.gasPrice
     };
 
+    // TODO:: oThis.conversionFactor calculate and replace '1'.
     let deploymentRsp = await brandedTokenDeploymentHelper.deploy(
       oThis.simpleTokenAddress,
       oThis.tokenSymbol,
       oThis.tokenName,
       oThis.decimal,
-      oThis.conversionFactor,
+      1,
       oThis.conversionRateDecimals,
       oThis.organizationAddress,
       deployParams
@@ -108,20 +120,7 @@ class DeployBrandedToken extends brandedTokenBase {
 
     return deploymentRsp;
   }
-
-  /**
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _setWeb3Instance() {
-    const oThis = this;
-
-    let response = await chainConfigProvider.getFor([oThis.originChainId]),
-      originChainConfig = response[oThis.originChainId],
-      wsProviders = originChainConfig.originGeth.readWrite.wsProviders;
-
-    oThis.web3Instance = new SignerWeb3Provider(wsProviders[0], oThis.deployerAddress).getInstance();
-  }
 }
-module.exports = DeployBrandedToken;
+
+InstanceComposer.registerAsShadowableClass(DeployOriginBrandedToken, coreConstants.icNameSpace, 'deployBrandedToken');
+module.exports = DeployOriginBrandedToken;
