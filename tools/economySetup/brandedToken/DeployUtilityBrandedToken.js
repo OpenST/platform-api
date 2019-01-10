@@ -23,9 +23,9 @@ class DeployUtilityBrandedToken extends Base {
 
     oThis.web3Instance = null;
     oThis.auxChainId = params.auxChainId;
-    oThis.deployerAddress = params.deployerAddress;
+    oThis.deployerAddress = null;
     oThis.brandedTokenContractAddress = params.brandedTokenContractAddress;
-    oThis.organization = params.organization;
+    oThis.organization = params.tokenAuxOrgCntrctAddr;
   }
 
   /**

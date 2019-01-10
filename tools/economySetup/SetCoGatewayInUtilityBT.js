@@ -8,6 +8,8 @@
 
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
@@ -20,9 +22,7 @@ class DeployUtilityBrandedToken {
 
     oThis.web3 = null;
     oThis.auxChainId = params.auxChainId;
-    oThis.deployerAddress = params.deployerAddress;
-    oThis.brandedTokenContractAddress = params.brandedTokenContractAddress;
-    oThis.organization = params.organization;
+    oThis.organization = params.tokenAuxOrgCntrctAddr;
   }
 
   /**
@@ -40,7 +40,7 @@ class DeployUtilityBrandedToken {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_es_scgwubt_1',
+          internal_error_identifier: 't_es_scgubt_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -59,6 +59,10 @@ class DeployUtilityBrandedToken {
 
     await oThis._setWeb3Instance();
 
+    await oThis._fetchGatewayAddress();
+
+    await oThis._fetchCoGatewayAddress();
+
     await oThis._setCoGatewayInUBT();
   }
 
@@ -75,7 +79,59 @@ class DeployUtilityBrandedToken {
 
     oThis.auxChainConfig = response[oThis.auxChainId];
     oThis.wsProviders = oThis.auxChainConfig.auxGeth.readWrite.wsProviders;
-    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.deployerAddress).getInstance(); // TODO: check the address
+    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.organization).getInstance();
+  }
+
+  /**
+   * _fetchGatewayAddress
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _fetchGatewayAddress() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.auxChainId,
+      kind: chainAddressConstants.originGatewayContractKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_es_scgubt_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.gatewayContractAddress = fetchAddrRsp.data.address;
+  }
+
+  /**
+   * _fetchCoGatewayAddress
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _fetchCoGatewayAddress() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.auxChainId,
+      kind: chainAddressConstants.auxCoGatewayContractKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_es_scgubt_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.coGateWayContractAddress = fetchAddrRsp.data.address;
   }
 
   /**
@@ -87,18 +143,10 @@ class DeployUtilityBrandedToken {
   async _setCoGatewayInUBT() {
     const oThis = this;
 
-    let deployParams = {
-      deployer: oThis.deployerAddress,
-      token: oThis.brandedTokenContractAddress,
-      symbol: oThis.tokenSymbol,
-      name: oThis.tokenName,
-      decimals: oThis.decimal,
-      organization: oThis.organization
-    };
-
     let brandedTokenHelper = new BrandedTokenHelper(oThis.web3);
 
-    await brandedTokenHelper.setCoGateway(); // txOptions, web3 are default, passed in constructor respectively
+    // txOptions, web3 are default, passed in constructor respectively
+    await brandedTokenHelper.setCoGateway(oThis.coGateWayContractAddress, {}, oThis.gatewayContractAddress);
   }
 }
 
