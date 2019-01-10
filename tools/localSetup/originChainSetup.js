@@ -192,24 +192,33 @@ class chainSetup {
       chainId: oThis.chainId
     });
 
+    logger.log('* Generating address for origin deployer.');
+    logger.log('* Generating address for origin owner.');
+    logger.log('* Generating address for origin admin.');
+    logger.log('* Generating address for origin worker.');
+
     let generateOriginAddrRsp = await generateChainKnownAddresses.perform();
 
-    if (generateOriginAddrRsp.isSuccess()) {
-      logger.log('Generate Addresses Response: ', generateOriginAddrRsp.toHash());
-
-      let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
-        deployerAddr = addresses['deployer'],
-        ownerAddr = addresses['owner'],
-        adminAddr = addresses['admin'];
-
-      logger.log('* Funding Addresses with ETH.');
-      await oThis._fundAddressWithEth(deployerAddr);
-      await oThis._fundAddressWithEth(ownerAddr);
-      await oThis._fundAddressWithEth(adminAddr);
-    } else {
+    if (!generateOriginAddrRsp.isSuccess()) {
       logger.error('deploySimpleToken failed');
       return Promise.reject();
     }
+
+    logger.log('Generate Addresses Response: ', generateOriginAddrRsp.toHash());
+
+    let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
+      deployerAddr = addresses[chainAddressConstants.deployerKind],
+      ownerAddr = addresses[chainAddressConstants.ownerKind],
+      adminAddr = addresses[chainAddressConstants.adminKind];
+
+    logger.log('* Funding origin deployer address with ETH.');
+    await oThis._fundAddressWithEth(deployerAddr);
+
+    logger.log('* Funding origin owner address with ETH.');
+    await oThis._fundAddressWithEth(ownerAddr);
+
+    logger.log('* Funding origin admin address with ETH.');
+    await oThis._fundAddressWithEth(adminAddr);
   }
 
   generateAddrAndPrivateKey() {
