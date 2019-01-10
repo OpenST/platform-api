@@ -183,11 +183,13 @@ class chainSetup {
 
       let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
         deployerAddr = addresses['deployer'],
-        ownerAddr = addresses['owner'];
+        ownerAddr = addresses['owner'],
+        adminAddr = addresses['admin'];
 
       logger.log('* Funding Addresses with ETH.');
       await oThis._fundAddressWithEth(deployerAddr);
       await oThis._fundAddressWithEth(ownerAddr);
+      await oThis._fundAddressWithEth(adminAddr);
     } else {
       logger.error('deploySimpleToken failed');
       return Promise.reject();
