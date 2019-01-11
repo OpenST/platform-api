@@ -119,12 +119,14 @@ class TokenDeployGateway {
     };
 
     let tokenGatewayContractAddress = setupRsp.data.contractAddress,
+      simpleStakeContractAddress = setupRsp.data.simpleStakeContract,
       tokenGatewayDeployTxHash = setupRsp.data.transactionHash;
 
-    await oThis._insertIntoTokenAddress(tokenGatewayContractAddress);
+    await oThis._insertIntoTokenAddress(tokenGatewayContractAddress, simpleStakeContractAddress);
 
     let taskResponseData = {
-      [TokenAddressConstants.tokenGatewayContract]: tokenGatewayContractAddress
+      [TokenAddressConstants.tokenGatewayContract]: tokenGatewayContractAddress,
+      [TokenAddressConstants.simpleStakeContract]: simpleStakeContractAddress
     };
 
     return Promise.resolve(
@@ -317,20 +319,29 @@ class TokenDeployGateway {
    *
    * insert token gateway contract address into token address
    *
-   * @param {Result} response
+   * @param {String} gatewayAddress
+   * @param {String} simpleStakeContract
    *
    * @return {Promise}
    *
    * @private
    */
-  async _insertIntoTokenAddress(response) {
+  async _insertIntoTokenAddress(gatewayAddress, simpleStakeContract) {
     const oThis = this;
 
     await new TokenAddressModel()
       .insert({
         token_id: oThis.tokenId,
         kind: new TokenAddressModel().invertedKinds[TokenAddressConstants.tokenGatewayContract],
-        address: response
+        address: gatewayAddress
+      })
+      .fire();
+
+    await new TokenAddressModel()
+      .insert({
+        token_id: oThis.tokenId,
+        kind: new TokenAddressModel().invertedKinds[TokenAddressConstants.simpleStakeContract],
+        address: simpleStakeContract
       })
       .fire();
   }

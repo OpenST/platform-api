@@ -24,7 +24,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '53': tokenAddressConstants.brandedTokenContract,
     '54': tokenAddressConstants.utilityBrandedTokenContract,
     '55': tokenAddressConstants.tokenGatewayContract,
-    '56': tokenAddressConstants.tokenCoGatewayContract
+    '56': tokenAddressConstants.tokenCoGatewayContract,
+    '57': tokenAddressConstants.simpleStakeContract
   },
   invertedKinds = util.invert(kinds);
 
