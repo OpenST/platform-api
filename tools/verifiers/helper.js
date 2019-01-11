@@ -2,6 +2,9 @@
 
 const MosaicTbd = require('mosaic-tbd');
 
+const rootPrefix = '../..',
+  CoreBins = require(rootPrefix + '/config/CoreBins');
+
 class VerifierHelper {
   constructor(web3Instance) {
     const oThis = this;
@@ -9,60 +12,66 @@ class VerifierHelper {
     oThis.web3Instance = web3Instance;
   }
 
-  async verifyDeployedCode(contractAddress, binSubStr) {
+  async validateSimpleTokenContract(STContractAddress) {
     const oThis = this;
 
-    let deployedCode = await oThis.web3Instance.eth.getCode(contractAddress);
+    let deployedCode = await oThis.web3Instance.eth.getCode(STContractAddress),
+      coreBinCode = CoreBins.simpleToken;
 
-    return deployedCode.indexOf(binSubStr) !== -1;
+    let chainCode = deployedCode.slice(parseInt(deployedCode.length) - 50, parseInt(deployedCode.length));
+
+    return coreBinCode.indexOf(chainCode) !== -1;
   }
 
-  async validateContract(contractAddress, contractName, web3) {
+  async validateContract(contractAddress, contractName) {
     const oThis = this;
 
-    let deployedCode = await oThis._getCodeFor(contractAddress, web3);
+    let deployedCode = await oThis.web3Instance.eth.getCode(contractAddress),
+      binCode = await oThis._getBIN(contractName);
 
-    let binCode = await oThis._getBinString(contractName);
+    let chainCode = deployedCode.slice(parseInt(deployedCode.length) - 50, parseInt(deployedCode.length));
 
-    return binCode == deployedCode;
+    return binCode.indexOf(chainCode) !== -1;
   }
 
-  async getMosoicTbdContractObj(organizationName, contractAddress) {
+  async getMosaicTbdContractObj(contractName, contractAddress) {
     const oThis = this;
 
-    let abiOfOrganization = new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
+    let abiOfOrganization = await oThis._getABI(contractName);
 
     return new oThis.web3Instance.eth.Contract(abiOfOrganization, contractAddress);
-  }
-
-  get simpleTokenBinSubStr() {
-    return '5820efce56acd8cc472c4bf7a321f62d0c17f4aaaee748e32f8563a6f9f1de7c5ed00029';
-  }
-
-  get organizationBinSubStr() {
-    return 'aa572857d392ca775bb9c0c01465c5381ef34f50633f95487cddb78320029';
-  }
-
-  get organizationName() {
-    return 'MockOrganization';
   }
 
   static get AbiBinProviderHelper() {
     return MosaicTbd.AbiBinProvider;
   }
 
-  async _getCodeFor(contractAddress, web3) {
+  async _getABI(organizationName) {
     const oThis = this;
 
-    let deployedCode = await web3.eth.getCode(contractAddress);
-
-    return deployedCode;
+    return await new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
   }
 
-  async _getBinString(contractName) {
+  async _getBIN(contractName) {
     const oThis = this;
 
-    let contractBin = await oThis.AbiBinProviderHelper().getBIN(contractName);
+    return await new VerifierHelper.AbiBinProviderHelper().getBIN(contractName);
+  }
+
+  get getSimpleTokenContractName() {
+    return 'SimpleToken';
+  }
+
+  get getSimpleTokenPrimeContractName() {
+    return 'OSTPrime';
+  }
+
+  get getOrganizationContractName() {
+    return 'Organization';
+  }
+
+  get getAnchorContractName() {
+    return 'Anchor';
   }
 }
 
