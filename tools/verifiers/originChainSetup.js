@@ -3,13 +3,13 @@
 /**
  * Objective is to verify the table data with the chain data.
  *
+ * Usage:- node tools/verifiers/originChainSetup.js
  *
- * @type {string}
+ * @module tools/verifiers/originChainSetup
  */
 
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -68,24 +68,21 @@ class OriginChainSetup {
   async _validateSimpleTokenContract() {
     const oThis = this;
 
-    logger.log('* Fetching simple token contract address from database.');
+    logger.info('* Fetching simple token contract address from database.');
     let queryForSTContractRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: chainAddressConstants.baseContractKind
     });
     let dbSimpleTokenContractAddress = queryForSTContractRsp.data.address;
 
-    logger.log('* Validating the deployed code on the address.');
-    let rsp = await oThis.verifiersHelper.verifyDeployedCode(
-      dbSimpleTokenContractAddress,
-      oThis.verifiersHelper.simpleTokenBinSubStr
-    );
+    logger.info('* Validating the deployed code on the address.');
+    let rsp = await oThis.verifiersHelper.validateSimpleTokenContract(dbSimpleTokenContractAddress);
     if (!rsp) {
       logger.error('Deployment verification of simple token contract failed.');
       return Promise.reject();
     }
 
-    logger.log('* Fetching simple token admin address from database.');
+    logger.info('* Fetching simple token admin address from database.');
     let queryForAdminRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: chainAddressConstants.simpleTokenAdminKind
@@ -96,7 +93,7 @@ class OriginChainSetup {
       CoreAbis.simpleToken,
       dbSimpleTokenContractAddress
     );
-    logger.log('* Validating the deployed code on the address.');
+    logger.info('* Validating the deployed code on the address.');
 
     let chainSimpleTokenAdminAddress = await simpleTokenContractObj.methods.adminAddress().call({});
     if (chainSimpleTokenAdminAddress.toLowerCase() !== dbSimpleTokenAdminAddress.toLowerCase()) {
@@ -109,7 +106,7 @@ class OriginChainSetup {
       return Promise.reject();
     }
 
-    logger.log('* Checking whether simple token contract is finalized.');
+    logger.info('* Checking whether simple token contract is finalized.');
     let chainIsFinalized = await simpleTokenContractObj.methods.finalized().call({});
 
     if (!chainIsFinalized) {
@@ -121,48 +118,66 @@ class OriginChainSetup {
   async _validateOrganization(organizationKind) {
     const oThis = this;
 
-    logger.log('* Fetching', organizationKind, ' contract address from database.');
+    logger.info('* Fetching', organizationKind, ' contract address from database.');
     let queryForOrganizationRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: organizationKind
     });
     let dbOrganizationContractAddress = queryForOrganizationRsp.data.address;
 
-    logger.log('* Fetching admin address from database.');
+    logger.info('* Fetching admin address from database.');
     let queryForAdminRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: chainAddressConstants.adminKind
     });
     let dbAdminAddress = queryForAdminRsp.data.address;
 
-    logger.log('* Fetching worker addresses from database.');
+    logger.info('* Fetching owner address from database.');
+    let queryForOwnerRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.chainId,
+      kind: chainAddressConstants.ownerKind
+    });
+    let dbAOwnerAddress = queryForOwnerRsp.data.address;
+
+    logger.info('* Fetching worker addresses from database.');
     let queryForWorkerRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: chainAddressConstants.workerKind
     });
     let dbWorkerAddresses = queryForWorkerRsp.data.addresses;
 
-    logger.log('* Validating the deployed code on the organization address.');
-    let rsp = await oThis.verifiersHelper.verifyDeployedCode(
+    logger.info('* Validating the deployed code on the organization address.');
+    let rsp = await oThis.verifiersHelper.validateContract(
       dbOrganizationContractAddress,
-      oThis.verifiersHelper.organizationBinSubStr
+      oThis.verifiersHelper.getOrganizationContractName
     );
     if (!rsp) {
       logger.error('Deployment verification of', organizationKind, ' organization contract failed.');
       return Promise.reject();
     }
 
-    let organizationContractObj = await oThis.verifiersHelper.getOrganizationContractObj(dbOrganizationContractAddress);
+    let organizationContractObj = await oThis.verifiersHelper.getMosaicTbdContractObj(
+      'organization',
+      dbOrganizationContractAddress
+    );
 
     let chainAdmin = await organizationContractObj.methods.admin().call({});
 
-    logger.log('* Validating the admin address with chain.');
+    logger.info('* Validating the admin address with chain.');
     if (chainAdmin.toLowerCase() !== dbAdminAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, ' failed.');
       Promise.reject();
     }
 
-    logger.log('* Validating the worker addresses with chain.');
+    let chainOwner = await organizationContractObj.methods.owner().call({});
+
+    logger.info('* Validating the owner address with chain.');
+    if (chainOwner.toLowerCase() !== dbAOwnerAddress.toLowerCase()) {
+      logger.error('Deployment verification of', organizationKind, ' failed.');
+      Promise.reject();
+    }
+
+    logger.info('* Validating the worker addresses with chain.');
     for (let i = 0; i < dbWorkerAddresses.length; i++) {
       let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddresses[i]).call({});
       if (!isWorkerResult) {
