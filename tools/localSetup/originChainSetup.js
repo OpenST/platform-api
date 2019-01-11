@@ -107,7 +107,7 @@ class chainSetup {
     logger.step('** Starting fresh setup');
     await fileManager.freshSetup();
 
-    logger.step('** Generating sealer address and init geth with genesis');
+    logger.step('** Generating sealer address on GETH and init GETH with genesis');
     await gethManager.initChain(coreConstants.originChainKind, oThis.chainId);
 
     logger.step('** Starting origin geth for deployment.');
@@ -116,18 +116,23 @@ class chainSetup {
     logger.step('** Origin Addresses Generation');
     await oThis.generateAndFundOriginAddr();
 
-    logger.step('** Generate SimpleTokenOwner & SimpleTokenAdmin private keys.');
-    let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey(),
-      SimpleTokenAdminDetails = await oThis.generateAddrAndPrivateKey(),
-      simpleTokenOwnerAddress = SimpleTokenOwnerDetails.address,
-      simpleTokenOwnerPrivateKey = SimpleTokenOwnerDetails.privateKey,
-      simpleTokenAdmin = SimpleTokenAdminDetails.address,
+    logger.step('** Generate SimpleToken owner key.');
+    let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey();
+    let simpleTokenOwnerAddress = SimpleTokenOwnerDetails.address,
+      simpleTokenOwnerPrivateKey = SimpleTokenOwnerDetails.privateKey;
+
+    logger.log('* Funding SimpleToken owner address with ETH.');
+    await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
+
+    logger.step('** Generate SimpleToken admin key.');
+    let SimpleTokenAdminDetails = await oThis.generateAddrAndPrivateKey();
+    let simpleTokenAdmin = SimpleTokenAdminDetails.address,
       simpleTokenAdminPrivateKey = SimpleTokenAdminDetails.privateKey;
 
-    logger.step('** Funding SimpleTokenOwner & SimpleTokenAdmin addresses with ETH.');
-    await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
+    logger.log('* Funding SimpleToken admin address with ETH.');
     await oThis._fundAddressWithEth(SimpleTokenAdminDetails.address);
 
+    // deploying contracts now
     logger.step('** Deploying Simple Token Contract');
     await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
 

@@ -100,6 +100,7 @@ class CommonSetupBase {
    *
    * @private
    */
+  // TODO :: clean up using signer web3
   _addKeyToWallet(signerKey) {
     const oThis = this;
     oThis._web3Instance.eth.accounts.wallet.add(signerKey);
