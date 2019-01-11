@@ -8,6 +8,7 @@ const Path = require('path'),
   editJsonFile = require('edit-json-file');
 
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
@@ -75,7 +76,9 @@ class GethManager {
     let allocAddress, allocAmount;
     for (let allocationAddress in allocAddressToAmountMap) {
       allocAddress = allocationAddress;
-      allocAmount = allocAddressToAmountMap[allocAddress];
+      allocAmount = basicHelper.convertToWei(
+        basicHelper.convertToBigNumber(allocAddressToAmountMap[allocAddress].toString())
+      );
     }
 
     const gasLimit = hexStartsWith + gasLimitOn[chainType].toString(16);
@@ -89,10 +92,12 @@ class GethManager {
     const file = editJsonFile(chainGenesisLocation);
 
     if (!allocAddressToAmountMap) {
-      file.set('alloc.' + sealerAddress + '.balance', '0xe567bd7e886312a0cf7397bb73650d2280400000000000000'); //this is hardcoded, because we dont know the address at the time of chain setup
+      //if allocate amount is not specified, then allocates 800M by default.
+      //we need this step (for setup on local machines) to fund some addresses for origin deployment
+      file.set('alloc.' + sealerAddress + '.balance', '0x295be96e640669720000000');
     } else {
       // Alloc balance to required address
-      file.set('alloc.' + allocAddress + '.balance', allocAmount);
+      file.set('alloc.' + allocAddress + '.balance', basicHelper.convertToHex(allocAmount));
     }
 
     // Set chainId.

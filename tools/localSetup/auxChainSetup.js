@@ -94,8 +94,6 @@ class AuxChainSetup {
   async asyncPerform() {
     const oThis = this;
 
-    // TODO - check if config strategy for aux is inserted in DB.
-
     await oThis.checkIfOriginGethIsRunning();
 
     await oThis._getIc();
@@ -104,8 +102,8 @@ class AuxChainSetup {
     let generatedAddresses = await oThis.generateAuxAddresses(),
       allocAddressToAmountMap = {},
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
-    // TODO - following value should be exactly equal to 800M
-    allocAddressToAmountMap[chainOwnerAddr] = '0xe567bd7e886312a0cf7397bb73650d2280400000000000000';
+    // TODO @dhananjay - following value should be exactly equal to 800M - done
+    allocAddressToAmountMap[chainOwnerAddr] = coreConstants.OST_AUX_STPRIME_TOTAL_SUPPLY;
 
     logger.step('** init GETH with genesis');
     await gethManager.initChain(coreConstants.auxChainKind, oThis.auxChainId, allocAddressToAmountMap);
