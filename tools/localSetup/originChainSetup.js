@@ -153,19 +153,19 @@ class chainSetup {
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('* Setup base contract organization.');
+    logger.step('* Deploying organization for simple token.');
     await oThis.setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind);
 
     await basicHelper.pauseForMilliSeconds(200);
 
-    logger.step('* Setup anchor organization.');
+    logger.step('* Deploying organization for anchor.');
     await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
 
     await basicHelper.pauseForMilliSeconds(200);
 
     logger.step('** Deploy libraries.');
 
-    logger.log('* [Origin]: Deply MerklePatriciaProof');
+    logger.log('* [Origin]: Deploy MerklePatriciaProof Library');
     await oThis.deployLib(coreConstants.originChainKind, 'merklePatriciaProof');
 
     logger.log('* [Origin]: Deploy MessageBus');
