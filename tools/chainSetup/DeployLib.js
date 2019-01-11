@@ -169,8 +169,7 @@ class DeployLib {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.deployerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -199,8 +198,7 @@ class DeployLib {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.merklePatriciaProofLibKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.merklePatriciaProofLibKind
     });
 
     if (!fetchAddrRsp.data.address) {

@@ -17,11 +17,23 @@ const steps = {
   [workflowStepConstants.deployOriginTokenOrganization]: {
     kind: workflowStepConstants.deployOriginTokenOrganization,
     onFailure: '',
+    onSuccess: [workflowStepConstants.deployOriginBrandedToken]
+  },
+  [workflowStepConstants.deployOriginBrandedToken]: {
+    kind: workflowStepConstants.deployOriginBrandedToken,
+    onFailure: '',
+    readDataFrom: [workflowStepConstants.deployOriginTokenOrganization],
     onSuccess: [workflowStepConstants.deployAuxTokenOrganization]
   },
   [workflowStepConstants.deployAuxTokenOrganization]: {
     kind: workflowStepConstants.deployAuxTokenOrganization,
     onFailure: '',
+    onSuccess: [workflowStepConstants.deployUtilityBrandedToken]
+  },
+  [workflowStepConstants.deployUtilityBrandedToken]: {
+    kind: workflowStepConstants.deployUtilityBrandedToken,
+    onFailure: '',
+    readDataFrom: [workflowStepConstants.deployOriginBrandedToken, workflowStepConstants.deployAuxTokenOrganization],
     onSuccess: []
   }
 };

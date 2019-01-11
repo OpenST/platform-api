@@ -143,8 +143,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.deployerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -173,8 +172,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.baseContractOrganizationKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.baseContractOrganizationKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -203,8 +201,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.baseContractKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -233,8 +230,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.baseContractKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -264,8 +260,7 @@ class DeployCoGateway {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.auxAnchorContractKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.auxAnchorContractKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -294,8 +289,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._configStrategyObject.originChainId,
-      kind: chainAddressConstants.originGatewayContractKind,
-      chainKind: coreConstants.originChainKind
+      kind: chainAddressConstants.originGatewayContractKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -324,8 +318,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.messageBusLibKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.messageBusLibKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -354,8 +347,7 @@ class DeployCoGateway {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.gatewayLibKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.gatewayLibKind
     });
 
     if (!fetchAddrRsp.data.address) {

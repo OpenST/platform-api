@@ -106,8 +106,7 @@ class InitializeSimpleTokenPrime extends SetupSTPrimeBase {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
-      kind: chainAddressConstants.chainOwnerKind,
-      chainKind: coreConstants.auxChainKind
+      kind: chainAddressConstants.chainOwnerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -136,8 +135,7 @@ class InitializeSimpleTokenPrime extends SetupSTPrimeBase {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis._auxChainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: coreConstants.auxChainKind
+      kind: chainAddressConstants.baseContractKind
     });
 
     if (!fetchAddrRsp.data.address) {

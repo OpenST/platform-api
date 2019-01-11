@@ -154,8 +154,7 @@ class SetCoAnchor {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.ownerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.ownerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -185,8 +184,7 @@ class SetCoAnchor {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.originChainId,
       auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.originAnchorContractKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.originAnchorContractKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -216,8 +214,7 @@ class SetCoAnchor {
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.auxChainId,
       auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.auxAnchorContractKind,
-      chainKind: oThis.otherChainKind
+      kind: chainAddressConstants.auxAnchorContractKind
     });
 
     if (!fetchAddrRsp.data.address) {

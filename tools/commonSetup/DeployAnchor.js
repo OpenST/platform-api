@@ -64,10 +64,12 @@ class DeployAnchor extends CommonSetupBase {
       chainId: oThis.chainId
     };
 
+    logger.debug('txOptions-------', txOptions);
+
     let anchorHelperObj = new DeployAnchor.AnchorHelper(oThis._web3Instance),
       deployRsp = await anchorHelperObj
         .deploy(
-          oThis.chainId,
+          oThis.remoteChainId,
           oThis.latestBlock.number,
           oThis.latestBlock.stateRoot,
           oThis.maxStateRoots,

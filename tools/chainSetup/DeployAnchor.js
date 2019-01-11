@@ -86,6 +86,7 @@ class DeployAnchor {
 
     let params = {
       chainId: oThis.chainId,
+      remoteChainId: oThis.remoteChainId,
       signerAddress: signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
@@ -121,6 +122,7 @@ class DeployAnchor {
       case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
         oThis.anchorKind = chainAddressConstants.originAnchorContractKind;
+        oThis.remoteChainId = oThis.auxChainId;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           gasPriceRsp = await gasPriceCacheObj.fetch();
@@ -128,6 +130,7 @@ class DeployAnchor {
         break;
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
+        oThis.remoteChainId = oThis._configStrategyObject.originChainId;
         oThis.anchorKind = chainAddressConstants.auxAnchorContractKind;
         oThis.gasPrice = '0x0';
         break;
@@ -150,8 +153,7 @@ class DeployAnchor {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.deployerKind
     });
 
     if (!fetchAddrRsp.data.address) {
@@ -180,8 +182,7 @@ class DeployAnchor {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorOrganizationKind,
-      chainKind: oThis.chainKind
+      kind: chainAddressConstants.anchorOrganizationKind
     });
 
     if (!fetchAddrRsp.data.address) {

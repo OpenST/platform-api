@@ -6,7 +6,7 @@
  *  This class helps in deployment of utility branded token on auxiliary chain
  */
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   Base = require(rootPrefix + '/tools/economySetup/brandedToken/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-const BrandedTokenHelper = require('branded-token.js');
+const brandedTokenSetupHelper = require('branded-token.js');
 
 class DeployUtilityBrandedToken extends Base {
   constructor(params) {
@@ -25,10 +25,10 @@ class DeployUtilityBrandedToken extends Base {
     const oThis = this;
 
     oThis.web3Instance = null;
-    oThis.auxChainId = params.auxChainId;
     oThis.deployerAddress = null;
-    oThis.brandedTokenContractAddress = params.brandedTokenContractAddress;
+    oThis.brandedTokenContractAddress = params.btCntrctAddr;
     oThis.organization = params.tokenAuxOrgCntrctAddr;
+    oThis.deployToChainKind = coreConstants.auxChainKind;
   }
 
   /**
@@ -63,29 +63,40 @@ class DeployUtilityBrandedToken extends Base {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._fetchAndSetDeployerAddress(oThis.auxChainId);
+    await oThis.initializeVars();
 
-    await oThis._setWeb3Instance();
+    let deploymentResponse = await oThis._deployUtilityBrandedToken();
 
-    await oThis._fetchAndSetTokenDetails();
+    let taskResponseData = {
+      ubtCntrctAddr: deploymentResponse.contractAddress
+    };
 
-    await oThis._deployUtilityBrandedToken();
+    oThis.SignerWeb3Instance.removeAddressKey(oThis.deployerAddress);
+
+    await oThis._insertIntoTokenAddresses(deploymentResponse.contractAddress);
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        taskDone: 1,
+        taskResponseData: taskResponseData,
+        transactionHash: deploymentResponse.transactionHash
+      })
+    );
   }
 
   /**
-   * _setWeb3Instance
+   * Initialize vars
    *
-   * @return {Promise<void>}
-   * @private
+   * @returns {Promise<void>}
    */
-  async _setWeb3Instance() {
+  async initializeVars() {
     const oThis = this;
 
-    let response = await chainConfigProvider.getFor([oThis.auxChainId]);
-
-    oThis.auxChainConfig = response[oThis.auxChainId];
-    oThis.wsProviders = oThis.auxChainConfig.auxGeth.readWrite.wsProviders;
-    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.deployerAddress).getInstance();
+    oThis.deployChainId = oThis.auxChainId;
+    await oThis._fetchAndSetTokenDetails();
+    await oThis._fetchAndSetDeployerAddress();
+    await oThis._fetchAndSetGasPrice(coreConstants.auxChainKind);
+    await oThis._setWeb3Instance();
   }
 
   /**
@@ -97,22 +108,33 @@ class DeployUtilityBrandedToken extends Base {
   async _deployUtilityBrandedToken() {
     const oThis = this;
 
-    let brandedTokenHelper = new BrandedTokenHelper(oThis.web3Instance);
+    let BrandedTokenHelper = brandedTokenSetupHelper.EconomySetup.UtilityBrandedTokenHelper,
+      brandedTokenDeploymentHelper = new BrandedTokenHelper(oThis.web3Instance);
 
-    await brandedTokenHelper.deploy(
+    //_token, _symbol, _name, _decimals, _organization, txOptions, web3
+
+    let deployParams = {
+      from: oThis.deployerAddress,
+      gasPrice: oThis.gasPrice
+    };
+
+    let contractResponse = await brandedTokenDeploymentHelper.deploy(
       oThis.brandedTokenContractAddress,
-      oThis.symbol,
-      oThis.name,
+      oThis.tokenSymbol,
+      oThis.tokenName,
       oThis.decimal,
-      oThis.organization
-    ); // txOptions, web3 are default, passed in constructor respectively
+      oThis.organization,
+      deployParams
+    ); // web3 are default, passed in constructor respectively
+
+    return Promise.resolve(contractResponse);
   }
 }
 
 InstanceComposer.registerAsShadowableClass(
   DeployUtilityBrandedToken,
   coreConstants.icNameSpace,
-  'DeployUtilityBrandedToken'
+  'deployUtilityBrandedToken'
 );
 
 module.exports = DeployUtilityBrandedToken;

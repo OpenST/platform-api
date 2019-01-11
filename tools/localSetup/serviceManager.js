@@ -158,10 +158,8 @@ class ServiceManager {
    */
   async _startGethCommand(chainType, chainId, purpose) {
     const oThis = this,
-      chainConfigStrategy = await oThis.fetchConfig(chainId);
-    console.log('chainConfigStrategy.auxConstants', chainConfigStrategy.auxConstants);
-
-    const networkId =
+      chainConfigStrategy = await oThis.fetchConfig(chainId),
+      networkId =
         chainType === coreConstants.auxChainKind
           ? chainConfigStrategy.auxConstants.networkId
           : chainConfigStrategy.originConstants.networkId,
@@ -181,12 +179,10 @@ class ServiceManager {
       wsHost = wsProviderHostPort[0],
       wsPort = wsProviderHostPort[1];
 
-    let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind,
-      sealerAddress = await new ChainAddressModel().fetchAddress({
-        chainId: chainId,
-        chainKind: chainKind,
-        kind: chainAddressConst.sealerKind
-      });
+    let sealerAddress = await new ChainAddressModel().fetchAddress({
+      chainId: chainId,
+      kind: chainAddressConst.sealerKind
+    });
 
     const sealerAddr = sealerAddress.data.address;
 

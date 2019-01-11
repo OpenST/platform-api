@@ -196,8 +196,7 @@ class SetupSimpleTokenBase {
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: coreConstants.originChainKind
+      kind: chainAddressConstants.baseContractKind
     });
 
     return fetchAddrRsp.data['address'];

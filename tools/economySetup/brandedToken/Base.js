@@ -14,18 +14,23 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
+  TokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
-class Base {
-  construtor(params) {
+class DeployBrandedTokenBase {
+  constructor(params) {
     const oThis = this;
-    oThis.clientId = params.clientId;
-    oThis.originChainId = params.originChainId;
-    oThis.auxChainId = params.auxChainId;
-    oThis.simpleTokenAddress = params.simpleTokenAddress;
-    oThis.organizationAddress = params.organizationAddress;
 
+    console.log('---------------params--', params);
+
+    oThis.clientId = params.clientId;
+    oThis.auxChainId = params.chainId;
+
+    oThis.simpleTokenAddress = null;
     oThis.deployerAddress = null;
     oThis.gasPrice = null;
   }
@@ -53,6 +58,7 @@ class Base {
       );
     }
 
+    oThis.tokenId = tokenDetails[0].id;
     oThis.tokenName = tokenDetails[0].name;
     oThis.tokenSymbol = tokenDetails[0].symbol;
     oThis.conversionFactor = tokenDetails[0].conversion_factor;
@@ -66,11 +72,11 @@ class Base {
    * @returns {Promise<*>}
    * @private
    */
-  async _fetchAndSetDeployerAddress(chainId) {
+  async _fetchAndSetDeployerAddress() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: chainId,
+      chainId: oThis.deployChainId,
       kind: chainAddressConstants.deployerKind
     });
 
@@ -84,6 +90,47 @@ class Base {
     }
 
     oThis.deployerAddress = fetchAddrRsp.data.address;
+  }
+
+  /**
+   * sets the simple token address as per the chain id passed.
+   *
+   * @param chainId
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchAndSetSimpleTokenAddress() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.deployChainId,
+      kind: chainAddressConstants.baseContractKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_es_btb_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.simpleTokenAddress = fetchAddrRsp.data.address;
+  }
+
+  /**
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _setWeb3Instance() {
+    const oThis = this;
+
+    let wsProvider = oThis._configStrategyObject.chainWsProvider(oThis.deployChainId, 'readWrite');
+
+    oThis.SignerWeb3Instance = new SignerWeb3Provider(wsProvider, oThis.deployerAddress);
+    oThis.web3Instance = await oThis.SignerWeb3Instance.getInstance();
   }
 
   /**
@@ -110,6 +157,63 @@ class Base {
         throw `unsupported chainKind: ${chainKind}`;
     }
   }
+
+  /***
+   *
+   * config strategy
+   *
+   * @return {object}
+   */
+  get _configStrategy() {
+    const oThis = this;
+    return oThis.ic().configStrategy;
+  }
+
+  /***
+   *
+   * object of config strategy klass
+   *
+   * @return {object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+    return oThis.configStrategyObj;
+  }
+
+  /**
+   *
+   * @param organizationContractAddress
+   * @returns {Promise<>}
+   * @private
+   */
+  async _insertIntoTokenAddresses(contractAddress) {
+    const oThis = this;
+    let contractKind = oThis._contractKind();
+
+    await new TokenAddressModel()
+      .insert({
+        token_id: oThis.tokenId,
+        kind: contractKind,
+        address: contractAddress
+      })
+      .fire();
+  }
+
+  /**
+   *
+   * @returns {*}
+   * @private
+   */
+  _contractKind() {
+    const oThis = this;
+    if (oThis.deployToChainKind == coreConstants.originChainKind) {
+      return new TokenAddressModel().invertedKinds[TokenAddressConstants.brandedTokenContract];
+    } else {
+      return new TokenAddressModel().invertedKinds[TokenAddressConstants.utilityBrandedTokenContract];
+    }
+  }
 }
 
-module.exports = Base;
+module.exports = DeployBrandedTokenBase;

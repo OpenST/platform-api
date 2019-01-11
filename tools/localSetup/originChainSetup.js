@@ -204,7 +204,7 @@ class chainSetup {
       return Promise.reject();
     }
 
-    logger.log('Generate Addresses Response: ', generateOriginAddrRsp.toHash());
+    logger.info('Generate Addresses Response: ', generateOriginAddrRsp.toHash());
 
     let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
       deployerAddr = addresses[chainAddressConstants.deployerKind],
@@ -346,11 +346,8 @@ class chainSetup {
 
     let sealerAddress = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
-      chainKind: coreConstants.originChainKind,
       kind: chainAddressConstants.sealerKind
     });
-
-    logger.debug('sealerAddress------', sealerAddress);
 
     let txParams = {
       from: sealerAddress.data.address,
