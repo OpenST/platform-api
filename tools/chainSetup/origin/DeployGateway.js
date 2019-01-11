@@ -1,21 +1,21 @@
 'use strict';
-
 /**
- * deploy gateway contract
+ * Deploy gateway contract
  *
  * @module tools/chainSetup/origin/DeployGateway
  */
+const OSTBase = require('@openstfoundation/openst-base');
+
 const rootPrefix = '../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
   DeployGatewayHelper = require(rootPrefix + '/tools/commonSetup/DeployGateway'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
@@ -369,7 +369,7 @@ class DeployGateway {
 
   /***
    *
-   * insert anchor contract address into chain address
+   * Insert gateway address and simpleStake address into chain address
    *
    * @param {Result} response
    *
@@ -388,6 +388,14 @@ class DeployGateway {
       kind: chainAddressConstants.originGatewayContractKind,
       chainKind: oThis.chainKind,
       address: response.data['contractAddress']
+    });
+
+    await new ChainAddressModel().insertAddress({
+      chainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
+      kind: chainAddressConstants.simpleStakeContractKind,
+      chainKind: oThis.chainKind,
+      address: response.data[chainAddressConstants.simpleStakeContractKind]
     });
   }
 

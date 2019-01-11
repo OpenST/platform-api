@@ -7,8 +7,9 @@
  */
 const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonSetupBase = require(rootPrefix + '/tools/commonSetup/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonSetupBase = require(rootPrefix + '/tools/commonSetup/Base'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   MosaicTbd = require('mosaic-tbd');
 
 /**
@@ -100,11 +101,29 @@ class DeployGateway extends CommonSetupBase {
 
     oThis._removeKeyFromWallet(signerKey);
 
+    let gatewayContractAddress = deployRsp.data['contractAddress'];
+    deployRsp.data[chainAddressConstants.simpleStakeContractKind] = await oThis.stakeVault(gatewayContractAddress);
+
     return Promise.resolve(deployRsp);
   }
 
   static get GatewayHelper() {
     return MosaicTbd.ChainSetup.GatewayHelper;
+  }
+
+  /**
+   * Returns simpleStakeContractAddress.
+   *
+   * @param {String} gatewayContractAddress
+   *
+   * @return {Promise<*|result>}
+   */
+  async stakeVault(gatewayContractAddress) {
+    const oThis = this,
+      helperObj = new DeployGateway.GatewayHelper(oThis._web3Instance),
+      stakeVaultResponse = await helperObj.getStakeVault(gatewayContractAddress, oThis._web3Instance);
+
+    return stakeVaultResponse;
   }
 }
 
