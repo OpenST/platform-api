@@ -17,6 +17,8 @@ const InstanceComposer = OSTBase.InstanceComposer;
 require(rootPrefix + '/tools/economySetup/deployTokenOrganization');
 require(rootPrefix + '/tools/economySetup/brandedToken/DeployBrandedToken');
 require(rootPrefix + '/tools/economySetup/brandedToken/DeployUtilityBrandedToken');
+require(rootPrefix + '/tools/economySetup/DeployGateway');
+require(rootPrefix + '/tools/economySetup/DeployCoGateway');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -63,6 +65,12 @@ class economySetupRouter extends workflowRouterBase {
           'deployUtilityBrandedToken'
         );
         return new deployUtilityBrandeTokenKlass(oThis.requestParams).perform();
+      case workflowStepConstants.tokenDeployGateway:
+        let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'tokenDeployGateway');
+        return new TokenDeployGatewayKlass(oThis.requestParams).perform();
+      case workflowStepConstants.tokenDeployCoGateway:
+        let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'tokenDeployCoGateway');
+        return new TokenDeployCoGatewayKlass(oThis.requestParams).perform();
       default:
         return Promise.reject(
           responseHelper.error({

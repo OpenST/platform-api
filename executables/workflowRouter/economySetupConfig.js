@@ -34,6 +34,16 @@ const steps = {
     kind: workflowStepConstants.deployUtilityBrandedToken,
     onFailure: '',
     readDataFrom: [workflowStepConstants.deployOriginBrandedToken, workflowStepConstants.deployAuxTokenOrganization],
+    onSuccess: [workflowStepConstants.tokenDeployGateway]
+  },
+  [workflowStepConstants.tokenDeployGateway]: {
+    kind: workflowStepConstants.tokenDeployGateway,
+    onFailure: '',
+    onSuccess: [workflowStepConstants.tokenDeployCoGateway]
+  },
+  [workflowStepConstants.tokenDeployCoGateway]: {
+    kind: workflowStepConstants.tokenDeployCoGateway,
+    onFailure: '',
     onSuccess: []
   }
 };

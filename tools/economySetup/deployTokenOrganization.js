@@ -173,7 +173,7 @@ class deployTokenOrganization {
           new TokenAddressModel().invertedKinds[TokenAddressConstants.workerAddressKind]
         ]
       ])
-      .order_by('created_at DESC')
+      .order_by('id DESC')
       .fire();
 
     for (let i = 0; i < addresses.length; i++) {
