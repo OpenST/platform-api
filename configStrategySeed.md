@@ -168,6 +168,87 @@ ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(2000, 1).addForKind('auxConstants', auxConstantDetails, 1);
 ```
 
+```js
+let dynamoConfigDetails = {
+  "dynamodb": {
+    "endpoint": "http://localhost:8000",
+    "region": "localhost",
+    "apiKey": "X",
+    "apiSecret": "pweoiureugfd3298yreuhdjksm",
+    "apiVersion": "2012-08-10",
+    "enableSsl": "0",
+    "tablePrefix": "de_ma_",
+    "enableLogging": "0",
+    "enableAutoscaling": "0",
+    "maxRetryCount": "1",
+    "autoScaling": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "eridsklcxmedsfhkljdsnvcxuiwedsjckx",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0"
+    }
+  }
+}
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+new ConfigStrategyCrud(2000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
+```
+
+```js
+let dynamoConfigDetails = {
+  "dynamodb": {
+    "endpoint": "http://localhost:8000",
+    "region": "localhost",
+    "apiKey": "X",
+    "apiSecret": "pweoiureugfd3298yreuhdjksm",
+    "apiVersion": "2012-08-10",
+    "enableSsl": "0",
+    "tablePrefix": "de_ma_",
+    "enableLogging": "0",
+    "enableAutoscaling": "0",
+    "maxRetryCount": "1",
+    "autoScaling": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "eridsklcxmedsfhkljdsnvcxuiwedsjckx",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0"
+    }
+  }
+}
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+new ConfigStrategyCrud(1000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
+```
+
+```js
+let dynamoConfigDetails = {
+  "dynamodb": {
+    "endpoint": "http://localhost:8000",
+    "region": "localhost",
+    "apiKey": "X",
+    "apiSecret": "pweoiureugfd3298yreuhdjksm",
+    "apiVersion": "2012-08-10",
+    "enableSsl": "0",
+    "tablePrefix": "de_ma_",
+    "enableLogging": "0",
+    "enableAutoscaling": "0",
+    "maxRetryCount": "1",
+    "autoScaling": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "eridsklcxmedsfhkljdsnvcxuiwedsjckx",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0"
+    }
+  }
+}
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+new ConfigStrategyCrud(0, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
+```
+
 Activating global config
 ```js
 let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
