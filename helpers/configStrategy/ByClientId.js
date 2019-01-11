@@ -14,7 +14,9 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
-  ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategy'),
+  //ClientConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/clientConfigStrategy'),
+  ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup'),
+  ChainConfigStrategyIds = require(rootPrefix + '/lib/sharedCacheManagement/chainConfigStrategyIds'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -46,16 +48,24 @@ class ConfigStrategyByClientId {
       );
     }
 
-    let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
+    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
       fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
 
     if (fetchCacheRsp.isFailure()) {
       return Promise.reject(fetchCacheRsp);
     }
 
-    let cacheData = fetchCacheRsp.data[clientId];
+    let cacheData = fetchCacheRsp.data[clientId],
+      cachedChainId = cacheData.chainId;
 
-    let strategyIdsArray = cacheData.configStrategyIds,
+    logger.info('cacheData', cacheData);
+
+    let chainConfigStrategyIdsObj = new ChainConfigStrategyIds({ chainId: cachedChainId }),
+      chainConfigStrategyIdsCacheRsp = await chainConfigStrategyIdsObj.fetch();
+
+    logger.info('chainConfigStrategyIdsCacheRsp', chainConfigStrategyIdsCacheRsp);
+
+    let strategyIdsArray = chainConfigStrategyIdsCacheRsp.data.strategyIds,
       configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),
       configStrategyFetchRsp = await configStrategyCacheObj.fetch();
 
