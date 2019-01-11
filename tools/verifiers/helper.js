@@ -31,7 +31,9 @@ class VerifierHelper {
 
     deployedCode = deployedCode.slice(2);
 
-    return binCode.indexOf(deployedCode) !== -1;
+    let chainCode = deployedCode.slice(parseInt(deployedCode.length) - 100, parseInt(deployedCode.length));
+
+    return binCode.indexOf(chainCode) !== -1;
   }
 
   async getMosaicTbdContractObj(contractName, contractAddress) {

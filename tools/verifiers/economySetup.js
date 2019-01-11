@@ -9,6 +9,7 @@ const rootPrefix = '../..',
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3Provider = require(rootPrefix + '/lib/providers/web3');
 
 let originChainId = process.argv[2],
@@ -120,6 +121,7 @@ class EconomySetupVerifier {
     }
 
     if (!looksGood) {
+      logger.error('====Validation failed for', tokenAddressType, contractName);
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_v_es_2',
@@ -190,7 +192,7 @@ class EconomySetupVerifier {
   async _validateGateway() {
     const oThis = this;
 
-    await oThis._validateDeployedContract(tokenAddressConstants.tokenGatewayContract, 'GatewayComposer', 'origin');
+    await oThis._validateDeployedContract(tokenAddressConstants.tokenGatewayContract, 'EIP20Gateway', 'origin');
   }
 
   /**
@@ -202,7 +204,7 @@ class EconomySetupVerifier {
   async _validateCoGateway() {
     const oThis = this;
 
-    await oThis._validateDeployedContract(tokenAddressConstants.tokenCoGatewayContract, 'GatewayComposer', 'aux');
+    await oThis._validateDeployedContract(tokenAddressConstants.tokenCoGatewayContract, 'EIP20CoGateway', 'aux');
   }
 }
 
@@ -211,7 +213,7 @@ let economySetupVerifier = new EconomySetupVerifier();
 economySetupVerifier
   .validate()
   .then(function() {
-    console.log('==== Successfully validated ====');
+    logger.win('==== Successfully validated ====');
   })
   .catch(function(err) {
     console.log('==== Error ====\n', err);
