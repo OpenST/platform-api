@@ -1,6 +1,6 @@
 'use strict';
 
-const MosaicTbd = require('mosaic-tbd');
+const BrandedToken = require('branded-token.js');
 
 const rootPrefix = '../..',
   CoreBins = require(rootPrefix + '/config/CoreBins');
@@ -29,9 +29,9 @@ class VerifierHelper {
     let deployedCode = await oThis.web3Instance.eth.getCode(contractAddress),
       binCode = await oThis._getBIN(contractName);
 
-    let chainCode = deployedCode.slice(parseInt(deployedCode.length) - 50, parseInt(deployedCode.length));
+    deployedCode = deployedCode.slice(2);
 
-    return binCode.indexOf(chainCode) !== -1;
+    return binCode.indexOf(deployedCode) !== -1;
   }
 
   async getMosaicTbdContractObj(contractName, contractAddress) {
@@ -43,7 +43,7 @@ class VerifierHelper {
   }
 
   static get AbiBinProviderHelper() {
-    return MosaicTbd.AbiBinProvider;
+    return BrandedToken.AbiBinProvider;
   }
 
   async _getABI(organizationName) {
