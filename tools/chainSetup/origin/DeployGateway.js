@@ -231,7 +231,7 @@ class DeployGateway {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
+      chainId: oThis.auxChainId,
       kind: chainAddressConstants.baseContractKind
     });
 
