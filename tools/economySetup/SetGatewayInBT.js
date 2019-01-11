@@ -22,7 +22,6 @@ class DeployBrandedToken {
 
     oThis.web3 = null;
     oThis.originChainId = params.originChainId;
-    oThis.organization = params.tokenOriOrgCntrctAddr;
     oThis.brandedTokenContractAddress = params.brandedTokenContractAddress;
   }
 
@@ -58,11 +57,39 @@ class DeployBrandedToken {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._getOrganizationWorker();
+
     await oThis._setWeb3Instance();
 
     await oThis._fetchGatewayAddress();
 
     await oThis._setGatewayInBT();
+  }
+
+  /**
+   * _getOrganizationWorker
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _getOrganizationWorker() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.originChainId,
+      kind: chainAddressConstants.workerKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_es_sgbt_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.organizationWorker = fetchAddrRsp.data.address;
   }
 
   /**
@@ -78,7 +105,7 @@ class DeployBrandedToken {
 
     oThis.originChainConfig = response[oThis.originChainId];
     oThis.wsProviders = oThis.originChainConfig.originGeth.readWrite.wsProviders;
-    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.organization).getInstance();
+    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.organizationWorker).getInstance();
   }
 
   /**
@@ -116,10 +143,10 @@ class DeployBrandedToken {
   async _setGatewayInBT() {
     const oThis = this;
 
-    let brandedTokenHelper = new BrandedTokenHelper(oThis.web3);
+    let brandedTokenHelper = new BrandedTokenHelper(oThis.web3, oThis.brandedTokenContractAddress);
 
     // txOptions, web3 are default, passed in constructor respectively
-    await brandedTokenHelper.setGatewayAddress(oThis.gatewayContractAddress, oThis.organization, {});
+    await brandedTokenHelper.setGateway(oThis.gatewayContractAddress, oThis.organizationWorker);
   }
 }
 

@@ -22,7 +22,6 @@ class DeployUtilityBrandedToken {
 
     oThis.web3 = null;
     oThis.auxChainId = params.auxChainId;
-    oThis.organization = params.tokenAuxOrgCntrctAddr;
   }
 
   /**
@@ -57,6 +56,8 @@ class DeployUtilityBrandedToken {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._getOrganizationWorker();
+
     await oThis._setWeb3Instance();
 
     await oThis._fetchGatewayAddress();
@@ -64,6 +65,32 @@ class DeployUtilityBrandedToken {
     await oThis._fetchCoGatewayAddress();
 
     await oThis._setCoGatewayInUBT();
+  }
+
+  /**
+   * _getOrganizationWorker
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _getOrganizationWorker() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.originChainId,
+      kind: chainAddressConstants.workerKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_es_scgubt_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.organizationWorker = fetchAddrRsp.data.address;
   }
 
   /**
@@ -79,7 +106,7 @@ class DeployUtilityBrandedToken {
 
     oThis.auxChainConfig = response[oThis.auxChainId];
     oThis.wsProviders = oThis.auxChainConfig.auxGeth.readWrite.wsProviders;
-    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.organization).getInstance();
+    oThis.web3 = new SignerWeb3Provider(oThis.wsProviders[0], oThis.organizationWorker).getInstance();
   }
 
   /**
@@ -99,7 +126,7 @@ class DeployUtilityBrandedToken {
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_es_scgubt_2',
+          internal_error_identifier: 't_es_scgubt_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -125,7 +152,7 @@ class DeployUtilityBrandedToken {
     if (!fetchAddrRsp.data.address) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_es_scgubt_3',
+          internal_error_identifier: 't_es_scgubt_4',
           api_error_identifier: 'something_went_wrong'
         })
       );
