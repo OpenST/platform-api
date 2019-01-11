@@ -184,7 +184,8 @@ class ServiceManager {
       kind: chainAddressConst.sealerKind
     });
 
-    const sealerAddr = sealerAddress.data.address;
+    // Only one sealer address for local
+    const sealerAddr = sealerAddress.data.addresses[0];
 
     // Creating password file in a temp location
     fileManager.touch(chainFolder + '/' + sealerPassphraseFile, sealerPassword);

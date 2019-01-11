@@ -14,13 +14,15 @@ const rootPrefix = '../..',
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-const BrandedTokenHelper = require('branded-token.js');
+const BrandedToken = require('branded-token.js'),
+  UtilityBrandedTokenHelper = BrandedToken.EconomySetup.UtilityBrandedTokenHelper;
 
 class DeployUtilityBrandedToken {
   constructor(params) {
     const oThis = this;
 
     oThis.web3 = null;
+    oThis.chainId = params.chainId;
     oThis.auxChainId = params.auxChainId;
   }
 
@@ -77,7 +79,7 @@ class DeployUtilityBrandedToken {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.originChainId,
+      chainId: oThis.auxChainId,
       kind: chainAddressConstants.workerKind
     });
 
@@ -90,7 +92,7 @@ class DeployUtilityBrandedToken {
       );
     }
 
-    oThis.organizationWorker = fetchAddrRsp.data.address;
+    oThis.organizationWorker = fetchAddrRsp.data.addresses[0];
   }
 
   /**
@@ -119,7 +121,7 @@ class DeployUtilityBrandedToken {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
+      chainId: oThis.chainId,
       kind: chainAddressConstants.originGatewayContractKind
     });
 
@@ -170,7 +172,7 @@ class DeployUtilityBrandedToken {
   async _setCoGatewayInUBT() {
     const oThis = this;
 
-    let brandedTokenHelper = new BrandedTokenHelper(oThis.web3);
+    let brandedTokenHelper = new UtilityBrandedTokenHelper(oThis.web3);
 
     // txOptions, web3 are default, passed in constructor respectively
     await brandedTokenHelper.setCoGateway(oThis.coGateWayContractAddress, {}, oThis.gatewayContractAddress);

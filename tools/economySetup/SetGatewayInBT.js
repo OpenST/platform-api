@@ -89,7 +89,7 @@ class DeployBrandedToken {
       );
     }
 
-    oThis.organizationWorker = fetchAddrRsp.data.address;
+    oThis.organizationWorker = fetchAddrRsp.data.addresses[0];
   }
 
   /**

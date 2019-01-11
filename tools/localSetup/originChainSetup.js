@@ -350,7 +350,7 @@ class chainSetup {
     });
 
     let txParams = {
-      from: sealerAddress.data.address,
+      from: sealerAddress.data.addresses[0],
       to: address,
       value: '200000000000000000000' //transfer amt in wei
     };
