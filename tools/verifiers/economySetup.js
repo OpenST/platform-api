@@ -48,6 +48,8 @@ class EconomySetupVerifier {
     await oThis._validateGateway();
 
     await oThis._validateCoGateway();
+
+    await oThis._checkGatewayActivated();
   }
 
   /**
@@ -205,6 +207,32 @@ class EconomySetupVerifier {
     const oThis = this;
 
     await oThis._validateDeployedContract(tokenAddressConstants.tokenCoGatewayContract, 'EIP20CoGateway', 'aux');
+  }
+
+  /**
+   * _checkGatewayActivated
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _checkGatewayActivated() {
+    const oThis = this;
+
+    let gatewayContractAddress = await oThis._getTokenAddress(tokenAddressConstants.tokenGatewayContract);
+
+    let gatewayContract = await oThis.originVerifiersHelper.getContractObj('EIP20Gateway', gatewayContractAddress);
+
+    let gatewayActivated = await gatewayContract.methods.activated().call({});
+
+    if (!gatewayActivated) {
+      logger.error('====Gateway not activated =====');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_v_es_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
   }
 }
 

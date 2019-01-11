@@ -36,7 +36,7 @@ class VerifierHelper {
     return binCode.indexOf(chainCode) !== -1;
   }
 
-  async getMosaicTbdContractObj(contractName, contractAddress) {
+  async getContractObj(contractName, contractAddress) {
     const oThis = this;
 
     let abiOfOrganization = await oThis._getABI(contractName);
