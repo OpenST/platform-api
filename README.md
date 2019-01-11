@@ -11,11 +11,6 @@ Install all the packages.
 npm install
 ```
 
-* Start Memcached.
-```bash
-> memcached -p 11211 -d
-```
-
 * Source all the ENV vars.
 ```bash
 source set_env_vars.sh
