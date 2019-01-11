@@ -10,8 +10,9 @@ const rootPrefix = '../..',
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3');
-
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  MosaicTbd = require('mosaic-tbd'),
+  GatewayHelper = MosaicTbd.ChainSetup.GatewayHelper; // Same contract, so using the chain setup helper
 let originChainId = process.argv[2],
   auxChainId = process.argv[3],
   tokenId = process.argv[4];
@@ -50,6 +51,12 @@ class EconomySetupVerifier {
     await oThis._validateCoGateway();
 
     await oThis._checkGatewayActivated();
+
+    await oThis._validateSetGateway();
+
+    await oThis._validateSetCoGateway();
+
+    await oThis._validateStakerAddress();
   }
 
   /**
@@ -218,9 +225,12 @@ class EconomySetupVerifier {
   async _checkGatewayActivated() {
     const oThis = this;
 
-    let gatewayContractAddress = await oThis._getTokenAddress(tokenAddressConstants.tokenGatewayContract);
+    oThis.gatewayContractAddress = await oThis._getTokenAddress(tokenAddressConstants.tokenGatewayContract);
 
-    let gatewayContract = await oThis.originVerifiersHelper.getContractObj('EIP20Gateway', gatewayContractAddress);
+    let gatewayContract = await oThis.originVerifiersHelper.getContractObj(
+      'EIP20Gateway',
+      oThis.gatewayContractAddress
+    );
 
     let gatewayActivated = await gatewayContract.methods.activated().call({});
 
@@ -229,6 +239,74 @@ class EconomySetupVerifier {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_v_es_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+  }
+
+  /**
+   * _validateSetCoGateway
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateSetCoGateway() {
+    const oThis = this;
+
+    let btContractAddress = await oThis._getTokenAddress(tokenAddressConstants.brandedTokenContract);
+
+    let tokenCoGatewayAddress = await oThis._getTokenAddress(tokenAddressConstants.tokenCoGatewayContract);
+
+    let btContract = await oThis.originVerifiersHelper.getContractObj('UtilityBrandedToken', btContractAddress);
+
+    let coGateway;
+
+    try {
+      coGateway = await btContract.methods.coGateway().call({});
+    } catch (err) {
+      coGateway = null;
+    }
+
+    if (!coGateway || coGateway != tokenCoGatewayAddress) {
+      logger.error('====coGateway not set in UBT =====');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_v_es_4',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+  }
+
+  /**
+   * _validateSetGateway
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateSetGateway() {
+    const oThis = this;
+
+    // TODO: No provision in contracts currently, check how this can be done
+  }
+
+  async _validateStakerAddress() {
+    const oThis = this;
+
+    //oThis.gatewayContractAddress = await oThis._getTokenAddress(tokenAddressConstants.tokenGatewayContract);
+
+    let helperObj = new GatewayHelper(oThis.originWeb3, oThis.gatewayContractAddress);
+
+    let stakerAddress = await helperObj.getStakeVault(oThis.gatewayContractAddress);
+
+    let simpleStakeAddressDb = await oThis._getTokenAddress(tokenAddressConstants.simpleStakeContract);
+
+    if (!stakerAddress || stakerAddress != simpleStakeAddressDb) {
+      logger.error('====Staker address is not correct =====');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_v_es_5',
           api_error_identifier: 'something_went_wrong'
         })
       );
