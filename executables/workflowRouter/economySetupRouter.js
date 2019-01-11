@@ -19,6 +19,8 @@ require(rootPrefix + '/tools/economySetup/brandedToken/DeployBrandedToken');
 require(rootPrefix + '/tools/economySetup/brandedToken/DeployUtilityBrandedToken');
 require(rootPrefix + '/tools/economySetup/DeployGateway');
 require(rootPrefix + '/tools/economySetup/DeployCoGateway');
+require(rootPrefix + '/tools/economySetup/SetCoGatewayInUtilityBT');
+require(rootPrefix + '/tools/economySetup/SetGatewayInBT');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -35,7 +37,6 @@ class economySetupRouter extends workflowRouterBase {
     const configStrategy = await oThis.getConfigStrategy(),
       ic = new InstanceComposer(configStrategy);
 
-    console.log('-----------------------------stepsFactory--', oThis.requestParams);
     switch (oThis.stepKind) {
       case workflowStepConstants.economySetupInit:
         return oThis.insertInitStep();
@@ -71,6 +72,15 @@ class economySetupRouter extends workflowRouterBase {
       case workflowStepConstants.tokenDeployCoGateway:
         let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'tokenDeployCoGateway');
         return new TokenDeployCoGatewayKlass(oThis.requestParams).perform();
+      case workflowStepConstants.setCoGatewayInUbt:
+        let setCoGatewayInUbtKlass = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'setCoGatewayInUtilityBrandedToken'
+        );
+        return new setCoGatewayInUbtKlass(oThis.requestParams).perform();
+      case workflowStepConstants.setGatewayInBt:
+        let setGatewayInBtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'setGatewayInBrandedToken');
+        return new setGatewayInBtKlass(oThis.requestParams).perform();
       default:
         return Promise.reject(
           responseHelper.error({

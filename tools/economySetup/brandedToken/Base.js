@@ -66,7 +66,7 @@ class DeployBrandedTokenBase {
   }
 
   /**
-   * sets the deployer address as per the chain id passed.
+   * sets the deployer address
    *
    * @param chainId
    * @returns {Promise<*>}
