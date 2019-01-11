@@ -94,28 +94,35 @@ class AuxChainSetup {
   async asyncPerform() {
     const oThis = this;
 
+    // TODO - check if config strategy for aux is inserted in DB.
+
     await oThis.checkIfOriginGethIsRunning();
 
     await oThis._getIc();
 
-    logger.step('** Auxiliary Addresses Generation');
+    logger.step('** Auxiliary addresses generation');
     let generatedAddresses = await oThis.generateAuxAddresses(),
       allocAddressToAmountMap = {},
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
+    // TODO - following value should be exactly equal to 800M
     allocAddressToAmountMap[chainOwnerAddr] = '0xe567bd7e886312a0cf7397bb73650d2280400000000000000';
-    let rsp = await gethManager.initChain(coreConstants.auxChainKind, oThis.auxChainId, allocAddressToAmountMap);
 
-    logger.step('** Starting Auxiliary Geth for deployment.');
+    logger.step('** init GETH with genesis');
+    await gethManager.initChain(coreConstants.auxChainKind, oThis.auxChainId, allocAddressToAmountMap);
+
+    logger.step('** Starting Auxiliary GETH for deployment.');
     await serviceManager.startGeth(coreConstants.auxChainKind, oThis.auxChainId, 'deployment');
+
+    // TODO - add GETH checker
     await basicHelper.pauseForMilliSeconds(5000);
 
-    logger.step('* Setup base contract organization.');
+    logger.step('* Deploying organization for simple token prime.');
     await oThis.setupAuxOrganization(chainAddressConstants.baseContractOrganizationKind);
 
-    logger.step('* Setup auxiliary anchor organization.');
+    logger.step('* Deploying organization for aux anchor.');
     await oThis.setupAuxOrganization(chainAddressConstants.anchorOrganizationKind);
 
-    logger.step('** Deploying STPrime Contract');
+    logger.step('** Deploying STPrime');
     await oThis.deploySTPrime();
 
     logger.step('** Initialize STPrime Contract');
@@ -163,24 +170,26 @@ class AuxChainSetup {
   }
 
   async _getIc() {
+    logger.step('** Getting config strategy for aux chain.');
     const oThis = this,
       rsp = await chainConfigProvider.getFor([oThis.auxChainId]),
       config = rsp[oThis.auxChainId];
+    // TODO - check if config strategy entries are present in db.
     oThis.ic = new InstanceComposer(config);
   }
 
   async checkIfOriginGethIsRunning() {
     const oThis = this;
-    logger.info('** Checking if origin geth running.');
+    logger.step('** Checking if origin GETH running.');
     let cmd =
       'ps aux | grep geth | grep origin-' + oThis.originChainId + " | grep -v grep | tr -s ' ' | cut -d ' ' -f2";
     let processId = shell.exec(cmd).stdout;
 
     if (processId === '') {
-      logger.error('Please start origin geth.');
+      logger.error('Origin GETH is no running. Please start origin GETH.');
       process.exit(1);
     } else {
-      logger.info('* Origin geth running.');
+      logger.log('* Origin GETH running.');
     }
   }
 
@@ -197,6 +206,7 @@ class AuxChainSetup {
       chainKind: coreConstants.auxChainKind,
       chainId: oThis.auxChainId
     });
+    logger.log('* generating address for deployer, owner, admin, chain owner and worker for aux chain');
     return await generateChainKnownAddressObj.perform();
   }
 
