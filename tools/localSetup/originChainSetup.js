@@ -132,6 +132,11 @@ class chainSetup {
     logger.log('* Funding SimpleToken admin address with ETH.');
     await oThis._fundAddressWithEth(SimpleTokenAdminDetails.address);
 
+    logger.step('** Insert SimpleTokenOwner and SimpleTokenAdmin Address into chain addresses table.');
+    await oThis.insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddress, simpleTokenAdmin);
+
+    await basicHelper.pauseForMilliSeconds(200);
+
     // deploying contracts now
     logger.step('** Deploying Simple Token Contract');
     await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
@@ -145,11 +150,6 @@ class chainSetup {
 
     logger.step('** Finalize Simple Token Contract');
     await oThis.finalizeSimpleTokenAdmin(simpleTokenAdmin, simpleTokenAdminPrivateKey);
-
-    await basicHelper.pauseForMilliSeconds(200);
-
-    logger.step('** Insert SimpleTokenOwner and SimpleTokenAdmin Address into chain addresses table.');
-    await oThis.insertAdminOwnerIntoChainAddresses(simpleTokenOwnerAddress, simpleTokenAdmin);
 
     await basicHelper.pauseForMilliSeconds(200);
 
