@@ -17,10 +17,10 @@ class VerifierHelper {
     return deployedCode.indexOf(binSubStr) !== -1;
   }
 
-  async getOrganizationContractObj(contractAddress, binSubStr) {
+  async getMosoicTbdContractObj(organizationName, contractAddress) {
     const oThis = this;
 
-    let abiOfOrganization = new VerifierHelper.AbiBinProviderHelper().getABI('Organization');
+    let abiOfOrganization = new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
 
     return new oThis.web3Instance.eth.Contract(abiOfOrganization, contractAddress);
   }
@@ -30,11 +30,15 @@ class VerifierHelper {
   }
 
   get organizationBinSubStr() {
-    return 'aa572857d392ca775bb9c0c01465c5381ef34f50633f95487cddb78320029';
+    return 'a165627a7a723058201162374aa572857d392ca775bb9c0c01465c5381ef34f50633f95487cddb78320029';
   }
 
-  get organizationName() {
-    return 'MockOrganization';
+  get simpleTokenPrimeBinSubStr() {
+    return 'a165627a7a72305820918e707f474974c8b48c93181612a5056b419afb4286b833746af7f480b24e480029';
+  }
+
+  get anchorContractBinSubStr() {
+    return 'ea165627a7a723058206929121165b48f49d3826d89cdf8e0a5b4177cf58107961c603d2c1e5ac196c20029';
   }
 
   static get AbiBinProviderHelper() {
