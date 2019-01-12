@@ -13,7 +13,7 @@ const rootPrefix = '../../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -179,7 +179,7 @@ class SetupSimpleTokenBase {
       insertParams['debugParams']['errorResponse'] = response.toHash();
     }
 
-    await new ChainSetupLogsModel().insertRecord(insertParams);
+    await new ChainSetupLogModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
   }

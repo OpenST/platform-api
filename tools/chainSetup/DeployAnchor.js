@@ -14,7 +14,7 @@ const rootPrefix = '../..',
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   DeployAnchorHelper = require(rootPrefix + '/tools/commonSetup/DeployAnchor'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
@@ -224,7 +224,7 @@ class DeployAnchor {
       insertParams['debugParams']['errorResponse'] = response.toHash();
     }
 
-    await new ChainSetupLogsModel().insertRecord(insertParams);
+    await new ChainSetupLogModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
   }

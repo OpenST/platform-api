@@ -13,7 +13,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   DeployGatewayHelper = require(rootPrefix + '/tools/commonSetup/DeployGateway'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
@@ -362,7 +362,7 @@ class DeployGateway {
       insertParams['debugParams']['errorResponse'] = response.toHash();
     }
 
-    await new ChainSetupLogsModel().insertRecord(insertParams);
+    await new ChainSetupLogModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
   }

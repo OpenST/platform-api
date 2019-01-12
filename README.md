@@ -22,15 +22,27 @@ source set_env_vars.sh
 
 ### Local Chain Setup
 
-* Run following command for origin chain setup.
+* Setup Origin GETH and fund necessary addresses.
 ```bash
 > source set_env_vars.sh
-> node tools/localSetup/originChainSetup.js --originChainId 1000
+> node executables/setup/origin/gethAndAddresses.js --originChainId 1000
 ```
 
-* Start Origin geth with this script.
+* Start Origin GETH with this script.
 ```bash
 > sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
+```
+
+* Setup Simple Token (only for non production_main env)
+```bash
+> source set_env_vars.sh
+> node executables/setup/origin/simpleToken.js --originChainId 1000
+```
+
+* Setup Origin Contracts
+```bash
+> source set_env_vars.sh
+> node executables/setup/origin/contracts.js --originChainId 1000
 ```
    
 * Run following command for aux chain setup.

@@ -15,7 +15,7 @@ const rootPrefix = '../../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
@@ -193,7 +193,7 @@ class SetupSTPrimeBase {
       insertParams['debugParams']['errorResponse'] = response.toHash();
     }
 
-    await new ChainSetupLogsModel().insertRecord(insertParams);
+    await new ChainSetupLogModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
   }

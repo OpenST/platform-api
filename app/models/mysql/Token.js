@@ -3,7 +3,7 @@
 /**
  * This is model for Tokens table.
  *
- * @module app/models/mysql/Tokens
+ * @module app/models/mysql/Token
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),

@@ -14,7 +14,7 @@ const rootPrefix = '../..',
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainSetupLogsModel = require(rootPrefix + '/app/models/mysql/ChainSetupLogs'),
+  ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   DeployGatewayHelper = require(rootPrefix + '/tools/commonSetup/DeployGateway'),
   TokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -310,7 +310,7 @@ class TokenDeployGateway {
       insertParams['debugParams']['errorResponse'] = response.toHash();
     }
 
-    await new ChainSetupLogsModel().insertRecord(insertParams);
+    await new ChainSetupLogModel().insertRecord(insertParams);
 
     return responseHelper.successWithData({});
   }

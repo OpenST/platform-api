@@ -11,9 +11,9 @@ Create entry in config_groups table
 let insertParams = {
   "chainId": 0,
   "groupId": 0
-}
-let configGroupsClass = require('./app/models/mysql/ConfigGroups'),
-configGroupsObject = new configGroupsClass();
+};
+let ConfigGroupsModel = require('./app/models/mysql/ConfigGroup'),
+configGroupsObject = new ConfigGroupsModel();
 configGroupsObject.insertRecord(insertParams).then(console.log).catch(console.log)
 ```
 
@@ -190,7 +190,8 @@ let dynamoConfigDetails = {
       "enableSsl": "0"
     }
   }
-}
+};
+
 let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(2000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```
@@ -217,7 +218,8 @@ let dynamoConfigDetails = {
       "enableSsl": "0"
     }
   }
-}
+};
+
 let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(1000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```
@@ -244,7 +246,8 @@ let dynamoConfigDetails = {
       "enableSsl": "0"
     }
   }
-}
+};
+
 let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(0, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```

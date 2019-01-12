@@ -9,7 +9,7 @@
  */
 
 const rootPrefix = '../../..',
-  TokenModel = require(rootPrefix + '/app/models/mysql/Tokens'),
+  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),

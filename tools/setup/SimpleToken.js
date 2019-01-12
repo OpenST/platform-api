@@ -1,21 +1,6 @@
 'use strict';
-/**
- * Executable script for origin chain setup.
- * This script generates addresses and performs contract deployments on origin chain.
- *
- * Prerequisites:-
- * 1. mysql tables - chain_addresses, known_addresses and chain_setup_logs
- * 2. origin chain entries in config_strategies table.
- *
- * Note:-
- * If you want to re-run this script, please ensure you have deleted origin chain related entries in chain_addresses table.
- *
- * Usage:- node tools/localSetup/chainSetup.js --originChainId 1000
- *
- * @module tools/localSetup/auxChainSetup
- */
-const program = require('commander'),
-  OSTBase = require('@openstfoundation/openst-base');
+
+const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
   InstanceComposer = OSTBase.InstanceComposer,
@@ -24,49 +9,25 @@ const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
-  gethManager = require(rootPrefix + '/tools/localSetup/gethManager'),
-  serviceManager = require(rootPrefix + '/tools/localSetup/serviceManager'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey');
 
-const GeneratePrivateKey = require(rootPrefix + '/tools/helpers/GeneratePrivateKey'),
-  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
-
-require(rootPrefix + '/tools/chainSetup/DeployLib');
-require(rootPrefix + '/tools/chainSetup/SetupOrganization');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Finalize');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Deploy.js');
 require(rootPrefix + '/tools/chainSetup/origin/simpleToken/SetAdminAddress');
 
-program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
-
-program.on('--help', function() {
-  logger.log('');
-  logger.log('  Example:');
-  logger.log('');
-  logger.log('    node tools/localSetup/originChainSetup.js --originChainId 1000');
-  logger.log('');
-  logger.log('');
-});
-
-if (!program.originChainId) {
-  program.help();
-  process.exit(1);
-}
-
-class chainSetup {
+class SimpleTokenSetup {
   /**
    * Constructor
    *
    * @constructor
    */
-  constructor(params) {
+  constructor(originChainId) {
     const oThis = this;
-    oThis.chainId = params.originChainId;
+    oThis.chainId = originChainId;
   }
 
   /**
@@ -83,7 +44,7 @@ class chainSetup {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('tools/localSetup/originChainSetup.js::perform::catch');
+        logger.error('tools/setup/SimpleToken.js::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 't_ls_ocs_1',
@@ -104,20 +65,8 @@ class chainSetup {
   async _asyncPerform() {
     const oThis = this;
 
-    logger.step('** Starting fresh setup');
-    await fileManager.freshSetup();
-
-    logger.step('** Generating sealer address on GETH and init GETH with genesis');
-    await gethManager.initChain(coreConstants.originChainKind, oThis.chainId);
-
-    logger.step('** Starting origin geth for deployment.');
-    await serviceManager.startGeth(coreConstants.originChainKind, oThis.chainId, 'deployment');
-
-    logger.step('** Origin Addresses Generation');
-    await oThis.generateAndFundOriginAddr();
-
     logger.step('** Generate SimpleToken owner key.');
-    let SimpleTokenOwnerDetails = await oThis.generateAddrAndPrivateKey();
+    let SimpleTokenOwnerDetails = await oThis._generateAddrAndPrivateKey();
     let simpleTokenOwnerAddress = SimpleTokenOwnerDetails.address,
       simpleTokenOwnerPrivateKey = SimpleTokenOwnerDetails.privateKey;
 
@@ -125,7 +74,7 @@ class chainSetup {
     await oThis._fundAddressWithEth(SimpleTokenOwnerDetails.address);
 
     logger.step('** Generate SimpleToken admin key.');
-    let SimpleTokenAdminDetails = await oThis.generateAddrAndPrivateKey();
+    let SimpleTokenAdminDetails = await oThis._generateAddrAndPrivateKey();
     let simpleTokenAdmin = SimpleTokenAdminDetails.address,
       simpleTokenAdminPrivateKey = SimpleTokenAdminDetails.privateKey;
 
@@ -139,7 +88,7 @@ class chainSetup {
 
     // deploying contracts now
     logger.step('** Deploying Simple Token Contract');
-    await oThis.deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
+    await oThis._deploySimpleToken(simpleTokenOwnerAddress, simpleTokenOwnerPrivateKey);
 
     await basicHelper.pauseForMilliSeconds(200);
 
@@ -151,89 +100,22 @@ class chainSetup {
     logger.step('** Finalize Simple Token Contract');
     await oThis.finalizeSimpleTokenAdmin(simpleTokenAdmin, simpleTokenAdminPrivateKey);
 
-    await basicHelper.pauseForMilliSeconds(200);
-
-    logger.step('* Deploying organization for simple token.');
-    await oThis.setupOriginOrganization(chainAddressConstants.baseContractOrganizationKind);
-
-    await basicHelper.pauseForMilliSeconds(200);
-
-    logger.step('* Deploying organization for anchor.');
-    await oThis.setupOriginOrganization(chainAddressConstants.anchorOrganizationKind);
-
-    await basicHelper.pauseForMilliSeconds(200);
-
-    logger.step('** Deploy libraries.');
-
-    logger.log('* [Origin]: Deploy MerklePatriciaProof Library');
-    await oThis.deployLib(coreConstants.originChainKind, 'merklePatriciaProof');
-
-    logger.log('* [Origin]: Deploy MessageBus');
-    await oThis.deployLib(coreConstants.originChainKind, 'messageBus');
-
-    logger.log('* [Origin]: Deploy GatewayLib');
-    await oThis.deployLib(coreConstants.originChainKind, 'gateway');
-
-    logger.win('Deployment steps successfully performed on origin chain.');
-
-    logger.step('* Stopping origin geth.');
-    await serviceManager.stopOriginGeth(oThis.chainId);
-    logger.info('** You can start geth from script.');
-
-    process.exit(1);
+    return {
+      simpleTokenAdmin: simpleTokenAdmin,
+      simpleTokenAdminPrivateKey: simpleTokenAdminPrivateKey,
+      simpleTokenOwnerAddress: simpleTokenOwnerAddress,
+      simpleTokenOwnerPrivateKey: simpleTokenOwnerPrivateKey
+    };
   }
 
-  async generateAndFundOriginAddr() {
-    const oThis = this;
-
-    let generateChainKnownAddresses = new GenerateChainKnownAddresses({
-      addressKinds: [
-        chainAddressConstants.deployerKind,
-        chainAddressConstants.ownerKind,
-        chainAddressConstants.adminKind,
-        chainAddressConstants.workerKind
-      ],
-      chainKind: coreConstants.originChainKind,
-      chainId: oThis.chainId
-    });
-
-    logger.log('* Generating address for origin deployer.');
-    logger.log('* Generating address for origin owner.');
-    logger.log('* Generating address for origin admin.');
-    logger.log('* Generating address for origin worker.');
-
-    let generateOriginAddrRsp = await generateChainKnownAddresses.perform();
-
-    if (!generateOriginAddrRsp.isSuccess()) {
-      logger.error('deploySimpleToken failed');
-      return Promise.reject();
-    }
-
-    logger.info('Generate Addresses Response: ', generateOriginAddrRsp.toHash());
-
-    let addresses = generateOriginAddrRsp.data['addressKindToValueMap'],
-      deployerAddr = addresses[chainAddressConstants.deployerKind],
-      ownerAddr = addresses[chainAddressConstants.ownerKind],
-      adminAddr = addresses[chainAddressConstants.adminKind];
-
-    logger.log('* Funding origin deployer address with ETH.');
-    await oThis._fundAddressWithEth(deployerAddr);
-
-    logger.log('* Funding origin owner address with ETH.');
-    await oThis._fundAddressWithEth(ownerAddr);
-
-    logger.log('* Funding origin admin address with ETH.');
-    await oThis._fundAddressWithEth(adminAddr);
-  }
-
-  generateAddrAndPrivateKey() {
+  _generateAddrAndPrivateKey() {
     let generatePrivateKey = new GeneratePrivateKey();
     let generatePrivateKeyRsp = generatePrivateKey.perform();
     logger.log('Generated Address: ', generatePrivateKeyRsp.data);
     return generatePrivateKeyRsp.data;
   }
 
-  async deploySimpleToken(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey) {
+  async _deploySimpleToken(simpleTokenOwnerAddr, simpleTokenOwnerPrivateKey) {
     let configStrategyHelper = new ConfigStrategyHelper(0, 0),
       configRsp = await configStrategyHelper.getComplete(),
       ic = new InstanceComposer(configRsp.data);
@@ -314,33 +196,6 @@ class chainSetup {
     });
   }
 
-  async setupOriginOrganization(addressKind) {
-    const oThis = this,
-      rsp = await chainConfigProvider.getFor([oThis.chainId]),
-      config = rsp[oThis.chainId],
-      ic = new InstanceComposer(config),
-      SetupOrganization = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetupOrganization');
-
-    return await new SetupOrganization({
-      chainKind: coreConstants.originChainKind,
-      addressKind: addressKind
-    }).perform();
-  }
-
-  async deployLib(chainKind, libKind) {
-    const oThis = this;
-
-    let configStrategyHelper = new ConfigStrategyHelper(0, 0),
-      configRsp = await configStrategyHelper.getComplete(),
-      ic = new InstanceComposer(configRsp.data),
-      DeployLib = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployLib');
-
-    return await new DeployLib({
-      chainKind: chainKind,
-      libKind: libKind
-    }).perform();
-  }
-
   async _fundAddressWithEth(address) {
     const oThis = this;
 
@@ -383,4 +238,4 @@ class chainSetup {
   }
 }
 
-new chainSetup({ originChainId: program.originChainId }).perform();
+module.exports = SimpleTokenSetup;

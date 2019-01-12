@@ -2,7 +2,7 @@
 /**
  * Model to get config groups.
  *
- * @module /app/models/mysql/ConfigGroups
+ * @module /app/models/mysql/ConfigGroup
  */
 
 const rootPrefix = '../../..',
