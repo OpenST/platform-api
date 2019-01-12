@@ -4,7 +4,7 @@ const program = require('commander');
 
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  OriginGethSetup = require(rootPrefix + '/tools/setup/OriginGeth');
+  OriginGethSetup = require(rootPrefix + '/lib/setup/originChain/Geth');
 
 program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
 

@@ -102,7 +102,6 @@ class AuxChainSetup {
     let generatedAddresses = await oThis.generateAuxAddresses(),
       allocAddressToAmountMap = {},
       chainOwnerAddr = generatedAddresses.data.addressKindToValueMap.chainOwner;
-    // TODO @dhananjay - following value should be exactly equal to 800M - done
     allocAddressToAmountMap[chainOwnerAddr] = coreConstants.OST_AUX_STPRIME_TOTAL_SUPPLY;
 
     logger.step('** init GETH with genesis');

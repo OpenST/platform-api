@@ -4,7 +4,7 @@ const program = require('commander');
 
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  OriginOneTimeContractsSetup = require(rootPrefix + '/tools/setup/OriginOneTimeContracts');
+  OriginOneTimeContractsSetup = require(rootPrefix + '/lib/setup/originChain/OneTImeContracts');
 
 program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
 

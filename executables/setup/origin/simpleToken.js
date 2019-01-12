@@ -4,7 +4,7 @@ const program = require('commander');
 
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  SimpleTokenSetup = require(rootPrefix + '/tools/setup/SimpleToken');
+  SimpleTokenSetup = require(rootPrefix + '/lib/setup/originChain/SimpleToken');
 
 program.option('--originChainId <originChainId>', 'origin ChainId').parse(process.argv);
 
