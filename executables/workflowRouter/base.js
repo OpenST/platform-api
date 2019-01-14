@@ -288,7 +288,7 @@ class workflowRouterBase {
     }
 
     console.log('-------oThis.requestParams------', JSON.stringify(oThis.requestParams));
-    if (!oThis.clientId || !oThis.chainId) {
+    if (!oThis.clientId && !oThis.chainId) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_wr_b_5',
@@ -456,6 +456,29 @@ class workflowRouterBase {
     }
 
     return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 1 }));
+  }
+
+  /**
+   * Current step payload which would be stored in Pending transactions and would help in restarting flow
+   *
+   * @returns {Hash}
+   */
+  _currentStepPayloadForPendingTrx() {
+    const oThis = this;
+
+    return {
+      topics: [oThis.topic],
+      publisher: oThis._publisher,
+      message: {
+        kind: oThis._messageKind,
+        payload: {
+          stepKind: oThis.stepKind,
+          taskStatus: workflowStepConstants.taskDone,
+          currentStepId: oThis.currentStepId,
+          parentStepId: oThis.parentStepId
+        }
+      }
+    };
   }
 }
 

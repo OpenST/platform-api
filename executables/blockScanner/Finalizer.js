@@ -164,6 +164,7 @@ class Finalizer extends PublisherBase {
       }
 
       oThis.canExit = false;
+      oThis.dataToDelete = [];
 
       let finalizerResponse = await finalizer.perform();
 
@@ -178,7 +179,7 @@ class Finalizer extends PublisherBase {
 
           await oThis._checkAfterReceiptTasksAndPublish(finalizerResponse.data);
 
-          await oThis._cleanUpPendingTransactions();
+          await oThis._cleanupPendingTransactions();
 
           logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
 
@@ -309,31 +310,28 @@ class Finalizer extends PublisherBase {
   /**
    * _publishAfterReceiptInfo
    *
-   * @param params
+   * @param publishParams - Params to publish message
    * @return {Promise<never>}
    * @private
    */
-  async _publishAfterReceiptInfo(params) {
+  async _publishAfterReceiptInfo(publishParams) {
     const oThis = this;
 
-    let messageParams = {
-      topics: params.topics,
-      publisher: params.publisher,
-      message: {
-        kind: params.kind,
-        payload: params.payload
-      }
-    };
+    if (!publishParams || publishParams == '') {
+      return;
+    }
+
+    let messageParams = JSON.parse(publishParams);
 
     let setToRMQ = await oThis.openSTNotification.publishEvent.perform(messageParams);
 
     // If could not set to RMQ run in async.
     if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
       logger.error("====Couldn't publish the message to RMQ====");
-      return Promise.reject({ err: "Couldn't publish block number" + blockNumber });
+      return Promise.reject({ err: "Couldn't publish transaction pending for publish: " + publishParams });
     }
 
-    logger.info('==== State root sync transaction published ===');
+    logger.info('==== Pending transaction published ===');
   }
 
   /**

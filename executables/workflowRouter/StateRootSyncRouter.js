@@ -31,11 +31,11 @@ class StateRootSyncRouter extends WorkflowRouterBase {
 
       // commit state root
       case workflowStepConstants.commitStateRoot:
-        return new CommitStateRoot(oThis.requestParameters).perform();
+        return new CommitStateRoot(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       // update status in state root commit history
       case workflowStepConstants.updateCommittedStateRootInfo:
-        return oThis.updateStateRootCommitStatus(oThis.requestParameters);
+        return oThis.updateStateRootCommitStatus(oThis.requestParams);
 
       default:
         return Promise.reject(
