@@ -75,6 +75,29 @@ class VerifierHelper {
   get getAnchorContractName() {
     return 'Anchor';
   }
+
+  get getGatewayContractName() {
+    return 'EIP20Gateway';
+  }
+
+  get getCoGatewayContractName() {
+    return 'EIP20CoGateway';
+  }
+
+  /*
+    this function returns contract name for provided lib kind.
+   */
+  getLibNameFromKind(libKind) {
+    if (libKind === 'merklePatriciaProofLib') {
+      return 'MerklePatriciaProof';
+    }
+    if (libKind === 'messageBusLib') {
+      return 'MessageBus';
+    }
+    if (libKind === 'gatewayLib') {
+      return 'GatewayLib';
+    }
+  }
 }
 
 module.exports = VerifierHelper;

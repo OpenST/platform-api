@@ -59,6 +59,6 @@ source set_env_vars.sh
 * Setup Aux Contracts
 ```bash
 > source set_env_vars.sh
-> node executables/setup/origin/contracts.js --originChainId 1000
+> node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
 ```
 
