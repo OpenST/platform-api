@@ -69,3 +69,52 @@ source set_env_vars.sh
 > node tools/verifiers/originChainSetup.js
 > node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
+### Local Token Setup
+* Create entry in tokens table.
+```bash
+>  cd kit-api
+>  source set_env_vars.sh
+>  rails c 
+    params = {client_id:1,name:"tst5",symbol:"tst5",conversion_factor:0.8}
+    TokenManagement::InsertTokenDetails.new(params).perform
+```
+
+* Create entry in cron_process table.
+```bash
+>  cd saas-api
+>  source set_env_vars.sh
+>  cronProcessesModelKlass = require('./app/models/mysql/CronProcesses')
+   cronProcessModel = new cronProcessesModelKlass();
+   cronParams = {"prefetchCount":"25"}
+   
+   params = {
+      'kind':'workflowWorker',
+      'ip_address':'127.0.0.1',
+      'status':'stopped',
+      'chain_id':2000,
+      params: JSON.stringify(cronParams)
+   }
+   cronProcessModel.insertRecord(params).then(console.log)
+```
+
+* Start factory
+```bash
+> node executables/workflowRouter/factory.js --cronProcessId 1
+```
+
+* Start Economy Setup
+```bash
+> node
+   params = {
+       stepKind: 'economySetupInit',
+       taskStatus: 'taskReadyToStart',
+       clientId: 1,
+       chainId: 2000,
+       topic: 'workflow.economySetup',
+       requestParams: {tokenId: 1, chainId: 2000, clientId: 1}
+   }
+   economySetupRouterK = require('./executables/workflowRouter/economySetupRouter.js')
+   economySetupRouter = new economySetupRouterK(params)
+   
+   economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
+```
