@@ -47,7 +47,7 @@ class DeployCoGateway extends Base {
     oThis.messageBusLibAddress = params['messageBusLibAddress'];
     oThis.gatewayLibAddress = params['gatewayLibAddress'];
 
-    oThis.bounty = '123456'; //TODO: Change later
+    oThis.bounty = '0'; //TODO: Change later
   }
 
   /**

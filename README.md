@@ -62,3 +62,10 @@ source set_env_vars.sh
 > node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
 ```
 
+* Verification Scripts
+- You can verify local chain setup and contract deployment using following scripts.
+```bash
+> source set_env_vars.sh
+> node tools/verifiers/originChainSetup.js
+> node tools/verifiers/auxChainSetup.js --auxChainId 2000
+```
