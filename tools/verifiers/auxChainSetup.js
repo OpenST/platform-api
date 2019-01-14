@@ -137,15 +137,14 @@ class AuxChainSetup {
     if (!chainIsInitialized) {
       logger.error('Deployment verification of OSTPrime initialized failed.');
       Promise.reject();
-    } else {
-      logger.log('OSTPrime is initialized.');
     }
 
     logger.log('* Validating if co-gateway is set for OSTPrime contract or not.');
     let chainCoGatewayAddress = await stPrimeContractObj.methods.coGateway().call({});
-    console.log('chaincoGateway---', chainCoGatewayAddress);
 
     if (dbCoGatewayContractAddress.toLowerCase() !== chainCoGatewayAddress.toLowerCase()) {
+      logger.debug('chainCoGatewayAddress-------', chainCoGatewayAddress);
+      logger.debug('dbCoGatewayContractAddress-------', dbCoGatewayContractAddress);
       logger.error('Co-gateway is not set for STPrime contract failed.');
       Promise.reject();
     }

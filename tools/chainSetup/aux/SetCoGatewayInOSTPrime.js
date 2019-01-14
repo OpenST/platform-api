@@ -14,10 +14,11 @@ const rootPrefix = '../../..',
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3');
+  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3');
 
 /**
- * Class for CoGateway deployment
+ * Class to set co-gateway address to OSTPrime contract
  *
  * @class
  */
@@ -37,6 +38,7 @@ class SetCoGatewayInOSTPrime {
 
     oThis.coGateWayContractAddress = null;
     oThis.stPrimeContractAddress = null;
+    oThis.adminAddress = null;
     oThis.web3Instance = null;
     oThis.configStrategyObj = null;
   }
@@ -75,6 +77,8 @@ class SetCoGatewayInOSTPrime {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._getWorkerAddresses();
+
     await oThis._setWeb3Instance();
 
     await oThis._getCoGatewayAddress();
@@ -83,7 +87,7 @@ class SetCoGatewayInOSTPrime {
 
     await oThis._setCoGatewayInOSTPrime();
 
-    oThis.SignerWeb3Instance.removeAddressKey(oThis.organizationWorker);
+    oThis.SignerWeb3Instance.removeAddressKey(oThis.adminAddress);
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -102,8 +106,8 @@ class SetCoGatewayInOSTPrime {
     const oThis = this;
 
     let wsProvider = oThis._configStrategyObject.chainWsProvider(oThis.auxChainId, 'readWrite');
-
-    oThis.web3Instance = await web3Provider.getInstance(wsProvider).web3WsProvider;
+    oThis.SignerWeb3Instance = new SignerWeb3Provider(wsProvider, oThis.adminAddress);
+    oThis.web3Instance = await oThis.SignerWeb3Instance.getInstance();
   }
 
   /**
@@ -115,12 +119,14 @@ class SetCoGatewayInOSTPrime {
   async _setCoGatewayInOSTPrime() {
     const oThis = this;
 
-    let stPrimeSetupHelper = new SetCoGatewayInOSTPrime.STPrimeSetupHelper(oThis.web3Instance);
+    let stPrimeSetupHelper = new SetCoGatewayInOSTPrime.STPrimeSetupHelper(oThis.web3Instance),
+      nonceRsp = await oThis._fetchNonce();
 
     let txOptions = {
-      from: oThis.stPrimeContractAddress,
-      gas: '60000',
-      gasPrice: '0x0'
+      gasPrice: '0x0',
+      from: oThis.adminAddress,
+      nonce: nonceRsp.data['nonce'],
+      chainId: oThis.auxChainId
     };
 
     let contractResponse = await stPrimeSetupHelper.setCoGateway(
@@ -129,7 +135,7 @@ class SetCoGatewayInOSTPrime {
       oThis.stPrimeContractAddress
     );
 
-    console.log('contractResponse------', contractResponse);
+    logger.debug('setCoGateway event--------', contractResponse);
 
     return Promise.resolve(contractResponse);
   }
@@ -212,6 +218,53 @@ class SetCoGatewayInOSTPrime {
     }
 
     oThis.stPrimeContractAddress = fetchAddrRsp.data.address;
+  }
+
+  /***
+   *
+   * get worker addresses
+   *
+   * @private
+   *
+   * @return {Promise}
+   *
+   */
+  async _getWorkerAddresses() {
+    const oThis = this;
+
+    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.auxChainId,
+      kind: chainAddressConstants.adminKind
+    });
+
+    if (!fetchAddrRsp.data.address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_a_stp_do_5',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+    oThis.adminAddress = fetchAddrRsp.data.address;
+
+    console.log('oThis.workerAddress----', oThis.adminAddress);
+
+    return oThis.adminAddress;
+  }
+
+  /**
+   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
+   *
+   * @ignore
+   *
+   * @return {Promise}
+   */
+  async _fetchNonce() {
+    const oThis = this;
+    return new NonceManager({
+      address: oThis.adminAddress,
+      chainId: oThis.auxChainId
+    }).getNonce();
   }
 
   static get STPrimeSetupHelper() {
