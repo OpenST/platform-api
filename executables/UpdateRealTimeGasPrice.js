@@ -18,13 +18,14 @@ const dynamicGasPriceProvider = require('@ostdotcom/ost-dynamic-gas-price'),
   BigNumber = require('bignumber.js');
 
 const rootPrefix = '..',
+  CronBase = require(rootPrefix + '/executables/CronBase'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  CronBase = require(rootPrefix + '/executables/CronBase'),
-  StrategyByChainIdHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  chainIdConst = require(rootPrefix + '/lib/globalConstant/chainId'),
+  localChainConfig = require(rootPrefix + '/tools/localSetup/config'),
+  environmentConst = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   CronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   originChainGasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/estimateOriginChainGasPrice');
 
 const usageDemo = function() {
@@ -56,19 +57,21 @@ class UpdateRealTimeGasPrice extends CronBase {
   }
 
   /**
+   * Start the executable.
    *
    * @returns {Promise<any>}
+   *
    * @private
    */
   async _start() {
-    const oThis = this,
-      strategyByGroupHelperObj = new StrategyByChainIdHelper(oThis.chainId, oThis.groupId),
-      configStrategyResp = await strategyByGroupHelperObj.getForKind(configStrategyConstants.originConstants);
+    const oThis = this;
 
     oThis.canExit = false;
 
-    let configStrategy = configStrategyResp.data,
-      chainIdInternal = configStrategy.originConstants.networkId;
+    let chainIdInternal =
+      coreConstants.environment === environmentConst.environment.development
+        ? localChainConfig.chains.origin.networkId.value
+        : chainIdConst.getChainId();
 
     // Declare variables.
     let estimatedGasPriceFloat = 0,

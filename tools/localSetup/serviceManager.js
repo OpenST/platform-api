@@ -11,11 +11,13 @@ const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   setupHelper = require(rootPrefix + '/tools/localSetup/helper'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  localChainConfig = require(rootPrefix + '/tools/localSetup/config'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
+// Declare variables.
 const sealerPassphraseFile = 'sealer-passphrase',
   sealerPassword = 'testtest';
 
@@ -161,12 +163,12 @@ class ServiceManager {
       chainConfigStrategy = await oThis.fetchConfig(chainId),
       networkId =
         chainType === coreConstants.auxChainKind
-          ? chainConfigStrategy.auxConstants.networkId
-          : chainConfigStrategy.originConstants.networkId,
+          ? localChainConfig.chains.aux.networkId.value
+          : localChainConfig.chains.origin.networkId.value,
       chainPort =
         chainType === coreConstants.auxChainKind
-          ? chainConfigStrategy.auxConstants.gethPort
-          : chainConfigStrategy.originConstants.gethPort,
+          ? localChainConfig.chains.aux.gethPort.value
+          : localChainConfig.chains.origin.gethPort.value,
       zeroGas = coreConstants.OST_AUX_GAS_PRICE_FOR_DEPLOYMENT,
       gasLimit = { aux: coreConstants.OST_AUX_GAS_LIMIT, origin: coreConstants.OST_ORIGIN_GAS_LIMIT },
       gasPrice = purpose === 'deployment' && chainType === 'aux' ? zeroGas : coreConstants.OST_ORIGIN_GAS_PRICE,

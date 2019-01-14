@@ -147,15 +147,12 @@ configTemplate['entitiesMap'] = {
   originConstantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      gethPort: 'chainGethPort',
-      networkId: 'networkId'
+      placeHolder1: 'placeHolderEntity',
+      placeHolder2: 'placeHolderEntity'
     }
   },
-  chainGethPort: {
-    entityType: 'number'
-  },
-  networkId: {
-    entityType: 'number'
+  placeHolderEntity: {
+    entityType: 'string'
   },
 
   auxGethEntity: {
@@ -180,8 +177,8 @@ configTemplate['entitiesMap'] = {
   auxConstantsEntity: {
     entityType: 'object',
     entitiesPresent: {
-      gethPort: 'chainGethPort',
-      networkId: 'networkId'
+      placeHolder3: 'placeHolderEntity',
+      placeHolder4: 'placeHolderEntity'
     }
   },
 

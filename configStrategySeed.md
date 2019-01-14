@@ -148,8 +148,8 @@ OriginConstants config strategy
 ```js
 let originConstantDetails = {
   "originConstants": {
-    "gethPort": 30310,
-    "networkId": 1000
+    "placeHolder1": "placeHolder1Value",
+    "placeHolder2": "placeHolder2Value"
   }
 };
 ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
@@ -160,8 +160,8 @@ AuxConstants config strategy
 ```js
 let auxConstantDetails = {
   "auxConstants": {
-    "gethPort": 30311,
-    "networkId": 2000
+    "placeHolder3": "placeHolder3Value",
+    "placeHolder4": "placeHolder4Value"
   }
 };
 ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
