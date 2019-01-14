@@ -14,7 +14,7 @@ const rootPrefix = '../../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
-  DeployCoGatewayHelper = require(rootPrefix + '/tools/commonSetup/DeployCoGateway'),
+  DeployCoGatewayHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployCoGateway'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**

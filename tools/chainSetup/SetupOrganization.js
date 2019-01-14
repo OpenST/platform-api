@@ -15,7 +15,7 @@ const rootPrefix = '../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
-  SetupOrganizationHelper = require(rootPrefix + '/tools/commonSetup/SetupOrganization'),
+  SetupOrganizationHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/SetupOrganization'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 

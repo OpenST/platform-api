@@ -11,6 +11,8 @@ const rootPrefix = '../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
+//NOTE: This is a shared table with KIT. Any changes here must be synced with model in KIT-API.
+
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   statuses = {
     '1': workflowStepConstants.queuedStatus,

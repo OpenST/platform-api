@@ -3,6 +3,8 @@
 const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
+//NOTE: These steps are also used in KIT-API for showing progress. Any change here would have to be synced with KIT-API.
+
 const steps = {
   [workflowStepConstants.economySetupInit]: {
     kind: workflowStepConstants.economySetupInit,
