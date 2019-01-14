@@ -276,38 +276,6 @@ class TokenDeployCoGateway {
     return fetchAddrRsp.data.address;
   }
 
-  /**
-   * Insert entry into chain setup logs table.
-   *
-   * @private
-   *
-   * @param response
-   *
-   * @return {Promise<Result>}
-   */
-  async _insertIntoChainSetupLogs(response) {
-    const oThis = this;
-
-    let insertParams = {};
-
-    insertParams['chainId'] = oThis.deployChainId;
-    insertParams['chainKind'] = oThis.chainKind;
-    insertParams['stepKind'] = chainSetupLogsConstants.deployCoGatewayStepKind;
-    insertParams['debugParams'] = response.debugOptions;
-    insertParams['transactionHash'] = response.data.transactionHash;
-
-    if (response.isSuccess()) {
-      insertParams['status'] = chainSetupLogsConstants.successStatus;
-    } else {
-      insertParams['status'] = chainSetupLogsConstants.failureStatus;
-      insertParams['debugParams']['errorResponse'] = response.toHash();
-    }
-
-    await new ChainSetupLogModel().insertRecord(insertParams);
-
-    return responseHelper.successWithData({});
-  }
-
   /***
    *
    * insert token co Gateway contract address into token address

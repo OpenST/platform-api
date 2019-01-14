@@ -283,38 +283,6 @@ class TokenDeployGateway {
     return fetchAddrRsp.data.address;
   }
 
-  /**
-   * Insert entry into chain setup logs table.
-   *
-   * @private
-   *
-   * @param response
-   *
-   * @return {Promise<Result>}
-   */
-  async _insertIntoChainSetupLogs(response) {
-    const oThis = this;
-
-    let insertParams = {};
-
-    insertParams['chainId'] = oThis.chainId;
-    insertParams['chainKind'] = oThis.chainKind;
-    insertParams['stepKind'] = chainSetupLogsConstants.deployGatewayStepKind;
-    insertParams['debugParams'] = response.debugOptions;
-    insertParams['transactionHash'] = response.data.transactionHash;
-
-    if (response.isSuccess()) {
-      insertParams['status'] = chainSetupLogsConstants.successStatus;
-    } else {
-      insertParams['status'] = chainSetupLogsConstants.failureStatus;
-      insertParams['debugParams']['errorResponse'] = response.toHash();
-    }
-
-    await new ChainSetupLogModel().insertRecord(insertParams);
-
-    return responseHelper.successWithData({});
-  }
-
   /***
    *
    * insert token gateway contract address into token address
