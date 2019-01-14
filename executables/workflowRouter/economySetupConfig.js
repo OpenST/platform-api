@@ -44,6 +44,11 @@ const steps = {
   [workflowStepConstants.tokenDeployCoGateway]: {
     kind: workflowStepConstants.tokenDeployCoGateway,
     onFailure: '',
+    onSuccess: [workflowStepConstants.activateTokenGateway]
+  },
+  [workflowStepConstants.activateTokenGateway]: {
+    kind: workflowStepConstants.activateTokenGateway,
+    onFailure: '',
     onSuccess: [workflowStepConstants.setCoGatewayInUbt]
   },
   [workflowStepConstants.setCoGatewayInUbt]: {

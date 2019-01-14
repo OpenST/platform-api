@@ -19,6 +19,7 @@ require(rootPrefix + '/tools/economySetup/brandedToken/DeployBrandedToken');
 require(rootPrefix + '/tools/economySetup/brandedToken/DeployUtilityBrandedToken');
 require(rootPrefix + '/tools/economySetup/DeployGateway');
 require(rootPrefix + '/tools/economySetup/DeployCoGateway');
+require(rootPrefix + '/tools/economySetup/ActivateGateway');
 require(rootPrefix + '/tools/economySetup/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/tools/economySetup/SetGatewayInBT');
 
@@ -72,6 +73,9 @@ class economySetupRouter extends workflowRouterBase {
       case workflowStepConstants.tokenDeployCoGateway:
         let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'tokenDeployCoGateway');
         return new TokenDeployCoGatewayKlass(oThis.requestParams).perform();
+      case workflowStepConstants.activateTokenGateway:
+        let ActivateTokenGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateTokenGateway');
+        return new ActivateTokenGatewayKlass(oThis.requestParams).perform();
       case workflowStepConstants.setCoGatewayInUbt:
         let setCoGatewayInUbtKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,

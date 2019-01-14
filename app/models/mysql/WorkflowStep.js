@@ -29,8 +29,9 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '6': workflowStepConstants.deployUtilityBrandedToken,
     '7': workflowStepConstants.tokenDeployGateway,
     '8': workflowStepConstants.tokenDeployCoGateway,
-    '9': workflowStepConstants.setCoGatewayInUbt,
-    '10': workflowStepConstants.setGatewayInBt,
+    '9': workflowStepConstants.activateTokenGateway,
+    '10': workflowStepConstants.setCoGatewayInUbt,
+    '11': workflowStepConstants.setGatewayInBt,
 
     '30': workflowStepConstants.commitStateRootInit,
     '31': workflowStepConstants.commitStateRoot,
