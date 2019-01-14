@@ -8,11 +8,11 @@ node executables/createEncryptionSalt
 
 Create entry in config_groups table
 ```js
-let insertParams = {
+var insertParams = {
   "chainId": 0,
   "groupId": 0
 };
-let ConfigGroupsModel = require('./app/models/mysql/ConfigGroup'),
+var ConfigGroupsModel = require('./app/models/mysql/ConfigGroup'),
 configGroupsObject = new ConfigGroupsModel();
 configGroupsObject.insertRecord(insertParams).then(console.log).catch(console.log)
 ```
@@ -20,7 +20,7 @@ configGroupsObject.insertRecord(insertParams).then(console.log).catch(console.lo
 ## Insert required config strategies
 Global Memcache config strategy
 ```js
-let globalMemcachedConfigDetails = {
+var globalMemcachedConfigDetails = {
   "globalMemcached": {
     "engine": "memcached",
     "servers": [
@@ -30,7 +30,7 @@ let globalMemcachedConfigDetails = {
     "consistentBehavior": "1"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalMemcached', globalMemcachedConfigDetails, 1);
 ```
 
@@ -48,13 +48,13 @@ globalRabbitmqDetails = {
     ]
   }
 }
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalRabbitmq', globalRabbitmqDetails, 1);
 ```
 
 Global Nonce Memcache config strategy
 ```js
-let globalNonceMemcachedConfigDetails = {
+var globalNonceMemcachedConfigDetails = {
   "globalNonceMemcached": {
     "engine": "memcached",
     "servers": [
@@ -64,13 +64,13 @@ let globalNonceMemcachedConfigDetails = {
     "consistentBehavior": "1"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalNonceMemcached', globalNonceMemcachedConfigDetails, 1);
 ```
 
 In Memory Cache config strategy
 ```js
-let inMemoryCacheDetails = {
+var inMemoryCacheDetails = {
   "inMemoryCache": {
     "engine": "none",
     "defaultTtl": 60,
@@ -78,13 +78,13 @@ let inMemoryCacheDetails = {
     "consistentBehavior": "1"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('inMemoryCache', inMemoryCacheDetails, 1);
 ```
 
 Origin Geth config strategy
 ```js
-let originGethDetails = {
+var originGethDetails = {
   "originGeth": {
     "readOnly": {
       "rpcProvider": "http://127.0.0.1:8545",
@@ -110,13 +110,13 @@ let originGethDetails = {
     "client": "geth"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('originGeth', originGethDetails, 1);
 ```
 
 Chain specific memcache config strategy
 ```js
-let memcachedConfigDetails = {
+var memcachedConfigDetails = {
   "memcached": {
     "engine": "memcached",
     "servers": [
@@ -126,13 +126,13 @@ let memcachedConfigDetails = {
     "consistentBehavior": "1"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(2000, 1).addForKind('memcached', memcachedConfigDetails, 1);
 ```
 
 Aux Geth config strategy
 ```js
-let auxGethDetails = {
+var auxGethDetails = {
   "auxGeth": {
     "readOnly": {
       "rpcProvider": "http://127.0.0.1:9545",
@@ -158,13 +158,13 @@ let auxGethDetails = {
     "client": "geth"
   }
 };
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(2000, 1).addForKind('auxGeth', auxGethDetails, 1);
 ```
 
 OriginConstants config strategy
 ```js
-let originConstantDetails = {
+var originConstantDetails = {
   "originConstants": {
     "placeHolder1": "placeHolder1Value",
     "placeHolder2": "placeHolder2Value"
@@ -176,7 +176,7 @@ new ConfigStrategyCrud(0, 0).addForKind('originConstants', originConstantDetails
 
 AuxConstants config strategy
 ```js
-let auxConstantDetails = {
+var auxConstantDetails = {
   "auxConstants": {
     "placeHolder3": "placeHolder3Value",
     "placeHolder4": "placeHolder4Value"
@@ -187,7 +187,7 @@ new ConfigStrategyCrud(2000, 1).addForKind('auxConstants', auxConstantDetails, 1
 ```
 
 ```js
-let dynamoConfigDetails = {
+var dynamoConfigDetails = {
   "dynamodb": {
     "endpoint": "http://localhost:8000",
     "region": "localhost",
@@ -210,12 +210,12 @@ let dynamoConfigDetails = {
   }
 };
 
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(2000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```
 
 ```js
-let dynamoConfigDetails = {
+var dynamoConfigDetails = {
   "dynamodb": {
     "endpoint": "http://localhost:8000",
     "region": "localhost",
@@ -238,12 +238,12 @@ let dynamoConfigDetails = {
   }
 };
 
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(1000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```
 
 ```js
-let globalDynamodbConfigDetails = {
+var globalDynamodbConfigDetails = {
   "globalDynamodb": {
     "endpoint": "http://localhost:8000",
     "region": "localhost",
@@ -266,18 +266,18 @@ let globalDynamodbConfigDetails = {
   }
 };
 
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
 new ConfigStrategyCrud(0, 0).addForKind('globalDynamodb', globalDynamodbConfigDetails, 1)
 ```
 
 Activating global config
 ```js
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).activate();
 ```
 
 Activating chain specific config
 ```js
-let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(2000, 1).activate();
 ```
