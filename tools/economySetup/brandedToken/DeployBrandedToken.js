@@ -7,7 +7,7 @@
  * @module tools/economySetup/DeployBrandedToken
  */
 
-const brandedTokenSetupHelper = require('branded-token.js'),
+const brandedTokenSetupHelper = require('@openstfoundation/branded-token.js'),
   OSTBase = require('@openstfoundation/openst-base'),
   BigNumber = require('bignumber.js');
 

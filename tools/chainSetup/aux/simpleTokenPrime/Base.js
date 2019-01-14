@@ -8,7 +8,7 @@
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
-  MosaicTbd = require('mosaic-tbd'),
+  MosaicTbd = require('@openstfoundation/mosaic-tbd'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),

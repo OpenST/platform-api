@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonSetupBase = require(rootPrefix + '/tools/commonSetup/Base'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  MosaicTbd = require('mosaic-tbd');
+  MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
 /**
  *

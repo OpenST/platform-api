@@ -9,7 +9,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonSetupBase = require(rootPrefix + '/tools/commonSetup/Base'),
-  MosaicTbd = require('mosaic-tbd');
+  MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
 /**
  *

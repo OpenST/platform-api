@@ -16,7 +16,7 @@ const rootPrefix = '../../..',
   Base = require(rootPrefix + '/tools/economySetup/brandedToken/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-const brandedTokenSetupHelper = require('branded-token.js');
+const brandedTokenSetupHelper = require('@openstfoundation/branded-token.js');
 
 class DeployUtilityBrandedToken extends Base {
   constructor(params) {

@@ -23,7 +23,7 @@ const rootPrefix = '../..',
   transferAmount = require(rootPrefix + '/tools/helpers/TransferAmountOnChain'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
-const BrandedToken = require('branded-token.js'),
+const BrandedToken = require('@openstfoundation/branded-token.js'),
   brandedTokenHelper = BrandedToken.EconomySetup.BrandedTokenHelper;
 
 class SetGatewayInBT {

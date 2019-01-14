@@ -1,6 +1,6 @@
 'use strict';
 
-const BrandedToken = require('branded-token.js');
+const BrandedToken = require('@openstfoundation/branded-token.js');
 
 const rootPrefix = '../..',
   CoreBins = require(rootPrefix + '/config/CoreBins');

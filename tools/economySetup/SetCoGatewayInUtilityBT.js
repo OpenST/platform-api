@@ -21,7 +21,7 @@ const rootPrefix = '../..',
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-const BrandedToken = require('branded-token.js'),
+const BrandedToken = require('@openstfoundation/branded-token.js'),
   UtilityBrandedTokenHelper = BrandedToken.EconomySetup.UtilityBrandedTokenHelper;
 
 class SetCoGatewayInUtilityBT {

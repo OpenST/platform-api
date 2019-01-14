@@ -6,7 +6,7 @@
  * @module helpers/contractHelper
  */
 
-const MosaicTbd = require('mosaic-tbd');
+const MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
 class ContractHelper {
   constructor() {}
