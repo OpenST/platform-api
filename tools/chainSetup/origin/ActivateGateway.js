@@ -85,7 +85,7 @@ class ActivateGateway {
     let params = {
       chainId: oThis.chainId,
       signerAddress: signerAddress,
-      chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite'),
+      chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       gatewayAddress: gatewayContractAddress,
       coGatewayAddress: coGatewayContractAddress

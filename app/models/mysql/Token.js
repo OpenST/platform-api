@@ -1,18 +1,16 @@
 'use strict';
-
 /**
- * This is model for Tokens table.
+ * This is model for Token table.
  *
  * @module app/models/mysql/Token
  */
 const rootPrefix = '../../..',
-  util = require(rootPrefix + '/lib/util'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
-class Tokens extends ModelBase {
+class Token extends ModelBase {
   constructor() {
     super({ dbName: dbName });
 
@@ -22,4 +20,4 @@ class Tokens extends ModelBase {
   }
 }
 
-module.exports = Tokens;
+module.exports = Token;

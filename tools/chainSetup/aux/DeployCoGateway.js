@@ -89,7 +89,7 @@ class DeployCoGateway {
     let params = {
       chainId: oThis.chainId,
       signerAddress: signerAddress,
-      chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite'),
+      chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       organizationAddress: organizationAddress,
       originContractAddress: simpleTokenContractAddress,
