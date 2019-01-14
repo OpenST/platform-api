@@ -8,7 +8,8 @@
  */
 
 const brandedTokenSetupHelper = require('branded-token.js'),
-  OSTBase = require('@openstfoundation/openst-base');
+  OSTBase = require('@openstfoundation/openst-base'),
+  BigNumber = require('bignumber.js');
 
 const rootPrefix = '../../..',
   InstanceComposer = OSTBase.InstanceComposer,
@@ -25,7 +26,7 @@ class DeployOriginBrandedToken extends BrandedTokenBase {
     oThis.organizationAddress = params.tokenOriOrgCntrctAddr;
     oThis.deployToChainKind = coreConstants.originChainKind;
 
-    oThis.conversionRateDecimals = 5; //Temp: Need clarificaion from platform team.
+    oThis.conversionRateDecimals = coreConstants.CONVERSION_RATE_DECIMALS; //Temp: Need clarificaion from platform team.
   }
 
   /**
@@ -35,6 +36,7 @@ class DeployOriginBrandedToken extends BrandedTokenBase {
    */
   perform() {
     const oThis = this;
+
     return oThis._asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
@@ -102,12 +104,16 @@ class DeployOriginBrandedToken extends BrandedTokenBase {
     const oThis = this;
 
     let BrandedTokenHelper = brandedTokenSetupHelper.EconomySetup.BrandedTokenHelper,
-      brandedTokenDeploymentHelper = new BrandedTokenHelper(oThis.web3Instance);
+      brandedTokenDeploymentHelper = new BrandedTokenHelper(oThis.web3Instance),
+      nonceRsp = await oThis._fetchNonce();
 
     let deployParams = {
       from: oThis.deployerAddress,
-      gasPrice: oThis.gasPrice
+      gasPrice: oThis.gasPrice,
+      nonce: nonceRsp.data['nonce']
     };
+
+    oThis._calculateConversionRate();
 
     // TODO:: oThis.conversionFactor calculate and replace '1'.
     let deploymentRsp = await brandedTokenDeploymentHelper.deploy(
@@ -115,13 +121,27 @@ class DeployOriginBrandedToken extends BrandedTokenBase {
       oThis.tokenSymbol,
       oThis.tokenName,
       oThis.decimal,
-      1,
+      oThis.conversionRateForContract,
       oThis.conversionRateDecimals,
       oThis.organizationAddress,
       deployParams
     );
 
     return deploymentRsp;
+  }
+
+  /**
+   * This function calculates the conversion rate which will be sent to branded token contract.
+   * This will multiply conversion_factor present in DB with 10^5
+   */
+  _calculateConversionRate() {
+    const oThis = this;
+    let conversionFactorFromDB = new BigNumber(oThis.conversionFactor),
+      conversionMultiplier = new BigNumber(coreConstants.CONVERSION_RATE_MULTIPLIER);
+
+    let conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
+
+    oThis.conversionRateForContract = conversionRateForContractBigNumber.toString();
   }
 }
 

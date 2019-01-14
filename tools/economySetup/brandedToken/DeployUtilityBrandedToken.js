@@ -109,13 +109,15 @@ class DeployUtilityBrandedToken extends Base {
     const oThis = this;
 
     let BrandedTokenHelper = brandedTokenSetupHelper.EconomySetup.UtilityBrandedTokenHelper,
-      brandedTokenDeploymentHelper = new BrandedTokenHelper(oThis.web3Instance);
+      brandedTokenDeploymentHelper = new BrandedTokenHelper(oThis.web3Instance),
+      nonceRsp = await oThis._fetchNonce();
 
     //_token, _symbol, _name, _decimals, _organization, txOptions, web3
 
     let deployParams = {
       from: oThis.deployerAddress,
-      gasPrice: oThis.gasPrice
+      gasPrice: oThis.gasPrice,
+      nonce: nonceRsp.data['nonce']
     };
 
     let contractResponse = await brandedTokenDeploymentHelper.deploy(

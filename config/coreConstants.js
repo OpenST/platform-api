@@ -234,6 +234,14 @@ class CoreConstants {
     return '0x3B9ACA00';
   }
 
+  get CONVERSION_RATE_DECIMALS() {
+    return '5';
+  }
+
+  get CONVERSION_RATE_MULTIPLIER() {
+    return '100000';
+  }
+
   /**
    * Batch delete retry count
    *

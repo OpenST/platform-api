@@ -9,6 +9,7 @@
 const rootPrefix = '../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
@@ -140,11 +141,13 @@ class SetCoGatewayInUtilityBT {
   async _setCoGatewayInUBT() {
     const oThis = this;
 
-    let brandedTokenHelper = new UtilityBrandedTokenHelper(oThis.web3Instance);
+    let brandedTokenHelper = new UtilityBrandedTokenHelper(oThis.web3Instance),
+      nonceRsp = await oThis._fetchNonce();
 
     let deployParams = {
       from: oThis.organizationWorker,
-      gasPrice: '0x0' //As this is done on auxilary chain
+      gasPrice: '0x0', //As this is done on auxilary chain
+      nonce: nonceRsp.data['nonce']
     };
     // txOptions, web3 are default, passed in constructor respectively
     let contractResponse = await brandedTokenHelper.setCoGateway(
@@ -256,6 +259,21 @@ class SetCoGatewayInUtilityBT {
     }
 
     oThis.coGateWayContractAddress = fetchAddrRsp.data.address;
+  }
+
+  /**
+   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
+   *
+   * @ignore
+   *
+   * @return {Promise}
+   */
+  async _fetchNonce() {
+    const oThis = this;
+    return new NonceManager({
+      address: oThis.organizationWorker,
+      chainId: oThis.chainId
+    }).getNonce();
   }
 }
 InstanceComposer.registerAsShadowableClass(

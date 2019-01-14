@@ -9,6 +9,7 @@
 const rootPrefix = '../..',
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
+  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
@@ -169,10 +170,15 @@ class SetGatewayInBT {
   async _setGatewayInBT() {
     const oThis = this;
 
-    let brandedTokenHelperObj = new brandedTokenHelper(oThis.web3Instance, oThis.brandedTokenContractAddress);
+    let brandedTokenHelperObj = new brandedTokenHelper(oThis.web3Instance, oThis.brandedTokenContractAddress),
+      nonceRsp = await oThis._fetchNonce();
+
+    let txOptions = {
+      nonce: nonceRsp.data['nonce']
+    };
 
     // txOptions, web3 are default, passed in constructor respectively
-    await brandedTokenHelperObj.setGateway(oThis.gatewayContractAddress, oThis.organizationWorker);
+    await brandedTokenHelperObj.setGateway(oThis.gatewayContractAddress, oThis.organizationWorker, txOptions);
   }
 
   /***
@@ -197,6 +203,21 @@ class SetGatewayInBT {
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
     return oThis.configStrategyObj;
+  }
+
+  /**
+   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
+   *
+   * @ignore
+   *
+   * @return {Promise}
+   */
+  async _fetchNonce() {
+    const oThis = this;
+    return new NonceManager({
+      address: oThis.organizationWorker,
+      chainId: oThis.originChainId
+    }).getNonce();
   }
 }
 InstanceComposer.registerAsShadowableClass(SetGatewayInBT, coreConstants.icNameSpace, 'setGatewayInBrandedToken');

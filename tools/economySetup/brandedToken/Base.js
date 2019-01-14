@@ -9,6 +9,7 @@
  */
 
 const rootPrefix = '../../..',
+  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -213,6 +214,21 @@ class DeployBrandedTokenBase {
     } else {
       return new TokenAddressModel().invertedKinds[TokenAddressConstants.utilityBrandedTokenContract];
     }
+  }
+
+  /**
+   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
+   *
+   * @ignore
+   *
+   * @return {Promise}
+   */
+  async _fetchNonce() {
+    const oThis = this;
+    return new NonceManager({
+      address: oThis.deployerAddress,
+      chainId: oThis.deployChainId
+    }).getNonce();
   }
 }
 
