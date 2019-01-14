@@ -3,8 +3,8 @@
 const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
-  generateTokenAddresses = require(rootPrefix + '/tools/economySetup/GenerateKnownAddresses'),
-  deployTokenOrganization = require(rootPrefix + '/tools/economySetup/deployTokenOrganization'),
+  generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
+  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -14,14 +14,14 @@ const rootPrefix = '../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-require(rootPrefix + '/tools/economySetup/deployTokenOrganization');
-require(rootPrefix + '/tools/economySetup/brandedToken/DeployBrandedToken');
-require(rootPrefix + '/tools/economySetup/brandedToken/DeployUtilityBrandedToken');
-require(rootPrefix + '/tools/economySetup/DeployGateway');
-require(rootPrefix + '/tools/economySetup/DeployCoGateway');
-require(rootPrefix + '/tools/economySetup/ActivateGateway');
-require(rootPrefix + '/tools/economySetup/SetCoGatewayInUtilityBT');
-require(rootPrefix + '/tools/economySetup/SetGatewayInBT');
+require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
+require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
+require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
+require(rootPrefix + '/lib/setup/economy/DeployGateway');
+require(rootPrefix + '/lib/setup/economy/DeployCoGateway');
+require(rootPrefix + '/lib/setup/economy/ActivateGateway');
+require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
+require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -47,43 +47,40 @@ class economySetupRouter extends workflowRouterBase {
       case workflowStepConstants.deployOriginTokenOrganization:
         let deployOrigTokenOrganizationKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
-          'deployTokenOrganization'
+          'DeployTokenOrganization'
         );
         oThis.requestParams.deployToChainKind = coreConstants.originChainKind;
         return new deployOrigTokenOrganizationKlass(oThis.requestParams).perform();
       case workflowStepConstants.deployOriginBrandedToken:
-        let deployBrandeTokenKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'deployBrandedToken');
+        let deployBrandeTokenKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployOriginBrandedToken');
         return new deployBrandeTokenKlass(oThis.requestParams).perform();
       case workflowStepConstants.deployAuxTokenOrganization:
         let deployAuxTokenOrganizationKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
-          'deployTokenOrganization'
+          'DeployTokenOrganization'
         );
         oThis.requestParams.deployToChainKind = coreConstants.auxChainKind;
         return new deployAuxTokenOrganizationKlass(oThis.requestParams).perform();
       case workflowStepConstants.deployUtilityBrandedToken:
         let deployUtilityBrandeTokenKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
-          'deployUtilityBrandedToken'
+          'DeployUtilityBrandedToken'
         );
         return new deployUtilityBrandeTokenKlass(oThis.requestParams).perform();
       case workflowStepConstants.tokenDeployGateway:
-        let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'tokenDeployGateway');
+        let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployGateway');
         return new TokenDeployGatewayKlass(oThis.requestParams).perform();
       case workflowStepConstants.tokenDeployCoGateway:
-        let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'tokenDeployCoGateway');
+        let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployCoGateway');
         return new TokenDeployCoGatewayKlass(oThis.requestParams).perform();
       case workflowStepConstants.activateTokenGateway:
         let ActivateTokenGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateTokenGateway');
         return new ActivateTokenGatewayKlass(oThis.requestParams).perform();
       case workflowStepConstants.setCoGatewayInUbt:
-        let setCoGatewayInUbtKlass = ic.getShadowedClassFor(
-          coreConstants.icNameSpace,
-          'setCoGatewayInUtilityBrandedToken'
-        );
+        let setCoGatewayInUbtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetCoGatewayInUtilityBT');
         return new setCoGatewayInUbtKlass(oThis.requestParams).perform();
       case workflowStepConstants.setGatewayInBt:
-        let setGatewayInBtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'setGatewayInBrandedToken');
+        let setGatewayInBtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetGatewayInBT');
         return new setGatewayInBtKlass(oThis.requestParams).perform();
       default:
         return Promise.reject(

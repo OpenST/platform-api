@@ -55,7 +55,7 @@ class Base {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('tools/commonSetup/Base::perform::catch');
+        logger.error('tools/chainSetup/mosaicInteracts/Base::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 't_cos_b_1',

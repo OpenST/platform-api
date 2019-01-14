@@ -14,7 +14,7 @@ const rootPrefix = '../../../..',
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  DeployerKlass = require(rootPrefix + '/tools/helpers/deploy'),
+  DeployerKlass = require(rootPrefix + '/tools/helpers/Deploy'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   CoreBins = require(rootPrefix + '/config/CoreBins');
 
