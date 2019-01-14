@@ -118,3 +118,28 @@ source set_env_vars.sh
    
    economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
 ```
+
+### Setup openst-block-scanner
+
+* You will need following for development environment setup.
+    - [nodejs](https://nodejs.org/) >= 8.0.0
+    - [Geth](https://github.com/ethereum/go-ethereum/) >=1.8.17
+    - [Memcached](https://memcached.org/)
+    - [DB Browser for SQLite](https://sqlitebrowser.org/)
+
+* Run following command to start Dynamo DB.
+  ```bash
+  > java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
+  ```
+
+* Create all the shared tables by running the following script: 
+    ```bash
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
+    ```
+* Run the addChain service and pass all the necessary parameters:
+    ```bash
+    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    ```
+    * Mandatory parameters: chainId, networkId
+    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
+   

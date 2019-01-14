@@ -243,8 +243,8 @@ new ConfigStrategyCrud(1000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```
 
 ```js
-let dynamoConfigDetails = {
-  "dynamodb": {
+let globalDynamodbConfigDetails = {
+  "globalDynamodb": {
     "endpoint": "http://localhost:8000",
     "region": "localhost",
     "apiKey": "X",
@@ -267,7 +267,7 @@ let dynamoConfigDetails = {
 };
 
 let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(0, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
+new ConfigStrategyCrud(0, 0).addForKind('globalDynamodb', globalDynamodbConfigDetails, 1)
 ```
 
 Activating global config
