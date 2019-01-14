@@ -47,7 +47,7 @@ class CronProcessesModel extends ModelBaseKlass {
   }
 
   get kinds() {
-    return kind;
+    return kinds;
   }
 
   get statuses() {
@@ -85,8 +85,8 @@ class CronProcessesModel extends ModelBaseKlass {
    *
    * @param {Object} params
    * @param {String} params.kind
-   * @param {String} params.ipAddress
-   * @param {Number} params.chainId
+   * @param {String} params.ip_address
+   * @param {Number} params.chain_id
    * @param {String} params.params
    * @param {String} params.status
    * @param {Number} params.lastStartTime

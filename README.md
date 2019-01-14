@@ -129,7 +129,7 @@ source set_env_vars.sh
 
 * Run following command to start Dynamo DB.
   ```bash
-  > java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
+  java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
   ```
 
 * Create all the shared tables by running the following script: 
