@@ -34,6 +34,24 @@ let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalMemcached', globalMemcachedConfigDetails, 1);
 ```
 
+Global RabbitMQ config strategy
+```js
+globalRabbitmqDetails = {
+  "globalRabbitmq": {
+    "username": "guest",
+    "password": "guest",
+    "host": "127.0.0.1",
+    "port": "5672",
+    "heartbeats": "30",
+    "clusterNodes": [
+      "127.0.0.1"
+    ]
+  }
+}
+let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(0, 0).addForKind('globalRabbitmq', globalRabbitmqDetails, 1);
+```
+
 Global Nonce Memcache config strategy
 ```js
 let globalNonceMemcachedConfigDetails = {
