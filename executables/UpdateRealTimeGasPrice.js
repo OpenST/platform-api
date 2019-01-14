@@ -13,7 +13,6 @@
  *
  * @module executables/updateRealtimeGasPrice
  */
-
 const dynamicGasPriceProvider = require('@ostdotcom/ost-dynamic-gas-price'),
   BigNumber = require('bignumber.js');
 
@@ -107,8 +106,10 @@ class UpdateRealTimeGasPrice extends CronBase {
       logger.info('Origin chain gas price cache is set to:', gasPriceToBeSubmittedHex);
       return Promise.resolve(responseHelper.successWithData(gasPriceToBeSubmittedHex));
     }
+
     logger.info('Origin chain gas price cache is not set');
     oThis.canExit = true;
+
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
@@ -129,7 +130,6 @@ class UpdateRealTimeGasPrice extends CronBase {
    * @private
    */
   _validateAndSanitize() {
-    const oThis = this;
     return;
   }
 

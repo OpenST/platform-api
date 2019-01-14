@@ -51,8 +51,8 @@ class BlockParser extends PublisherBase {
   /**
    * Constructor for transaction parser
    *
-   * @param params {Object} - params object
-   * @param params.cronProcessId {Number} - cron_processes table id
+   * @param {Object} params
+   * @param {Number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
