@@ -123,10 +123,16 @@ source set_env_vars.sh
 
 * Create all the shared tables by running the following script: 
     ```bash
+    # For origin chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
+    # For auxiliary chain
     node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
     ```
 * Run the addChain service and pass all the necessary parameters:
     ```bash
+    # For origin chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    # For auxiliary chain
     node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
     ```
     * Mandatory parameters: chainId, networkId
