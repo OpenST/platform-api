@@ -131,11 +131,18 @@ class workflowRouterBase {
     }
     console.log('------------------------------updateData---');
     console.log(updateData);
-    if (oThis.taskDone) {
+    if (oThis.taskDone == 1) {
       updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus];
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
 
       await oThis.insertAndPublishNextSteps(oThis.nextSteps);
+    } else if (oThis.taskDone == -1) {
+      updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus];
+      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
+
+      if (oThis.currentStepConfig.onFailure && oThis.currentStepConfig.onFailure != '') {
+        oThis._insertAndPublishNextStep(oThis.currentStepConfig.onFailure);
+      }
     } else if (updateData.response_data) {
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
     }
@@ -350,46 +357,63 @@ class workflowRouterBase {
         continue;
       }
 
-      let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
-        nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
-      let insertRsp = await new WorkflowStepsModel()
-        .insert({
-          kind: nextStepKind,
-          client_id: oThis.clientId,
-          chain_id: oThis.chainId,
-          parent_id: oThis.parentStepId,
-          status: nextStepStatus
-        })
-        .fire();
-
-      let nextStepId = insertRsp.insertId;
-
-      let messageParams = {
-        topics: [oThis.topic],
-        publisher: oThis._publisher,
-        message: {
-          kind: oThis._messageKind,
-          payload: {
-            stepKind: nextStep,
-            taskStatus: workflowStepConstants.taskReadyToStart,
-            currentStepId: nextStepId,
-            parentStepId: oThis.parentStepId
-          }
-        }
-      };
-
-      let openSTNotification = await sharedRabbitMqProvider.getInstance({
-          connectionWaitSeconds: connectionTimeoutConst.crons,
-          switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-        }),
-        setToRMQ = await openSTNotification.publishEvent.perform(messageParams);
-
-      // If could not set to RMQ run in async.
-      if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
-        logger.error("====Couldn't publish the message to RMQ====");
-        return Promise.reject({ err: "Couldn't publish next step in Rmq" });
-      }
+      await oThis._insertAndPublishNextStep(nextStep);
     }
+    return Promise.resolve(responseHelper.successWithData({}));
+  }
+
+  /**
+   *
+   * next steps of workflow.
+   *
+   * @returns {Promise<>}
+   *
+   * @sets oThis.currentStepId, oThis.parentStepId
+   *
+   */
+  async _insertAndPublishNextStep(nextStep) {
+    const oThis = this;
+
+    let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
+      nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
+    let insertRsp = await new WorkflowStepsModel()
+      .insert({
+        kind: nextStepKind,
+        client_id: oThis.clientId,
+        chain_id: oThis.chainId,
+        parent_id: oThis.parentStepId,
+        status: nextStepStatus
+      })
+      .fire();
+
+    let nextStepId = insertRsp.insertId;
+
+    let messageParams = {
+      topics: [oThis.topic],
+      publisher: oThis._publisher,
+      message: {
+        kind: oThis._messageKind,
+        payload: {
+          stepKind: nextStep,
+          taskStatus: workflowStepConstants.taskReadyToStart,
+          currentStepId: nextStepId,
+          parentStepId: oThis.parentStepId
+        }
+      }
+    };
+
+    let openSTNotification = await sharedRabbitMqProvider.getInstance({
+        connectionWaitSeconds: connectionTimeoutConst.crons,
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+      }),
+      setToRMQ = await openSTNotification.publishEvent.perform(messageParams);
+
+    // If could not set to RMQ run in async.
+    if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
+      logger.error("====Couldn't publish the message to RMQ====");
+      return Promise.reject({ err: "Couldn't publish next step in Rmq" });
+    }
+
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
