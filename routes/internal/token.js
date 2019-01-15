@@ -14,4 +14,10 @@ router.get('/details', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenAggregatedDetails', 'r_it_1'));
 });
 
+router.post('/deploy', function(req, res, next) {
+  req.decodedParams.apiName = 'tokenDeployment';
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'tokenDeployment', 'r_it_1'));
+});
+
 module.exports = router;
