@@ -6,6 +6,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  WorkflowStepsCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowSteps'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 class workflowRouterBase {
@@ -58,6 +59,7 @@ class workflowRouterBase {
     return oThis.asyncPerform().catch(async function(error) {
       if (responseHelper.isCustomResult(error)) {
         logger.error(error.getDebugData());
+        oThis._clearWorkflowStepsCache(oThis.parentStepId);
         await new WorkflowStepsModel().updateRecord(oThis.currentStepId, {
           debug_params: JSON.stringify(error.getDebugData()),
           status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus]
@@ -93,6 +95,7 @@ class workflowRouterBase {
 
     if (oThis.taskStatus == workflowStepConstants.taskReadyToStart) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
+      oThis._clearWorkflowStepsCache(oThis.parentStepId);
 
       let response = await oThis.stepsFactory();
 
@@ -146,6 +149,8 @@ class workflowRouterBase {
     } else if (updateData.response_data) {
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
     }
+
+    oThis._clearWorkflowStepsCache(oThis.parentStepId);
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
@@ -332,6 +337,8 @@ class workflowRouterBase {
     oThis.currentStepId = insertResp.insertId;
     oThis.parentStepId = insertResp.insertId;
 
+    oThis._clearWorkflowStepsCache(oThis.currentStepId);
+
     return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
   }
 
@@ -385,6 +392,8 @@ class workflowRouterBase {
         status: nextStepStatus
       })
       .fire();
+
+    oThis._clearWorkflowStepsCache(oThis.parentStepId);
 
     let nextStepId = insertRsp.insertId;
 
@@ -482,6 +491,10 @@ class workflowRouterBase {
     return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 1 }));
   }
 
+  async _clearWorkflowStepsCache(id) {
+    let workflowStepsCacheObj = new WorkflowStepsCache({ workflowId: id });
+    await workflowStepsCacheObj.clear();
+  }
   /**
    * Current step payload which would be stored in Pending transactions and would help in restarting flow
    *
