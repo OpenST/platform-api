@@ -135,7 +135,7 @@ class SetCoGatewayInOSTPrime {
       oThis.stPrimeContractAddress
     );
 
-    logger.debug('setCoGateway event--------', contractResponse);
+    logger.debug('txReceipt', contractResponse);
 
     return Promise.resolve(contractResponse);
   }

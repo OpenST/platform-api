@@ -8,6 +8,7 @@
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
+  chainTransactionConstants = require(rootPrefix + '/lib/globalConstant/chainTransaction'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
@@ -39,7 +40,7 @@ class SetupOrganization extends Base {
     oThis.adminAddress = params['adminAddress'];
     oThis.workerAddresses = params['workerAddresses'];
 
-    oThis.expirationHeight = '10000000';
+    oThis.expirationHeight = chainTransactionConstants.organizationExpirationHeight;
   }
 
   /**
