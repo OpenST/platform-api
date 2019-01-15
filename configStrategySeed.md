@@ -198,7 +198,7 @@ constantDetails = {
     "originDdbTablePrefix": "de_mn_",
     "auxDdbTablePrefix": "de_ma_"
   }
-}
+};
 var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('constants', constantDetails, 1);
 ```
@@ -256,7 +256,7 @@ var dynamoConfigDetails = {
 };
 
 var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
-new ConfigStrategyCrud(2000, 1).addForKind('dynamodb', dynamoConfigDetails, 1)
+new ConfigStrategyCrud(2000, 1).addForKind('dynamodb', dynamoConfigDetails, 1);
 ```
 
 Activating global config
