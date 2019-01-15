@@ -1,27 +1,31 @@
 'use strict';
-
-const OSTBase = require('@openstfoundation/openst-base');
+/**
+ * Economy setup router
+ *
+ * @module executables/workflowRouter/economySetupRouter
+ */
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../..',
-  generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
-  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization'),
-  economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   workflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
+  economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
+  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
-require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
-require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
-require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
+require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
 require(rootPrefix + '/lib/setup/economy/DeployCoGateway');
 require(rootPrefix + '/lib/setup/economy/ActivateGateway');
+require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
+require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
-require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
+require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {

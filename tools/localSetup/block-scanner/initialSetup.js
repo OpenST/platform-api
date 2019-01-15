@@ -13,8 +13,6 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner');
 
-// Following require(s) for registering into instance composer
-
 program.option('--chainId <chainId>', 'Chain id').parse(process.argv);
 
 program.on('--help', () => {
