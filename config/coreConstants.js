@@ -167,7 +167,7 @@ class CoreConstants {
   }
 
   get SHARED_MEMCACHE_KEY_PREFIX() {
-    return 'o_saas_api_s_';
+    return 'ca_sa_shared_';
   }
 
   get CONFIG_STRATEGY_SALT() {
