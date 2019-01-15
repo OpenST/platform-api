@@ -47,7 +47,7 @@ globalRabbitmqDetails = {
       "127.0.0.1"
     ]
   }
-}
+};
 var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalRabbitmq', globalRabbitmqDetails, 1);
 ```
@@ -78,7 +78,6 @@ var globalDynamodbConfigDetails = {
     "apiSecret": "X",
     "apiVersion": "2012-08-10",
     "enableSsl": "0",
-    "tablePrefix": "de_ma_",
     "enableLogging": "0",
     "enableAutoscaling": "0",
     "maxRetryCount": "1",
@@ -93,7 +92,7 @@ var globalDynamodbConfigDetails = {
   }
 };
 
-var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalDynamodb', globalDynamodbConfigDetails, 1);
 ```
 
@@ -191,30 +190,20 @@ var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(2000, 1).addForKind('auxGeth', auxGethDetails, 1);
 ```
 
-OriginConstants config strategy
+Constants config strategy.
 ```js
-var originConstantDetails = {
-  "originConstants": {
-    "placeHolder1": "placeHolder1Value",
-    "placeHolder2": "placeHolder2Value"
+constantDetails = {
+  "constants": {
+    "originChainId": 1000,
+    "originDdbTablePrefix": "de_mn_",
+    "auxDdbTablePrefix": "de_ma_"
   }
-};
-ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
-new ConfigStrategyCrud(0, 0).addForKind('originConstants', originConstantDetails, 1);
+}
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(0, 0).addForKind('constants', constantDetails, 1);
 ```
 
-AuxConstants config strategy
-```js
-var auxConstantDetails = {
-  "auxConstants": {
-    "placeHolder3": "placeHolder3Value",
-    "placeHolder4": "placeHolder4Value"
-  }
-};
-ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
-new ConfigStrategyCrud(2000, 1).addForKind('auxConstants', auxConstantDetails, 1);
-```
-
+Origin Chain specific dynamoDB config 
 ```js
 var dynamoConfigDetails = {
   "dynamodb": {
@@ -224,7 +213,6 @@ var dynamoConfigDetails = {
     "apiSecret": "X",
     "apiVersion": "2012-08-10",
     "enableSsl": "0",
-    "tablePrefix": "de_ma_",
     "enableLogging": "0",
     "enableAutoscaling": "0",
     "maxRetryCount": "1",
@@ -239,8 +227,36 @@ var dynamoConfigDetails = {
   }
 };
 
-var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(2000, 1).addForKind('dynamodb', dynamoConfigDetails, 1);
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(1000, 1).addForKind('dynamodb', dynamoConfigDetails, 1);
+```
+
+Aux Chain specific dynamoDB config
+```js
+var dynamoConfigDetails = {
+  "dynamodb": {
+    "endpoint": "http://localhost:8000",
+    "region": "localhost",
+    "apiKey": "X",
+    "apiSecret": "X",
+    "apiVersion": "2012-08-10",
+    "enableSsl": "0",
+    "enableLogging": "0",
+    "enableAutoscaling": "0",
+    "maxRetryCount": "1",
+    "autoScaling": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "X",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0"
+    }
+  }
+};
+
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+new ConfigStrategyCrud(2000, 1).addForKind('dynamodb', dynamoConfigDetails, 1)
 ```
 
 Activating global config
