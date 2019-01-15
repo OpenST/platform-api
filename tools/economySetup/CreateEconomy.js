@@ -29,6 +29,7 @@ class CreateEconomy {
    * @param {Number} params.chainId
    * @param {String} params.simpleStakeAddress
    * @param {String} params.brandedTokenContract
+   * @param {String} params.chainEndpoint
    *
    * @constructor
    */
@@ -39,6 +40,7 @@ class CreateEconomy {
     oThis.chainId = params.chainId;
     oThis.simpleStakeAddress = params.simpleStakeAddress;
     oThis.contractAddress = params.brandedTokenContract;
+    oThis.chainEndpoint = params.chainEndpoint;
   }
 
   /**
@@ -124,15 +126,14 @@ class CreateEconomy {
   async _initializeVars() {
     const oThis = this,
       blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]),
-      CreateEconomyKlass = blockScannerObj.economy.Create,
-      provider = oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite');
+      CreateEconomyKlass = blockScannerObj.economy.Create;
 
     oThis.createEconomyObject = new CreateEconomyKlass(
       oThis.chainId,
       oThis.decimals,
       oThis.contractAddress,
       oThis.simpleStakeAddress,
-      provider,
+      oThis.chainEndpoint,
       oThis.blockTimestamp,
       oThis.displayName,
       oThis.conversionFactor,

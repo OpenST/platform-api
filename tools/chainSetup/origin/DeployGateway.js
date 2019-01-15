@@ -93,7 +93,7 @@ class DeployGateway {
       gasPrice: oThis.gasPrice,
       organizationAddress: organizationAddress,
       originContractAddress: simpleTokenContractAddress,
-      auxContractAddress: stPrimeContractAddress,
+      auxContractAddress: simpleTokenContractAddress,
       anchorAddress: anchorAddress,
       messageBusLibAddress: messageBusLibAddress,
       gatewayLibAddress: gatewayLibAddress
