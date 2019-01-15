@@ -175,11 +175,11 @@ class Finalizer extends PublisherBase {
         await oThis.sleep(2000);
       } else {
         if (finalizerResponse.data.processedBlock) {
-          await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
-
           await oThis._checkAfterReceiptTasksAndPublish(finalizerResponse.data);
 
           await oThis._cleanupPendingTransactions();
+
+          await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
 
           logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
 
@@ -272,23 +272,53 @@ class Finalizer extends PublisherBase {
 
     if (transactionHashes.length <= 0) return;
 
-    let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-      oThis.chainId,
-      transactionHashes
-    );
-
-    let pendingTransactionData = pendingTransactionRsp.data;
-
     oThis.dataToDelete = [];
-    for (let txHash in pendingTransactionData) {
-      let pendingTransactionData = pendingTransactionData[txHash];
-      oThis.dataToDelete.push(pendingTransactionData);
+    let promises = [];
+    while (true) {
+      let batchedTransactionHashes = transactionHashes.splice(0, 50);
+      if (batchedTransactionHashes.length <= 0) {
+        break;
+      }
 
-      if (pendingTransactionData.hasOwnProperty('afterReceipt')) {
-        // Publish state root info for workflow to be able to proceed with other steps
-        await oThis._publishAfterReceiptInfo(pendingTransactionData.afterReceipt);
+      let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
+          oThis.chainId,
+          batchedTransactionHashes
+        ),
+        pendingTransactionsMap = pendingTransactionRsp.data,
+        batchGetParams = [];
+
+      for (let txHash in pendingTransactionsMap) {
+        let txData = pendingTransactionsMap[txHash];
+        batchGetParams.push(txData);
+      }
+      let ptxResp = await pendingTransactionModel.getPendingTransactionData(batchGetParams);
+      if (ptxResp.isFailure()) {
+        continue;
+      }
+      let pendingTransactionData = ptxResp.data;
+      for (let txHash in pendingTransactionData) {
+        let ptd = pendingTransactionData[txHash];
+        oThis.dataToDelete.push(ptd);
+
+        if (ptd.hasOwnProperty('afterReceipt')) {
+          // Publish state root info for workflow to be able to proceed with other steps
+          let publishPromise = new Promise(function(onResolve, onReject) {
+            oThis
+              ._publishAfterReceiptInfo(ptd.afterReceipt)
+              .then(function(resp) {
+                onResolve();
+              })
+              .catch(function(err) {
+                logger.error('Could not publish transaction after receipt: ', err);
+                onResolve();
+              });
+          });
+          promises.push(publishPromise);
+        }
       }
     }
+
+    return Promise.all(promises);
   }
 
   /**
