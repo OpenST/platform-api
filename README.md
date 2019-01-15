@@ -20,6 +20,10 @@ source set_env_vars.sh
 
 - Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
 
+### Cron Process Seeding
+
+- Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
+
 ### Local Chain Setup
 
 * Setup Origin GETH and fund necessary addresses.
@@ -79,24 +83,7 @@ source set_env_vars.sh
     TokenManagement::InsertTokenDetails.new(params).perform
 ```
 
-* Create entry in cron_process table.
-```bash
->  cd saas-api
->  source set_env_vars.sh
->  node
-    cronProcessesModelKlass = require('./app/models/mysql/CronProcesses')
-    cronProcessModel = new cronProcessesModelKlass();
-    cronParams = {"prefetchCount":"25"}
-   
-    params = {
-        'kind':'workflowWorker',
-        'ip_address':'127.0.0.1',
-        'status':'stopped',
-        'chain_id':2000,
-        params: JSON.stringify(cronParams)
-    }
-    cronProcessModel.insertRecord(params).then(console.log)
-```
+* Make sure you have created entry for 'workflowWorker' in cron processes table.
 
 * Start factory
 ```bash
@@ -105,6 +92,7 @@ source set_env_vars.sh
 
 * Start Economy Setup
 ```bash
+> source set_env_vars.sh
 > node
    params = {
        stepKind: 'economySetupInit',
@@ -117,7 +105,7 @@ source set_env_vars.sh
    economySetupRouterK = require('./executables/workflowRouter/economySetupRouter.js')
    economySetupRouter = new economySetupRouterK(params)
    
-   economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
+   economySetupRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
 
 ### Setup openst-block-scanner

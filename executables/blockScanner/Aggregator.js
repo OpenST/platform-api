@@ -7,7 +7,7 @@
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/Aggregator.js
+ * @module executables/blockScanner/Aggregator
  */
 
 const rootPrefix = '../..',
