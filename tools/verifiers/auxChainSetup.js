@@ -346,6 +346,14 @@ class AuxChainSetup {
     });
     let dbSimpleStakeContractAddress = querySimpleStakeContractRsp.data.addresses;
 
+    logger.log('* Fetching Simple token contract address for this chain from database.');
+    let querySimpleTokenRsp = await new ChainAddressModel().fetchAddress({
+      chainId: oThis.originChainId,
+      kind: chainAddressConstants.baseContractKind
+    });
+
+    let simpleTokenContractAdress = querySimpleTokenRsp.data.address;
+
     logger.step('** Validating Gateway contract.');
     logger.log('* Validating the deployed code for Gateway address.');
     let rsp = await oThis.verifiersHelper.validateContract(
@@ -374,6 +382,22 @@ class AuxChainSetup {
     let gatewayActivated = await gatewayContract.methods.activated().call({});
     if (!gatewayActivated) {
       logger.error('Deployment verification of Gateway Activation failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating token address in Gateway *');
+    let token = await gatewayContract.methods.token().call({});
+
+    if (token != simpleTokenContractAdress) {
+      logger.error('Token is not set to simple token');
+      Promise.reject();
+    }
+
+    logger.log('* Validating base token address in Gateway *');
+    let baseToken = await gatewayContract.methods.baseToken().call({});
+
+    if (baseToken != simpleTokenContractAdress) {
+      logger.error('Base token is not set to simple token');
       Promise.reject();
     }
 
