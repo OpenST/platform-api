@@ -8,61 +8,106 @@ const rootPrefix = '../..',
 const steps = {
   [workflowStepConstants.economySetupInit]: {
     kind: workflowStepConstants.economySetupInit,
-    onFailure: '',
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.generateTokenAddresses]
   },
   [workflowStepConstants.generateTokenAddresses]: {
     kind: workflowStepConstants.generateTokenAddresses,
-    onFailure: '',
-    onSuccess: [workflowStepConstants.deployOriginTokenOrganization]
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.deployOriginTokenOrganization, workflowStepConstants.deployAuxTokenOrganization]
   },
   [workflowStepConstants.deployOriginTokenOrganization]: {
     kind: workflowStepConstants.deployOriginTokenOrganization,
-    onFailure: '',
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveOriginTokenOrganization]
+  },
+  [workflowStepConstants.saveOriginTokenOrganization]: {
+    kind: workflowStepConstants.saveOriginTokenOrganization,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.deployOriginTokenOrganization],
     onSuccess: [workflowStepConstants.deployOriginBrandedToken]
   },
   [workflowStepConstants.deployOriginBrandedToken]: {
     kind: workflowStepConstants.deployOriginBrandedToken,
-    onFailure: '',
-    readDataFrom: [workflowStepConstants.deployOriginTokenOrganization],
-    onSuccess: [workflowStepConstants.deployAuxTokenOrganization]
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [],
+    onSuccess: [workflowStepConstants.saveOriginBrandedToken]
+  },
+  [workflowStepConstants.saveOriginBrandedToken]: {
+    kind: workflowStepConstants.saveOriginBrandedToken,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.deployOriginBrandedToken],
+    onSuccess: [workflowStepConstants.deployUtilityBrandedToken]
   },
   [workflowStepConstants.deployAuxTokenOrganization]: {
     kind: workflowStepConstants.deployAuxTokenOrganization,
-    onFailure: '',
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveAuxTokenOrganization]
+  },
+  [workflowStepConstants.saveAuxTokenOrganization]: {
+    kind: workflowStepConstants.saveAuxTokenOrganization,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.deployAuxTokenOrganization],
     onSuccess: [workflowStepConstants.deployUtilityBrandedToken]
   },
   [workflowStepConstants.deployUtilityBrandedToken]: {
     kind: workflowStepConstants.deployUtilityBrandedToken,
-    onFailure: '',
-    readDataFrom: [workflowStepConstants.deployOriginBrandedToken, workflowStepConstants.deployAuxTokenOrganization],
+    onFailure: workflowStepConstants.markFailure,
+    prerequisites: [workflowStepConstants.saveOriginBrandedToken, workflowStepConstants.saveAuxTokenOrganization],
+    onSuccess: [workflowStepConstants.saveUtilityBrandedToken]
+  },
+  [workflowStepConstants.saveUtilityBrandedToken]: {
+    kind: workflowStepConstants.saveUtilityBrandedToken,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.deployUtilityBrandedToken],
     onSuccess: [workflowStepConstants.tokenDeployGateway]
   },
   [workflowStepConstants.tokenDeployGateway]: {
     kind: workflowStepConstants.tokenDeployGateway,
-    onFailure: '',
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveTokenGateway]
+  },
+  [workflowStepConstants.saveTokenGateway]: {
+    kind: workflowStepConstants.saveTokenGateway,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.tokenDeployGateway],
+    onSuccess: [workflowStepConstants.updateTokenInOstView]
+  },
+  [workflowStepConstants.updateTokenInOstView]: {
+    kind: workflowStepConstants.updateTokenInOstView,
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.tokenDeployCoGateway]
   },
   [workflowStepConstants.tokenDeployCoGateway]: {
     kind: workflowStepConstants.tokenDeployCoGateway,
-    onFailure: '',
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveTokenCoGateway]
+  },
+  [workflowStepConstants.saveTokenCoGateway]: {
+    kind: workflowStepConstants.saveTokenCoGateway,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.tokenDeployCoGateway],
     onSuccess: [workflowStepConstants.activateTokenGateway]
   },
   [workflowStepConstants.activateTokenGateway]: {
     kind: workflowStepConstants.activateTokenGateway,
-    onFailure: '',
-    onSuccess: [workflowStepConstants.setCoGatewayInUbt]
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.setCoGatewayInUbt, workflowStepConstants.setGatewayInBt]
   },
   [workflowStepConstants.setCoGatewayInUbt]: {
     kind: workflowStepConstants.setCoGatewayInUbt,
-    onFailure: '',
-    readDataFrom: [workflowStepConstants.deployUtilityBrandedToken, workflowStepConstants.tokenDeployCoGateway],
-    onSuccess: [workflowStepConstants.setGatewayInBt]
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.setGatewayInBt]: {
     kind: workflowStepConstants.setGatewayInBt,
-    onFailure: '',
-    readDataFrom: [workflowStepConstants.deployOriginBrandedToken, workflowStepConstants.tokenDeployGateway],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.markSuccess]
+  },
+  [workflowStepConstants.markSuccess]: {
+    kind: workflowStepConstants.markSuccess,
+    onFailure: workflowStepConstants.markFailure,
+    prerequisites: [workflowStepConstants.setCoGatewayInUbt, workflowStepConstants.setGatewayInBt],
     onSuccess: []
   }
 };
