@@ -291,6 +291,9 @@ class Finalizer extends PublisherBase {
         let txData = pendingTransactionsMap[txHash];
         batchGetParams.push(txData);
       }
+      if (batchGetParams.length <= 0) {
+        continue;
+      }
       let ptxResp = await pendingTransactionModel.getPendingTransactionData(batchGetParams);
       if (ptxResp.isFailure()) {
         continue;
