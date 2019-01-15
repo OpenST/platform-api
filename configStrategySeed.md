@@ -68,6 +68,35 @@ var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
 new ConfigStrategyCrud(0, 0).addForKind('globalNonceMemcached', globalNonceMemcachedConfigDetails, 1);
 ```
 
+Global DynamoDB config strategy
+```js
+var globalDynamodbConfigDetails = {
+  "globalDynamodb": {
+    "endpoint": "http://localhost:8000",
+    "region": "localhost",
+    "apiKey": "X",
+    "apiSecret": "X",
+    "apiVersion": "2012-08-10",
+    "enableSsl": "0",
+    "tablePrefix": "de_ma_",
+    "enableLogging": "0",
+    "enableAutoscaling": "0",
+    "maxRetryCount": "1",
+    "autoScaling": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "X",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0"
+    }
+  }
+};
+
+var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
+new ConfigStrategyCrud(0, 0).addForKind('globalDynamodb', globalDynamodbConfigDetails, 1);
+```
+
 In Memory Cache config strategy
 ```js
 var inMemoryCacheDetails = {
@@ -192,7 +221,7 @@ var dynamoConfigDetails = {
     "endpoint": "http://localhost:8000",
     "region": "localhost",
     "apiKey": "X",
-    "apiSecret": "pweoiureugfd3298yreuhdjksm",
+    "apiSecret": "X",
     "apiVersion": "2012-08-10",
     "enableSsl": "0",
     "tablePrefix": "de_ma_",
@@ -203,7 +232,7 @@ var dynamoConfigDetails = {
       "endpoint": "http://localhost:8000",
       "region": "localhost",
       "apiKey": "X",
-      "apiSecret": "eridsklcxmedsfhkljdsnvcxuiwedsjckx",
+      "apiSecret": "X",
       "apiVersion": "2012-08-10",
       "enableSsl": "0"
     }
@@ -211,63 +240,7 @@ var dynamoConfigDetails = {
 };
 
 var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(2000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
-```
-
-```js
-var dynamoConfigDetails = {
-  "dynamodb": {
-    "endpoint": "http://localhost:8000",
-    "region": "localhost",
-    "apiKey": "X",
-    "apiSecret": "pweoiureugfd3298yreuhdjksm",
-    "apiVersion": "2012-08-10",
-    "enableSsl": "0",
-    "tablePrefix": "de_ma_",
-    "enableLogging": "0",
-    "enableAutoscaling": "0",
-    "maxRetryCount": "1",
-    "autoScaling": {
-      "endpoint": "http://localhost:8000",
-      "region": "localhost",
-      "apiKey": "X",
-      "apiSecret": "eridsklcxmedsfhkljdsnvcxuiwedsjckx",
-      "apiVersion": "2012-08-10",
-      "enableSsl": "0"
-    }
-  }
-};
-
-var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(1000, 10).addForKind('dynamodb', dynamoConfigDetails, 1)
-```
-
-```js
-var globalDynamodbConfigDetails = {
-  "globalDynamodb": {
-    "endpoint": "http://localhost:8000",
-    "region": "localhost",
-    "apiKey": "X",
-    "apiSecret": "pweoiureugfd3298yreuhdjksm",
-    "apiVersion": "2012-08-10",
-    "enableSsl": "0",
-    "tablePrefix": "de_ma_",
-    "enableLogging": "0",
-    "enableAutoscaling": "0",
-    "maxRetryCount": "1",
-    "autoScaling": {
-      "endpoint": "http://localhost:8000",
-      "region": "localhost",
-      "apiKey": "X",
-      "apiSecret": "eridsklcxmedsfhkljdsnvcxuiwedsjckx",
-      "apiVersion": "2012-08-10",
-      "enableSsl": "0"
-    }
-  }
-};
-
-var ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId')
-new ConfigStrategyCrud(0, 0).addForKind('globalDynamodb', globalDynamodbConfigDetails, 1)
+new ConfigStrategyCrud(2000, 1).addForKind('dynamodb', dynamoConfigDetails, 1);
 ```
 
 Activating global config

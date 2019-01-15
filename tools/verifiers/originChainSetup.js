@@ -50,7 +50,7 @@ class OriginChainSetup {
     await oThis._validateLib(chainAddressConstants.messageBusLibKind);
     await oThis._validateLib(chainAddressConstants.gatewayLibKind);
 
-    logger.win('* Verification Done!!');
+    logger.win('* Origin Chain Setup Verification Done!!');
 
     process.exit(0);
     //return Promise.resolve();
@@ -125,7 +125,7 @@ class OriginChainSetup {
   async _validateOrganization(organizationKind) {
     const oThis = this;
 
-    logger.log('* Fetching', organizationKind, ' contract address from database.');
+    logger.log('* Fetching', organizationKind, 'contract address from database.');
     let queryForOrganizationRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: organizationKind
@@ -159,7 +159,7 @@ class OriginChainSetup {
       oThis.verifiersHelper.getOrganizationContractName
     );
     if (!rsp) {
-      logger.error('Deployment verification of', organizationKind, ' organization contract failed.');
+      logger.error('Deployment verification of', organizationKind, 'organization contract failed.');
       return Promise.reject();
     }
 
@@ -172,7 +172,7 @@ class OriginChainSetup {
 
     logger.log('* Validating the admin address with chain.');
     if (chainAdmin.toLowerCase() !== dbAdminAddress.toLowerCase()) {
-      logger.error('Deployment verification of', organizationKind, ' failed.');
+      logger.error('Deployment verification of', organizationKind, 'failed.');
       Promise.reject();
     }
 
@@ -180,7 +180,7 @@ class OriginChainSetup {
 
     logger.log('* Validating the owner address with chain.');
     if (chainOwner.toLowerCase() !== dbAOwnerAddress.toLowerCase()) {
-      logger.error('Deployment verification of', organizationKind, ' failed.');
+      logger.error('Deployment verification of', organizationKind, 'failed.');
       Promise.reject();
     }
 
@@ -188,7 +188,7 @@ class OriginChainSetup {
     for (let i = 0; i < dbWorkerAddresses.length; i++) {
       let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddresses[i]).call({});
       if (!isWorkerResult) {
-        logger.error('Deployment verification of', organizationKind, ' failed.');
+        logger.error('Deployment verification of', organizationKind, 'failed.');
         Promise.reject();
       }
     }
@@ -198,7 +198,7 @@ class OriginChainSetup {
     const oThis = this;
 
     logger.info('*** Library:', libKind);
-    logger.log('* Fetching', libKind, ' contract address from database.');
+    logger.log('* Fetching', libKind, 'contract address from database.');
     let queryForLibRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.chainId,
       kind: libKind
@@ -211,7 +211,7 @@ class OriginChainSetup {
       oThis.verifiersHelper.getLibNameFromKind(libKind)
     );
     if (!rsp) {
-      logger.error('Deployment verification of', libKind, ' organization contract failed.');
+      logger.error('Deployment verification of', libKind, 'organization contract failed.');
       return Promise.reject();
     }
   }

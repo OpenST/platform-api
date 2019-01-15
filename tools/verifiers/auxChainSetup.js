@@ -77,7 +77,7 @@ class AuxChainSetup {
 
     await oThis._validateGatewayAndCoGateway();
 
-    logger.win('* Verification Done!!');
+    logger.win('* Auxiliary Chain Setup Verification Done!!');
 
     process.exit(0);
     //return Promise.resolve();
@@ -160,34 +160,34 @@ class AuxChainSetup {
     });
     let dbOrganizationContractAddress = queryForOrganizationRsp.data.address;
 
-    logger.log('* Fetching admin address of ', organizationKind, ' from database.');
+    logger.log('* Fetching admin address of', organizationKind, 'from database.');
     let queryForAdminRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.auxChainId,
       kind: chainAddressConstants.adminKind
     });
     let dbAdminAddress = queryForAdminRsp.data.address;
 
-    logger.log('* Fetching owner address of ', organizationKind, ' from database.');
+    logger.log('* Fetching owner address of', organizationKind, 'from database.');
     let queryForOwnerRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.auxChainId,
       kind: chainAddressConstants.ownerKind
     });
     let dbAOwnerAddress = queryForOwnerRsp.data.address;
 
-    logger.log('* Fetching worker addresses of ', organizationKind, ' from database.');
+    logger.log('* Fetching worker addresses of', organizationKind, 'from database.');
     let queryForWorkerRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.auxChainId,
       kind: chainAddressConstants.workerKind
     });
     let dbWorkerAddresses = queryForWorkerRsp.data.addresses;
 
-    logger.log('* Validating the deployed code on the ', organizationKind, ' address.');
+    logger.log('* Validating the deployed code on the', organizationKind, 'address.');
     let rsp = await oThis.verifiersHelper.validateContract(
       dbOrganizationContractAddress,
       oThis.verifiersHelper.getOrganizationContractName
     );
     if (!rsp) {
-      logger.error('Deployment verification of', organizationKind, ' organization contract failed.');
+      logger.error('Deployment verification of', organizationKind, 'organization contract failed.');
       return Promise.reject();
     }
 
@@ -198,7 +198,7 @@ class AuxChainSetup {
 
     let chainAdmin = await organizationContractObj.methods.admin().call({});
 
-    logger.log('* Validating the admin address of', organizationKind, ' with chain.');
+    logger.log('* Validating the admin address of', organizationKind, 'with chain.');
     if (chainAdmin.toLowerCase() !== dbAdminAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, ' failed.');
       Promise.reject();
@@ -206,17 +206,17 @@ class AuxChainSetup {
 
     let chainOwner = await organizationContractObj.methods.owner().call({});
 
-    logger.log('* Validating the owner address of ', organizationKind, ' with chain.');
+    logger.log('* Validating the owner address of', organizationKind, 'with chain.');
     if (chainOwner.toLowerCase() !== dbAOwnerAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, ' failed.');
       Promise.reject();
     }
 
-    logger.log('* Validating the worker addresses of ', organizationKind, ' with chain.');
+    logger.log('* Validating the worker addresses of', organizationKind, 'with chain.');
     for (let i = 0; i < dbWorkerAddresses.length; i++) {
       let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddresses[i]).call({});
       if (!isWorkerResult) {
-        logger.error('Deployment verification of', organizationKind, ' failed.');
+        logger.error('Deployment verification of', organizationKind, 'failed.');
         Promise.reject();
       }
     }
@@ -301,7 +301,7 @@ class AuxChainSetup {
     const oThis = this;
 
     logger.info('** Library:', libKind);
-    logger.log('* Fetching', libKind, ' contract address from database.');
+    logger.log('* Fetching', libKind, 'contract address from database.');
     let queryForLibRsp = await new ChainAddressModel().fetchAddress({
       chainId: oThis.auxChainId,
       kind: libKind
@@ -314,7 +314,7 @@ class AuxChainSetup {
       oThis.verifiersHelper.getLibNameFromKind(libKind)
     );
     if (!rsp) {
-      logger.error('Deployment verification of', libKind, ' organization contract failed.');
+      logger.error('Deployment verification of', libKind, 'organization contract failed.');
       return Promise.reject();
     }
   }

@@ -83,18 +83,19 @@ source set_env_vars.sh
 ```bash
 >  cd saas-api
 >  source set_env_vars.sh
->  cronProcessesModelKlass = require('./app/models/mysql/CronProcesses')
-   cronProcessModel = new cronProcessesModelKlass();
-   cronParams = {"prefetchCount":"25"}
+>  node
+    cronProcessesModelKlass = require('./app/models/mysql/CronProcesses')
+    cronProcessModel = new cronProcessesModelKlass();
+    cronParams = {"prefetchCount":"25"}
    
-   params = {
-      'kind':'workflowWorker',
-      'ip_address':'127.0.0.1',
-      'status':'stopped',
-      'chain_id':2000,
-      params: JSON.stringify(cronParams)
-   }
-   cronProcessModel.insertRecord(params).then(console.log)
+    params = {
+        'kind':'workflowWorker',
+        'ip_address':'127.0.0.1',
+        'status':'stopped',
+        'chain_id':2000,
+        params: JSON.stringify(cronParams)
+    }
+    cronProcessModel.insertRecord(params).then(console.log)
 ```
 
 * Start factory
