@@ -2,7 +2,7 @@
 
 * Create entry for blockParser.
 ```js
-var cronParams = '{"startBlockNumber": -1, "endBlockNumber": -1, "intentionalBlockDelay": 0}',
+var cronParams = '{"startBlockNumber": -1, "endBlockNumber": -1, "intentionalBlockDelay": 0, "chainId":2000}',
   insertParams = {
     id: 1,
     kind: 'blockParser',
@@ -18,7 +18,7 @@ cronProcessObj.insertRecord(insertParams).then(console.log).catch(console.log)
 
 * Create entry for transactionParser.
 ```js
-var cronParams = '{"prefetchCount": 25}',
+var cronParams = '{"prefetchCount": 25, "chainId":2000}',
   insertParams = {
     id: 2,
     kind: 'transactionParser',
@@ -32,14 +32,30 @@ cronProcessObj = new CronProcessModel();
 cronProcessObj.insertRecord(insertParams).then(console.log).catch(console.log)
 ```
 
-* Create entry for blockFinalizer.
+* Create entry for Aux blockFinalizer.
 ```js
-var cronParams = '{"blockDelay": 10}',
+var cronParams = '{"blockDelay": 10, "chainId":2000}',
   insertParams = {
     id: 3,
     kind: 'blockFinalizer',
     ip_address: '127.0.0.1',
     chain_id: 2000,
+    params: cronParams,
+    status: 'stopped'
+};
+var CronProcessModel = require('./app/models/mysql/CronProcesses'),
+cronProcessObj = new CronProcessModel();
+cronProcessObj.insertRecord(insertParams).then(console.log).catch(console.log)
+```
+
+* Create entry for Origin blockFinalizer.
+```js
+var cronParams = '{"blockDelay": 10, "chainId":1000}',
+  insertParams = {
+    id: 6,
+    kind: 'blockFinalizer',
+    ip_address: '127.0.0.1',
+    chain_id: 1000,
     params: cronParams,
     status: 'stopped'
 };
