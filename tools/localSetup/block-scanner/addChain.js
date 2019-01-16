@@ -101,7 +101,7 @@ validateAndSanitize();
 
 let addChain = new AddChain(program);
 addChain.perform();
-// TODO: Get this checked.
+// TODO @shlok: Get this checked.
 //   .then(function() {
 //   logger.win('Shards added for the chain.');
 //   process.exit(0);

@@ -269,6 +269,16 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The request was good, but nevertheless could not be processed."
   },
+  "token_already_deployed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The token has already been successfully deployed."
+  },
+  "token_deployment_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The token deployment has failed."
+  },
   "registration_status_not_found": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
