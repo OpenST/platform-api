@@ -1,13 +1,33 @@
 'use strict';
+/**
+ * This module creates entry for new economy in dynamo db.
+ *
+ * @module app/services/token/SyncInView.js
+ */
+
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  CreateEconomy = require(rootPrefix + '/tools/economySetup/CreateEconomy'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   TokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/tools/economySetup/CreateEconomy');
-
+/**
+ * Class for SyncInView
+ *
+ * @class
+ */
 class SyncInView {
+  /**
+   * Constructor
+   *
+   * @param params
+   * @param {Integer} params.tokenId - Id of token table
+   * @param {Integer} params.chainId
+   *
+   * @constructor
+   */
+
   constructor(params) {
     const oThis = this;
     oThis.tokenId = params.tokenId;
@@ -16,7 +36,33 @@ class SyncInView {
   }
 
   /**
-   * Get address of various kinds.
+   * Create entry in economy table in DynamoDB.
+   *
+   * @return {Promise<*>}
+   */
+  async perform() {
+    const oThis = this;
+
+    await oThis._getTokenAddresses();
+
+    let brandedTokenContract = await oThis._getAddressesForTokens(TokenAddressConstants.brandedTokenContract),
+      simpleStakeContractAddress = await oThis._getAddressesForTokens(TokenAddressConstants.simpleStakeContract),
+      chainEndPoint = await oThis._getRpcProvider(),
+      params = {
+        tokenId: oThis.tokenId,
+        chainId: oThis.chainId,
+        simpleStakeAddress: simpleStakeContractAddress,
+        brandedTokenContract: brandedTokenContract,
+        chainEndpoint: chainEndPoint[0]
+      };
+
+    let createEconomy = new CreateEconomy(params);
+
+    await createEconomy.perform();
+  }
+
+  /**
+   * Get address of various kinds from Token addresses table.
    *
    * @returns {Promise<>}
    *
@@ -67,29 +113,21 @@ class SyncInView {
   }
 
   /**
-   * Create entry in economy table in DynamoDB.
+   * Get rpc provider
    *
-   * @
-   *
-   * @return {Promise<void>}
-   *
-   * @private
+   * @return {Object}
    */
-  async perform() {
-    const oThis = this,
-      brandedTokenContract = await oThis._getAddressesForTokens(TokenAddressConstants.brandedTokenContract),
-      CreateEconomy = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateEconomy'),
-      simpleStakeContractAddress = await oThis._getAddressesForTokens(TokenAddressConstants.simpleStakeContract),
-      params = {
-        tokenId: oThis.tokenId,
-        chainId: oThis.chainId,
-        simpleStakeAddress: simpleStakeContractAddress,
-        brandedTokenContract: brandedTokenContract,
-        chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite')
-      },
-      createEconomy = new CreateEconomy(params);
+  async _getRpcProvider() {
+    const oThis = this;
+    let strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+      configStrategyResp = await strategyByChainHelperObj.getComplete();
 
-    await createEconomy.perform();
+    if (configStrategyResp.isFailure()) {
+      return Promise.reject(configStrategyResp);
+    }
+    const configStrategyObj = new ConfigStrategyObject(configStrategyResp.data);
+
+    return configStrategyObj.chainRpcProviders(oThis.chainId, 'readWrite');
   }
 }
 
