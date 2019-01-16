@@ -111,7 +111,6 @@ class ChainAddress extends ModelBase {
    * @param {object} params - external passed parameters
    * @param {Integer} params.chainId - chainId
    * @param {Integer} params.auxChainId - auxChainId
-   * @param {String} params.chainKind - chain kind
    * @param {String} params.kind - address kind
    *
    * @return {Promise}
