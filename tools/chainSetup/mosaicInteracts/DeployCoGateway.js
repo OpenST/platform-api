@@ -7,6 +7,7 @@
  */
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   MosaicTbd = require('@openstfoundation/mosaic-tbd');
@@ -47,7 +48,7 @@ class DeployCoGateway extends Base {
     oThis.messageBusLibAddress = params['messageBusLibAddress'];
     oThis.gatewayLibAddress = params['gatewayLibAddress'];
 
-    oThis.bounty = '0'; //TODO: Change later
+    oThis.bounty = contractConstants.bountyForCoGateway;
   }
 
   /**

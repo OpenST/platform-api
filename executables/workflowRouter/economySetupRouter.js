@@ -21,7 +21,6 @@ const rootPrefix = '../..',
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
-  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
@@ -138,7 +137,7 @@ class economySetupRouter extends workflowRouterBase {
 
       case workflowStepConstants.tokenDeployGateway:
         let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployGateway');
-        return new TokenDeployGatewayKlass(oThis.requestParams).perform();
+        return await new TokenDeployGatewayKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.updateTokenInOstView:
         return new SyncInView({ tokenId: oThis.requestParams.tokenId, chainId: oThis.chainId }).perform();
