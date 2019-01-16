@@ -17,6 +17,7 @@ const rootPrefix = '../..',
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   SetupOrganizationHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/SetupOrganization'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
@@ -130,8 +131,7 @@ class SetupOrganization {
         break;
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
-        // TODO :: Gasprice should not be 0 hardcoded.
-        oThis.gasPrice = '0x0';
+        oThis.gasPrice = contractConstants.zeroGasPrice;
         break;
       default:
         throw `unsupported chainKind: ${oThis.chainKind}`;

@@ -10,12 +10,17 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   workflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
-  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
+  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization'),
+  InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
@@ -42,22 +47,78 @@ class economySetupRouter extends workflowRouterBase {
     const configStrategy = await oThis.getConfigStrategy(),
       ic = new InstanceComposer(configStrategy);
 
+    oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
+
     switch (oThis.stepKind) {
       case workflowStepConstants.economySetupInit:
+        logger.step('*** Economy Setup Init');
         return oThis.insertInitStep();
 
       case workflowStepConstants.generateTokenAddresses:
+        logger.step('*** Generate Token Addresses');
         return new generateTokenAddresses(oThis.requestParams).perform();
+
       case workflowStepConstants.deployOriginTokenOrganization:
+        logger.step('*** Deploy Origin Token Organization');
         let deployOrigTokenOrganizationKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
           'DeployTokenOrganization'
         );
         oThis.requestParams.deployToChainKind = coreConstants.originChainKind;
         return new deployOrigTokenOrganizationKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.saveOriginTokenOrganization:
+        logger.step('*** Saving Origin Organization Address In DB');
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
+          kind: tokenAddressConstants.originOrganizationContract
+        }).perform();
+
+      case workflowStepConstants.saveAuxTokenOrganization:
+        logger.step('*** Saving Aux Organization Address In DB');
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
+          kind: tokenAddressConstants.auxOrganizationContract
+        }).perform();
+
+      case workflowStepConstants.saveOriginBrandedToken:
+        logger.step('*** Saving Aux Organization Address In DB');
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
+          kind: tokenAddressConstants.brandedTokenContract
+        }).perform();
+
+      case workflowStepConstants.saveUtilityBrandedToken:
+        logger.step('*** Saving Utility Branded Token Address In DB');
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
+          kind: tokenAddressConstants.utilityBrandedTokenContract
+        }).perform();
+
+      case workflowStepConstants.saveTokenGateway:
+        logger.step('*** Saving Token Gateway Address In DB');
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
+          kind: tokenAddressConstants.tokenDeployGateway
+        }).perform();
+
+      case workflowStepConstants.saveTokenCoGateway:
+        logger.step('*** Saving Token Co-Gateway Address In DB');
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
+          kind: tokenAddressConstants.tokenDeployCoGateway
+        }).perform();
+
       case workflowStepConstants.deployOriginBrandedToken:
         let deployBrandeTokenKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployOriginBrandedToken');
         return new deployBrandeTokenKlass(oThis.requestParams).perform();
+
       case workflowStepConstants.deployAuxTokenOrganization:
         let deployAuxTokenOrganizationKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
@@ -65,24 +126,33 @@ class economySetupRouter extends workflowRouterBase {
         );
         oThis.requestParams.deployToChainKind = coreConstants.auxChainKind;
         return new deployAuxTokenOrganizationKlass(oThis.requestParams).perform();
+
       case workflowStepConstants.deployUtilityBrandedToken:
         let deployUtilityBrandeTokenKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
           'DeployUtilityBrandedToken'
         );
         return new deployUtilityBrandeTokenKlass(oThis.requestParams).perform();
+
       case workflowStepConstants.tokenDeployGateway:
         let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployGateway');
         return new TokenDeployGatewayKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.updateTokenInOstView:
+        return new SyncInView({ tokenId: oThis.requestParams.tokenId, chainId: oThis.chainId }).perform();
+
       case workflowStepConstants.tokenDeployCoGateway:
         let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployCoGateway');
         return new TokenDeployCoGatewayKlass(oThis.requestParams).perform();
+
       case workflowStepConstants.activateTokenGateway:
         let ActivateTokenGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateTokenGateway');
         return new ActivateTokenGatewayKlass(oThis.requestParams).perform();
+
       case workflowStepConstants.setCoGatewayInUbt:
         let setCoGatewayInUbtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetCoGatewayInUtilityBT');
         return new setCoGatewayInUbtKlass(oThis.requestParams).perform();
+
       case workflowStepConstants.setGatewayInBt:
         let setGatewayInBtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetGatewayInBT');
         return new setGatewayInBtKlass(oThis.requestParams).perform();
@@ -102,6 +172,20 @@ class economySetupRouter extends workflowRouterBase {
     let rsp = await chainConfigProvider.getFor([oThis.chainId]);
 
     return rsp[oThis.chainId];
+  }
+
+  getTransactionHashForKind(kindStr) {
+    const oThis = this,
+      kindInt = new WorkflowStepsModel().invertedStatuses[kindStr];
+
+    for (let workflowId in oThis.workflowRecordsMap) {
+      let workflowData = oThis.workflowRecordsMap[workflowId];
+      if (workflowData.kind === kindInt) {
+        return workflowData.transaction_hash;
+      }
+    }
+
+    return '';
   }
 
   getNextStepConfigs(nextStep) {
