@@ -4,14 +4,13 @@
  *
  * @module /app/models/mysql/ConfigGroup
  */
-
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   isAvailableForAllocationEnum = {
@@ -20,18 +19,30 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
   },
   invertedIsAvailableForAllocationEnum = util.invert(isAvailableForAllocationEnum);
 
+/**
+ * Class for config groups model
+ *
+ * @class
+ */
 class ConfigGroups extends ModelBase {
+  /**
+   * Constructor for config groups model
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
+
     const oThis = this;
+
     oThis.tableName = 'config_groups';
   }
 
   /**
    * Inserts record
-   * @param params
-   * @param chainId {Number} - chain id
-   * @param groupId {Number} - group id
+   * @param {Object} params
+   * @param {Number} params.chainId: chain id
+   * @param {Number} params.groupId: group id
    * @returns {Promise<*>}
    */
   async insertRecord(params) {
