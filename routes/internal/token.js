@@ -5,6 +5,7 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
+require(rootPrefix + '/app/services/token/deployment');
 require(rootPrefix + '/app/services/token/aggregatedDetails');
 
 /* Get aggregated token details*/

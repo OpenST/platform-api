@@ -13,16 +13,25 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
+  ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/economySetupRouter');
+  ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
+  EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/economySetupRouter'),
+  ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup');
 
+/**
+ * Class for token deployment
+ *
+ * @class
+ */
 class Deployment {
   /**
-   * @constructor
+   * Constructor for token deployment
    *
-   * @param params
+   * @constructor
    */
   constructor(params) {
     const oThis = this;
@@ -62,6 +71,72 @@ class Deployment {
     const oThis = this;
 
     await oThis.startTokenDeployment();
+  }
+
+  /**
+   * Fetch config group for the client. If config group is not assigned for the client, assign one.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _insertAndFetchConfigGroup() {
+    const oThis = this;
+
+    // Fetch client config group.
+    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId }),
+      fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
+
+    // Config group is not associated for the given client.
+    if (fetchCacheRsp.isFailure()) {
+      // Assign config group for the client.
+      oThis.chainId = await oThis._assignConfigGroupsToClient();
+    }
+    // Config group is already associated for the given client.
+    else {
+      oThis.chainId = fetchCacheRsp.data[oThis.clientId].chainId;
+    }
+  }
+
+  /**
+   * Assign config group to the clientId.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _assignConfigGroupsToClient() {
+    const oThis = this;
+
+    // Fetch all config groups which are available for allocation.
+    let configGroups = new ConfigGroupsModel(),
+      configGroupsResponse = await configGroups
+        .select('*')
+        .where({
+          is_available_for_allocation: new ConfigGroupsModel().invertedIsAvailableForAllocation[
+            configGroupConstants.availableForAllocation
+          ]
+        })
+        .fire();
+
+    // Select config group on round robin basis.
+    let configGroupRow = oThis.clientId % configGroupsResponse.length;
+
+    // Fetch config group.
+    let configGroup = configGroupsResponse[configGroupRow],
+      chainId = configGroup.chain_id,
+      groupId = configGroup.group_id;
+
+    // Insert entry in client config groups table.
+    await new ClientConfigGroupModel().insertRecord({
+      clientId: oThis.clientId,
+      chainId: chainId,
+      groupId: groupId
+    });
+
+    logger.step('Entry created in client config groups table.');
+
+    return chainId;
   }
 
   /**
@@ -123,20 +198,26 @@ class Deployment {
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
       // Implicit string to int conversion.
-      //TODO: Associate / fetch existing config group for client
+
+      // Fetch config group for the client.
+      await oThis._insertAndFetchConfigGroup();
+
       let economySetupRouterParams = {
         stepKind: workflowStepConstants.economySetupInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
-        chainId: 2000, //ToDO: To be decided how to assign a chain Id to particular client
+        chainId: oThis.chainId,
         topic: workflowTopicConstant.economySetup,
-        requestParams: { tokenId: oThis.tokenId, chainId: 2000, clientId: oThis.clientId }
+        requestParams: { tokenId: oThis.tokenId, chainId: oThis.chainId, clientId: oThis.clientId }
       };
 
       let economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams),
-        economyDeploymentResponse = await economySetupRouterObj.perform();
+        economyDeploymentResponse = await economySetupRouterObj.perform(),
+        responseData = {
+          workflow_id: economyDeploymentResponse.data.workflowId
+        };
 
-      return economyDeploymentResponse;
+      return responseHelper.successWithData(responseData);
     }
     // Status of token deployment is not as expected.
     else {
@@ -175,7 +256,7 @@ class Deployment {
 
             workflowDetails = workflowDetails[0];
 
-            return responseHelper.successWithData({ workflowId: workflowDetails.parent_id });
+            return responseHelper.successWithData({ workflow_id: workflowDetails.parent_id });
 
           case new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]:
             return responseHelper.error({

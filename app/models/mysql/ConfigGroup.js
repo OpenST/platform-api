@@ -13,11 +13,11 @@ const rootPrefix = '../../..',
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
-  isAvailableForAllocationEnum = {
+  isAvailableForAllocation = {
     '0': configGroupConstants.notAvailableForAllocation,
     '1': configGroupConstants.availableForAllocation
   },
-  invertedIsAvailableForAllocationEnum = util.invert(isAvailableForAllocationEnum);
+  invertedIsAvailableForAllocation = util.invert(isAvailableForAllocation);
 
 /**
  * Class for config groups model
@@ -36,6 +36,14 @@ class ConfigGroups extends ModelBase {
     const oThis = this;
 
     oThis.tableName = 'config_groups';
+  }
+
+  get isAvailableForAllocation() {
+    return isAvailableForAllocation;
+  }
+
+  get invertedIsAvailableForAllocation() {
+    return invertedIsAvailableForAllocation;
   }
 
   /**
@@ -94,7 +102,7 @@ class ConfigGroups extends ModelBase {
       id: configRecord[0].id,
       chainId: chainId,
       groupId: groupId,
-      is_available_for_allocation: isAvailableForAllocationEnum[configRecord[0].is_available_for_allocation.toString()]
+      is_available_for_allocation: isAvailableForAllocation[configRecord[0].is_available_for_allocation.toString()]
     };
 
     return Promise.resolve(responseHelper.successWithData(returnData));
@@ -114,7 +122,7 @@ class ConfigGroups extends ModelBase {
 
     return oThis
       .update({
-        is_available_for_allocation: invertedIsAvailableForAllocationEnum[configGroupConstants.availableForAllocation]
+        is_available_for_allocation: invertedIsAvailableForAllocation[configGroupConstants.availableForAllocation]
       })
       .where({ chain_id: chainId, group_id: groupId })
       .fire();
@@ -134,8 +142,7 @@ class ConfigGroups extends ModelBase {
 
     return oThis
       .update({
-        is_available_for_allocation:
-          invertedIsAvailableForAllocationEnum[configGroupConstants.notAvailableForAllocation]
+        is_available_for_allocation: invertedIsAvailableForAllocation[configGroupConstants.notAvailableForAllocation]
       })
       .where({ chain_id: chainId, group_id: groupId })
       .fire();
@@ -143,13 +150,16 @@ class ConfigGroups extends ModelBase {
 
   /**
    * This function is just to validate chainId and group Id.
+   *
    * @param chainId
    * @param groupId
+   *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _validateChainAndGroupIds(chainId, groupId) {
-    if (typeof chainId != 'number' || typeof groupId != 'number') {
+    if (typeof chainId !== 'number' || typeof groupId !== 'number') {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_m_m_cg_2',
