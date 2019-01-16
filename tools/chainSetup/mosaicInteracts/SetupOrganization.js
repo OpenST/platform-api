@@ -8,7 +8,7 @@
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
-  chainTransactionConstants = require(rootPrefix + '/lib/globalConstant/chainTransaction'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
@@ -40,7 +40,7 @@ class SetupOrganization extends Base {
     oThis.adminAddress = params['adminAddress'];
     oThis.workerAddresses = params['workerAddresses'];
 
-    oThis.expirationHeight = chainTransactionConstants.organizationExpirationHeight;
+    oThis.expirationHeight = contractConstants.organizationExpirationHeight;
   }
 
   /**
@@ -69,7 +69,6 @@ class SetupOrganization extends Base {
       deployRsp = await orgHelperObj
         .deploy(oThis.ownerAddress, oThis.adminAddress, oThis.workerAddresses, oThis.expirationHeight, deployParams)
         .then(function(txReceipt) {
-          //TODO:: May be not wait till txReceipt...
           logger.debug('txReceipt', txReceipt);
           return responseHelper.successWithData({
             transactionReceipt: txReceipt,

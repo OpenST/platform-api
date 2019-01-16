@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   DeployCoGatewayHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployCoGateway'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
@@ -126,7 +127,7 @@ class DeployCoGateway {
     const oThis = this;
     oThis.chainId = oThis._configStrategyObject.auxChainId;
     oThis.chainKind = coreConstants.auxChainKind;
-    oThis.gasPrice = '0x0';
+    oThis.gasPrice = contractConstants.zeroGasPrice;
   }
 
   /***

@@ -17,6 +17,7 @@ const rootPrefix = '../..',
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   SetCoAnchorHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/SetCoAnchor'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
@@ -132,7 +133,7 @@ class SetCoAnchor {
       case coreConstants.auxChainKind:
         oThis.chainId = oThis.auxChainId;
         oThis.originChainId = oThis._configStrategyObject.originChainId;
-        oThis.gasPrice = '0x0';
+        oThis.gasPrice = contractConstants.zeroGasPrice;
         oThis.otherChainKind = coreConstants.originChainKind;
         break;
       default:

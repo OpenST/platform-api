@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3');
 
 /**
@@ -123,7 +124,7 @@ class SetCoGatewayInOSTPrime {
       nonceRsp = await oThis._fetchNonce();
 
     let txOptions = {
-      gasPrice: '0x0',
+      gasPrice: contractConstants.zeroGasPrice,
       from: oThis.adminAddress,
       nonce: nonceRsp.data['nonce'],
       chainId: oThis.auxChainId

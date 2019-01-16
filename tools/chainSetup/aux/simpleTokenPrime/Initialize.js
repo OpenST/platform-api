@@ -13,6 +13,7 @@ const rootPrefix = '../../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 /**
@@ -52,7 +53,7 @@ class InitializeSimpleTokenPrime extends SetupSTPrimeBase {
     let nonceRsp = await oThis._fetchNonce(chainOwnerAddr);
 
     let txOptions = {
-      gasPrice: '0x0',
+      gasPrice: contractConstants.zeroGasPrice,
       from: chainOwnerAddr,
       nonce: nonceRsp.data['nonce'],
       chainId: oThis.chainId
