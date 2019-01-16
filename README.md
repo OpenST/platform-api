@@ -1,12 +1,12 @@
-# Pre Setup
+# Saas API
+Saas API layer.
 
-* Setup Kit API. Instructions are published at:  
+## Kit API Setup
+* Instructions are published at:  
   https://github.com/OpenSTFoundation/kit-api/blob/master/README.md
 
-# saas-api
-
-### Setup
-Install all the packages.
+## Setup
+* Install all the packages.
 ```
 npm install
 ```
@@ -16,15 +16,11 @@ npm install
 source set_env_vars.sh
 ```
 
-### Config Strategies Creation
+* Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
 
-- Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
+* Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
 
-### Cron Process Seeding
-
-- Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
-
-### Local Chain Setup
+### Origin Chain Setup
 
 * Setup Origin GETH and fund necessary addresses.
 ```bash
@@ -43,11 +39,15 @@ source set_env_vars.sh
 > node executables/setup/origin/simpleToken.js --originChainId 1000
 ```
 
+for production main, give a provision to add addresses of simple token and its admin.
+
 * Setup Origin Contracts
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/contracts.js --originChainId 1000
 ```
+
+### Auxiliary Chain Setup
 
 * Setup Aux GETH and necessary addresses
 ```bash
@@ -66,14 +66,14 @@ source set_env_vars.sh
 > node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
 ```
 
-* Verification Scripts
-- You can verify local chain setup and contract deployment using following scripts.
+### Verifier scripts
+* You can verify local chain setup and contract deployment using following scripts.
 ```bash
 > source set_env_vars.sh
 > node tools/verifiers/originChainSetup.js
 > node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
-### Local Token Setup
+### Token Setup
 * Create entry in tokens table.
 ```bash
 >  cd kit-api
@@ -108,7 +108,7 @@ source set_env_vars.sh
    economySetupRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
 
-### Setup openst-block-scanner
+### Block-scanner Setup
 
 * You will need following for development environment setup.
     - [nodejs](https://nodejs.org/) >= 8.0.0
