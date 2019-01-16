@@ -21,7 +21,6 @@ const rootPrefix = '../..',
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
-  DeployTokenOrganization = require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer

@@ -169,6 +169,81 @@ class ChainAddress extends ModelBase {
 
     return responseHelper.successWithData(returnData);
   }
+
+  /**
+   * fetch addresses
+   *
+   * @param {object} params - external passed parameters
+   * @param {Integer} params.chainId - chainId
+   * @param {Integer} params.auxChainId - auxChainId
+   * @param {String} params.kinds - address kind
+   *
+   * @return {Promise}
+   */
+  async fetchAddresses(params) {
+    const oThis = this,
+      addressKinds = params['kinds'],
+      addressKindIntToStrMap = {};
+
+    for (let i = 0; i < addressKinds.length; i++) {
+      let addressKindStr = addressKinds[i],
+        addressKindInt = chainAddressConst.invertedKinds[addressKindStr];
+      if (!addressKindInt) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'm_m_es_5',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: { addressKind: addressKindStr }
+          })
+        );
+      }
+      addressKindIntToStrMap[addressKindInt] = addressKindStr;
+    }
+
+    let whereClause = null;
+
+    if (params.auxChainId) {
+      whereClause = [
+        'chain_id = ? AND aux_chain_id = ? AND status = ?',
+        params.chainId,
+        params.auxChainId,
+        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
+      ];
+    } else {
+      whereClause = [
+        'chain_id = ? AND status = ?',
+        params.chainId,
+        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
+      ];
+    }
+
+    let returnData = {
+      address: {},
+      addresses: {}
+    };
+
+    let dbRows = await oThis
+      .select('*')
+      .where(whereClause)
+      .where(['kind IN (?)', Object.keys(addressKindIntToStrMap)])
+      .fire();
+
+    for (let i = 0; i < dbRows.length; i++) {
+      let dbRow = dbRows[i],
+        addressKindStr = chainAddressConst.kinds[dbRow.kind.toString()];
+
+      if (chainAddressConst.uniqueKinds.indexOf(addressKindStr) > -1) {
+        returnData['address'][addressKindStr] = dbRow.address;
+      } else {
+        if (!returnData['addresses'][addressKindStr]) {
+          returnData['addresses'][addressKindStr] = [];
+        }
+        returnData['addresses'][addressKindStr].push(dbRow.address);
+      }
+    }
+
+    return responseHelper.successWithData(returnData);
+  }
 }
 
 module.exports = ChainAddress;
