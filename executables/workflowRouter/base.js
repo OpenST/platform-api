@@ -108,8 +108,7 @@ class workflowRouterBase {
 
       let response = await oThis.stepsFactory();
 
-      console.log('------------------after---stepsFactory------------asyncPerform---');
-      console.log(response);
+      console.log('------------------after---stepsFactory------------asyncPerform---', oThis.currentStepId, response);
 
       if (response.isFailure()) {
         logger.error('Error......', response);
@@ -135,14 +134,17 @@ class workflowRouterBase {
     }
 
     let updateData = {};
+
     if (oThis.transactionHash) {
       updateData.transaction_hash = oThis.transactionHash;
     }
+
     if (oThis.taskResponseData) {
       updateData.response_data = JSON.stringify(oThis.taskResponseData);
     }
-    console.log('------------------------------updateData---');
-    console.log(updateData);
+
+    console.log('------------------------------updateData---', oThis.currentStepId, updateData);
+
     if (oThis.taskDone == 1) {
       updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus];
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
@@ -155,7 +157,7 @@ class workflowRouterBase {
       if (oThis.currentStepConfig.onFailure && oThis.currentStepConfig.onFailure != '') {
         oThis._insertAndPublishNextStep(oThis.currentStepConfig.onFailure);
       }
-    } else if (updateData.response_data) {
+    } else if (updateData.response_data || updateData.transaction_hash) {
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
     }
 
@@ -210,6 +212,9 @@ class workflowRouterBase {
 
       for (let i = 0; i < workflowRecords.length; i++) {
         oThis.workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
+        if (workflowRecords[i].id == oThis.currentStepId) {
+          oThis.chainId = workflowRecords[i].chain_id;
+        }
       }
 
       await oThis.getDependentWorkflowRecords();
@@ -308,7 +313,8 @@ class workflowRouterBase {
       }
     }
 
-    console.log('-------oThis.requestParams------', JSON.stringify(oThis.requestParams));
+    console.log('-------oThis.requestParams------', oThis.currentStepId, JSON.stringify(oThis.requestParams));
+
     if (!oThis.clientId && !oThis.chainId) {
       return Promise.reject(
         responseHelper.error({
@@ -366,7 +372,7 @@ class workflowRouterBase {
 
       let dependencyResponse = await oThis.checkDependencies(nextStep);
 
-      console.log('-----------------------dependencyResponse----------', dependencyResponse);
+      console.log('-----------------------dependencyResponse----------', oThis.currentStepId, dependencyResponse);
       if (!dependencyResponse.data.dependencyResolved) {
         continue;
       }
@@ -390,11 +396,45 @@ class workflowRouterBase {
 
     let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
       nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
+
+    let chainId;
+
+    switch (nextStep) {
+      case workflowStepConstants.economySetupInit:
+      case workflowStepConstants.markSuccess:
+      case workflowStepConstants.markFailure:
+        chainId = oThis.chainId;
+        break;
+
+      case workflowStepConstants.generateTokenAddresses:
+      case workflowStepConstants.deployOriginTokenOrganization:
+      case workflowStepConstants.deployOriginBrandedToken:
+      case workflowStepConstants.saveOriginTokenOrganization:
+      case workflowStepConstants.saveOriginBrandedToken:
+      case workflowStepConstants.tokenDeployGateway:
+      case workflowStepConstants.saveTokenGateway:
+      case workflowStepConstants.activateTokenGateway:
+      case workflowStepConstants.setGatewayInBt:
+        chainId = oThis.requestParams.originChainId;
+        break;
+
+      case workflowStepConstants.deployAuxTokenOrganization:
+      case workflowStepConstants.saveAuxTokenOrganization:
+      case workflowStepConstants.deployUtilityBrandedToken:
+      case workflowStepConstants.saveUtilityBrandedToken:
+      case workflowStepConstants.saveTokenCoGateway:
+      case workflowStepConstants.updateTokenInOstView:
+      case workflowStepConstants.tokenDeployCoGateway:
+      case workflowStepConstants.setCoGatewayInUbt:
+        chainId = oThis.requestParams.auxChainId;
+        break;
+    }
+
     let insertRsp = await new WorkflowStepsModel()
       .insert({
         kind: nextStepKind,
         client_id: oThis.clientId,
-        chain_id: oThis.chainId,
+        chain_id: chainId,
         parent_id: oThis.parentStepId,
         status: nextStepStatus
       })
