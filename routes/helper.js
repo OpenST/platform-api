@@ -1,6 +1,7 @@
 'use strict';
 
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -8,8 +9,7 @@ const rootPrefix = '..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   apiParamsValidator = require(rootPrefix + '/lib/validators/apiParams'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
-  InstanceComposer = OSTBase.InstanceComposer;
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId');
 
 class RouteMethods {
   static perform(req, res, next, CallerKlassGetter, errorCode, afterValidationFunc, dataFormatterFunc) {

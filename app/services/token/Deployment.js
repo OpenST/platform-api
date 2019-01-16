@@ -2,7 +2,7 @@
 /**
  * This service starts the deployment of token
  *
- * @module app/services/token/deployment
+ * @module app/services/token/Deployment
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -211,13 +211,9 @@ class Deployment {
         requestParams: { tokenId: oThis.tokenId, chainId: oThis.chainId, clientId: oThis.clientId }
       };
 
-      let economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams),
-        economyDeploymentResponse = await economySetupRouterObj.perform(),
-        responseData = {
-          workflow_id: economyDeploymentResponse.data.workflowId
-        };
+      let economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams);
 
-      return responseHelper.successWithData(responseData);
+      return await economySetupRouterObj.perform();
     }
     // Status of token deployment is not as expected.
     else {
@@ -284,4 +280,4 @@ class Deployment {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Deployment, coreConstants.icNameSpace, 'tokenDeployment');
+InstanceComposer.registerAsShadowableClass(Deployment, coreConstants.icNameSpace, 'TokenDeployment');
