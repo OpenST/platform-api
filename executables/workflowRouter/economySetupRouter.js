@@ -109,7 +109,7 @@ class economySetupRouter extends workflowRouterBase {
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployGateway),
-          kind: tokenAddressConstants.tokenDeployGateway,
+          kind: tokenAddressConstants.tokenGatewayContract,
           chainId: oThis.requestParams.originChainId
         }).perform();
 
@@ -118,7 +118,7 @@ class economySetupRouter extends workflowRouterBase {
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployCoGateway),
-          kind: tokenAddressConstants.tokenDeployCoGateway,
+          kind: tokenAddressConstants.tokenCoGatewayContract,
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
