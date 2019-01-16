@@ -142,7 +142,9 @@ function addGlobalConfig() {
           ]
         },
         "chainId": originChainId,
-        "client": "geth"
+        "client": "geth",
+        "blockGenerationTime": 15,
+        "finalizeAfterBlocks": 24
       }
     };
     let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
@@ -268,7 +270,9 @@ function addAuxConfig(auxChainId, auxGroupId) {
           ]
         },
         "chainId": auxChainId,
-        "client": "geth"
+        "client": "geth",
+        "blockGenerationTime": 3,
+        "finalizeAfterBlocks": 24
       }
     };
     let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
