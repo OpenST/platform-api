@@ -68,10 +68,64 @@ class TokenAddress extends ModelBase {
 
     let response = await oThis
       .select('*')
-      .where(['token_id = ? AND KIND = ?', params.tokenId, params.kind])
+      .where(['token_id = ? AND kind = ?', params.tokenId, params.kind])
       .fire();
 
     return responseHelper.successWithData(response[0]);
+  }
+
+  /**
+   * fetch addresses
+   *
+   * @param {object} params - external passed parameters
+   * @param {Integer} params.tokenId - tokenId
+   * @param {String} params.kinds - address kind
+   *
+   * @return {Promise}
+   */
+  async fetchAddresses(params) {
+    const oThis = this,
+      addressKinds = params['kinds'],
+      addressKindIntToStrMap = {};
+
+    for (let i = 0; i < addressKinds.length; i++) {
+      let addressKindStr = addressKinds[i],
+        addressKindInt = invertedKinds[addressKindStr];
+      if (!addressKindInt) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'm_m_ta_1',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: { addressKind: addressKindStr }
+          })
+        );
+      }
+      addressKindIntToStrMap[addressKindInt] = addressKindStr;
+    }
+
+    let returnData = {};
+
+    let dbRows = await oThis
+      .select('*')
+      .where(['token_id = ?', params.tokenId])
+      .where(['kind IN (?)', Object.keys(addressKindIntToStrMap)])
+      .fire();
+
+    for (let i = 0; i < dbRows.length; i++) {
+      let dbRow = dbRows[i],
+        addressKindStr = kinds[dbRow.kind.toString()];
+
+      if (tokenAddressConstants.uniqueKinds.indexOf(addressKindStr) > -1) {
+        returnData[addressKindStr] = { address: dbRow.address };
+      } else {
+        if (!returnData[addressKindStr]) {
+          returnData[addressKindStr] = { addresses: [] };
+        }
+        returnData[addressKindStr]['addresses'].push(dbRow.address);
+      }
+    }
+
+    return responseHelper.successWithData(returnData);
   }
 }
 
