@@ -72,48 +72,54 @@ class economySetupRouter extends workflowRouterBase {
         logger.step('*** Saving Origin Organization Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
-          kind: tokenAddressConstants.originOrganizationContract
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployOriginTokenOrganization),
+          kind: tokenAddressConstants.originOrganizationContract,
+          chainId: oThis.requestParams.originChainId
         }).perform();
 
       case workflowStepConstants.saveAuxTokenOrganization:
         logger.step('*** Saving Aux Organization Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
-          kind: tokenAddressConstants.auxOrganizationContract
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployAuxTokenOrganization),
+          kind: tokenAddressConstants.auxOrganizationContract,
+          chainId: oThis.requestParams.auxChainId
         }).perform();
 
       case workflowStepConstants.saveOriginBrandedToken:
         logger.step('*** Saving Aux Organization Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
-          kind: tokenAddressConstants.brandedTokenContract
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployOriginBrandedToken),
+          kind: tokenAddressConstants.brandedTokenContract,
+          chainId: oThis.requestParams.originChainId
         }).perform();
 
       case workflowStepConstants.saveUtilityBrandedToken:
         logger.step('*** Saving Utility Branded Token Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
-          kind: tokenAddressConstants.utilityBrandedTokenContract
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUtilityBrandedToken),
+          kind: tokenAddressConstants.utilityBrandedTokenContract,
+          chainId: oThis.requestParams.auxChainId
         }).perform();
 
       case workflowStepConstants.saveTokenGateway:
         logger.step('*** Saving Token Gateway Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
-          kind: tokenAddressConstants.tokenDeployGateway
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployGateway),
+          kind: tokenAddressConstants.tokenDeployGateway,
+          chainId: oThis.requestParams.originChainId
         }).perform();
 
       case workflowStepConstants.saveTokenCoGateway:
         logger.step('*** Saving Token Co-Gateway Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(oThis.stepKind),
-          kind: tokenAddressConstants.tokenDeployCoGateway
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployCoGateway),
+          kind: tokenAddressConstants.tokenDeployCoGateway,
+          chainId: oThis.requestParams.auxChainId
         }).perform();
 
       case workflowStepConstants.deployOriginBrandedToken:
@@ -184,7 +190,7 @@ class economySetupRouter extends workflowRouterBase {
 
   getTransactionHashForKind(kindStr) {
     const oThis = this,
-      kindInt = new WorkflowStepsModel().invertedStatuses[kindStr];
+      kindInt = +new WorkflowStepsModel().invertedKinds[kindStr];
 
     for (let workflowId in oThis.workflowRecordsMap) {
       let workflowData = oThis.workflowRecordsMap[workflowId];
