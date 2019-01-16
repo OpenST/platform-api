@@ -17,6 +17,7 @@ const rootPrefix = '../..',
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   DeployLibs = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployLibs'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
@@ -129,7 +130,7 @@ class DeployLib {
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
         oThis.auxChainId = oThis._configStrategyObject.auxChainId;
-        oThis.gasPrice = '0x0';
+        oThis.gasPrice = contractConstants.zeroGasPrice;
         break;
       default:
         throw `unsupported chainKind: ${oThis.chainKind}`;

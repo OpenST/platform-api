@@ -222,18 +222,6 @@ class CoreConstants {
     return 10;
   }
 
-  get OST_AUX_GAS_PRICE_FOR_DEPLOYMENT() {
-    return '0x0';
-  }
-
-  get OST_ORIGIN_GAS_PRICE() {
-    return '0xBA43B7400';
-  }
-
-  get OST_AUX_GAS_PRICE() {
-    return '0x3B9ACA00';
-  }
-
   get CONVERSION_RATE_DECIMALS() {
     return '5';
   }

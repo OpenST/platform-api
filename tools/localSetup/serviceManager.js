@@ -15,6 +15,7 @@ const rootPrefix = '../..',
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
 // Declare variables.
@@ -169,9 +170,8 @@ class ServiceManager {
         chainType === coreConstants.auxChainKind
           ? localChainConfig.chains.aux.gethPort.value
           : localChainConfig.chains.origin.gethPort.value,
-      zeroGas = coreConstants.OST_AUX_GAS_PRICE_FOR_DEPLOYMENT,
+      zeroGasPrice = contractConstants.zeroGasPrice,
       gasLimit = { aux: coreConstants.OST_AUX_GAS_LIMIT, origin: coreConstants.OST_ORIGIN_GAS_LIMIT },
-      gasPrice = purpose === 'deployment' && chainType === 'aux' ? zeroGas : coreConstants.OST_ORIGIN_GAS_PRICE,
       chainFolder = setupHelper.gethFolderFor(chainType, chainId),
       chainTypeString = chainType === 'aux' ? 'auxGeth' : 'originGeth',
       rpcProviderHostPort = chainConfigStrategy[chainTypeString].readOnly.rpcProvider.replace('http://', '').split(':'),
@@ -180,6 +180,18 @@ class ServiceManager {
       wsProviderHostPort = chainConfigStrategy[chainTypeString].readOnly.wsProvider.replace('ws://', '').split(':'),
       wsHost = wsProviderHostPort[0],
       wsPort = wsProviderHostPort[1];
+
+    let gasPrice;
+
+    if (chainType === 'aux') {
+      if (purpose === 'deployment') {
+        gasPrice = contractConstants.zeroGasPrice;
+      } else {
+        gasPrice = contractConstants.auxChainGasPrice;
+      }
+    } else {
+      gasPrice = contractConstants.defaultOriginChainGasPrice;
+    }
 
     let sealerAddress = await new ChainAddressModel().fetchAddress({
       chainId: chainId,
