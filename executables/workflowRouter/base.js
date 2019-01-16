@@ -1,30 +1,39 @@
 'use strict';
-
+/**
+ * Base class for workflow router.
+ *
+ * @module executables/workflowRouter/base
+ */
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   WorkflowStepsCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowSteps'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
+/**
+ * Class for workflow router base.
+ *
+ * @class
+ */
 class workflowRouterBase {
   /**
+   * Constructor for workflow router base.
    *
-   * @param params {Object}
-   * @param params.currentStepId {number} id of process parent
-   * @param params.parentStepId {number} id of process parent
-   * @param params.stepKind {string} Which step to execute in router
-   * @param params.taskStatus {string} task is 'taskReadyToStart' or 'taskDone' status.
-   * @param params.taskResponseData {object} when task is 'taskDone', send taskResponseData if required.
-   * @param params.clientId {number}
-   * @param params.chainId {number}
-   * @param params.groupId {number}
-   * @param params.payload {object}
+   * @param {Object} params
+   * @param {Number} params.currentStepId  id of process parent
+   * @param {Number} params.parentStepId {Number} id of process parent
+   * @param {String} params.stepKind Which step to execute in router
+   * @param {String} params.taskStatus task is 'taskReadyToStart' or 'taskDone' status.
+   * @param {Object} params.taskResponseData when task is 'taskDone', send taskResponseData if required.
+   * @param {Number} params.clientId
+   * @param {Number} params.chainId
+   * @param {Number} params.groupId
+   * @param {Object} params.payload
    *
    * @constructor
-   *
    */
   constructor(params) {
     const oThis = this;
@@ -59,7 +68,7 @@ class workflowRouterBase {
     return oThis.asyncPerform().catch(async function(error) {
       if (responseHelper.isCustomResult(error)) {
         logger.error(error.getDebugData());
-        oThis._clearWorkflowStepsCache(oThis.parentStepId);
+        await oThis._clearWorkflowStepsCache(oThis.parentStepId);
         await new WorkflowStepsModel().updateRecord(oThis.currentStepId, {
           debug_params: JSON.stringify(error.getDebugData()),
           status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus]
@@ -95,7 +104,7 @@ class workflowRouterBase {
 
     if (oThis.taskStatus == workflowStepConstants.taskReadyToStart) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
-      oThis._clearWorkflowStepsCache(oThis.parentStepId);
+      await oThis._clearWorkflowStepsCache(oThis.parentStepId);
 
       let response = await oThis.stepsFactory();
 
@@ -150,9 +159,9 @@ class workflowRouterBase {
       await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
     }
 
-    oThis._clearWorkflowStepsCache(oThis.parentStepId);
+    await oThis._clearWorkflowStepsCache(oThis.parentStepId);
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return Promise.resolve(responseHelper.successWithData({ workflowId: oThis.parentStepId }));
   }
 
   /**
@@ -313,13 +322,11 @@ class workflowRouterBase {
     return Promise.resolve(responseHelper.successWithData({}));
   }
   /**
-   *
    * First step of any workflow.
    *
    * @returns {Promise<>}
    *
    * @sets oThis.currentStepId, oThis.parentStepId
-   *
    */
   async insertInitStep() {
     const oThis = this;
@@ -337,7 +344,7 @@ class workflowRouterBase {
     oThis.currentStepId = insertResp.insertId;
     oThis.parentStepId = insertResp.insertId;
 
-    oThis._clearWorkflowStepsCache(oThis.currentStepId);
+    await oThis._clearWorkflowStepsCache(oThis.currentStepId);
 
     return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
   }
@@ -393,7 +400,7 @@ class workflowRouterBase {
       })
       .fire();
 
-    oThis._clearWorkflowStepsCache(oThis.parentStepId);
+    await oThis._clearWorkflowStepsCache(oThis.parentStepId);
 
     let nextStepId = insertRsp.insertId;
 
@@ -427,25 +434,22 @@ class workflowRouterBase {
   }
 
   /**
+   * Returns publisher.
    *
-   *
-   * @returns {string}
+   * @returns {String}
    * @private
    */
   get _publisher() {
-    const oThis = this;
-
     return 'OST_Workflow';
   }
 
   /**
+   * Returns messageKind.
    *
-   * @returns {string}
+   * @returns {String}
    * @private
    */
   get _messageKind() {
-    const oThis = this;
-
     return 'background_job';
   }
 
@@ -475,7 +479,7 @@ class workflowRouterBase {
         .select('*')
         .where(['parent_id = ? AND kind in (?)', oThis.parentStepId, prerequisitesKinds])
         .fire();
-      if (prerequisitesRecords.length != nextStepDetails.prerequisites.length) {
+      if (prerequisitesRecords.length !== nextStepDetails.prerequisites.length) {
         return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
       }
       for (let i = 0; i < prerequisitesRecords.length; i++) {

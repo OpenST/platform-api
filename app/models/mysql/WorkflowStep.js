@@ -7,9 +7,9 @@
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
 //NOTE: This is a shared table with KIT. Any changes here must be synced with model in KIT-API.
 

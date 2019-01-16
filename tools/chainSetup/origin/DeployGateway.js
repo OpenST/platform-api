@@ -81,7 +81,6 @@ class DeployGateway {
     let signerAddress = await oThis._getDeployerAddr(),
       organizationAddress = await oThis._getOrganizationAddr(),
       simpleTokenContractAddress = await oThis._getSimpleTokenContractAddr(),
-      stPrimeContractAddress = await oThis._getSTPrimeContractAddr(),
       anchorAddress = await oThis._getAnchorAddr(),
       messageBusLibAddress = await oThis._getMessageBusLibAddr(),
       gatewayLibAddress = await oThis._getGatewayLibAddr();
@@ -210,35 +209,6 @@ class DeployGateway {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_cs_o_dg_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get simple token prime contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getSTPrimeContractAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.baseContractKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_o_dg_5',
           api_error_identifier: 'something_went_wrong'
         })
       );

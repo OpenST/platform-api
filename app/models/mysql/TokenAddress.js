@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  * This is model for workflow_setup table.
  *
@@ -12,6 +11,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
+// Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = {
     '1': tokenAddressConstants.ownerAddressKind,
@@ -29,7 +29,17 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   },
   invertedKinds = util.invert(kinds);
 
+/**
+ * Class for token address model
+ *
+ * @class
+ */
 class TokenAddress extends ModelBase {
+  /**
+   * Constructor for token address model
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
 
@@ -47,11 +57,10 @@ class TokenAddress extends ModelBase {
   }
 
   /**
-   * getAddressByTokenIdAndKind
-   *
    * Get token address details by token_id and kind
    *
    * @param params
+   *
    * @return {*|void}
    */
   async getAddressByTokenIdAndKind(params) {

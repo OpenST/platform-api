@@ -8,10 +8,12 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../..',
+  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
+  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   workflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
@@ -156,6 +158,13 @@ class economySetupRouter extends workflowRouterBase {
       case workflowStepConstants.setGatewayInBt:
         let setGatewayInBtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetGatewayInBT');
         return new setGatewayInBtKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.markSuccess:
+        return oThis._tokenDeploymentCompleted();
+
+      case workflowStepConstants.markFailure:
+        return oThis._tokenDeploymentFailed();
+
       default:
         return Promise.reject(
           responseHelper.error({
@@ -186,6 +195,62 @@ class economySetupRouter extends workflowRouterBase {
     }
 
     return '';
+  }
+
+  /**
+   * Mark token deployment as successful in tokens table.
+   *
+   * @return {Promise<any>}
+   */
+  async _tokenDeploymentCompleted() {
+    const oThis = this;
+
+    // Update status of token deployment as deploymentCompleted in tokens table.
+    let tokenModelResp = await new TokenModel()
+      .update({
+        status: new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]
+      })
+      .where({
+        client_id: oThis.clientId,
+        status: new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]
+      })
+      .fire();
+
+    // If row was updated successfully.
+    if (+tokenModelResp.affectedRows === 1) {
+      // Implicit string to int conversion.
+      return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
+    } else {
+      return Promise.resolve(responseHelper.successWithData({ taskDone: -1 }));
+    }
+  }
+
+  /**
+   * Mark token deployment as failed in tokens table.
+   *
+   * @return {Promise<any>}
+   */
+  async _tokenDeploymentFailed() {
+    const oThis = this;
+
+    // Update status of token deployment as deploymentFailed in tokens table.
+    let tokenModelResp = await new TokenModel()
+      .update({
+        status: new TokenModel().invertedStatuses[tokenConstants.deploymentFailed]
+      })
+      .where({
+        client_id: oThis.clientId,
+        status: new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]
+      })
+      .fire();
+
+    // If row was updated successfully.
+    if (+tokenModelResp.affectedRows === 1) {
+      // Implicit string to int conversion.
+      return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
+    } else {
+      return Promise.resolve(responseHelper.successWithData({ taskDone: -1 }));
+    }
   }
 
   getNextStepConfigs(nextStep) {
