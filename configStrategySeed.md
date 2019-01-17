@@ -1,7 +1,7 @@
 # Config Strategy Seed (for local setup)
 
 Create entry in encryption_salts to be used for encrypting the config strategy
-```
+```bash
 source set_env_vars.sh
 node executables/createEncryptionSalt
 ```
@@ -206,7 +206,9 @@ function addGlobalConfig() {
   );
 };
 
-addGlobalConfig().then(function() {console.log('Global Config Added')});
+addGlobalConfig().then(function() {
+  console.log('Global Config Added')
+});
 ```
 
 ## Aux Chain Config
@@ -319,5 +321,7 @@ function addAuxConfig(auxChainId, auxGroupId) {
             });
 };
 
-addAuxConfig(2000, 1).then(function() {console.log('Chain Specific Config Added')});
+addAuxConfig(2000, 1).then(function() {
+  console.log('Chain Specific Config Added')
+});
 ```
