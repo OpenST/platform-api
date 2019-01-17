@@ -2,15 +2,19 @@
 /**
  * This module creates entry for new economy in dynamo db.
  *
- * @module app/services/token/SyncInView.js
+ * @module app/services/token/SyncInView
  */
 
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../..',
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   CreateEconomy = require(rootPrefix + '/tools/economySetup/CreateEconomy'),
-  TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  TokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
 /**
  * Class for SyncInView
@@ -32,7 +36,6 @@ class SyncInView {
     const oThis = this;
     oThis.tokenId = params.tokenId;
     oThis.chainId = params.chainId;
-    oThis.tokenAddressKindMap = {};
   }
 
   /**
@@ -43,16 +46,14 @@ class SyncInView {
   async perform() {
     const oThis = this;
 
-    await oThis._getTokenAddresses();
+    await oThis._setAddresses();
 
-    let brandedTokenContract = await oThis._getAddressesForTokens(TokenAddressConstants.brandedTokenContract),
-      simpleStakeContractAddress = await oThis._getAddressesForTokens(TokenAddressConstants.simpleStakeContract),
-      chainEndPoint = await oThis._getRpcProvider(),
+    let chainEndPoint = await oThis._getRpcProvider(),
       params = {
         tokenId: oThis.tokenId,
         chainId: oThis.chainId,
-        simpleStakeAddress: simpleStakeContractAddress,
-        brandedTokenContract: brandedTokenContract,
+        simpleStakeAddress: oThis.simpleStakeAddress,
+        brandedTokenContract: oThis.brandedTokenAddress,
         chainEndpoint: chainEndPoint[0]
       };
 
@@ -61,54 +62,31 @@ class SyncInView {
     await createEconomy.perform();
   }
 
-  /**
-   * Get address of various kinds from Token addresses table.
-   *
-   * @returns {Promise<>}
-   *
-   * @private
-   *
-   * @sets tokenAddressKindMap
-   */
-  async _getTokenAddresses() {
-    const oThis = this;
-    let addresses = await new TokenAddressModel()
-      .select('*')
-      .where([
-        'token_id = ? AND kind in (?)',
-        oThis.tokenId,
-        [
-          new TokenAddressModel().invertedKinds[TokenAddressConstants.simpleStakeContract],
-          new TokenAddressModel().invertedKinds[TokenAddressConstants.brandedTokenContract]
-        ]
-      ])
-      .order_by('id DESC')
-      .fire();
-
-    for (let i = 0; i < addresses.length; i++) {
-      let addressData = addresses[i],
-        addressKind = new TokenAddressModel().kinds[addressData.kind];
-      oThis.tokenAddressKindMap[addressKind] = oThis.tokenAddressKindMap[addressKind] || [];
-      oThis.tokenAddressKindMap[addressKind].push(addressData.address);
-    }
-  }
-
-  /**
-   * Get token address for given kind.
-   *
-   * @param {String} addressKind: address got given kind
-   *
-   * @returns {String}: one address for uniq kinds, and array for multiple possible kinds
+  /***
    *
    * @private
    */
-  _getAddressesForTokens(addressKind) {
+  async _setAddresses() {
     const oThis = this;
 
-    if (TokenAddressConstants.uniqueKinds.indexOf(addressKind) > -1) {
-      return oThis.tokenAddressKindMap[addressKind][0];
-    } else {
-      return oThis.tokenAddressKindMap[addressKind];
+    let getAddrRsp = await new TokenAddressCache({
+      tokenId: oThis.tokenId
+    }).fetch();
+
+    oThis.simpleStakeAddress = getAddrRsp.data[tokenAddressConstants.simpleStakeContract];
+    oThis.brandedTokenAddress = getAddrRsp.data[tokenAddressConstants.brandedTokenContract];
+
+    if (!oThis.simpleStakeAddress || !oThis.brandedTokenAddress) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_es_siv_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            simpleStakeAddress: oThis.simpleStakeAddress,
+            brandedTokenAddress: oThis.brandedTokenAddress
+          }
+        })
+      );
     }
   }
 
@@ -119,16 +97,11 @@ class SyncInView {
    */
   async _getRpcProvider() {
     const oThis = this;
-    let strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
-      configStrategyResp = await strategyByChainHelperObj.getComplete();
-
-    if (configStrategyResp.isFailure()) {
-      return Promise.reject(configStrategyResp);
-    }
-    const configStrategyObj = new ConfigStrategyObject(configStrategyResp.data);
-
+    const configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
     return configStrategyObj.chainRpcProviders(oThis.chainId, 'readWrite');
   }
 }
+
+InstanceComposer.registerAsShadowableClass(SyncInView, coreConstants.icNameSpace, 'SyncInView');
 
 module.exports = SyncInView;
