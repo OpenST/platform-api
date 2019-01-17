@@ -13,7 +13,8 @@ const rootPrefix = '../../..',
   ProgressMint = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressMintOnCoGateway'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
   CheckStepStatus = require(rootPrefix + '/lib/stakeMintManagement/common/CheckStepStatus'),
-  CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot');
+  CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot'),
+  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash');
 
 class StPrimeMintRouter extends WorkflowRouterBase {
   constructor(params) {
@@ -79,7 +80,10 @@ class StPrimeMintRouter extends WorkflowRouterBase {
         return new ProgressStake(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.progressMint:
-        return new ProgressMint(oThis.requestParams).perform();
+        return new ProgressMint(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
+
+      case workflowStepConstants.fetchStakeIntentMessageHash:
+        return new FetchStakeIntentMessage(oThis.requestParams).perform();
 
       default:
         return Promise.reject(
