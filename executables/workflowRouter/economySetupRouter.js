@@ -32,6 +32,7 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
 require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
+require(rootPrefix + '/lib/setup/economy/PostGatewayDeploy');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -106,7 +107,10 @@ class economySetupRouter extends workflowRouterBase {
 
       case workflowStepConstants.saveTokenGateway:
         logger.step('*** Saving Token Gateway Address In DB');
-        return new InsertAddressIntoTokenAddress({
+
+        let Klass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'PostGatewayDeploy');
+
+        return new Klass({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployGateway),
           kind: tokenAddressConstants.tokenGatewayContract,
