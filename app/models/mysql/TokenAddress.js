@@ -9,7 +9,6 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
 // Declare variables.
@@ -121,17 +120,29 @@ class TokenAddress extends ModelBase {
     let insertRsp = await oThis
       .insert({
         token_id: params.tokenId,
-        kind: oThis.invertedKinds[params.kind],
+        kind: params.kind,
         address: params.address,
         known_address_id: params.knownAddressId
       })
       .fire();
 
-    await new TokenAddressCache({
-      tokenId: oThis.tokenId
-    }).clear();
+    await TokenAddress.flushCache(params.tokenId);
 
     return responseHelper.successWithData(insertRsp);
+  }
+
+  /***
+   *
+   * flush cache
+   *
+   * @param tokenId
+   * @returns {Promise<*>}
+   */
+  static flushCache(tokenId) {
+    const TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress');
+    return new TokenAddressCache({
+      tokenId: tokenId
+    }).clear();
   }
 }
 

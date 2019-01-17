@@ -414,7 +414,9 @@ class workflowRouterBase {
       case workflowStepConstants.tokenDeployGateway:
       case workflowStepConstants.saveTokenGateway:
       case workflowStepConstants.activateTokenGateway:
+      case workflowStepConstants.verifyActivateTokenGateway:
       case workflowStepConstants.setGatewayInBt:
+      case workflowStepConstants.verifySetGatewayInBt:
         chainId = oThis.requestParams.originChainId;
         break;
 
@@ -426,10 +428,14 @@ class workflowRouterBase {
       case workflowStepConstants.updateTokenInOstView:
       case workflowStepConstants.tokenDeployCoGateway:
       case workflowStepConstants.setCoGatewayInUbt:
+      case workflowStepConstants.verifySetCoGatewayInUbt:
       case workflowStepConstants.commitStateRoot:
       case workflowStepConstants.updateCommittedStateRootInfo:
         chainId = oThis.requestParams.auxChainId;
         break;
+
+      default:
+        throw `unsupported nextStep: ${nextStep}`;
     }
 
     let insertRsp = await new WorkflowStepsModel()
