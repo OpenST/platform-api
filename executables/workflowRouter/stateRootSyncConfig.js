@@ -17,6 +17,7 @@ const steps = {
   [workflowStepConstants.updateCommittedStateRootInfo]: {
     kind: workflowStepConstants.updateCommittedStateRootInfo,
     onFailure: '',
+    readDataFrom: [workflowStepConstants.commitStateRoot],
     onSuccess: []
   }
 };

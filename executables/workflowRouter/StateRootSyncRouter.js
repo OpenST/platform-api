@@ -5,7 +5,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   stateRootSyncStepsConfig = require(rootPrefix + '/executables/workflowRouter/stateRootSyncConfig'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
-  StateRootCommitHistoryModel = require(rootPrefix + '/app/models/mysql/StateRootCommitHistory'),
+  UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
   CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot');
 
 class StateRootSyncRouter extends WorkflowRouterBase {
@@ -35,7 +35,8 @@ class StateRootSyncRouter extends WorkflowRouterBase {
 
       // update status in state root commit history
       case workflowStepConstants.updateCommittedStateRootInfo:
-        return oThis.updateStateRootCommitStatus(oThis.requestParams);
+        let updateStateRootCommits = new UpdateStateRootCommits(oThis.requestParams);
+        return updateStateRootCommits.perform();
 
       default:
         return Promise.reject(
@@ -56,18 +57,6 @@ class StateRootSyncRouter extends WorkflowRouterBase {
    */
   getNextStepConfigs(nextStep) {
     return stateRootSyncStepsConfig[nextStep];
-  }
-
-  /**
-   * updateStateRootCommitStatus
-   *
-   * @return {*}
-   */
-  updateStateRootCommitStatus(params) {
-    const oThis = this;
-
-    let stateRootCommitHistoryModel = new StateRootCommitHistoryModel();
-    return stateRootCommitHistoryModel.updateStatus(params);
   }
 }
 
