@@ -282,6 +282,7 @@ class economySetupRouter extends workflowRouterBase {
 
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
+      logger.win('*** Economy Setup Done');
       // Implicit string to int conversion.
       return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
     } else {

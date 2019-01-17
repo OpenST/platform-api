@@ -440,6 +440,7 @@ class workflowRouterBase {
       case workflowStepConstants.stPrimeProgressMint:
       case workflowStepConstants.checkProveGatewayStatus:
       case workflowStepConstants.checkConfirmStakeStatus:
+      case workflowStepConstants.verifySetCoGatewayInUbt:
         chainId = oThis.requestParams.auxChainId;
         break;
     }

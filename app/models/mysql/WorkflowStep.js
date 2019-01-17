@@ -19,7 +19,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '2': workflowStepConstants.pendingStatus,
     '3': workflowStepConstants.processedStatus,
     '4': workflowStepConstants.failedStatus,
-    '5': workflowStepConstants.timeoutStatus
+    '5': workflowStepConstants.timeoutStatus,
+    '6': workflowStepConstants.retriedStatus
   },
   invertedStatuses = util.invert(statuses),
   kinds = {

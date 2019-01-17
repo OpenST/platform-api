@@ -62,63 +62,6 @@ class Workflow extends ModelBase {
   get invertedKinds() {
     return invertedKinds;
   }
-
-  /**
-   * Validates whether the kind and workflow exist in the workflow.
-   *
-   * @param {String} kind
-   * @param {String} status
-   *
-   * @private
-   */
-  _validateKindAndStatus(kind, status) {
-    if (!invertedKinds[kind]) {
-      throw 'Invalid kind of workflow.';
-    }
-
-    if (!invertedStatuses[status]) {
-      throw 'Invalid status of workflow.';
-    }
-  }
-
-  /**
-   * Inserts record
-   *
-   * @param {Object} params
-   * @param {String} params.kind
-   * @param {Number} params.clientId
-   * @param {String} params.status
-   * @param {String} params.requestParams
-   * @param {String} params.debugParams
-   *
-   * @returns {Promise<*>}
-   */
-  async insertRecord(params) {
-    const oThis = this;
-
-    // Perform validations.
-    if (!params.hasOwnProperty('kind') || !params.hasOwnProperty('status')) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {kind, status}';
-    }
-
-    oThis._validateKindAndStatus(params.kind, params.status);
-
-    let kind = invertedKinds[params.kind],
-      status = invertedStatuses[params.status],
-      clientId = params.clientId ? params.clientId : null,
-      requestParams = params.requestParams ? params.requestParams : null,
-      debugParams = params.debugParams ? params.debugParams : null;
-
-    return await oThis
-      .insert({
-        kind: kind,
-        client_id: clientId,
-        status: status,
-        request_params: requestParams,
-        debug_params: debugParams
-      })
-      .fire();
-  }
 }
 
 module.exports = Workflow;
