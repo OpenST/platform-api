@@ -47,17 +47,15 @@ class StateRootCommitHistory extends ModelBase {
    * @param params
    * @return {Promise<*>}
    */
-  async getLastSyncedBlock(params) {
+  getLastSyncedBlock(params) {
     const oThis = this;
 
-    let response = await oThis
+    return oThis
       .select('block_number')
       .where(['source_chain_id = ? AND target_chain_id = ?', params.source_chain_id, params.target_chain_id])
       .order_by('created_at desc')
       .limit(1)
       .fire();
-
-    return response[0].block_number;
   }
 
   /**
