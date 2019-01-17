@@ -372,7 +372,7 @@ class workflowRouterBase {
 
       let dependencyResponse = await oThis.checkDependencies(nextStep);
 
-      console.log('-----------------------dependencyResponse----------', oThis.currentStepId, dependencyResponse);
+      console.log('--------------dependencyResponse----------', oThis.currentStepId, dependencyResponse, nextStep);
       if (!dependencyResponse.data.dependencyResolved) {
         continue;
       }

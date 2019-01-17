@@ -154,7 +154,7 @@ class CreateEconomy {
     const oThis = this;
     let createEconomyRsp = await oThis.createEconomyObject.perform();
     logger.step('Entry created in economies table in DynamoDB.');
-    logger.debug('createEconomyRsp', createEconomyRsp.toHash());
+    logger.debug('createEconomyRsp', createEconomyRsp);
   }
 
   /**

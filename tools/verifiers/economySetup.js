@@ -13,6 +13,7 @@ const rootPrefix = '../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   MosaicTbd = require('@openstfoundation/mosaic-tbd'),
   GatewayHelper = MosaicTbd.ChainSetup.GatewayHelper; // Same contract, so using the chain setup helper
+
 let originChainId = process.argv[2],
   auxChainId = process.argv[3],
   tokenId = process.argv[4];
@@ -50,13 +51,13 @@ class EconomySetupVerifier {
 
     await oThis._validateCoGateway();
 
-    await oThis._checkGatewayActivated();
-
-    await oThis._validateSetGateway();
-
-    await oThis._validateSetCoGateway();
-
-    await oThis._validateStakerAddress();
+    // await oThis._checkGatewayActivated();
+    //
+    // await oThis._validateSetGateway();
+    //
+    // await oThis._validateSetCoGateway();
+    //
+    // await oThis._validateStakerAddress();
   }
 
   /**
@@ -68,13 +69,17 @@ class EconomySetupVerifier {
   async _setWeb3Objs() {
     const oThis = this;
 
-    let response = await chainConfigProvider.getFor([oThis.originChainId, oThis.auxChainId]);
+    let response = await chainConfigProvider.getFor([oThis.auxChainId]);
 
-    oThis.originChainConfig = response[oThis.originChainId];
-    oThis.originWsProviders = oThis.originChainConfig.originGeth.readWrite.wsProviders;
+    console.log('oThis.originChainId,', oThis.originChainId);
+    console.log('oThis.auxChainId,', oThis.auxChainId);
+    console.log('response', response);
 
-    oThis.auxChainConfig = response[oThis.auxChainId];
-    oThis.auxWsProviders = oThis.auxChainConfig.auxGeth.readWrite.wsProviders;
+    oThis.config = response[oThis.auxChainId.toString()];
+
+    oThis.originWsProviders = oThis.config.originGeth.readWrite.wsProviders;
+
+    oThis.auxWsProviders = oThis.config.auxGeth.readWrite.wsProviders;
 
     oThis.originWeb3 = web3Provider.getInstance(oThis.originWsProviders[0]).web3WsProvider;
     oThis.auxWeb3 = web3Provider.getInstance(oThis.auxWsProviders[0]).web3WsProvider;

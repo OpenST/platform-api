@@ -88,7 +88,7 @@ class economySetupRouter extends workflowRouterBase {
         }).perform();
 
       case workflowStepConstants.saveOriginBrandedToken:
-        logger.step('*** Saving Aux Organization Address In DB');
+        logger.step('*** Saving Origin BT Address In DB');
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployOriginBrandedToken),
@@ -127,10 +127,14 @@ class economySetupRouter extends workflowRouterBase {
         }).perform();
 
       case workflowStepConstants.deployOriginBrandedToken:
+        logger.step('*** Deploy Origin Branded Token');
+
         let deployBrandeTokenKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployOriginBrandedToken');
         return new deployBrandeTokenKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.deployAuxTokenOrganization:
+        logger.step('*** Deploy Aux Token Organization');
+
         let deployAuxTokenOrganizationKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
           'DeployTokenOrganization'
@@ -139,6 +143,8 @@ class economySetupRouter extends workflowRouterBase {
         return new deployAuxTokenOrganizationKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.deployUtilityBrandedToken:
+        logger.step('*** Deploy Utility Branded Token');
+
         let deployUtilityBrandeTokenKlass = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
           'DeployUtilityBrandedToken'
@@ -146,33 +152,49 @@ class economySetupRouter extends workflowRouterBase {
         return new deployUtilityBrandeTokenKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.tokenDeployGateway:
+        logger.step('*** Deploy Gateway');
+
         let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployGateway');
         return new TokenDeployGatewayKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.updateTokenInOstView:
+        logger.step('*** Sync Token Details in OST View');
+
         let SyncInView = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SyncInView');
         return new SyncInView({ tokenId: oThis.requestParams.tokenId, chainId: oThis.chainId }).perform();
 
       case workflowStepConstants.tokenDeployCoGateway:
+        logger.step('*** Deploy CoGateway');
+
         let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployCoGateway');
         return new TokenDeployCoGatewayKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.activateTokenGateway:
+        logger.step('*** Activate Gateway');
+
         let ActivateTokenGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateTokenGateway');
         return new ActivateTokenGatewayKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.setCoGatewayInUbt:
+        logger.step('*** Set CoGateway in UBT');
+
         let setCoGatewayInUbtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetCoGatewayInUtilityBT');
         return new setCoGatewayInUbtKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.setGatewayInBt:
+        logger.step('*** Set Gateway in BT');
+
         let setGatewayInBtKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SetGatewayInBT');
         return new setGatewayInBtKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.markSuccess:
+        logger.step('*** Mark Economy Setup As Success');
+
         return oThis._tokenDeploymentCompleted();
 
       case workflowStepConstants.markFailure:
+        logger.step('*** Mark Economy Setup As Failed');
+
         return oThis._tokenDeploymentFailed();
 
       default:
@@ -188,6 +210,7 @@ class economySetupRouter extends workflowRouterBase {
 
   async getConfigStrategy() {
     const oThis = this;
+
     let rsp = await chainConfigProvider.getFor([oThis.chainId]);
 
     return rsp[oThis.chainId];
