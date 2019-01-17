@@ -61,17 +61,28 @@ class GethManager {
    * @param {String/Number} chainId
    * @param {String} chainGenesisLocation: genesis file location to be modified
    * @param {Object} allocAddressToAmountMap: {allocAddress: allocAmount}
+   * @parms {String} chainOwnerAddress: chainOwnerAddress
    * @param {String} sealerAddress
    *
    * @return {Boolean}
    *
    * @private
    */
-  _modifyGenesisFile(chainType, chainId, chainGenesisLocation, sealerAddress, allocAddressToAmountMap) {
+  _modifyGenesisFile(
+    chainType,
+    chainId,
+    chainGenesisLocation,
+    sealerAddress,
+    chainOwnerAddress,
+    allocAddressToAmountMap
+  ) {
     const gasLimitOn = {
       aux: coreConstants.OST_AUX_GAS_LIMIT,
       origin: coreConstants.OST_ORIGIN_GAS_LIMIT
     };
+
+    //TODO: @dhananjay - fetch this from config.
+    let blockGenerationTime = chainType === 'aux' ? '3' : '5';
 
     let allocAddress, allocAmount;
     for (let allocationAddress in allocAddressToAmountMap) {
@@ -94,14 +105,17 @@ class GethManager {
     if (!allocAddressToAmountMap) {
       //if allocate amount is not specified, then allocates 800M by default.
       //we need this step (for setup on local machines) to fund some addresses for origin deployment
-      file.set('alloc.' + sealerAddress + '.balance', '0x295be96e640669720000000');
+      file.set('alloc.' + chainOwnerAddress + '.balance', '0x295be96e640669720000000');
     } else {
       // Alloc balance to required address
-      file.set('alloc.' + allocAddress + '.balance', basicHelper.convertToHex(allocAmount));
+      file.set('alloc.' + chainOwnerAddress + '.balance', basicHelper.convertToHex(allocAmount));
     }
 
     // Set chainId.
     file.set('config.chainId', parseInt(chainId));
+
+    // Set blockGenerationTime.
+    file.set('config.clique.period', parseInt(blockGenerationTime));
 
     // Set gas limit.
     file.set('gasLimit', gasLimit);
@@ -165,13 +179,33 @@ class GethManager {
       address: sealerAddress
     });
 
+    let whereClause = [
+        'chain_kind = ? AND kind = ? AND status = 1',
+        chainAddressConstants.invertedChainKinds[coreConstants.originChainKind],
+        chainAddressConstants.invertedKinds[chainAddressConstants.chainOwnerKind]
+      ],
+      chainOwnerAddressRsp = await new ChainAddressModel()
+        .select(['address'])
+        .where(whereClause)
+        .fire(),
+      chainOwnerAddress = chainOwnerAddressRsp[0].address;
+
+    logger.debug('chainOwnerAddress----', chainOwnerAddress);
+
     // Copy genesis template file in chain folder
     logger.info('* Copying POA genesis template file.');
     fileManager.exec('cp ' + chainGenesisTemplateLocation + ' ' + chainGenesisLocation);
 
     // Alloc balance in genesis files.
     logger.info('* Modifying ' + chainType + '-' + chainId + ' genesis file.');
-    oThis._modifyGenesisFile(chainType, chainId, chainGenesisLocation, sealerAddress, allocAddressToAmountMap);
+    oThis._modifyGenesisFile(
+      chainType,
+      chainId,
+      chainGenesisLocation,
+      sealerAddress,
+      chainOwnerAddress,
+      allocAddressToAmountMap
+    );
 
     // Alloc balance in genesis files.
     logger.info('* Init ' + chainType + '-' + chainId + ' chain.');

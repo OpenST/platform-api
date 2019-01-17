@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  GenerateChainKnownAddress = require(rootPrefix + '/lib/generateKnownAddress/chainSetup');
+  GenerateChainKnownAddress = require(rootPrefix + '/lib/generateKnownAddress/ChainSetup');
 
 class generateInternalAddresses {
   /**

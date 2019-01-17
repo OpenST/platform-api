@@ -106,7 +106,7 @@ class InitializeSimpleTokenPrime extends SetupSTPrimeBase {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
+      chainId: oThis._originChainId,
       kind: chainAddressConstants.chainOwnerKind
     });
 
