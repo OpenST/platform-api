@@ -41,6 +41,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '16': workflowStepConstants.activateTokenGateway,
     '17': workflowStepConstants.setCoGatewayInUbt,
     '18': workflowStepConstants.setGatewayInBt,
+    '19': workflowStepConstants.markSuccess,
+    '20': workflowStepConstants.markFailure,
 
     '30': workflowStepConstants.commitStateRootInit,
     '31': workflowStepConstants.commitStateRoot,
