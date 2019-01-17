@@ -3,7 +3,7 @@
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  stateRootCommitHistoryConstants = require(rootPrefix + '/lib/globalConstant/stateRootCommitHistory'),
+  stateRootCommitHistoryConstants = require(rootPrefix + '/lib/globalConstant/stateRootCommit'),
   util = require(rootPrefix + '/lib/util');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -21,7 +21,7 @@ class StateRootCommitHistory extends ModelBase {
 
     const oThis = this;
 
-    oThis.tableName = 'state_root_commit_history';
+    oThis.tableName = 'state_root_commits';
   }
 
   /**

@@ -426,6 +426,8 @@ class workflowRouterBase {
       case workflowStepConstants.updateTokenInOstView:
       case workflowStepConstants.tokenDeployCoGateway:
       case workflowStepConstants.setCoGatewayInUbt:
+      case workflowStepConstants.commitStateRoot:
+      case workflowStepConstants.updateCommittedStateRootInfo:
         chainId = oThis.requestParams.auxChainId;
         break;
     }
