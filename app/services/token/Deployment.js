@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -176,6 +177,30 @@ class Deployment {
       .fire();
   }
 
+  /***
+   *
+   * config strategy
+   *
+   * @return {object}
+   */
+  get _configStrategy() {
+    const oThis = this;
+    return oThis.ic().configStrategy;
+  }
+
+  /***
+   *
+   * object of config strategy klass
+   *
+   * @return {object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+    return oThis.configStrategyObj;
+  }
+
   /**
    * Start token deployment
    *
@@ -211,7 +236,7 @@ class Deployment {
         requestParams: {
           tokenId: oThis.tokenId,
           auxChainId: oThis.chainId,
-          originChainId: 1000,
+          originChainId: oThis._configStrategyObject.originChainId,
           clientId: oThis.clientId
         }
       };
