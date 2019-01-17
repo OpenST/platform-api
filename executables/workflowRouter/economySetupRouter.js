@@ -12,7 +12,6 @@ const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
@@ -33,6 +32,7 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/PostGatewayDeploy');
+require(rootPrefix + '/app/services/token/SyncInView');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -147,9 +147,10 @@ class economySetupRouter extends workflowRouterBase {
 
       case workflowStepConstants.tokenDeployGateway:
         let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployGateway');
-        return await new TokenDeployGatewayKlass(oThis.requestParams).perform();
+        return new TokenDeployGatewayKlass(oThis.requestParams).perform();
 
       case workflowStepConstants.updateTokenInOstView:
+        let SyncInView = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SyncInView');
         return new SyncInView({ tokenId: oThis.requestParams.tokenId, chainId: oThis.chainId }).perform();
 
       case workflowStepConstants.tokenDeployCoGateway:
