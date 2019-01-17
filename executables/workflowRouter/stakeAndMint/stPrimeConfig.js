@@ -24,13 +24,13 @@ const steps = {
     kind: workflowStepConstants.simpleTokenStake,
     onFailure: workflowStepConstants.markFailure,
     prerequisites: [workflowStepConstants.checkApproveStatus],
-    onSuccess: [workflowStepConstants.commitStateRootInit]
+    onSuccess: [workflowStepConstants.checkStakeStatus]
   },
   [workflowStepConstants.checkStakeStatus]: {
     kind: workflowStepConstants.checkStakeStatus,
     onFailure: workflowStepConstants.markFailure,
     readDataFrom: [workflowStepConstants.simpleTokenStake],
-    onSuccess: [workflowStepConstants.commitStateRootInit]
+    onSuccess: [workflowStepConstants.commitStateRoot]
   },
   [workflowStepConstants.commitStateRoot]: {
     kind: workflowStepConstants.commitStateRoot,

@@ -25,12 +25,48 @@ class StateRootCommitHistory extends ModelBase {
   }
 
   /**
+   * statuses
+   * @return {{}}
+   */
+  get statuses() {
+    return statuses;
+  }
+
+  /**
+   * invertedStatuses
+   *
+   * @return {Object|*}
+   */
+  get invertedStatuses() {
+    return invertedStatuses;
+  }
+
+  /**
+   * getLastSyncedBlock
+   *
+   * @param params
+   * @return {Promise<*>}
+   */
+  async getLastSyncedBlock(params) {
+    const oThis = this;
+
+    let response = await oThis
+      .select('block_number')
+      .where(['source_chain_id = ? AND target_chain_id = ?', params.source_chain_id, params.target_chain_id])
+      .order_by('created_at desc')
+      .limit(1)
+      .fire();
+
+    return response[0].block_number;
+  }
+
+  /**
    * insertStateRootCommit - inserts entry in state root commit history
    *
    * @param params
    * @return {*|void}
    */
-  insertStateRootCommit(params) {
+  async insertStateRootCommit(params) {
     const oThis = this;
 
     return oThis.insert(params).fire();
@@ -41,7 +77,7 @@ class StateRootCommitHistory extends ModelBase {
    * @param params
    * @return {*|void}
    */
-  updateStatus(params) {
+  async updateStatus(params) {
     const oThis = this;
 
     return oThis

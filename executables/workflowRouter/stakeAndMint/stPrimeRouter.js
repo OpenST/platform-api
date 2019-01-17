@@ -92,6 +92,8 @@ class StPrimeMintRouter extends WorkflowRouterBase {
    * @return {*}
    */
   getNextStepConfigs(nextStep) {
+    console.log('====nextStep', nextStep);
+
     return stPrimeMintingStepsConfig[nextStep];
   }
 }
