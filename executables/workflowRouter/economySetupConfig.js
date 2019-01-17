@@ -92,22 +92,40 @@ const steps = {
   [workflowStepConstants.activateTokenGateway]: {
     kind: workflowStepConstants.activateTokenGateway,
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyActivateTokenGateway]
+  },
+  [workflowStepConstants.verifyActivateTokenGateway]: {
+    kind: workflowStepConstants.verifyActivateTokenGateway,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.activateTokenGateway],
     onSuccess: [workflowStepConstants.setCoGatewayInUbt, workflowStepConstants.setGatewayInBt]
   },
   [workflowStepConstants.setCoGatewayInUbt]: {
     kind: workflowStepConstants.setCoGatewayInUbt,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifySetCoGatewayInUbt]
+  },
+  [workflowStepConstants.verifySetCoGatewayInUbt]: {
+    kind: workflowStepConstants.verifySetCoGatewayInUbt,
+    readDataFrom: [workflowStepConstants.setCoGatewayInUbt],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.setGatewayInBt]: {
     kind: workflowStepConstants.setGatewayInBt,
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifySetGatewayInBt]
+  },
+  [workflowStepConstants.verifySetGatewayInBt]: {
+    kind: workflowStepConstants.verifySetGatewayInBt,
+    readDataFrom: [workflowStepConstants.setGatewayInBt],
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.markSuccess]: {
     kind: workflowStepConstants.markSuccess,
     onFailure: workflowStepConstants.markFailure,
-    prerequisites: [workflowStepConstants.setCoGatewayInUbt, workflowStepConstants.setGatewayInBt],
+    prerequisites: [workflowStepConstants.verifySetCoGatewayInUbt, workflowStepConstants.verifySetGatewayInBt],
     onSuccess: []
   }
 };

@@ -59,7 +59,16 @@ class SyncInView {
 
     let createEconomy = new CreateEconomy(params);
 
-    return await createEconomy.perform();
+    await createEconomy.perform();
+
+    return responseHelper.successWithData({
+      taskDone: 1,
+      taskResponseData: {
+        simpleStakeAddress: oThis.simpleStakeAddress,
+        brandedTokenContract: oThis.brandedTokenAddress,
+        chainEndpoint: chainEndPoint[0]
+      }
+    });
   }
 
   /***
