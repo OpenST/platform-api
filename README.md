@@ -25,17 +25,15 @@ source set_env_vars.sh
 
 * Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
 
-* Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
-
 ### Origin Chain Setup
 
 * Setup Origin GETH and fund necessary addresses.
-// TODO - create chain owner address. known address. chain addresses entry. remove chain owner creation from aux steps. - done
-// chain owner in alloc block - done
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/gethAndAddresses.js --originChainId 1000
 ```
+
+Copy the 'Generate Addresses Response' from the script response above and save somewhere offline.
 
 * Start Origin GETH with this script.
 ```bash
@@ -43,33 +41,28 @@ source set_env_vars.sh
 ```
 
 * Setup Simple Token (only for non production_main env)
-// TODO - remove simple token owner, simple token contract and simple token admin address db save step. - done
-// generate granter address - known address, chain addresses entry. - done
-// return simple token addresses - contract, admin and owner. - done
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/forNonProductionMain.js --originChainId 1000
 ```
 
+Copy the 'response' from the script response above and save somewhere offline.
+
 * Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev env].
-// only for dev env
-// ETH: chain owner -> granter - done
-// OST: Simple token owner -> granter (accept private key of ST owner as parameter) - done
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
 ```
 
-// for all
 * Save simple token addresses
-// save simple token addresses - contract, owner and admin - no private keys - in chain addresses - done without ST contract
 ```bash
 > source set_env_vars.sh
-> node executables/setup/origin/SaveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...' --simpleToken '0xabc...'
+> node executables/setup/origin/SaveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
-* Fund chain owner with OSTs
-// OST: Simple token owner -> chain owner (accept private key of ST owner as parameter)
+* Fund chain owner with OSTs (pass ST Owner private key in parameter)
+- For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
+
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...'
@@ -79,6 +72,13 @@ source set_env_vars.sh
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/contracts.js --originChainId 1000
+```
+
+### Verifier script for origin chain setup
+* You can verify local chain setup and contract deployment using following scripts.
+```bash
+> source set_env_vars.sh
+> node tools/verifiers/originChainSetup.js
 ```
 
 ### Auxiliary Chain Setup
@@ -94,8 +94,7 @@ source set_env_vars.sh
 > sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-* Add sealer address
-// add sealer address in known address and chain addresses
+* Add sealer address [Not for dev-environment].
 ```bash
 > source set_env_vars.sh
 > node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
@@ -107,13 +106,40 @@ source set_env_vars.sh
 > node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
 ```
 
-### Verifier scripts
+### Verifier script for auxiliary chain setup
 * You can verify local chain setup and contract deployment using following scripts.
 ```bash
 > source set_env_vars.sh
-> node tools/verifiers/originChainSetup.js
 > node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
+
+* Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
+
+### Block-scanner Setup
+
+* Run following command to start Dynamo DB.
+  ```bash
+  java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
+  ```
+
+* Create all the shared tables by running the following script: 
+    ```bash
+    # For origin chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
+    ```
+* Run the addChain service and pass all the necessary parameters:
+    ```bash
+    # For origin chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    ```
+    * Mandatory parameters: chainId, networkId
+    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
+   
+
 ### Token Setup
 * Create entry in tokens table.
 ```bash
@@ -148,28 +174,3 @@ source set_env_vars.sh
    
    economySetupRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
-
-### Block-scanner Setup
-
-* Run following command to start Dynamo DB.
-  ```bash
-  java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
-  ```
-
-* Create all the shared tables by running the following script: 
-    ```bash
-    # For origin chain
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
-    # For auxiliary chain
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
-    ```
-* Run the addChain service and pass all the necessary parameters:
-    ```bash
-    # For origin chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
-    # For auxiliary chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
-    ```
-    * Mandatory parameters: chainId, networkId
-    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
-   
