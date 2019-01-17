@@ -208,7 +208,12 @@ class Deployment {
         clientId: oThis.clientId,
         chainId: oThis.chainId,
         topic: workflowTopicConstant.economySetup,
-        requestParams: { tokenId: oThis.tokenId, chainId: oThis.chainId, clientId: oThis.clientId }
+        requestParams: {
+          tokenId: oThis.tokenId,
+          auxChainId: oThis.chainId,
+          originChainId: 1000,
+          clientId: oThis.clientId
+        }
       };
 
       let economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams);
