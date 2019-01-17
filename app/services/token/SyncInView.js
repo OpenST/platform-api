@@ -59,7 +59,7 @@ class SyncInView {
 
     let createEconomy = new CreateEconomy(params);
 
-    await createEconomy.perform();
+    return await createEconomy.perform();
   }
 
   /***

@@ -152,10 +152,9 @@ class CreateEconomy {
    */
   async _createEntryInEconomyTable() {
     const oThis = this;
-
-    await oThis.createEconomyObject.perform();
-
+    let createEconomyRsp = await oThis.createEconomyObject.perform();
     logger.step('Entry created in economies table in DynamoDB.');
+    logger.debug('createEconomyRsp', createEconomyRsp.toHash());
   }
 
   /**
