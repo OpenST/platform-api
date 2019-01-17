@@ -23,61 +23,76 @@ const steps = {
   [workflowStepConstants.simpleTokenStake]: {
     kind: workflowStepConstants.simpleTokenStake,
     onFailure: workflowStepConstants.markFailure,
-    prerequisites: [workflowStepConstants.checkApproveStatus],
     onSuccess: [workflowStepConstants.checkStakeStatus]
   },
   [workflowStepConstants.checkStakeStatus]: {
     kind: workflowStepConstants.checkStakeStatus,
     onFailure: workflowStepConstants.markFailure,
     readDataFrom: [workflowStepConstants.simpleTokenStake],
+    onSuccess: [workflowStepConstants.fetchStakeIntentMessageHash]
+  },
+  [workflowStepConstants.fetchStakeIntentMessageHash]: {
+    kind: workflowStepConstants.fetchStakeIntentMessageHash,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.simpleTokenStake],
     onSuccess: [workflowStepConstants.commitStateRoot]
   },
   [workflowStepConstants.commitStateRoot]: {
     kind: workflowStepConstants.commitStateRoot,
-    onFailure: '',
-    prerequisites: [workflowStepConstants.checkStakeStatus],
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash],
     onSuccess: [workflowStepConstants.updateCommittedStateRootInfo]
   },
   [workflowStepConstants.updateCommittedStateRootInfo]: {
     kind: workflowStepConstants.updateCommittedStateRootInfo,
-    onFailure: '',
     readDataFrom: [workflowStepConstants.commitStateRoot],
-    onSuccess: [workflowStepConstants.stPrimeProveGateway]
+    onSuccess: [workflowStepConstants.proveGatewayOnCoGateway]
   },
-  [workflowStepConstants.stPrimeProveGateway]: {
-    kind: workflowStepConstants.stPrimeProveGateway,
+  [workflowStepConstants.proveGatewayOnCoGateway]: {
+    kind: workflowStepConstants.proveGatewayOnCoGateway,
     onFailure: workflowStepConstants.markFailure,
-    prerequisites: [workflowStepConstants.updateCommittedStateRootInfo],
     onSuccess: [workflowStepConstants.checkProveGatewayStatus]
   },
   [workflowStepConstants.checkProveGatewayStatus]: {
     kind: workflowStepConstants.checkProveGatewayStatus,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.stPrimeConfirmStakeIntent]
+    readDataFrom: [workflowStepConstants.proveGatewayOnCoGateway],
+    onSuccess: [workflowStepConstants.confirmStakeIntent]
   },
-  [workflowStepConstants.stPrimeConfirmStakeIntent]: {
-    kind: workflowStepConstants.stPrimeConfirmStakeIntent,
+  [workflowStepConstants.confirmStakeIntent]: {
+    kind: workflowStepConstants.confirmStakeIntent,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.stPrimeConfirmStakeIntent]
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.simpleTokenStake],
+    onSuccess: [workflowStepConstants.checkConfirmStakeStatus]
   },
   [workflowStepConstants.checkConfirmStakeStatus]: {
     kind: workflowStepConstants.checkConfirmStakeStatus,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.stPrimeProgressStake]
+    readDataFrom: [workflowStepConstants.confirmStakeIntent],
+    onSuccess: [workflowStepConstants.progressStake]
   },
-  [workflowStepConstants.stPrimeProgressStake]: {
-    kind: workflowStepConstants.stPrimeProgressStake,
+  [workflowStepConstants.progressStake]: {
+    kind: workflowStepConstants.progressStake,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.stPrimeProgressMint]
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.simpleTokenStake],
+    onSuccess: [workflowStepConstants.checkProgressStakeStatus]
   },
   [workflowStepConstants.checkProgressStakeStatus]: {
     kind: workflowStepConstants.checkProgressStakeStatus,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.stPrimeProgressMint]
+    readDataFrom: [workflowStepConstants.progressStake],
+    onSuccess: [workflowStepConstants.progressMint]
   },
-  [workflowStepConstants.stPrimeProgressMint]: {
-    kind: workflowStepConstants.stPrimeProgressMint,
+  [workflowStepConstants.progressMint]: {
+    kind: workflowStepConstants.progressMint,
     onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.simpleTokenStake],
+    onSuccess: [workflowStepConstants.checkProgressMintStatus]
+  },
+  [workflowStepConstants.checkProgressMintStatus]: {
+    kind: workflowStepConstants.checkProgressMintStatus,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.progressMint],
     onSuccess: []
   }
 };

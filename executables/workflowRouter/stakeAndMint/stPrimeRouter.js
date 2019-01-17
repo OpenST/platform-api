@@ -12,7 +12,7 @@ const rootPrefix = '../../..',
   ProgressStake = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressStakeOnGateway'),
   ProgressMint = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressMintOnCoGateway'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
-  CheckStepStatus = require(rootPrefix + '/lib/workflow/CheckStepStatus'),
+  CheckStepStatus = require(rootPrefix + '/lib/stakeMintManagement/common/CheckStepStatus'),
   CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot');
 
 class StPrimeMintRouter extends WorkflowRouterBase {
@@ -44,6 +44,7 @@ class StPrimeMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.checkProveGatewayStatus:
       case workflowStepConstants.checkConfirmStakeStatus:
       case workflowStepConstants.checkProgressStakeStatus:
+      case workflowStepConstants.checkProgressMintStatus:
         let checkStepStatus = new CheckStepStatus(oThis.requestParams);
         return checkStepStatus.perform();
 
@@ -55,23 +56,29 @@ class StPrimeMintRouter extends WorkflowRouterBase {
         return new SimpleTokenStake(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.commitStateRoot:
-        return new CommitStateRoot(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
+        return new CommitStateRoot({
+          auxChainId: oThis.requestParams.auxChainId,
+          fromOriginToAux: 1
+        }).perform(oThis._currentStepPayloadForPendingTrx());
 
       // update status in state root commit history
       case workflowStepConstants.updateCommittedStateRootInfo:
-        let updateStateRootCommits = new UpdateStateRootCommits(oThis.requestParams);
+        let updateStateRootCommits = new UpdateStateRootCommits({
+          auxChainId: oThis.requestParams.auxChainId,
+          fromOriginToAux: 1
+        });
         return updateStateRootCommits.perform();
 
-      case workflowStepConstants.stPrimeProveGateway:
+      case workflowStepConstants.proveGatewayOnCoGateway:
         return new ProveGateway(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      case workflowStepConstants.stPrimeConfirmStakeIntent:
+      case workflowStepConstants.confirmStakeIntent:
         return new ConfirmStakeIntent(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      case workflowStepConstants.stPrimeProgressStake:
+      case workflowStepConstants.progressStake:
         return new ProgressStake(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      case workflowStepConstants.stPrimeProgressMint:
+      case workflowStepConstants.progressMint:
         return new ProgressMint(oThis.requestParams).perform();
 
       default:
