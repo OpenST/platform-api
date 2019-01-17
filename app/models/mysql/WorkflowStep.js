@@ -49,6 +49,20 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '31': workflowStepConstants.commitStateRoot,
     '32': workflowStepConstants.updateCommittedStateRootInfo,
 
+    '60': workflowStepConstants.stPrimeStakeAndMintInit,
+    '61': workflowStepConstants.stPrimeApprove,
+    '62': workflowStepConstants.simpleTokenStake,
+    '63': workflowStepConstants.stPrimeProveGateway,
+    '64': workflowStepConstants.stPrimeConfirmStakeIntent,
+    '65': workflowStepConstants.stPrimeProgressStake,
+    '66': workflowStepConstants.stPrimeProgressMint,
+
+    '80': workflowStepConstants.checkApproveStatus,
+    '81': workflowStepConstants.checkStakeStatus,
+    '82': workflowStepConstants.checkProveGatewayStatus,
+    '83': workflowStepConstants.checkConfirmStakeStatus,
+    '84': workflowStepConstants.checkProgressStakeStatus,
+
     '101': workflowStepConstants.markSuccess,
     '102': workflowStepConstants.markFailure,
 

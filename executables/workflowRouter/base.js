@@ -399,6 +399,8 @@ class workflowRouterBase {
 
     let chainId;
 
+    chainId = oThis.requestParams.fromOriginToAux ? oThis.requestParams.auxChainId : oThis.requestParams.originChainId;
+
     switch (nextStep) {
       case workflowStepConstants.economySetupInit:
       case workflowStepConstants.markSuccess:
@@ -415,6 +417,13 @@ class workflowRouterBase {
       case workflowStepConstants.saveTokenGateway:
       case workflowStepConstants.activateTokenGateway:
       case workflowStepConstants.setGatewayInBt:
+      case workflowStepConstants.stPrimeStakeAndMintInit:
+      case workflowStepConstants.stPrimeApprove:
+      case workflowStepConstants.simpleTokenStake:
+      case workflowStepConstants.stPrimeProgressStake:
+      case workflowStepConstants.checkApproveStatus:
+      case workflowStepConstants.checkStakeStatus:
+      case workflowStepConstants.checkProgressStakeStatus:
         chainId = oThis.requestParams.originChainId;
         break;
 
@@ -426,8 +435,11 @@ class workflowRouterBase {
       case workflowStepConstants.updateTokenInOstView:
       case workflowStepConstants.tokenDeployCoGateway:
       case workflowStepConstants.setCoGatewayInUbt:
-      case workflowStepConstants.commitStateRoot:
-      case workflowStepConstants.updateCommittedStateRootInfo:
+      case workflowStepConstants.stPrimeProveGateway:
+      case workflowStepConstants.stPrimeConfirmStakeIntent:
+      case workflowStepConstants.stPrimeProgressMint:
+      case workflowStepConstants.checkProveGatewayStatus:
+      case workflowStepConstants.checkConfirmStakeStatus:
         chainId = oThis.requestParams.auxChainId;
         break;
     }
