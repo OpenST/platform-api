@@ -343,9 +343,11 @@ class ConfigStrategyModel extends ModelBase {
   }
 
   /**
+   * This method updates strategy ID.
    *
-   * @param {integer} strategy_id
+   * @param {Integer} strategy_id
    * @param {Object} config_strategy_params
+   *
    * @returns {Promise<*>}
    */
   async updateStrategyId(strategy_id, config_strategy_params) {

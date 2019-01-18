@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  * This is model for workflow_setup table.
  *
@@ -13,6 +12,7 @@ const rootPrefix = '../../..',
 
 //NOTE: This is a shared table with KIT. Any changes here must be synced with model in KIT-API.
 
+// Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   statuses = {
     '1': workflowStepConstants.queuedStatus,
@@ -74,18 +74,28 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '101': workflowStepConstants.markSuccess,
     '102': workflowStepConstants.markFailure,
 
-    '1000': workflowStepConstants.testInit,
-    '1001': workflowStepConstants.s1,
-    '1002': workflowStepConstants.s2,
-    '1003': workflowStepConstants.s33,
-    '1004': workflowStepConstants.s4,
-    '1005': workflowStepConstants.s5,
-    '1006': workflowStepConstants.s6,
-    '1007': workflowStepConstants.s7
+    '110': workflowStepConstants.testInit,
+    '111': workflowStepConstants.s1,
+    '112': workflowStepConstants.s2,
+    '113': workflowStepConstants.s33,
+    '114': workflowStepConstants.s4,
+    '115': workflowStepConstants.s5,
+    '116': workflowStepConstants.s6,
+    '117': workflowStepConstants.s7
   },
   invertedKinds = util.invert(kinds);
 
+/**
+ * Class for workflow step model
+ *
+ * @class
+ */
 class WorkflowStep extends ModelBase {
+  /**
+   * Constructor for workflow step model
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
 
@@ -113,7 +123,10 @@ class WorkflowStep extends ModelBase {
   /**
    * This function will mark the step as success
    *
-   * @param id
+   * @param {Number/String} id
+   * @param {Object} updateData
+   *
+   * @returns Promise<>
    */
   async updateRecord(id, updateData) {
     const oThis = this;

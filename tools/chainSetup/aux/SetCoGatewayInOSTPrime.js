@@ -14,6 +14,7 @@ const rootPrefix = '../../..',
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3');
@@ -92,7 +93,7 @@ class SetCoGatewayInOSTPrime {
 
     return Promise.resolve(
       responseHelper.successWithData({
-        taskDone: 1
+        taskStatus: workflowStepConstants.taskDone
       })
     );
   }

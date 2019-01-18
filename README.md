@@ -207,7 +207,7 @@ Copy the 'response' from the script response above and save somewhere offline.
        clientId: 1,
        chainId: 2000,
        topic: 'workflow.economySetup',
-       requestParams: {tokenId: 1, chainId: 2000, clientId: 1}
+       requestParams: {tokenId: 1000, auxChainId: 2000, originChainId: 1000, chainId: 2000, clientId: 1}
    }
    economySetupRouterK = require('./executables/workflowRouter/economySetupRouter.js')
    economySetupRouter = new economySetupRouterK(params)

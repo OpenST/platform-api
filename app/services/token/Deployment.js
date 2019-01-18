@@ -282,7 +282,7 @@ class Deployment {
 
             workflowDetails = workflowDetails[0];
 
-            return responseHelper.successWithData({ workflow_id: workflowDetails.parent_id });
+            return responseHelper.successWithData({ workflow_id: workflowDetails.workflow_id });
 
           case new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]:
             return responseHelper.error({

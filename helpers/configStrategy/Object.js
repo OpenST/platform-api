@@ -1,18 +1,24 @@
 'use strict';
-
 /**
- * Object that gives getter methods on config strategy fetched for a chain
+ * Object that gives getter methods on config strategy fetched for a chain.
  *
  * @module helpers/configStrategy/Object
  */
-
 const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
+/**
+ * Class for object that gives getter methods on config strategy fetched for a chain.
+ *
+ * @class
+ */
 class ConfigStrategyObject {
   /**
-   * @constructor
+   * Constructor for object that gives getter methods on config strategy fetched for a chain.
+   *
    * @param configStrategy
+   *
+   * @constructor
    */
   constructor(configStrategy) {
     const oThis = this;

@@ -1,12 +1,16 @@
 'use strict';
-
+/**
+ * Factory class for workflowRouter.
+ *
+ * @module executables/workflowRouter/factory
+ */
 const program = require('commander');
 
 const rootPrefix = '../..',
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
-  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic');
+  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -24,9 +28,11 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-class workflowRouterFactory extends SubscriberBase {
+class WorkflowRouterFactory extends SubscriberBase {
   /**
    * Constructor
+   *
+   * @augments SubscriberBase
    *
    * @param params {object} - params object
    * @param params.cronProcessId {number} - cron_processes table id
@@ -123,8 +129,8 @@ class workflowRouterFactory extends SubscriberBase {
         const stateRootSyncRouter = require(rootPrefix + '/executables/workflowRouter/StateRootSyncRouter');
         return new stateRootSyncRouter(msgParams).perform();
       case workflowTopicConstant.economySetup:
-        const economySetupRouter = require(rootPrefix + '/executables/workflowRouter/economySetupRouter');
-        return new economySetupRouter(msgParams).perform();
+        const EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/economySetupRouter');
+        return new EconomySetupRouter(msgParams).perform();
       case workflowTopicConstant.stPrimeStakeAndMint:
         const stPrimeRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/stPrimeRouter');
         return new stPrimeRouter(msgParams).perform();
@@ -137,7 +143,7 @@ class workflowRouterFactory extends SubscriberBase {
 
 logger.step('Workflow Router Factory started.');
 
-new workflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform();
+new WorkflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform();
 
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');

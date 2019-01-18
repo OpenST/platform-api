@@ -8,24 +8,32 @@ const rootPrefix = '../..',
   testStepss5 = require(rootPrefix + '/lib/workflow/testSteps/s5'),
   testStepss6 = require(rootPrefix + '/lib/workflow/testSteps/s6'),
   testStepss7 = require(rootPrefix + '/lib/workflow/testSteps/s7'),
-  testStepsConfigs = require(rootPrefix + '/executables/workflowRouter/testStepsConfigs'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  workflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base');
+  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
+  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  testStepsConfigs = require(rootPrefix + '/executables/workflowRouter/testStepsConfigs');
 
-class testProcessRouter extends workflowRouterBase {
+class testProcessRouter extends WorkflowRouterBase {
   constructor(params) {
+    params['workflowKind'] = workflowConstants.testKind;
     super(params);
+  }
 
+  /**
+   * Fetch current step config for every router.
+   *
+   * @private
+   */
+  _fetchCurrentStepConfig() {
     const oThis = this;
 
     oThis.currentStepConfig = testStepsConfigs[oThis.stepKind];
   }
 
-  async stepsFactory() {
+  async _performStep() {
     const oThis = this;
 
-    console.log('-----------------------------stepsFactory--');
     switch (oThis.stepKind) {
       case workflowStepConstants.testInit:
         return oThis.insertInitStep();
@@ -41,7 +49,6 @@ class testProcessRouter extends workflowRouterBase {
       case workflowStepConstants.s5:
         return new testStepss5().perform();
       case workflowStepConstants.s6:
-        console.log('-------oThis.requestParams--in router----', JSON.stringify(oThis.requestParams));
         return new testStepss6().perform();
       case workflowStepConstants.s7:
         return new testStepss7().perform();

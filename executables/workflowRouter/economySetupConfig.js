@@ -1,5 +1,9 @@
 'use strict';
-
+/**
+ * Class for Economy setup flow config.
+ *
+ * @module executables/workflowRouter/economySetupConfig
+ */
 const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 

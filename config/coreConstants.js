@@ -207,11 +207,11 @@ class CoreConstants {
   }
 
   get OST_ORIGIN_GAS_LIMIT() {
-    return 75000000000;
+    return 4700000;
   }
 
   get OST_AUX_GAS_LIMIT() {
-    return 75000000000;
+    return 9000000;
   }
 
   get OST_AUX_STPRIME_TOTAL_SUPPLY() {
