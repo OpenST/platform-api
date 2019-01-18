@@ -118,7 +118,7 @@ class economySetupRouter extends workflowRouterBase {
 
         return new Klass({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployGateway),
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenGateway),
           kind: tokenAddressConstants.tokenGatewayContract,
           chainId: oThis.requestParams.originChainId
         }).perform();
@@ -128,7 +128,7 @@ class economySetupRouter extends workflowRouterBase {
 
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
-          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.tokenDeployCoGateway),
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenCoGateway),
           kind: tokenAddressConstants.tokenCoGatewayContract,
           chainId: oThis.requestParams.auxChainId
         }).perform();
@@ -158,7 +158,7 @@ class economySetupRouter extends workflowRouterBase {
         );
         return new deployUtilityBrandeTokenKlass(oThis.requestParams).perform();
 
-      case workflowStepConstants.tokenDeployGateway:
+      case workflowStepConstants.deployTokenGateway:
         logger.step('*** Deploy Gateway');
 
         let TokenDeployGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployGateway');
@@ -170,7 +170,7 @@ class economySetupRouter extends workflowRouterBase {
         let SyncInView = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SyncInView');
         return new SyncInView({ tokenId: oThis.requestParams.tokenId, chainId: oThis.chainId }).perform();
 
-      case workflowStepConstants.tokenDeployCoGateway:
+      case workflowStepConstants.deployTokenCoGateway:
         logger.step('*** Deploy CoGateway');
 
         let TokenDeployCoGatewayKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDeployCoGateway');

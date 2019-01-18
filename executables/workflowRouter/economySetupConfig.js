@@ -60,33 +60,33 @@ const steps = {
     kind: workflowStepConstants.saveUtilityBrandedToken,
     onFailure: workflowStepConstants.markFailure,
     readDataFrom: [workflowStepConstants.deployUtilityBrandedToken],
-    onSuccess: [workflowStepConstants.tokenDeployGateway]
+    onSuccess: [workflowStepConstants.deployTokenGateway]
   },
-  [workflowStepConstants.tokenDeployGateway]: {
-    kind: workflowStepConstants.tokenDeployGateway,
+  [workflowStepConstants.deployTokenGateway]: {
+    kind: workflowStepConstants.deployTokenGateway,
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.saveTokenGateway]
   },
   [workflowStepConstants.saveTokenGateway]: {
     kind: workflowStepConstants.saveTokenGateway,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.tokenDeployGateway],
+    readDataFrom: [workflowStepConstants.deployTokenGateway],
     onSuccess: [workflowStepConstants.updateTokenInOstView]
   },
   [workflowStepConstants.updateTokenInOstView]: {
     kind: workflowStepConstants.updateTokenInOstView,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.tokenDeployCoGateway]
+    onSuccess: [workflowStepConstants.deployTokenCoGateway]
   },
-  [workflowStepConstants.tokenDeployCoGateway]: {
-    kind: workflowStepConstants.tokenDeployCoGateway,
+  [workflowStepConstants.deployTokenCoGateway]: {
+    kind: workflowStepConstants.deployTokenCoGateway,
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.saveTokenCoGateway]
   },
   [workflowStepConstants.saveTokenCoGateway]: {
     kind: workflowStepConstants.saveTokenCoGateway,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.tokenDeployCoGateway],
+    readDataFrom: [workflowStepConstants.deployTokenCoGateway],
     onSuccess: [workflowStepConstants.activateTokenGateway]
   },
   [workflowStepConstants.activateTokenGateway]: {

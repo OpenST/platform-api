@@ -411,7 +411,7 @@ class workflowRouterBase {
       case workflowStepConstants.deployOriginBrandedToken:
       case workflowStepConstants.saveOriginTokenOrganization:
       case workflowStepConstants.saveOriginBrandedToken:
-      case workflowStepConstants.tokenDeployGateway:
+      case workflowStepConstants.deployTokenGateway:
       case workflowStepConstants.saveTokenGateway:
       case workflowStepConstants.activateTokenGateway:
       case workflowStepConstants.setGatewayInBt:
@@ -432,7 +432,7 @@ class workflowRouterBase {
       case workflowStepConstants.saveUtilityBrandedToken:
       case workflowStepConstants.saveTokenCoGateway:
       case workflowStepConstants.updateTokenInOstView:
-      case workflowStepConstants.tokenDeployCoGateway:
+      case workflowStepConstants.deployTokenCoGateway:
       case workflowStepConstants.setCoGatewayInUbt:
       case workflowStepConstants.proveGatewayOnCoGateway:
       case workflowStepConstants.confirmStakeIntent:
