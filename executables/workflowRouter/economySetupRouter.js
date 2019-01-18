@@ -21,6 +21,7 @@ const rootPrefix = '../..',
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
+  VerifyEconomySetup = require(rootPrefix + '/lib/setup/economy/VerifySetup'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
@@ -34,6 +35,8 @@ require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/PostGatewayDeploy');
 require(rootPrefix + '/app/services/token/SyncInView');
+require(rootPrefix + '/lib/setup/economy/DeployGatewayComposer');
+require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
 
 class economySetupRouter extends workflowRouterBase {
   constructor(params) {
@@ -216,6 +219,46 @@ class economySetupRouter extends workflowRouterBase {
         return new VerifyTransactionStatus({
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setGatewayInBt),
           chainId: oThis.requestParams.originChainId
+        }).perform();
+
+      case workflowStepConstants.deployGatewayComposer:
+        logger.step('*** Deploy Gateway Composer');
+
+        let DeployGatewayComposer = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployGatewayComposer');
+        return new DeployGatewayComposer(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyDeployGatewayComposer:
+        logger.step('*** Verify if Gateway Composer was deployed');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGatewayComposer),
+          chainId: oThis.requestParams.originChainId
+        }).perform();
+
+      case workflowStepConstants.setInternalActorForOwnerInUBT:
+        logger.step('*** Set Internal Actor For Owner');
+
+        let SetInternalActorForOwnerInUBT = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'SetInternalActorForOwnerInUBT'
+        );
+        return new SetInternalActorForOwnerInUBT(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifySetInternalActorForOwnerInUBT:
+        logger.step('*** Verify internal actor was set for owner');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setInternalActorForOwnerInUBT),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.verifyEconomySetup:
+        logger.step('*** Verify Economy Setup');
+
+        return new VerifyEconomySetup({
+          tokenId: oThis.requestParams.tokenId,
+          originChainId: oThis.requestParams.originChainId,
+          auxChainId: oThis.requestParams.auxChainId
         }).perform();
 
       case workflowStepConstants.markSuccess:

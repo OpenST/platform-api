@@ -109,7 +109,7 @@ const steps = {
     kind: workflowStepConstants.verifySetCoGatewayInUbt,
     readDataFrom: [workflowStepConstants.setCoGatewayInUbt],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.markSuccess]
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
   },
   [workflowStepConstants.setGatewayInBt]: {
     kind: workflowStepConstants.setGatewayInBt,
@@ -120,12 +120,44 @@ const steps = {
     kind: workflowStepConstants.verifySetGatewayInBt,
     readDataFrom: [workflowStepConstants.setGatewayInBt],
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.deployGatewayComposer]: {
+    kind: workflowStepConstants.deployGatewayComposer,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyDeployGatewayComposer]
+  },
+  [workflowStepConstants.verifyDeployGatewayComposer]: {
+    kind: workflowStepConstants.verifyDeployGatewayComposer,
+    readDataFrom: [workflowStepConstants.deployGatewayComposer],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.setInternalActorForOwnerInUBT]: {
+    kind: workflowStepConstants.setInternalActorForOwnerInUBT,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifySetInternalActorForOwnerInUBT]
+  },
+  [workflowStepConstants.verifySetInternalActorForOwnerInUBT]: {
+    kind: workflowStepConstants.verifySetInternalActorForOwnerInUBT,
+    readDataFrom: [workflowStepConstants.setInternalActorForOwnerInUBT],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.verifyEconomySetup]: {
+    kind: workflowStepConstants.verifyEconomySetup,
+    prerequisites: [
+      workflowStepConstants.verifySetCoGatewayInUbt,
+      workflowStepConstants.verifySetGatewayInBt,
+      workflowStepConstants.verifyDeployGatewayComposer,
+      workflowStepConstants.verifySetInternalActorForOwnerInUBT
+    ],
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.markSuccess]: {
     kind: workflowStepConstants.markSuccess,
     onFailure: workflowStepConstants.markFailure,
-    prerequisites: [workflowStepConstants.verifySetCoGatewayInUbt, workflowStepConstants.verifySetGatewayInBt],
     onSuccess: []
   }
 };

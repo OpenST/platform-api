@@ -45,6 +45,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '19': workflowStepConstants.verifySetGatewayInBt,
     '20': workflowStepConstants.setCoGatewayInUbt,
     '21': workflowStepConstants.verifySetCoGatewayInUbt,
+    '22': workflowStepConstants.deployGatewayComposer,
+    '23': workflowStepConstants.verifyDeployGatewayComposer,
+    '24': workflowStepConstants.setInternalActorForOwnerInUBT,
+    '25': workflowStepConstants.verifySetInternalActorForOwnerInUBT,
+    '26': workflowStepConstants.verifyEconomySetup,
 
     '30': workflowStepConstants.commitStateRootInit,
     '31': workflowStepConstants.commitStateRoot,
