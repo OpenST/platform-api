@@ -10,7 +10,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CreateEconomy = require(rootPrefix + '/tools/economySetup/CreateEconomy'),
+  CreateInView = require(rootPrefix + '/lib/setup/economy/CreateInView'),
   TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
@@ -57,15 +57,16 @@ class SyncInView {
         chainEndpoint: chainEndPoint[0]
       };
 
-    let createEconomy = new CreateEconomy(params);
+    let createInView = new CreateInView(params);
 
-    await createEconomy.perform();
+    await createInView.perform();
 
     return responseHelper.successWithData({
       taskDone: 1,
       taskResponseData: {
         simpleStakeAddress: oThis.simpleStakeAddress,
         brandedTokenContract: oThis.brandedTokenAddress,
+        utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
         chainEndpoint: chainEndPoint[0]
       }
     });
@@ -84,15 +85,17 @@ class SyncInView {
 
     oThis.simpleStakeAddress = getAddrRsp.data[tokenAddressConstants.simpleStakeContract];
     oThis.brandedTokenAddress = getAddrRsp.data[tokenAddressConstants.brandedTokenContract];
+    oThis.utilityBrandedTokenAddress = getAddrRsp.data[tokenAddressConstants.utilityBrandedTokenContract];
 
-    if (!oThis.simpleStakeAddress || !oThis.brandedTokenAddress) {
+    if (!oThis.simpleStakeAddress || !oThis.brandedTokenAddress || !oThis.utilityBrandedTokenAddress) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_es_siv_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
             simpleStakeAddress: oThis.simpleStakeAddress,
-            brandedTokenAddress: oThis.brandedTokenAddress
+            brandedTokenAddress: oThis.brandedTokenAddress,
+            utilityBrandedTokenAddress: oThis.utilityBrandedTokenAddress
           }
         })
       );
