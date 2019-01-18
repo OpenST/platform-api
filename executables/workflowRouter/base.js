@@ -58,11 +58,6 @@ class WorkflowRouterBase {
 
     oThis.requestParams = params.requestParams || {};
 
-    console.log('======================================================');
-    console.log('===============params=========', params);
-    console.log('======================================================');
-    console.log('=================oThis.requestParams================================', oThis.requestParams);
-
     oThis.taskDone = false;
     oThis.stepsToBePerformedOnSuccess = [];
     oThis.stepsToBePerformedOnFailure = [];
@@ -120,7 +115,7 @@ class WorkflowRouterBase {
 
     oThis._clubRequestParamsFromDependencies();
 
-    await oThis._decideChainId(oThis.stepKind);
+    await oThis._decideChainId();
 
     await oThis._performStepIfReadyToStart();
 
@@ -209,9 +204,6 @@ class WorkflowRouterBase {
         })
       );
     }
-
-    console.log('=======oThis.workFlow.request_params======', oThis.workFlow.request_params);
-    console.log('=====JSON.parse(oThis.workFlow.request_params)===', JSON.parse(oThis.workFlow.request_params));
 
     oThis.requestParams = JSON.parse(oThis.workFlow.request_params);
     oThis.clientId = oThis.workFlow.client_id;
@@ -308,11 +300,6 @@ class WorkflowRouterBase {
       let step = oThis.workflowStepKindToRecordMap[stepKind];
 
       if (step.response_data) {
-        console.log('================111111111==================================================');
-        console.log('=====================11111111=============================================');
-        console.log('==================step.response_data======================================', step.response_data);
-        console.log('==================11111111================================================');
-        console.log('================111111111==================================================');
         Object.assign(oThis.requestParams, JSON.parse(step.response_data));
       }
     }
@@ -333,11 +320,6 @@ class WorkflowRouterBase {
         step = oThis.workflowStepKindToRecordMap[dependencyKind];
 
       if (step.response_data) {
-        console.log('================2222222==================================================');
-        console.log('=====================22222222=============================================');
-        console.log('==================step.response_data======================================', step.response_data);
-        console.log('==================2222222222================================================');
-        console.log('================2222222222==================================================');
         Object.assign(oThis.requestParams, JSON.parse(step.response_data));
       }
     }
@@ -418,7 +400,7 @@ class WorkflowRouterBase {
   _updateCurrentStep() {
     const oThis = this;
 
-    // Nothing to update
+    // Nothing to update.
     if (basicHelper.isEmptyObject(oThis.currentStepDataToBeUpdated) || !oThis.currentStepId) return Promise.resolve();
 
     return new WorkflowStepsModel().updateRecord(oThis.currentStepId, oThis.currentStepDataToBeUpdated);
@@ -429,10 +411,9 @@ class WorkflowRouterBase {
    *
    * @private
    */
-  _decideChainId(stepKind) {
+  _decideChainId() {
     const oThis = this;
-    console.log('==================++++++++++++++==========8888888888========', oThis.requestParams);
-    switch (stepKind) {
+    switch (oThis.stepKind) {
       case workflowStepConstants.generateTokenAddresses:
       case workflowStepConstants.deployOriginTokenOrganization:
       case workflowStepConstants.saveOriginTokenOrganization:
@@ -484,6 +465,7 @@ class WorkflowRouterBase {
           : oThis.requestParams.originChainId;
         break;
     }
+    // We are assigning oThis.chainId to requestParams because requestParams should contain the chainId that the current step needs to use. oThis.requestParams is being updated with the previous steps' chainId in two methods above, namely: _validateAndSanitize and _clubRequestParamsFromDependencies.
     oThis.requestParams.chainId = oThis.chainId;
   }
 
@@ -578,7 +560,7 @@ class WorkflowRouterBase {
   }
 
   /**
-   * Check dependencies
+   * Check dependencies.
    *
    * @param nextStep
    *
@@ -613,9 +595,9 @@ class WorkflowRouterBase {
       if (prerequisitesRecords.length !== nextStepDetails.prerequisites.length) {
         return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
       }
-      for (let i = 0; i < prerequisitesRecords.length; i++) {
+      for (let index = 0; index < prerequisitesRecords.length; index++) {
         if (
-          prerequisitesRecords[i].status !=
+          prerequisitesRecords[index].status !=
           new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus]
         ) {
           return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
