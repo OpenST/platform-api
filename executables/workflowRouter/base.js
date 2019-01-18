@@ -429,19 +429,23 @@ class WorkflowRouterBase {
    *
    * @private
    */
-  _decideChainId(nextStep) {
+  _decideChainId(stepKind) {
     const oThis = this;
     console.log('==================++++++++++++++==========8888888888========', oThis.requestParams);
-    switch (nextStep) {
+    switch (stepKind) {
       case workflowStepConstants.generateTokenAddresses:
       case workflowStepConstants.deployOriginTokenOrganization:
-      case workflowStepConstants.deployOriginBrandedToken:
       case workflowStepConstants.saveOriginTokenOrganization:
+      case workflowStepConstants.deployOriginBrandedToken:
       case workflowStepConstants.saveOriginBrandedToken:
       case workflowStepConstants.deployTokenGateway:
       case workflowStepConstants.saveTokenGateway:
       case workflowStepConstants.activateTokenGateway:
+      case workflowStepConstants.verifyActivateTokenGateway:
       case workflowStepConstants.setGatewayInBt:
+      case workflowStepConstants.verifySetGatewayInBt:
+      case workflowStepConstants.deployGatewayComposer:
+      case workflowStepConstants.verifyDeployGatewayComposer:
       case workflowStepConstants.stPrimeStakeAndMintInit:
       case workflowStepConstants.stPrimeApprove:
       case workflowStepConstants.simpleTokenStake:
@@ -457,16 +461,18 @@ class WorkflowRouterBase {
       case workflowStepConstants.saveAuxTokenOrganization:
       case workflowStepConstants.deployUtilityBrandedToken:
       case workflowStepConstants.saveUtilityBrandedToken:
+      case workflowStepConstants.deployTokenCoGateway:
       case workflowStepConstants.saveTokenCoGateway:
       case workflowStepConstants.updateTokenInOstView:
-      case workflowStepConstants.deployTokenCoGateway:
       case workflowStepConstants.setCoGatewayInUbt:
+      case workflowStepConstants.verifySetCoGatewayInUbt:
+      case workflowStepConstants.setInternalActorForOwnerInUBT:
+      case workflowStepConstants.verifySetInternalActorForOwnerInUBT:
       case workflowStepConstants.proveGatewayOnCoGateway:
       case workflowStepConstants.confirmStakeIntent:
       case workflowStepConstants.progressMint:
       case workflowStepConstants.checkProveGatewayStatus:
       case workflowStepConstants.checkConfirmStakeStatus:
-      case workflowStepConstants.verifySetCoGatewayInUbt:
       case workflowStepConstants.checkProgressMintStatus:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
