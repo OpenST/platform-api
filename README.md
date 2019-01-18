@@ -177,6 +177,26 @@ Copy the 'response' from the script response above and save somewhere offline.
 > node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
+* St' Stake and Mint
+```bash
+> source set_env_vars.sh
+> node
+   params = {
+          stepKind: 'stPrimeStakeAndMintInit',
+          taskStatus: 'taskReadyToStart',
+          clientId: 0,
+          chainId: 1000,
+          topic: 'workflow.stPrimeStakeAndMint',
+          requestParams: {stakerAddress: '0x462901a903d0D772E194497A9254238D01220D57', 
+          originChainId: 1000, auxChainId: 2000, facilitator: '0x462901a903d0D772E194497A9254238D01220D57', 
+          amountToStake: '1000000000000000000000', beneficiary: '0xB32C00C0b1532fa6BACA7F0dF065d3B8a3456cBf'}
+      }
+   stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/stPrimeRouter')
+   stPrimeRouter = new stPrimeRouterK(params)
+   
+   stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
+```
+
 * Start Economy Setup
 ```bash
 > source set_env_vars.sh
