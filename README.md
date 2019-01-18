@@ -48,7 +48,7 @@ Copy the 'Generate Addresses Response' from the script response above and save s
 
 Copy the 'response' from the script response above and save somewhere offline.
 
-* Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev env].
+* Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev-environment].
 ```bash
 > source set_env_vars.sh
 > node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
@@ -61,7 +61,7 @@ Copy the 'response' from the script response above and save somewhere offline.
 ```
 
 * Fund chain owner with OSTs (pass ST Owner private key in parameter)
-- For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
+    - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
 
 ```bash
 > source set_env_vars.sh
@@ -74,8 +74,8 @@ Copy the 'response' from the script response above and save somewhere offline.
 > node executables/setup/origin/contracts.js --originChainId 1000
 ```
 
-### Verifier script for origin chain setup
-* You can verify local chain setup and contract deployment using following scripts.
+* Verifier script for origin chain setup
+    - You can verify local chain setup and contract deployment using following scripts.
 ```bash
 > source set_env_vars.sh
 > node tools/verifiers/originChainSetup.js
@@ -83,7 +83,7 @@ Copy the 'response' from the script response above and save somewhere offline.
 
 ### Auxiliary Chain Setup
 
-* Setup Aux GETH and necessary addresses
+* Setup Aux GETH and necessary addresses.
 ```bash
 > source set_env_vars.sh
 > node executables/setup/aux/gethAndAddresses.js --originChainId 1000 --auxChainId 2000
@@ -106,8 +106,8 @@ Copy the 'response' from the script response above and save somewhere offline.
 > node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
 ```
 
-### Verifier script for auxiliary chain setup
-* You can verify local chain setup and contract deployment using following scripts.
+* Verifier script for auxiliary chain setup
+    - You can verify local chain setup and contract deployment using following script.
 ```bash
 > source set_env_vars.sh
 > node tools/verifiers/auxChainSetup.js --auxChainId 2000
