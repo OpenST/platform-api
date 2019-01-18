@@ -48,16 +48,16 @@ class SyncInView {
 
     await oThis._setAddresses();
 
-    let chainEndPoint = await oThis._getRpcProvider(),
-      params = {
-        tokenId: oThis.tokenId,
-        chainId: oThis.chainId,
-        simpleStakeAddress: oThis.simpleStakeAddress,
-        brandedTokenContract: oThis.brandedTokenAddress,
-        chainEndpoint: chainEndPoint[0]
-      };
+    let chainEndPoint = await oThis._getRpcProvider();
 
-    let createInView = new CreateInView(params);
+    let createInView = new CreateInView({
+      tokenId: oThis.tokenId,
+      chainId: oThis.chainId,
+      simpleStakeAddress: oThis.simpleStakeAddress,
+      brandedTokenContract: oThis.brandedTokenAddress,
+      utilityBrandedTokenContract: oThis.utilityBrandedTokenContract,
+      chainEndpoint: chainEndPoint[0]
+    });
 
     await createInView.perform();
 
