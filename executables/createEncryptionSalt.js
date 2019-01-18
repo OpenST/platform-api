@@ -23,7 +23,8 @@ const InsertSaltID = {
       let insertedRec = await new EncryptionSaltModel()
         .insert({
           kind: encryptionSaltConst.invertedKinds[encryptionSaltConst.configStrategyKind],
-          salt: addressSalt
+          salt: addressSalt,
+          client_id: 0
         })
         .fire();
 

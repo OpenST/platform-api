@@ -121,7 +121,7 @@ class TokenAddress extends ModelBase {
       .insert({
         token_id: params.tokenId,
         kind: params.kind,
-        address: params.address,
+        address: params.address.toLowerCase(),
         known_address_id: params.knownAddressId
       })
       .fire();
