@@ -75,8 +75,8 @@ class GethManager {
     chainGenesisLocation,
     sealerAddress,
     chainOwnerAddress,
-    allocAddressToAmountMap,
-    blockGenerationTime
+    blockGenerationTime,
+    allocAddressToAmountMap
   ) {
     const gasLimitOn = {
       aux: coreConstants.OST_AUX_GAS_LIMIT,
@@ -208,8 +208,8 @@ class GethManager {
       chainGenesisLocation,
       sealerAddress,
       chainOwnerAddress,
-      allocAddressToAmountMap,
-      blockGenerationTime
+      blockGenerationTime,
+      allocAddressToAmountMap
     );
 
     // Alloc balance in genesis files.
