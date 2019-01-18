@@ -46,7 +46,7 @@ Copy the 'Generate Addresses Response' from the script response above and save s
 > node executables/setup/origin/forNonProductionMain.js --originChainId 1000
 ```
 
-Copy the 'response' from the script response above and save somewhere offline.
+Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev-environment].
 ```bash
