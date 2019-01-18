@@ -18,7 +18,12 @@ router.get('/details', function(req, res, next) {
 router.post('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'TokenDeployment', 'r_it_1'));
+  Promise.resolve(routeHelper.perform(req, res, next, 'TokenDeployment', 'r_it_2'));
 });
 
+router.post('/mint', function(req, res, next) {
+  req.decodedParams.apiName = 'startMint';
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'StartMint', 'r_it_3'));
+});
 module.exports = router;
