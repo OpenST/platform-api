@@ -87,7 +87,7 @@ class ChainAddress extends ModelBase {
         aux_chain_id: params.auxChainId,
         kind: addressKindInt,
         chain_kind: chainAddressConst.invertedChainKinds[params.chainKind],
-        address: params.address,
+        address: params.address.toLowerCase(),
         status: chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
       })
       .fire();

@@ -23,6 +23,27 @@ class KnownAddress extends ModelBase {
       .where(['address IN (?)', addresses])
       .fire();
   }
+
+  /***
+   *
+   * @param {Object} params
+   * @param {String} params.ethAddress
+   * @param {String} params.privateKeyE
+   * @param {String} params.addressSalt
+   *
+   * @param params
+   */
+  insertAddress(params) {
+    const oThis = this;
+
+    return oThis
+      .insert({
+        address: params.ethAddress.toLowerCase(),
+        private_key: params.privateKeyE,
+        encryption_salt: params.addressSalt
+      })
+      .fire();
+  }
 }
 
 module.exports = KnownAddress;
