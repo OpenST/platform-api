@@ -141,6 +141,24 @@ Copy the 'response' from the script response above and save somewhere offline.
     * Mandatory parameters: chainId, networkId
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
    
+### Run block-scanner
+* Run Block Parser
+```bash
+> source set_env_vars.sh
+> node executables/blockScanner/BlockParser.js --cronProcessId 1
+```
+
+* Run Transaction Parser
+```bash
+> source set_env_vars.sh
+> node executables/blockScanner/TransactionParser.js --cronProcessId 2
+```
+
+* Run Finalizer
+```bash
+> source set_env_vars.sh
+> node executables/blockScanner/Finalizer.js --cronProcessId 3
+```
 
 ### Token Setup
 * Create entry in tokens table.
