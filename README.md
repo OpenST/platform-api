@@ -177,7 +177,7 @@ Copy the 'response' from the script response above and save somewhere offline.
    stPrimeRouter = new stPrimeRouterK(params)
    
    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
-
+```
 
 * Start Economy Setup
 ```bash
