@@ -12,7 +12,7 @@
     "@openstfoundation/openst-cache": "1.0.6-beta.13",
     "@openstfoundation/openst-notification": "1.0.6-beta.10",
     "@openstfoundation/openst-storage": "1.0.2-beta.29",
-    "@openstfoundation/mosaic-tbd": "https://github.com/OpenSTFoundation/mosaic-tbd.git#master",
+    "@openstfoundation/mosaic-tbd": "https://github.com/OpenSTFoundation/mosaic-tbd.git",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@openstfoundation/mosaic-facilitator.js": "https://github.com/OpenSTFoundation/mosaic-facilitator.js.git#master",
     "@openstfoundation/branded-token.js": "https://github.com/OpenSTFoundation/branded-token.js.git#initial_setup",
