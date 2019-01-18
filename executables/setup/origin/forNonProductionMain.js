@@ -23,6 +23,6 @@ if (!program.originChainId) {
 }
 
 new ForNonProductionMain(program.originChainId).perform().then(function(response) {
-  logger.log('response:', response);
+  logger.log('Setup Simple Token response:', response);
   process.exit(0);
 });

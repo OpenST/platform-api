@@ -14,7 +14,8 @@ const rootPrefix = '../..',
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   localSetupHelper = require(rootPrefix + '/tools/localSetup/helper'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
 // Declare variables.
 const hexStartsWith = '0x',
@@ -74,15 +75,13 @@ class GethManager {
     chainGenesisLocation,
     sealerAddress,
     chainOwnerAddress,
-    allocAddressToAmountMap
+    allocAddressToAmountMap,
+    blockGenerationTime
   ) {
     const gasLimitOn = {
       aux: coreConstants.OST_AUX_GAS_LIMIT,
       origin: coreConstants.OST_ORIGIN_GAS_LIMIT
     };
-
-    //TODO: @dhananjay - fetch this from config.
-    let blockGenerationTime = chainType === 'aux' ? '3' : '5';
 
     let allocAddress, allocAmount;
     for (let allocationAddress in allocAddressToAmountMap) {
@@ -170,7 +169,12 @@ class GethManager {
       chainGenesisTemplateLocation = genesisTemplateLocation + '/poaGenesisTemplate' + '.json',
       chainGenesisLocation = chainFolderAbsolutePath + '/genesis' + '.json';
 
-    let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind;
+    let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind,
+      chainTypeString = chainType === 'aux' ? 'auxGeth' : 'originGeth';
+
+    let chainConfigStrategy = await oThis.fetchConfig(chainId),
+      blockGenerationTime = chainConfigStrategy[chainTypeString]['blockGenerationTime'];
+
     // Adds sealer address to the DB.
     await new ChainAddressModel().insertAddress({
       chainId: chainId,
@@ -204,12 +208,27 @@ class GethManager {
       chainGenesisLocation,
       sealerAddress,
       chainOwnerAddress,
-      allocAddressToAmountMap
+      allocAddressToAmountMap,
+      blockGenerationTime
     );
 
     // Alloc balance in genesis files.
     logger.info('* Init ' + chainType + '-' + chainId + ' chain.');
     oThis._initChain(chainFolderAbsolutePath, chainGenesisLocation);
+  }
+
+  /**
+   * Fetches config strategy based on chainId.
+   *
+   * @param {Number} chainId
+   *
+   * @returns {Promise<void>}
+   */
+  async fetchConfig(chainId) {
+    const strategyByChainHelperObj = new StrategyByChainHelper(chainId),
+      configStrategyResp = await strategyByChainHelperObj.getComplete();
+
+    return configStrategyResp.data;
   }
 }
 

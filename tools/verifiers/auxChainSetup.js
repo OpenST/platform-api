@@ -388,7 +388,7 @@ class AuxChainSetup {
     logger.log('* Validating token address in Gateway *');
     let token = await gatewayContract.methods.token().call({});
 
-    if (token != simpleTokenContractAdress) {
+    if (token.toLowerCase() != simpleTokenContractAdress.toLowerCase()) {
       logger.error('Token is not set to simple token');
       Promise.reject();
     }
@@ -396,7 +396,7 @@ class AuxChainSetup {
     logger.log('* Validating base token address in Gateway *');
     let baseToken = await gatewayContract.methods.baseToken().call({});
 
-    if (baseToken != simpleTokenContractAdress) {
+    if (baseToken.toLowerCase() != simpleTokenContractAdress.toLowerCase()) {
       logger.error('Base token is not set to simple token');
       Promise.reject();
     }

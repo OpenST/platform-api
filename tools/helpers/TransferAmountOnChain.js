@@ -20,8 +20,6 @@ class TransferAmountOnChain {
       }),
       chainOwnerAddress = chainOwnerAddressRsp.data.address;
 
-    logger.debug('Fetched Chain Owner Address from database-----', chainOwnerAddress);
-
     let signerWeb3Object = new SignerWeb3Provider(provider, chainOwnerAddress),
       web3Instance = await signerWeb3Object.getInstance();
 
