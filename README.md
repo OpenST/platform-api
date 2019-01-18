@@ -154,10 +154,16 @@ Copy the 'response' from the script response above and save somewhere offline.
 > node executables/blockScanner/TransactionParser.js --cronProcessId 2
 ```
 
-* Run Finalizer
+* Run Auxiliary Finalizer
 ```bash
 > source set_env_vars.sh
 > node executables/blockScanner/Finalizer.js --cronProcessId 3
+```
+
+* Run Origin Finalizer
+```bash
+> source set_env_vars.sh
+> node executables/blockScanner/Finalizer.js --cronProcessId 6
 ```
 
 ### Token Setup
