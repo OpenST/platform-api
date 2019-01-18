@@ -23,6 +23,6 @@ if (!program.originChainId) {
 }
 
 new OriginGethSetup(program.originChainId).perform().then(function(response) {
-  logger.log('response:', response);
+  logger.log('Generate Addresses Response:', response);
   process.exit(0);
 });
