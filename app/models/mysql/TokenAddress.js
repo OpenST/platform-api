@@ -15,9 +15,12 @@ const rootPrefix = '../../..',
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = {
     '1': tokenAddressConstants.ownerAddressKind,
-    '2': tokenAddressConstants.adminAddressKind,
-    '3': tokenAddressConstants.workerAddressKind,
-    '4': tokenAddressConstants.whiteListedAddressKind,
+    '2': tokenAddressConstants.originAdminAddressKind,
+    '3': tokenAddressConstants.auxAdminAddressKind,
+    '4': tokenAddressConstants.originWorkerAddressKind,
+    '5': tokenAddressConstants.auxWorkerAddressKind,
+    '6': tokenAddressConstants.auxFunderAddressKind,
+    '7': tokenAddressConstants.whiteListedAddressKind,
 
     //Contract Kinds
     '51': tokenAddressConstants.originOrganizationContract,
