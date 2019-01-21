@@ -274,7 +274,7 @@ function addAuxConfig(auxChainId, auxGroupId) {
         "chainId": auxChainId,
         "client": "geth",
         "blockGenerationTime": 3,
-        "finalizeAfterBlocks": 24
+        "finalizeAfterBlocks": 6
       }
     };
     let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
