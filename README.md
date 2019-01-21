@@ -34,6 +34,8 @@ source set_env_vars.sh
 
 * Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
 
+* Update the 'is_available_for_allocation' status in 'config_groups' table to '1'.
+
 ### Origin Chain Setup
 
 * Setup Origin GETH and fund necessary addresses.
