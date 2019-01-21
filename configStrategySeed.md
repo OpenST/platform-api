@@ -191,7 +191,7 @@ function addGlobalConfig() {
   // Origin Chain specific dynamoDB config
   let p8 = (function insertOriginChainDynamoDb() {
     let originDynamoConfigDetails = {
-      "originDynamo": {
+      "originDynamodb": {
         "endpoint": "http://localhost:8000",
         "region": "localhost",
         "apiKey": "X",
@@ -213,7 +213,7 @@ function addGlobalConfig() {
     };
     
     let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
-    new ConfigStrategyCrud(globalChainId, globalGroupId).addForKind('originDynamo', originDynamoConfigDetails, 1);
+    new ConfigStrategyCrud(globalChainId, globalGroupId).addForKind('originDynamodb', originDynamoConfigDetails, 1);
   })();
   
   promiseArray.push(p8);
