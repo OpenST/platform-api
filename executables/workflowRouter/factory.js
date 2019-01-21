@@ -132,7 +132,7 @@ class WorkflowRouterFactory extends SubscriberBase {
 
     switch (msgParams.topic) {
       case workflowTopicConstant.test:
-        const testProcessRouter = require(rootPrefix + '/executables/workflowRouter/testProcessRouter');
+        const testProcessRouter = require(rootPrefix + '/executables/workflowRouter/TestProcessRouter');
         return new testProcessRouter(msgParams).perform();
       case workflowTopicConstant.stateRootSync:
         const stateRootSyncRouter = require(rootPrefix + '/executables/workflowRouter/StateRootSyncRouter');

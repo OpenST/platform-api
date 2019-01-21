@@ -82,7 +82,7 @@ class TransferAmountOnChain {
     await web3Instance.eth
       .sendTransaction(ostTransferParams)
       .then(function(response) {
-        logger.log('** OST successfully funded to address -> ', response.to);
+        logger.log('** OST successfully funded to address -> ', toAddress);
         Promise.resolve();
       })
       .catch(function(error) {

@@ -256,7 +256,7 @@ class WorkflowRouterBase {
 
     if (!oThis.taskStatus || !allowedTaskStatus) {
       logger.error(
-        'Unsupported Task status ' + oThis.taskStatus + ' inside executables/workflowRouter/testProcessRouter.js'
+        'Unsupported Task status ' + oThis.taskStatus + ' inside executables/workflowRouter/TestProcessRouter.js'
       );
       return Promise.reject(
         responseHelper.error({

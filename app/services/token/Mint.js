@@ -13,8 +13,6 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
@@ -83,7 +81,9 @@ class Mint {
       );
     }
 
-    oThis.responseData['simple_token_contract_address'] = chainAddressesRsp.data[chainAddressConst.baseContractKind];
+    oThis.responseData['contract_address'] = {
+      simple_token: { address: chainAddressesRsp.data[chainAddressConst.baseContractKind] }
+    };
   }
 
   /**
@@ -97,7 +97,7 @@ class Mint {
     let gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
-    oThis.responseData['origin_chain_gas_price'] = gasPriceRsp.data;
+    oThis.responseData['gas_price'] = { origin: gasPriceRsp.data };
   }
 }
 
