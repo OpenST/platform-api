@@ -69,7 +69,10 @@ class RouteMethods {
 
     console.log('req.serviceParams====req.serviceParams=================================', req.serviceParams);
 
-    let configStrategy = {}; //await oThis._fetchConfigStrategy(req.serviceParams['client_id']);
+    let configStrategy = {};
+    if (req.decodedParams.configStrategyRequired) {
+      configStrategy = await oThis._fetchConfigStrategy(req.serviceParams['client_id']);
+    }
 
     let instanceComposer = new InstanceComposer(configStrategy);
 

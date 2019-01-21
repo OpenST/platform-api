@@ -13,24 +13,28 @@ require(rootPrefix + '/app/services/token/StartMint');
 /* Get aggregated token details*/
 router.get('/details', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDetailsAggregated';
+  req.decodedParams.configStrategyRequired = true;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenAggregatedDetails', 'r_it_1'));
 });
 
-router.post('/deploy', function(req, res, next) {
+router.get('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
+  //req.decodedParams.configStrategyRequired = true;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDeployment', 'r_it_2'));
 });
 
 router.post('/mint', function(req, res, next) {
   req.decodedParams.apiName = 'startMint';
+  req.decodedParams.configStrategyRequired = true;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'StartMint', 'r_it_3'));
 });
 
 router.get('/mint', function(req, res, next) {
   req.decodedParams.apiName = 'mint';
+  req.decodedParams.configStrategyRequired = true;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'Mint', 'r_it_4'));
 });

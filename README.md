@@ -216,7 +216,8 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 
 * Start factory
 ```bash
-  node executables/workflowRouter/factory.js --cronProcessId 5
+> source set_env_vars.sh
+> node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
 * Temporary change

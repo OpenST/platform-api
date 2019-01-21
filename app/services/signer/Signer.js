@@ -29,6 +29,7 @@ class Signer {
   constructor(params) {
     const oThis = this;
 
+    oThis.clientId = params.client_id;
     oThis.signer = params.signer.toLowerCase();
     oThis.personalSign = params.personal_sign;
     oThis.messageToSign = params.message_to_sign;

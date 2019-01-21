@@ -37,6 +37,11 @@ const errorConfig = {
     code: 'invalid',
     message: 'Invalid Token Symbol'
   },
+  missing_token_id: {
+    parameter: 'token_id',
+    code: 'missing',
+    message: 'Missing Token Id'
+  },
   missing_token_symbol: {
     parameter: 'token_symbol',
     code: 'missing',

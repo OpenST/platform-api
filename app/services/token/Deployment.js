@@ -14,8 +14,10 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
-  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -71,7 +73,7 @@ class Deployment {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis.startTokenDeployment();
+    return await oThis.startTokenDeployment();
   }
 
   /**
@@ -150,13 +152,14 @@ class Deployment {
    * @private
    */
   async _fetchWorkflowDetails(clientId) {
-    return await new WorkflowStepsModel()
+    return await new WorkflowModel()
       .select('*')
       .where({
         client_id: clientId
       })
       .order_by('created_at DESC')
-      .limit(1);
+      .limit(1)
+      .fire();
   }
 
   /**
@@ -179,26 +182,19 @@ class Deployment {
 
   /***
    *
-   * config strategy
-   *
-   * @return {object}
-   */
-  get _configStrategy() {
-    const oThis = this;
-    return oThis.ic().configStrategy;
-  }
-
-  /***
-   *
    * object of config strategy klass
    *
    * @return {object}
+   *
+   * @Sets oThis.originChainId
    */
-  get _configStrategyObject() {
+  async _fetchOriginChainId() {
     const oThis = this;
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
-    return oThis.configStrategyObj;
+    let csHelper = new ConfigStrategyHelper(0),
+      csResponse = await csHelper.getForKind(configStrategyConstants.constants),
+      configConstants = csResponse.data[configStrategyConstants.constants];
+
+    oThis.originChainId = configConstants.originChainId;
   }
 
   /**
@@ -224,6 +220,8 @@ class Deployment {
     if (+tokenModelResp.affectedRows === 1) {
       // Implicit string to int conversion.
 
+      await oThis._fetchOriginChainId();
+
       // Fetch config group for the client.
       await oThis._insertAndFetchConfigGroup();
 
@@ -236,7 +234,7 @@ class Deployment {
         requestParams: {
           tokenId: oThis.tokenId,
           auxChainId: oThis.chainId,
-          originChainId: oThis._configStrategyObject.originChainId,
+          originChainId: oThis.originChainId,
           clientId: oThis.clientId
         }
       };
@@ -264,11 +262,12 @@ class Deployment {
       else {
         tokenDetails = tokenDetails[0];
 
-        switch (tokenDetails.status) {
+        switch (tokenDetails.status.toString()) {
           case new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]:
             // Fetch latest workflow details for the client.
             let workflowDetails = await oThis._fetchWorkflowDetails(oThis.clientId);
 
+            console.log('---------workflowDetails--', workflowDetails);
             // Workflow for the client has not been initiated yet.
             if (workflowDetails.length !== 1) {
               logger.error('Workflow for the client has not been initiated yet.');

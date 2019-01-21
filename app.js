@@ -33,6 +33,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   customMiddleware = require(rootPrefix + '/helpers/customMiddleware'),
   SystemServiceStatusesCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/systemServiceStatuses'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
+  environmentInfo = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal);
 
@@ -297,7 +298,7 @@ if (cluster.isMaster) {
   app.use('/', internalRoutes);
 
   app.use(
-    '/internal',
+    '/testnet/api/internal',
     sanitizer(),
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
@@ -307,7 +308,7 @@ if (cluster.isMaster) {
   );
 
   app.use(
-    '/v2',
+    '/testnet/api/v2',
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     validateApiSignature,
