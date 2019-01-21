@@ -215,7 +215,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
        topic: 'workflow.economySetup',
        requestParams: {tokenId: 1000, auxChainId: 2000, originChainId: 1000, chainId: 2000, clientId: 1}
    }
-   economySetupRouterK = require('./executables/workflowRouter/economySetupRouter.js')
+   economySetupRouterK = require('./executables/workflowRouter/EconomySetupRouter.js')
    economySetupRouter = new economySetupRouterK(params)
    
    economySetupRouter.perform().then(console.log).catch(function(err){console.log('err', err)})

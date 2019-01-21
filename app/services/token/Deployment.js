@@ -20,7 +20,7 @@ const rootPrefix = '../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
-  EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/economySetupRouter'),
+  EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup');
 
 /**

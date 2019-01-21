@@ -17,6 +17,7 @@ const rootPrefix = '../..',
   SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  VerifyEconomySetup = require(rootPrefix + '/lib/setup/economy/VerifySetup'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -24,7 +25,6 @@ const rootPrefix = '../..',
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
-  VerifyEconomySetup = require(rootPrefix + '/lib/setup/economy/VerifySetup'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
@@ -34,15 +34,15 @@ require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
 require(rootPrefix + '/lib/setup/economy/DeployCoGateway');
 require(rootPrefix + '/lib/setup/economy/ActivateGateway');
 require(rootPrefix + '/lib/setup/economy/PostGatewayDeploy');
+require(rootPrefix + '/lib/setup/economy/DeployGatewayComposer');
 require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
 require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
-require(rootPrefix + '/lib/setup/economy/DeployGatewayComposer');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
 
 /**
- * Class for Economy setup router.
+ * Class for economy setup router.
  *
  * @class
  */
@@ -56,6 +56,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
    */
   constructor(params) {
     params['workflowKind'] = workflowConstants.tokenDeployKind; // Assign workflowKind.
+
     super(params);
   }
 
@@ -70,6 +71,13 @@ class EconomySetupRouter extends WorkflowRouterBase {
     oThis.currentStepConfig = economySetupConfig[oThis.stepKind];
   }
 
+  /**
+   * Perform step.
+   *
+   * @return {Promise<*>}
+   *
+   * @private
+   */
   async _performStep() {
     const oThis = this;
 
@@ -305,6 +313,11 @@ class EconomySetupRouter extends WorkflowRouterBase {
     }
   }
 
+  /**
+   * Get config strategy.
+   *
+   * @return {Promise<*>}
+   */
   async getConfigStrategy() {
     const oThis = this;
 
@@ -412,6 +425,13 @@ class EconomySetupRouter extends WorkflowRouterBase {
     }
   }
 
+  /**
+   * Get next step configs.
+   *
+   * @param nextStep
+   *
+   * @return {*}
+   */
   getNextStepConfigs(nextStep) {
     return economySetupConfig[nextStep];
   }
