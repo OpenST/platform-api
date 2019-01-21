@@ -72,6 +72,26 @@ class ConfigGroups extends ModelBase {
   }
 
   /**
+   * Get record by chain id and group id
+   * @param {Number} chainId: chain id
+   * @param {Number} groupId: group id
+   * @returns {Promise<*>}
+   */
+  async getByChainIdAndGroupId(chainId, groupId) {
+    const oThis = this;
+
+    // Perform validations.
+    if (!chainId || !groupId) {
+      throw 'Mandatory parameters are missing. Either chainId or groupId';
+    }
+
+    return oThis
+      .select('*')
+      .where(['chain_id = ? AND group_id = ?', chainId, groupId])
+      .fire();
+  }
+
+  /**
    * Check if the given chain id and group id is available for allocation
    *
    * @param chainId {Number} - chain id

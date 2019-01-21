@@ -1,0 +1,59 @@
+{
+  "chainId": "<aux chain id>",
+  "groupId": "<aux chain new group id>",
+  "config": {
+    "memcached": {
+      "engine": "memcached",
+      "servers": [
+        "<memcache endpoint>:<memcache port>", "<memcache endpoint>:<memcache port>"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    },
+    "auxGeth": {
+      "readOnly": {
+        "rpcProvider": "http://<geth endpoint>:<geth rpc port>",
+        "wsProvider": "ws://<geth endpoint>:<geth ws port>",
+        "rpcProviders": [
+          "http://<geth endpoint>:<geth rpc port>", "http://<geth endpoint>:<geth rpc port>"
+        ],
+        "wsProviders": [
+          "ws://<geth endpoint>:<geth ws port>", "ws://<geth endpoint>:<geth ws port>"
+        ]
+      },
+      "readWrite": {
+        "rpcProvider": "http://<geth endpoint>:<geth rpc port>",
+        "wsProvider": "ws://<geth endpoint>:<geth ws port>",
+        "rpcProviders": [
+          "http://<geth endpoint>:<geth rpc port>", "http://<geth endpoint>:<geth rpc port>"
+        ],
+        "wsProviders": [
+          "ws://<geth endpoint>:<geth ws port>", "ws://<geth endpoint>:<geth ws port>"
+        ]
+      },
+      "chainId": "<aux chain id>",
+      "client": "geth",
+      "blockGenerationTime": 3,
+      "finalizeAfterBlocks": 24
+    },
+    "dynamodb": {
+      "endpoint": "http://<dynamo endpoint>:<dynamo port>",
+      "region": "<region>",
+      "apiKey": "<aws api key>",
+      "apiSecret": "<aws api secret>",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0",
+      "enableLogging": "0",
+      "enableAutoscaling": "0",
+      "maxRetryCount": "1",
+      "autoScaling": {
+        "endpoint": "http://<auto scaling endpoint>:<auto scaling port>",
+        "region": "<region>",
+        "apiKey": "<aws api key>",
+        "apiSecret": "<aws api secret>",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0"
+      }
+    }
+  }
+}

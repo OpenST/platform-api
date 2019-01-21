@@ -1,4 +1,24 @@
-# Config Strategy Seed (for local setup)
+# Config Strategy Seed for Global configurations (for local setup)
+```bash
+
+# Add Global Configs
+./devops/exec/config_strategy.js --add-global-configs
+
+# Note: For staging and production follow help
+
+```
+
+# Config Strategy Seed for Auxiliary configurations (for local setup)
+```bash
+
+# Add Auxiliary Configs
+./devops/exec/config_strategy.js --add-aux-configs
+
+# Note: For staging and production follow help
+
+```
+
+# [OLD] Config Strategy Seed (for local setup)
 
 Create entry in encryption_salts to be used for encrypting the config strategy
 ```bash
