@@ -13,7 +13,6 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
-  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
@@ -28,6 +27,7 @@ const rootPrefix = '../..',
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
+require(rootPrefix + '/lib/setup/economy/VerifySetup');
 require(rootPrefix + '/app/services/token/SyncInView');
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
 require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
@@ -40,7 +40,6 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
-require(rootPrefix + '/lib/setup/economy/VerifySetup');
 
 /**
  * Class for economy setup router.
@@ -313,7 +312,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
           responseHelper.error({
             internal_error_identifier: 'e_wr_esr_1',
             api_error_identifier: 'something_went_wrong',
-            debug_options: { parentStepId: oThis.parentStepId }
+            debug_options: { workflowId: oThis.workflowId }
           })
         );
     }

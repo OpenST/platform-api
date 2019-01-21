@@ -6,6 +6,7 @@
  */
 const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
@@ -55,21 +56,31 @@ class StateRootSyncRouter extends WorkflowRouterBase {
       case workflowStepConstants.commitStateRootInit:
         return oThis.insertInitStep();
 
-      // commit state root
+      // Commit state root
       case workflowStepConstants.commitStateRoot:
         return new CommitStateRoot(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      // update status in state root commit history
+      // Update status in state root commit history
       case workflowStepConstants.updateCommittedStateRootInfo:
         let updateStateRootCommits = new UpdateStateRootCommits(oThis.requestParams);
         return updateStateRootCommits.perform();
+
+      case workflowStepConstants.markSuccess:
+        logger.step('*** Mark State Root Sync As Success');
+
+        return await oThis.handleSuccess();
+
+      case workflowStepConstants.markFailure:
+        logger.step('*** Mark State Root Sync As Failed');
+
+        return await oThis.handleFailure();
 
       default:
         return Promise.reject(
           responseHelper.error({
             internal_error_identifier: 'e_wr_srsr_1',
             api_error_identifier: 'something_went_wrong',
-            debug_options: { parentStepId: oThis.parentStepId }
+            debug_options: { workflowId: oThis.workflowId }
           })
         );
     }
