@@ -79,7 +79,7 @@ class SetCoGatewayInOSTPrime {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._getWorkerAddresses();
+    await oThis._getAdminAddresses();
 
     await oThis._setWeb3Instance();
 
@@ -231,7 +231,7 @@ class SetCoGatewayInOSTPrime {
    * @return {Promise}
    *
    */
-  async _getWorkerAddresses() {
+  async _getAdminAddresses() {
     const oThis = this;
 
     let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
@@ -248,8 +248,6 @@ class SetCoGatewayInOSTPrime {
       );
     }
     oThis.adminAddress = fetchAddrRsp.data.address;
-
-    console.log('oThis.workerAddress----', oThis.adminAddress);
 
     return oThis.adminAddress;
   }
