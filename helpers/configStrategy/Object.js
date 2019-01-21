@@ -64,6 +64,10 @@ class ConfigStrategyObject {
         originContractAddress: {
           shortName: 'oca',
           dataType: 'S'
+        },
+        simpleStakeAddress: {
+          shortName: 'ssa',
+          dataType: 'S'
         }
       }
     };
