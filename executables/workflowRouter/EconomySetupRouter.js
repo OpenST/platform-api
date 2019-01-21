@@ -25,7 +25,6 @@ const rootPrefix = '../..',
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
   PostGatewayComposerDeploy = require(rootPrefix + '/lib/setup/economy/PostGatewayComposerDeploy'),
-  VerifyEconomySetup = require(rootPrefix + '/lib/setup/economy/VerifySetup'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
@@ -41,6 +40,7 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
+require(rootPrefix + '/lib/setup/economy/VerifySetup');
 
 /**
  * Class for economy setup router.
@@ -288,11 +288,15 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.verifyEconomySetup:
         logger.step('*** Verify Economy Setup');
 
-        return new VerifyEconomySetup({
+        let VerifyEconomySetup = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
+
+        let obj = new VerifyEconomySetup({
           tokenId: oThis.requestParams.tokenId,
           originChainId: oThis.requestParams.originChainId,
           auxChainId: oThis.requestParams.auxChainId
-        }).perform();
+        });
+
+        return obj.perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark Economy Setup As Success');
