@@ -1,26 +1,33 @@
 'use strict';
-
 /**
  * This service gets the details of the economy from economy model
  *
- * @module app/services/token/aggregatedDetails
+ * @module app/services/token/AggregatedDetails
  */
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  economyFormatter = require(rootPrefix + '/lib/formatter/entity/economy');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  economyFormatter = require(rootPrefix + '/lib/formatter/entity/economy'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
+/**
+ * Class for aggregated economy details.
+ *
+ * @class
+ */
 class AggregatedDetails {
   /**
-   * @constructor
+   * Constructor for aggregated economy details.
    *
-   * @param params
+   * @param {Object} params
+   * @param {Number/String} params.chain_id
+   * @param {String} params.contract_address
+   *
+   * @constructor
    */
   constructor(params) {
     const oThis = this;
@@ -30,7 +37,8 @@ class AggregatedDetails {
   }
 
   /**
-   * perform
+   * Performer
+   *
    * @return {Promise<>}
    */
   perform() {
@@ -40,7 +48,7 @@ class AggregatedDetails {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/token/aggregatedDetails::perform::catch');
+        logger.error('app/services/token/AggregatedDetails::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 's_t_ad_1',
@@ -52,7 +60,7 @@ class AggregatedDetails {
   }
 
   /**
-   * asyncPerform
+   * Async perform
    *
    * @return {Promise<any>}
    */
@@ -63,7 +71,7 @@ class AggregatedDetails {
   }
 
   /**
-   * getEconomyDetails
+   * Get economy details
    *
    * @return {Promise<*|result>}
    */
