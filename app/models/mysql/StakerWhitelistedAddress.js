@@ -25,7 +25,7 @@ class StakerWhitelistedAddress extends ModelBase {
    *
    * @param {object} params - external passed parameters
    * @param {Integer} params.tokenId - tokenId
-   * @param {string} params.address - staker address
+   * @param {string} params.stakerAddress - staker address
    *
    * @return {Promise}
    */
@@ -54,6 +54,17 @@ class StakerWhitelistedAddress extends ModelBase {
     }
   }
 
+  /**
+   * check if active address already exists. if yes then inactivates all of them before inserting fresh record
+   *
+   * @param {object} params - external passed parameters
+   * @param {Integer} params.tokenId - tokenId
+   * @param {Integer} params.status
+   * @param {string} params.stakerAddress - staker address
+   * @param {string} params.gatewayComposerAddress - gateway composer address
+   *
+   * @return {Promise}
+   */
   async insertAddress(params) {
     const oThis = this;
 
@@ -115,7 +126,7 @@ class StakerWhitelistedAddress extends ModelBase {
     return [
       'token_id = ? AND staker_address = ? AND status = ?',
       params.tokenId,
-      params.address,
+      params.stakerAddress,
       stakerWhitelistedAddressConstants.invertedStatuses[stakerWhitelistedAddressConstants.activeStatus]
     ];
   }
@@ -131,8 +142,10 @@ class StakerWhitelistedAddress extends ModelBase {
   static async flushCache(tokenId, address) {
     let token = new Token();
 
-    let tokenDetails = await token.getDetailsById(tokenId),
-      configStrategyHelper = new ConfigStrategyHelper(tokenDetails.clientId),
+    let getTokenDetailsRsp = await token.getDetailsById(tokenId),
+      tokenDetails = getTokenDetailsRsp.data;
+
+    let configStrategyHelper = new ConfigStrategyHelper(tokenDetails.clientId),
       configStrategyRsp = await configStrategyHelper.get();
 
     let ic = new InstanceComposer(configStrategyRsp.data);
