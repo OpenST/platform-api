@@ -12,6 +12,15 @@ Saas API layer.
     - [Memcached](https://memcached.org/)
     - [DB Browser for SQLite](https://sqlitebrowser.org/)
 
+# Installing Geth
+```
+git clone https://github.com/ethereum/go-ethereum.git
+cd go-ethereum
+git checkout tags/v1.8.20
+make geth
+sudo cp ~/workspace/go-ethereum/build/bin/geth /usr/local/bin
+```
+
 ## Setup
 * Install all the packages.
 ```
