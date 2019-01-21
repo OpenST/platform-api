@@ -208,16 +208,6 @@ class WorkflowRouterBase {
       oThis.clientId = workflowCacheResponse.data[oThis.workflowId].clientId;
       oThis.requestParams = JSON.parse(workflowCacheResponse.data[oThis.workflowId].requestParams);
     }
-
-    if (!oThis.clientId) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_wr_b_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { workflowId: oThis.workflowId }
-        })
-      );
-    }
   }
 
   /**
@@ -663,14 +653,24 @@ class WorkflowRouterBase {
   async insertInitStep() {
     const oThis = this;
 
-    let workflowModelInsertResponse = await new WorkflowModel()
-      .insert({
+    let insertParams = {};
+
+    if (oThis.clientId) {
+      insertParams = {
         kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
         status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
         client_id: oThis.clientId,
         request_params: JSON.stringify(oThis.requestParams)
-      })
-      .fire();
+      };
+    } else {
+      insertParams = {
+        kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
+        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
+        request_params: JSON.stringify(oThis.requestParams)
+      };
+    }
+
+    let workflowModelInsertResponse = await new WorkflowModel().insert(insertParams).fire();
 
     oThis.workflowId = workflowModelInsertResponse.insertId;
 
