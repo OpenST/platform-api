@@ -1,26 +1,52 @@
 'use strict';
-
+/**
+ * State root sync router
+ *
+ * @module executables/workflowRouter/StateRootSyncRouter
+ */
 const rootPrefix = '../..',
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  stateRootSyncStepsConfig = require(rootPrefix + '/executables/workflowRouter/stateRootSyncConfig'),
+  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
+  CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
-  CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/commitStateRoot');
+  stateRootSyncStepsConfig = require(rootPrefix + '/executables/workflowRouter/stateRootSyncConfig');
 
+/**
+ * Class for state root sync router.
+ *
+ * @class
+ */
 class StateRootSyncRouter extends WorkflowRouterBase {
+  /**
+   * Constructor for state root sync router.
+   *
+   * @constructor
+   */
   constructor(params) {
-    super(params);
+    params['workflowKind'] = workflowConstants.stateRootSyncKind; // Assign workflowKind.
 
+    super(params);
+  }
+
+  /**
+   * Fetch current step config for every router.
+   *
+   * @private
+   */
+  _fetchCurrentStepConfig() {
     const oThis = this;
 
     oThis.currentStepConfig = stateRootSyncStepsConfig[oThis.stepKind];
   }
 
   /**
-   * _performStep
+   * Perform step.
    *
    * @return {Promise<*>}
+   *
+   * @private
    */
   async _performStep() {
     const oThis = this;
@@ -50,9 +76,10 @@ class StateRootSyncRouter extends WorkflowRouterBase {
   }
 
   /**
-   * getNextStepConfigs
+   * Get next step configs.
    *
    * @param nextStep
+   *
    * @return {*}
    */
   getNextStepConfigs(nextStep) {
