@@ -56,7 +56,7 @@ class SyncInView {
       chainId: oThis.chainId,
       simpleStakeAddress: oThis.simpleStakeAddress,
       brandedTokenContract: oThis.brandedTokenAddress,
-      utilityBrandedTokenContract: oThis.utilityBrandedTokenContract,
+      utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
       chainEndpoint: chainEndPoint[0]
     });
 
