@@ -11,6 +11,7 @@ const rootPrefix = '../..',
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  WorkflowCache = require(rootPrefix + '/lib/sharedCacheManagement/Workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
@@ -190,12 +191,12 @@ class WorkflowRouterBase {
 
     if (!oThis.workflowId) return Promise.resolve();
 
-    oThis.workFlow = (await new WorkflowModel()
-      .select('*')
-      .where(['id = (?)', oThis.workflowId])
-      .fire())[0];
+    let workflowCacheResponse = await new WorkflowCache({
+      workflowId: oThis.workflowId
+    }).fetch();
 
-    if (!oThis.workFlow) {
+    // Workflow does not exist for the given client.
+    if (workflowCacheResponse.isFailure()) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_wr_b_3',
@@ -203,10 +204,10 @@ class WorkflowRouterBase {
           debug_options: { workflowId: oThis.workflowId }
         })
       );
+    } else {
+      oThis.clientId = workflowCacheResponse.data[oThis.workflowId].clientId;
+      oThis.requestParams = JSON.parse(workflowCacheResponse.data[oThis.workflowId].requestParams);
     }
-
-    oThis.requestParams = JSON.parse(oThis.workFlow.request_params);
-    oThis.clientId = oThis.workFlow.client_id;
 
     if (!oThis.clientId) {
       return Promise.reject(

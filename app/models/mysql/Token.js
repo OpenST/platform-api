@@ -75,14 +75,15 @@ class Token extends ModelBase {
   }
 
   /***
-   *
-   * flush cache
+   * Flush cache
    *
    * @param tokenId
+   *
    * @returns {Promise<*>}
    */
   static flushCache(tokenId) {
     const TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token');
+
     return new TokenCache({
       tokenId: tokenId
     }).clear();
