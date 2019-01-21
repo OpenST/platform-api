@@ -54,6 +54,7 @@ class WorkflowRouterBase {
     oThis.taskResponseData = params.taskResponseData;
 
     oThis.clientId = params.clientId;
+    oThis.chainId = params.chainId;
     oThis.groupId = params.groupId;
 
     oThis.requestParams = params.requestParams || {};
@@ -435,6 +436,11 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkStakeStatus:
       case workflowStepConstants.checkProgressStakeStatus:
       case workflowStepConstants.fetchStakeIntentMessageHash:
+      case workflowStepConstants.btStakeAndMintInit:
+      case workflowStepConstants.btRequestStakeHandle:
+      case workflowStepConstants.checkRequestStakeTxStatus:
+      case workflowStepConstants.fetchStakeRequestHash:
+      case workflowStepConstants.checkAllowance:
         oThis.chainId = oThis.requestParams.originChainId;
         break;
 
@@ -755,6 +761,63 @@ class WorkflowRouterBase {
       })
       .where({ id: oThis.workflowId })
       .fire();
+  }
+
+  /**
+   * _handleSuccess
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _handleSuccess() {
+    const oThis = this;
+
+    // Update status of workflow as completedStatus in workflows table.
+    let workflowsModelResp = await new WorkflowModel()
+      .update({
+        status: new WorkflowModel().invertedStatuses[workflowConstants.completedStatus]
+      })
+      .where({
+        id: oThis.workflowId
+      })
+      .fire();
+
+    // If row was updated successfully.
+    if (+workflowsModelResp.affectedRows === 1) {
+      // Implicit string to int conversion.
+      logger.win('*** Workflow with id', oThis.workflowId, 'completed successfully!');
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+    } else {
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
+    }
+  }
+
+  /**
+   * _handleFailure
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _handleFailure() {
+    const oThis = this;
+
+    // Update status of workflow as failedStatus in workflows table.
+    let workflowsModelResp = await new WorkflowModel()
+      .update({
+        status: new WorkflowModel().invertedStatuses[workflowConstants.failedStatus]
+      })
+      .where({
+        id: oThis.workflowId
+      })
+      .fire();
+
+    // If row was updated successfully.
+    if (+workflowsModelResp.affectedRows === 1) {
+      // Implicit string to int conversion.
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+    } else {
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
+    }
   }
 }
 
