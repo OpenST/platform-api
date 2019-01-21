@@ -455,6 +455,7 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProveGatewayStatus:
       case workflowStepConstants.checkConfirmStakeStatus:
       case workflowStepConstants.checkProgressMintStatus:
+      case workflowStepConstants.verifyEconomySetup:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 
