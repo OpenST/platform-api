@@ -28,14 +28,19 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
+/**
+ * Class for workflow router factory.
+ *
+ * @class
+ */
 class WorkflowRouterFactory extends SubscriberBase {
   /**
-   * Constructor
+   * Constructor for workflow router factory.
    *
    * @augments SubscriberBase
    *
-   * @param params {object} - params object
-   * @param params.cronProcessId {number} - cron_processes table id
+   * @param {Object} params: params object
+   * @param {Number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -59,9 +64,10 @@ class WorkflowRouterFactory extends SubscriberBase {
   }
 
   /**
-   * queue name
+   * Queue name
    *
-   * @returns {string}
+   * @returns {String}
+   *
    * @private
    */
   get _queueName() {
@@ -69,9 +75,10 @@ class WorkflowRouterFactory extends SubscriberBase {
   }
 
   /**
-   * process name prefix
+   * Process name prefix
    *
-   * @returns {string}
+   * @returns {String}
+   *
    * @private
    */
   get _processNamePrefix() {
@@ -79,20 +86,22 @@ class WorkflowRouterFactory extends SubscriberBase {
   }
 
   /**
-   * specific validations
+   * Specific validations
    *
-   * @returns {boolean}
+   * @returns {Boolean}
+   *
    * @private
    */
   _specificValidations() {
-    // add specific validations here
+    // Add specific validations here
     return true;
   }
 
   /**
-   * cron kind
+   * Cron kind
    *
-   * @returns {string}
+   * @returns {String}
+   *
    * @private
    */
   get _cronKind() {
@@ -102,12 +111,12 @@ class WorkflowRouterFactory extends SubscriberBase {
   /**
    * Process message
    *
-   * @param messageParams {Object}
-   * @param messageParams.stepKind {string} Which step to execute in router
-   * @param messageParams.currentStepId {number} id of process parent
-   * @param messageParams.parentStepId {number} id of process parent
-   * @param messageParams.status {string}
-   * @param messageParams.payload {object}
+   * @param {Object} messageParams
+   * @param {String} messageParams.stepKind: Which step to execute in router
+   * @param {Number} messageParams.currentStepId: id of process parent
+   * @param {Number} messageParams.parentStepId: id of process parent
+   * @param {String} messageParams.status
+   * @param {Object} messageParams.payload
    *
    * @returns {Promise<>}
    *
