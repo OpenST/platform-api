@@ -2,6 +2,8 @@
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  kms = require(rootPrefix + '/lib/globalConstant/kms'),
+  encryptionPurpose = kms.managedAddressPurpose,
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -43,6 +45,10 @@ class KnownAddress extends ModelBase {
         encryption_salt: params.addressSalt
       })
       .fire();
+  }
+
+  static get encryptionPurpose() {
+    return encryptionPurpose;
   }
 }
 

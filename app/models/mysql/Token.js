@@ -8,6 +8,7 @@ const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token');
 
 // Declare variables.
@@ -45,6 +46,46 @@ class Token extends ModelBase {
 
   get invertedStatuses() {
     return invertedStatuses;
+  }
+
+  async getDetailsById(tokenId) {
+    const oThis = this;
+
+    let dbRows = await oThis
+      .select('*')
+      .where({
+        id: tokenId
+      })
+      .fire();
+
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
+    let dbRow = dbRows[0];
+
+    return responseHelper.successWithData({
+      clientId: dbRow.client_id,
+      name: dbRow.name,
+      symbol: dbRow.symbol,
+      conversionFactor: dbRow.conversion_factor,
+      decimal: dbRow.decimal,
+      status: dbRow.status
+    });
+  }
+
+  /***
+   *
+   * flush cache
+   *
+   * @param tokenId
+   * @returns {Promise<*>}
+   */
+  static flushCache(tokenId) {
+    const TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token');
+    return new TokenCache({
+      tokenId: tokenId
+    }).clear();
   }
 }
 

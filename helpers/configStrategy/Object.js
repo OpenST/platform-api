@@ -45,6 +45,36 @@ class ConfigStrategyObject {
     return oThis.configStrategy[configStrategyConstants.auxGeth].client;
   }
 
+  extraStorageColumnsForDdb(chainId) {
+    const oThis = this;
+    if (oThis.auxChainId == chainId) {
+      return oThis.extraStorageColumnsForAuxDdb();
+    } else if (oThis.originChainId == chainId) {
+      return oThis.extraStorageColumnsForOriginDdb();
+    } else {
+      return {};
+    }
+  }
+
+  get extraStorageColumnsForAuxDdb() {
+    const oThis = this,
+      ddbTablePrefix = oThis.configStrategy[configStrategyConstants.constants].auxDdbTablePrefix;
+    return {
+      [ddbTablePrefix + 'economies']: {
+        originContractAddress: {
+          shortName: 'oca',
+          dataType: 'S'
+        }
+      }
+    };
+  }
+
+  get extraStorageColumnsForOriginDdb() {
+    const oThis = this,
+      ddbTablePrefix = oThis.configStrategy[configStrategyConstants.constants].originDdbTablePrefix;
+    return {};
+  }
+
   originChainWsProviders(intent) {
     const oThis = this;
     return oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
