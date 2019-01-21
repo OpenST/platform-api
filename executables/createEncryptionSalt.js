@@ -10,12 +10,13 @@
 
 const rootPrefix = '..',
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
+  ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   encryptionSaltConst = require(rootPrefix + '/lib/globalConstant/encryptionSalt'),
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
 
 const InsertSaltID = {
   perform: async function() {
-    const KMSObject = new KmsWrapper('knownAddresses');
+    const KMSObject = new KmsWrapper(ConfigStrategyModel.encryptionPurpose);
 
     KMSObject.generateDataKey().then(async function(a) {
       const addressSalt = a['CiphertextBlob'];
