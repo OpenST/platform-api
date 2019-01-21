@@ -170,8 +170,8 @@ function addGlobalConfig() {
   
   // Origin Chain specific dynamoDB config
   let p8 = (function insertOriginChainDynamoDb() {
-    let dynamoConfigDetails = {
-      "dynamodb": {
+    let originDynamoConfigDetails = {
+      "originDynamo": {
         "endpoint": "http://localhost:8000",
         "region": "localhost",
         "apiKey": "X",
@@ -193,10 +193,28 @@ function addGlobalConfig() {
     };
     
     let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
-    new ConfigStrategyCrud(originChainId, globalGroupId).addForKind('dynamodb', dynamoConfigDetails, 1);
+    new ConfigStrategyCrud(globalChainId, globalGroupId).addForKind('originDynamo', originDynamoConfigDetails, 1);
   })();
   
   promiseArray.push(p8);
+  
+  // Origin Memcache config strategy
+    let p9 = (function insertOriginMemcache() {
+      let originMemcachedConfigDetails = {
+        "originMemcached": {
+          "engine": "memcached",
+          "servers": [
+            "127.0.0.1:11211"
+          ],
+          "defaultTtl": 36000,
+          "consistentBehavior": "1"
+        }
+      };
+      let ConfigStrategyCrud = require('./helpers/configStrategy/ByChainId');
+      return new ConfigStrategyCrud(globalChainId, globalGroupId).addForKind('originMemcached', originMemcachedConfigDetails, 1);
+    })();
+    
+    promiseArray.push(p9);
   
   return Promise.all(promiseArray).then(
     function activateGlobalConfig() {

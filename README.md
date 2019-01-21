@@ -12,7 +12,7 @@ Saas API layer.
     - [Memcached](https://memcached.org/)
     - [DB Browser for SQLite](https://sqlitebrowser.org/)
 
-# Installing Geth
+## Installing Geth
 ```
 git clone https://github.com/ethereum/go-ethereum.git
 cd go-ethereum
@@ -38,88 +38,88 @@ source set_env_vars.sh
 
 * Setup Origin GETH and fund necessary addresses.
 ```bash
-> source set_env_vars.sh
-> node executables/setup/origin/gethAndAddresses.js --originChainId 1000
+  source set_env_vars.sh
+  node executables/setup/origin/gethAndAddresses.js --originChainId 1000
 ```
 
 Copy the 'Generate Addresses Response' from the script response above and save somewhere offline.
 
 * Start Origin GETH with this script.
 ```bash
-> sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
+  sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
 
 * Setup Simple Token (only for non production_main env)
 ```bash
-> source set_env_vars.sh
-> node executables/setup/origin/forNonProductionMain.js --originChainId 1000
+  source set_env_vars.sh
+  node executables/setup/origin/forNonProductionMain.js --originChainId 1000
 ```
 
 Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev-environment].
 ```bash
-> source set_env_vars.sh
-> node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
+  source set_env_vars.sh
+  node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
 ```
 
-* Save simple token addresses
+* Save simple token admin and owner addresses in database.
 ```bash
-> source set_env_vars.sh
-> node executables/setup/origin/SaveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
+  source set_env_vars.sh
+  node executables/setup/origin/SaveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
 * Fund chain owner with OSTs (pass ST Owner private key in parameter)
     - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
-
+    - otherwise, run following script to fund chain owner with OSTs.
 ```bash
-> source set_env_vars.sh
-> node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...'
+  source set_env_vars.sh
+  node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...'
 ```
 
 * Setup Origin Contracts
 ```bash
-> source set_env_vars.sh
-> node executables/setup/origin/contracts.js --originChainId 1000
+  source set_env_vars.sh
+  node executables/setup/origin/contracts.js --originChainId 1000
 ```
 
 * Verifier script for origin chain setup
     - You can verify local chain setup and contract deployment using following scripts.
 ```bash
-> source set_env_vars.sh
-> node tools/verifiers/originChainSetup.js
+  source set_env_vars.sh
+  node tools/verifiers/originChainSetup.js
 ```
 
 ### Auxiliary Chain Setup
 
 * Setup Aux GETH and necessary addresses.
 ```bash
-> source set_env_vars.sh
-> node executables/setup/aux/gethAndAddresses.js --originChainId 1000 --auxChainId 2000
+  source set_env_vars.sh
+  node executables/setup/aux/gethAndAddresses.js --originChainId 1000 --auxChainId 2000
 ```
 
 * Start AUX GETH with this script.
 ```bash
-> sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
+  sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
 * Add sealer address [Not for dev-environment].
 ```bash
-> source set_env_vars.sh
-> node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
+  source set_env_vars.sh
+  node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
 ```
 
 * Setup Aux Contracts
 ```bash
-> source set_env_vars.sh
-> node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
+  source set_env_vars.sh
+  node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
 ```
 
 * Verifier script for auxiliary chain setup
     - You can verify local chain setup and contract deployment using following script.
 ```bash
-> source set_env_vars.sh
-> node tools/verifiers/auxChainSetup.js --auxChainId 2000
+  source set_env_vars.sh
+  node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
@@ -153,26 +153,26 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 ### Run block-scanner
 * Run Block Parser
 ```bash
-> source set_env_vars.sh
-> node executables/blockScanner/BlockParser.js --cronProcessId 1
+  source set_env_vars.sh
+  node executables/blockScanner/BlockParser.js --cronProcessId 1
 ```
 
 * Run Transaction Parser
 ```bash
-> source set_env_vars.sh
-> node executables/blockScanner/TransactionParser.js --cronProcessId 2
+  source set_env_vars.sh
+  node executables/blockScanner/TransactionParser.js --cronProcessId 2
 ```
 
 * Run Auxiliary Finalizer
 ```bash
-> source set_env_vars.sh
-> node executables/blockScanner/Finalizer.js --cronProcessId 3
+  source set_env_vars.sh
+  node executables/blockScanner/Finalizer.js --cronProcessId 3
 ```
 
 * Run Origin Finalizer
 ```bash
-> source set_env_vars.sh
-> node executables/blockScanner/Finalizer.js --cronProcessId 6
+  source set_env_vars.sh
+  node executables/blockScanner/Finalizer.js --cronProcessId 6
 ```
 
 ### Token Setup
@@ -189,7 +189,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 
 * Start factory
 ```bash
-> node executables/workflowRouter/factory.js --cronProcessId 5
+  node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
 * Temporary change
