@@ -40,6 +40,8 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
+require(rootPrefix + '/lib/setup/economy/VerifySetup');
+require(rootPrefix + '/lib/fund/oStPrime/TokenAddress');
 
 /**
  * Class for economy setup router.
@@ -94,6 +96,57 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.generateTokenAddresses:
         logger.step('*** Generate Token Addresses');
         return new generateTokenAddresses(oThis.requestParams).perform();
+
+      case workflowStepConstants.fundAuxFunderAddress:
+        logger.step('*** Funding Aux Funder');
+
+        let FundAuxFunderKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.auxFunderAddressKind;
+
+        return new FundAuxFunderKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundAuxFunderAddress:
+        logger.step('*** Verifying if Funding Aux Funder was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxFunderAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.fundAuxAdminAddress:
+        logger.step('*** Funding Aux Admin');
+
+        let FundAuxAdminKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.auxAdminAddressKind;
+
+        return new FundAuxAdminKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundAuxAdminAddress:
+        logger.step('*** Verifying if Funding Aux Admin was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxAdminAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.fundAuxWorkerAddress:
+        logger.step('*** Funding Aux Worker');
+
+        let FundAuxWorkerKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.auxWorkerAddressKind;
+
+        return new FundAuxWorkerKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundAuxWorkerAddress:
+        logger.step('*** Verifying if Funding Aux Worker was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxWorkerAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
 
       case workflowStepConstants.deployOriginTokenOrganization:
         logger.step('*** Deploy Origin Token Organization');

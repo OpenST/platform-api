@@ -444,6 +444,12 @@ class WorkflowRouterBase {
         oThis.chainId = oThis.requestParams.originChainId;
         break;
 
+      case workflowStepConstants.fundAuxFunderAddress:
+      case workflowStepConstants.verifyFundAuxFunderAddress:
+      case workflowStepConstants.fundAuxAdminAddress:
+      case workflowStepConstants.verifyFundAuxAdminAddress:
+      case workflowStepConstants.fundAuxWorkerAddress:
+      case workflowStepConstants.verifyFundAuxWorkerAddress:
       case workflowStepConstants.deployAuxTokenOrganization:
       case workflowStepConstants.saveAuxTokenOrganization:
       case workflowStepConstants.deployUtilityBrandedToken:

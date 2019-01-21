@@ -18,10 +18,44 @@ const steps = {
   [workflowStepConstants.generateTokenAddresses]: {
     kind: workflowStepConstants.generateTokenAddresses,
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.fundAuxFunderAddress]
+  },
+  [workflowStepConstants.fundAuxFunderAddress]: {
+    kind: workflowStepConstants.fundAuxFunderAddress,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyFundAuxFunderAddress]
+  },
+  [workflowStepConstants.verifyFundAuxFunderAddress]: {
+    kind: workflowStepConstants.verifyFundAuxFunderAddress,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.fundAuxFunderAddress],
+    onSuccess: [workflowStepConstants.fundAuxAdminAddress, workflowStepConstants.fundAuxWorkerAddress]
+  },
+  [workflowStepConstants.fundAuxAdminAddress]: {
+    kind: workflowStepConstants.fundAuxAdminAddress,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyFundAuxAdminAddress]
+  },
+  [workflowStepConstants.verifyFundAuxAdminAddress]: {
+    kind: workflowStepConstants.verifyFundAuxAdminAddress,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.fundAuxFunderAddress],
+    onSuccess: [workflowStepConstants.deployOriginTokenOrganization, workflowStepConstants.deployAuxTokenOrganization]
+  },
+  [workflowStepConstants.fundAuxWorkerAddress]: {
+    kind: workflowStepConstants.fundAuxWorkerAddress,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyFundAuxWorkerAddress]
+  },
+  [workflowStepConstants.verifyFundAuxWorkerAddress]: {
+    kind: workflowStepConstants.verifyFundAuxWorkerAddress,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.fundAuxWorkerAddress],
     onSuccess: [workflowStepConstants.deployOriginTokenOrganization, workflowStepConstants.deployAuxTokenOrganization]
   },
   [workflowStepConstants.deployOriginTokenOrganization]: {
     kind: workflowStepConstants.deployOriginTokenOrganization,
+    prerequisites: [workflowStepConstants.verifyFundAuxAdminAddress, workflowStepConstants.verifyFundAuxWorkerAddress],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.saveOriginTokenOrganization]
   },
@@ -45,6 +79,7 @@ const steps = {
   },
   [workflowStepConstants.deployAuxTokenOrganization]: {
     kind: workflowStepConstants.deployAuxTokenOrganization,
+    prerequisites: [workflowStepConstants.verifyFundAuxAdminAddress, workflowStepConstants.verifyFundAuxWorkerAddress],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.saveAuxTokenOrganization]
   },
