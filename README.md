@@ -183,6 +183,38 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 > node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
+* Temporary change
+Add this code snippet at /saas-api/node_modules/@openstfoundation/mosaic-tbd/libs/Contracts.js
+Line No 118
+```bash
+  else{
+      return web3;
+    }
+```
+
+* Start Economy Setup
+```bash
+let config = null;
+rootPrefix = '.'
+coreConstants = require(rootPrefix + '/config/coreConstants')
+
+a = require('./helpers/configStrategy/ByChainId.js')
+b = new a(2000,1);
+b.getComplete().then(function(r) {config = r.data});
+
+OSTBase = require('@openstfoundation/openst-base')
+InstanceComposer = OSTBase.InstanceComposer
+ic = new InstanceComposer(config)
+
+require('./app/services/token/Deployment.js')
+
+TokenDeployment = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenDeployment');
+
+a = new TokenDeployment({token_id: 1011, client_id: 1})
+
+a.perform().then(console.log)
+```
+
 * St' Stake and Mint
 ```bash
 > source set_env_vars.sh
@@ -201,22 +233,4 @@ Copy the 'Setup Simple Token response' from the script response above and save s
    stPrimeRouter = new stPrimeRouterK(params)
    
    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
-```
-
-* Start Economy Setup
-```bash
-> source set_env_vars.sh
-> node
-   params = {
-       stepKind: 'economySetupInit',
-       taskStatus: 'taskReadyToStart',
-       clientId: 1,
-       chainId: 2000,
-       topic: 'workflow.economySetup',
-       requestParams: {tokenId: 1000, auxChainId: 2000, originChainId: 1000, chainId: 2000, clientId: 1}
-   }
-   economySetupRouterK = require('./executables/workflowRouter/EconomySetupRouter.js')
-   economySetupRouter = new economySetupRouterK(params)
-   
-   economySetupRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
