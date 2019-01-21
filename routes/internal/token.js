@@ -26,4 +26,10 @@ router.post('/mint', function(req, res, next) {
 
   Promise.resolve(routeHelper.perform(req, res, next, 'StartMint', 'r_it_3'));
 });
+
+router.get('/mint', function(req, res, next) {
+  req.decodedParams.apiName = 'mint';
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'Mint', 'r_it_4'));
+});
 module.exports = router;
