@@ -48,9 +48,9 @@ class ConfigStrategyObject {
   extraStorageColumnsForDdb(chainId) {
     const oThis = this;
     if (oThis.auxChainId == chainId) {
-      return oThis.extraStorageColumnsForAuxDdb();
+      return oThis.extraStorageColumnsForAuxDdb;
     } else if (oThis.originChainId == chainId) {
-      return oThis.extraStorageColumnsForOriginDdb();
+      return oThis.extraStorageColumnsForOriginDdb;
     } else {
       return {};
     }
