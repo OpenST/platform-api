@@ -362,6 +362,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
   async _tokenDeploymentCompleted() {
     const oThis = this;
 
+    await oThis.handleSuccess();
+
     // Update status of token deployment as deploymentCompleted in tokens table.
     let tokenModelResp = await new TokenModel()
       .update({
@@ -373,20 +375,10 @@ class EconomySetupRouter extends WorkflowRouterBase {
       })
       .fire();
 
-    // Update status of workflow as completedStatus in workflows table.
-    let workflowsModelResp = await new WorkflowModel()
-      .update({
-        status: new WorkflowModel().invertedStatuses[workflowConstants.completedStatus]
-      })
-      .where({
-        id: oThis.workflowId
-      })
-      .fire();
-
     // If row was updated successfully.
-    if (+tokenModelResp.affectedRows === 1 && +workflowsModelResp.affectedRows === 1) {
+    if (+tokenModelResp.affectedRows === 1) {
+      logger.win('*** Economy Setup Done ***');
       // Implicit string to int conversion.
-      logger.win('*** Economy Setup Done');
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
@@ -401,6 +393,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
   async _tokenDeploymentFailed() {
     const oThis = this;
 
+    await oThis.handleFailure();
+
     // Update status of token deployment as deploymentFailed in tokens table.
     let tokenModelResp = await new TokenModel()
       .update({
@@ -412,18 +406,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       })
       .fire();
 
-    // Update status of workflow as failedStatus in workflows table.
-    let workflowsModelResp = await new WorkflowModel()
-      .update({
-        status: new WorkflowModel().invertedStatuses[workflowConstants.failedStatus]
-      })
-      .where({
-        id: oThis.workflowId
-      })
-      .fire();
-
     // If row was updated successfully.
-    if (+tokenModelResp.affectedRows === 1 && +workflowsModelResp.affectedRows === 1) {
+    if (+tokenModelResp.affectedRows === 1) {
+      logger.error('*** Economy Setup Failed ***');
       // Implicit string to int conversion.
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {

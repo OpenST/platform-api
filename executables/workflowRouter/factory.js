@@ -132,7 +132,7 @@ class WorkflowRouterFactory extends SubscriberBase {
         const EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter');
         return new EconomySetupRouter(msgParams).perform();
       case workflowTopicConstant.stPrimeStakeAndMint:
-        const stPrimeRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/stPrimeRouter');
+        const stPrimeRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/StPrimeRouter');
         return new stPrimeRouter(msgParams).perform();
 
       default:

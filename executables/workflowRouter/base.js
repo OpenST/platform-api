@@ -54,7 +54,6 @@ class WorkflowRouterBase {
     oThis.taskResponseData = params.taskResponseData;
 
     oThis.clientId = params.clientId;
-    oThis.chainId = params.chainId;
     oThis.groupId = params.groupId;
 
     oThis.requestParams = params.requestParams || {};
@@ -764,12 +763,11 @@ class WorkflowRouterBase {
   }
 
   /**
-   * _handleSuccess
+   * Handle success.
    *
    * @return {Promise<void>}
-   * @private
    */
-  async _handleSuccess() {
+  async handleSuccess() {
     const oThis = this;
 
     // Update status of workflow as completedStatus in workflows table.
@@ -784,8 +782,8 @@ class WorkflowRouterBase {
 
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
+      logger.win('*** Workflow with id ', oThis.workflowId, 'completed successfully!');
       // Implicit string to int conversion.
-      logger.win('*** Workflow with id', oThis.workflowId, 'completed successfully!');
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
@@ -793,12 +791,11 @@ class WorkflowRouterBase {
   }
 
   /**
-   * _handleFailure
+   * Handle failure.
    *
    * @return {Promise<void>}
-   * @private
    */
-  async _handleFailure() {
+  async handleFailure() {
     const oThis = this;
 
     // Update status of workflow as failedStatus in workflows table.
@@ -813,6 +810,7 @@ class WorkflowRouterBase {
 
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
+      logger.error('*** Workflow with id ', oThis.workflowId, 'failed!');
       // Implicit string to int conversion.
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {

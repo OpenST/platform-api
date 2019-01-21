@@ -197,7 +197,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
           originChainId: 1000, auxChainId: 2000, facilitator: '0x462901a903d0D772E194497A9254238D01220D57', 
           amountToStake: '1000000000000000000000', beneficiary: '0xB32C00C0b1532fa6BACA7F0dF065d3B8a3456cBf'}
       }
-   stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/stPrimeRouter')
+   stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
    
    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
