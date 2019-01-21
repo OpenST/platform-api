@@ -17,7 +17,6 @@ const rootPrefix = '../..',
   SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  VerifyEconomySetup = require(rootPrefix + '/lib/setup/economy/VerifySetup'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -25,6 +24,8 @@ const rootPrefix = '../..',
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
+  PostGatewayComposerDeploy = require(rootPrefix + '/lib/setup/economy/PostGatewayComposerDeploy'),
+  VerifyEconomySetup = require(rootPrefix + '/lib/setup/economy/VerifySetup'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
@@ -261,8 +262,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.verifyDeployGatewayComposer:
         logger.step('*** Verify if Gateway Composer was deployed');
 
-        return new VerifyTransactionStatus({
+        return new PostGatewayComposerDeploy({
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGatewayComposer),
+          tokenId: oThis.requestParams.tokenId,
           chainId: oThis.requestParams.originChainId
         }).perform();
 
