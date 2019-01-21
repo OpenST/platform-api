@@ -187,7 +187,8 @@ class ConfigStrategyModel extends ModelBase {
   mergeConfigResult(strategyKind, configStrategyHash, decryptedJsonObj) {
     if (
       kinds[strategyKind] == configStrategyConstants.dynamodb ||
-      kinds[strategyKind] == configStrategyConstants.globalDynamodb
+      kinds[strategyKind] == configStrategyConstants.globalDynamodb ||
+      kinds[strategyKind] == configStrategyConstants.originDynamodb
     ) {
       configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.dynamoApiSecret;
       configStrategyHash[kinds[strategyKind]].autoScaling.apiSecret = decryptedJsonObj.dynamoAutoscalingApiSecret;
@@ -425,7 +426,8 @@ class ConfigStrategyModel extends ModelBase {
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
-      strategyKindName == configStrategyConstants.globalDynamodb
+      strategyKindName == configStrategyConstants.globalDynamodb ||
+      strategyKindName == configStrategyConstants.originDynamodb
     ) {
       let dynamoApiSecret = hashNotToEncrypt[strategyKindName].apiSecret,
         dynamoAutoscalingApiSecret = hashNotToEncrypt[strategyKindName].autoScaling.apiSecret;

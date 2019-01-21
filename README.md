@@ -32,9 +32,34 @@ npm install
 source set_env_vars.sh
 ```
 
-* Seed the [config strategy](https://github.com/OpenSTFoundation/saas-api/blob/master/configStrategySeed.md) table.
+* Config Strategy Seed for Global configurations (for local setup)
+```bash
+
+# Add Global Configs
+./devops/exec/configStrategy.js --add-global-configs
+
+# Note: For staging and production follow help
+
+```
+
+* Config Strategy Seed for Auxiliary configurations (for local setup)
+```bash
+# Add Auxiliary Configs
+./devops/exec/configStrategy.js --add-aux-configs
+
+# Note: For staging and production follow help
+```
 
 * Update the 'is_available_for_allocation' status in 'config_groups' table to '1'.
+
+* Activate configurations
+```bash
+# Activate Global configurations
+./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
+
+# Activate Auxiliary Chain configurations
+./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
+```
 
 ### Origin Chain Setup
 

@@ -48,7 +48,7 @@ const Main = async function() {
     }
 
     performerObj = new AddAuxConfig(configFilePath);
-  } else if (command.ActivateConfigs) {
+  } else if (command.activateConfigs) {
     let chainId = command.chainId,
       groupId = command.groupId;
 
