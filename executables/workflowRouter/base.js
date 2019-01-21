@@ -465,7 +465,9 @@ class WorkflowRouterBase {
           : oThis.requestParams.originChainId;
         break;
     }
-    // We are assigning oThis.chainId to requestParams because requestParams should contain the chainId that the current step needs to use. oThis.requestParams is being updated with the previous steps' chainId in two methods above, namely: _validateAndSanitize and _clubRequestParamsFromDependencies.
+    // We are assigning oThis.chainId to requestParams because requestParams should contain the chainId that the
+    // current step needs to use. oThis.requestParams is being updated with the previous steps' chainId in two methods
+    // above, namely: _validateAndSanitize and _clubRequestParamsFromDependencies.
     oThis.requestParams.chainId = oThis.chainId;
   }
 
