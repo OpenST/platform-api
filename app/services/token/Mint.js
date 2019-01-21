@@ -12,7 +12,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/ChainAddresses'),
+  OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -70,14 +70,8 @@ class Mint {
   async getSimpleTokenContractAddress() {
     const oThis = this;
 
-    //fetch origin chainId
-    let csHelper = new ConfigStrategyHelper(0),
-      csResponse = await csHelper.getForKind(configStrategyConstants.constants),
-      configConstants = csResponse.data[configStrategyConstants.constants],
-      originChainId = configConstants.originChainId;
-
     //fetch all addresses associated with origin chain id
-    let chainAddressCacheObj = new ChainAddressesCache({ chainId: originChainId }),
+    let chainAddressCacheObj = new OriginChainAddressesCache(),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -89,8 +83,7 @@ class Mint {
       );
     }
 
-    oThis.responseData['simple_token_contract_address'] =
-      chainAddressesRsp.data[originChainId][chainAddressConst.baseContractKind];
+    oThis.responseData['simple_token_contract_address'] = chainAddressesRsp.data[chainAddressConst.baseContractKind];
   }
 
   /**
