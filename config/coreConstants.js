@@ -137,6 +137,14 @@ class CoreConstants {
     return process.env.SA_MANAGED_ADDRESS_KMS_ID;
   }
 
+  get KMS_CONFIG_STRATEGY_KEY_ARN() {
+    return process.env.SA_CONFIG_STRATEGY_KMS_ARN;
+  }
+
+  get KMS_CONFIG_STRATEGY_KEY_ID() {
+    return process.env.SA_CONFIG_STRATEGY_KMS_ID;
+  }
+
   // JWT details
   get SAAS_API_SECRET_KEY() {
     return process.env.CA_SAAS_API_SECRET_KEY;
@@ -207,11 +215,11 @@ class CoreConstants {
   }
 
   get OST_ORIGIN_GAS_LIMIT() {
-    return 75000000000;
+    return 8000000;
   }
 
   get OST_AUX_GAS_LIMIT() {
-    return 75000000000;
+    return 8000000;
   }
 
   get OST_AUX_STPRIME_TOTAL_SUPPLY() {

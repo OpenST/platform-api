@@ -1,5 +1,9 @@
 'use strict';
-
+/**
+ * Class for Economy setup flow config.
+ *
+ * @module executables/workflowRouter/economySetupConfig
+ */
 const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
@@ -98,7 +102,12 @@ const steps = {
     kind: workflowStepConstants.verifyActivateTokenGateway,
     onFailure: workflowStepConstants.markFailure,
     readDataFrom: [workflowStepConstants.activateTokenGateway],
-    onSuccess: [workflowStepConstants.setCoGatewayInUbt, workflowStepConstants.setGatewayInBt]
+    onSuccess: [
+      workflowStepConstants.setCoGatewayInUbt,
+      workflowStepConstants.setGatewayInBt,
+      workflowStepConstants.deployGatewayComposer,
+      workflowStepConstants.setInternalActorForOwnerInUBT
+    ]
   },
   [workflowStepConstants.setCoGatewayInUbt]: {
     kind: workflowStepConstants.setCoGatewayInUbt,

@@ -10,11 +10,12 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CreateInView = require(rootPrefix + '/lib/setup/economy/CreateInView'),
-  TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  CreateInView = require(rootPrefix + '/lib/setup/economy/CreateInView'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress');
 
 /**
  * Class for SyncInView
@@ -55,14 +56,14 @@ class SyncInView {
       chainId: oThis.chainId,
       simpleStakeAddress: oThis.simpleStakeAddress,
       brandedTokenContract: oThis.brandedTokenAddress,
-      utilityBrandedTokenContract: oThis.utilityBrandedTokenContract,
+      utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
       chainEndpoint: chainEndPoint[0]
     });
 
     await createInView.perform();
 
     return responseHelper.successWithData({
-      taskDone: 1,
+      taskStatus: workflowStepConstants.taskDone,
       taskResponseData: {
         simpleStakeAddress: oThis.simpleStakeAddress,
         brandedTokenContract: oThis.brandedTokenAddress,

@@ -2,7 +2,7 @@
 /**
  * Economy setup router
  *
- * @module executables/workflowRouter/economySetupRouter
+ * @module executables/workflowRouter/EconomySetupRouter
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -13,9 +13,12 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
+  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
+  SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
+  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
-  workflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
+  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
@@ -25,29 +28,49 @@ const rootPrefix = '../..',
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
+require(rootPrefix + '/app/services/token/SyncInView');
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
 require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
 require(rootPrefix + '/lib/setup/economy/DeployCoGateway');
 require(rootPrefix + '/lib/setup/economy/ActivateGateway');
+require(rootPrefix + '/lib/setup/economy/PostGatewayDeploy');
 require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
 require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
-require(rootPrefix + '/lib/setup/economy/PostGatewayDeploy');
-require(rootPrefix + '/app/services/token/SyncInView');
 require(rootPrefix + '/lib/setup/economy/DeployGatewayComposer');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
 
-class economySetupRouter extends workflowRouterBase {
+/**
+ * Class for Economy setup router.
+ *
+ * @class
+ */
+class EconomySetupRouter extends WorkflowRouterBase {
+  /**
+   * Constructor for Economy setup router.
+   *
+   * @augments WorkflowRouterBase
+   *
+   * @constructor
+   */
   constructor(params) {
+    params['workflowKind'] = workflowConstants.tokenDeployKind; // Assign workflowKind.
     super(params);
+  }
 
+  /**
+   * Fetch current step config for every router.
+   *
+   * @private
+   */
+  _fetchCurrentStepConfig() {
     const oThis = this;
 
     oThis.currentStepConfig = economySetupConfig[oThis.stepKind];
   }
 
-  async stepsFactory() {
+  async _performStep() {
     const oThis = this;
 
     const configStrategy = await oThis.getConfigStrategy(),
@@ -290,12 +313,20 @@ class economySetupRouter extends workflowRouterBase {
     return rsp[oThis.chainId];
   }
 
+  /**
+   * Get transaction hash for given kind
+   *
+   * @param {String} kindStr
+   *
+   * @return {*}
+   */
   getTransactionHashForKind(kindStr) {
     const oThis = this,
       kindInt = +new WorkflowStepsModel().invertedKinds[kindStr];
 
-    for (let workflowId in oThis.workflowRecordsMap) {
-      let workflowData = oThis.workflowRecordsMap[workflowId];
+    for (let workflowKind in oThis.workflowStepKindToRecordMap) {
+      let workflowData = oThis.workflowStepKindToRecordMap[workflowKind];
+
       if (workflowData.kind === kindInt) {
         return workflowData.transaction_hash;
       }
@@ -323,13 +354,23 @@ class economySetupRouter extends workflowRouterBase {
       })
       .fire();
 
+    // Update status of workflow as completedStatus in workflows table.
+    let workflowsModelResp = await new WorkflowModel()
+      .update({
+        status: new WorkflowModel().invertedStatuses[workflowConstants.completedStatus]
+      })
+      .where({
+        id: oThis.workflowId
+      })
+      .fire();
+
     // If row was updated successfully.
-    if (+tokenModelResp.affectedRows === 1) {
-      logger.win('*** Economy Setup Done');
+    if (+tokenModelResp.affectedRows === 1 && +workflowsModelResp.affectedRows === 1) {
       // Implicit string to int conversion.
-      return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
+      logger.win('*** Economy Setup Done');
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
-      return Promise.resolve(responseHelper.successWithData({ taskDone: -1 }));
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
   }
 
@@ -352,12 +393,22 @@ class economySetupRouter extends workflowRouterBase {
       })
       .fire();
 
+    // Update status of workflow as failedStatus in workflows table.
+    let workflowsModelResp = await new WorkflowModel()
+      .update({
+        status: new WorkflowModel().invertedStatuses[workflowConstants.failedStatus]
+      })
+      .where({
+        id: oThis.workflowId
+      })
+      .fire();
+
     // If row was updated successfully.
-    if (+tokenModelResp.affectedRows === 1) {
+    if (+tokenModelResp.affectedRows === 1 && +workflowsModelResp.affectedRows === 1) {
       // Implicit string to int conversion.
-      return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
-      return Promise.resolve(responseHelper.successWithData({ taskDone: -1 }));
+      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
   }
 
@@ -366,4 +417,4 @@ class economySetupRouter extends workflowRouterBase {
   }
 }
 
-module.exports = economySetupRouter;
+module.exports = EconomySetupRouter;

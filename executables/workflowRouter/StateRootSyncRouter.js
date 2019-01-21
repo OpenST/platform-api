@@ -18,11 +18,11 @@ class StateRootSyncRouter extends WorkflowRouterBase {
   }
 
   /**
-   * stepsFactory
+   * _performStep
    *
    * @return {Promise<*>}
    */
-  async stepsFactory() {
+  async _performStep() {
     const oThis = this;
 
     switch (oThis.stepKind) {

@@ -1,31 +1,31 @@
 'use strict';
-
 /**
- * Base klass for setup tasks that are common across origin & aux chains
+ * Base class for setup tasks that are common across origin & aux chains
  *
  * @module /tools/chainSetup/mosaicInteracts/Base
  */
 const rootPrefix = '../../..',
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
-  AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3');
+  AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey');
 
 /**
+ * Class for setup tasks that are common across origin & aux chains
  *
  * @class
  */
 class Base {
   /**
-   * Constructor
+   * Constructor for setup tasks that are common across origin & aux chains
    *
    * @param {Object} params
-   * @param {Number} params.chainId - chain id on which this is to be performed
-   * @param {Number} params.remoteChainId - pass auxChainId, for anchor contract deployment
-   * @param {String} params.signerAddress - address who signs Tx
-   * @param {String} params.chainEndpoint - url to connect to chain
-   * @param {String} params.gasPrice -  gas price to use
+   * @param {Number} params.chainId: chain id on which this is to be performed
+   * @param {Number} params.remoteChainId: pass auxChainId, for anchor contract deployment
+   * @param {String} params.signerAddress: address who signs Tx
+   * @param {String} params.chainEndpoint: url to connect to chain
+   * @param {String} params.gasPrice: gas price to use
    *
    * @constructor
    */
@@ -42,11 +42,9 @@ class Base {
   }
 
   /**
-   *
-   * Perform
+   * Performer
    *
    * @return {Promise<result>}
-   *
    */
   perform() {
     const oThis = this;
@@ -58,7 +56,7 @@ class Base {
         logger.error('tools/chainSetup/mosaicInteracts/Base::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cos_b_1',
+          internal_error_identifier: 't_cs_mi_b_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -66,22 +64,23 @@ class Base {
     });
   }
 
-  /***
-   *
-   * get web3instance to interact with chain
+  /**
+   * Get web3instance to interact with chain
    *
    * @return {Object}
    */
   get _web3Instance() {
     const oThis = this;
+
     if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
+
     oThis.web3InstanceObj = web3Provider.getInstance(oThis.chainEndpoint).web3WsProvider;
+
     return oThis.web3InstanceObj;
   }
 
-  /***
-   *
-   * get prive key of signer from cache
+  /**
+   * Get private key of signer from cache
    *
    * @return {String}
    */
@@ -89,12 +88,12 @@ class Base {
     const oThis = this,
       addressPrivateKeyCache = new AddressPrivateKeyCache({ address: oThis.signerAddress }),
       cacheFetchRsp = await addressPrivateKeyCache.fetchDecryptedData();
+
     return cacheFetchRsp.data['private_key_d'];
   }
 
-  /***
-   *
-   * add key to web3 wallet
+  /**
+   * Add key to web3 wallet
    *
    * @param {String} signerKey
    *
@@ -103,12 +102,12 @@ class Base {
   // TODO :: clean up using signer web3
   _addKeyToWallet(signerKey) {
     const oThis = this;
+
     oThis._web3Instance.eth.accounts.wallet.add(signerKey);
   }
 
-  /***
-   *
-   * remove key from web3 wallet
+  /**
+   * Remove key from web3 wallet
    *
    * @param {String} signerKey
    *
@@ -116,11 +115,12 @@ class Base {
    */
   _removeKeyFromWallet(signerKey) {
     const oThis = this;
+
     oThis._web3Instance.eth.accounts.wallet.remove(signerKey);
   }
 
   /**
-   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
+   * Fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
    *
    * @ignore
    *
@@ -128,6 +128,7 @@ class Base {
    */
   async _fetchNonce() {
     const oThis = this;
+
     return new NonceManager({
       address: oThis.signerAddress,
       chainId: oThis.chainId

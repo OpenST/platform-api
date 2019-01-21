@@ -442,6 +442,21 @@ class BasicHelperKlass {
       d.getMilliseconds()
     );
   }
+
+  /**
+   * Checks whether the object is empty or not.
+   *
+   * @param {Object} obj
+   *
+   * @return {Boolean}
+   */
+  isEmptyObject(obj) {
+    for (let property in obj) {
+      if (obj.hasOwnProperty(property)) return false;
+    }
+
+    return true;
+  }
 }
 
 module.exports = new BasicHelperKlass();

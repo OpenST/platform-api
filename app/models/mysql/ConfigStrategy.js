@@ -13,6 +13,8 @@ const rootPrefix = '../../..',
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   configValidator = require(rootPrefix + '/helpers/configValidator'),
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
+  kms = require(rootPrefix + '/lib/globalConstant/kms'),
+  encryptionPurpose = kms.configStrategyPurpose,
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt'),
@@ -325,7 +327,7 @@ class ConfigStrategyModel extends ModelBase {
       );
     }
 
-    let KMSObject = new KmsWrapper('knownAddresses');
+    let KMSObject = new KmsWrapper(ConfigStrategyModel.encryptionPurpose);
     let decryptedSalt = await KMSObject.decrypt(addrSalt[0]['salt']);
     if (!decryptedSalt['Plaintext']) {
       return Promise.reject(
@@ -343,9 +345,11 @@ class ConfigStrategyModel extends ModelBase {
   }
 
   /**
+   * This method updates strategy ID.
    *
-   * @param {integer} strategy_id
+   * @param {Integer} strategy_id
    * @param {Object} config_strategy_params
+   *
    * @returns {Promise<*>}
    */
   async updateStrategyId(strategy_id, config_strategy_params) {
@@ -530,6 +534,10 @@ class ConfigStrategyModel extends ModelBase {
         error_config: errorConfig
       })
     );
+  }
+
+  static get encryptionPurpose() {
+    return encryptionPurpose;
   }
 }
 

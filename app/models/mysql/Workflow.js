@@ -21,7 +21,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   kinds = {
     '1': workflowConstants.stakeAndMintKind,
     '2': workflowConstants.tokenDeployKind,
-    '3': workflowConstants.stateRootSyncKind
+    '3': workflowConstants.stateRootSyncKind,
+    '4': workflowConstants.testKind
   },
   invertedStatuses = util.invert(statuses),
   invertedKinds = util.invert(kinds);

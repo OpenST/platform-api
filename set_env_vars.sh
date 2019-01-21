@@ -39,6 +39,8 @@ export SA_API_KEY_KMS_ARN='arn:aws:kms:us-east-1:604850698061:key'
 export SA_API_KEY_KMS_ID='eab8148d-fd9f-451d-9eb9-16c115645635'
 export SA_MANAGED_ADDRESS_KMS_ARN='arn:aws:kms:us-east-1:604850698061:key'
 export SA_MANAGED_ADDRESS_KMS_ID='eab8148d-fd9f-451d-9eb9-16c115645635'
+export SA_CONFIG_STRATEGY_KMS_ARN='arn:aws:kms:us-east-1:604850698061:key'
+export SA_CONFIG_STRATEGY_KMS_ID='eab8148d-fd9f-451d-9eb9-16c115645635'
 
 # JWT details
 export CA_SAAS_API_SECRET_KEY='1somethingsarebetterkeptinenvironemntvariables'

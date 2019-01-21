@@ -2,63 +2,75 @@
 /**
  * Base class for workflow router.
  *
- * @module executables/workflowRouter/base
+ * @module executables/workflowRouter/Base
  */
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
+  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  WorkflowStepsCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowSteps'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  WorkflowStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStatus'),
+  WorkflowStepsStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStepsStatus');
 
 /**
  * Class for workflow router base.
  *
  * @class
  */
-class workflowRouterBase {
+class WorkflowRouterBase {
   /**
    * Constructor for workflow router base.
    *
    * @param {Object} params
    * @param {Number} params.currentStepId  id of process parent
-   * @param {Number} params.parentStepId {Number} id of process parent
+   * @param {Number} params.workflowId id of process parent
    * @param {String} params.stepKind Which step to execute in router
-   * @param {String} params.taskStatus task is 'taskReadyToStart' or 'taskDone' status.
+   * @param {String} params.topic
+   * @param {String} params.workflowKind Kind of workflow
+   * @param {String} params.taskStatus task is 'taskReadyToStart' or 'taskDone' or 'taskFailed' status.
    * @param {Object} params.taskResponseData when task is 'taskDone', send taskResponseData if required.
    * @param {Number} params.clientId
-   * @param {Number} params.chainId
    * @param {Number} params.groupId
    * @param {Object} params.payload
+   * @param {Object} params.requestParams
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
     oThis.currentStepId = params.currentStepId;
-    oThis.parentStepId = params.parentStepId;
+    oThis.workflowId = params.workflowId;
     oThis.topic = params.topic;
+    oThis.workflowKind = params.workflowKind;
+    oThis.chainId = params.chainId;
 
     oThis.stepKind = params.stepKind;
     oThis.taskStatus = params.taskStatus;
     oThis.taskResponseData = params.taskResponseData;
 
     oThis.clientId = params.clientId;
-    oThis.chainId = params.chainId;
     oThis.groupId = params.groupId;
 
     oThis.requestParams = params.requestParams || {};
+
     oThis.taskDone = false;
+    oThis.stepsToBePerformedOnSuccess = [];
+    oThis.stepsToBePerformedOnFailure = [];
+    oThis.workFlow = null;
     oThis.nextSteps = [];
-    oThis.workflowRecordsMap = {};
+    oThis.workflowStepKindToRecordMap = {};
+    oThis.currentStepDataToBeUpdated = {};
     oThis.transactionHash = null;
+    oThis.currentStepConfig = null;
   }
 
   /**
-   *
-   *  performer
+   * Performer
    *
    * @returns {Promise<>}
    */
@@ -68,16 +80,12 @@ class workflowRouterBase {
     return oThis.asyncPerform().catch(async function(error) {
       if (responseHelper.isCustomResult(error)) {
         logger.error(error.getDebugData());
-        await oThis._clearWorkflowStepsCache(oThis.parentStepId);
-        await new WorkflowStepsModel().updateRecord(oThis.currentStepId, {
-          debug_params: JSON.stringify(error.getDebugData()),
-          status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus]
-        });
+        await oThis._handleCaughtErrors(JSON.stringify(error.getDebugData()));
         return error;
       } else {
-        logger.error('executables/workflowRouter/base::perform::catch');
+        logger.error('executables/workflowRouter/Base::perform::catch');
         logger.error(error);
-        await new WorkflowStepsModel().markAsFailed(oThis.currentStepId);
+        await oThis._handleCaughtErrors();
         return responseHelper.error({
           internal_error_identifier: 'e_wr_b_1',
           api_error_identifier: 'unhandled_catch_response',
@@ -88,333 +96,337 @@ class workflowRouterBase {
   }
 
   /**
-   *
-   * async performer
+   * Async performer
    *
    * @returns {Promise<>}
    */
   async asyncPerform() {
     const oThis = this;
 
-    await oThis.validateAndConfig();
+    oThis._fetchCurrentStepConfig();
 
-    await oThis.getWorkflowRecords();
+    await oThis._validateConfig();
 
-    await oThis.validateAndSanitize();
+    await oThis._getWorkFlow();
 
-    if (oThis.taskStatus == workflowStepConstants.taskReadyToStart) {
-      await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
-      await oThis._clearWorkflowStepsCache(oThis.parentStepId);
+    await oThis._getWorkFlowSteps();
 
-      let response = await oThis.stepsFactory();
+    await oThis._validateAndSanitize();
 
-      console.log('------------------after---stepsFactory------------asyncPerform---', oThis.currentStepId, response);
+    oThis._clubRequestParamsFromDependencies();
 
-      if (response.isFailure()) {
-        logger.error('Error......', response);
-        return Promise.reject(response);
-      } else {
-        oThis.taskDone = response.data.taskDone;
-        oThis.taskResponseData = response.data.taskResponseData;
-        oThis.transactionHash = response.data.transactionHash;
-      }
-    } else if (oThis.taskStatus == workflowStepConstants.taskDone) {
-      oThis.taskDone = true;
-    } else {
-      logger.error(
-        'Unsupported Task status ' + oThis.taskStatus + ' inside executables/workflowRouter/testProcessRouter.js'
-      );
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_wr_b_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { taskStatus: oThis.taskStatus }
-        })
-      );
-    }
+    await oThis._decideChainId();
 
-    let updateData = {};
+    await oThis._performStepIfReadyToStart();
 
-    if (oThis.transactionHash) {
-      updateData.transaction_hash = oThis.transactionHash;
-    }
+    oThis._prepareDataToBeUpdated();
 
-    if (oThis.taskResponseData) {
-      updateData.response_data = JSON.stringify(oThis.taskResponseData);
-    }
+    await oThis._updateCurrentStep();
 
-    console.log('------------------------------updateData---', oThis.currentStepId, updateData);
+    oThis._prepareForNextSteps();
 
-    if (oThis.taskDone == 1) {
-      updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus];
-      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
+    await oThis._insertAndPublishForNextSteps();
 
-      await oThis.insertAndPublishNextSteps(oThis.nextSteps);
-    } else if (oThis.taskDone == -1) {
-      updateData.status = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus];
-      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
+    await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
-      if (oThis.currentStepConfig.onFailure && oThis.currentStepConfig.onFailure != '') {
-        oThis._insertAndPublishNextStep(oThis.currentStepConfig.onFailure);
-      }
-    } else if (updateData.response_data || updateData.transaction_hash) {
-      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, updateData);
-    }
+    await oThis._clearWorkflowStepsStatusCache(oThis.workflowId);
 
-    await oThis._clearWorkflowStepsCache(oThis.parentStepId);
-
-    return Promise.resolve(responseHelper.successWithData({ workflowId: oThis.parentStepId }));
+    return Promise.resolve(responseHelper.successWithData({ workflow_id: oThis.workflowId }));
   }
 
   /**
+   * Fetch current step config for every router.
    *
-   * validate and sanitize
+   * @private
+   */
+  _fetchCurrentStepConfig() {
+    throw 'sub-class to implement';
+  }
+
+  /**
+   * Validate step config.
    *
    * @returns {Promise<>}
    *
-   * @sets oThis.nextSteps
+   * @sets oThis.stepsToBePerformedOnSuccess, oThis.stepsToBePerformedOnFailure
+   *
+   * @private
    */
-  async validateAndConfig() {
+  async _validateConfig() {
     const oThis = this;
 
     if (!oThis.currentStepConfig) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_wr_b_3',
+          internal_error_identifier: 'e_wr_b_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: { stepKind: oThis.stepKind }
         })
       );
     }
 
-    oThis.nextSteps = oThis.currentStepConfig.onSuccess || [];
+    oThis.stepsToBePerformedOnSuccess = oThis.currentStepConfig.onSuccess || [];
+
+    if (oThis.currentStepConfig.onFailure && oThis.currentStepConfig.onFailure != '') {
+      oThis.stepsToBePerformedOnFailure = [oThis.currentStepConfig.onFailure];
+    }
+
     oThis.readDataFromSteps = oThis.currentStepConfig.readDataFrom || [];
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return responseHelper.successWithData({});
   }
 
   /**
-   *
-   * Get request params using parentId
+   * Get workflow details from workflows table.
    *
    * @returns {Promise<any>}
    *
-   * @sets oThis.requestParams, oThis.clientId, oThis.chainId
+   * @sets oThis.workFlow, oThis.requestParams, oThis.clientId
    *
+   * @private
    */
-  async getWorkflowRecords() {
-    const oThis = this;
-    if (oThis.parentStepId) {
-      let workflowRecords = await new WorkflowStepsModel()
-        .select('*')
-        .where(['id in (?)', [oThis.parentStepId, oThis.currentStepId]])
-        .fire();
-
-      for (let i = 0; i < workflowRecords.length; i++) {
-        oThis.workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
-        if (workflowRecords[i].id == oThis.currentStepId) {
-          oThis.chainId = workflowRecords[i].chain_id;
-        }
-      }
-
-      await oThis.getDependentWorkflowRecords();
-    }
-
-    return Promise.resolve(responseHelper.successWithData({}));
-  }
-
-  /**
-   *
-   * Get request params using parentId
-   *
-   * @returns {Promise<any>}
-   *
-   * @sets oThis.requestParams, oThis.clientId, oThis.chainId
-   *
-   */
-  async getDependentWorkflowRecords() {
-    const oThis = this;
-    if (oThis.readDataFromSteps.length > 0) {
-      let workflowRecordsKinds = [];
-
-      for (let i = 0; i < oThis.readDataFromSteps.length; i++) {
-        let invertedKind = new WorkflowStepsModel().invertedKinds[oThis.readDataFromSteps[i]];
-        if (invertedKind) {
-          workflowRecordsKinds.push(invertedKind);
-        }
-      }
-
-      let workflowRecords = await new WorkflowStepsModel()
-        .select('*')
-        .where(['parent_id = ? AND kind in (?)', oThis.parentStepId, workflowRecordsKinds])
-        .fire();
-
-      for (let i = 0; i < workflowRecords.length; i++) {
-        oThis.workflowRecordsMap[workflowRecords[i].id] = workflowRecords[i];
-      }
-    }
-
-    return Promise.resolve(responseHelper.successWithData({}));
-  }
-
-  /**
-   *
-   * Set data from workflow records.
-   *
-   * @returns {Promise<>}
-   *
-   * @sets oThis.requestParams, oThis.clientId, oThis.chainId
-   *
-   */
-  async validateAndSanitize() {
+  async _getWorkFlow() {
     const oThis = this;
 
-    let parentRecord = oThis.workflowRecordsMap[oThis.parentStepId],
-      currentRecord = oThis.workflowRecordsMap[oThis.currentStepId];
+    if (!oThis.workflowId) return Promise.resolve();
 
-    if (oThis.parentStepId) {
-      // check for parent and current records
-      if (
-        !currentRecord ||
-        !(
-          currentRecord.status == new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus] ||
-          currentRecord.status == new WorkflowStepsModel().invertedStatuses[workflowStepConstants.pendingStatus]
-        )
-      ) {
-        return Promise.reject(
-          responseHelper.error({
-            internal_error_identifier: 'e_wr_b_7',
-            api_error_identifier: 'something_went_wrong',
-            debug_options: { parentStepId: oThis.parentStepId }
-          })
-        );
-      }
+    oThis.workFlow = (await new WorkflowModel()
+      .select('*')
+      .where(['id = (?)', oThis.workflowId])
+      .fire())[0];
 
-      // check for parent record present
-      if (!parentRecord) {
-        return Promise.reject(
-          responseHelper.error({
-            internal_error_identifier: 'e_wr_b_6',
-            api_error_identifier: 'something_went_wrong',
-            debug_options: { parentStepId: oThis.parentStepId }
-          })
-        );
-      }
-
-      oThis.requestParams = JSON.parse(parentRecord.request_params);
-      oThis.clientId = parentRecord.client_id;
-      oThis.chainId = parentRecord.chain_id;
-    }
-
-    for (let workflowId in oThis.workflowRecordsMap) {
-      let workflowData = oThis.workflowRecordsMap[workflowId];
-      if (workflowData.response_data) {
-        Object.assign(oThis.requestParams, JSON.parse(workflowData.response_data));
-      }
-    }
-
-    console.log('-------oThis.requestParams------', oThis.currentStepId, JSON.stringify(oThis.requestParams));
-
-    if (!oThis.clientId && !oThis.chainId) {
+    if (!oThis.workFlow) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_wr_b_5',
+          internal_error_identifier: 'e_wr_b_3',
           api_error_identifier: 'something_went_wrong',
-          debug_options: { parentStepId: oThis.parentStepId }
+          debug_options: { workflowId: oThis.workflowId }
         })
       );
     }
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    oThis.requestParams = JSON.parse(oThis.workFlow.request_params);
+    oThis.clientId = oThis.workFlow.client_id;
+
+    if (!oThis.clientId) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_wr_b_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { workflowId: oThis.workflowId }
+        })
+      );
+    }
   }
+
   /**
-   * First step of any workflow.
+   * Get workflow steps.
    *
-   * @returns {Promise<>}
+   * @return {Promise<void>}
    *
-   * @sets oThis.currentStepId, oThis.parentStepId
+   * @sets oThis.workflowStepKindToRecordMap
+   *
+   * @private
    */
-  async insertInitStep() {
+  async _getWorkFlowSteps() {
     const oThis = this;
 
-    let insertResp = await new WorkflowStepsModel()
-      .insert({
-        kind: new WorkflowStepsModel().invertedKinds[oThis.stepKind],
-        client_id: oThis.clientId,
-        chain_id: oThis.chainId,
-        request_params: JSON.stringify(oThis.requestParams),
-        status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus]
-      })
+    if (!oThis.workflowId) return;
+
+    let workflowRecords = await new WorkflowStepsModel()
+      .select('*')
+      .where(['workflow_id = (?) AND status IS NOT ?', oThis.workflowId, workflowStepConstants.retriedStatus])
       .fire();
 
-    oThis.currentStepId = insertResp.insertId;
-    oThis.parentStepId = insertResp.insertId;
+    let stepKindsMap = new WorkflowStepsModel().kinds;
 
-    await oThis._clearWorkflowStepsCache(oThis.currentStepId);
-
-    return Promise.resolve(responseHelper.successWithData({ taskDone: 1 }));
-  }
-
-  /**
-   *
-   * next steps of workflow.
-   *
-   * @returns {Promise<>}
-   *
-   * @sets oThis.currentStepId, oThis.parentStepId
-   *
-   */
-  async insertAndPublishNextSteps() {
-    const oThis = this;
-
-    for (let index = 0; index < oThis.nextSteps.length; index++) {
-      let nextStep = oThis.nextSteps[index];
-
-      let dependencyResponse = await oThis.checkDependencies(nextStep);
-
-      console.log('--------------dependencyResponse----------', oThis.currentStepId, dependencyResponse, nextStep);
-      if (!dependencyResponse.data.dependencyResolved) {
-        continue;
-      }
-
-      await oThis._insertAndPublishNextStep(nextStep);
+    for (let i = 0; i < workflowRecords.length; i++) {
+      let step = workflowRecords[i];
+      oThis.workflowStepKindToRecordMap[stepKindsMap[step.kind]] = step;
     }
-    return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**
-   *
-   * next steps of workflow.
+   * Validate and sanitize
    *
    * @returns {Promise<>}
    *
-   * @sets oThis.currentStepId, oThis.parentStepId
+   * @sets oThis.requestParams, oThis.clientId
    *
+   * @private
    */
-  async _insertAndPublishNextStep(nextStep) {
+  async _validateAndSanitize() {
     const oThis = this;
 
-    let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
-      nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
+    let allowedTaskStatus =
+      oThis.taskStatus == workflowStepConstants.taskDone ||
+      oThis.taskStatus == workflowStepConstants.taskReadyToStart ||
+      oThis.taskStatus == workflowStepConstants.taskFailed;
 
-    let chainId;
+    if (!oThis.taskStatus || !allowedTaskStatus) {
+      logger.error(
+        'Unsupported Task status ' + oThis.taskStatus + ' inside executables/workflowRouter/testProcessRouter.js'
+      );
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_wr_b_5',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { taskStatus: oThis.taskStatus }
+        })
+      );
+    }
 
-    switch (nextStep) {
-      case workflowStepConstants.economySetupInit:
-      case workflowStepConstants.markSuccess:
-      case workflowStepConstants.markFailure:
-        chainId = oThis.chainId;
-        break;
+    let currentRecord = oThis.workflowStepKindToRecordMap[oThis.stepKind];
 
+    if (oThis.workflowId) {
+      let statusMap = new WorkflowStepsModel().invertedStatuses,
+        isQueuedStatus = currentRecord.status == statusMap[workflowStepConstants.queuedStatus],
+        isPendingStatus = currentRecord.status == statusMap[workflowStepConstants.pendingStatus],
+        isToBeProcessedStatus = isPendingStatus || isQueuedStatus;
+
+      // Check for parent and current records
+      if (!isToBeProcessedStatus) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'e_wr_b_6',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: { workflowId: oThis.workflowId }
+          })
+        );
+      }
+    }
+
+    for (let stepKind in oThis.workflowStepKindToRecordMap) {
+      let step = oThis.workflowStepKindToRecordMap[stepKind];
+
+      if (step.response_data) {
+        Object.assign(oThis.requestParams, JSON.parse(step.response_data));
+      }
+    }
+  }
+
+  /**
+   * Club request params from all dependencies.
+   *
+   * @private
+   */
+  _clubRequestParamsFromDependencies() {
+    const oThis = this;
+
+    if (oThis.readDataFromSteps.length <= 0) return;
+
+    for (let index = 0; index < oThis.readDataFromSteps.length; index++) {
+      let dependencyKind = oThis.readDataFromSteps[index],
+        step = oThis.workflowStepKindToRecordMap[dependencyKind];
+
+      if (step.response_data) {
+        Object.assign(oThis.requestParams, JSON.parse(step.response_data));
+      }
+    }
+  }
+
+  /**
+   * Perform the steps if the current step is ready to start.
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _performStepIfReadyToStart() {
+    const oThis = this;
+
+    if (oThis.taskStatus != workflowStepConstants.taskReadyToStart) return;
+
+    if (oThis.currentStepId) {
+      await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
+    }
+    await oThis._clearWorkflowStatusCache(oThis.workflowId);
+    await oThis._clearWorkflowStepsStatusCache(oThis.workflowId);
+
+    let response = await oThis._performStep();
+
+    if (response.isFailure()) {
+      logger.error('Error......', response);
+      return Promise.reject(response);
+    } else {
+      oThis.taskStatus = response.data.taskStatus;
+      oThis.taskResponseData = response.data.taskResponseData;
+      oThis.transactionHash = response.data.transactionHash;
+    }
+  }
+
+  /**
+   * Prepare data to be updated in the table.
+   *
+   * @private
+   */
+  _prepareDataToBeUpdated() {
+    const oThis = this;
+
+    oThis.currentStepDataToBeUpdated.request_params = basicHelper.isEmptyObject(oThis.requestParams)
+      ? null
+      : JSON.stringify(oThis.requestParams);
+
+    if (oThis.transactionHash) {
+      oThis.currentStepDataToBeUpdated.transaction_hash = oThis.transactionHash;
+    }
+
+    if (oThis.taskResponseData) {
+      oThis.currentStepDataToBeUpdated.response_data = JSON.stringify(oThis.taskResponseData);
+    }
+
+    if (oThis.taskStatus == workflowStepConstants.taskDone) {
+      oThis.currentStepDataToBeUpdated.status = new WorkflowStepsModel().invertedStatuses[
+        workflowStepConstants.processedStatus
+      ];
+    } else if (oThis.taskStatus == workflowStepConstants.taskFailed) {
+      oThis.currentStepDataToBeUpdated.status = new WorkflowStepsModel().invertedStatuses[
+        workflowStepConstants.failedStatus
+      ];
+    } else if (oThis.taskStatus == workflowStepConstants.taskPending) {
+      oThis.currentStepDataToBeUpdated.status = new WorkflowStepsModel().invertedStatuses[
+        workflowStepConstants.pendingStatus
+      ];
+    }
+  }
+
+  /**
+   * Update details of current step in the table.
+   *
+   * @return {Promise<*>}
+   *
+   * @private
+   */
+  _updateCurrentStep() {
+    const oThis = this;
+
+    // Nothing to update.
+    if (basicHelper.isEmptyObject(oThis.currentStepDataToBeUpdated) || !oThis.currentStepId) return Promise.resolve();
+
+    return new WorkflowStepsModel().updateRecord(oThis.currentStepId, oThis.currentStepDataToBeUpdated);
+  }
+
+  /**
+   * Decide chainId based on step being.
+   *
+   * @private
+   */
+  _decideChainId() {
+    const oThis = this;
+    switch (oThis.stepKind) {
       case workflowStepConstants.generateTokenAddresses:
       case workflowStepConstants.deployOriginTokenOrganization:
-      case workflowStepConstants.deployOriginBrandedToken:
       case workflowStepConstants.saveOriginTokenOrganization:
+      case workflowStepConstants.deployOriginBrandedToken:
       case workflowStepConstants.saveOriginBrandedToken:
       case workflowStepConstants.deployTokenGateway:
       case workflowStepConstants.saveTokenGateway:
       case workflowStepConstants.activateTokenGateway:
+      case workflowStepConstants.verifyActivateTokenGateway:
       case workflowStepConstants.setGatewayInBt:
+      case workflowStepConstants.verifySetGatewayInBt:
+      case workflowStepConstants.deployGatewayComposer:
+      case workflowStepConstants.verifyDeployGatewayComposer:
       case workflowStepConstants.stPrimeStakeAndMintInit:
       case workflowStepConstants.stPrimeApprove:
       case workflowStepConstants.simpleTokenStake:
@@ -423,46 +435,100 @@ class workflowRouterBase {
       case workflowStepConstants.checkStakeStatus:
       case workflowStepConstants.checkProgressStakeStatus:
       case workflowStepConstants.fetchStakeIntentMessageHash:
-        chainId = oThis.requestParams.originChainId;
+        oThis.chainId = oThis.requestParams.originChainId;
         break;
 
       case workflowStepConstants.deployAuxTokenOrganization:
       case workflowStepConstants.saveAuxTokenOrganization:
       case workflowStepConstants.deployUtilityBrandedToken:
       case workflowStepConstants.saveUtilityBrandedToken:
+      case workflowStepConstants.deployTokenCoGateway:
       case workflowStepConstants.saveTokenCoGateway:
       case workflowStepConstants.updateTokenInOstView:
-      case workflowStepConstants.deployTokenCoGateway:
       case workflowStepConstants.setCoGatewayInUbt:
+      case workflowStepConstants.verifySetCoGatewayInUbt:
+      case workflowStepConstants.setInternalActorForOwnerInUBT:
+      case workflowStepConstants.verifySetInternalActorForOwnerInUBT:
       case workflowStepConstants.proveGatewayOnCoGateway:
       case workflowStepConstants.confirmStakeIntent:
       case workflowStepConstants.progressMint:
       case workflowStepConstants.checkProveGatewayStatus:
       case workflowStepConstants.checkConfirmStakeStatus:
-      case workflowStepConstants.verifySetCoGatewayInUbt:
       case workflowStepConstants.checkProgressMintStatus:
-        chainId = oThis.requestParams.auxChainId;
+        oThis.chainId = oThis.requestParams.auxChainId;
         break;
 
       case workflowStepConstants.commitStateRoot:
       case workflowStepConstants.updateCommittedStateRootInfo:
-        chainId = oThis.requestParams.fromOriginToAux
+        oThis.chainId = oThis.requestParams.fromOriginToAux
           ? oThis.requestParams.auxChainId
           : oThis.requestParams.originChainId;
         break;
     }
+    // We are assigning oThis.chainId to requestParams because requestParams should contain the chainId that the
+    // current step needs to use. oThis.requestParams is being updated with the previous steps' chainId in two methods
+    // above, namely: _validateAndSanitize and _clubRequestParamsFromDependencies.
+    oThis.requestParams.chainId = oThis.chainId;
+  }
+
+  /**
+   * Prepare the params and table for the next steps.
+   *
+   * @private
+   */
+  _prepareForNextSteps() {
+    const oThis = this;
+
+    if (oThis.taskStatus == workflowStepConstants.taskDone) {
+      oThis.nextSteps = oThis.stepsToBePerformedOnSuccess;
+    } else if (oThis.taskStatus == workflowStepConstants.taskFailed) {
+      oThis.nextSteps = oThis.stepsToBePerformedOnFailure;
+    }
+  }
+
+  /**
+   * Insert entries in table and publish messages for all the next steps.
+   *
+   * @returns {Promise<>}
+   */
+  async _insertAndPublishForNextSteps() {
+    const oThis = this;
+
+    for (let index = 0; index < oThis.nextSteps.length; index++) {
+      let nextStep = oThis.nextSteps[index];
+
+      let dependencyResponse = await oThis.checkDependencies(nextStep);
+
+      if (!dependencyResponse.data.dependencyResolved) {
+        continue;
+      }
+
+      await oThis._insertAndPublishFor(nextStep);
+    }
+  }
+
+  /**
+   * Insert entries in table and publish message for the next step.
+   *
+   * @returns {Promise<>}
+   */
+  async _insertAndPublishFor(nextStep) {
+    const oThis = this;
+
+    let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
+      nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
+
+    //oThis._decideChainId(nextStep);
 
     let insertRsp = await new WorkflowStepsModel()
       .insert({
         kind: nextStepKind,
-        client_id: oThis.clientId,
-        chain_id: chainId,
-        parent_id: oThis.parentStepId,
+        workflow_id: oThis.workflowId,
         status: nextStepStatus
       })
       .fire();
 
-    await oThis._clearWorkflowStepsCache(oThis.parentStepId);
+    await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
     let nextStepId = insertRsp.insertId;
 
@@ -475,7 +541,7 @@ class workflowRouterBase {
           stepKind: nextStep,
           taskStatus: workflowStepConstants.taskReadyToStart,
           currentStepId: nextStepId,
-          parentStepId: oThis.parentStepId
+          workflowId: oThis.workflowId
         }
       }
     };
@@ -496,29 +562,10 @@ class workflowRouterBase {
   }
 
   /**
-   * Returns publisher.
+   * Check dependencies.
    *
-   * @returns {String}
-   * @private
-   */
-  get _publisher() {
-    return 'OST_Workflow';
-  }
-
-  /**
-   * Returns messageKind.
-   *
-   * @returns {String}
-   * @private
-   */
-  get _messageKind() {
-    return 'background_job';
-  }
-
-  /**
-   *
-   * ch
    * @param nextStep
+   *
    * @returns {Promise<any>}
    */
   async checkDependencies(nextStep) {
@@ -539,14 +586,20 @@ class workflowRouterBase {
     if (prerequisitesKinds.length > 0) {
       let prerequisitesRecords = await new WorkflowStepsModel()
         .select('*')
-        .where(['parent_id = ? AND kind in (?)', oThis.parentStepId, prerequisitesKinds])
+        .where([
+          'workflow_id = ? AND kind in (?) AND status IS NOT ?',
+          oThis.workflowId,
+          prerequisitesKinds,
+          workflowStepConstants.retriedStatus
+        ])
         .fire();
+
       if (prerequisitesRecords.length !== nextStepDetails.prerequisites.length) {
         return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
       }
-      for (let i = 0; i < prerequisitesRecords.length; i++) {
+      for (let index = 0; index < prerequisitesRecords.length; index++) {
         if (
-          prerequisitesRecords[i].status !=
+          prerequisitesRecords[index].status !=
           new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus]
         ) {
           return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
@@ -557,10 +610,84 @@ class workflowRouterBase {
     return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 1 }));
   }
 
-  async _clearWorkflowStepsCache(id) {
-    let workflowStepsCacheObj = new WorkflowStepsCache({ workflowId: id });
+  /**
+   * Clear workflow status cache.
+   *
+   * @param {Number/String} id
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _clearWorkflowStatusCache(id) {
+    let workflowCacheObj = new WorkflowStatusCache({ workflowId: id });
+
+    await workflowCacheObj.clear();
+  }
+
+  /**
+   * Clear workflow status cache.
+   *
+   * @param {Number/String} id
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _clearWorkflowStepsStatusCache(id) {
+    let workflowStepsCacheObj = new WorkflowStepsStatusCache({ workflowId: id });
+
     await workflowStepsCacheObj.clear();
   }
+
+  /**
+   * First step of any workflow.
+   *
+   * @returns {Promise<>}
+   *
+   * @sets oThis.workflowId
+   */
+  async insertInitStep() {
+    const oThis = this;
+
+    let workflowModelInsertResponse = await new WorkflowModel()
+      .insert({
+        kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
+        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
+        client_id: oThis.clientId,
+        request_params: JSON.stringify(oThis.requestParams)
+      })
+      .fire();
+
+    oThis.workflowId = workflowModelInsertResponse.insertId;
+
+    await oThis._clearWorkflowStatusCache(oThis.workflowId);
+
+    return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+  }
+
+  /**
+   * Returns publisher.
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  get _publisher() {
+    return 'OST_Workflow';
+  }
+
+  /**
+   * Returns messageKind.
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  get _messageKind() {
+    return 'background_job';
+  }
+
   /**
    * Current step payload which would be stored in Pending transactions and would help in restarting flow
    *
@@ -578,11 +705,56 @@ class workflowRouterBase {
           stepKind: oThis.stepKind,
           taskStatus: workflowStepConstants.taskDone,
           currentStepId: oThis.currentStepId,
-          parentStepId: oThis.parentStepId
+          workflowId: oThis.workflowId
         }
       }
     };
   }
+
+  /**
+   * Perform step.
+   *
+   * @private
+   */
+  _performStep() {
+    throw 'sub-class to implement.';
+  }
+
+  /**
+   * Update statuses in workflows and workflow steps table in case of errors
+   *
+   * @param {Object} debugParams
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _handleCaughtErrors(debugParams = null) {
+    const oThis = this;
+
+    debugParams = basicHelper.isEmptyObject(debugParams) ? null : debugParams;
+
+    if (oThis.currentStepId) {
+      await oThis._clearWorkflowStatusCache(oThis.currentStepId);
+      await oThis._clearWorkflowStepsStatusCache(oThis.currentStepId);
+
+      await new WorkflowStepsModel().updateRecord(oThis.currentStepId, {
+        debug_params: debugParams,
+        status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus]
+      });
+    }
+
+    await oThis._clearWorkflowStatusCache(oThis.workflowId);
+    await oThis._clearWorkflowStepsStatusCache(oThis.currentStepId);
+
+    await new WorkflowModel()
+      .update({
+        debug_params: debugParams,
+        status: new WorkflowModel().invertedStatuses[workflowConstants.failedStatus]
+      })
+      .where({ id: oThis.workflowId })
+      .fire();
+  }
 }
 
-module.exports = workflowRouterBase;
+module.exports = WorkflowRouterBase;

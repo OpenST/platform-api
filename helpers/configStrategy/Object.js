@@ -1,18 +1,24 @@
 'use strict';
-
 /**
- * Object that gives getter methods on config strategy fetched for a chain
+ * Object that gives getter methods on config strategy fetched for a chain.
  *
  * @module helpers/configStrategy/Object
  */
-
 const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
+/**
+ * Class for object that gives getter methods on config strategy fetched for a chain.
+ *
+ * @class
+ */
 class ConfigStrategyObject {
   /**
-   * @constructor
+   * Constructor for object that gives getter methods on config strategy fetched for a chain.
+   *
    * @param configStrategy
+   *
+   * @constructor
    */
   constructor(configStrategy) {
     const oThis = this;
@@ -37,6 +43,36 @@ class ConfigStrategyObject {
   get auxChainClient() {
     const oThis = this;
     return oThis.configStrategy[configStrategyConstants.auxGeth].client;
+  }
+
+  extraStorageColumnsForDdb(chainId) {
+    const oThis = this;
+    if (oThis.auxChainId == chainId) {
+      return oThis.extraStorageColumnsForAuxDdb;
+    } else if (oThis.originChainId == chainId) {
+      return oThis.extraStorageColumnsForOriginDdb;
+    } else {
+      return {};
+    }
+  }
+
+  get extraStorageColumnsForAuxDdb() {
+    const oThis = this,
+      ddbTablePrefix = oThis.configStrategy[configStrategyConstants.constants].auxDdbTablePrefix;
+    return {
+      [ddbTablePrefix + 'economies']: {
+        originContractAddress: {
+          shortName: 'oca',
+          dataType: 'S'
+        }
+      }
+    };
+  }
+
+  get extraStorageColumnsForOriginDdb() {
+    const oThis = this,
+      ddbTablePrefix = oThis.configStrategy[configStrategyConstants.constants].originDdbTablePrefix;
+    return {};
   }
 
   originChainWsProviders(intent) {
