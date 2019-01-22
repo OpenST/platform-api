@@ -11,7 +11,6 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  economyFormatter = require(rootPrefix + '/lib/formatter/entity/economy'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   TokenDetailCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
@@ -103,7 +102,7 @@ class TokenDetail {
     const oThis = this,
       configStrategy = oThis.ic().configStrategy;
 
-    oThis.originChainId = configStrategy[configStrategyConstants.constants]['originChainId'];
+    oThis.originChainId = configStrategy[configStrategyConstants.originGeth]['chainId'];
     oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth]['chainId'];
   }
 
@@ -203,9 +202,7 @@ class TokenDetail {
       );
     }
 
-    let economyDetails = cacheResponse.data[oThis.economyContractAddress];
-
-    oThis.economyDetails = economyFormatter.perform(economyDetails);
+    oThis.economyDetails = cacheResponse.data[oThis.economyContractAddress];
   }
 }
 
