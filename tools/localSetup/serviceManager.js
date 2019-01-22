@@ -185,6 +185,7 @@ class ServiceManager {
 
     if (chainType === 'aux') {
       if (purpose === 'deployment') {
+        fileManager.mkdir(setupHelper.logsFolder() + '/' + chainType + '-' + chainId.toString());
         gasPrice = contractConstants.zeroGasPrice;
       } else {
         gasPrice = contractConstants.auxChainGasPrice;
@@ -203,7 +204,6 @@ class ServiceManager {
 
     // Creating password file in a temp location
     fileManager.touch(chainFolder + '/' + sealerPassphraseFile, sealerPassword);
-    fileManager.mkdir(setupHelper.logsFolder() + '/' + chainType + '-' + chainId.toString());
     fileManager.touch(
       setupHelper.logsFolder() +
         '/' +
@@ -281,10 +281,19 @@ class ServiceManager {
     await basicHelper.pauseForMilliSeconds(3 * 1000);
     logger.info('* ' + chainType + '-' + chainId + ' chain is running.');
 
+    let fileName = null,
+      binFolderForGeth = setupHelper.binFolder() + '/' + chainType + '-' + chainId.toString();
+
+    if (chainType == 'aux' && purpose == 'deployment') {
+      fileManager.mkdir(binFolderForGeth);
+      fileName = chainType + '-chain-zeroGas-' + chainId.toString() + '.sh';
+    } else {
+      fileName = chainType + '-chain-' + chainId.toString() + '.sh';
+    }
+
     // TODO :: add check if the GETH has started generating new blocks.
-    let binFolderForGeth = setupHelper.binFolder() + '/' + chainType + '-' + chainId.toString(),
-      gethFilePath = binFolderForGeth + '/' + chainType + '-chain-' + chainId.toString() + '.sh';
-    fileManager.mkdir(binFolderForGeth);
+    let gethFilePath = binFolderForGeth + '/' + fileName;
+
     fileManager.touch(gethFilePath, '#!/bin/sh');
     fileManager.append(gethFilePath, cmd);
   }
