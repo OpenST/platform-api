@@ -1,0 +1,59 @@
+{
+  "chainId": 2000,
+  "groupId": 2000,
+  "config": {
+    "memcached": {
+      "engine": "memcached",
+      "servers": [
+        "127.0.0.1:11211"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    },
+    "auxGeth": {
+      "readOnly": {
+        "rpcProvider": "http://127.0.0.1:9545",
+        "wsProvider": "ws://127.0.0.1:9546",
+        "rpcProviders": [
+          "http://127.0.0.1:9545"
+        ],
+        "wsProviders": [
+          "ws://127.0.0.1:9546"
+        ]
+      },
+      "readWrite": {
+        "rpcProvider": "http://127.0.0.1:9545",
+        "wsProvider": "ws://127.0.0.1:9546",
+        "rpcProviders": [
+          "http://127.0.0.1:9545"
+        ],
+        "wsProviders": [
+          "ws://127.0.0.1:9546"
+        ]
+      },
+      "chainId": 2000,
+      "client": "geth",
+      "blockGenerationTime": 3,
+      "finalizeAfterBlocks": 24
+    },
+    "dynamodb": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "X",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0",
+      "enableLogging": "0",
+      "enableAutoscaling": "0",
+      "maxRetryCount": "1",
+      "autoScaling": {
+        "endpoint": "http://localhost:8000",
+        "region": "localhost",
+        "apiKey": "X",
+        "apiSecret": "X",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0"
+      }
+    }
+  }
+}

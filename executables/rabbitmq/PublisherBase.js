@@ -8,8 +8,8 @@ class PublisherBase extends CronBase {
   /**
    * Publisher base constructor
    *
-   * @param params {object}
-   * @param params.cronProcessId {number}
+   * @param {Object} params
+   * @param {Number} params.cronProcessId
    */
   constructor(params) {
     super(params);

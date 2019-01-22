@@ -1,5 +1,9 @@
 'use strict';
-
+/**
+ * Class for subscriber base.
+ *
+ * @module executables/rabbitmq/SubscriberBase
+ */
 const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../..',
@@ -9,12 +13,19 @@ const rootPrefix = '../..',
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
+/**
+ * Class for subscriber base.
+ *
+ * @class
+ */
 class SubscriberBase extends CronBase {
   /**
-   * Subscriber base constructor
+   * Constructor for subscriber base
    *
-   * @param params {object}
-   * @param params.cronProcessId {number}
+   * @param {Object} params
+   * @param {Number} params.cronProcessId
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -26,9 +37,10 @@ class SubscriberBase extends CronBase {
   }
 
   /**
-   * start the actual functionality of the cron
+   * Start the actual functionality of the cron.
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _start() {
@@ -40,6 +52,11 @@ class SubscriberBase extends CronBase {
     await oThis._startSubscription();
   }
 
+  /**
+   * Validate and sanitize params.
+   *
+   * @private
+   */
   _validateAndSanitize() {
     const oThis = this;
 
@@ -143,6 +160,9 @@ class SubscriberBase extends CronBase {
    */
   _promiseExecutor(onResolve, onReject, messageParams) {
     const oThis = this;
+
+    oThis.unAckCount++;
+
     try {
       messageParams = JSON.parse(messageParams);
     } catch (err) {

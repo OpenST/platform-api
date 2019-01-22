@@ -11,6 +11,7 @@ const rootPrefix = '../..',
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
+  WorkflowCache = require(rootPrefix + '/lib/sharedCacheManagement/Workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
@@ -54,7 +55,6 @@ class WorkflowRouterBase {
     oThis.taskResponseData = params.taskResponseData;
 
     oThis.clientId = params.clientId;
-    oThis.chainId = params.chainId;
     oThis.groupId = params.groupId;
 
     oThis.requestParams = params.requestParams || {};
@@ -191,12 +191,12 @@ class WorkflowRouterBase {
 
     if (!oThis.workflowId) return Promise.resolve();
 
-    oThis.workFlow = (await new WorkflowModel()
-      .select('*')
-      .where(['id = (?)', oThis.workflowId])
-      .fire())[0];
+    let workflowCacheResponse = await new WorkflowCache({
+      workflowId: oThis.workflowId
+    }).fetch();
 
-    if (!oThis.workFlow) {
+    // Workflow does not exist for the given client.
+    if (workflowCacheResponse.isFailure()) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_wr_b_3',
@@ -204,19 +204,9 @@ class WorkflowRouterBase {
           debug_options: { workflowId: oThis.workflowId }
         })
       );
-    }
-
-    oThis.requestParams = JSON.parse(oThis.workFlow.request_params);
-    oThis.clientId = oThis.workFlow.client_id;
-
-    if (!oThis.clientId) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_wr_b_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { workflowId: oThis.workflowId }
-        })
-      );
+    } else {
+      oThis.clientId = workflowCacheResponse.data[oThis.workflowId].clientId;
+      oThis.requestParams = JSON.parse(workflowCacheResponse.data[oThis.workflowId].requestParams);
     }
   }
 
@@ -266,7 +256,7 @@ class WorkflowRouterBase {
 
     if (!oThis.taskStatus || !allowedTaskStatus) {
       logger.error(
-        'Unsupported Task status ' + oThis.taskStatus + ' inside executables/workflowRouter/testProcessRouter.js'
+        'Unsupported Task status ' + oThis.taskStatus + ' inside executables/workflowRouter/TestProcessRouter.js'
       );
       return Promise.reject(
         responseHelper.error({
@@ -446,6 +436,12 @@ class WorkflowRouterBase {
         oThis.chainId = oThis.requestParams.originChainId;
         break;
 
+      case workflowStepConstants.fundAuxFunderAddress:
+      case workflowStepConstants.verifyFundAuxFunderAddress:
+      case workflowStepConstants.fundAuxAdminAddress:
+      case workflowStepConstants.verifyFundAuxAdminAddress:
+      case workflowStepConstants.fundAuxWorkerAddress:
+      case workflowStepConstants.verifyFundAuxWorkerAddress:
       case workflowStepConstants.deployAuxTokenOrganization:
       case workflowStepConstants.saveAuxTokenOrganization:
       case workflowStepConstants.deployUtilityBrandedToken:
@@ -659,14 +655,24 @@ class WorkflowRouterBase {
   async insertInitStep() {
     const oThis = this;
 
-    let workflowModelInsertResponse = await new WorkflowModel()
-      .insert({
+    let insertParams = {};
+
+    if (oThis.clientId) {
+      insertParams = {
         kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
         status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
         client_id: oThis.clientId,
         request_params: JSON.stringify(oThis.requestParams)
-      })
-      .fire();
+      };
+    } else {
+      insertParams = {
+        kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
+        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
+        request_params: JSON.stringify(oThis.requestParams)
+      };
+    }
+
+    let workflowModelInsertResponse = await new WorkflowModel().insert(insertParams).fire();
 
     oThis.workflowId = workflowModelInsertResponse.insertId;
 
@@ -766,7 +772,7 @@ class WorkflowRouterBase {
   }
 
   /**
-   * _handleSuccess
+   * Handle success.
    *
    * @return {Promise<void>}
    */
@@ -785,8 +791,8 @@ class WorkflowRouterBase {
 
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
+      logger.win('*** Workflow with id ', oThis.workflowId, 'completed successfully!');
       // Implicit string to int conversion.
-      logger.win('*** Workflow with id', oThis.workflowId, 'completed successfully!');
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
@@ -794,7 +800,7 @@ class WorkflowRouterBase {
   }
 
   /**
-   * _handleFailure
+   * Handle failure.
    *
    * @return {Promise<void>}
    */
@@ -813,6 +819,7 @@ class WorkflowRouterBase {
 
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
+      logger.error('*** Workflow with id ', oThis.workflowId, 'failed!');
       // Implicit string to int conversion.
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {

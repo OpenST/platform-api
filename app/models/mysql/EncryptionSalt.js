@@ -22,6 +22,14 @@ class EncryptionSalt extends ModelBase {
       .where(['id=?', id])
       .fire();
   }
+
+  getByClientIdAndKind(client_id, kind) {
+    const oThis = this;
+    return oThis
+      .select('*')
+      .where(['client_id=? AND kind=?', client_id, kind])
+      .fire();
+  }
 }
 
 module.exports = EncryptionSalt;

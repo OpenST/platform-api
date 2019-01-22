@@ -1,0 +1,107 @@
+{
+  "chainId": 0,
+  "groupId": 0,
+  "config": {
+    "globalMemcached": {
+      "engine": "memcached",
+      "servers": [
+        "<memcache endpoint>:<memcache port>", "<memcache endpoint>:<memcache port>"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    },
+    "globalRabbitmq": {
+      "username": "<user name>",
+      "password": "<password>",
+      "host": "<rabbitmq endpoint>",
+      "port": "<rabbitmq port>",
+      "heartbeats": "30",
+      "clusterNodes": [
+        "<rabbitmq cluster node endpoint>", "<rabbitmq cluster node endpoint>"
+      ]
+    },
+    "globalNonceMemcached": {
+      "engine": "memcached",
+      "servers": [
+        "<memcache endpoint>:<memcache port>", "<memcache endpoint>:<memcache port>"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    },
+    "globalDynamodb": {
+      "endpoint": "http://<dynamo endpoint>:<dynamo port>",
+      "region": "<region>",
+      "apiKey": "<aws api key>",
+      "apiSecret": "<aws api secret>",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0",
+      "enableLogging": "0",
+      "enableAutoscaling": "0",
+      "maxRetryCount": "1",
+      "autoScaling": {
+        "endpoint": "http://<auto scaling endpoint>:<auto scaling port>",
+        "region": "<region>",
+        "apiKey": "<aws api key>",
+        "apiSecret": "<aws api secret>",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0"
+      }
+    },
+    "inMemoryCache": {
+      "engine": "none",
+      "defaultTtl": 60,
+      "namespace": "A",
+      "consistentBehavior": "1"
+    },
+    "originGeth": {
+      "readOnly": {
+        "rpcProvider": "http://<geth endpoint>:<geth rpc port>",
+        "wsProvider": "ws://<geth endpoint>:<geth ws port>",
+        "rpcProviders": [
+          "http://<geth endpoint>:<geth rpc port>", "http://<geth endpoint>:<geth rpc port>"
+        ],
+        "wsProviders": [
+          "ws://<geth endpoint>:<geth ws port>", "ws://<geth endpoint>:<geth ws port>"
+        ]
+      },
+      "readWrite": {
+        "rpcProvider": "http://<geth endpoint>:<geth rpc port>",
+        "wsProvider": "ws://<geth endpoint>:<geth ws port>",
+        "rpcProviders": [
+          "http://<geth endpoint>:<geth rpc port>", "http://<geth endpoint>:<geth rpc port>"
+        ],
+        "wsProviders": [
+          "ws://<geth endpoint>:<geth ws port>", "ws://<geth endpoint>:<geth ws port>"
+        ]
+      },
+      "chainId": "<origin chain id>",
+      "client": "geth",
+      "blockGenerationTime": 15,
+      "finalizeAfterBlocks": 24
+    },
+    "constants": {
+      "originChainId": "<origin chain id>",
+      "originDdbTablePrefix": "de_mn_",
+      "auxDdbTablePrefix": "de_ma_"
+    },
+    "originDynamodb": {
+      "endpoint": "http://<dynamo endpoint>:<dynamo port>",
+      "region": "<region>",
+      "apiKey": "<aws api key>",
+      "apiSecret": "<aws api secret>",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0",
+      "enableLogging": "0",
+      "enableAutoscaling": "0",
+      "maxRetryCount": "1",
+      "autoScaling": {
+        "endpoint": "http://<auto scaling endpoint>:<auto scaling port>",
+        "region": "<region>",
+        "apiKey": "<aws api key>",
+        "apiSecret": "<aws api secret>",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0"
+      }
+    }
+  }
+}

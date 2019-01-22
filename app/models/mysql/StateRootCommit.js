@@ -10,7 +10,7 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
 
 const statuses = {
     '1': stateRootCommitHistoryConstants.commitInProgress,
-    '2': stateRootCommitHistoryConstants.commited,
+    '2': stateRootCommitHistoryConstants.committed,
     '3': stateRootCommitHistoryConstants.failed
   },
   invertedStatuses = util.invert(statuses);

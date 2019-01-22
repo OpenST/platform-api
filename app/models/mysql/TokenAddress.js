@@ -31,7 +31,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '56': tokenAddressConstants.tokenCoGatewayContract,
     '57': tokenAddressConstants.simpleStakeContract
   },
-  invertedKinds = util.invert(kinds);
+  invertedKinds = util.invert(kinds),
+  statuses = {
+    '1': tokenAddressConstants.activeStatus,
+    '2': tokenAddressConstants.inActiveStatus
+  },
+  invertedStatuses = util.invert(statuses);
 
 /**
  * Class for token address model
@@ -72,7 +77,12 @@ class TokenAddress extends ModelBase {
 
     let response = await oThis
       .select('*')
-      .where(['token_id = ? AND kind = ?', params.tokenId, params.kind])
+      .where([
+        'token_id = ? AND kind = ? AND status = ?',
+        params.tokenId,
+        params.kind,
+        invertedStatuses[tokenAddressConstants.activeStatus]
+      ])
       .fire();
 
     return responseHelper.successWithData(response[0]);
@@ -93,7 +103,7 @@ class TokenAddress extends ModelBase {
 
     let dbRows = await oThis
       .select('*')
-      .where(['token_id = ?', params.tokenId])
+      .where(['token_id = ? AND status = ?', params.tokenId, invertedStatuses[tokenAddressConstants.activeStatus]])
       .fire();
 
     for (let i = 0; i < dbRows.length; i++) {

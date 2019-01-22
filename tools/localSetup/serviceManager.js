@@ -235,6 +235,7 @@ class ServiceManager {
       wsPort +
       " --wsorigins '*' --wsaddr " +
       wsHost +
+      " --rpccorsdomain 'null' " + //cors is set to null, for running myEtherWallet on localhost
       ' --etherbase ' +
       sealerAddr +
       ' --mine --minerthreads 1 --targetgaslimit ' +

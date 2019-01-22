@@ -36,7 +36,7 @@ class CurrencyConversionRateModel extends ModelBase {
     const oThis = this;
 
     return oThis
-      .update({ transaction_hash: transactionHash })
+      .update({ transaction_hash: transactionHash.toLowerCase() })
       .where({ id: id })
       .fire();
   }

@@ -187,7 +187,8 @@ class ConfigStrategyModel extends ModelBase {
   mergeConfigResult(strategyKind, configStrategyHash, decryptedJsonObj) {
     if (
       kinds[strategyKind] == configStrategyConstants.dynamodb ||
-      kinds[strategyKind] == configStrategyConstants.globalDynamodb
+      kinds[strategyKind] == configStrategyConstants.globalDynamodb ||
+      kinds[strategyKind] == configStrategyConstants.originDynamodb
     ) {
       configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.dynamoApiSecret;
       configStrategyHash[kinds[strategyKind]].autoScaling.apiSecret = decryptedJsonObj.dynamoAutoscalingApiSecret;
@@ -207,9 +208,8 @@ class ConfigStrategyModel extends ModelBase {
    * @param kind
    * @param chainId
    * @return {Promise<any>}
-   * @private
    */
-  async _getStrategyIdsByKindAndChainId(kind, chainId) {
+  async getStrategyIdsByKindAndChainId(kind, chainId) {
     const oThis = this,
       strategyKindInt = invertedKinds[kind];
 
@@ -217,10 +217,10 @@ class ConfigStrategyModel extends ModelBase {
       throw 'Error: Improper kind parameter';
     }
 
-    let query = oThis.select(['id', 'chain_id']).where('kind = ' + strategyKindInt);
+    let query = oThis.select(['id', 'chain_id']).where(['kind = ?', strategyKindInt]);
 
     if (chainId) {
-      query.where([' (chain_id = ? OR chain_id IS NULL)', chainId]);
+      query.where([' (chain_id = ? OR chain_id = 0)', chainId]);
     }
 
     let queryResult = await query.fire();
@@ -237,7 +237,7 @@ class ConfigStrategyModel extends ModelBase {
   async getDistinctActiveChainIds() {
     const oThis = this;
 
-    let distinctGroupIdArray = [],
+    let distinctChainIdArray = [],
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus];
 
     let query = oThis
@@ -247,7 +247,7 @@ class ConfigStrategyModel extends ModelBase {
       queryResult = await query.fire();
 
     for (let i = 0; i < queryResult.length; i++) {
-      distinctGroupIdArray.push(queryResult[i].chain_id);
+      distinctChainIdArray.push(queryResult[i].chain_id);
     }
 
     return Promise.resolve(responseHelper.successWithData(distinctChainIdArray));
@@ -425,7 +425,8 @@ class ConfigStrategyModel extends ModelBase {
 
     if (
       strategyKindName == configStrategyConstants.dynamodb ||
-      strategyKindName == configStrategyConstants.globalDynamodb
+      strategyKindName == configStrategyConstants.globalDynamodb ||
+      strategyKindName == configStrategyConstants.originDynamodb
     ) {
       let dynamoApiSecret = hashNotToEncrypt[strategyKindName].apiSecret,
         dynamoAutoscalingApiSecret = hashNotToEncrypt[strategyKindName].autoScaling.apiSecret;

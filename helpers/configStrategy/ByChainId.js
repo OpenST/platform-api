@@ -1,12 +1,13 @@
 'use strict';
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  configValidator = require(rootPrefix + '/helpers/configValidator'),
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   ChainConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheManagement/chainConfigStrategyIds'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
@@ -104,7 +105,9 @@ class ConfigStrategyByChainId {
   }
 
   /**
-   * This function updates and sets status 'active' for given chain_id.
+   * This function checks if mandatory kinds are present for given chain.
+   * If not, then activation can not be performed,
+   * else updates and sets status 'active' for given chain_id.
    *
    * @returns {Promise<*>}
    */
@@ -112,6 +115,40 @@ class ConfigStrategyByChainId {
     const oThis = this,
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus];
 
+    let mandatoryKinds = [],
+      mandatoryKindsMap = configStrategyConstants.mandatoryKinds,
+      configResponse = await oThis.getComplete(),
+      config = configResponse.data;
+
+    // check which kind of chain, we need to validate and activate
+    if (oThis.chainId == 0) {
+      mandatoryKinds = mandatoryKindsMap[configStrategyConstants.globalMandatoryKind];
+    } else {
+      mandatoryKinds = mandatoryKindsMap[configStrategyConstants.auxMandatoryKind];
+    }
+
+    for (let i = 0; i < mandatoryKinds.length; i++) {
+      let kindToCheck = mandatoryKinds[i];
+
+      // check if config is inserted
+      if (
+        config[kindToCheck] === undefined ||
+        !config[kindToCheck] instanceof Object ||
+        Object.keys(config[kindToCheck]) < 1
+      ) {
+        return oThis._customError(
+          'h_cs_bgi_18',
+          'Can not activate without inserting kinds first, Missing Kind: ' + kindToCheck
+        );
+      }
+
+      // Validate config
+      if (!configValidator.validateConfigStrategy(kindToCheck, config)) {
+        return oThis._customError('h_cs_bgi_19', 'Config params validation failed for: ' + JSON.stringify(config));
+      }
+    }
+
+    // update if above validations are successful
     let strategyIdResponse = await new ConfigStrategyModel()
       .update({ status: activeStatus })
       .where(['chain_id = ?', oThis.chainId])

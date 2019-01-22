@@ -2,10 +2,11 @@
 
 const rootPrefix = '../..',
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 class TransferAmountOnChain {
@@ -23,10 +24,13 @@ class TransferAmountOnChain {
     let signerWeb3Object = new SignerWeb3Provider(provider, chainOwnerAddress),
       web3Instance = await signerWeb3Object.getInstance();
 
+    let nonce = await oThis._fetchNonce(chainOwnerAddress, chainId);
+
     let txParams = {
       from: chainOwnerAddress,
       gas: 60000,
       to: toAddress,
+      nonce: nonce,
       value: amountInWei //transfer amt in wei
     };
 
@@ -64,18 +68,21 @@ class TransferAmountOnChain {
     let simpleTokenAbi = CoreAbis.simpleToken,
       simpleTokenContractObj = new web3Instance.eth.Contract(simpleTokenAbi, simpleTokenContractAddress);
 
+    let nonce = await oThis._fetchNonce(senderAddress, chainId);
+
     let encodedABI = simpleTokenContractObj.methods.transfer(toAddress, amountInWei.toString(10)).encodeABI(),
       ostTransferParams = {
         from: senderAddress,
-        to: toAddress,
+        to: simpleTokenContractAddress,
         data: encodedABI,
+        nonce: nonce,
         gas: 60000
       };
 
     await web3Instance.eth
       .sendTransaction(ostTransferParams)
       .then(function(response) {
-        logger.log('** OST successfully funded to address -> ', response.to);
+        logger.log('** OST successfully funded to address -> ', toAddress);
         Promise.resolve();
       })
       .catch(function(error) {
@@ -119,6 +126,23 @@ class TransferAmountOnChain {
       });
 
     await signerWeb3Object.removeAddressKey(chainOwnerAddress);
+  }
+
+  /**
+   * Fetch Nonce of organization owner
+   *
+   * @return {Object}
+   */
+  async _fetchNonce(address, chainId) {
+    const oThis = this;
+    let resp = await new NonceManager({
+      address: address,
+      chainId: chainId
+    }).getNonce();
+
+    if (resp.isSuccess()) {
+      return resp.data.nonce;
+    }
   }
 }
 

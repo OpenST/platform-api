@@ -1,0 +1,115 @@
+{
+  "chainId": 0,
+  "groupId": 0,
+  "config": {
+    "globalMemcached": {
+      "engine": "memcached",
+      "servers": [
+        "127.0.0.1:11211"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    },
+    "globalRabbitmq": {
+      "username": "guest",
+      "password": "guest",
+      "host": "127.0.0.1",
+      "port": "5672",
+      "heartbeats": "30",
+      "clusterNodes": [
+        "127.0.0.1"
+      ]
+    },
+    "globalNonceMemcached": {
+      "engine": "memcached",
+      "servers": [
+        "127.0.0.1:11211"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    },
+    "globalDynamodb": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "X",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0",
+      "enableLogging": "0",
+      "enableAutoscaling": "0",
+      "maxRetryCount": "1",
+      "autoScaling": {
+        "endpoint": "http://localhost:8000",
+        "region": "localhost",
+        "apiKey": "X",
+        "apiSecret": "X",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0"
+      }
+    },
+    "inMemoryCache": {
+      "engine": "none",
+      "defaultTtl": 60,
+      "namespace": "A",
+      "consistentBehavior": "1"
+    },
+    "originGeth": {
+      "readOnly": {
+        "rpcProvider": "http://127.0.0.1:8545",
+        "wsProvider": "ws://127.0.0.1:8546",
+        "rpcProviders": [
+          "http://127.0.0.1:8545"
+        ],
+        "wsProviders": [
+          "ws://127.0.0.1:8546"
+        ]
+      },
+      "readWrite": {
+        "rpcProvider": "http://127.0.0.1:8545",
+        "wsProvider": "ws://127.0.0.1:8546",
+        "rpcProviders": [
+          "http://127.0.0.1:8545"
+        ],
+        "wsProviders": [
+          "ws://127.0.0.1:8546"
+        ]
+      },
+      "chainId": 1000,
+      "client": "geth",
+      "blockGenerationTime": 15,
+      "finalizeAfterBlocks": 24
+    },
+    "constants": {
+      "originChainId": 1000,
+      "originDdbTablePrefix": "de_mn_",
+      "auxDdbTablePrefix": "de_ma_"
+    },
+    "originDynamodb": {
+      "endpoint": "http://localhost:8000",
+      "region": "localhost",
+      "apiKey": "X",
+      "apiSecret": "X",
+      "apiVersion": "2012-08-10",
+      "enableSsl": "0",
+      "enableLogging": "0",
+      "enableAutoscaling": "0",
+      "maxRetryCount": "1",
+      "autoScaling": {
+        "endpoint": "http://localhost:8000",
+        "region": "localhost",
+        "apiKey": "X",
+        "apiSecret": "X",
+        "apiVersion": "2012-08-10",
+        "enableSsl": "0"
+      }
+    },
+    "originMemcached": {
+      "engine": "memcached",
+      "servers": [
+        "127.0.0.1:11211"
+      ],
+      "defaultTtl": 36000,
+      "consistentBehavior": "1"
+    }
+  }
+}

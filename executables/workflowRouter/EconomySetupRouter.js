@@ -13,7 +13,6 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
-  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
@@ -28,6 +27,7 @@ const rootPrefix = '../..',
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
+require(rootPrefix + '/lib/setup/economy/VerifySetup');
 require(rootPrefix + '/app/services/token/SyncInView');
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
 require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
@@ -41,6 +41,7 @@ require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
 require(rootPrefix + '/lib/setup/economy/VerifySetup');
+require(rootPrefix + '/lib/fund/oStPrime/TokenAddress');
 
 /**
  * Class for economy setup router.
@@ -95,6 +96,57 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.generateTokenAddresses:
         logger.step('*** Generate Token Addresses');
         return new generateTokenAddresses(oThis.requestParams).perform();
+
+      case workflowStepConstants.fundAuxFunderAddress:
+        logger.step('*** Funding Aux Funder');
+
+        let FundAuxFunderKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.auxFunderAddressKind;
+
+        return new FundAuxFunderKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundAuxFunderAddress:
+        logger.step('*** Verifying if Funding Aux Funder was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxFunderAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.fundAuxAdminAddress:
+        logger.step('*** Funding Aux Admin');
+
+        let FundAuxAdminKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.auxAdminAddressKind;
+
+        return new FundAuxAdminKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundAuxAdminAddress:
+        logger.step('*** Verifying if Funding Aux Admin was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxAdminAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.fundAuxWorkerAddress:
+        logger.step('*** Funding Aux Worker');
+
+        let FundAuxWorkerKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.auxWorkerAddressKind;
+
+        return new FundAuxWorkerKlass(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundAuxWorkerAddress:
+        logger.step('*** Verifying if Funding Aux Worker was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxWorkerAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
 
       case workflowStepConstants.deployOriginTokenOrganization:
         logger.step('*** Deploy Origin Token Organization');
@@ -313,7 +365,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
           responseHelper.error({
             internal_error_identifier: 'e_wr_esr_1',
             api_error_identifier: 'something_went_wrong',
-            debug_options: { parentStepId: oThis.parentStepId }
+            debug_options: { workflowId: oThis.workflowId }
           })
         );
     }
@@ -362,6 +414,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
   async _tokenDeploymentCompleted() {
     const oThis = this;
 
+    await oThis.handleSuccess();
+
     // Update status of token deployment as deploymentCompleted in tokens table.
     let tokenModelResp = await new TokenModel()
       .update({
@@ -373,20 +427,10 @@ class EconomySetupRouter extends WorkflowRouterBase {
       })
       .fire();
 
-    // Update status of workflow as completedStatus in workflows table.
-    let workflowsModelResp = await new WorkflowModel()
-      .update({
-        status: new WorkflowModel().invertedStatuses[workflowConstants.completedStatus]
-      })
-      .where({
-        id: oThis.workflowId
-      })
-      .fire();
-
     // If row was updated successfully.
-    if (+tokenModelResp.affectedRows === 1 && +workflowsModelResp.affectedRows === 1) {
+    if (+tokenModelResp.affectedRows === 1) {
+      logger.win('*** Economy Setup Done ***');
       // Implicit string to int conversion.
-      logger.win('*** Economy Setup Done');
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
@@ -401,6 +445,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
   async _tokenDeploymentFailed() {
     const oThis = this;
 
+    await oThis.handleFailure();
+
     // Update status of token deployment as deploymentFailed in tokens table.
     let tokenModelResp = await new TokenModel()
       .update({
@@ -412,18 +458,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       })
       .fire();
 
-    // Update status of workflow as failedStatus in workflows table.
-    let workflowsModelResp = await new WorkflowModel()
-      .update({
-        status: new WorkflowModel().invertedStatuses[workflowConstants.failedStatus]
-      })
-      .where({
-        id: oThis.workflowId
-      })
-      .fire();
-
     // If row was updated successfully.
-    if (+tokenModelResp.affectedRows === 1 && +workflowsModelResp.affectedRows === 1) {
+    if (+tokenModelResp.affectedRows === 1) {
+      logger.error('*** Economy Setup Failed ***');
       // Implicit string to int conversion.
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
     } else {
