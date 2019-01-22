@@ -767,6 +767,17 @@ class WorkflowRouterBase {
       })
       .where({ id: oThis.workflowId })
       .fire();
+
+    await oThis.ensureOnCatch();
+  }
+
+  /**
+   * Add functionality here that subclass should ensure should happen when error in catch appears.
+   *
+   * @return {Promise<void>}
+   */
+  async ensureOnCatch() {
+    return Promise.resolve();
   }
 
   /**

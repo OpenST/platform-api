@@ -29,6 +29,8 @@ const rootPrefix = '../..',
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/economy/VerifySetup');
+require(rootPrefix + '/lib/fund/oStPrime/TokenAddress');
+require(rootPrefix + '/lib/setup/economy/VerifySetup');
 require(rootPrefix + '/app/services/token/SyncInView');
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
 require(rootPrefix + '/lib/setup/economy/SetGatewayInBT');
@@ -41,8 +43,6 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
-require(rootPrefix + '/lib/setup/economy/VerifySetup');
-require(rootPrefix + '/lib/fund/oStPrime/TokenAddress');
 
 /**
  * Class for economy setup router.
@@ -416,8 +416,6 @@ class EconomySetupRouter extends WorkflowRouterBase {
   async _tokenDeploymentCompleted() {
     const oThis = this;
 
-    await oThis.handleSuccess();
-
     // Update status of token deployment as deploymentCompleted in tokens table.
     let tokenModelResp = await new TokenModel()
       .update({
@@ -435,8 +433,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
       logger.win('*** Economy Setup Done ***');
-      // Implicit string to int conversion.
-      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+
+      // Mark success in workflows table.
+      await oThis.handleSuccess();
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
@@ -449,8 +448,6 @@ class EconomySetupRouter extends WorkflowRouterBase {
    */
   async _tokenDeploymentFailed() {
     const oThis = this;
-
-    await oThis.handleFailure();
 
     // Update status of token deployment as deploymentFailed in tokens table.
     let tokenModelResp = await new TokenModel()
@@ -469,8 +466,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
       logger.error('*** Economy Setup Failed ***');
-      // Implicit string to int conversion.
-      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+
+      // Mark failed in workflows table.
+      await oThis.handleFailure();
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
@@ -485,6 +483,35 @@ class EconomySetupRouter extends WorkflowRouterBase {
    */
   getNextStepConfigs(nextStep) {
     return economySetupConfig[nextStep];
+  }
+
+  /**
+   * Add functionality here that subclass should ensure should happen when error in catch appears.
+   *
+   * @return {Promise<void>}
+   */
+  async ensureOnCatch() {
+    const oThis = this;
+
+    // Update token deployment status as deploymentFailed.
+    await new TokenModel()
+      .update({
+        status: new TokenModel().invertedStatuses[tokenConstants.deploymentFailed]
+      })
+      .where([
+        'client_id = (?) AND status IN (?)',
+        oThis.clientId,
+        [
+          new TokenModel().invertedStatuses[tokenConstants.deploymentStarted],
+          new TokenModel().invertedStatuses[tokenConstants.notDeployed]
+        ]
+      ])
+      .fire();
+
+    // Clear token cache.
+    await new TokenCache({ clientId: oThis.clientId }).clear();
+
+    return Promise.resolve();
   }
 }
 
