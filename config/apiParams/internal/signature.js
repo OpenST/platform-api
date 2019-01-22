@@ -30,6 +30,19 @@ const signature = {
       }
     ],
     optional: []
+  },
+  gatewayComposer: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        error_identifier: 'missing_token_id'
+      },
+      {
+        parameter: 'staker_address',
+        error_identifier: 'missing_staker_address'
+      }
+    ],
+    optional: []
   }
 };
 

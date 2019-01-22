@@ -131,6 +131,16 @@ const errorConfig = {
     parameter: 'contract_address',
     code: 'missing',
     message: 'Invalid contract_address'
+  },
+  missing_staker_address: {
+    parameter: 'staker_address',
+    code: 'missing',
+    message: 'Missing staker_address'
+  },
+  missing_token_id: {
+    parameter: 'token_id',
+    code: 'missing',
+    message: 'Missing token_id'
   }
 };
 

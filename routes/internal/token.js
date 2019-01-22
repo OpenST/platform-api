@@ -7,6 +7,8 @@ const router = express.Router();
 
 require(rootPrefix + '/app/services/token/Deployment');
 require(rootPrefix + '/app/services/token/AggregatedDetails');
+require(rootPrefix + '/app/services/token/Mint');
+require(rootPrefix + '/app/services/token/StartMint');
 
 /* Get aggregated token details*/
 router.get('/details', function(req, res, next) {
