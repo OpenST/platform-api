@@ -13,14 +13,14 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
-  ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
+  ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup');
@@ -215,6 +215,8 @@ class Deployment {
         status: new TokenModel().invertedStatuses[tokenConstants.notDeployed]
       })
       .fire();
+
+    await new TokenCache({ clientId: oThis.clientId }).clear();
 
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
