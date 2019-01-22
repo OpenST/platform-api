@@ -9,9 +9,8 @@ require(rootPrefix + '/app/services/token/Deployment');
 require(rootPrefix + '/app/services/token/Mint');
 require(rootPrefix + '/app/services/token/StartMint');
 
-router.get('/deploy', function(req, res, next) {
+router.post('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
-  //req.decodedParams.configStrategyRequired = true;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDeployment', 'r_it_2'));
 });
