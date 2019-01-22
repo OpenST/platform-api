@@ -216,6 +216,7 @@ class Deployment {
       })
       .fire();
 
+    // Clear token cache.
     await new TokenCache({ clientId: oThis.clientId }).clear();
 
     // If row was updated successfully.

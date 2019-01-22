@@ -14,6 +14,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
+  TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
@@ -428,6 +429,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       })
       .fire();
 
+    // Clear token cache.
+    await new TokenCache({ clientId: oThis.clientId }).clear();
+
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
       logger.win('*** Economy Setup Done ***');
@@ -458,6 +462,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
         status: new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]
       })
       .fire();
+
+    // Clear token cache.
+    await new TokenCache({ clientId: oThis.clientId }).clear();
 
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {
