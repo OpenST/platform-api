@@ -6,16 +6,8 @@ const rootPrefix = '../..',
 const router = express.Router();
 
 require(rootPrefix + '/app/services/token/Deployment');
-require(rootPrefix + '/app/services/token/Detail');
 require(rootPrefix + '/app/services/token/Mint');
 require(rootPrefix + '/app/services/token/StartMint');
-
-/* Get aggregated token details*/
-router.get('/details', function(req, res, next) {
-  req.decodedParams.apiName = 'tokenDetails';
-
-  Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_it_1'));
-});
 
 router.get('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
@@ -37,4 +29,5 @@ router.get('/mint', function(req, res, next) {
 
   Promise.resolve(routeHelper.perform(req, res, next, 'Mint', 'r_it_4'));
 });
+
 module.exports = router;
