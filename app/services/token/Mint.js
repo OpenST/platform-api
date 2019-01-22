@@ -103,4 +103,4 @@ class Mint {
 
 module.exports = Mint;
 
-InstanceComposer.registerAsShadowableClass(Mint, coreConstants.icNameSpace, 'StartMint');
+InstanceComposer.registerAsShadowableClass(Mint, coreConstants.icNameSpace, 'Mint');
