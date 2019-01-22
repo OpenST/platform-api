@@ -191,6 +191,7 @@ class ServiceManager {
         gasPrice = contractConstants.auxChainGasPrice;
       }
     } else {
+      fileManager.mkdir(setupHelper.logsFolder() + '/' + chainType + '-' + chainId.toString());
       gasPrice = contractConstants.defaultOriginChainGasPrice;
     }
 
@@ -285,9 +286,19 @@ class ServiceManager {
       binFolderForGeth = setupHelper.binFolder() + '/' + chainType + '-' + chainId.toString();
 
     if (chainType == 'aux' && purpose == 'deployment') {
-      fileManager.mkdir(binFolderForGeth);
-      fileName = chainType + '-chain-zeroGas-' + chainId.toString() + '.sh';
     } else {
+      fileName = chainType + '-chain-' + chainId.toString() + '.sh';
+    }
+
+    if (chainType === 'aux') {
+      if (purpose === 'deployment') {
+        fileManager.mkdir(binFolderForGeth);
+        fileName = chainType + '-chain-zeroGas-' + chainId.toString() + '.sh';
+      } else {
+        fileName = chainType + '-chain-' + chainId.toString() + '.sh';
+      }
+    } else {
+      fileManager.mkdir(binFolderForGeth);
       fileName = chainType + '-chain-' + chainId.toString() + '.sh';
     }
 
