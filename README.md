@@ -208,7 +208,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 >  cd kit-api
 >  source set_env_vars.sh
 >  rails c 
-    params = {client_id:1,name:"tst5",symbol:"tst5",conversion_factor:0.8}
+    params = {client_id:1,name:"tst1",symbol:"tst1",conversion_factor:0.8}
     TokenManagement::InsertTokenDetails.new(params).perform
 ```
 
@@ -236,7 +236,7 @@ rootPrefix = '.'
 coreConstants = require(rootPrefix + '/config/coreConstants')
 
 a = require('./helpers/configStrategy/ByChainId.js')
-b = new a(2000,1);
+b = new a(2000,2000);
 b.getComplete().then(function(r) {config = r.data});
 
 OSTBase = require('@openstfoundation/openst-base')
@@ -247,7 +247,7 @@ require('./app/services/token/Deployment.js')
 
 TokenDeployment = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenDeployment');
 
-a = new TokenDeployment({token_id: 1011, client_id: 1})
+a = new TokenDeployment({token_id: 1000, client_id: 1})
 
 a.perform().then(console.log)
 ```
@@ -270,24 +270,6 @@ a.perform().then(console.log)
    stPrimeRouter = new stPrimeRouterK(params)
    
    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
-```
-
-* Start Economy Setup
-```bash
-> source set_env_vars.sh
-> node
-   params = {
-       stepKind: 'economySetupInit',
-       taskStatus: 'taskReadyToStart',
-       clientId: 1,
-       chainId: 2000,
-       topic: 'workflow.economySetup',
-       requestParams: {tokenId: 1000, auxChainId: 2000, originChainId: 1000, chainId: 2000, clientId: 1}
-   }
-   economySetupRouterK = require('./executables/workflowRouter/EconomySetupRouter.js')
-   economySetupRouter = new economySetupRouterK(params)
-   
-   economySetupRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
 
 * Start BT stake and mint
