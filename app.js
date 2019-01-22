@@ -298,7 +298,7 @@ if (cluster.isMaster) {
   app.use('/', internalRoutes);
 
   app.use(
-    '/testnet/api/internal',
+    '/' + environmentInfo.urlPrefix + '/api/internal',
     sanitizer(),
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
@@ -308,7 +308,7 @@ if (cluster.isMaster) {
   );
 
   app.use(
-    '/testnet/api/v2',
+    '/' + environmentInfo.urlPrefix + '/api/v2',
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     validateApiSignature,
