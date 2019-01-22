@@ -29,7 +29,7 @@
       "consistentBehavior": "1"
     },
     "globalDynamodb": {
-      "endpoint": "http://<dynamo endpoint>:<dynamo port>",
+      "endpoint": "http://<dynamo endpoint>",
       "region": "<region>",
       "apiKey": "<aws api key>",
       "apiSecret": "<aws api secret>",
@@ -39,7 +39,7 @@
       "enableAutoscaling": "0",
       "maxRetryCount": "1",
       "autoScaling": {
-        "endpoint": "http://<auto scaling endpoint>:<auto scaling port>",
+        "endpoint": "http://<auto scaling endpoint>",
         "region": "<region>",
         "apiKey": "<aws api key>",
         "apiSecret": "<aws api secret>",
@@ -85,7 +85,7 @@
       "auxDdbTablePrefix": "de_ma_"
     },
     "originDynamodb": {
-      "endpoint": "http://<dynamo endpoint>:<dynamo port>",
+      "endpoint": "http://<dynamo endpoint>",
       "region": "<region>",
       "apiKey": "<aws api key>",
       "apiSecret": "<aws api secret>",
@@ -95,7 +95,7 @@
       "enableAutoscaling": "0",
       "maxRetryCount": "1",
       "autoScaling": {
-        "endpoint": "http://<auto scaling endpoint>:<auto scaling port>",
+        "endpoint": "http://<auto scaling endpoint>",
         "region": "<region>",
         "apiKey": "<aws api key>",
         "apiSecret": "<aws api secret>",

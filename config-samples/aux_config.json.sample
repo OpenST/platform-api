@@ -37,7 +37,7 @@
       "finalizeAfterBlocks": 24
     },
     "dynamodb": {
-      "endpoint": "http://<dynamo endpoint>:<dynamo port>",
+      "endpoint": "http://<dynamo endpoint>",
       "region": "<region>",
       "apiKey": "<aws api key>",
       "apiSecret": "<aws api secret>",
@@ -47,7 +47,7 @@
       "enableAutoscaling": "0",
       "maxRetryCount": "1",
       "autoScaling": {
-        "endpoint": "http://<auto scaling endpoint>:<auto scaling port>",
+        "endpoint": "http://<auto scaling endpoint>",
         "region": "<region>",
         "apiKey": "<aws api key>",
         "apiSecret": "<aws api secret>",

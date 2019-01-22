@@ -48,6 +48,40 @@ class TransferAmountOnChain {
     await signerWeb3Object.removeAddressKey(chainOwnerAddress);
   }
 
+  // TODO:: This is a temp method, which will be replaced with libs - by Kedar
+  async _fundAddressWithEthUsingPk(toAddress, privateKey, chainId, provider, amountInWei) {
+    const oThis = this;
+
+    let web3Instance = await web3Provider.getInstance(provider).web3WsProvider;
+
+    await web3Instance.eth.accounts.wallet.add(privateKey);
+
+    let senderAddress = web3Instance.eth.accounts.privateKeyToAccount(privateKey).address;
+
+    let nonce = await oThis._fetchNonce(senderAddress, chainId);
+
+    let txParams = {
+      from: senderAddress,
+      gas: 60000,
+      to: toAddress,
+      nonce: nonce,
+      value: amountInWei //transfer amt in wei
+    };
+
+    await web3Instance.eth
+      .sendTransaction(txParams)
+      .then(function(response) {
+        logger.log('** ETH successfully funded to address -> ', response.to);
+        Promise.resolve();
+      })
+      .catch(function(error) {
+        logger.error(error);
+        Promise.reject();
+      });
+
+    await web3Instance.eth.accounts.wallet.remove(privateKey);
+  }
+
   async _fundAddressWithOst(toAddress, privateKey, chainId, provider, amountInWei) {
     const oThis = this;
 
