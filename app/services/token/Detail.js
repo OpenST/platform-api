@@ -12,28 +12,31 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   economyFormatter = require(rootPrefix + '/lib/formatter/entity/economy'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  TokenDetailCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner');
 
 /**
- * Class for aggregated economy details.
+ * Class for token details.
  *
  * @class
  */
-class AggregatedDetails {
+class Detail {
   /**
-   * Constructor for aggregated economy details.
    *
    * @param {Object} params
-   * @param {Number/String} params.chain_id
-   * @param {String} params.contract_address
+   * @param {Number/String} params.client_id
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
 
-    oThis.chainId = params.chain_id;
-    oThis.contractAddress = params.contract_address;
+    oThis.clientId = params.client_id;
+
+    oThis.originChainId = null;
+    oThis.auxChainId = null;
   }
 
   /**
@@ -48,7 +51,7 @@ class AggregatedDetails {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/token/AggregatedDetails::perform::catch');
+        logger.error('app/services/token/Detail::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 's_t_ad_1',
@@ -67,7 +70,27 @@ class AggregatedDetails {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis.getEconomyDetails();
+    await oThis._setChainIds();
+
+    await oThis._fetchTokenDetails();
+
+    await oThis._fetchTokenAddresses();
+
+    await oThis._getEconomyDetailsFromDdb();
+  }
+
+  /**
+   *
+   * Set chain ids
+   *
+   * @private
+   */
+  _setChainIds() {
+    const oThis = this,
+      configStrategy = oThis.ic().configStrategy;
+
+    oThis.originChainId = configStrategy[configStrategyConstants.constants]['originChainId'];
+    oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth]['chainId'];
   }
 
   /**
@@ -75,7 +98,7 @@ class AggregatedDetails {
    *
    * @return {Promise<*|result>}
    */
-  async getEconomyDetails() {
+  async _getEconomyDetailsFromDdb() {
     const oThis = this;
 
     let blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]),
@@ -95,4 +118,4 @@ class AggregatedDetails {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AggregatedDetails, coreConstants.icNameSpace, 'TokenAggregatedDetails');
+InstanceComposer.registerAsShadowableClass(Detail, coreConstants.icNameSpace, 'TokenDetail');

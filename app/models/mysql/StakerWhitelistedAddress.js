@@ -59,6 +59,7 @@ class StakerWhitelistedAddress extends ModelBase {
    *
    * @param {object} params - external passed parameters
    * @param {Integer} params.tokenId - tokenId
+   * @param {Integer} params.clientId - clientId
    * @param {Integer} params.status
    * @param {string} params.stakerAddress - staker address
    * @param {string} params.gatewayComposerAddress - gateway composer address
@@ -79,7 +80,7 @@ class StakerWhitelistedAddress extends ModelBase {
       })
       .fire();
 
-    await StakerWhitelistedAddress.flushCache(params.tokenId, params.stakerAddress);
+    await StakerWhitelistedAddress.flushCache(params);
 
     return responseHelper.successWithData(insertRsp);
   }
@@ -135,17 +136,16 @@ class StakerWhitelistedAddress extends ModelBase {
    *
    * flush cache
    *
-   * @param tokenId
-   * @param address
+   * @param {object} params - external passed parameters
+   * @param {Integer} params.tokenId - tokenId
+   * @param {Integer} params.clientId - clientId
+   * @param {string} params.stakerAddress - staker address
+   *
    * @returns {Promise<*>}
    */
-  static async flushCache(tokenId, address) {
-    let token = new Token();
 
-    let getTokenDetailsRsp = await token.getDetailsById(tokenId),
-      tokenDetails = getTokenDetailsRsp.data;
-
-    let configStrategyHelper = new ConfigStrategyHelper(tokenDetails.clientId),
+  static async flushCache(params) {
+    let configStrategyHelper = new ConfigStrategyHelper(params.clientId),
       configStrategyRsp = await configStrategyHelper.get();
 
     let ic = new InstanceComposer(configStrategyRsp.data);
@@ -158,8 +158,8 @@ class StakerWhitelistedAddress extends ModelBase {
     );
 
     return new StakerWhitelistedAddressCache({
-      tokenId: tokenId,
-      address: address
+      tokenId: params.tokenId,
+      address: params.stakerAddress
     }).clear();
   }
 }

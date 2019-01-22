@@ -317,7 +317,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
         return new PostGatewayComposerDeploy({
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGatewayComposer),
           tokenId: oThis.requestParams.tokenId,
-          chainId: oThis.requestParams.originChainId
+          chainId: oThis.requestParams.originChainId,
+          clientId: oThis.requestParams.clientId
         }).perform();
 
       case workflowStepConstants.setInternalActorForOwnerInUBT:

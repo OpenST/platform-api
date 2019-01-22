@@ -48,13 +48,13 @@ class Token extends ModelBase {
     return invertedStatuses;
   }
 
-  async getDetailsById(tokenId) {
+  async getDetailsByClientId(clientId) {
     const oThis = this;
 
     let dbRows = await oThis
       .select('*')
       .where({
-        id: tokenId
+        client_id: clientId
       })
       .fire();
 
@@ -81,11 +81,11 @@ class Token extends ModelBase {
    *
    * @returns {Promise<*>}
    */
-  static flushCache(tokenId) {
+  static flushCache(clientId) {
     const TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token');
 
     return new TokenCache({
-      tokenId: tokenId
+      clientId: clientId
     }).clear();
   }
 }

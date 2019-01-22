@@ -22,7 +22,7 @@ const signature = {
     ],
     optional: []
   },
-  tokenDetailsAggregated: {
+  tokenDetails: {
     mandatory: [
       {
         parameter: 'chain_id',
