@@ -12,17 +12,18 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   economyFormatter = require(rootPrefix + '/lib/formatter/entity/economy'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   TokenDetailCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner');
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
  * Class for token details.
  *
  * @class
  */
-class Detail {
+class TokenDetail {
   /**
    *
    * @param {Object} params
@@ -37,6 +38,11 @@ class Detail {
 
     oThis.originChainId = null;
     oThis.auxChainId = null;
+    oThis.tokenDetails = null;
+    oThis.tokenId = null;
+    oThis.tokenAddresses = null;
+    oThis.economyContractAddress = null;
+    oThis.economyDetails = null;
   }
 
   /**
@@ -54,7 +60,7 @@ class Detail {
         logger.error('app/services/token/Detail::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 's_t_ad_1',
+          internal_error_identifier: 'a_s_t_d_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -77,6 +83,14 @@ class Detail {
     await oThis._fetchTokenAddresses();
 
     await oThis._getEconomyDetailsFromDdb();
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        tokenDetails: oThis.tokenDetails,
+        tokenAddresses: oThis.tokenAddresses,
+        economyDetails: oThis.economyDetails
+      })
+    );
   }
 
   /**
@@ -94,28 +108,105 @@ class Detail {
   }
 
   /**
-   * Get economy details
+   * Fetch token details for given client id
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _fetchTokenDetails() {
+    const oThis = this;
+
+    let cacheResponse = await new TokenDetailCache({ clientId: oThis.clientId }).fetch();
+
+    if (cacheResponse.isFailure()) {
+      logger.error('Could not fetched token details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            clientId: oThis.clientId
+          }
+        })
+      );
+    }
+
+    oThis.tokenDetails = cacheResponse.data;
+    logger.debug('tokenDetails-----------', oThis.tokenDetails);
+
+    oThis.tokenId = oThis.tokenDetails['id'];
+    logger.debug('tokenId-----------', oThis.tokenId);
+  }
+
+  /**
+   * Fetch Token Addresses for token id
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _fetchTokenAddresses() {
+    const oThis = this;
+
+    let cacheResponse = await new TokenAddressCache({
+      tokenId: oThis.tokenId
+    }).fetch();
+
+    if (cacheResponse.isFailure()) {
+      logger.error('Could not fetched token address details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_3',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            clientId: oThis.clientId,
+            tokenId: oThis.tokenId
+          }
+        })
+      );
+    }
+
+    oThis.tokenAddresses = cacheResponse.data;
+    logger.debug('tokenAddresses-----------', oThis.tokenAddresses);
+
+    oThis.economyContractAddress = oThis.tokenAddresses[tokenAddressConstants.brandedTokenContract];
+    logger.debug('BT contractAddress-----------', oThis.economyContractAddress);
+  }
+
+  /**
+   * Get economy details for given token id.
    *
    * @return {Promise<*|result>}
    */
   async _getEconomyDetailsFromDdb() {
     const oThis = this;
 
-    let blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]),
+    let blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]),
       EconomyCache = blockScannerObj.cache.Economy,
       economyCache = new EconomyCache({
-        chainId: oThis.chainId,
-        economyContractAddresses: [oThis.contractAddress]
+        chainId: oThis.auxChainId,
+        economyContractAddresses: [oThis.economyContractAddress]
       });
 
-    let cacheRsp = await economyCache.fetch();
+    let cacheResponse = await economyCache.fetch();
 
-    let economyData = cacheRsp.data[oThis.contractAddress];
+    if (cacheResponse.isFailure()) {
+      logger.error('Could not fetched economy details from DDB.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            clientId: oThis.clientId,
+            economyContractAddresses: [oThis.economyContractAddress]
+          }
+        })
+      );
+    }
 
-    economyData = economyFormatter.perform(economyData);
+    let economyDetails = cacheResponse.data[oThis.economyContractAddress];
 
-    return responseHelper.successWithData(economyData);
+    oThis.economyDetails = economyFormatter.perform(economyDetails);
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Detail, coreConstants.icNameSpace, 'TokenDetail');
+InstanceComposer.registerAsShadowableClass(TokenDetail, coreConstants.icNameSpace, 'TokenDetail');

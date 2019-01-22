@@ -65,6 +65,7 @@ class Token extends ModelBase {
     let dbRow = dbRows[0];
 
     return responseHelper.successWithData({
+      id: dbRow.id,
       clientId: dbRow.client_id,
       name: dbRow.name,
       symbol: dbRow.symbol,
