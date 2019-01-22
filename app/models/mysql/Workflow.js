@@ -19,10 +19,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '4': workflowConstants.completelyFailedStatus
   },
   kinds = {
-    '1': workflowConstants.stakeAndMintKind,
+    '1': workflowConstants.stPrimeStakeAndMintKind,
     '2': workflowConstants.tokenDeployKind,
     '3': workflowConstants.stateRootSyncKind,
-    '4': workflowConstants.testKind
+    '4': workflowConstants.btStakeAndMintKind,
+    '5': workflowConstants.testKind
   },
   invertedStatuses = util.invert(statuses),
   invertedKinds = util.invert(kinds);

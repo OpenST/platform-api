@@ -439,6 +439,8 @@ class WorkflowRouterBase {
       case workflowStepConstants.btStakeAndMintInit:
       case workflowStepConstants.btRequestStakeHandle:
       case workflowStepConstants.checkRequestStakeTxStatus:
+      case workflowStepConstants.btApproveTxHandle:
+      case workflowStepConstants.checkApproveTxStatus:
       case workflowStepConstants.fetchStakeRequestHash:
       case workflowStepConstants.checkAllowance:
         oThis.chainId = oThis.requestParams.originChainId;
@@ -767,9 +769,8 @@ class WorkflowRouterBase {
    * _handleSuccess
    *
    * @return {Promise<void>}
-   * @private
    */
-  async _handleSuccess() {
+  async handleSuccess() {
     const oThis = this;
 
     // Update status of workflow as completedStatus in workflows table.
@@ -796,9 +797,8 @@ class WorkflowRouterBase {
    * _handleFailure
    *
    * @return {Promise<void>}
-   * @private
    */
-  async _handleFailure() {
+  async handleFailure() {
     const oThis = this;
 
     // Update status of workflow as failedStatus in workflows table.
