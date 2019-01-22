@@ -34,7 +34,7 @@ class StPrimeMintRouter extends WorkflowRouterBase {
    * @constructor
    */
   constructor(params) {
-    params['workflowKind'] = workflowConstants.stPrimeStakeAndMint; // Assign workflowKind.
+    params['workflowKind'] = workflowConstants.stPrimeStakeAndMintKind; // Assign workflowKind.
 
     super(params);
   }
