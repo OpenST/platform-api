@@ -2,9 +2,9 @@
 'use strict';
 
 const rootPrefix = '../..',
-  AddGlobalConfig = require(rootPrefix + '/lib/setup/ConfigStrategy/AddGlobalConfig'),
-  AddAuxConfig = require(rootPrefix + '/lib/setup/ConfigStrategy/AddAuxConfig'),
-  ActivateConfig = require(rootPrefix + '/lib/setup/ConfigStrategy/ActivateConfig');
+  AddGlobalConfig = require(rootPrefix + '/lib/setup/configStrategy/AddGlobalConfig'),
+  AddAuxConfig = require(rootPrefix + '/lib/setup/configStrategy/AddAuxConfig'),
+  ActivateConfig = require(rootPrefix + '/lib/setup/configStrategy/ActivateConfig');
 
 const command = require('commander'),
   path = require('path'),
