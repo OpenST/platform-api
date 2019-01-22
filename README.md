@@ -235,7 +235,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-### Fund OST Prime
+### Fund OST Prime for economy setup:
 
 ```bash
 let config = null;
@@ -278,6 +278,18 @@ a = new FundOstPrimeByChainOwner({toAddress: adminAddress, transferValueInWei: '
 
 a.perform().then(console.log)
 
+```
+
+### Fund Eth for economy setup:
+
+* Fund origin chain deployer:
+```bash
+transferAmountOnChain = require('./tools/helpers/TransferAmountOnChain.js');
+toAddress = '0xe92a84d8d9e258ba8784559b291dafb1785a9358' // origin deployer
+chainId = 1000 
+provider = 'ws://127.0.0.1:8546'
+amountInWei = 1000000000000000000 // 1 eth
+transferAmountOnChain._fundAddressWithEth(toAddress, chainId, provider, amountInWei).then(console.log)
 ```
 
 * Temporary change
