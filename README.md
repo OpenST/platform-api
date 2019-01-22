@@ -125,9 +125,9 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/setup/aux/gethAndAddresses.js --originChainId 1000 --auxChainId 2000
 ```
 
-* Start AUX GETH with this script.
+* Start AUX GETH (with Zero Gas Price) with this script.
 ```bash
-  sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
+  sh ~/openst-setup/bin/aux-2000/aux-chain-zeroGas-2000.sh
 ```
 
 * Add sealer address [Not for dev-environment].
@@ -202,22 +202,82 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/blockScanner/Finalizer.js --cronProcessId 6
 ```
 
-### Token Setup
-* Create entry in tokens table.
-```bash
->  cd kit-api
->  source set_env_vars.sh
->  rails c 
-    params = {client_id:1,name:"tst1",symbol:"tst1",conversion_factor:0.8}
-    TokenManagement::InsertTokenDetails.new(params).perform
-```
-
 * Make sure you have created entry for 'workflowWorker' in cron processes table.
 
 * Start factory
 ```bash
 > source set_env_vars.sh
 > node executables/workflowRouter/factory.js --cronProcessId 5
+```
+
+* St' Stake and Mint
+```bash
+> source set_env_vars.sh
+> node
+   params = {
+          stepKind: 'stPrimeStakeAndMintInit',
+          taskStatus: 'taskReadyToStart',
+          clientId: 0,
+          chainId: 1000,
+          topic: 'workflow.stPrimeStakeAndMint',
+          requestParams: {stakerAddress: '0x462901a903d0D772E194497A9254238D01220D57', 
+          originChainId: 1000, auxChainId: 2000, facilitator: '0x462901a903d0D772E194497A9254238D01220D57', 
+          amountToStake: '1000000000000000000000', beneficiary: '0xB32C00C0b1532fa6BACA7F0dF065d3B8a3456cBf'}
+      }
+   stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
+   stPrimeRouter = new stPrimeRouterK(params)
+   
+   stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
+```
+
+* Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
+```bash
+  sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
+```
+
+### Fund OST Prime
+
+```bash
+let config = null;
+rootPrefix = '.'
+coreConstants = require(rootPrefix + '/config/coreConstants')
+
+a = require('./helpers/configStrategy/ByChainId.js')
+b = new a(2000,2000);
+b.getComplete().then(function(r) {config = r.data});
+
+OSTBase = require('@openstfoundation/openst-base')
+InstanceComposer = OSTBase.InstanceComposer
+ic = new InstanceComposer(config)
+
+require('./lib/fund/oStPrime/ByChainOwner.js')
+
+FundOstPrimeByChainOwner = ic.getShadowedClassFor(coreConstants.icNameSpace,'FundOstPrimeByChainOwner');
+
+* To Deployer
+
+deployerAddress = ''
+
+a = new FundOstPrimeByChainOwner({toAddress: deployerAddress, transferValueInWei: '100000000000000000000'})
+
+a.perform().then(console.log)
+
+* To owner
+
+ownerAddress = ''
+
+a = new FundOstPrimeByChainOwner({toAddress: ownerAddress, transferValueInWei: '100000000000000000000'})
+
+a.perform().then(console.log)
+
+* To Org Admin
+
+adminAddress = ''
+
+a = new FundOstPrimeByChainOwner({toAddress: adminAddress, transferValueInWei: '100000000000000000000'})
+
+a.perform().then(console.log)
+
 ```
 
 * Temporary change
@@ -227,6 +287,16 @@ Line No 118
   else{
       return web3;
     }
+```
+
+### Token Setup
+* Create entry in tokens table.
+```bash
+>  cd kit-api
+>  source set_env_vars.sh
+>  rails c 
+    params = {client_id:4,name:"tst2",symbol:"tst2",conversion_factor:0.8}
+    TokenManagement::InsertTokenDetails.new(params).perform
 ```
 
 * Start Economy Setup
@@ -250,26 +320,6 @@ TokenDeployment = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenDeploym
 a = new TokenDeployment({token_id: 1000, client_id: 1})
 
 a.perform().then(console.log)
-```
-
-* St' Stake and Mint
-```bash
-> source set_env_vars.sh
-> node
-   params = {
-          stepKind: 'stPrimeStakeAndMintInit',
-          taskStatus: 'taskReadyToStart',
-          clientId: 0,
-          chainId: 1000,
-          topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0x462901a903d0D772E194497A9254238D01220D57', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0x462901a903d0D772E194497A9254238D01220D57', 
-          amountToStake: '1000000000000000000000', beneficiary: '0xB32C00C0b1532fa6BACA7F0dF065d3B8a3456cBf'}
-      }
-   stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
-   stPrimeRouter = new stPrimeRouterK(params)
-   
-   stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
 
 * Start BT stake and mint
