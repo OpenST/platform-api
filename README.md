@@ -292,15 +292,6 @@ amountInWei = 1000000000000000000 // 1 eth
 transferAmountOnChain._fundAddressWithEth(toAddress, chainId, provider, amountInWei).then(console.log)
 ```
 
-* Temporary change
-Add this code snippet at /saas-api/node_modules/@openstfoundation/mosaic-tbd/libs/Contracts.js
-Line No 118
-```bash
-  else{
-      return web3;
-    }
-```
-
 ### Token Setup
 * Create entry in tokens table.
 ```bash
