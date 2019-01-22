@@ -427,12 +427,10 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProgressStakeStatus:
       case workflowStepConstants.fetchStakeIntentMessageHash:
       case workflowStepConstants.btStakeAndMintInit:
-      case workflowStepConstants.btRequestStakeHandle:
-      case workflowStepConstants.checkRequestStakeTxStatus:
-      case workflowStepConstants.btApproveTxHandle:
-      case workflowStepConstants.checkApproveTxStatus:
+      case workflowStepConstants.stakerRequestStakeTrx:
+      case workflowStepConstants.approveGatewayComposerTrx:
       case workflowStepConstants.fetchStakeRequestHash:
-      case workflowStepConstants.checkAllowance:
+      case workflowStepConstants.checkGatewayComposerAllowance:
         oThis.chainId = oThis.requestParams.originChainId;
         break;
 

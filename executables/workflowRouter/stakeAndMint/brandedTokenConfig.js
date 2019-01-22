@@ -7,36 +7,33 @@ const steps = {
   [workflowStepConstants.btStakeAndMintInit]: {
     kind: workflowStepConstants.btStakeAndMintInit,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.btRequestStakeHandle]
+    onSuccess: [workflowStepConstants.approveGatewayComposerTrx, workflowStepConstants.stakerRequestStakeTrx]
   },
-  [workflowStepConstants.btRequestStakeHandle]: {
-    kind: workflowStepConstants.btRequestStakeHandle,
+  [workflowStepConstants.approveGatewayComposerTrx]: {
+    kind: workflowStepConstants.approveGatewayComposerTrx,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.checkRequestStakeTxStatus]
+    onSuccess: [workflowStepConstants.checkGatewayComposerAllowance]
   },
-  [workflowStepConstants.checkRequestStakeTxStatus]: {
-    kind: workflowStepConstants.checkRequestStakeTxStatus,
+  [workflowStepConstants.checkGatewayComposerAllowance]: {
+    kind: workflowStepConstants.checkGatewayComposerAllowance,
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.acceptStake]
+  },
+  [workflowStepConstants.stakerRequestStakeTrx]: {
+    kind: workflowStepConstants.stakerRequestStakeTrx,
+    onFailure: '',
     onSuccess: [workflowStepConstants.fetchStakeRequestHash]
   },
   [workflowStepConstants.fetchStakeRequestHash]: {
     kind: workflowStepConstants.fetchStakeRequestHash,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.btApproveTxHandle]
+    readDataFrom: [workflowStepConstants.stakerRequestStakeTrx],
+    onSuccess: [workflowStepConstants.acceptStake]
   },
-  [workflowStepConstants.btApproveTxHandle]: {
-    kind: workflowStepConstants.btApproveTxHandle,
+  [workflowStepConstants.acceptStake]: {
+    kind: workflowStepConstants.acceptStake,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.checkApproveTxStatus]
-  },
-  [workflowStepConstants.checkApproveTxStatus]: {
-    kind: workflowStepConstants.checkApproveTxStatus,
-    onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.checkAllowance]
-  },
-  [workflowStepConstants.checkAllowance]: {
-    kind: workflowStepConstants.checkAllowance,
-    onFailure: workflowStepConstants.markFailure,
+    prerequisites: [workflowStepConstants.checkGatewayComposerAllowance, workflowStepConstants.fetchStakeRequestHash],
     onSuccess: []
   }
 };

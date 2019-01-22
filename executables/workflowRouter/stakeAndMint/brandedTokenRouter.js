@@ -6,10 +6,10 @@ const rootPrefix = '../../..',
   btMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/brandedTokenConfig'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
-  ProcessTransaction = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/ProcessTransaction'),
-  FetchRequestHash = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/FetchRequestHash'),
-  CheckAllowance = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/CheckAllowance'),
-  CheckStepStatus = require(rootPrefix + '/lib/stakeMintManagement/common/CheckStepStatus'),
+  AddStakerSignedTrx = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/AddStakerSignedTransaction'),
+  FetchStakeRequestHash = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/FetchStakeRequestHash'),
+  CheckGatewayComposerAllowance = require(rootPrefix +
+    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 class BtMintRouter extends WorkflowRouterBase {
@@ -44,30 +44,20 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.btStakeAndMintInit:
         return oThis.insertInitStep();
 
-      case workflowStepConstants.btRequestStakeHandle:
+      case workflowStepConstants.stakerRequestStakeTrx:
         oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
-        return new ProcessTransaction(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
-
-      case workflowStepConstants.checkRequestStakeTxStatus:
-        oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
-        let checkStepStatus = new CheckStepStatus(oThis.requestParams);
-        return checkStepStatus.perform();
+        return new AddStakerSignedTrx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.fetchStakeRequestHash:
         oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
-        return new FetchRequestHash(oThis.requestParams).perform();
+        return new FetchStakeRequestHash(oThis.requestParams).perform();
 
-      case workflowStepConstants.btApproveTxHandle:
+      case workflowStepConstants.approveGatewayComposerTrx:
         oThis.requestParams.transactionHash = oThis.requestParams.approveTransactionHash;
-        return new ProcessTransaction(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
+        return new AddStakerSignedTrx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      case workflowStepConstants.checkApproveTxStatus:
-        oThis.requestParams.transactionHash = oThis.requestParams.approveTransactionHash;
-        let checkApproveStatus = new CheckStepStatus(oThis.requestParams);
-        return checkApproveStatus.perform();
-
-      case workflowStepConstants.checkAllowance:
-        return new CheckAllowance(oThis.requestParams).perform();
+      case workflowStepConstants.checkGatewayComposerAllowance:
+        return new CheckGatewayComposerAllowance(oThis.requestParams).perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark branded token stake and mint as success');
