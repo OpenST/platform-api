@@ -27,12 +27,14 @@ class ChainAddress extends ModelBase {
    * @param {String} params.chainKind - chain kind
    * @param {String} params.kind - address kind
    * @param {Integer} params.status - status
+   * @param {Integer} params.knownAddressId - knownAddressId
    *
    * @return {Promise}
    */
   async insertAddress(params) {
     const oThis = this,
       addressKind = params['kind'],
+      knownAddressId = params.knownAddressId,
       addressKindInt = chainAddressConst.invertedKinds[addressKind];
 
     if (!addressKindInt) {
@@ -88,7 +90,8 @@ class ChainAddress extends ModelBase {
         kind: addressKindInt,
         chain_kind: chainAddressConst.invertedChainKinds[params.chainKind],
         address: params.address.toLowerCase(),
-        status: chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
+        status: chainAddressConst.invertedStatuses[chainAddressConst.activeStatus],
+        known_address_id: knownAddressId
       })
       .fire();
 
