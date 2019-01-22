@@ -19,9 +19,9 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '4': workflowConstants.completelyFailedStatus
   },
   kinds = {
-    '1': workflowConstants.stPrimeStakeAndMintKind,
-    '2': workflowConstants.tokenDeployKind,
-    '3': workflowConstants.stateRootSyncKind,
+    '1': workflowConstants.tokenDeployKind,
+    '2': workflowConstants.stateRootSyncKind,
+    '3': workflowConstants.stPrimeStakeAndMintKind,
     '4': workflowConstants.btStakeAndMintKind,
     '5': workflowConstants.testKind
   },
