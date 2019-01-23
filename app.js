@@ -9,9 +9,6 @@
 
 const rootPrefix = '.';
 
-//Always Include Module overrides First
-//require(rootPrefix + '/module_overrides/index');
-
 const express = require('express'),
   path = require('path'),
   createNamespace = require('continuation-local-storage').createNamespace,
@@ -28,7 +25,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   v2Routes = require(rootPrefix + '/routes/v2/index'),
   internalRoutes = require(rootPrefix + '/routes/internal/index'),
-  //inputValidator = require(rootPrefix + '/lib/authentication/validateSignature'),
+  ValidateApiSignature = require(rootPrefix + '/lib/authentication/ValidateApiSignature'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   customMiddleware = require(rootPrefix + '/helpers/customMiddleware'),
   SystemServiceStatusesCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/systemServiceStatuses'),
@@ -72,27 +69,17 @@ const assignParams = function(req) {
 const validateApiSignature = function(req, res, next) {
   assignParams(req);
 
-  next();
-
-  return;
-
   const handleParamValidationResult = function(result) {
     if (result.isSuccess()) {
-      req.decodedParams['client_id'] = result.data['clientId'];
+      req.decodedParams['clientId'] = result.data['clientId'];
       next();
     } else {
-      return responseHelper
-        .error({
-          internal_error_identifier: 'a_1',
-          api_error_identifier: 'unauthorized_api_request',
-          debug_options: {}
-        })
-        .renderResponse(res, errorConfig);
+      return result.renderResponse(res, errorConfig);
     }
   };
 
-  return inputValidator
-    .perform(req.decodedParams, customUrlParser.parse(req.originalUrl).pathname)
+  return new ValidateApiSignature(req.decodedParams, customUrlParser.parse(req.originalUrl).pathname)
+    .perform()
     .then(handleParamValidationResult);
 };
 
@@ -308,7 +295,7 @@ if (cluster.isMaster) {
   );
 
   app.use(
-    '/' + environmentInfo.urlPrefix + '/api/v2',
+    '/' + environmentInfo.urlPrefix + '/v2',
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     validateApiSignature,

@@ -1,13 +1,11 @@
 'use strict';
 
-const rootPrefix = '../../..';
-
 const v2Signature = {
-  test_api: {
+  tokenDetails: {
     mandatory: [
       {
         parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        validatorMethod: 'validateInteger'
       }
     ],
     optional: []
@@ -16,14 +14,19 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'id',
-        error_identifier: 'missing_id'
+        validatorMethod: 'validateInteger'
       }
     ],
-    optional: ['page_no', 'order_by', 'order', 'limit', 'status']
+    optional: [
+      { parameter: 'page_no', validatorMethod: 'validateInteger' },
+      { parameter: 'order_by', validatorMethod: 'validateAlphaString' },
+      { parameter: 'order', validatorMethod: 'validateOrderingString' },
+      { parameter: 'page_no', validatorMethod: 'validateInteger' }
+    ]
   }
 };
 

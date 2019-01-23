@@ -5,32 +5,19 @@ const signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'signer',
-        error_identifier: 'missing_signer'
+        validatorMethod: 'validateEthAddress'
       },
       {
         parameter: 'personal_sign',
-        error_identifier: 'missing_personal_sign'
+        error_identifier: 'validatePersonalSign'
       },
       {
         parameter: 'message_to_sign',
-        error_identifier: 'missing_message_to_sign'
-      }
-    ],
-    optional: []
-  },
-  tokenDetails: {
-    mandatory: [
-      {
-        parameter: 'chain_id',
-        error_identifier: 'missing_chain_id'
-      },
-      {
-        parameter: 'contract_address',
-        error_identifier: 'missing_contract_address'
+        error_identifier: 'validateAlphaNumericString'
       }
     ],
     optional: []
@@ -39,11 +26,11 @@ const signature = {
     mandatory: [
       {
         parameter: 'token_id',
-        error_identifier: 'missing_token_id'
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'staker_address',
-        error_identifier: 'missing_staker_address'
+        validatorMethod: 'validateEthAddress'
       }
     ],
     optional: []
@@ -52,11 +39,11 @@ const signature = {
     mandatory: [
       {
         parameter: 'token_id',
-        error_identifier: 'missing_chain_id'
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        validatorMethod: 'validateInteger'
       }
     ],
     optional: []
