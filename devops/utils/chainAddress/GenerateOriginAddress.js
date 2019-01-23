@@ -6,11 +6,14 @@
  * @module devops/utils/GenerateAddress
  */
 const rootPrefix = '../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   TransferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain');
 
 /**
