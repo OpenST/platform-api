@@ -94,6 +94,10 @@ const steps = {
     onFailure: workflowStepConstants.markFailure,
     readDataFrom: [workflowStepConstants.progressMint],
     onSuccess: []
+  },
+  [workflowStepConstants.markFailure]: {
+    kind: workflowStepConstants.markFailure,
+    onSuccess: []
   }
 };
 
