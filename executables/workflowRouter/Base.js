@@ -529,7 +529,22 @@ class WorkflowRouterBase {
         workflow_id: oThis.workflowId,
         status: nextStepStatus
       })
-      .fire();
+      .fire()
+      .catch(function(error) {
+        if (error) {
+          if (error.code === 'ER_DUP_ENTRY') {
+            return Promise.resolve();
+          }
+        } else {
+          return Promise.reject(
+            responseHelper.error({
+              internal_error_identifier: 'e_wr_b_8',
+              api_error_identifier: 'something_went_wrong',
+              debug_options: { error: error }
+            })
+          );
+        }
+      });
 
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
