@@ -563,6 +563,8 @@ class WorkflowRouterBase {
   }
 
   async _insertWorkflowStep(nextStepKind, nextStepStatus) {
+    const oThis = this;
+
     let insertRsp = await new WorkflowStepsModel()
       .insert({
         kind: nextStepKind,
