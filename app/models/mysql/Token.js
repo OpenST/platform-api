@@ -71,7 +71,8 @@ class Token extends ModelBase {
       symbol: dbRow.symbol,
       conversionFactor: dbRow.conversion_factor,
       decimal: dbRow.decimal,
-      status: dbRow.status
+      status: dbRow.status,
+      createdAt: dbRow.created_at
     });
   }
 

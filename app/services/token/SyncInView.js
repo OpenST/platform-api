@@ -29,6 +29,7 @@ class SyncInView {
    * @param params
    * @param {Integer} params.tokenId - Id of token table
    * @param {Integer} params.chainId
+   * @param {Integer} params.clientId
    *
    * @constructor
    */
@@ -37,6 +38,7 @@ class SyncInView {
     const oThis = this;
     oThis.tokenId = params.tokenId;
     oThis.chainId = params.chainId;
+    oThis.clientId = params.clientId;
   }
 
   /**
@@ -54,6 +56,7 @@ class SyncInView {
     let createInView = new CreateInView({
       tokenId: oThis.tokenId,
       chainId: oThis.chainId,
+      clientId: oThis.clientId,
       simpleStakeAddress: oThis.simpleStakeAddress,
       brandedTokenContract: oThis.brandedTokenAddress,
       utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,

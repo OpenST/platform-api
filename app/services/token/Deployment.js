@@ -4,12 +4,8 @@
  *
  * @module app/services/token/Deployment
  */
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../..',
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
@@ -165,19 +161,29 @@ class Deployment {
   /**
    * Fetch token details
    *
-   * @param {String/Number} tokenId
+   * @param {String/Number} clientId
    *
    * @return {Promise<void>}
    *
    * @private
    */
-  async _fetchTokenDetails(tokenId) {
-    return await new TokenModel()
-      .select('*')
-      .where({
-        id: tokenId
-      })
-      .fire();
+  async _fetchTokenDetails(clientId) {
+    let cacheResponse = await new TokenCache({ clientId: clientId }).fetch();
+
+    if (cacheResponse.isFailure()) {
+      logger.error('Could not fetched token details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_t_d_7',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            clientId: clientId
+          }
+        })
+      );
+    }
+    logger.debug('cacheResponse-------', cacheResponse);
+    return cacheResponse.data;
   }
 
   /***
@@ -249,10 +255,10 @@ class Deployment {
     // Status of token deployment is not as expected.
     else {
       // Fetch token details.
-      let tokenDetails = await oThis._fetchTokenDetails(oThis.tokenId);
+      let tokenDetails = await oThis._fetchTokenDetails(oThis.clientId);
 
       // If token does not exist in the table.
-      if (tokenDetails.length !== 1) {
+      if (Object.keys(tokenDetails) < 1) {
         logger.error('Token does not exist.');
 
         return responseHelper.error({
@@ -263,7 +269,7 @@ class Deployment {
       }
       // Token exists in the table.
       else {
-        tokenDetails = tokenDetails[0];
+        logger.debug('tokenDetails-------', tokenDetails);
 
         switch (tokenDetails.status.toString()) {
           case new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]:
@@ -312,4 +318,4 @@ class Deployment {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Deployment, coreConstants.icNameSpace, 'TokenDeployment');
+module.exports = Deployment;

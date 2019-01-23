@@ -8,7 +8,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
+  TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -132,19 +132,28 @@ class StartMint {
   /**
    * Fetch token details
    *
-   * @param {String/Number} tokenId
+   * @param {String/Number} clientId
    *
    * @return {Promise<void>}
    *
    * @private
    */
-  async _fetchTokenDetails(tokenId) {
-    return await new TokenModel()
-      .select('*')
-      .where({
-        id: tokenId
-      })
-      .fire();
+  async _fetchTokenDetails(clientId) {
+    let cacheResponse = await new TokenCache({ clientId: clientId }).fetch();
+
+    if (cacheResponse.isFailure()) {
+      logger.error('Could not fetched token details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_sm_3',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            clientId: clientId
+          }
+        })
+      );
+    }
+    return cacheResponse.data;
   }
 
   /***

@@ -256,7 +256,11 @@ class EconomySetupRouter extends WorkflowRouterBase {
         logger.step('*** Sync Token Details in OST View');
 
         let SyncInView = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SyncInView');
-        return new SyncInView({ tokenId: oThis.requestParams.tokenId, chainId: oThis.chainId }).perform();
+        return new SyncInView({
+          tokenId: oThis.requestParams.tokenId,
+          chainId: oThis.chainId,
+          clientId: oThis.requestParams.clientId
+        }).perform();
 
       case workflowStepConstants.deployTokenCoGateway:
         logger.step('*** Deploy CoGateway');

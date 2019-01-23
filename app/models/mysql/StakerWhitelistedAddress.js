@@ -7,7 +7,6 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   stakerWhitelistedAddressConstants = require(rootPrefix + '/lib/globalConstant/StakerWhitelistedAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  Token = require(rootPrefix + '/app/models/mysql/Token'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
