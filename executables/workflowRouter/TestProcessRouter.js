@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   testStepss7 = require(rootPrefix + '/lib/workflow/testSteps/s7'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
-  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/base'),
+  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   testStepsConfigs = require(rootPrefix + '/executables/workflowRouter/testStepsConfigs');
 
