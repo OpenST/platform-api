@@ -521,8 +521,6 @@ class WorkflowRouterBase {
     let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
       nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
 
-    //oThis._decideChainId(nextStep);
-
     let insertRsp = await oThis._insertWorkflowStep(nextStepKind, nextStepStatus);
 
     if (!insertRsp.isSuccess()) {
@@ -531,7 +529,7 @@ class WorkflowRouterBase {
 
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
-    let nextStepId = insertRsp.data.insertId;
+    let nextStepId = insertRsp.insertId;
 
     let messageParams = {
       topics: [oThis.topic],

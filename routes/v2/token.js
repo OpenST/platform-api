@@ -8,7 +8,7 @@ const router = express.Router();
 require(rootPrefix + '/app/services/token/Detail');
 
 /* Get aggregated token details*/
-router.get('/details', function(req, res, next) {
+router.get('/', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDetails';
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_t_1'));
 });

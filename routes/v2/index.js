@@ -9,6 +9,6 @@ const rootPrefix = '../..',
 const router = express.Router();
 
 router.use('/', testRoutes);
-router.use('/token', tokenRoutes);
+router.use('/tokens', tokenRoutes);
 
 module.exports = router;
