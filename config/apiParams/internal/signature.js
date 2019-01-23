@@ -31,6 +31,10 @@ const signature = {
       {
         parameter: 'staker_address',
         validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
       }
     ],
     optional: []

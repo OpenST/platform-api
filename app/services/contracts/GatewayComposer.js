@@ -11,10 +11,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  stakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/StakerWhitelistedAddress'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 require(rootPrefix + '/lib/cacheManagement/StakerWhitelistedAddress');
@@ -40,7 +37,7 @@ class GatewayComposer {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/token/Mint::perform::catch');
+        logger.error('app/services/contracts/GatewayComposer::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 'a_s_t_m_1',
@@ -75,10 +72,9 @@ class GatewayComposer {
     const oThis = this;
 
     //
-    let stakerWhitelistedCacheKlass = ic.getShadowedClassFor(
-        coreConstants.icNameSpace,
-        'StakerWhitelistedAddressCache'
-      ),
+    let stakerWhitelistedCacheKlass = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'StakerWhitelistedAddressCache'),
       stakerWhitelistedCacheObj = new stakerWhitelistedCacheKlass({
         tokenId: oThis.tokenId,
         address: oThis.stakerAddress
