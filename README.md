@@ -324,28 +324,3 @@ a = new TokenDeployment({token_id: 1000, client_id: 1})
 
 a.perform().then(console.log)
 ```
-
-* Start BT stake and mint
-```bash
-> source set_env_vars.sh
-> node
-    params = {
-           stepKind: 'btStakeAndMintInit',
-           taskStatus: 'taskReadyToStart',
-           clientId: 1,
-           chainId: 1000,
-           topic: 'workflow.btStakeAndMint',
-           requestParams: {
-           tokenId: 1, chainId: 1000, auxChainId: 2000, originChainId: 1000, 
-           clientId: 1, 
-           requestStakeTransactionHash: '0xbc0ee0b2b71c46db08b7e7307a87d46b3084e36a32a9d311b050ee23ea7e1cab', 
-           approveTransactionHash: '0x1821f4bbaa7370402bed2de6c03780cddb0e7a41074100a3ebb138adce4ff958', 
-           stakerAddress: '0xd1abbdccc3dfa2a80a6e99da97339a5f12ed911e', 
-           simpleTokenContract: '0xab5f71b354f75701bb4e7443dda1784f89b1b442', 
-           stakeAmount: '1000000'
-           }
-       }
-    BrandedTokenMintRouter = require('./executables/workflowRouter/stakeAndMint/BrandedTokenRouter.js')
-    brandedTokenMintRouter = new BrandedTokenMintRouter(params)
-    brandedTokenMintRouter.perform().then(console.log)
-```
