@@ -298,7 +298,7 @@ if (cluster.isMaster) {
   app.use('/', internalRoutes);
 
   app.use(
-    '/' + environmentInfo.urlPrefix + '/api/internal',
+    '/' + environmentInfo.urlPrefix + '/internal',
     sanitizer(),
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
