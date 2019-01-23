@@ -130,10 +130,8 @@ class TokenDetail {
     }
 
     oThis.tokenDetails = cacheResponse.data;
-    logger.debug('tokenDetails-----------', oThis.tokenDetails);
 
     oThis.tokenId = oThis.tokenDetails['id'];
-    logger.debug('tokenId-----------', oThis.tokenId);
   }
 
   /**
@@ -164,10 +162,8 @@ class TokenDetail {
     }
 
     oThis.tokenAddresses = cacheResponse.data;
-    logger.debug('tokenAddresses-----------', oThis.tokenAddresses);
 
-    oThis.economyContractAddress = oThis.tokenAddresses[tokenAddressConstants.brandedTokenContract];
-    logger.debug('BT contractAddress-----------', oThis.economyContractAddress);
+    oThis.economyContractAddress = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
   }
 
   /**
