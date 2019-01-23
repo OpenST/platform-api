@@ -93,7 +93,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 * Save simple token admin and owner addresses in database.
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/SaveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
+  node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
 * Fund chain owner with OSTs (pass ST Owner private key in parameter)

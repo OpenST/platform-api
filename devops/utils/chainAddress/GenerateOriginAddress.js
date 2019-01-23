@@ -9,7 +9,9 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base');
+  ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  TransferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain');
 
 /**
  * Class for Generating addresses for Origin and Auxiliary chains
@@ -24,12 +26,13 @@ class GenerateOriginAddress extends ChainAddressBase {
    *
    * @constructor
    */
-  constructor(chainId) {
+  constructor(chainId, ethSenderPk) {
     super(chainId);
     const oThis = this;
 
     oThis.chainId = chainId;
     oThis.chainKind = coreConstants.originChainKind;
+    oThis.ethSenderPk = ethSenderPk;
   }
 
   /**
@@ -60,11 +63,60 @@ class GenerateOriginAddress extends ChainAddressBase {
     logger.log('* Generating address for origin token admin.');
     logger.log('* Generating address for origin token worker.');
 
-    let addresses = await oThis._generateAddresses(addressKinds);
+    let addressesResp = await oThis._generateAddresses(addressKinds);
 
-    return addresses;
+    if(addressesResp.isSuccess()){
+
+      let addresses = addressesResp['data']['addresses'];
+
+      logger.log(`* Funding origin deployer address (${addresses['deployer']}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses['deployer'], 3);
+
+      logger.log(`* Funding origin owner address (${addresses['owner']}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses['owner'], 0.5);
+
+      logger.log(`* Funding origin admin address (${addresses['admin']}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses['admin'], 0.5);
+
+      logger.log(`* Funding origin token admin address (${addresses['tokenAdmin']}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses['tokenAdmin'], 0.5);
+
+      logger.log(`* Funding origin token worker address (${addresses['tokenWorker']}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses['tokenWorker'], 0.5);
+    }
+
+    return addressesResp;
   }
 
+  /**
+   * fund address with ETH
+   *
+   * @param address {string} - address to fund ETH to
+   * @param amount {number} - amount in eth which is to be funded
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _fundAddressWithEth(address, amount) {
+    const oThis = this;
+
+    let providers = await oThis._getProvidersFromConfig(),
+      provider = providers.data[0], //select one provider from provider endpoints array
+      amountInWei = basicHelper.convertToWei(amount);
+
+    await TransferAmountOnChain._fundAddressWithEthUsingPk(address, oThis.ethSenderPk,oThis.chainId, provider, amountInWei);
+  }
+
+  async _getProvidersFromConfig() {
+    const oThis = this;
+
+    let csHelper = new ConfigStrategyHelper(0),
+      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
+      configForChain = csResponse.data[configStrategyConstants.originGeth],
+      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
+      providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
+
+    return responseHelper.successWithData(providers);
+  }
 }
 
 module.exports = GenerateOriginAddress;
