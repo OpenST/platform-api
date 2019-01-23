@@ -72,26 +72,6 @@ class ConfigGroups extends ModelBase {
   }
 
   /**
-   * Get record by chain id and group id
-   * @param {Number} chainId: chain id
-   * @param {Number} groupId: group id
-   * @returns {Promise<*>}
-   */
-  async getByChainIdAndGroupId(chainId, groupId) {
-    const oThis = this;
-
-    // Perform validations.
-    if (!chainId || !groupId) {
-      throw 'Mandatory parameters are missing. Either chainId or groupId';
-    }
-
-    return oThis
-      .select('*')
-      .where(['chain_id = ? AND group_id = ?', chainId, groupId])
-      .fire();
-  }
-
-  /**
    * Check if the given chain id and group id is available for allocation
    *
    * @param chainId {Number} - chain id
@@ -101,46 +81,28 @@ class ConfigGroups extends ModelBase {
   async isAvailableForAllocation(chainId, groupId) {
     const oThis = this;
 
-    await oThis._validateChainAndGroupIds(chainId, groupId);
+    let configRecord = await oThis.fetchRecord(chainId, groupId);
 
-    let configRecord = await new ConfigGroups()
-      .select(['id', 'is_available_for_allocation'])
-      .where(['chain_id = ? AND group_id = ?', chainId, groupId])
-      .fire();
-
-    if (configRecord.length === 0) {
-      logger.error('No entry found for given chainId and group Id');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_m_m_cg_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
     let returnData = {
-      id: configRecord[0].id,
+      id: configRecord.id,
       chainId: chainId,
       groupId: groupId,
       is_available_for_allocation: isAvailableForAllocation[configRecord[0].is_available_for_allocation.toString()]
     };
 
-    return Promise.resolve(responseHelper.successWithData(returnData));
+    return responseHelper.successWithData(returnData);
   }
 
   /**
-   * Marks the given chain id and group id available for allocation
+   * Mark as available for allocation
    *
-   * @param chainId {Number} - chain id
-   * @param groupId {Number} - group id
-   * @returns {Promise<*>}
+   * @param chainId - chain id of the config group
+   * @param groupId - group id of the config group
    */
-  async allocate(chainId, groupId) {
-    const oThis = this;
+  static async markAsAvailableForAllocation(chainId, groupId) {
+    await new ConfigGroups().fetchRecord(chainId, groupId);
 
-    await oThis._validateChainAndGroupIds(chainId, groupId);
-
-    return oThis
+    return new ConfigGroups()
       .update({
         is_available_for_allocation: invertedIsAvailableForAllocation[configGroupConstants.availableForAllocation]
       })
@@ -149,23 +111,52 @@ class ConfigGroups extends ModelBase {
   }
 
   /**
-   * Marks the given chain id and group id not available for allocation
+   * Mark as un-available for allocation
    *
-   * @param chainId {Number} - chain id
-   * @param groupId {Number} - group id
-   * @returns {Promise<*>}
+   * @param chainId - chain id of the config group
+   * @param groupId - group id of the config group
    */
-  async stopAllocation(chainId, groupId) {
-    const oThis = this;
+  static async markAsUnAvailableForAllocation(chainId, groupId) {
+    await new ConfigGroups().fetchRecord(chainId, groupId);
 
-    await oThis._validateChainAndGroupIds(chainId, groupId);
-
-    return oThis
+    return new ConfigGroups()
       .update({
         is_available_for_allocation: invertedIsAvailableForAllocation[configGroupConstants.notAvailableForAllocation]
       })
       .where({ chain_id: chainId, group_id: groupId })
       .fire();
+  }
+
+  /**
+   * Fetch record
+   *
+   * @param chainId
+   * @param groupId
+   *
+   * @returns {Promise<*>}
+   */
+  async fetchRecord(chainId, groupId) {
+    const oThis = this;
+
+    await oThis._validateChainAndGroupIds(chainId, groupId);
+
+    let configRecords = await oThis
+      .select('*')
+      .where(['chain_id = ? AND group_id = ?', chainId, groupId])
+      .fire();
+
+    if (configRecords.length === 0) {
+      logger.error('No entry found for given chainId and group Id');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_m_cg_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    return configRecords[0];
   }
 
   /**
@@ -182,7 +173,7 @@ class ConfigGroups extends ModelBase {
     if (typeof chainId !== 'number' || typeof groupId !== 'number') {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_m_m_cg_2',
+          internal_error_identifier: 'a_m_m_cg_3',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

@@ -50,8 +50,6 @@ source set_env_vars.sh
 # Note: For staging and production follow help
 ```
 
-* Update the 'is_available_for_allocation' status in 'config_groups' table to '1'.
-
 * Activate configurations
 ```bash
 # Activate Global configurations
@@ -287,6 +285,16 @@ chainId = 1000
 provider = 'ws://127.0.0.1:8546'
 amountInWei = 1000000000000000000 // 1 eth
 transferAmountOnChain._fundAddressWithEth(toAddress, chainId, provider, amountInWei).then(console.log)
+```
+
+
+### Open up config group for allocation
+```js
+let ConfigGroupModel = require('./app/models/mysql/ConfigGroup');
+let auxChainId = 2000;
+let auxGroupId = 2000;
+
+ConfigGroupModel.markAsAvailableForAllocation(auxChainId, auxGroupId).then(console.log);
 ```
 
 ### Token Setup
