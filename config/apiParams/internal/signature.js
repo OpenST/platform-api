@@ -13,11 +13,11 @@ const signature = {
       },
       {
         parameter: 'personal_sign',
-        error_identifier: 'validatePersonalSign'
+        validatorMethod: 'validatePersonalSign'
       },
       {
         parameter: 'message_to_sign',
-        error_identifier: 'validateAlphaNumericString'
+        validatorMethod: 'validateAlphaNumericString'
       }
     ],
     optional: []
