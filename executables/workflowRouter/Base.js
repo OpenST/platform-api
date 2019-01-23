@@ -529,7 +529,7 @@ class WorkflowRouterBase {
 
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
-    let nextStepId = insertRsp.insertId;
+    let nextStepId = insertRsp.data.insertId;
 
     let messageParams = {
       topics: [oThis.topic],
