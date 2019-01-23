@@ -5,11 +5,8 @@
  *
  * @module app/services/token/Mint
  */
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
@@ -102,5 +99,3 @@ class Mint {
 }
 
 module.exports = Mint;
-
-InstanceComposer.registerAsShadowableClass(Mint, coreConstants.icNameSpace, 'Mint');

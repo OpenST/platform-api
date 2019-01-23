@@ -17,14 +17,14 @@ router.post('/deploy', function(req, res, next) {
 
 router.post('/mint', function(req, res, next) {
   req.decodedParams.apiName = 'startMint';
-  req.decodedParams.configStrategyRequired = true;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'StartMint', 'r_it_3'));
 });
 
 router.get('/mint', function(req, res, next) {
   req.decodedParams.apiName = 'mint';
-  req.decodedParams.configStrategyRequired = true;
+  req.decodedParams.clientConfigStrategyRequired = false;
 
   Promise.resolve(routeHelper.perform(req, res, next, 'Mint', 'r_it_4'));
 });

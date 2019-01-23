@@ -20,7 +20,7 @@ const rootPrefix = '../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-class Signer {
+class ECRecover {
   /**
    *
    *
@@ -46,7 +46,7 @@ class Signer {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/signer/signer::perform::catch');
+        logger.error('app/services/verifySigner/verifySigner::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 'l_ar_ecr_1',
@@ -146,6 +146,4 @@ class Signer {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Signer, coreConstants.icNameSpace, 'Signer');
-
-module.exports = Signer;
+module.exports = ECRecover;

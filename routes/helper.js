@@ -6,37 +6,58 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   apiParamsValidator = require(rootPrefix + '/lib/validators/apiParams'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId');
+  ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId');
 
-class RouteMethods {
-  static perform(req, res, next, CallerKlassGetter, errorCode, afterValidationFunc, dataFormatterFunc) {
+class RoutesHelper {
+  /**
+   * Perform
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param serviceGetter - in case of getting from ic, this is the getter name. else it is relative path in app root folder
+   * @param errorCode
+   * @param afterValidationCallback
+   * @param formatter
+   * @return {Promise<T>}
+   */
+  static perform(req, res, next, serviceGetter, errorCode, afterValidationCallback, formatter) {
     const oThis = this,
       errorConfig = basicHelper.fetchErrorConfig(req.decodedParams.apiVersion);
 
-    return oThis
-      .asyncPerform(req, res, next, CallerKlassGetter, afterValidationFunc, dataFormatterFunc)
-      .catch(function(error) {
-        if (responseHelper.isCustomResult(error)) {
-          error.renderResponse(res, errorConfig);
-        } else {
-          //TODO:- temp change (remove this and use notify)
-          logger.error(errorCode, 'Something went wrong', error);
+    return oThis.asyncPerform(req, res, next, serviceGetter, afterValidationCallback, formatter).catch(function(error) {
+      if (responseHelper.isCustomResult(error)) {
+        error.renderResponse(res, errorConfig);
+      } else {
+        //TODO:- temp change (remove this and use notify)
+        logger.error(errorCode, 'Something went wrong', error);
 
-          responseHelper
-            .error({
-              internal_error_identifier: errorCode,
-              api_error_identifier: 'unhandled_catch_response',
-              debug_options: {}
-            })
-            .renderResponse(res, errorConfig);
-        }
-      });
+        responseHelper
+          .error({
+            internal_error_identifier: errorCode,
+            api_error_identifier: 'unhandled_catch_response',
+            debug_options: {}
+          })
+          .renderResponse(res, errorConfig);
+      }
+    });
   }
 
-  static async asyncPerform(req, res, next, CallerKlassGetter, afterValidationFunc, dataFormatterFunc) {
+  /**
+   * Async Perform
+   *
+   * @param req
+   * @param res
+   * @param next
+   * @param serviceGetter
+   * @param afterValidationCallback
+   * @param formatter
+   * @return {Promise<*>}
+   */
+  static async asyncPerform(req, res, next, serviceGetter, afterValidationCallback, formatter) {
     req.decodedParams = req.decodedParams || {};
 
     const oThis = this,
@@ -50,50 +71,42 @@ class RouteMethods {
 
     req.serviceParams = apiParamsValidatorRsp.data.sanitisedApiParams;
 
-    if (afterValidationFunc) {
-      req.serviceParams = await afterValidationFunc(req.serviceParams);
+    if (afterValidationCallback) {
+      req.serviceParams = await afterValidationCallback(req.serviceParams);
     }
 
-    // TODO: temp. remove in sometime
-    logger.debug('req.serviceParams', req.serviceParams);
-    logger.debug('req.decodedParams', req.decodedParams);
-
-    var handleResponse = async function(response) {
-      if (response.isSuccess() && dataFormatterFunc) {
+    let handleResponse = async function(response) {
+      if (response.isSuccess() && formatter) {
         // if requires this function could reformat data as per API version requirements.
-        await dataFormatterFunc(response);
+        await formatter(response);
       }
 
       response.renderResponse(res, errorConfig);
     };
 
-    let configStrategy = {};
-    if (req.decodedParams.configStrategyRequired) {
-      configStrategy = await oThis._fetchConfigStrategy(req.serviceParams['client_id']);
+    let Service;
+
+    if (req.decodedParams.clientConfigStrategyRequired) {
+      let configStrategy = await oThis._fetchConfigStrategyByClientId(req.serviceParams['client_id']);
+      let instanceComposer = new InstanceComposer(configStrategy);
+      Service = instanceComposer.getShadowedClassFor(coreConstants.icNameSpace, serviceGetter);
+    } else {
+      Service = require(rootPrefix + serviceGetter);
     }
 
-    let instanceComposer = new InstanceComposer(configStrategy);
-
-    let Klass = instanceComposer.getShadowedClassFor(coreConstants.icNameSpace, CallerKlassGetter);
-
-    return new Klass(req.serviceParams).perform().then(handleResponse);
+    return new Service(req.serviceParams).perform().then(handleResponse);
   }
 
-  static replaceKey(data, oldKey, newKey) {
-    if (!data.hasOwnProperty(oldKey)) {
-      return data;
-    }
-
-    const keyValue = data[oldKey];
-    delete data[oldKey];
-    data[newKey] = keyValue;
-
-    return data;
-  }
-
-  static async _fetchConfigStrategy(clientId) {
-    let configStrategyHelper = new ConfigStrategyHelper(clientId),
-      configStrategyRsp = await configStrategyHelper.get();
+  /**
+   * Fetch config strategy by client id
+   *
+   * @param clientId
+   * @return {Promise<*>}
+   * @private
+   */
+  static async _fetchConfigStrategyByClientId(clientId) {
+    let configCrudByClientId = new ConfigCrudByClientId(clientId),
+      configStrategyRsp = await configCrudByClientId.get();
 
     if (configStrategyRsp.isFailure()) {
       return Promise.reject(configStrategyRsp);
@@ -103,4 +116,4 @@ class RouteMethods {
   }
 }
 
-module.exports = RouteMethods;
+module.exports = RoutesHelper;
