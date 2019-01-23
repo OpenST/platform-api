@@ -32,7 +32,7 @@ class TokenDetail {
   constructor(params) {
     const oThis = this;
 
-    oThis.clientId = params.clientId;
+    oThis.clientId = params.client_id;
 
     oThis.originChainId = null;
     oThis.auxChainId = null;
