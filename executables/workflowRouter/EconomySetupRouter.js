@@ -498,14 +498,10 @@ class EconomySetupRouter extends WorkflowRouterBase {
       .update({
         status: new TokenModel().invertedStatuses[tokenConstants.deploymentFailed]
       })
-      .where([
-        'client_id = (?) AND status IN (?)',
-        oThis.clientId,
-        [
-          new TokenModel().invertedStatuses[tokenConstants.deploymentStarted],
-          new TokenModel().invertedStatuses[tokenConstants.notDeployed]
-        ]
-      ])
+      .where({
+        client_id: oThis.clientId,
+        status: new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]
+      })
       .fire();
 
     // Clear token cache.
