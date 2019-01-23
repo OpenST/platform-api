@@ -214,15 +214,20 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 ```bash
 > source set_env_vars.sh
 > node
+
+  beneficiary -> ownerKind of aux chain
+  facilitator -> chainOwnerKind of origin chain
+  stakerAddress -> chainOwnerKind of origin chain
+  
    params = {
           stepKind: 'stPrimeStakeAndMintInit',
           taskStatus: 'taskReadyToStart',
           clientId: 0,
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0x462901a903d0D772E194497A9254238D01220D57', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0x462901a903d0D772E194497A9254238D01220D57', 
-          amountToStake: '1000000000000000000000', beneficiary: '0xB32C00C0b1532fa6BACA7F0dF065d3B8a3456cBf'}
+          requestParams: {stakerAddress: '0xe6e67d51676e6ea7007ea6401fe38ce9515675e7', 
+          originChainId: 1000, auxChainId: 2000, facilitator: '0xe6e67d51676e6ea7007ea6401fe38ce9515675e7', 
+          amountToStake: '1000000000000000000000', beneficiary: '0x54e8e31d75efce0e774b2d1f7c568d677f2c0d75'}
       }
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
@@ -235,7 +240,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-### Fund OST Prime for economy setup:
+### Fund OST Prime:
 
 ```bash
 let config = null;
@@ -256,23 +261,15 @@ FundOstPrimeByChainOwner = ic.getShadowedClassFor(coreConstants.icNameSpace,'Fun
 
 * To Deployer
 
-deployerAddress = ''
+deployerAddress = '0x49998be2ae644807e0e708e1957edf187e9d9ed7'
 
 a = new FundOstPrimeByChainOwner({toAddress: deployerAddress, transferValueInWei: '100000000000000000000'})
 
 a.perform().then(console.log)
 
-* To owner
+* To Org Admin : For syncing state root & BT stake & Mint -> adminKind of aux
 
-ownerAddress = ''
-
-a = new FundOstPrimeByChainOwner({toAddress: ownerAddress, transferValueInWei: '100000000000000000000'})
-
-a.perform().then(console.log)
-
-* To Org Admin
-
-adminAddress = ''
+adminAddress = '0x8612242a48160cd1fbd74fc46a5737b2670b3ac3'
 
 a = new FundOstPrimeByChainOwner({toAddress: adminAddress, transferValueInWei: '100000000000000000000'})
 
