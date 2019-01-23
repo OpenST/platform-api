@@ -435,7 +435,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
       logger.win('*** Economy Setup Done ***');
 
       // Mark success in workflows table.
-      await oThis.handleSuccess();
+      return await oThis.handleSuccess();
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
