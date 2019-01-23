@@ -1,18 +1,37 @@
 'use strict';
-
+/**
+ * Branded token mint router
+ *
+ * @module executables/workflowRouter/stakeAndMint/BrandedTokenRouter
+ */
 const rootPrefix = '../../..',
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  btMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/brandedTokenConfig'),
-  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
-  AddStakerSignedTrx = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/AddStakerSignedTransaction'),
+  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  btMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/brandedTokenConfig'),
   FetchStakeRequestHash = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/FetchStakeRequestHash'),
+  AddStakerSignedTrx = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/AddStakerSignedTransaction'),
   CheckGatewayComposerAllowance = require(rootPrefix +
-    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance');
 
+/**
+ * Class for branded token mint router
+ *
+ * @class
+ */
 class BtMintRouter extends WorkflowRouterBase {
+  /**
+   * Constructor for branded token mint router
+   *
+   * @params {Object} params
+   * @params {String} params.workflowKind
+   *
+   * @augments WorkflowRouterBase
+   *
+   * @constructor
+   */
   constructor(params) {
     params['workflowKind'] = workflowConstants.btStakeAndMintKind; // Assign workflowKind.
 
@@ -79,9 +98,10 @@ class BtMintRouter extends WorkflowRouterBase {
   }
 
   /**
-   * getNextStepConfigs
+   * Get next step configs.
    *
    * @param nextStep
+   *
    * @return {*}
    */
   getNextStepConfigs(nextStep) {

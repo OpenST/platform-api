@@ -1,18 +1,16 @@
 'use strict';
-
-/*
-* This script will create a new salt
-*
-* Usage : node executables/createEncryptionSalt
-*
-*
-*/
-
+/**
+ * This script will create a new salt
+ *
+ * @module executables/createEncryptionSalt
+ *
+ * Usage : node executables/createEncryptionSalt
+ */
 const rootPrefix = '..',
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
-  encryptionSaltConst = require(rootPrefix + '/lib/globalConstant/encryptionSalt'),
-  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt');
+  EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt'),
+  encryptionSaltConst = require(rootPrefix + '/lib/globalConstant/encryptionSalt');
 
 const InsertSaltID = {
   perform: async function() {

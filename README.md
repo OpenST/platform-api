@@ -345,7 +345,7 @@ a.perform().then(console.log)
            stakeAmount: '1000000'
            }
        }
-    BrandedTokenMintRouter = require('./executables/workflowRouter/stakeAndMint/brandedTokenRouter.js')
+    BrandedTokenMintRouter = require('./executables/workflowRouter/stakeAndMint/BrandedTokenRouter.js')
     brandedTokenMintRouter = new BrandedTokenMintRouter(params)
     brandedTokenMintRouter.perform().then(console.log)
 ```

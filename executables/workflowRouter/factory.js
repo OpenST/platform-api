@@ -145,8 +145,8 @@ class WorkflowRouterFactory extends SubscriberBase {
         return new stPrimeRouter(msgParams).perform();
 
       case workflowTopicConstant.btStakeAndMint:
-        const btMintRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/brandedTokenRouter');
-        return new btMintRouter(msgParams).perform();
+        const BtMintRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/BrandedTokenRouter');
+        return new BtMintRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
