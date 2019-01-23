@@ -67,8 +67,6 @@ class RouteMethods {
       response.renderResponse(res, errorConfig);
     };
 
-    console.log('req.serviceParams====req.serviceParams=================================', req.serviceParams);
-
     let configStrategy = {};
     if (req.decodedParams.configStrategyRequired) {
       configStrategy = await oThis._fetchConfigStrategy(req.serviceParams['client_id']);

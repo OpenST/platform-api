@@ -192,7 +192,7 @@ class AuxChainSetup {
     }
 
     let organizationContractObj = await oThis.verifiersHelper.getContractObj(
-      'organization',
+      'Organization',
       dbOrganizationContractAddress
     );
 

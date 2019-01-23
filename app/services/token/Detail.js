@@ -26,14 +26,13 @@ class TokenDetail {
   /**
    *
    * @param {Object} params
-   * @param {Number/String} params.client_id
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
 
-    oThis.clientId = params.client_id;
+    oThis.clientId = params.clientId;
 
     oThis.originChainId = null;
     oThis.auxChainId = null;

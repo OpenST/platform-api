@@ -203,6 +203,10 @@ const steps = {
     kind: workflowStepConstants.markSuccess,
     onFailure: workflowStepConstants.markFailure,
     onSuccess: []
+  },
+  [workflowStepConstants.markFailure]: {
+    kind: workflowStepConstants.markFailure,
+    onSuccess: []
   }
 };
 

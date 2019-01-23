@@ -164,7 +164,7 @@ class OriginChainSetup {
     }
 
     let organizationContractObj = await oThis.verifiersHelper.getContractObj(
-      'organization',
+      'Organization',
       dbOrganizationContractAddress
     );
 
