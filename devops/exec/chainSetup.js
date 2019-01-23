@@ -33,13 +33,15 @@ const Main = async function() {
 
   if (command.generateOriginAddresses) {
 
-    let chaiId = command.chainId;
+    let chaiId = command.chainId
+      , ethSenderPk = command.ethSenderPk
+    ;
 
-    if (!chaiId) {
+    if (!chaiId || !ethSenderPk) {
       handleError();
     }
 
-    performerObj = new GenerateOriginAddress(chaiId);
+    performerObj = new GenerateOriginAddress(chaiId, ethSenderPk);
 
   } else if (command.generateAuxAddresses) {
 
