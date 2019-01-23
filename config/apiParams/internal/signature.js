@@ -17,7 +17,7 @@ const signature = {
       },
       {
         parameter: 'message_to_sign',
-        validatorMethod: 'validateAlphaNumericString'
+        validatorMethod: 'validateString'
       }
     ],
     optional: []
