@@ -51,6 +51,36 @@ const signature = {
       }
     ],
     optional: []
+  },
+  startMint: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        error_identifier: 'missing_chain_id'
+      },
+      {
+        parameter: 'client_id',
+        error_identifier: 'missing_client_id'
+      },
+      {
+        parameter: 'approve_transaction_hash',
+        error_identifier: 'missing_approve_transaction_hash'
+      },
+      {
+        parameter: 'request_stake_transaction_hash',
+        error_identifier: 'missing_request_stake_transaction_hash'
+      }
+    ],
+    optional: []
+  },
+  mintDetails: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        error_identifier: 'missing_client_id'
+      }
+    ],
+    optional: []
   }
 };
 

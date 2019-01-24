@@ -22,11 +22,11 @@ router.post('/mint', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'StartMint', 'r_it_3'));
 });
 
-router.get('/mint', function(req, res, next) {
-  req.decodedParams.apiName = 'mint';
-  req.decodedParams.clientConfigStrategyRequired = false;
+router.get('/mint-details', function(req, res, next) {
+  req.decodedParams.apiName = 'mintDetails';
+  req.decodedParams.configStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'Mint', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, 'TokenMintDetails', 'r_it_4'));
 });
 
 module.exports = router;

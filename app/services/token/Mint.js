@@ -13,7 +13,7 @@ const rootPrefix = '../../..',
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
-class Mint {
+class TokenMintDetails {
   constructor() {
     const oThis = this;
 
@@ -98,4 +98,4 @@ class Mint {
   }
 }
 
-module.exports = Mint;
+module.exports = TokenMintDetails;

@@ -136,11 +136,6 @@ const errorConfig = {
     parameter: 'staker_address',
     code: 'missing',
     message: 'Missing staker_address'
-  },
-  missing_token_id: {
-    parameter: 'token_id',
-    code: 'missing',
-    message: 'Missing token_id'
   }
 };
 

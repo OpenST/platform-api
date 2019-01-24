@@ -223,6 +223,20 @@ class BasicHelperKlass {
   }
 
   /**
+   * Check if eth address is valid or not
+   *
+   * @param {String} address - address
+   *
+   * @return {boolean}
+   */
+  isTxHashValid(txHash) {
+    if (typeof txHash !== 'string') {
+      return false;
+    }
+    return /^0x[0-9a-fA-F]{64}$/.test(txHash);
+  }
+
+  /**
    * Check if string has stop words
    *
    * @param {String} string

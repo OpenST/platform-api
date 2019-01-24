@@ -164,6 +164,16 @@
     "code": "BAD_REQUEST",
     "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
   },
+  "missing_approve_transaction_hash": {
+    "http_code": "400",
+    "code": "BAD_REQUEST",
+    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
+  },
+  "missing_request_stake_transaction_hash": {
+    "http_code": "400",
+    "code": "BAD_REQUEST",
+    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
+  },
   "airdrop_requests_in_process": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",

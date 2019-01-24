@@ -32,6 +32,8 @@ class StartMint {
 
     oThis.tokenId = params.token_id;
     oThis.clientId = params.client_id;
+    oThis.approveTransactionHash = params.approve_transaction_hash;
+    oThis.requestStakeTransactionHash = params.request_stake_transaction_hash;
   }
 
   /**
@@ -64,9 +66,31 @@ class StartMint {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis._validateAndSanitize();
+
     await oThis.startMinting();
   }
 
+  /**
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _validateAndSanitize() {
+    const oThis = this;
+
+    if (
+      !basicHelper.isTxHashValid(oThis.approveTransactionHash) ||
+      !basicHelper.isTxHashValid(oThis.requestStakeTransactionHash)
+    ) {
+      logger.error('Approve Transaction hash is not passed or wrong in input parameters.');
+      return responseHelper.error({
+        internal_error_identifier: 's_t_sm_3',
+        api_error_identifier: 'invalid_params',
+        debug_options: {}
+      });
+    }
+  }
   /**
    * Start minting
    *
