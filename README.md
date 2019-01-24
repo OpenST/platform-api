@@ -176,6 +176,14 @@ Copy the 'Setup Simple Token response' from the script response above and save s
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
    
 ### Run block-scanner
+
+* [Only for devops] Create entry in DDB table for highest block on origin chain.
+
+```bash
+  source set_env_vars.sh
+  node executables/oneTimers/insertInDDBForOriginHighestBlock.js
+```
+
 * Run Auxiliary Block Parser
 ```bash
   source set_env_vars.sh
