@@ -126,7 +126,9 @@ class TransactionParser extends SubscriberBase {
 
     const configStrategy = configStrategyResp.data,
       web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE,
-      wsProviders = configStrategy.auxGeth.readOnly.wsProviders;
+      wsProviders = configStrategy.hasOwnProperty('auxGeth')
+        ? configStrategy.auxGeth.readOnly.wsProviders
+        : configStrategy.originGeth.readOnly.wsProviders;
 
     logger.log('====Warming up geth pool for providers====', wsProviders);
 

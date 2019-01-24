@@ -136,7 +136,9 @@ class BlockParser extends PublisherBase {
     const configStrategy = configStrategyResp.data;
 
     // Fetching wsProviders for warmUpWeb3Pool method.
-    oThis.wsProviders = configStrategy.auxGeth.readOnly.wsProviders;
+    oThis.wsProviders = configStrategy.hasOwnProperty('auxGeth')
+      ? configStrategy.auxGeth.readOnly.wsProviders
+      : configStrategy.originGeth.readOnly.wsProviders;
 
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
@@ -241,6 +243,8 @@ class BlockParser extends PublisherBase {
           currentBlock = blockParserData.currentBlock,
           nextBlockToProcess = blockParserData.nextBlockToProcess,
           transactions = rawCurrentBlock.transactions || [];
+
+        console.log('nextBlockToProcess----', nextBlockToProcess);
 
         // If current block is not same as nextBlockToProcess, it means there
         // are more blocks to process; so sleep time is less.
