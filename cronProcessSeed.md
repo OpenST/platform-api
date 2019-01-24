@@ -12,7 +12,7 @@ function addCronProcessEntries() {
   
   // Create entry for blockParser.
     let p1 =  (function insertBlockParser() {
-    let cronParams = '{"startBlockNumber": -1, "endBlockNumber": -1, "intentionalBlockDelay": 0, "chainId":2000}',
+    let cronParams = '{"intentionalBlockDelay": 0, "chainId":2000}',
       insertParams = {
         id: 1,
         kind: 'blockParser',
@@ -102,7 +102,7 @@ function addCronProcessEntries() {
     
   // Create entry for Origin blockFinalizer.
     let p6 =  (function originBlockFinalizer() {
-      let cronParams = '{"blockDelay": 10, "chainId":1000}',
+      let cronParams = '{"blockDelay": 24, "chainId":1000}',
         insertParams = {
           id: 6,
           kind: 'blockFinalizer',
@@ -122,7 +122,7 @@ function addCronProcessEntries() {
     
     // Create entry for origin blockParser.
         let p7 =  (function insertBlockParser() {
-        let cronParams = '{"startBlockNumber": -1, "endBlockNumber": -1, "intentionalBlockDelay": 0, "chainId":1000}',
+        let cronParams = '{"intentionalBlockDelay": 0, "chainId":1000}',
           insertParams = {
             id: 7,
             kind: 'blockParser',
@@ -138,7 +138,7 @@ function addCronProcessEntries() {
       
         promiseArray.push(p7);
       
-      // Create entry for transactionParser.
+      // Create entry for origin transactionParser.
         let p8 =  (function transactionParser() {
           let cronParams = '{"prefetchCount": 25, "chainId":1000}',
             insertParams = {

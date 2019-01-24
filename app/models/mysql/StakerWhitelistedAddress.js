@@ -5,7 +5,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  stakerWhitelistedAddressConstants = require(rootPrefix + '/lib/globalConstant/StakerWhitelistedAddress'),
+  stakerWhitelistedAddressConstants = require(rootPrefix + '/lib/globalConstant/stakerWhitelistedAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
