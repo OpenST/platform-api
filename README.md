@@ -176,13 +176,13 @@ Copy the 'Setup Simple Token response' from the script response above and save s
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
    
 ### Run block-scanner
-* Run Block Parser
+* Run Auxiliary Block Parser
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/BlockParser.js --cronProcessId 1
 ```
 
-* Run Transaction Parser
+* Run Auxiliary Transaction Parser
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/TransactionParser.js --cronProcessId 2
@@ -192,6 +192,18 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/Finalizer.js --cronProcessId 3
+```
+
+* Run Origin Block Parser
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/BlockParser.js --cronProcessId 7
+```
+
+* Run Origin Transaction Parser
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/TransactionParser.js --cronProcessId 8
 ```
 
 * Run Origin Finalizer

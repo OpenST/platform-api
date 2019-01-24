@@ -119,6 +119,42 @@ function addCronProcessEntries() {
     promiseArray.push(p6);
     
     return Promise.all(promiseArray);
+    
+    // Create entry for origin blockParser.
+        let p7 =  (function insertBlockParser() {
+        let cronParams = '{"startBlockNumber": -1, "endBlockNumber": -1, "intentionalBlockDelay": 0, "chainId":1000}',
+          insertParams = {
+            id: 7,
+            kind: 'blockParser',
+            ip_address: '127.0.0.1',
+            chain_id: 1000,
+            params: cronParams,
+            status: 'stopped'
+        };
+        let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+        cronProcessObj = new CronProcessModel();
+        cronProcessObj.insertRecord(insertParams);
+        })();
+      
+        promiseArray.push(p7);
+      
+      // Create entry for transactionParser.
+        let p8 =  (function transactionParser() {
+          let cronParams = '{"prefetchCount": 25, "chainId":1000}',
+            insertParams = {
+              id: 8,
+              kind: 'transactionParser',
+              ip_address: '127.0.0.1',
+              chain_id: 1000,
+              params: cronParams,
+              status: 'stopped'
+          };
+          let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+          cronProcessObj = new CronProcessModel();
+          cronProcessObj.insertRecord(insertParams);
+        })();
+        
+        promiseArray.push(p8);
 };
 
 addCronProcessEntries().then(function() {
