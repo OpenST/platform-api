@@ -49,10 +49,10 @@ class GenerateAuxAddress extends ChainAddressBase {
       chainAddressConstants.workerKind
     ];
 
-    logger.log('* Generating address for origin deployer.');
-    logger.log('* Generating address for origin owner.');
-    logger.log('* Generating address for origin admin.');
-    logger.log('* Generating address for origin worker.');
+    logger.log('* Generating address for aux  deployer.');
+    logger.log('* Generating address for aux  owner.');
+    logger.log('* Generating address for aux  admin.');
+    logger.log('* Generating address for aux  worker.');
 
     let addresses = await oThis._generateAddresses(addressKinds);
 
