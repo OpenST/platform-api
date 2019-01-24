@@ -329,3 +329,9 @@ a = new TokenDeployment({token_id: 1000, client_id: 1})
 
 a.perform().then(console.log)
 ```
+
+#### Run Aggregator
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/Aggregator.js --cronProcessId 4
+```
