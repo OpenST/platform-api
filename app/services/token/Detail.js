@@ -131,6 +131,9 @@ class TokenDetail {
 
     oThis.tokenDetails = cacheResponse.data;
 
+    oThis.tokenDetails['originChainId'] = oThis.originChainId;
+    oThis.tokenDetails['auxChainId'] = oThis.auxChainId;
+
     oThis.tokenId = oThis.tokenDetails['id'];
   }
 
