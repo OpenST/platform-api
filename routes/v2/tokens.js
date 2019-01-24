@@ -1,7 +1,7 @@
 const express = require('express');
 
 const rootPrefix = '../..',
-  TokenFormatter = require(rootPrefix + '/lib/formatter/entity/Tokens'),
+  TokensFormatter = require(rootPrefix + '/lib/formatter/entity/Tokens'),
   routeHelper = require(rootPrefix + '/routes/helper');
 
 const router = express.Router();
@@ -14,7 +14,11 @@ router.get('/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    // add formatter changes
+    console.log('serviceResponse--------', serviceResponse);
+
+    const TokensFormatterRsp = await new TokensFormatter(serviceResponse.data).perform();
+
+    console.log('TokensFormatterRsp---------', TokensFormatterRsp);
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_t_1', null, dataFormatterFunc));
