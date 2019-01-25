@@ -17,11 +17,12 @@ const steps = {
   [workflowStepConstants.checkGatewayComposerAllowance]: {
     kind: workflowStepConstants.checkGatewayComposerAllowance,
     onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.approveGatewayComposerTrx],
     onSuccess: [workflowStepConstants.acceptStake]
   },
   [workflowStepConstants.stakerRequestStakeTrx]: {
     kind: workflowStepConstants.stakerRequestStakeTrx,
-    onFailure: '',
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.fetchStakeRequestHash]
   },
   [workflowStepConstants.fetchStakeRequestHash]: {

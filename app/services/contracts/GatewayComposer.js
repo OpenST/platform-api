@@ -1,20 +1,29 @@
 'use strict';
 
 /**
- * This service gets the gateway composer contract address and origin chain gas price
+ * This service gets the
+ * gateway composer contract address,
+ * origin chain gas price,
+ * gateway contract address,
+ * staker nonce from gateway
  *
  * @module app/services/contracts/GatewayComposer
  */
 const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+  InstanceComposer = OSTBase.InstanceComposer,
+  MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
 const rootPrefix = '../../..',
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 require(rootPrefix + '/lib/cacheManagement/StakerWhitelistedAddress');
+require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress');
 
 class GatewayComposer {
   constructor(params) {
@@ -58,7 +67,11 @@ class GatewayComposer {
 
     await oThis.getGatewayComposerContractAddress();
 
+    await oThis.getGatewayContractAddress();
+
     await oThis.getOriginChainGasPrice();
+
+    await oThis.getStakerNonceFromGateway();
 
     return responseHelper.successWithData(oThis.responseData);
   }
@@ -90,9 +103,33 @@ class GatewayComposer {
       );
     }
 
-    oThis.responseData['contract_address'] = {
-      gateway_composer: { address: stakerWhitelistedAddrRsp.data.gatewayComposerAddress }
-    };
+    oThis.responseData['gateway_composer_contract_address'] = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
+  }
+
+  /**
+   * This function fetches gateway contract address from cache and sets in response data hash.
+   *
+   * @returns {Promise<>}
+   */
+  async getGatewayContractAddress() {
+    const oThis = this;
+
+    let tokenAddressesCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenAddressCache'),
+      tokenAddressesCacheObj = new tokenAddressesCache({
+        tokenId: oThis.tokenId
+      }),
+      tokenAddressesRsp = await tokenAddressesCacheObj.fetch();
+
+    if (tokenAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_c_gc_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.responseData['gateway_contract_address'] = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
   }
 
   /**
@@ -106,7 +143,57 @@ class GatewayComposer {
     let gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
-    oThis.responseData['gas_price'] = { origin: gasPriceRsp.data };
+    oThis.responseData['origin_chain_gas_price'] = gasPriceRsp.data;
+  }
+
+  /**
+   * This function gets staker nonce from gateway.
+   *
+   * @return {Promise<>}
+   */
+  async getStakerNonceFromGateway() {
+    const oThis = this;
+
+    await oThis._setOriginWeb3Instance();
+
+    oThis.stakerNonce = await oThis._stakeHelperObject.getNonce(
+      oThis.responseData['gateway_composer_contract_address'],
+      oThis.originWeb3,
+      oThis.responseData['gateway_contract_address']
+    );
+
+    oThis.responseData['staker_gateway_nonce'] = oThis.stakerNonce;
+  }
+
+  /**
+   * This function sets web3 instance, which is used to get staker nonce from gateway
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _setOriginWeb3Instance() {
+    const oThis = this;
+
+    let configStrategy = oThis.ic().configStrategy,
+      originChainId = configStrategy.constants.originChainId,
+      response = await chainConfigProvider.getFor([originChainId]),
+      originChainConfig = response[originChainId],
+      originWsProviders = originChainConfig.originGeth.readWrite.wsProviders;
+    oThis.originWeb3 = web3Provider.getInstance(originWsProviders[0]).web3WsProvider;
+  }
+
+  /**
+   * Get staker helper object
+   *
+   */
+  get _stakeHelperObject() {
+    const oThis = this;
+
+    if (!oThis.mosaicStakeHelper) {
+      oThis.mosaicStakeHelper = new MosaicTbd.Helpers.StakeHelper();
+    }
+
+    return oThis.mosaicStakeHelper;
   }
 }
 

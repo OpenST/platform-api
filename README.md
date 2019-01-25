@@ -243,9 +243,10 @@ Copy the 'Setup Simple Token response' from the script response above and save s
           clientId: 0,
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0xe6e67d51676e6ea7007ea6401fe38ce9515675e7', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0xe6e67d51676e6ea7007ea6401fe38ce9515675e7', 
-          amountToStake: '1000000000000000000000', beneficiary: '0x54e8e31d75efce0e774b2d1f7c568d677f2c0d75'}
+          requestParams: {stakerAddress: '0x6daf845451df65303069e3b74ee401a94ac6bcd7', 
+          originChainId: 1000, auxChainId: 2000, facilitator: '0x6daf845451df65303069e3b74ee401a94ac6bcd7', 
+          amountToStake: '10000000000000000000000', beneficiary: '0xa9a5dd064e1eef11c47ff90d27fcb2bbed0ba7f8'
+          }
       }
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
@@ -279,7 +280,7 @@ FundOstPrimeByChainOwner = ic.getShadowedClassFor(coreConstants.icNameSpace,'Fun
 
 * To Deployer
 
-deployerAddress = '0x49998be2ae644807e0e708e1957edf187e9d9ed7'
+deployerAddress = '0x1d1671b27c9b2d6043b943a5c4b06aa8c921ee43'
 
 a = new FundOstPrimeByChainOwner({toAddress: deployerAddress, transferValueInWei: '100000000000000000000'})
 
@@ -287,9 +288,9 @@ a.perform().then(console.log)
 
 * To Org Admin : For syncing state root & BT stake & Mint -> adminKind of aux
 
-adminAddress = '0x8612242a48160cd1fbd74fc46a5737b2670b3ac3'
+adminAddress = '0x8de016da057ce082f56f3fa3a0899c1a9326531b'
 
-a = new FundOstPrimeByChainOwner({toAddress: adminAddress, transferValueInWei: '100000000000000000000'})
+a = new FundOstPrimeByChainOwner({toAddress: adminAddress, transferValueInWei: '50000000000000000000'})
 
 a.perform().then(console.log)
 
@@ -300,7 +301,7 @@ a.perform().then(console.log)
 * Fund origin chain deployer:
 ```bash
 transferAmountOnChain = require('./tools/helpers/TransferAmountOnChain.js');
-toAddress = '0xe92a84d8d9e258ba8784559b291dafb1785a9358' // origin deployer
+toAddress = '0xf8d64f328448ae5813e8057a3c81c6bdec0ce420' // origin deployer
 chainId = 1000 
 provider = 'ws://127.0.0.1:8546'
 amountInWei = 1000000000000000000 // 1 eth
@@ -323,7 +324,7 @@ ConfigGroupModel.markAsAvailableForAllocation(auxChainId, auxGroupId).then(conso
 >  cd kit-api
 >  source set_env_vars.sh
 >  rails c 
-    params = {client_id:5,name:"tst5",symbol:"tst5",conversion_factor:0.8}
+    params = {client_id:1,name:"KingFisher Ultra",symbol:"KFU",conversion_factor:0.8}
     TokenManagement::InsertTokenDetails.new(params).perform
 ```
 

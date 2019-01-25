@@ -326,7 +326,7 @@ class WorkflowRouterBase {
   async _performStepIfReadyToStart() {
     const oThis = this;
 
-    if (oThis.taskStatus != workflowStepConstants.taskReadyToStart) return;
+    if (oThis.taskStatus != workflowStepConstants.taskReadyToStart) return Promise.resolve();
 
     if (oThis.currentStepId) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);

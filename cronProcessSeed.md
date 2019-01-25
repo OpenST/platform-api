@@ -30,7 +30,7 @@ function addCronProcessEntries() {
   
   // Create entry for transactionParser.
     let p2 =  (function transactionParser() {
-      let cronParams = '{"prefetchCount": 25, "chainId":2000}',
+      let cronParams = '{"prefetchCount": 1, "chainId":2000}',
         insertParams = {
           id: 2,
           kind: 'transactionParser',
@@ -48,7 +48,7 @@ function addCronProcessEntries() {
     
   // Create entry for Aux blockFinalizer.
     let p3 =  (function auxBlockFinalizer() {
-      let cronParams = '{"blockDelay": 10, "chainId":2000}',
+      let cronParams = '{"blockDelay": 24, "chainId":2000}',
         insertParams = {
           id: 3,
           kind: 'blockFinalizer',
@@ -66,7 +66,7 @@ function addCronProcessEntries() {
       
   // Create entry for economyAggregator.
     let p4 =  (function economyAggregator() {
-      let cronParams = '{"prefetchCount": 1}',
+      let cronParams = '{"prefetchCount": 1, "chainId":2000}',
         insertParams = {
           id: 4,
           kind: 'economyAggregator',
@@ -84,12 +84,12 @@ function addCronProcessEntries() {
     
   // Create entry for workflowWorker.
     let p5 =  (function workflowWorker() {
-    let cronParams = '{"prefetchCount": 25}',
+    let cronParams = '{"prefetchCount": 5}',
       insertParams = {
         id: 5,
         kind: 'workflowWorker',
         ip_address: '127.0.0.1',
-        chain_id: 2000,
+        chain_id: 2000, // TODO - remove chain id
         params: cronParams,
         status: 'stopped'
     };
@@ -118,8 +118,6 @@ function addCronProcessEntries() {
     
     promiseArray.push(p6);
     
-    return Promise.all(promiseArray);
-    
     // Create entry for origin blockParser.
         let p7 =  (function insertBlockParser() {
         let cronParams = '{"intentionalBlockDelay": 0, "chainId":1000}',
@@ -140,7 +138,7 @@ function addCronProcessEntries() {
       
       // Create entry for origin transactionParser.
         let p8 =  (function transactionParser() {
-          let cronParams = '{"prefetchCount": 25, "chainId":1000}',
+          let cronParams = '{"prefetchCount": 1, "chainId":1000}',
             insertParams = {
               id: 8,
               kind: 'transactionParser',
@@ -155,6 +153,8 @@ function addCronProcessEntries() {
         })();
         
         promiseArray.push(p8);
+        
+      return Promise.all(promiseArray);
 };
 
 addCronProcessEntries().then(function() {
