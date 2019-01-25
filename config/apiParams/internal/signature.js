@@ -22,6 +22,7 @@ const signature = {
     ],
     optional: []
   },
+
   gatewayComposer: {
     mandatory: [
       {
@@ -39,6 +40,7 @@ const signature = {
     ],
     optional: []
   },
+
   tokenDeployment: {
     mandatory: [
       {
@@ -52,32 +54,48 @@ const signature = {
     ],
     optional: []
   },
+
   startMint: {
     mandatory: [
       {
         parameter: 'token_id',
-        error_identifier: 'missing_chain_id'
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'approve_transaction_hash',
-        error_identifier: 'missing_approve_transaction_hash'
+        validatorMethod: 'validateTransactionHash'
       },
       {
         parameter: 'request_stake_transaction_hash',
-        error_identifier: 'missing_request_stake_transaction_hash'
+        validatorMethod: 'validateTransactionHash'
       }
     ],
     optional: []
   },
+
   mintDetails: {
     mandatory: [
       {
         parameter: 'client_id',
-        error_identifier: 'missing_client_id'
+        validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: []
+  },
+
+  grantEthOst: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
       }
     ],
     optional: []
