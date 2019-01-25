@@ -683,21 +683,15 @@ class WorkflowRouterBase {
   async insertInitStep() {
     const oThis = this;
 
-    let insertParams = {};
+    let insertParams = {
+      kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
+      status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
+      request_params: JSON.stringify(oThis.requestParams),
+      unique_hash: oThis._uniqueWorkflowHash()
+    };
 
     if (oThis.clientId) {
-      insertParams = {
-        kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
-        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
-        client_id: oThis.clientId,
-        request_params: JSON.stringify(oThis.requestParams)
-      };
-    } else {
-      insertParams = {
-        kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
-        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
-        request_params: JSON.stringify(oThis.requestParams)
-      };
+      insertParams['client_id'] = oThis.clientId;
     }
 
     let workflowModelInsertResponse = await new WorkflowModel().insert(insertParams).fire();
@@ -707,6 +701,17 @@ class WorkflowRouterBase {
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
     return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+  }
+
+  /**
+   * SHA Hash to uniquely identify workflow, to avoid same commits
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  _uniqueWorkflowHash() {
+    return null;
   }
 
   /**
