@@ -7,6 +7,7 @@
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  util = require(rootPrefix + '/lib/util'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -148,6 +149,23 @@ class BtMintRouter extends WorkflowRouterBase {
    */
   getNextStepConfigs(nextStep) {
     return btMintingStepsConfig[nextStep];
+  }
+
+  /**
+   * SHA Hash to uniquely identify workflow, to avoid same commits
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  _uniqueWorkflowHash() {
+    const oThis = this;
+
+    let uniqueStr = oThis.chainId + '_';
+    uniqueStr += oThis.requestParams.approveTransactionHash + '_';
+    uniqueStr += oThis.requestParams.requestStakeTransactionHash;
+
+    return util.createSha256Digest(uniqueStr);
   }
 }
 
