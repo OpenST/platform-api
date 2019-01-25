@@ -5,14 +5,12 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
-require(rootPrefix + '/app/services/token/Deployment');
-require(rootPrefix + '/app/services/token/Mint');
 require(rootPrefix + '/app/services/token/StartMint');
 
 router.post('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'TokenDeployment', 'r_it_2'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/Deployment', 'r_it_2'));
 });
 
 router.post('/mint', function(req, res, next) {
@@ -26,7 +24,7 @@ router.get('/mint-details', function(req, res, next) {
   req.decodedParams.apiName = 'mintDetails';
   req.decodedParams.configStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'TokenMintDetails', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/Mint', 'r_it_4'));
 });
 
 module.exports = router;
