@@ -25,7 +25,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   v2Routes = require(rootPrefix + '/routes/v2/index'),
   internalRoutes = require(rootPrefix + '/routes/internal/index'),
-  ValidateApiSignature = require(rootPrefix + '/lib/authentication/ValidateApiSignature'),
+  ValidateApiSignature = require(rootPrefix + '/app/services/validateApiSignature/ByApiKeySecret'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   customMiddleware = require(rootPrefix + '/helpers/customMiddleware'),
   SystemServiceStatusesCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/systemServiceStatuses'),
@@ -78,7 +78,10 @@ const validateApiSignature = function(req, res, next) {
     }
   };
 
-  return new ValidateApiSignature(req.decodedParams, customUrlParser.parse(req.originalUrl).pathname)
+  return new ValidateApiSignature({
+    input_params: req.decodedParams,
+    request_path: customUrlParser.parse(req.originalUrl).pathname
+  })
     .perform()
     .then(handleParamValidationResult);
 };

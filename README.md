@@ -323,30 +323,15 @@ ConfigGroupModel.markAsAvailableForAllocation(auxChainId, auxGroupId).then(conso
 >  cd kit-api
 >  source set_env_vars.sh
 >  rails c 
-    params = {client_id:4,name:"tst2",symbol:"tst2",conversion_factor:0.8}
+    params = {client_id:5,name:"tst5",symbol:"tst5",conversion_factor:0.8}
     TokenManagement::InsertTokenDetails.new(params).perform
 ```
 
 * Start Economy Setup
 ```bash
-let config = null;
-rootPrefix = '.'
-coreConstants = require(rootPrefix + '/config/coreConstants')
 
-a = require('./helpers/configStrategy/ByChainId.js')
-b = new a(2000,2000);
-b.getComplete().then(function(r) {config = r.data});
-
-OSTBase = require('@openstfoundation/openst-base')
-InstanceComposer = OSTBase.InstanceComposer
-ic = new InstanceComposer(config)
-
-require('./app/services/token/Deployment.js')
-
-TokenDeployment = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenDeployment');
-
-a = new TokenDeployment({token_id: 1000, client_id: 1})
-
+TokenDeployment = require('./app/services/token/Deployment.js');
+a = new TokenDeployment({token_id: 1004, client_id: 5})
 a.perform().then(console.log)
 ```
 

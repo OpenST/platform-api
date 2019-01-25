@@ -58,12 +58,8 @@ class ConfigStrategyByClientId {
     let cacheData = fetchCacheRsp.data[clientId],
       cachedChainId = cacheData.chainId;
 
-    logger.info('cacheData', cacheData);
-
     let chainConfigStrategyIdsObj = new ChainConfigStrategyIds({ chainId: cachedChainId }),
       chainConfigStrategyIdsCacheRsp = await chainConfigStrategyIdsObj.fetch();
-
-    logger.info('chainConfigStrategyIdsCacheRsp', chainConfigStrategyIdsCacheRsp);
 
     let strategyIdsArray = chainConfigStrategyIdsCacheRsp.data.strategyIds,
       configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),

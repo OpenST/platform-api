@@ -10,7 +10,7 @@
 
 const queryString = require('query-string');
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ApiCredentialCache = require(rootPrefix + '/lib/sharedCacheManagement/ApiCredential'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
@@ -18,20 +18,27 @@ const rootPrefix = '../..',
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   environmentInfo = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 class ValidateApiSignature {
-  /***
+  /**
+   * Constructor
    *
-   * @param {Object} inputParams
-   * @param {String} reqUrl
+   * @param {Object} params
+   * @param {Object} params.input_params - Params sent in API call
+   * @param {String} params.request_path - path of the url called
+   *
+   * @constructor
    */
-  constructor(inputParams, reqUrl) {
+  constructor(params) {
     const oThis = this;
 
-    oThis.inputParams = inputParams;
-    oThis.reqUrl = reqUrl;
+    oThis.inputParams = params.input_params;
+    oThis.reqPath = params.request_path;
+
+    oThis.currentTimestamp = null;
   }
 
   /**
@@ -67,13 +74,11 @@ class ValidateApiSignature {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validatePresenceOfMandatoryParams();
+    await oThis._validateParams();
 
-    await oThis._validateDataTypesOfParams();
+    await oThis._validateRequestTime();
 
-    await oThis.validateRequestTime();
-
-    return oThis.validateSignature();
+    return oThis._validateSignature();
   }
 
   /**
@@ -81,49 +86,34 @@ class ValidateApiSignature {
    *
    * @return {Promise}
    */
-  _validatePresenceOfMandatoryParams() {
-    const oThis = this;
-
-    if (
-      !oThis.inputParams['signature_kind'] ||
-      !oThis.inputParams['signature'] ||
-      !oThis.inputParams['request_timestamp'] ||
-      !oThis.inputParams['api_key']
-    ) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'l_a_vas_2',
-          api_error_identifier: 'invalid_params',
-          error_config: errorConfig,
-          debug_options: oThis.inputParams
-        })
-      );
-    }
+  _validateParams() {
+    const oThis = this,
+      paramErrors = [];
 
     if (oThis.inputParams['signature_kind'] !== apiSignature.hmacKind) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'l_a_vas_3',
-          api_error_identifier: 'invalid_params',
-          params_error_identifiers: 'invalid_signature_kind',
-          error_config: errorConfig,
-          debug_options: {
-            signature_kind: oThis.inputParams['signature_kind']
-          }
-        })
-      );
+      paramErrors.push('invalid_signature_kind');
     }
 
-    return Promise.resolve(responseHelper.successWithData({}));
-  }
+    if (!CommonValidators.validateTimestamp(oThis.inputParams['request_timestamp'])) {
+      paramErrors.push('invalid_request_timestamp');
+    }
 
-  /**
-   * Validate data types of params
-   *
-   * @return {Promise}
-   */
-  _validateDataTypesOfParams() {
-    const oThis = this;
+    if (!CommonValidators.validateApiKey(oThis.inputParams['api_key'])) {
+      paramErrors.push('invalid_api_key');
+    }
+
+    //TODO: Add more rigid check after observing signatures which are generated
+    if (!CommonValidators.validateString(oThis.inputParams['signature'])) {
+      paramErrors.push('invalid_api_signature');
+    }
+
+    if (!CommonValidators.validateApiRequestPath(oThis.reqPath)) {
+      paramErrors.push('invalid_request_path');
+    }
+
+    if (paramErrors.length > 0) {
+      return oThis._validationError(paramErrors);
+    }
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
@@ -133,20 +123,14 @@ class ValidateApiSignature {
    *
    * @return {*}
    */
-  validateRequestTime() {
+  _validateRequestTime() {
     const oThis = this;
 
     let currentTime = Math.floor(new Date().getTime() / 1000);
 
     // API signature is valid for 10 seconds
     if (currentTime > parseInt(oThis.inputParams['request_timestamp']) + 10) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'l_a_vas_4',
-          api_error_identifier: 'invalid_or_expired_token',
-          error_config: errorConfig
-        })
-      );
+      return oThis._validationError(['expired_request_timestamp']);
     }
 
     return Promise.resolve(responseHelper.successWithData());
@@ -158,7 +142,7 @@ class ValidateApiSignature {
    *
    * @return {Promise<*>}
    */
-  async validateSignature() {
+  async _validateSignature() {
     const oThis = this;
 
     let obj = new ApiCredentialCache({ apiKey: oThis.inputParams['api_key'] });
@@ -167,15 +151,10 @@ class ValidateApiSignature {
       return Promise.reject(apiCredentialsFetchRsp);
     }
 
-    let currentTimeStamp = Math.floor(new Date().getTime() / 1000);
-    if (apiCredentialsFetchRsp.data['expiryTimestamp'] < currentTimeStamp) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'l_a_vas_5',
-          api_error_identifier: 'client_api_credentials_expired',
-          error_config: errorConfig
-        })
-      );
+    if (!apiCredentialsFetchRsp.data['expiryTimestamp']) {
+      return oThis._validationError(['invalid_api_key']);
+    } else if (apiCredentialsFetchRsp.data['expiryTimestamp'] < oThis._currentTimeStamp()) {
+      return oThis._validationError(['expired_api_key']);
     }
 
     const signature = oThis.inputParams['signature'];
@@ -183,25 +162,52 @@ class ValidateApiSignature {
 
     let queryParamsString = queryString.stringify(oThis.inputParams, { arrayFormat: 'bracket' }).replace(/%20/g, '+');
 
-    // remove version prefix & sub-env specific prefix from URL that
+    // remove version prefix & sub-env specific prefix from URL
     let regexExpressionStr = `\/${environmentInfo.urlPrefix}\/v[0-9.]*`,
       regexExpressionObj = new RegExp(regexExpressionStr);
 
-    let inputString = oThis.reqUrl.replace(regexExpressionObj, '') + '?' + queryParamsString;
+    let inputString = oThis.reqPath.replace(regexExpressionObj, '') + '?' + queryParamsString;
 
     let computedSignature = localCipher.generateApiSignature(inputString, apiCredentialsFetchRsp.data['apiSecret']);
 
     if (computedSignature !== signature) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'l_a_vas_6',
-          api_error_identifier: 'invalid_params',
-          error_config: errorConfig
-        })
-      );
+      return oThis._validationError(['invalid_api_signature']);
     }
 
     return Promise.resolve(responseHelper.successWithData({ clientId: apiCredentialsFetchRsp.data['clientId'] }));
+  }
+
+  /**
+   *
+   * @param {array} paramErrors
+   *
+   * @return {Promise}
+   */
+  _validationError(paramErrors) {
+    const oThis = this;
+    return Promise.reject(
+      responseHelper.error({
+        internal_error_identifier: 'l_a_vas_2',
+        api_error_identifier: 'invalid_params',
+        params_error_identifiers: paramErrors,
+        error_config: errorConfig,
+        debug_options: {
+          inputParams: oThis.inputParams
+        }
+      })
+    );
+  }
+
+  /**
+   *
+   * @return {number}
+   * @private
+   */
+  _currentTimeStamp() {
+    const oThis = this;
+    if (oThis.currentTimestamp) return oThis.currentTimestamp;
+    oThis.currentTimestamp = Math.floor(new Date().getTime() / 1000);
+    return oThis.currentTimestamp;
   }
 }
 
