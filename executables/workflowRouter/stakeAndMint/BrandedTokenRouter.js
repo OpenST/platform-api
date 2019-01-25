@@ -77,7 +77,6 @@ class BtMintRouter extends WorkflowRouterBase {
         return new AddStakerSignedTrx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.fetchStakeRequestHash:
-        oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
         return new FetchStakeRequestHash(oThis.requestParams).perform();
 
       case workflowStepConstants.approveGatewayComposerTrx:
@@ -88,7 +87,7 @@ class BtMintRouter extends WorkflowRouterBase {
         return new CheckGatewayComposerAllowance(oThis.requestParams).perform();
 
       case workflowStepConstants.acceptStake:
-        return new AcceptStakeByWorker(oThis.requestParams).perform();
+        return new AcceptStakeByWorker(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark branded token stake and mint as success');
