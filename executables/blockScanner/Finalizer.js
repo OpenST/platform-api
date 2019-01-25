@@ -396,6 +396,6 @@ class Finalizer extends PublisherBase {
   }
 }
 
-logger.step('Block parser process started.');
+logger.step('Block finalizer process started.');
 
 new Finalizer({ cronProcessId: +program.cronProcessId }).perform();
