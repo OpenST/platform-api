@@ -110,6 +110,6 @@
           ],
           "defaultTtl": 36000,
           "consistentBehavior": "1"
-        },
+    }
   }
 }
