@@ -236,7 +236,6 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   beneficiary -> ownerKind of aux chain
   facilitator -> chainOwnerKind of origin chain
   stakerAddress -> chainOwnerKind of origin chain
-  firstTimeMint -> set this to true if you are minting st prime for the first time
   
    params = {
           stepKind: 'stPrimeStakeAndMintInit',
@@ -246,9 +245,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
           topic: 'workflow.stPrimeStakeAndMint',
           requestParams: {stakerAddress: '0xe6e67d51676e6ea7007ea6401fe38ce9515675e7', 
           originChainId: 1000, auxChainId: 2000, facilitator: '0xe6e67d51676e6ea7007ea6401fe38ce9515675e7', 
-          amountToStake: '1000000000000000000000', beneficiary: '0x54e8e31d75efce0e774b2d1f7c568d677f2c0d75',
-          firstTimeMint: true
-          }
+          amountToStake: '1000000000000000000000', beneficiary: '0x54e8e31d75efce0e774b2d1f7c568d677f2c0d75'}
       }
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
