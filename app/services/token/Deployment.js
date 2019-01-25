@@ -50,7 +50,7 @@ class Deployment {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/token/deployment::perform::catch');
+        logger.error('app/services/token/Deployment::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 's_t_d_1',
@@ -174,7 +174,7 @@ class Deployment {
       logger.error('Could not fetched token details.');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_t_d_7',
+          internal_error_identifier: 's_t_d_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
             clientId: clientId
@@ -269,20 +269,17 @@ class Deployment {
       }
       // Token exists in the table.
       else {
-        logger.debug('tokenDetails-------', tokenDetails);
-
         switch (tokenDetails.status.toString()) {
           case new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]:
             // Fetch latest workflow details for the client.
             let workflowDetails = await oThis._fetchWorkflowDetails(oThis.clientId);
 
-            console.log('---------workflowDetails--', workflowDetails);
             // Workflow for the client has not been initiated yet.
             if (workflowDetails.length !== 1) {
               logger.error('Workflow for the client has not been initiated yet.');
 
               return responseHelper.error({
-                internal_error_identifier: 's_t_d_2',
+                internal_error_identifier: 's_t_d_4',
                 api_error_identifier: 'token_not_setup',
                 debug_options: {}
               });
@@ -294,21 +291,21 @@ class Deployment {
 
           case new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]:
             return responseHelper.error({
-              internal_error_identifier: 's_t_d_4',
+              internal_error_identifier: 's_t_d_5',
               api_error_identifier: 'token_already_deployed',
               debug_options: { tokenStatus: tokenDetails.status }
             });
 
           case new TokenModel().invertedStatuses[tokenConstants.deploymentFailed]:
             return responseHelper.error({
-              internal_error_identifier: 's_t_d_5',
+              internal_error_identifier: 's_t_d_6',
               api_error_identifier: 'token_deployment_failed',
               debug_options: { tokenStatus: tokenDetails.status }
             });
 
           default:
             return responseHelper.error({
-              internal_error_identifier: 's_t_d_6',
+              internal_error_identifier: 's_t_d_7',
               api_error_identifier: 'something_went_wrong',
               debug_options: { tokenStatus: tokenDetails.status }
             });
