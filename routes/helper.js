@@ -8,7 +8,7 @@ const rootPrefix = '..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  apiParamsValidator = require(rootPrefix + '/lib/validators/apiParams'),
+  ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
   ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId');
 
 class RoutesHelper {
@@ -63,7 +63,7 @@ class RoutesHelper {
     const oThis = this,
       errorConfig = basicHelper.fetchErrorConfig(req.decodedParams.apiVersion);
 
-    const apiParamsValidatorRsp = await new apiParamsValidator({
+    const apiParamsValidatorRsp = await new ApiParamsValidator({
       api_name: req.decodedParams.apiName,
       api_version: req.decodedParams.apiVersion,
       api_params: req.decodedParams

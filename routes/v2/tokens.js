@@ -14,11 +14,7 @@ router.get('/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    console.log('serviceResponse--------', serviceResponse);
-
     const TokensFormatterRsp = await new TokensFormatter(serviceResponse.data).perform();
-
-    console.log('TokensFormatterRsp---------', TokensFormatterRsp);
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_t_1', null, dataFormatterFunc));
