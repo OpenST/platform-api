@@ -68,24 +68,28 @@ class GenerateOriginAddress extends ChainAddressBase {
 
     let addressesResp = await oThis._generateAddresses(addressKinds);
 
-    if(addressesResp.isSuccess()){
-
+    if (addressesResp.isSuccess()) {
       let addresses = addressesResp['data']['addresses'];
 
-      logger.log(`* Funding origin deployer address (${addresses['deployer']}) with ETH.`);
-      await oThis._fundAddressWithEth(addresses['deployer'], 3);
+      logger.log(`* Funding origin deployer address (${addresses[chainAddressConstants.deployerKind]}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.deployerKind], 3);
 
-      logger.log(`* Funding origin owner address (${addresses['owner']}) with ETH.`);
-      await oThis._fundAddressWithEth(addresses['owner'], 0.5);
+      logger.log(`* Funding origin owner address (${addresses[chainAddressConstants.ownerKind]}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.ownerKind], 0.5);
 
-      logger.log(`* Funding origin admin address (${addresses['admin']}) with ETH.`);
-      await oThis._fundAddressWithEth(addresses['admin'], 0.5);
+      logger.log(`* Funding origin admin address (${addresses[chainAddressConstants.adminKind]}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.adminKind], 0.5);
 
-      logger.log(`* Funding origin token admin address (${addresses['tokenAdmin']}) with ETH.`);
-      await oThis._fundAddressWithEth(addresses['tokenAdmin'], 0.5);
+      logger.log(`* Funding origin chain owner address (${addresses[chainAddressConstants.chainOwnerKind]}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.chainOwnerKind], 3);
 
-      logger.log(`* Funding origin token worker address (${addresses['tokenWorker']}) with ETH.`);
-      await oThis._fundAddressWithEth(addresses['tokenWorker'], 0.5);
+      logger.log(`* Funding origin token admin address (${addresses[chainAddressConstants.tokenAdminKind]}) with ETH.`);
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.tokenAdminKind], 0.5);
+
+      logger.log(
+        `* Funding origin token worker address (${addresses[chainAddressConstants.tokenWorkerKind]}) with ETH.`
+      );
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.tokenWorkerKind], 0.5);
     }
 
     return addressesResp;
@@ -106,7 +110,13 @@ class GenerateOriginAddress extends ChainAddressBase {
       provider = providers.data[0], //select one provider from provider endpoints array
       amountInWei = basicHelper.convertToWei(amount);
 
-    await TransferAmountOnChain._fundAddressWithEthUsingPk(address, oThis.ethSenderPk,oThis.chainId, provider, amountInWei);
+    await TransferAmountOnChain._fundAddressWithEthUsingPk(
+      address,
+      oThis.ethSenderPk,
+      oThis.chainId,
+      provider,
+      amountInWei
+    );
   }
 
   async _getProvidersFromConfig() {
