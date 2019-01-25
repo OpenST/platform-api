@@ -5,6 +5,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   Fund = require(rootPrefix + '/lib/fund/stPrime/ByChainOwner'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   program = require('commander');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -75,6 +76,28 @@ class FundStPrime extends CronBase {
     });
 
     await fund.perform();
+  }
+
+  /**
+   * cron kind
+   *
+   * @return {string}
+   * @private
+   */
+  get _cronKind() {
+    return cronProcessesConstants.fundStPrime;
+  }
+
+  /**
+   * _pendingTasksDone
+   *
+   * @return {boolean}
+   * @private
+   */
+  _pendingTasksDone() {
+    const oThis = this;
+
+    return oThis.canExit;
   }
 }
 
