@@ -264,7 +264,6 @@ class DeployLib {
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
       chainId: oThis.chainId,
-      auxChainId: oThis.auxChainId,
       kind: oThis.chainAddressKind,
       chainKind: oThis.chainKind
     });
