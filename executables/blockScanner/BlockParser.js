@@ -140,6 +140,12 @@ class BlockParser extends PublisherBase {
       ? configStrategy.auxGeth.readOnly.wsProviders
       : configStrategy.originGeth.readOnly.wsProviders;
 
+    oThis.blockGenerationTime = configStrategy.hasOwnProperty('auxGeth')
+      ? configStrategy.auxGeth.blockGenerationTime
+      : configStrategy.originGeth.blockGenerationTime;
+
+    console.log('chainId--------', oThis.chainId, 'blockGenerationTime------', oThis.blockGenerationTime);
+
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
 
@@ -244,18 +250,19 @@ class BlockParser extends PublisherBase {
           nextBlockToProcess = blockParserData.nextBlockToProcess,
           transactions = rawCurrentBlock.transactions || [];
 
+        console.log('currentBlock----', currentBlock);
         console.log('nextBlockToProcess----', nextBlockToProcess);
 
         // If current block is not same as nextBlockToProcess, it means there
         // are more blocks to process; so sleep time is less.
-        if (currentBlock !== nextBlockToProcess) {
+        if (currentBlock && currentBlock !== nextBlockToProcess) {
           // If the block contains transactions, distribute those transactions.
           if (transactions.length > 0) {
             await oThis.distributeTransactions(rawCurrentBlock, nodesWithBlock);
           }
           await oThis.sleep(10);
         } else {
-          await oThis.sleep(2000);
+          await oThis.sleep(oThis.blockGenerationTime * 1000);
         }
 
         oThis.blockToProcess = nextBlockToProcess;
