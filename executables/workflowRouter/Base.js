@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   WorkflowStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStatus'),
-  WorkflowStepsStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStepsStatus');
+  WorkflowStepsStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStepsStatus');
 
 /**
  * Class for workflow router base.
@@ -503,6 +503,7 @@ class WorkflowRouterBase {
       let dependencyResponse = await oThis.checkDependencies(nextStep);
 
       if (!dependencyResponse.data.dependencyResolved) {
+        logger.debug('dependencyNotResolved: waiting');
         continue;
       }
 
@@ -691,7 +692,7 @@ class WorkflowRouterBase {
     };
 
     if (oThis.clientId) {
-      insertParams['client_id'] = oThis.clientId;
+      insertParams.client_id = oThis.clientId;
     }
 
     let workflowModelInsertResponse = await new WorkflowModel().insert(insertParams).fire();
