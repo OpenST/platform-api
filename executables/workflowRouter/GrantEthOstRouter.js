@@ -31,7 +31,9 @@ class GrantEthOstRouter extends WorkflowRouterBase {
   constructor(params) {
     params['workflowKind'] = workflowConstants.grantEthOstKind; // Assign workflowKind.
     super(params);
+
     const oThis = this;
+
     oThis.address = params.address;
     oThis.originChainId = params.originChainId;
   }
