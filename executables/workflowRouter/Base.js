@@ -660,6 +660,21 @@ class WorkflowRouterBase {
   }
 
   /**
+   * Clear workflow cache.
+   *
+   * @param {Number/String} id
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _clearWorkflowCache(id) {
+    let workflowCacheObj = new WorkflowCache({ workflowId: id });
+
+    await workflowCacheObj.clear();
+  }
+
+  /**
    * Clear workflow status cache.
    *
    * @param {Number/String} id
@@ -804,6 +819,8 @@ class WorkflowRouterBase {
       .where({ id: oThis.workflowId })
       .fire();
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
+
     await oThis.ensureOnCatch();
   }
 
@@ -834,6 +851,8 @@ class WorkflowRouterBase {
       })
       .fire();
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
+
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
       logger.win('*** Workflow with id ', oThis.workflowId, 'completed successfully!');
@@ -862,6 +881,7 @@ class WorkflowRouterBase {
       })
       .fire();
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
       logger.error('*** Workflow with id ', oThis.workflowId, 'failed!');

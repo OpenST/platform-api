@@ -28,11 +28,11 @@ router.get('/mint-details', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/Mint', 'r_it_3'));
 });
 
-router.get('/grant', function(req, res, next) {
+router.get('/mint/grant', function(req, res, next) {
   req.decodedParams.apiName = 'grantEthOst';
   req.decodedParams.configStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'app/services/token/GrantEthOst', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GrantEthOst', 'r_it_4'));
 });
 
 module.exports = router;

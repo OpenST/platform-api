@@ -33,9 +33,6 @@ class GrantEthOstRouter extends WorkflowRouterBase {
     super(params);
 
     const oThis = this;
-
-    oThis.address = params.address;
-    oThis.originChainId = params.originChainId;
   }
 
   /**
@@ -71,6 +68,8 @@ class GrantEthOstRouter extends WorkflowRouterBase {
     const oThis = this;
 
     oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
+    oThis.address = oThis.requestParams.address;
+    oThis.originChainId = oThis.requestParams.originChainId;
 
     switch (oThis.stepKind) {
       case workflowStepConstants.grantEthOstInit:

@@ -7,6 +7,8 @@
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   GrantEthOstRouter = require(rootPrefix + '/executables/workflowRouter/GrantEthOstRouter');
@@ -94,9 +96,16 @@ class GrantEthOst {
     await oThis._fetchOriginChainId();
 
     const paramsForGrantEthOstRouter = {
+      stepKind: workflowStepConstants.grantEthOstInit,
+      taskStatus: workflowStepConstants.taskReadyToStart,
+      chainId: oThis.chainId,
+      topic: workflowTopicConstant.grantEthOst,
       clientId: oThis.clientId,
-      address: oThis.address,
-      originChainId: oThis.originChainId
+      requestParams: {
+        originChainId: oThis.originChainId,
+        address: oThis.address,
+        clientId: oThis.clientId
+      }
     };
 
     let grantEthOstRouter = new GrantEthOstRouter(paramsForGrantEthOstRouter);
