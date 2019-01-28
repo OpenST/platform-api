@@ -11,12 +11,12 @@ const rootPrefix = '../..',
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
-  WorkflowCache = require(rootPrefix + '/lib/sharedCacheManagement/Workflow'),
+  WorkflowCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  WorkflowStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStatus'),
-  WorkflowStepsStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStepsStatus');
+  WorkflowStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStatus.js'),
+  WorkflowStepsStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStepsStatus');
 
 /**
  * Class for workflow router base.
@@ -521,6 +521,8 @@ class WorkflowRouterBase {
 
     let nextStepKind = new WorkflowStepsModel().invertedKinds[nextStep],
       nextStepStatus = new WorkflowStepsModel().invertedStatuses[workflowStepConstants.queuedStatus];
+
+    logger.debug('Current Step:', oThis.stepKind, '      NextStep:', nextStep);
 
     let insertRsp = await oThis._insertWorkflowStep(nextStepKind, nextStepStatus);
 
