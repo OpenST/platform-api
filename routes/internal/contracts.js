@@ -5,7 +5,7 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
-require(rootPrefix + '/app/services/contracts/gatewayComposer');
+require(rootPrefix + '/app/services/contracts/GatewayComposer');
 
 router.get('/gateway-composer', function(req, res, next) {
   req.decodedParams.apiName = 'gatewayComposer';
