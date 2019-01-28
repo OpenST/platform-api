@@ -65,6 +65,8 @@ source set_env_vars.sh
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/gethAndAddresses.js --originChainId 1000
+  
+  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
 Copy the 'Generate Addresses Response' from the script response above and save somewhere offline.
@@ -78,6 +80,8 @@ Copy the 'Generate Addresses Response' from the script response above and save s
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/forNonProductionMain.js --originChainId 1000
+  
+  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
 Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
@@ -106,6 +110,8 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/contracts.js --originChainId 1000
+  
+  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
 * Verifier script for origin chain setup
