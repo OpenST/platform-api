@@ -21,6 +21,11 @@ make geth
 sudo cp ~/workspace/go-ethereum/build/bin/geth /usr/local/bin
 ```
 
+## Start RabbitMQ
+```
+brew services start rabbitmq
+```
+
 ## Setup
 * Install all the packages.
 ```
@@ -190,16 +195,16 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/oneTimers/insertInDDBForOriginHighestBlock.js
 ```
 
-* Run Auxiliary Block Parser
-```bash
-  source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 1
-```
-
 * Run Auxiliary Transaction Parser
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/TransactionParser.js --cronProcessId 2
+```
+
+* Run Auxiliary Block Parser
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/BlockParser.js --cronProcessId 1
 ```
 
 * Run Auxiliary Finalizer
@@ -208,16 +213,16 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/blockScanner/Finalizer.js --cronProcessId 3
 ```
 
-* Run Origin Block Parser
-```bash
-  source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 7
-```
-
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/TransactionParser.js --cronProcessId 8
+```
+
+* Run Origin Block Parser
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/BlockParser.js --cronProcessId 7
 ```
 
 * Run Origin Finalizer
