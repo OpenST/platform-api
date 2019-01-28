@@ -75,7 +75,11 @@ const steps = {
   [workflowStepConstants.confirmStakeIntent]: {
     kind: workflowStepConstants.confirmStakeIntent,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.acceptStake],
+    readDataFrom: [
+      workflowStepConstants.fetchStakeRequestHash,
+      workflowStepConstants.fetchStakeIntentMessageHash,
+      workflowStepConstants.acceptStake
+    ],
     onSuccess: [workflowStepConstants.checkConfirmStakeStatus]
   },
   [workflowStepConstants.checkConfirmStakeStatus]: {

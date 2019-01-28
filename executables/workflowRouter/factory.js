@@ -148,6 +148,10 @@ class WorkflowRouterFactory extends SubscriberBase {
         const BtMintRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/BrandedTokenRouter');
         return new BtMintRouter(msgParams).perform();
 
+      case workflowTopicConstant.grantEthOst:
+        const GrantEthOstRouter = require(rootPrefix + '/executables/workflowRouter/GrantEthOstRouter');
+        return new GrantEthOstRouter(msgParams).perform();
+
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
     }

@@ -175,7 +175,15 @@ class CoreConstants {
   }
 
   get SHARED_MEMCACHE_KEY_PREFIX() {
-    return 'ca_sa_shared_';
+    return 'sa_';
+  }
+
+  get SAAS_SHARED_MEMCACHE_KEY_PREFIX() {
+    return 'sa_shared_';
+  }
+
+  get KIT_SHARED_MEMCACHE_KEY_PREFIX() {
+    return 'kit_shared_';
   }
 
   get CONFIG_STRATEGY_SALT() {

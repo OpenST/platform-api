@@ -12,9 +12,9 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  TokenDetailCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
+  TokenDetailCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenAddressCache = require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**

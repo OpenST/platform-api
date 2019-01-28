@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   WorkflowStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStatus'),
-  WorkflowStepsStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStepsStatus');
+  WorkflowStepsStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStepsStatus');
 
 /**
  * Class for workflow router base.
@@ -503,6 +503,7 @@ class WorkflowRouterBase {
       let dependencyResponse = await oThis.checkDependencies(nextStep);
 
       if (!dependencyResponse.data.dependencyResolved) {
+        logger.debug('dependencyNotResolved: waiting');
         continue;
       }
 
@@ -659,6 +660,21 @@ class WorkflowRouterBase {
   }
 
   /**
+   * Clear workflow cache.
+   *
+   * @param {Number/String} id
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _clearWorkflowCache(id) {
+    let workflowCacheObj = new WorkflowCache({ workflowId: id });
+
+    await workflowCacheObj.clear();
+  }
+
+  /**
    * Clear workflow status cache.
    *
    * @param {Number/String} id
@@ -691,7 +707,7 @@ class WorkflowRouterBase {
     };
 
     if (oThis.clientId) {
-      insertParams['client_id'] = oThis.clientId;
+      insertParams.client_id = oThis.clientId;
     }
 
     let workflowModelInsertResponse = await new WorkflowModel().insert(insertParams).fire();
@@ -803,6 +819,8 @@ class WorkflowRouterBase {
       .where({ id: oThis.workflowId })
       .fire();
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
+
     await oThis.ensureOnCatch();
   }
 
@@ -833,6 +851,8 @@ class WorkflowRouterBase {
       })
       .fire();
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
+
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
       logger.win('*** Workflow with id ', oThis.workflowId, 'completed successfully!');
@@ -861,6 +881,7 @@ class WorkflowRouterBase {
       })
       .fire();
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
       logger.error('*** Workflow with id ', oThis.workflowId, 'failed!');

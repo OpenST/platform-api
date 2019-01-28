@@ -12,7 +12,7 @@ const queryString = require('query-string');
 
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ApiCredentialCache = require(rootPrefix + '/lib/sharedCacheManagement/ApiCredential'),
+  ApiCredentialCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/ApiCredential'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),

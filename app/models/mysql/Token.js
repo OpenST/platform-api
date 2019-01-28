@@ -84,7 +84,7 @@ class Token extends ModelBase {
    * @returns {Promise<*>}
    */
   static flushCache(clientId) {
-    const TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token');
+    const TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token');
 
     return new TokenCache({
       clientId: clientId

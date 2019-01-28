@@ -8,11 +8,11 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
+  TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  TokenCache = require(rootPrefix + '/lib/sharedCacheManagement/Token'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup');

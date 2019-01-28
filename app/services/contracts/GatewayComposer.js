@@ -20,10 +20,10 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 require(rootPrefix + '/lib/cacheManagement/StakerWhitelistedAddress');
-require(rootPrefix + '/lib/sharedCacheManagement/TokenAddress');
 
 class GatewayComposer {
   constructor(params) {
@@ -114,8 +114,7 @@ class GatewayComposer {
   async getGatewayContractAddress() {
     const oThis = this;
 
-    let tokenAddressesCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenAddressCache'),
-      tokenAddressesCacheObj = new tokenAddressesCache({
+    let tokenAddressesCacheObj = new TokenAddressCache({
         tokenId: oThis.tokenId
       }),
       tokenAddressesRsp = await tokenAddressesCacheObj.fetch();
