@@ -25,6 +25,7 @@ const rootPrefix = '../..',
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
   PostGatewayComposerDeploy = require(rootPrefix + '/lib/setup/economy/PostGatewayComposerDeploy'),
+  FundStPrimeToTokenAddress = require(rootPrefix + '/lib/fund/stPrime/TokenAddress'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
 
 // Following require(s) for registering into instance composer
@@ -101,11 +102,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.fundAuxFunderAddress:
         logger.step('*** Funding Aux Funder');
 
-        let FundAuxFunderKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
-
         oThis.requestParams.addressKind = tokenAddressConstants.auxFunderAddressKind;
 
-        return new FundAuxFunderKlass(oThis.requestParams).perform();
+        return new FundStPrimeToTokenAddress(oThis.requestParams).perform();
 
       case workflowStepConstants.verifyFundAuxFunderAddress:
         logger.step('*** Verifying if Funding Aux Funder was done');
@@ -118,11 +117,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.fundAuxAdminAddress:
         logger.step('*** Funding Aux Admin');
 
-        let FundAuxAdminKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
-
         oThis.requestParams.addressKind = tokenAddressConstants.auxAdminAddressKind;
 
-        return new FundAuxAdminKlass(oThis.requestParams).perform();
+        return new FundStPrimeToTokenAddress(oThis.requestParams).perform();
 
       case workflowStepConstants.verifyFundAuxAdminAddress:
         logger.step('*** Verifying if Funding Aux Admin was done');
@@ -135,11 +132,9 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.fundAuxWorkerAddress:
         logger.step('*** Funding Aux Worker');
 
-        let FundAuxWorkerKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundOstPrimeToTokenAddress');
-
         oThis.requestParams.addressKind = tokenAddressConstants.auxWorkerAddressKind;
 
-        return new FundAuxWorkerKlass(oThis.requestParams).perform();
+        return new FundStPrimeToTokenAddress(oThis.requestParams).perform();
 
       case workflowStepConstants.verifyFundAuxWorkerAddress:
         logger.step('*** Verifying if Funding Aux Worker was done');
@@ -439,7 +434,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
       logger.win('*** Economy Setup Done ***');
 
       // Mark success in workflows table.
-      return await oThis.handleSuccess();
+      return oThis.handleSuccess();
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
