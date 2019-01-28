@@ -12,13 +12,9 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  OSTBase = require('@openstfoundation/openst-base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   web3Provider = require(rootPrefix + '/lib/providers/web3');
-
-const InstanceComposer = OSTBase.InstanceComposer;
 
 class ECRecover {
   /**
@@ -46,10 +42,10 @@ class ECRecover {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/verifySigner/verifySigner::perform::catch');
+        logger.error('app/services/verifySigner/ECRecover::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 'l_ar_ecr_1',
+          internal_error_identifier: 'a_s_vs_ecr_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -78,7 +74,7 @@ class ECRecover {
     if (!accountAddress) {
       return Promise.resolve(
         responseHelper.error({
-          internal_error_identifier: 'l_ar_ecr_2',
+          internal_error_identifier: 'a_s_vs_ecr_2',
           api_error_identifier: 'invalid_address',
           error_config: {}
         })
@@ -89,7 +85,7 @@ class ECRecover {
       logger.error('Input owner address does not matches recovered address');
       return Promise.resolve(
         responseHelper.error({
-          internal_error_identifier: 'l_ar_ecr_5',
+          internal_error_identifier: 'a_s_vs_ecr_3',
           api_error_identifier: 'invalid_address',
           error_config: {}
         })
@@ -112,7 +108,7 @@ class ECRecover {
     if (!oThis.signer || oThis.signer === undefined || !basicHelper.isAddressValid(oThis.signer)) {
       logger.error('Owner address is not passed or wrong in input parameters.');
       return responseHelper.error({
-        internal_error_identifier: 'l_ar_ecr_3',
+        internal_error_identifier: 'a_s_vs_ecr_4',
         api_error_identifier: 'unhandled_catch_response',
         debug_options: {}
       });
@@ -126,7 +122,7 @@ class ECRecover {
     ) {
       logger.error('input parameter validation failed');
       return responseHelper.error({
-        internal_error_identifier: 'l_ar_ecr_4',
+        internal_error_identifier: 'a_s_vs_ecr_5',
         api_error_identifier: 'unhandled_catch_response',
         debug_options: {}
       });
