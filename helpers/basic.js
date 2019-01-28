@@ -33,6 +33,14 @@ class BasicHelperKlass {
   }
 
   /**
+   * Convert the given big number in Gwei to wei
+   * @param {BigNumber} num
+   */
+  convertGweiToWei(num) {
+    return num.mul(this.convertToBigNumber(10).toPower(9));
+  }
+
+  /**
    * Check if amount is valid wei number and not zero
    *
    * @param {Number} amountInWei - amount in wei

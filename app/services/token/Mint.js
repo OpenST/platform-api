@@ -7,15 +7,20 @@
  */
 
 const rootPrefix = '../../..',
+  BigNumber = require('bignumber.js'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
   OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 class TokenMintDetails {
-  constructor() {
+  constructor(params) {
     const oThis = this;
+    oThis.clientId = params.client_id;
 
     oThis.responseData = {};
   }
@@ -54,6 +59,10 @@ class TokenMintDetails {
 
     await oThis.getOriginChainGasPrice();
 
+    await oThis.calculateMinimumEthRequired();
+
+    await oThis.calculateMinimumOstRequired();
+
     return responseHelper.successWithData(oThis.responseData);
   }
 
@@ -72,7 +81,7 @@ class TokenMintDetails {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_1',
+          internal_error_identifier: 'a_s_t_m_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -95,6 +104,48 @@ class TokenMintDetails {
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
     oThis.responseData['gas_price'] = { origin: gasPriceRsp.data };
+  }
+
+  async calculateMinimumEthRequired() {
+    const oThis = this;
+
+    let averageGasUsedForMintBN = new BigNumber(coreConstants.GAS_USED_FOR_MINT),
+      gasPriceBN = new BigNumber(oThis.responseData['gas_price'].origin),
+      minumumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN),
+      bufferAmout = minumumEthRequired.div(2);
+
+    minumumEthRequired = minumumEthRequired.plus(bufferAmout);
+    let minumumEthRequiredInWei = basicHelper.convertGweiToWei(minumumEthRequired);
+
+    oThis.responseData['minimum_eth_required'] = minumumEthRequiredInWei.toString();
+  }
+
+  async calculateMinimumOstRequired() {
+    const oThis = this;
+
+    let tokenCacheObj = new TokenCache({ clientId: oThis.clientId }),
+      tokenData = await tokenCacheObj.fetch();
+
+    if (tokenData.isFailure()) {
+      logger.error('Token data not found!!');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_m_3',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { client_id: oThis.clientId }
+        })
+      );
+    }
+
+    // (1/conversion_factor) * 10^18
+    let conversionFactor = tokenData.data.conversionFactor,
+      conversionFactorBN = new BigNumber(conversionFactor),
+      oneAsBigNumber = new BigNumber('1'),
+      tenAsBigNumber = new BigNumber('10'),
+      minimumOstRequiredBN = oneAsBigNumber.div(conversionFactorBN),
+      minimumOstRequiredInWei = minimumOstRequiredBN.mul(tenAsBigNumber.toPower(18));
+
+    oThis.responseData['minimum_ost_required'] = minimumOstRequiredInWei.toString();
   }
 }
 
