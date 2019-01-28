@@ -228,6 +228,12 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 > node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
+* Start Eth funding cron
+```bash
+> source set_env_vars.sh
+> node executables/fund/eth.js --cronProcessId 1
+```
+
 * St' Stake and Mint
 ```bash
 > source set_env_vars.sh
@@ -243,9 +249,9 @@ Copy the 'Setup Simple Token response' from the script response above and save s
           clientId: 0,
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0x6daf845451df65303069e3b74ee401a94ac6bcd7', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0x6daf845451df65303069e3b74ee401a94ac6bcd7', 
-          amountToStake: '10000000000000000000000', beneficiary: '0xa9a5dd064e1eef11c47ff90d27fcb2bbed0ba7f8'
+          requestParams: {stakerAddress: '0x18610a68d0093edc3b8144537ffeb3e1ad12f447', 
+          originChainId: 1000, auxChainId: 2000, facilitator: '0x74c8f42317503bb830f3a25a1f5113f9bcfabaa2', 
+          amountToStake: '10000000000000000000000', beneficiary: '0xf4431c184e92cf797e77648bd1f9b0d8329b0f0f'
           }
       }
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
@@ -257,6 +263,12 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 * Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
 ```bash
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
+```
+
+* Start ST prime funding cron
+```bash
+> source set_env_vars.sh
+> node executables/fund/stPrime.js --cronProcessId 1
 ```
 
 ### Fund OST Prime:
@@ -332,7 +344,7 @@ ConfigGroupModel.markAsAvailableForAllocation(auxChainId, auxGroupId).then(conso
 ```bash
 
 TokenDeployment = require('./app/services/token/Deployment.js');
-a = new TokenDeployment({token_id: 1004, client_id: 5})
+a = new TokenDeployment({token_id: 2, client_id: 2})
 a.perform().then(console.log)
 ```
 
