@@ -526,6 +526,8 @@ class WorkflowRouterBase {
 
     if (!insertRsp.isSuccess()) {
       return insertRsp;
+    } else if (insertRsp.isSuccess() && !insertRsp.data.insertId) {
+      return Promise.resolve(responseHelper.successWithData({}));
     }
 
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
@@ -564,6 +566,8 @@ class WorkflowRouterBase {
   async _insertWorkflowStep(nextStepKind, nextStepStatus) {
     const oThis = this;
 
+    let isDupEntry = false;
+
     let insertRsp = await new WorkflowStepsModel()
       .insert({
         kind: nextStepKind,
@@ -574,13 +578,8 @@ class WorkflowRouterBase {
       .catch(function(error) {
         if (error) {
           if (error.code === 'ER_DUP_ENTRY') {
-            return Promise.resolve(
-              responseHelper.error({
-                internal_error_identifier: 'e_wr_b_9',
-                api_error_identifier: 'something_went_wrong',
-                debug_options: { error: error }
-              })
-            );
+            logger.debug('------Trying for duplicate Entry--------');
+            isDupEntry = true;
           }
         } else {
           return Promise.reject(
@@ -592,6 +591,9 @@ class WorkflowRouterBase {
           );
         }
       });
+    if (isDupEntry) {
+      return Promise.resolve(responseHelper.successWithData({}));
+    }
     return Promise.resolve(responseHelper.successWithData({ insertId: insertRsp.insertId }));
   }
 
