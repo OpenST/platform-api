@@ -160,8 +160,6 @@ class TransactionParser extends SubscriberBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    oThis.unAckCount++;
-
     // Process request
     const payload = messageParams.message.payload;
 
