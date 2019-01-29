@@ -39,6 +39,7 @@ class WorkflowRouterBase {
    * @param {Number} params.groupId
    * @param {Object} params.payload
    * @param {Object} params.requestParams
+   * @param {Object} params.feResponseData
    *
    * @constructor
    */
@@ -58,6 +59,7 @@ class WorkflowRouterBase {
     oThis.groupId = params.groupId;
 
     oThis.requestParams = params.requestParams || {};
+    oThis.feResponseData = params.feResponseData || {};
 
     oThis.taskDone = false;
     oThis.stepsToBePerformedOnSuccess = [];
@@ -706,6 +708,7 @@ class WorkflowRouterBase {
     let insertParams = {
       kind: new WorkflowModel().invertedKinds[oThis.workflowKind],
       status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus],
+      response_data: JSON.stringify(oThis.feResponseData),
       request_params: JSON.stringify(oThis.requestParams),
       unique_hash: oThis._uniqueWorkflowHash()
     };

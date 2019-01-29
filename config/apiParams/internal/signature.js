@@ -76,6 +76,14 @@ const signature = {
       {
         parameter: 'staker_address',
         validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'fe_ost_to_stake',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'fe_bt_to_mint',
+        validatorMethod: 'validateString'
       }
     ],
     optional: []
