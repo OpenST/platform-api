@@ -14,6 +14,11 @@
     "code": "BAD_REQUEST",
     "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
   },
+  "unauthorized_for_main_env": {
+    "http_code": "401",
+    "code": "UNAUTHORIZED",
+    "message": "Not authorizrd to access main env."
+  },
   "invalid_or_expired_token": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
