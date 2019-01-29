@@ -19,7 +19,8 @@ const rootPrefix = '../..',
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase');
+  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -166,9 +167,27 @@ class TransactionParser extends SubscriberBase {
     // Fetch params from payload.
     const chainId = payload.chainId.toString(),
       blockHash = payload.blockHash,
-      transactionHashes = payload.transactionHashes,
-      blockNumber = payload.blockNumber,
+      taskId = payload.taskId,
       nodes = payload.nodes;
+
+    let blockParserTaskObj = new BlockParserPendingTask(),
+      blockParserTasks = await blockParserTaskObj.fetchTask(taskId);
+
+    if (blockParserTasks.length <= 0) {
+      logger.error(
+        'e_bs_tp_3',
+        'Error in transaction parsing. unAckCount ->',
+        oThis.unAckCount,
+        'Transaction parsing response: ',
+        'Could not fetch details for pending task: ',
+        taskId
+      );
+      // ACK RMQ.
+      return Promise.resolve();
+    }
+
+    const blockNumber = blockParserTasks[0].block_number,
+      transactionHashes = JSON.parse(blockParserTasks[0].transaction_hashes);
 
     const blockValidationResponse = await oThis._verifyBlockNumberAndBlockHash(blockNumber, blockHash, nodes),
       blockVerified = blockValidationResponse.blockVerified,
@@ -219,6 +238,9 @@ class TransactionParser extends SubscriberBase {
             nodes
           ).perform();
 
+          // Delete block parser pending task if transaction parser is done.
+          new BlockParserPendingTask().deleteTask(taskId);
+
           if (tokenTransferParserResponse.isSuccess()) {
             // Token transfer parser was successful.
             // TODO: Add dirty balances entry in MySQL.
@@ -248,6 +270,9 @@ class TransactionParser extends SubscriberBase {
           return Promise.resolve();
         }
       } else {
+        // Delete block parser pensing task if transaction parser took it.
+        new BlockParserPendingTask().deleteTask(taskId);
+
         // Transaction parsing response was unsuccessful.
 
         logger.error(

@@ -20,7 +20,8 @@ const rootPrefix = '../..',
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -315,6 +316,9 @@ class BlockParser extends PublisherBase {
 
       if (batchedTxHashes.length === 0) break;
 
+      let blockParserTaskObj = new BlockParserPendingTask(),
+        insertedRecord = await blockParserTaskObj.insertTask(oThis.chainId, blockNumber, batchedTxHashes);
+
       let messageParams = {
         topics: oThis._topicsToPublish,
         publisher: oThis._publisher,
@@ -323,8 +327,7 @@ class BlockParser extends PublisherBase {
           payload: {
             chainId: oThis.chainId,
             blockHash: blockHash,
-            transactionHashes: batchedTxHashes,
-            blockNumber: blockNumber,
+            taskId: insertedRecord.insertId,
             nodes: nodesWithBlock
           }
         }
