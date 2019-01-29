@@ -21,6 +21,7 @@ const rootPrefix = '../..',
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -136,6 +137,9 @@ class BlockParser extends PublisherBase {
 
     const configStrategy = configStrategyResp.data;
 
+    // Its an origin chain
+    oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
+
     // Fetching wsProviders for warmUpWeb3Pool method.
     oThis.wsProviders = configStrategy.hasOwnProperty('auxGeth')
       ? configStrategy.auxGeth.readOnly.wsProviders
@@ -199,6 +203,7 @@ class BlockParser extends PublisherBase {
 
     // Initialize BlockParser.
     oThis.BlockParser = blockScannerObj.block.Parser;
+    oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
 
     // Initialize blockToProcess.
     if (oThis.startBlockNumber >= 0) {
@@ -293,7 +298,7 @@ class BlockParser extends PublisherBase {
 
     let blockHash = rawCurrentBlock.hash,
       blockNumber = rawCurrentBlock.number,
-      transactionsInCurrentBlock = rawCurrentBlock.transactions,
+      transactionsInCurrentBlock = await oThis._intersectPendingTransactions(rawCurrentBlock.transactions),
       totalTransactionCount = transactionsInCurrentBlock.length,
       perBatchCount = totalTransactionCount / nodesWithBlock.length,
       offset = 0;
@@ -348,6 +353,44 @@ class BlockParser extends PublisherBase {
       logger.debug('===Published======batchedTxHashes', batchedTxHashes, '====from block: ', blockNumber);
       logger.log('====Published', batchedTxHashes.length, 'transactions', '====from block: ', blockNumber);
       loopCount++;
+    }
+  }
+
+  /**
+   * This method intersect block transactions with Pending transactions for Origin chain.
+   *
+   * @param {Array} blockTransactions
+   *
+   * @returns {Promise<Array>}
+   */
+  async _intersectPendingTransactions(blockTransactions) {
+    const oThis = this;
+
+    // In case of origin chain add transactions only if they are present in Pending transactions.
+    if (oThis.isOriginChain) {
+      let pendingTransactionModel = new oThis.PendingTransactionModel({
+          chainId: oThis.chainId
+        }),
+        transactionHashes = blockTransactions,
+        intersectData = [];
+      while (true) {
+        let batchedTransactionHashes = transactionHashes.splice(0, 50);
+        if (batchedTransactionHashes.length <= 0) {
+          break;
+        }
+        let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
+            oThis.chainId,
+            batchedTransactionHashes
+          ),
+          pendingTransactionsMap = pendingTransactionRsp.data;
+
+        for (let txHash in pendingTransactionsMap) {
+          intersectData.push(txHash);
+        }
+      }
+      return Promise.resolve(intersectData);
+    } else {
+      return Promise.resolve(blockTransactions);
     }
   }
 
