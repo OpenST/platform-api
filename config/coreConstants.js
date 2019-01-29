@@ -246,6 +246,10 @@ class CoreConstants {
     return '100000';
   }
 
+  get GAS_USED_FOR_MINT() {
+    return '75';
+  }
+
   /**
    * Batch delete retry count
    *

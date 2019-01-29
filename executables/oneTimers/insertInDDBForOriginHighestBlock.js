@@ -1,5 +1,18 @@
 'use strict';
 
+/**
+ * This inserts entries in following tables for highest block of origin chain,
+ * 1] shard_by_blocks (shared) table,
+ * 2] blocks (sharded) table,
+ * 3] block_details (sharded )table
+ * 4] also updates last processed block in chain_cron_data (shared) table
+ *
+ * Usage: node executables/oneTimers/insertInDDBForOriginHighestBlock.js
+ *
+ *
+ * @module executables/oneTimers/insertInDDBForOriginHighestBlock
+ */
+
 const rootPrefix = '../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -17,6 +30,9 @@ class InsertInDDBForOriginHighestBlock {
     const oThis = this;
 
     oThis.originChainId = null;
+    oThis.highestOriginBlock = null;
+    oThis.BlockParser = null;
+    oThis.chainCronDataModel = null;
   }
 
   /**
@@ -51,31 +67,12 @@ class InsertInDDBForOriginHighestBlock {
   async _asyncPerform() {
     const oThis = this;
 
-    let providers = await oThis._getProvidersFromConfig(),
-      provider = providers.data[0], //select one provider from provider endpoints array
-      web3Instance = web3Provider.getInstance(provider).web3WsProvider;
-
-    logger.info('origin chain id------', oThis.originChainId);
-
-    logger.info('origin chain provider------', provider);
-
-    // Get latest block on origin chain
-    let highestOriginBlock = await web3Instance.eth.getBlock('latest');
-
-    highestOriginBlock = highestOriginBlock['number'];
-
-    logger.info('current highest block------', highestOriginBlock);
-
-    // Get blockScanner object.
-    const blockScannerObj = await blockScannerProvider.getInstance([oThis.originChainId]);
-
-    // Initialize BlockParser.
-    let BlockParser = blockScannerObj.block.Parser;
+    await oThis.initialize();
 
     // Create block parser object with highestOriginBlock as block to process
-    let blockParser = new BlockParser(oThis.originChainId, {
+    let blockParser = new oThis.BlockParser(oThis.originChainId, {
       blockDelay: 0,
-      blockToProcess: highestOriginBlock
+      blockToProcess: oThis.highestOriginBlock
     });
 
     // Run block parser to create entries in shard_by_block & block_details table
@@ -88,16 +85,75 @@ class InsertInDDBForOriginHighestBlock {
           internal_error_identifier: 'e_ot_ghbfoc_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
-            highestOriginBlock: highestOriginBlock
+            highestOriginBlock: oThis.highestOriginBlock
           }
         })
       );
     }
 
-    logger.info('Created entries in DDB tables for current highest block:', highestOriginBlock);
+    await oThis._updateLastProcessedBlock(oThis.highestOriginBlock);
+
+    logger.info('Created entries in DDB tables for current highest block on origin chain:', oThis.highestOriginBlock);
     return Promise.resolve(responseHelper.successWithData('Done with success.'));
   }
 
+  /**
+   * Get blockScanner object and initialize services.
+   *
+   * @return {Promise<void>}
+   */
+  async initialize() {
+    const oThis = this;
+
+    let providers = await oThis._getProvidersFromConfig(),
+      provider = providers.data[0], //select one provider from provider endpoints array
+      web3Instance = web3Provider.getInstance(provider).web3WsProvider;
+
+    logger.info('Origin chain id-----------', oThis.originChainId);
+
+    logger.info('Origin chain geth provider endpoint------', provider);
+
+    // Get latest block on origin chain
+    let getBlockResponse = await web3Instance.eth.getBlock('latest');
+
+    // Get blockScanner object.
+    const blockScannerObj = await blockScannerProvider.getInstance([oThis.originChainId]);
+
+    // Get highest block on origin chain.
+    oThis.highestOriginBlock = getBlockResponse['number'];
+    logger.info('Current highest block on chain--------', oThis.highestOriginBlock);
+
+    // Initialize BlockParser.
+    oThis.BlockParser = blockScannerObj.block.Parser;
+    oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
+
+    return Promise.resolve();
+  }
+
+  /**
+   * updateLastProcessedBlock
+   *
+   * @return {Promise<void>}
+   */
+  async _updateLastProcessedBlock(blockNumber) {
+    const oThis = this;
+
+    let chainCronDataObj = new oThis.chainCronDataModel({});
+
+    let updateParams = {
+      chainId: oThis.originChainId,
+      lastFinalizedBlock: parseInt(blockNumber)
+    };
+
+    return chainCronDataObj.updateItem(updateParams);
+  }
+
+  /**
+   * Get web3 providers' url for origin chain
+   *
+   * @return {Promise<any>}
+   * @private
+   */
   async _getProvidersFromConfig() {
     const oThis = this;
 

@@ -11,9 +11,11 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
+  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  grantEthOstConfig = require(rootPrefix + '/executables/workflowRouter/grantEthOstConfig');
+  grantEthOstConfig = require(rootPrefix + '/executables/workflowRouter/grantEthOstConfig'),
+  VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus');
 
 /**
  * Class for GrantEthOst router.
@@ -58,6 +60,27 @@ class GrantEthOstRouter extends WorkflowRouterBase {
   }
 
   /**
+   * Get transaction hash for given kind
+   *
+   * @param {String} kindStr
+   *
+   * @return {*}
+   */
+  getTransactionHashForKind(kindStr) {
+    const oThis = this,
+      kindInt = +new WorkflowStepsModel().invertedKinds[kindStr];
+
+    for (let workflowKind in oThis.workflowStepKindToRecordMap) {
+      let workflowData = oThis.workflowStepKindToRecordMap[workflowKind];
+
+      if (workflowData.kind === kindInt) {
+        return workflowData.transaction_hash;
+      }
+    }
+
+    return '';
+  }
+  /**
    * Perform step.
    *
    * @return {Promise<*>}
@@ -81,7 +104,16 @@ class GrantEthOstRouter extends WorkflowRouterBase {
         return await new GrantEth({
           originChainId: oThis.requestParams.originChainId,
           address: oThis.requestParams.address,
-          clientId: oThis.requestParams.clientId
+          clientId: oThis.requestParams.clientId,
+          pendingTransactionExtraData: oThis.requestParams.pendingTransactionExtraData
+        }).perform();
+
+      case workflowStepConstants.verifyGrantEth:
+        logger.step('******* Verify Eth Grant *********');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.grantEth),
+          chainId: oThis.requestParams.originChainId
         }).perform();
 
       case workflowStepConstants.grantOst:

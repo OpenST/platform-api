@@ -49,7 +49,7 @@ class GatewayComposer {
         logger.error('app/services/contracts/GatewayComposer::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_1',
+          internal_error_identifier: 'a_s_c_gc_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -97,7 +97,7 @@ class GatewayComposer {
     if (stakerWhitelistedAddrRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_c_gc_1',
+          internal_error_identifier: 'a_s_c_gc_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
