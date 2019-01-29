@@ -200,6 +200,7 @@ class GatewayComposer {
       response = await chainConfigProvider.getFor([originChainId]),
       originChainConfig = response[originChainId],
       originWsProviders = originChainConfig.originGeth.readWrite.wsProviders;
+
     oThis.originWeb3 = web3Provider.getInstance(originWsProviders[0]).web3WsProvider;
   }
 
