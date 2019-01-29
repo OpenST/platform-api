@@ -14,6 +14,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
   MosaicTbd = require('@openstfoundation/mosaic-tbd');
 
 const rootPrefix = '../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -65,6 +66,8 @@ class GatewayComposer {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis._validateAndSanitize();
+
     await oThis.getGatewayComposerContractAddress();
 
     await oThis.getGatewayContractAddress();
@@ -74,6 +77,24 @@ class GatewayComposer {
     await oThis.getStakerNonceFromGateway();
 
     return responseHelper.successWithData(oThis.responseData);
+  }
+
+  /**
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _validateAndSanitize() {
+    const oThis = this;
+
+    if (!basicHelper.isEthAddressValid(oThis.stakerAddress)) {
+      logger.error('Staker address is not passed or wrong in input parameters.');
+      return responseHelper.error({
+        internal_error_identifier: 'a_s_c_gc_3',
+        api_error_identifier: 'invalid_params',
+        debug_options: {}
+      });
+    }
   }
 
   /**
@@ -129,6 +150,7 @@ class GatewayComposer {
     }
 
     oThis.responseData['gateway_contract_address'] = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
+    oThis.responseData['stake_and_mint_beneficiary'] = tokenAddressesRsp.data[tokenAddressConstants.ownerAddressKind];
   }
 
   /**
