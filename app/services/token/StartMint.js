@@ -9,6 +9,9 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../..',
   TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  BrandedTokenRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/BrandedTokenRouter'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -35,6 +38,7 @@ class StartMint {
     oThis.clientId = params.client_id;
     oThis.approveTransactionHash = params.approve_transaction_hash;
     oThis.requestStakeTransactionHash = params.request_stake_transaction_hash;
+    oThis.stakerAddress = params.staker_address;
   }
 
   /**
@@ -82,9 +86,10 @@ class StartMint {
 
     if (
       !basicHelper.isTxHashValid(oThis.approveTransactionHash) ||
-      !basicHelper.isTxHashValid(oThis.requestStakeTransactionHash)
+      !basicHelper.isTxHashValid(oThis.requestStakeTransactionHash) ||
+      !basicHelper.isEthAddressValid(oThis.stakerAddress)
     ) {
-      logger.error('Approve Transaction hash is not passed or wrong in input parameters.');
+      logger.error('Parameters passed are incorrect.');
       return responseHelper.error({
         internal_error_identifier: 's_t_sm_3',
         api_error_identifier: 'invalid_params',
@@ -100,7 +105,26 @@ class StartMint {
   async startMinting() {
     const oThis = this;
 
-    //Todo: Insert logic to start minting process
+    let requestParams = {
+        approveTransactionHash: oThis.approveTransactionHash,
+        requestStakeTransactionHash: oThis.requestStakeTransactionHash,
+        auxChainId: oThis._configStrategyObject.auxChainId,
+        originChainId: oThis._configStrategyObject.originChainId,
+        stakerAddress: oThis.stakerAddress,
+        tokenId: oThis.tokenId
+      },
+      stakeAndMintParams = {
+        stepKind: workflowStepConstants.btStakeAndMintInit,
+        taskStatus: workflowStepConstants.taskReadyToStart,
+        clientId: oThis.clientId,
+        chainId: oThis._configStrategyObject.originChainId,
+        topic: workflowTopicConstant.btStakeAndMint,
+        requestParams: requestParams
+      };
+
+    let brandedTokenRouterObj = new BrandedTokenRouter(stakeAndMintParams);
+
+    return brandedTokenRouterObj.perform();
   }
 
   /**

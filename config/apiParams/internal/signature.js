@@ -72,6 +72,10 @@ const signature = {
       {
         parameter: 'request_stake_transaction_hash',
         validatorMethod: 'validateTransactionHash'
+      },
+      {
+        parameter: 'staker_address',
+        validatorMethod: 'validateEthAddress'
       }
     ],
     optional: []
