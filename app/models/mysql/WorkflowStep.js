@@ -99,7 +99,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '171': workflowStepConstants.grantEthOstInit,
     '172': workflowStepConstants.grantEth,
     '173': workflowStepConstants.verifyGrantEth,
-    '174': workflowStepConstants.grantOst
+    '174': workflowStepConstants.grantOst,
+    '175': workflowStepConstants.verifyGrantOst
   },
   invertedKinds = util.invert(kinds);
 

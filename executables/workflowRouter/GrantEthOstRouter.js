@@ -121,7 +121,16 @@ class GrantEthOstRouter extends WorkflowRouterBase {
         return await new GrantOst({
           originChainId: oThis.requestParams.originChainId,
           address: oThis.requestParams.address,
-          clientId: oThis.requestParams.clientId
+          clientId: oThis.requestParams.clientId,
+          pendingTransactionExtraData: oThis.requestParams.pendingTransactionExtraData
+        }).perform();
+
+      case workflowStepConstants.verifyGrantOst:
+        logger.step('******* Verify OST Grant *********');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.grantOst),
+          chainId: oThis.requestParams.originChainId
         }).perform();
 
       case workflowStepConstants.markSuccess:

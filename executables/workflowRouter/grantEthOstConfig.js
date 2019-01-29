@@ -30,11 +30,17 @@ const grantEthOstConfig = {
   [workflowStepConstants.grantOst]: {
     kind: workflowStepConstants.grantOst,
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyGrantOst]
+  },
+  [workflowStepConstants.verifyGrantOst]: {
+    kind: workflowStepConstants.verifyGrantOst,
+    readDataFrom: [workflowStepConstants.grantOst],
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.markSuccess]: {
     kind: workflowStepConstants.markSuccess,
-    prerequisites: [workflowStepConstants.verifyGrantEth, workflowStepConstants.grantOst],
+    prerequisites: [workflowStepConstants.verifyGrantEth, workflowStepConstants.verifyGrantOst],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: []
   },
