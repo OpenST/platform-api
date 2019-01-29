@@ -103,8 +103,9 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.checkConfirmStakeStatus:
       case workflowStepConstants.checkProgressStakeStatus:
       case workflowStepConstants.checkProgressMintStatus:
-        let checkStepStatus = new CheckStepStatus(oThis.requestParams);
-        return checkStepStatus.perform();
+        let stepParams = {};
+        Object.assign(stepParams, oThis.requestParams, { currentStep: oThis.stepKind });
+        return new CheckStepStatus(stepParams).perform();
 
       case workflowStepConstants.commitStateRoot:
         Object.assign(oThis.requestParams, { fromOriginToAux: 1 });

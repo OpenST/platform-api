@@ -68,7 +68,7 @@ const steps = {
   [workflowStepConstants.checkConfirmStakeStatus]: {
     kind: workflowStepConstants.checkConfirmStakeStatus,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.confirmStakeIntent],
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.confirmStakeIntent],
     onSuccess: [workflowStepConstants.progressStake]
   },
   [workflowStepConstants.progressStake]: {
@@ -80,7 +80,7 @@ const steps = {
   [workflowStepConstants.checkProgressStakeStatus]: {
     kind: workflowStepConstants.checkProgressStakeStatus,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.progressStake],
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.progressStake],
     onSuccess: [workflowStepConstants.progressMint]
   },
   [workflowStepConstants.progressMint]: {
@@ -92,7 +92,7 @@ const steps = {
   [workflowStepConstants.checkProgressMintStatus]: {
     kind: workflowStepConstants.checkProgressMintStatus,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.progressMint],
+    readDataFrom: [workflowStepConstants.fetchStakeIntentMessageHash, workflowStepConstants.progressMint],
     onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.markSuccess]: {
