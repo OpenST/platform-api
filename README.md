@@ -231,9 +231,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/blockScanner/Finalizer.js --cronProcessId 6
 ```
 
-* Make sure you have created entry for 'workflowWorker' in cron processes table.
-
-* Start factory
+* Start Workflow router factory
 ```bash
 > source set_env_vars.sh
 > node executables/workflowRouter/factory.js --cronProcessId 5
