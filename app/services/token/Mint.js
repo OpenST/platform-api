@@ -74,7 +74,7 @@ class TokenMintDetails {
   async getSimpleTokenContractAddress() {
     const oThis = this;
 
-    //fetch all addresses associated with origin chain id
+    // Fetch all addresses associated with origin chain id
     let chainAddressCacheObj = new OriginChainAddressesCache(),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 

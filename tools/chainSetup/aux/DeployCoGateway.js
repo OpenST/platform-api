@@ -419,8 +419,7 @@ class DeployCoGateway {
     });
   }
 
-  /***
-   *
+  /**
    * Config strategy
    *
    * @return {Object}
@@ -431,8 +430,7 @@ class DeployCoGateway {
     return oThis.ic().configStrategy;
   }
 
-  /***
-   *
+  /**
    * Object of config strategy klass
    *
    * @return {Object}
