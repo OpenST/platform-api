@@ -254,6 +254,18 @@ class CoreConstants {
     return '75000';
   }
 
+  get FLOWS_FOR_MINIMUM_BALANCE() {
+    return 5;
+  }
+
+  get FLOWS_FOR_TRANSFER_BALANCE() {
+    return 5;
+  }
+
+  get FLOWS_FOR_GRANTER_ECONOMY_SETUP() {
+    return 10;
+  }
+
   /**
    * Batch delete retry count
    *
