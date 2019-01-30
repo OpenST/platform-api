@@ -2,7 +2,7 @@
 /**
  * Cron to fund eth by chainOwner.
  *
- * @module executables/funding/byChainOwner/eth
+ * @module executables/funding/byChainOwner/originChainSpecific
  *
  * This cron expects originChainId as a parameter in the params.
  */
@@ -27,7 +27,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byChainOwner/eth.js --cronProcessId 1');
+  logger.log('    node executables/funding/byChainOwner/originChainSpecific --cronProcessId 1');
   logger.log('');
   logger.log('');
 });
@@ -38,10 +38,10 @@ if (!program.cronProcessId) {
 }
 
 // Declare variables.
-const flowsForMinimumBalance = coreConstants.FLOWS_FOR_MINIMUM_BALANCE,
-  flowsForTransferBalance = coreConstants.FLOWS_FOR_TRANSFER_BALANCE,
-  flowsForGranterMinimumBalance = coreConstants.FLOWS_FOR_GRANTER_ECONOMY_SETUP,
-  flowsForChainOwnerMinimumBalance = coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP;
+const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
+  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
+  flowsForGranterMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_GRANTER_ECONOMY_SETUP),
+  flowsForChainOwnerMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP);
 
 // Config for addresses which need to be funded.
 const fundingConfig = {
@@ -64,7 +64,7 @@ const alertAddressKinds = [[chainAddressConstants.chainOwnerKind], [chainAddress
  *
  * @class
  */
-class FundEthByChainOwner extends CronBase {
+class FundByChainOwnerOriginChainSpecific extends CronBase {
   /**
    * Constructor to fund eth by chain owner.
    *
@@ -86,7 +86,7 @@ class FundEthByChainOwner extends CronBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundEthByChainOwner;
+    return cronProcessesConstants.fundByChainOwnerOriginChainSpecific;
   }
 
   /**
@@ -242,7 +242,7 @@ class FundEthByChainOwner extends CronBase {
       addresses: oThis.addresses
     });
 
-    oThis.addressToBalanceMap = await getEthBalance.perform();
+    oThis.addressesToBalanceMap = await getEthBalance.perform();
   }
 
   /**
@@ -255,10 +255,11 @@ class FundEthByChainOwner extends CronBase {
   async _checkSenderBalance() {
     const oThis = this,
       addressKind = [chainAddressConstants.chainOwnerKind],
-      senderCurrentBalance = oThis.addressToBalanceMap[oThis.chainOwnerAddress],
-      senderMinimumBalance = fundingConfig[addressKind];
+      senderCurrentBalance = basicHelper.convertToBigNumber(oThis.addressesToBalanceMap[oThis.chainOwnerAddress]),
+      senderMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[addressKind]),
+      balanceValueToBeCheckedWith = senderMinimumBalance.mul(flowsForChainOwnerMinimumBalance);
 
-    if (senderCurrentBalance < senderMinimumBalance * flowsForChainOwnerMinimumBalance) {
+    if (senderCurrentBalance.lt(balanceValueToBeCheckedWith)) {
       logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
       logger.notify(
         'e_f_bco_e_3',
@@ -281,13 +282,13 @@ class FundEthByChainOwner extends CronBase {
     // Loop over oThis.kindToAddressMap.
     for (let addressKind in oThis.kindToAddressMap) {
       let address = oThis.kindToAddressMap[addressKind],
-        addressMinimumBalance = fundingConfig[addressKind],
-        addressCurrentBalance = oThis.addressToBalanceMap[address];
+        addressMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[addressKind]),
+        addressCurrentBalance = basicHelper.convertToBigNumber(oThis.addressesToBalanceMap[address]);
 
       // If addressKind is granter and it has less than threshold balance, send an error email.
       if (
         addressKind === [chainAddressConstants.granterKind] &&
-        addressCurrentBalance < addressMinimumBalance * flowsForGranterMinimumBalance
+        addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance * flowsForGranterMinimumBalance))
       ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(
@@ -298,11 +299,11 @@ class FundEthByChainOwner extends CronBase {
       }
 
       // If address current balance is less thant the stipulated amount, these addresses need to be funded.
-      else if (addressCurrentBalance < addressMinimumBalance * flowsForMinimumBalance) {
+      else if (addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance.mul(flowsForMinimumBalance)))) {
         let params = {
           from: oThis.chainOwnerAddress,
           to: address,
-          amountInWei: basicHelper.convertToWei(addressMinimumBalance * flowsForTransferBalance)
+          amountInWei: basicHelper.convertToWei(addressMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
       }
@@ -335,4 +336,4 @@ class FundEthByChainOwner extends CronBase {
 
 logger.log('Starting cron to fund eth by chainOwner.');
 
-new FundEthByChainOwner({ cronProcessId: +program.cronProcessId }).perform();
+new FundByChainOwnerOriginChainSpecific({ cronProcessId: +program.cronProcessId }).perform();
