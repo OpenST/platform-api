@@ -138,6 +138,9 @@ class FundEthByChainOwner extends CronBase {
     logger.step('Fetching balances of addresses.');
     await oThis._fetchBalances();
 
+    logger.step('Checking balance of chain owner.');
+    await oThis._checkSenderBalance();
+
     logger.step('Checking if addresses are eligible for transfer.');
     await oThis._checkIfEligibleForTransfer();
 
@@ -164,7 +167,7 @@ class FundEthByChainOwner extends CronBase {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_2',
+          internal_error_identifier: 'e_f_bco_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -242,6 +245,37 @@ class FundEthByChainOwner extends CronBase {
   }
 
   /**
+   * Check sender balance which in this case is chain owner. If sender balance is less than minimum balance, return failure. Sender here is chainOwner.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _checkSenderBalance() {
+    const oThis = this,
+      addressKind = [chainAddressConstants.chainOwnerKind],
+      senderCurrentBalance = oThis.addressToBalanceMap[oThis.chainOwnerAddress],
+      senderMinimumBalance = fundingConfig[addressKind];
+
+    if (senderCurrentBalance < senderMinimumBalance * flowsForMinimumBalance) {
+      logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
+      logger.notify('e_f_bco_3', 'Low balance of addressKind: ' + addressKind + '. on chainId: ', +oThis.originChainId);
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bco_e_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            senderAddress: oThis.chainOwnerAddress,
+            senderCurrentBalanace: senderCurrentBalance,
+            senderMinimumBalance: senderMinimumBalance
+          }
+        })
+      );
+    }
+  }
+
+  /**
    * Check which addresses are eligible to get funds and prepare params for transfer.
    *
    * @private
@@ -254,25 +288,28 @@ class FundEthByChainOwner extends CronBase {
     // Loop over oThis.kindToAddressMap.
     for (let addressKind in oThis.kindToAddressMap) {
       let address = oThis.kindToAddressMap[addressKind],
-        addressFundingBalance = fundingConfig[addressKind],
+        addressMinimumBalance = fundingConfig[addressKind],
         addressCurrentBalance = oThis.addressToBalanceMap[address];
 
-      // If addressKind is either granter or chainOwner, send an error email.
-      if (alertAddressKinds.includes(addressKind)) {
+      // If addressKind is granter and it has less than threshold balance, send an error email.
+      if (
+        addressKind === [chainAddressConstants.granterKind] &&
+        addressCurrentBalance < addressMinimumBalance * flowsForGranterMinimumBalance
+      ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(
-          'e_f_bco_2',
+          'e_f_bco_5',
           'Low balance of addressKind: ' + addressKind + '. on chainId: ',
           +oThis.originChainId
         );
       }
 
       // If address current balance is less thant the stipulated amount, these addresses need to be funded.
-      else if (addressCurrentBalance < addressFundingBalance * flowsForMinimumBalance) {
+      else if (addressCurrentBalance < addressMinimumBalance * flowsForMinimumBalance) {
         let params = {
           from: oThis.chainOwnerAddress,
           to: address,
-          amountInWei: basicHelper.convertToWei(addressFundingBalance * flowsForTransferBalance)
+          amountInWei: basicHelper.convertToWei(addressMinimumBalance * flowsForTransferBalance)
         };
         oThis.addressesToBeTransferredTo.push(params);
       }
