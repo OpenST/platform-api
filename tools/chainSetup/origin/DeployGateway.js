@@ -4,31 +4,32 @@
  *
  * @module tools/chainSetup/origin/DeployGateway
  */
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  InstanceComposer = OSTBase.InstanceComposer,
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
-  DeployGatewayHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployGateway'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
-  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
+  DeployGatewayHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployGateway'),
+  GasPriceCache = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
 
 /**
+ * Class for deploy gateway.
  *
  * @class
  */
 class DeployGateway {
   /**
-   * Constructor
+   * Constructor for deploy gateway.
    *
    * @param {Object} params
-   * @param {String} params.auxChainId - auxChainId for which origin-gateway needs be deployed.
+   * @param {String/Number} params.auxChainId: auxChainId for which origin-gateway needs be deployed.
    *
    * @constructor
    */
@@ -43,11 +44,9 @@ class DeployGateway {
   }
 
   /**
-   *
    * Perform
    *
    * @return {Promise<result>}
-   *
    */
   perform() {
     const oThis = this;
@@ -67,7 +66,8 @@ class DeployGateway {
     });
   }
 
-  /***
+  /**
+   * Async performer
    *
    * @private
    *
@@ -125,7 +125,7 @@ class DeployGateway {
     oThis.chainId = oThis._configStrategyObject.originChainId;
     oThis.chainKind = coreConstants.originChainKind;
 
-    let gasPriceCacheObj = new gasPriceCacheKlass(),
+    let gasPriceCacheObj = new GasPriceCache(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
     oThis.gasPrice = gasPriceRsp.data;
   }
@@ -369,22 +369,20 @@ class DeployGateway {
     });
   }
 
-  /***
+  /**
+   * Config strategy
    *
-   * config strategy
-   *
-   * @return {object}
+   * @return {Object}
    */
   get _configStrategy() {
     const oThis = this;
     return oThis.ic().configStrategy;
   }
 
-  /***
+  /**
+   * Object of config strategy klass
    *
-   * object of config strategy klass
-   *
-   * @return {object}
+   * @return {Object}
    */
   get _configStrategyObject() {
     const oThis = this;

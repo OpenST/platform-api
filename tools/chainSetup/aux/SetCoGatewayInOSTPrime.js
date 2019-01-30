@@ -253,7 +253,7 @@ class SetCoGatewayInOSTPrime {
   }
 
   /**
-   * fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
+   * Fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
    *
    * @ignore
    *

@@ -1,5 +1,9 @@
 'use strict';
-
+/**
+ * Shard Model
+ *
+ * @module app/models/ddb/shared/Shard.js
+ */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
@@ -20,8 +24,6 @@ class Shard extends Base {
    * @returns {{entityKind: string, shardNumber: string, isAvailableForAllocation: string}}
    */
   get longToShortNamesMap() {
-    const oThis = this;
-
     return {
       entityKind: 'ek',
       shardNumber: 'sno',
