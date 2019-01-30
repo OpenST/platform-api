@@ -237,12 +237,6 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 > node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
-* Start Eth funding cron
-```bash
-> source set_env_vars.sh
-> node executables/fund/eth.js --cronProcessId 9
-```
-
 //TODO: change amountToStake to amountToStakeInWei
 * St' Stake and Mint
 ```bash
@@ -273,12 +267,6 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 * Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
 ```bash
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
-```
-
-* Start ST prime funding cron
-```bash
-> source set_env_vars.sh
-> node executables/fund/stPrime.js --cronProcessId 10
 ```
 
 ### Fund OST Prime:
