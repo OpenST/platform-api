@@ -319,6 +319,46 @@ class ModelBaseKlass {
   }
 
   /**
+   * batchGetItem
+   *
+   * @param keyObjArray
+   * @param resultsMapKey - key for mapping the result objects
+   * @return {Promise<void>}
+   */
+  async batchGetItem(keyObjArray, resultsMapKey) {
+    const oThis = this;
+
+    let batchGetParams = { RequestItems: {} };
+    batchGetParams.RequestItems[oThis.tableName()] = {
+      Keys: keyObjArray,
+      ConsistentRead: oThis.consistentRead
+    };
+
+    let batchGetRsp = await oThis.ddbServiceObj.batchGetItem(batchGetParams);
+
+    if (batchGetRsp.isFailure()) {
+      return Promise.reject(batchGetRsp);
+    }
+
+    let unprocessedKeys = batchGetRsp.data.UnprocessedKeys;
+    if (Object.keys(unprocessedKeys).length > 0) {
+      let unprocessedKeysLength = unprocessedKeys[oThis.tableName()]['Keys'].length;
+      logger.error(`batchGetItem UnprocessedKeys : ${unprocessedKeysLength}`);
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_d_b_5',
+          api_error_identifier: 'ddb_batch_get_failed',
+          debug_options: { unProcessedCount: unprocessedKeysLength }
+        })
+      );
+    }
+
+    let dbRows = batchGetRsp.data.Responses[oThis.tableName()];
+
+    return Promise.resolve(responseHelper.successWithData(oThis._formatRowsFromDynamo(dbRows, resultsMapKey)));
+  }
+
+  /**
    * This function overrides specific attributes
    *
    * @param {Object} data
@@ -390,14 +430,11 @@ class ModelBaseKlass {
    */
   _formatDataForDynamo(rowMap) {
     const oThis = this;
-    let dynamoDataTypes = ['N', 'S', 'L', 'BOOL', 'M', 'B', 'SS', 'NS', 'BS'];
 
-    let formattedRowData = oThis._keyObj(rowMap),
-      keys = Object.keys(rowMap);
+    let formattedRowData = oThis._keyObj(rowMap);
 
-    for (let index = 0; index < keys.length; index++) {
-      let key = keys[index],
-        value = rowMap[key];
+    for (let key in rowMap) {
+      let value = rowMap[key];
 
       if (value.length === 0) {
         continue;
@@ -406,7 +443,11 @@ class ModelBaseKlass {
       let shortName = oThis.shortNameFor(key);
 
       // Add key data type
-      value = { [oThis.shortNameToDataType[shortName]]: value };
+      if (oThis.shortNameToDataType[shortName] != 'BOOL') {
+        value = { [oThis.shortNameToDataType[shortName]]: value.toString() };
+      } else {
+        value = { [oThis.shortNameToDataType[shortName]]: value };
+      }
 
       formattedRowData[shortName] = value;
     }
@@ -448,8 +489,7 @@ class ModelBaseKlass {
    */
   _formatRowFromDynamo(dbRow) {
     const oThis = this,
-      formattedData = {},
-      longKeys = Object.keys(oThis.longToShortNamesMap);
+      formattedData = {};
 
     let dataType, dataValue;
 
@@ -484,9 +524,7 @@ class ModelBaseKlass {
     }
 
     // Add default values of missing keys depending on their data types.
-    for (let index = 0; index < longKeys.length; index++) {
-      let key = longKeys[index];
-
+    for (let key in oThis.longToShortNamesMap) {
       if (!formattedData[key]) {
         let shortNameForKey = oThis.longToShortNamesMap[key],
           shortNameDataType = oThis.shortNameToDataType[shortNameForKey];

@@ -6,9 +6,9 @@
  */
 const mustache = require('mustache');
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  BaseModel = require(rootPrefix + '/lib/models/Base'),
+  BaseModel = require(rootPrefix + '/app/models/ddb/Base'),
   storageConstants = require(rootPrefix + '/lib/globalConstant/storage');
 
 // Following require(s) for registering into instance composer
@@ -58,9 +58,9 @@ class ShardedBase extends BaseModel {
   /**
    * Create shard
    *
-   * @returns {Promise}
+   * @returns {Promise<result>}
    */
-  createShard() {
+  createTable() {
     const oThis = this;
 
     return oThis.shardHelper.createShard();
