@@ -36,6 +36,7 @@
     "mocha": "5.2.0",
     "morgan": "1.9.1",
     "mysql": "2.16.0",
+    "mustache": "3.0.1",
     "nodemailer": "4.7.0"
   },
   "devDependencies": {

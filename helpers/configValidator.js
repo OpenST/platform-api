@@ -220,6 +220,20 @@ class ConfigurationHelper {
         }
 
         break;
+
+      case 'subEnvDdbTablePrefixEntity':
+        if (!basicHelper.isProduction()) {
+          return true;
+        }
+
+        let SubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'm_' : 's_';
+        let subEnvDdbTablePrefix = coreConstants.environmentShort + '_' + SubEnvPrefix;
+        if (subEnvDdbTablePrefix !== entityValue) {
+          logger.error('auxDdbTablePrefix should be of format', subEnvDdbTablePrefix);
+          return false;
+        }
+
+        break;
     }
 
     return true;

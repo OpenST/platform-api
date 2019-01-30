@@ -79,6 +79,11 @@ class ConfigStrategyObject {
     return {};
   }
 
+  get subEnvDdbTablePrefix() {
+    const oThis = this;
+    return oThis.configStrategy[configStrategyConstants.constants].subEnvDdbTablePrefix;
+  }
+
   originChainWsProviders(intent) {
     const oThis = this;
     return oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
