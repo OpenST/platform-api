@@ -65,6 +65,31 @@ class Workflow extends ModelBase {
   get invertedKinds() {
     return invertedKinds;
   }
+
+  /**
+   * This function will add response data in workflow
+   *
+   * @param {Number/String} id
+   * @param {Object} responseData
+   *
+   * @returns Promise<>
+   */
+  async updateResponseData(id, responseData) {
+    const oThis = this;
+
+    let rec = await oThis
+      .select('*')
+      .where({ id: id })
+      .fire();
+
+    let respData = Object.assign(responseData, JSON.parse(rec[0].response_data)),
+      updateData = { response_data: JSON.stringify(respData) };
+
+    return oThis
+      .update(updateData)
+      .where({ id: id })
+      .fire();
+  }
 }
 
 module.exports = Workflow;

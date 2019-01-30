@@ -126,7 +126,9 @@ class WorkflowRouterBase {
 
     await oThis._updateCurrentStep();
 
-    oThis._prepareForNextSteps();
+    await oThis._updateWorkflow();
+
+    await oThis._prepareForNextSteps();
 
     await oThis._insertAndPublishForNextSteps();
 
@@ -337,6 +339,8 @@ class WorkflowRouterBase {
       oThis.taskStatus = response.data.taskStatus;
       oThis.taskResponseData = response.data.taskResponseData;
       oThis.transactionHash = response.data.transactionHash;
+      oThis.retryFromId = response.data.retryFromId;
+      oThis.feResponseData = response.data.feResponseData;
     }
   }
 
@@ -389,6 +393,22 @@ class WorkflowRouterBase {
     if (basicHelper.isEmptyObject(oThis.currentStepDataToBeUpdated) || !oThis.currentStepId) return Promise.resolve();
 
     return new WorkflowStepsModel().updateRecord(oThis.currentStepId, oThis.currentStepDataToBeUpdated);
+  }
+
+  /**
+   * Update details of current step in the table.
+   *
+   * @return {Promise<*>}
+   *
+   * @private
+   */
+  _updateWorkflow() {
+    const oThis = this;
+
+    // Nothing to update.
+    if (basicHelper.isEmptyObject(oThis.feResponseData)) return Promise.resolve();
+
+    return new WorkflowModel().updateResponseData(oThis.workflowId, oThis.feResponseData);
   }
 
   /**
@@ -473,13 +493,18 @@ class WorkflowRouterBase {
    *
    * @private
    */
-  _prepareForNextSteps() {
+  async _prepareForNextSteps() {
     const oThis = this;
 
     if (oThis.taskStatus == workflowStepConstants.taskDone) {
       oThis.nextSteps = oThis.stepsToBePerformedOnSuccess;
     } else if (oThis.taskStatus == workflowStepConstants.taskFailed) {
-      oThis.nextSteps = oThis.stepsToBePerformedOnFailure;
+      // If retry needs to be attempted then perform
+      if (oThis.retryFromId) {
+        await oThis._performRetrialAttempt();
+      } else {
+        oThis.nextSteps = oThis.stepsToBePerformedOnFailure;
+      }
     }
   }
 
@@ -539,7 +564,8 @@ class WorkflowRouterBase {
           stepKind: nextStep,
           taskStatus: workflowStepConstants.taskReadyToStart,
           currentStepId: nextStepId,
-          workflowId: oThis.workflowId
+          workflowId: oThis.workflowId,
+          isRetrialAttempt: oThis.retryFromId ? 1 : 0
         }
       }
     };
@@ -889,6 +915,26 @@ class WorkflowRouterBase {
     } else {
       return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
     }
+  }
+
+  /**
+   * Perform Retrial attempt if passed
+   *
+   * @return {Promise<void>}
+   */
+  async _performRetrialAttempt() {
+    const oThis = this;
+
+    await new WorkflowStepsModel()
+      .update({ status: workflowStepConstants.retriedStatus })
+      .where(['workflow_id = ? AND id >= ?', oThis.workflowId, oThis.retryFromId])
+      .fire();
+
+    let rec = await new WorkflowStepsModel()
+      .select('*')
+      .where({ id: oThis.retryFromId })
+      .fire();
+    oThis.nextSteps = [new WorkflowStepsModel().kinds[rec[0].kind]];
   }
 }
 

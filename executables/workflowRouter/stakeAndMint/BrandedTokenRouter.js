@@ -46,6 +46,9 @@ class BtMintRouter extends WorkflowRouterBase {
     params['workflowKind'] = workflowConstants.btStakeAndMintKind; // Assign workflowKind.
 
     super(params);
+
+    const oThis = this;
+    oThis.isRetrialAttempt = params.isRetrialAttempt || 0;
   }
 
   /**
@@ -108,14 +111,20 @@ class BtMintRouter extends WorkflowRouterBase {
         return new CheckStepStatus(stepParams).perform();
 
       case workflowStepConstants.commitStateRoot:
-        Object.assign(oThis.requestParams, { fromOriginToAux: 1 });
-        return new CommitStateRoot(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
+        let params = { fromOriginToAux: 1 };
+        if (oThis.isRetrialAttempt) {
+          Object.assign(params, { auxChainId: oThis.requestParams.auxChainId });
+        } else {
+          Object.assign(params, oThis.requestParams);
+        }
+        return new CommitStateRoot(params).perform(oThis._currentStepPayloadForPendingTrx());
 
       // Update status in state root commit history
       case workflowStepConstants.updateCommittedStateRootInfo:
         return new UpdateStateRootCommits(oThis.requestParams).perform();
 
       case workflowStepConstants.proveGatewayOnCoGateway:
+        Object.assign(oThis.requestParams, { currentWorkflowId: oThis.workflowId });
         return new ProveGateway(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.confirmStakeIntent:
