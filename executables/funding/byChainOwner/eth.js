@@ -318,7 +318,10 @@ class FundEthByChainOwner extends CronBase {
     oThis.canExit = false;
 
     if (oThis.addressesToBeTransferredTo.length > 0) {
-      const transferEth = new TransferEth(oThis.addressesToBeTransferredTo);
+      const transferEth = new TransferEth({
+        originChainId: oThis.originChainId,
+        transferIdentifier: oThis.addressesToBeTransferredTo
+      });
 
       await transferEth.perform();
     }
