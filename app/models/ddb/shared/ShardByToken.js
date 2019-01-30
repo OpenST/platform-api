@@ -2,7 +2,7 @@
 /**
  * Shard By Tokens Model.
  *
- * @module app/models/ddb/shared/ShardByTokens.js
+ * @module app/models/ddb/shared/ShardByToken.js
  */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
@@ -13,7 +13,7 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-class ShardByTokens extends Base {
+class ShardByToken extends Base {
   constructor(params) {
     /**
      * @param {Object} params
@@ -201,6 +201,6 @@ class ShardByTokens extends Base {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ShardByTokens, coreConstants.icNameSpace, 'ShardByTokens');
+InstanceComposer.registerAsShadowableClass(ShardByToken, coreConstants.icNameSpace, 'ShardByToken');
 
-module.exports = ShardByTokens;
+module.exports = ShardByToken;
