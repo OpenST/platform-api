@@ -288,14 +288,6 @@ class WorkflowRouterBase {
         );
       }
     }
-
-    for (let stepKind in oThis.workflowStepKindToRecordMap) {
-      let step = oThis.workflowStepKindToRecordMap[stepKind];
-
-      if (step.response_data) {
-        Object.assign(oThis.requestParams, JSON.parse(step.response_data));
-      }
-    }
   }
 
   /**

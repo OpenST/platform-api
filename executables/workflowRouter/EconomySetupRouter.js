@@ -26,7 +26,8 @@ const rootPrefix = '../..',
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
   PostGatewayComposerDeploy = require(rootPrefix + '/lib/setup/economy/PostGatewayComposerDeploy'),
   FundStPrimeToTokenAddress = require(rootPrefix + '/lib/fund/stPrime/TokenAddress'),
-  InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress');
+  InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress'),
+  util = require(rootPrefix + '/lib/util');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/economy/VerifySetup');
@@ -507,6 +508,23 @@ class EconomySetupRouter extends WorkflowRouterBase {
     await new TokenCache({ clientId: oThis.clientId }).clear();
 
     return Promise.resolve();
+  }
+
+  /**
+   * SHA Hash to uniquely identify workflow, to avoid same commits
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  _uniqueWorkflowHash() {
+    const oThis = this;
+
+    let uniqueStr = oThis.requestParams.tokenId + '_';
+    uniqueStr += oThis.requestParams.auxChainId + '_';
+    uniqueStr += oThis.requestParams.originChainId;
+
+    return util.createSha256Digest(uniqueStr);
   }
 }
 
