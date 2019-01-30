@@ -137,7 +137,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     await oThis._transferStPrimeToAll();
 
     logger.step('Transferring eth to origin chain facilitator.');
-    await oThis._transferEthToOriginFacilitator();
+    await oThis._transferEthToOriginFacilitators();
 
     logger.step('Cron completed.');
   }
@@ -155,73 +155,6 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     if (!oThis.auxChainIds || oThis.auxChainIds.length === 0) {
       oThis.chainIds = await chainConfigProvider.allChainIds();
       oThis.auxChainIds = oThis.chainIds.filter((chainId) => chainId !== oThis.originChainId);
-    }
-  }
-
-  /**
-   * Transfer eth to origin chain facilitator.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _transferEthToOriginFacilitator() {
-    const oThis = this;
-
-    logger.step('Fetching addresses from origin chain.');
-
-    // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new OriginChainAddressesCache(),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
-
-    if (chainAddressesRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_f_bco_spe_2',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
-    oThis.transferIdentifiers = [];
-
-    logger.step('Fetching balances of addresses from origin chain.');
-
-    // Fetch eth balance of facilitators on origin chain.
-    const getEthBalance = new GetEthBalance({
-      originChainId: oThis.originChainId,
-      addresses: oThis.facilitatorAddresses
-    });
-
-    const addressToBalanceMap = await getEthBalance.perform();
-
-    for (let address in addressToBalanceMap) {
-      let facilitatorCurrentBalance = basicHelper.convertToBigNumber(addressToBalanceMap[address]),
-        facilitatorMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[chainAddressConstants.facilitator]);
-
-      if (facilitatorCurrentBalance.lt(facilitatorMinimumBalance.mul(flowsForMinimumBalance))) {
-        let params = {
-          from: oThis.chainOwnerAddress,
-          to: address,
-          amountInWei: basicHelper.convertToWei(facilitatorMinimumBalance.mul(flowsForTransferBalance))
-        };
-
-        oThis.transferIdentifiers.push(params);
-      }
-    }
-
-    if (oThis.transferIdentifiers.length > 0) {
-      oThis.canExit = false;
-
-      const transferEth = new TransferEth({
-        originChainId: oThis.originChainId,
-        transferIdentifier: oThis.transferIdentifiers
-      });
-
-      await transferEth.perform();
-
-      oThis.canExit = true;
     }
   }
 
@@ -443,6 +376,73 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         };
         oThis.transferDetails.push(params);
       }
+    }
+  }
+
+  /**
+   * Transfer eth to origin chain facilitator.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _transferEthToOriginFacilitators() {
+    const oThis = this;
+
+    logger.step('Fetching addresses from origin chain.');
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new OriginChainAddressesCache(),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bco_spe_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
+    oThis.transferIdentifiers = [];
+
+    logger.step('Fetching balances of addresses from origin chain.');
+
+    // Fetch eth balance of facilitators on origin chain.
+    const getEthBalance = new GetEthBalance({
+      originChainId: oThis.originChainId,
+      addresses: oThis.facilitatorAddresses
+    });
+
+    const addressToBalanceMap = await getEthBalance.perform();
+
+    for (let address in addressToBalanceMap) {
+      let facilitatorCurrentBalance = basicHelper.convertToBigNumber(addressToBalanceMap[address]),
+        facilitatorMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[chainAddressConstants.facilitator]);
+
+      if (facilitatorCurrentBalance.lt(facilitatorMinimumBalance.mul(flowsForMinimumBalance))) {
+        let params = {
+          from: oThis.chainOwnerAddress,
+          to: address,
+          amountInWei: basicHelper.convertToWei(facilitatorMinimumBalance.mul(flowsForTransferBalance))
+        };
+
+        oThis.transferIdentifiers.push(params);
+      }
+    }
+
+    if (oThis.transferIdentifiers.length > 0) {
+      oThis.canExit = false;
+
+      const transferEth = new TransferEth({
+        originChainId: oThis.originChainId,
+        transferIdentifier: oThis.transferIdentifiers
+      });
+
+      await transferEth.perform();
+
+      oThis.canExit = true;
     }
   }
 }
