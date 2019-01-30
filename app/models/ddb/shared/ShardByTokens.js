@@ -182,7 +182,10 @@ class ShardByTokens extends Base {
 
     for (let i = 0; i < params.entityKinds.length; i++) {
       let entity = params.entityKinds[i];
-      result[entity] = response.data[entity].shardNumber;
+
+      if (response.data.hasOwnProperty(entity)) {
+        result[entity] = response.data[entity].shardNumber;
+      }
     }
 
     return responseHelper.successWithData(result);
