@@ -40,7 +40,8 @@ if (!program.cronProcessId) {
 // Declare variables.
 const flowsForMinimumBalance = coreConstants.FLOWS_FOR_MINIMUM_BALANCE,
   flowsForTransferBalance = coreConstants.FLOWS_FOR_TRANSFER_BALANCE,
-  flowsForGranterMinimumBalance = coreConstants.FLOWS_FOR_GRANTER_ECONOMY_SETUP;
+  flowsForGranterMinimumBalance = coreConstants.FLOWS_FOR_GRANTER_ECONOMY_SETUP,
+  flowsForChainOwnerMinimumBalance = coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP;
 
 // Config for addresses which need to be funded.
 const fundingConfig = {
@@ -257,21 +258,9 @@ class FundEthByChainOwner extends CronBase {
       senderCurrentBalance = oThis.addressToBalanceMap[oThis.chainOwnerAddress],
       senderMinimumBalance = fundingConfig[addressKind];
 
-    if (senderCurrentBalance < senderMinimumBalance * flowsForMinimumBalance) {
+    if (senderCurrentBalance < senderMinimumBalance * flowsForChainOwnerMinimumBalance) {
       logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
       logger.notify('e_f_bco_3', 'Low balance of addressKind: ' + addressKind + '. on chainId: ', +oThis.originChainId);
-
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_f_bco_e_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            senderAddress: oThis.chainOwnerAddress,
-            senderCurrentBalanace: senderCurrentBalance,
-            senderMinimumBalance: senderMinimumBalance
-          }
-        })
-      );
     }
   }
 

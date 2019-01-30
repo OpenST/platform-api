@@ -266,6 +266,10 @@ class CoreConstants {
     return 10;
   }
 
+  get FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP() {
+    return 10;
+  }
+
   /**
    * Batch delete retry count
    *
