@@ -39,6 +39,8 @@ class StartMint {
     oThis.approveTransactionHash = params.approve_transaction_hash;
     oThis.requestStakeTransactionHash = params.request_stake_transaction_hash;
     oThis.stakerAddress = params.staker_address;
+    oThis.feOstToStake = params.fe_ost_to_stake;
+    oThis.feBtToMint = params.fe_bt_to_mint;
   }
 
   /**
@@ -119,7 +121,8 @@ class StartMint {
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.originChainId,
         topic: workflowTopicConstant.btStakeAndMint,
-        requestParams: requestParams
+        requestParams: requestParams,
+        feResponseData: { fe_ost_to_stake: oThis.feOstToStake, fe_bt_to_mint: oThis.feBtToMint }
       };
 
     let brandedTokenRouterObj = new BrandedTokenRouter(stakeAndMintParams);

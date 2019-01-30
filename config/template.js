@@ -250,6 +250,7 @@ configTemplate['entitiesMap'] = {
     entitiesPresent: {
       originDdbTablePrefix: 'originDdbTablePrefixEntity',
       auxDdbTablePrefix: 'auxDdbTablePrefixEntity',
+      subEnvDdbTablePrefix: 'subEnvDdbTablePrefixEntity',
       originChainId: 'chainIdEntity'
     }
   },
@@ -259,6 +260,10 @@ configTemplate['entitiesMap'] = {
     valueCheckNeeded: 1
   },
   auxDdbTablePrefixEntity: {
+    entityType: 'string',
+    valueCheckNeeded: 1
+  },
+  subEnvDdbTablePrefixEntity: {
     entityType: 'string',
     valueCheckNeeded: 1
   }
