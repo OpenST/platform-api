@@ -8,21 +8,22 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  TokenDetailCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
-  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  TokenDetailCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress');
 
 /**
  * Class for token details.
  *
  * @class
  */
-class TokenDetail {
+class TokenDetail extends ServiceBase {
   /**
    *
    * @param {Object} params
@@ -30,6 +31,8 @@ class TokenDetail {
    * @constructor
    */
   constructor(params) {
+    super(params);
+
     const oThis = this;
 
     oThis.clientId = params.client_id;
@@ -44,34 +47,11 @@ class TokenDetail {
   }
 
   /**
-   * Performer
-   *
-   * @return {Promise<>}
-   */
-  perform() {
-    const oThis = this;
-
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error('app/services/token/Detail::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_t_d_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
-  }
-
-  /**
    * Async perform
    *
    * @return {Promise<any>}
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     await oThis._setChainIds();
