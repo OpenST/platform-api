@@ -96,7 +96,6 @@ class ShardByTokens extends Base {
     keyObj[oThis.shortNameFor('tokenId')] = { N: params['tokenId'].toString() };
     keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'] };
 
-    console.log('keyObj', keyObj);
     return keyObj;
   }
 
@@ -159,12 +158,34 @@ class ShardByTokens extends Base {
    * insertShardByTokens - Inserts tokenId, its entity and shardNumber
    *
    * @param {Object} params
-   * @param {String} params.tokenId
-   * @param {String} params.entityKind
+   * @param {Number} params.tokenId
+   * @param {String} params.entityKinds
    * @return {string}
    */
-  async getShardNumber(params) {
+  async getShardNumbers(params) {
     const oThis = this;
+
+    let keyObjArray = [];
+
+    for (let i = 0; i < params.entityKinds.length; i++) {
+      keyObjArray.push(
+        oThis._keyObj({
+          tokenId: params.tokenId,
+          entityKind: params.entityKinds[i]
+        })
+      );
+    }
+
+    let response = await oThis.batchGetItem(keyObjArray, 'entityKind');
+
+    let result = {};
+
+    for (let i = 0; i < params.entityKinds.length; i++) {
+      let entity = params.entityKinds[i];
+      result[entity] = response.data[entity].shardNumber;
+    }
+
+    return responseHelper.successWithData(result);
   }
 
   /**
