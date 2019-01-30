@@ -168,7 +168,7 @@ class FundEthByChainOwner extends CronBase {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_2',
+          internal_error_identifier: 'e_f_bco_e_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -260,7 +260,11 @@ class FundEthByChainOwner extends CronBase {
 
     if (senderCurrentBalance < senderMinimumBalance * flowsForChainOwnerMinimumBalance) {
       logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
-      logger.notify('e_f_bco_3', 'Low balance of addressKind: ' + addressKind + '. on chainId: ', +oThis.originChainId);
+      logger.notify(
+        'e_f_bco_e_3',
+        'Low balance of addressKind: ' + addressKind + '. on chainId: ',
+        +oThis.originChainId
+      );
     }
   }
 
@@ -272,7 +276,7 @@ class FundEthByChainOwner extends CronBase {
   _checkIfEligibleForTransfer() {
     const oThis = this;
 
-    oThis.addressesToBeTransferredTo = [];
+    oThis.transferDetails = [];
 
     // Loop over oThis.kindToAddressMap.
     for (let addressKind in oThis.kindToAddressMap) {
@@ -287,7 +291,7 @@ class FundEthByChainOwner extends CronBase {
       ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(
-          'e_f_bco_5',
+          'e_f_bco_e_4',
           'Low balance of addressKind: ' + addressKind + '. on chainId: ',
           +oThis.originChainId
         );
@@ -300,7 +304,7 @@ class FundEthByChainOwner extends CronBase {
           to: address,
           amountInWei: basicHelper.convertToWei(addressMinimumBalance * flowsForTransferBalance)
         };
-        oThis.addressesToBeTransferredTo.push(params);
+        oThis.transferDetails.push(params);
       }
     }
   }
@@ -317,10 +321,10 @@ class FundEthByChainOwner extends CronBase {
 
     oThis.canExit = false;
 
-    if (oThis.addressesToBeTransferredTo.length > 0) {
+    if (oThis.transferDetails.length > 0) {
       const transferEth = new TransferEth({
         originChainId: oThis.originChainId,
-        transferIdentifier: oThis.addressesToBeTransferredTo
+        transferDetails: oThis.transferDetails
       });
 
       await transferEth.perform();
