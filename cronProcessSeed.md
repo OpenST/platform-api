@@ -119,7 +119,7 @@ function addCronProcessEntries() {
     promiseArray.push(p6);
     
     // Create entry for origin blockParser.
-        let p7 =  (function insertBlockParser() {
+      let p7 =  (function insertBlockParser() {
         let cronParams = '{"intentionalBlockDelay": 0, "chainId":1000}',
           insertParams = {
             id: 7,
@@ -132,29 +132,65 @@ function addCronProcessEntries() {
         let CronProcessModel = require('./app/models/mysql/CronProcesses'),
         cronProcessObj = new CronProcessModel();
         cronProcessObj.insertRecord(insertParams);
-        })();
+      })();
       
-        promiseArray.push(p7);
+      promiseArray.push(p7);
       
-      // Create entry for origin transactionParser.
-        let p8 =  (function transactionParser() {
-          let cronParams = '{"prefetchCount": 1, "chainId":1000}',
-            insertParams = {
-              id: 8,
-              kind: 'transactionParser',
-              ip_address: '127.0.0.1',
-              chain_id: 1000,
-              params: cronParams,
-              status: 'stopped'
-          };
-          let CronProcessModel = require('./app/models/mysql/CronProcesses'),
-          cronProcessObj = new CronProcessModel();
-          cronProcessObj.insertRecord(insertParams);
-        })();
+    // Create entry for origin transactionParser.
+      let p8 =  (function transactionParser() {
+        let cronParams = '{"prefetchCount": 1, "chainId":1000}',
+           insertParams = {
+             id: 8,
+             kind: 'transactionParser',
+             ip_address: '127.0.0.1',
+             chain_id: 1000,
+             params: cronParams,
+             status: 'stopped'
+        };
+        let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+        cronProcessObj = new CronProcessModel();
+        cronProcessObj.insertRecord(insertParams);
+      })();
         
-        promiseArray.push(p8);
+      promiseArray.push(p8);
+      
+    // Create entry for origin fundByChainOwnerOriginChainSpecificific.
+      let p9 =  (function fundByChainOwnerOriginChainSpecific() {
+        let cronParams = '{"originChainId": 1000}',
+           insertParams = {
+             id: 9,
+             kind: 'fundByChainOwnerOriginChainSpecific',
+             ip_address: '127.0.0.1',
+             chain_id: 1000,
+             params: cronParams,
+             status: 'stopped'
+        };
+        let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+        cronProcessObj = new CronProcessModel();
+        cronProcessObj.insertRecord(insertParams);
+      })();
         
-      return Promise.all(promiseArray);
+      promiseArray.push(p9);
+      
+    // Create entry for origin fundStPrimeAndEthByChainOwner.
+      let p10 =  (function fundByChainOwnerOriginChainSpecific() {
+        let cronParams = '{"originChainId": 1000, "auxChainIds": [2000]}',
+           insertParams = {
+             id: 10,
+             kind: 'fundStPrimeAndEthByChainOwner',
+             ip_address: '127.0.0.1',
+             chain_id: 1000,
+             params: cronParams,
+             status: 'stopped'
+        };
+        let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+        cronProcessObj = new CronProcessModel();
+        cronProcessObj.insertRecord(insertParams);
+      })();
+        
+      promiseArray.push(p10);
+      
+    return Promise.all(promiseArray);
 };
 
 addCronProcessEntries().then(function() {
