@@ -55,16 +55,6 @@ class SharedBaseKlass extends BaseModel {
 
     return oThis.shardHelper.createShard();
   }
-
-  /**
-   * It should return the table identifier. This is a human readable name determining the entity stored in the table.
-   *
-   * @returns {String}
-   */
-  tableIdentifier() {
-    const oThis = this;
-    return oThis.tableName();
-  }
 }
 
 module.exports = SharedBaseKlass;

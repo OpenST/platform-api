@@ -80,15 +80,6 @@ class ShardedBase extends BaseModel {
   }
 
   /**
-   * It should return the table identifier. This is a human readable name determining the entity stored in the table.
-   *
-   * @returns {String}
-   */
-  tableIdentifier() {
-    throw 'sub class to implement';
-  }
-
-  /**
    * It should return the table name template.
    *
    * @returns {String}

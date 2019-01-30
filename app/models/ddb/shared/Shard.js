@@ -1,5 +1,9 @@
 'use strict';
-
+/**
+ * Shard Model
+ *
+ * @module app/models/ddb/shared/Shard.js
+ */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
@@ -20,8 +24,6 @@ class Shard extends Base {
    * @returns {{entityKind: string, shardNumber: string, isAvailableForAllocation: string}}
    */
   get longToShortNamesMap() {
-    const oThis = this;
-
     return {
       entityKind: 'ek',
       shardNumber: 'sno',
@@ -41,27 +43,25 @@ class Shard extends Base {
   }
 
   /**
+   * shortNameToDataType
+   *
+   * @return {{ek: string, sno: string, iafa: string}}
+   */
+  get shortNameToDataType() {
+    return {
+      ek: 'S',
+      sno: 'N',
+      iafa: 'BOOL'
+    };
+  }
+
+  /**
    * Returns the table name.
    *
    * @returns {String}
    */
   tableName() {
     return this.tablePrefix + 'shards';
-  }
-
-  /**
-   * Returns condition expression
-   *
-   * @returns {String}
-   */
-  conditionExpression() {
-    const oThis = this,
-      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
-      shortNameForShardNumber = oThis.shortNameFor('shardNumber');
-
-    return (
-      'attribute_not_exists(' + shortNameForEntityKind + ') AND attribute_not_exists(' + shortNameForShardNumber + ')'
-    );
   }
 
   /**
@@ -75,7 +75,7 @@ class Shard extends Base {
     const oThis = this,
       keyObj = {};
 
-    keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'].toLowerCase() };
+    keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'].toString() };
     keyObj[oThis.shortNameFor('shardNumber')] = { N: params['shardNumber'].toString() };
 
     return keyObj;
@@ -117,6 +117,48 @@ class Shard extends Base {
   }
 
   /**
+   * insertShard - Inserts a new shard kind
+   *
+   * @param params
+   * @param params.entityKind {String} - entity kind
+   * @param params.shardNumber {Number} - shard number
+   * @param params.isAvailableForAllocation {Bool} - availability flag of shard
+   *
+   * @return {string}
+   */
+  async insertShard(params) {
+    const oThis = this,
+      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
+      shortNameForShardNumber = oThis.shortNameFor('shardNumber');
+
+    let conditionalExpression =
+      'attribute_not_exists(' + shortNameForEntityKind + ') AND attribute_not_exists(' + shortNameForShardNumber + ')';
+
+    return oThis.putItem(params, conditionalExpression);
+  }
+
+  /**
+   * updateAllocationStatus - Updates allocation status for a shard kind
+   *
+   * @param params
+   * @param params.entityKind {String} - entity kind
+   * @param params.shardNumber {Number} - shard number
+   * @param params.isAvailableForAllocation {Bool} - availability flag of shard
+   *
+   * @return {Promise<void>}
+   */
+  async updateAllocationStatus(params) {
+    const oThis = this,
+      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
+      shortNameForShardNumber = oThis.shortNameFor('shardNumber');
+
+    let conditionalExpression =
+      'attribute_exists(' + shortNameForEntityKind + ') AND attribute_exists(' + shortNameForShardNumber + ')';
+
+    return oThis.updateItem(params, conditionalExpression);
+  }
+
+  /**
    * Gets list of shards which are available for allocation
    *
    * @returns {Object}
@@ -142,7 +184,7 @@ class Shard extends Base {
     let response = await oThis.ddbServiceObj.scan(queryParams);
 
     if (response.isFailure()) {
-      return response;
+      return Promise.reject(response);
     }
 
     if (!response.data.Items || !response.data.Items[0]) {
@@ -172,12 +214,12 @@ class Shard extends Base {
   async getAvailableShardsOf(entityKind) {
     const oThis = this,
       shortNameForIsAvailable = oThis.shortNameFor('isAvailableForAllocation'),
-      shortNameForEntityKind = oThis.shortNameFor('identifier'),
+      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
       dataTypeForEntityKind = oThis.shortNameToDataType[shortNameForEntityKind];
 
     let queryParams = {
       TableName: oThis.tableName(),
-      KeyConditionExpression: `${shortNameForEntityKind} = :id`,
+      KeyConditionExpression: `${shortNameForEntityKind} = :ek`,
       FilterExpression: `${shortNameForIsAvailable} = :iafa`,
       ExpressionAttributeValues: {
         ':ek': { [dataTypeForEntityKind]: entityKind },
@@ -192,6 +234,17 @@ class Shard extends Base {
     }
 
     return Promise.resolve(response);
+  }
+
+  /**
+   * afterUpdate - Method to implement any after update actions
+   *
+   * @return {Promise<void>}
+   */
+  async afterUpdate() {
+    const oThis = this;
+
+    return responseHelper.successWithData({});
   }
 }
 

@@ -77,7 +77,8 @@ class RoutesHelper {
 
     let handleResponse = async function(response) {
       if (response.isSuccess() && formatter) {
-        // if requires this function could reformat data as per API version requirements.
+        // if required, this function could reformat data as per API version requirements.
+        // NOTE: This method should modify response.data
         await formatter(response);
       }
 
