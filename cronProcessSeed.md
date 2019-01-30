@@ -190,8 +190,26 @@ function addCronProcessEntries() {
         
       promiseArray.push(p10);
       
+      // Create entry for origin fundStPrimeAndEthByChainOwner.
+       let p11 =  (function fundByChainOwnerOriginChainSpecific() {
+         let cronParams = '{"originChainId": 1000}',
+          insertParams = {
+           id: 11,
+           kind: 'fundBySealerAuxChainSpecific',
+           ip_address: '127.0.0.1',
+           chain_id: 2000,
+           params: cronParams,
+           status: 'stopped'
+          };
+              let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+              cronProcessObj = new CronProcessModel();
+              cronProcessObj.insertRecord(insertParams);
+            })();
+              
+            promiseArray.push(p11);
+      
     return Promise.all(promiseArray);
-};
+}
 
 addCronProcessEntries().then(function() {
   console.log('Entries made successfully.');
