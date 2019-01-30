@@ -73,7 +73,7 @@ class Shard extends Base {
     const oThis = this,
       keyObj = {};
 
-    keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'].toLowerCase() };
+    keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'].toString() };
     keyObj[oThis.shortNameFor('shardNumber')] = { N: params['shardNumber'].toString() };
 
     return keyObj;
@@ -115,12 +115,16 @@ class Shard extends Base {
   }
 
   /**
-   * insertShardKind - Inserts a new shard kind
+   * insertShard - Inserts a new shard kind
    *
    * @param params
+   * @param params.entityKind {String} - entity kind
+   * @param params.shardNumber {Number} - shard number
+   * @param params.isAvailableForAllocation {Bool} - availability flag of shard
+   *
    * @return {string}
    */
-  async insertShardKind(params) {
+  async insertShard(params) {
     const oThis = this,
       shortNameForEntityKind = oThis.shortNameFor('entityKind'),
       shortNameForShardNumber = oThis.shortNameFor('shardNumber');
@@ -135,6 +139,10 @@ class Shard extends Base {
    * updateAllocationStatus - Updates allocation status for a shard kind
    *
    * @param params
+   * @param params.entityKind {String} - entity kind
+   * @param params.shardNumber {Number} - shard number
+   * @param params.isAvailableForAllocation {Bool} - availability flag of shard
+   *
    * @return {Promise<void>}
    */
   async updateAllocationStatus(params) {
@@ -174,7 +182,7 @@ class Shard extends Base {
     let response = await oThis.ddbServiceObj.scan(queryParams);
 
     if (response.isFailure()) {
-      return response;
+      return Promise.reject(response);
     }
 
     if (!response.data.Items || !response.data.Items[0]) {

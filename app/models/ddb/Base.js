@@ -59,15 +59,6 @@ class ModelBaseKlass {
   }
 
   /**
-   * It should return the table identifier. This is a human readable name determining the entity stored in the table.
-   *
-   * @returns {String}
-   */
-  tableIdentifier() {
-    throw 'sub class to implement';
-  }
-
-  /**
    * Get Table name.
    *
    * @returns {String}
@@ -86,15 +77,6 @@ class ModelBaseKlass {
   }
 
   /**
-   * Returns condition expression.
-   *
-   * @returns {String}
-   */
-  conditionExpression() {
-    throw 'sub class to implement';
-  }
-
-  /**
    * Things to do after update
    *
    * @returns {Promise<void>}
@@ -104,7 +86,7 @@ class ModelBaseKlass {
   }
 
   /**
-   * This function inserts an entry in the shards table.
+   * This function replaces an existing entry
    *
    * @param {Object} rowMap
    *
@@ -122,7 +104,7 @@ class ModelBaseKlass {
     let putItemResponse = await oThis.ddbServiceObj.putItem(formattedData);
 
     if (putItemResponse.isFailure()) {
-      logger.error('Could not create entry in shards table.');
+      logger.error('Could not create entry in table -', oThis.tableName());
       return Promise.resolve(putItemResponse);
     }
 
@@ -147,7 +129,7 @@ class ModelBaseKlass {
     if (!oThis.tableName()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_m_b_1',
+          internal_error_identifier: 'a_m_d_b_1',
           api_error_identifier: 'invalid_shard_name',
           debug_options: {},
           error_config: errorConfig
@@ -208,7 +190,7 @@ class ModelBaseKlass {
               );
               return Promise.reject(
                 responseHelper.error({
-                  internal_error_identifier: 'a_m_b_2',
+                  internal_error_identifier: 'a_m_d_b_2',
                   api_error_identifier: 'ddb_batch_write_failed',
                   debug_options: {
                     unProcessedCount: unprocessedItems[oThis.tableName()].length,
@@ -249,7 +231,7 @@ class ModelBaseKlass {
     if (!oThis.tableName()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_m_b_3',
+          internal_error_identifier: 'a_m_d_b_3',
           api_error_identifier: 'invalid_shard_name',
           debug_options: {},
           error_config: errorConfig
@@ -311,7 +293,7 @@ class ModelBaseKlass {
               );
               return Promise.reject(
                 responseHelper.error({
-                  internal_error_identifier: 'a_m_b_4',
+                  internal_error_identifier: 'a_m_d_b_4',
                   api_error_identifier: 'ddb_batch_delete_failed',
                   debug_options: {
                     unProcessedCount: unprocessedItems[oThis.tableName()].length
@@ -337,7 +319,7 @@ class ModelBaseKlass {
   }
 
   /**
-   * This function adds TableName and Key to updateParams
+   * This function overrides specific attributes
    *
    * @param {Object} data
    *
