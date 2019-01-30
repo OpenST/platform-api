@@ -240,9 +240,10 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 * Start Eth funding cron
 ```bash
 > source set_env_vars.sh
-> node executables/fund/eth.js --cronProcessId 1
+> node executables/fund/eth.js --cronProcessId 9
 ```
 
+//TODO: change amountToStake to amountToStakeInWei
 * St' Stake and Mint
 ```bash
 > source set_env_vars.sh
@@ -277,7 +278,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 * Start ST prime funding cron
 ```bash
 > source set_env_vars.sh
-> node executables/fund/stPrime.js --cronProcessId 1
+> node executables/fund/stPrime.js --cronProcessId 10
 ```
 
 ### Fund OST Prime:
