@@ -68,7 +68,7 @@ class User extends Base {
       ssn: 'N',
       rasn: 'N',
       sts: 'N',
-      uts: 'S'
+      uts: 'N'
     };
   }
 
