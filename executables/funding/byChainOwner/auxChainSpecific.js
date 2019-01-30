@@ -2,7 +2,7 @@
 /**
  * Cron to fund stPrime and eth by chainOwner.
  *
- * @module executables/funding/byChainOwner/stPrimeAndEth
+ * @module executables/funding/byChainOwner/auxChainSpecific
  *
  * This cron expects originChainId and auxChainIds as parameter in the params.
  */
@@ -34,7 +34,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byChainOwner/stPrimeAndEth.js --cronProcessId 1');
+  logger.log('    node executables/funding/byChainOwner/auxChainSpecific.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });
@@ -45,8 +45,8 @@ if (!program.cronProcessId) {
 }
 
 // Declare variables.
-const flowsForMinimumBalance = coreConstants.FLOWS_FOR_MINIMUM_BALANCE,
-  flowsForTransferBalance = coreConstants.FLOWS_FOR_TRANSFER_BALANCE;
+const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
+  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE);
 
 // Config for addresses which need to be funded.
 const fundingConfig = {
@@ -61,7 +61,7 @@ const fundingConfig = {
  *
  * @class
  */
-class FundStPrimeAndEthByChainOwner extends CronBase {
+class FundByChainOwnerAuxChainSpecific extends CronBase {
   /**
    * Constructor to fund stPrime and eth by chain owner.
    *
@@ -83,7 +83,7 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundStPrimeAndEthByChainOwner;
+    return cronProcessesConstants.fundByChainOwnerAuxChainSpecific;
   }
 
   /**
@@ -133,11 +133,11 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
     logger.step('Fetching all chainIds.');
     await oThis._fetchChainIds();
 
-    logger.step('Transferring eth to origin chain facilitator.');
-    await oThis._transferEthToOriginFacilitator();
-
     logger.step('Transferring StPrime to auxChainId addresses.');
     await oThis._transferStPrimeToAll();
+
+    logger.step('Transferring eth to origin chain facilitator.');
+    await oThis._transferEthToOriginFacilitator();
 
     logger.step('Cron completed.');
   }
@@ -155,8 +155,6 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
     if (!oThis.auxChainIds || oThis.auxChainIds.length === 0) {
       oThis.chainIds = await chainConfigProvider.allChainIds();
       oThis.auxChainIds = oThis.chainIds.filter((chainId) => chainId !== oThis.originChainId);
-    } else {
-      oThis.chainIds = oThis.auxChainIds.concat(oThis.originChainId);
     }
   }
 
@@ -186,35 +184,39 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
     }
 
     oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
-    const originFacilitator = chainAddressesRsp.data[chainAddressConstants.facilitator];
+    oThis.transferIdentifiers = [];
 
     logger.step('Fetching balances of addresses from origin chain.');
 
-    // Fetch eth balance of origin facilitator.
+    // Fetch eth balance of facilitators on origin chain.
     const getEthBalance = new GetEthBalance({
       originChainId: oThis.originChainId,
-      addresses: [originFacilitator]
+      addresses: oThis.facilitatorAddresses
     });
 
-    const addressToBalanceMap = await getEthBalance.perform(),
-      facilitatorCurrentBalance = addressToBalanceMap[originFacilitator],
-      facilitatorMinimumBalance = fundingConfig[[chainAddressConstants.facilitator]];
+    const addressToBalanceMap = await getEthBalance.perform();
 
-    // Check if origin facilitator is eligible for refund.
-    if (facilitatorCurrentBalance < facilitatorMinimumBalance * flowsForMinimumBalance) {
-      logger.step('Transferring eth to origin facilitator.');
+    for (let address in addressToBalanceMap) {
+      let facilitatorCurrentBalance = basicHelper.convertToBigNumber(addressToBalanceMap[address]),
+        facilitatorMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[chainAddressConstants.facilitator]);
 
+      if (facilitatorCurrentBalance.lt(facilitatorMinimumBalance.mul(flowsForMinimumBalance))) {
+        let params = {
+          from: oThis.chainOwnerAddress,
+          to: address,
+          amountInWei: basicHelper.convertToWei(facilitatorMinimumBalance.mul(flowsForTransferBalance))
+        };
+
+        oThis.transferIdentifiers.push(params);
+      }
+    }
+
+    if (oThis.transferIdentifiers.length > 0) {
       oThis.canExit = false;
-
-      let params = {
-        from: oThis.chainOwnerAddress,
-        to: originFacilitator,
-        amountInWei: basicHelper.convertToWei(facilitatorMinimumBalance * flowsForTransferBalance)
-      };
 
       const transferEth = new TransferEth({
         originChainId: oThis.originChainId,
-        transferIdentifier: [params]
+        transferIdentifier: oThis.transferIdentifiers
       });
 
       await transferEth.perform();
@@ -233,9 +235,11 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
   async _transferStPrimeToAll() {
     const oThis = this;
 
+    oThis.facilitatorAddresses = [];
+
     // Loop over all auxChainIds.
-    for (let auxChainId = 0; auxChainId < oThis.auxChainIds.length; auxChainId++) {
-      await oThis._transferStPrimeOnChain(auxChainId);
+    for (let index = 0; index < oThis.auxChainIds.length; index++) {
+      await oThis._transferStPrimeOnChain(oThis.auxChainIds[index]);
     }
   }
 
@@ -306,6 +310,8 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
     });
 
     oThis.kindToAddressMap = fetchAddrRsp.data.address;
+
+    oThis.facilitatorAddresses.push(oThis.kindToAddressMap[chainAddressConstants.facilitator]);
 
     // Fetch aux funder addresses on the auxChainId.
 
@@ -381,51 +387,59 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
     for (let address in currentAddressBalances) {
       let toAddress = '',
         addressMinimumBalance = '',
-        addressCurrentBalance = currentAddressBalances[address];
+        addressCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[address]);
 
-      // Admin kind.
-      if (
-        address === auxChainAdminAddress &&
-        addressCurrentBalance < fundingConfig[chainAddressConstants.adminKind] * flowsForMinimumBalance
-      ) {
-        toAddress = address;
-        addressMinimumBalance = fundingConfig[chainAddressConstants.adminKind];
-      }
+      switch (address) {
+        // Admin kind.
+        case auxChainAdminAddress:
+          let minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
+            fundingConfig[chainAddressConstants.adminKind]
+          );
+          if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
+            toAddress = address;
+            addressMinimumBalance = minimumBalanceRequiredForAddress;
+          }
+          break;
 
-      // Deployer kind.
-      else if (
-        address === auxChainDeployerAddress &&
-        addressCurrentBalance < fundingConfig[chainAddressConstants.deployerKind] * flowsForMinimumBalance
-      ) {
-        toAddress = address;
-        addressMinimumBalance = fundingConfig[chainAddressConstants.deployerKind];
-      }
+        // Deployer kind.
+        case auxChainDeployerAddress:
+          minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
+            fundingConfig[chainAddressConstants.deployerKind]
+          );
+          if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
+            toAddress = address;
+            addressMinimumBalance = minimumBalanceRequiredForAddress;
+          }
+          break;
 
-      // Facilitator kind.
-      else if (
-        address === auxChainFacilitatorAddress &&
-        addressCurrentBalance < fundingConfig[chainAddressConstants.facilitator] * flowsForMinimumBalance
-      ) {
-        toAddress = address;
-        addressMinimumBalance = fundingConfig[chainAddressConstants.facilitator];
-      }
+        // Facilitator kind.
+        case auxChainFacilitatorAddress:
+          minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
+            fundingConfig[chainAddressConstants.facilitator]
+          );
+          if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
+            toAddress = address;
+            addressMinimumBalance = minimumBalanceRequiredForAddress;
+          }
+          break;
 
-      // Aux funder address kind.
-      else {
-        if (
-          addressCurrentBalance <
-          fundingConfig[tokenAddressConstants.auxFunderAddressKind] * flowsForMinimumBalance
-        ) {
-          toAddress = address;
-          addressMinimumBalance = fundingConfig[tokenAddressConstants.auxFunderAddressKind];
-        }
+        // Aux funder address kind.
+        default:
+          minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
+            fundingConfig[tokenAddressConstants.auxFunderAddressKind]
+          );
+          if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
+            toAddress = address;
+            addressMinimumBalance = minimumBalanceRequiredForAddress;
+          }
+          break;
       }
 
       if (toAddress && addressMinimumBalance) {
         let params = {
           from: oThis.chainOwnerAddress,
           to: toAddress,
-          amountInWei: basicHelper.convertToWei(addressMinimumBalance * flowsForTransferBalance)
+          amountInWei: basicHelper.convertToWei(addressMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
       }
@@ -435,4 +449,4 @@ class FundStPrimeAndEthByChainOwner extends CronBase {
 
 logger.log('Starting cron to fund eth by chainOwner.');
 
-new FundStPrimeAndEthByChainOwner({ cronProcessId: +program.cronProcessId }).perform();
+new FundByChainOwnerAuxChainSpecific({ cronProcessId: +program.cronProcessId }).perform();
