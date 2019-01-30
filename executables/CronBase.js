@@ -39,7 +39,7 @@ class CronBase {
 
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
-      logger.error('error in executables/CronBase.js');
+      logger.error('Error in executables/CronBase.js');
       return responseHelper.error({
         internal_error_identifier: 'e_bs_w_2',
         api_error_identifier: 'something_went_wrong',
@@ -103,6 +103,13 @@ class CronBase {
     }
   }
 
+  /**
+   * Validate cron process.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
   async _validateCronProcess() {
     const oThis = this;
 
