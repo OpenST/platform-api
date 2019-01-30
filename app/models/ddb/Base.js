@@ -110,13 +110,13 @@ class ModelBaseKlass {
    *
    * @returns {Promise<void>}
    */
-  async putItem(rowMap) {
+  async putItem(rowMap, conditionalExpression) {
     const oThis = this;
 
     let formattedData = {
       Item: oThis._formatDataForDynamo(rowMap),
       TableName: oThis.tableName(),
-      ConditionExpression: oThis.conditionExpression()
+      ConditionExpression: conditionalExpression
     };
 
     let putItemResponse = await oThis.ddbServiceObj.putItem(formattedData);
@@ -343,7 +343,7 @@ class ModelBaseKlass {
    *
    * @returns {Promise<void>}
    */
-  async updateItem(data) {
+  async updateItem(data, conditionExpression) {
     const oThis = this;
 
     let formattedQuery = {};
@@ -379,10 +379,21 @@ class ModelBaseKlass {
     let expressionString = expressionArray.join(',');
 
     formattedQuery['UpdateExpression'] = 'SET ' + expressionString;
+    formattedQuery['ConditionExpression'] = conditionExpression;
 
-    await oThis.ddbServiceObj.updateItem(formattedQuery);
+    let response = await oThis.ddbServiceObj.updateItem(formattedQuery);
 
-    await oThis.afterUpdate(data);
+    if (response.isFailure()) {
+      return response;
+    }
+
+    let afterUpdateResponse = await oThis.afterUpdate(data);
+
+    if (afterUpdateResponse.isFailure()) {
+      return afterUpdateResponse;
+    }
+
+    return afterUpdateResponse;
   }
 
   /**
