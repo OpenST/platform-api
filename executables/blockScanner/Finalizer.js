@@ -167,6 +167,7 @@ class Finalizer extends PublisherBase {
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });
 
+    let waitTime = 0;
     while (true) {
       // SIGINT Received
       if (oThis.stopPickingUpNewWork) {
@@ -175,6 +176,9 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       oThis.dataToDelete = [];
+      if (waitTime > 2 * 30 * 5) {
+        logger.notify('finalizer_stuck', 'Finalizer is stuck for more than 5 minutes for chainId: ', +oThis.chainId);
+      }
 
       let finalizer = new oThis.BlockScannerFinalizer({
         chainId: oThis.chainId,
@@ -187,8 +191,10 @@ class Finalizer extends PublisherBase {
       if (pendingTasks.length > 0) {
         logger.log('=== Transactions not yet completely parsed for block: ', blockToProcess);
         logger.log('=== Waiting for 2 secs');
+        waitTime += 2;
         await oThis.sleep(2000);
       } else {
+        waitTime = 0;
         let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
         if (validationResponse.isSuccess() && validationResponse.data.blockProcessable) {
           // Intersect pending transactions for Origin chain
