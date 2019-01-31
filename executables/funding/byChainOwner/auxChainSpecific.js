@@ -251,7 +251,11 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         .where(whereClause)
         .fire();
 
-    oThis.facilitatorAddresses.push(facilitatorAddrRsp[0].address);
+    let facilitatorAddress = facilitatorAddrRsp[0].address;
+
+    oThis.kindToAddressMap[chainAddressConstants.facilitator] = facilitatorAddress;
+
+    oThis.facilitatorAddresses.push(facilitatorAddress);
 
     // Fetch aux funder addresses on the auxChainId.
 
