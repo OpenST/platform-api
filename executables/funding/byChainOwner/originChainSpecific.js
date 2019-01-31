@@ -27,7 +27,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byChainOwner/originChainSpecific --cronProcessId 1');
+  logger.log('    node executables/funding/byChainOwner/originChainSpecific --cronProcessId 9');
   logger.log('');
   logger.log('');
 });

@@ -173,7 +173,7 @@ function addCronProcessEntries() {
       promiseArray.push(p9);
       
     // Create entry for fundByChainOwnerAuxChainSpecific.
-      let p10 =  (function fundByChainOwnerOriginChainSpecific() {
+      let p10 =  (function fundByChainOwnerAuxChainSpecific() {
         let cronParams = '{"originChainId": 1000, "auxChainIds": [2000]}',
            insertParams = {
              id: 10,
@@ -191,7 +191,7 @@ function addCronProcessEntries() {
       promiseArray.push(p10);
       
       // Create entry for fundBySealerAuxChainSpecific.
-       let p11 =  (function fundByChainOwnerOriginChainSpecific() {
+       let p11 =  (function fundBySealerAuxChainSpecific() {
          let cronParams = '{"originChainId": 1000}',
           insertParams = {
            id: 11,
@@ -209,7 +209,7 @@ function addCronProcessEntries() {
        promiseArray.push(p11);
        
        // Create entry for fundByTokenAuxFunderAuxChainSpecific.
-       let p12 =  (function fundByChainOwnerOriginChainSpecific() {
+       let p12 =  (function fundByTokenAuxFunderAuxChainSpecific() {
          let cronParams = '{"originChainId": 1000}',
           insertParams = {
            id: 12,
