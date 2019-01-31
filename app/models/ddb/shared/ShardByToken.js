@@ -13,6 +13,8 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
+require(rootPrefix + '/lib/cacheManagement/TokenShardNumbers');
+
 class ShardByToken extends Base {
   constructor(params) {
     /**
@@ -196,7 +198,14 @@ class ShardByToken extends Base {
    *
    * @return {Promise<void>}
    */
-  async afterUpdate() {
+  async afterUpdate(params) {
+    const oThis = this;
+
+    let TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
+      cacheObject = new TokenShardNumbersCache({ tokenId: params.tokenId });
+
+    await cacheObject.clear();
+
     return responseHelper.successWithData({});
   }
 }

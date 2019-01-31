@@ -13,6 +13,8 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
+require(rootPrefix + '/lib/sharedCacheManagement/AvailableShards');
+
 class Shard extends Base {
   constructor(params) {
     super(params);
@@ -241,8 +243,13 @@ class Shard extends Base {
    *
    * @return {Promise<void>}
    */
-  async afterUpdate() {
+  async afterUpdate(params) {
     const oThis = this;
+
+    let AvailableShardCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AvailableShardsCache'),
+      cacheObject = new AvailableShardCache({});
+
+    await cacheObject.clear();
 
     return responseHelper.successWithData({});
   }

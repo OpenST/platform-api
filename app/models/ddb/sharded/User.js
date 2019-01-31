@@ -11,6 +11,8 @@ const mustache = require('mustache');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
+require(rootPrefix + '/lib/cacheMultiManagement/TokenUserDetailsCache');
+
 class User extends Base {
   constructor(params) {
     super(params);
@@ -217,8 +219,17 @@ class User extends Base {
    *
    * @return {Promise<void>}
    */
-  async afterUpdate() {
-    const oThis = this;
+  async afterUpdate(params) {
+    const oThis = this,
+      TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
+
+    let tokenUserDetailsCache = new TokenUserDetailsCache({
+      tokenId: params.tokenId,
+      userIds: [params.userId],
+      shardNumber: params.shardNumber
+    });
+
+    await tokenUserDetailsCache.clear();
 
     return responseHelper.successWithData({});
   }
