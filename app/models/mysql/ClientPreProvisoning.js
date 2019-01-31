@@ -28,7 +28,7 @@ class ClientPreProvisoning extends ModelBase {
   constructor() {
     super({ dbName: dbName });
     const oThis = this;
-    oThis.tableName = 'client_pre_provisonings';
+    oThis.tableName = 'client_pre_provisionings';
   }
 
   /**

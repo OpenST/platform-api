@@ -31,7 +31,6 @@ const rootPrefix = '../..',
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/economy/VerifySetup');
-require(rootPrefix + '/lib/fund/oStPrime/TokenAddress');
 require(rootPrefix + '/lib/setup/economy/VerifySetup');
 require(rootPrefix + '/app/services/token/SyncInView');
 require(rootPrefix + '/lib/setup/economy/DeployGateway');
