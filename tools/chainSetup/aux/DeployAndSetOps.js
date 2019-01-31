@@ -77,7 +77,7 @@ class DeployAndSetOps {
 
     await oThis._deployPriceOracleContract();
 
-    await oThis._setWeb3Instance(oThis.priceOracleOpsAddressKindKind);
+    await oThis._setWeb3Instance(oThis.priceOracleOpsAddressKind);
 
     await oThis._setOpsContract();
   }
@@ -92,7 +92,7 @@ class DeployAndSetOps {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.priceOracleOpsAddressKindKind];
+    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.priceOracleOpsAddressKind];
 
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
@@ -100,7 +100,7 @@ class DeployAndSetOps {
     });
 
     oThis.deployerAddress = chainAddressRsp.data.address[chainAddressConst.deployerKind];
-    oThis.priceOracleOpsAddressKind = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKindKind];
+    oThis.priceOracleOpsAddressKind = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
   }
 
   /**
