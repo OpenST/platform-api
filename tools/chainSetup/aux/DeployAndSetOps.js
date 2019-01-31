@@ -204,7 +204,7 @@ class DeployAndSetOps {
     // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '579067',
+      gas: '23657',
       value: '0',
       from: oThis.ownerAddress,
       chainId: oThis.auxChainId
@@ -219,6 +219,7 @@ class DeployAndSetOps {
     );
 
     txOptions['data'] = txObject.encodeABI();
+    txOptions['to'] = oThis.contractAddress;
 
     // Submit transaction.
     let submitTransactionResponse = await new SubmitTransaction({
