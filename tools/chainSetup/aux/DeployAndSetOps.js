@@ -68,6 +68,13 @@ class DeployAndSetOps {
     });
   }
 
+  /**
+   * Async perform
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
   async _asyncPerform() {
     const oThis = this;
 
@@ -81,7 +88,7 @@ class DeployAndSetOps {
   }
 
   /**
-   * Fetch deployer address
+   * Fetch relevant addresses.
    *
    * @return {Promise<never>}
    *

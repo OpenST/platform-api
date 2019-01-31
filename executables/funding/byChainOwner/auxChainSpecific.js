@@ -243,7 +243,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     // Fetch all addresses associated to auxChainId.
     let fetchAddrRsp = await new ChainAddressModel().fetchAddresses({
       chainId: auxChainId,
-      kinds: [chainAddressConstants.adminKind, chainAddressConstants.deployerKind]
+      kinds: [chainAddressConstants.adminKind, chainAddressConstants.deployerKind, chainAddressConstants.ownerKind]
     });
 
     oThis.kindToAddressMap = fetchAddrRsp.data.address;
@@ -339,6 +339,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     // Fetch addresses from map.
     const auxChainAdminAddress = oThis.kindToAddressMap[chainAddressConstants.adminKind],
       auxChainDeployerAddress = oThis.kindToAddressMap[chainAddressConstants.deployerKind],
+      auxChainOwnerAddress = oThis.kindToAddressMap[chainAddressConstants.ownerKind],
       auxChainFacilitatorAddress = oThis.kindToAddressMap[chainAddressConstants.facilitator];
 
     for (let address in currentAddressBalances) {
@@ -398,7 +399,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
 
       if (toAddress && addressMinimumBalance) {
         let params = {
-          from: oThis.chainOwnerAddress,
+          from: auxChainOwnerAddress,
           to: toAddress,
           amountInWei: basicHelper.convertToWei(addressMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
