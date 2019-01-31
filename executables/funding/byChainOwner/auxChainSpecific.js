@@ -239,12 +239,19 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     // Fetch all addresses associated to auxChainId.
     let fetchAddrRsp = await new ChainAddressModel().fetchAddresses({
       chainId: auxChainId,
-      kinds: [chainAddressConstants.facilitator, chainAddressConstants.adminKind, chainAddressConstants.deployerKind]
+      kinds: [chainAddressConstants.adminKind, chainAddressConstants.deployerKind]
     });
 
     oThis.kindToAddressMap = fetchAddrRsp.data.address;
 
-    oThis.facilitatorAddresses.push(oThis.kindToAddressMap[chainAddressConstants.facilitator]);
+    let kind = chainAddressConstants.invertedKinds[chainAddressConstants.facilitator],
+      whereClause = ['chain_id = ? AND aux_chain_id = ? AND kind = ?', oThis.originChainId, auxChainId, kind],
+      facilitatorAddrRsp = await new ChainAddressModel()
+        .select('address')
+        .where(whereClause)
+        .fire();
+
+    oThis.facilitatorAddresses.push(facilitatorAddrRsp[0].address);
 
     // Fetch aux funder addresses on the auxChainId.
 
@@ -322,10 +329,12 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         addressMinimumBalance = '',
         addressCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[address]);
 
+      let minimumBalanceRequiredForAddress = null;
+
       switch (address) {
         // Admin kind.
         case auxChainAdminAddress:
-          let minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
+          minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
             fundingConfig[chainAddressConstants.adminKind]
           );
           if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
@@ -361,6 +370,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
           minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
             fundingConfig[tokenAddressConstants.auxFunderAddressKind]
           );
+
           if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
             toAddress = address;
             addressMinimumBalance = minimumBalanceRequiredForAddress;
@@ -437,7 +447,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
 
       const transferEth = new TransferEth({
         originChainId: oThis.originChainId,
-        transferIdentifier: oThis.transferIdentifiers
+        transferDetails: oThis.transferIdentifiers
       });
 
       await transferEth.perform();
