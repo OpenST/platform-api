@@ -22,7 +22,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '8': cronProcessesConstant.fundStPrime,
     '9': cronProcessesConstant.fundByChainOwnerOriginChainSpecific,
     '10': cronProcessesConstant.fundByChainOwnerAuxChainSpecific,
-    '11': cronProcessesConstant.fundBySealerAuxChainSpecific
+    '11': cronProcessesConstant.fundBySealerAuxChainSpecific,
+    '12': cronProcessesConstant.fundByTokenAuxFunderAuxChainSpecific
   },
   statuses = {
     '1': cronProcessesConstant.runningStatus,
