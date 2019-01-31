@@ -195,6 +195,24 @@ class User extends Base {
   }
 
   /**
+   * insertShard - Inserts a new user in user shards
+   *
+   * @param params
+   *
+   * @return {string}
+   */
+  async insertUser(params) {
+    const oThis = this,
+      shortNameForTokenId = oThis.shortNameFor('tokenId'),
+      shortNameForUserId = oThis.shortNameFor('userId');
+
+    let conditionalExpression =
+      'attribute_not_exists(' + shortNameForTokenId + ') AND attribute_not_exists(' + shortNameForUserId + ')';
+
+    return oThis.putItem(params, conditionalExpression);
+  }
+
+  /**
    * afterUpdate - Method to implement any after update actions
    *
    * @return {Promise<void>}
