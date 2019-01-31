@@ -254,7 +254,6 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     let facilitatorAddress = facilitatorAddrRsp[0].address;
 
     oThis.kindToAddressMap[chainAddressConstants.facilitator] = facilitatorAddress;
-
     oThis.facilitatorAddresses.push(facilitatorAddress);
 
     // Fetch aux funder addresses on the auxChainId.
@@ -308,7 +307,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     }
 
     // Associate addresses to auxChainId.
-    oThis.kindToAddressMap[[tokenAddressConstants.auxFunderAddressKind]] = auxFunderAddresses;
+    oThis.kindToAddressMap[tokenAddressConstants.auxFunderAddressKind] = auxFunderAddresses;
 
     return chainAddresses;
   }
@@ -371,7 +370,8 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
           }
           break;
 
-        // Aux funder address kind.
+        // Aux funder address kind. We are not using 'case' for auxFunderAddressKind because auxFunderAddressKind
+        // is an array of auxFunder addresses.
         default:
           minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
             fundingConfig[tokenAddressConstants.auxFunderAddressKind]
