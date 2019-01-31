@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Devices model.
+ * Device model.
  *
  * @module app/models/ddb/sharded/Device.js
  */
@@ -184,6 +184,7 @@ class Device extends Base {
    * @param {String} params.deviceUuid
    * @param {String} params.deviceName
    * @param {Number} params.status
+   * @param {Number} params.updateTimestamp
    * @returns {*|promise<result>}
    */
   create(params) {
