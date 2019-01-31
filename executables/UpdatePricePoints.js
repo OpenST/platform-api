@@ -3,95 +3,160 @@
  * This script will update price oracle price points using ost-price-oracle npm package.
  * This fetches OST Current price in given currency from coin market cap and sets it in price oracle.
  *
- * Usage: node executables/UpdatePricePoints.js chainId
- *
- * Command Line Parameters Description:
- * groupId: Chain id to fetch the price oracles from strategy
- *
- * Example: node executables/UpdatePricePoints.js chainId
+ * Usage: node executables/UpdatePricePoints.js --cronProcessId 13
  *
  * @module executables/UpdatePricePoints
+ *
+ * This cron expects auxChainId and quoteCurrency in cron params. quoteCurrency is an optional parameter.
  */
 
-const rootPrefix = '..';
+const program = require('commander');
 
-//Always Include Module overrides First
-require(rootPrefix + '/module_overrides/index');
-
-const conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
+const rootPrefix = '..',
+  CronBase = require(rootPrefix + '/executables/CronBase'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  OSTBase = require('@openstfoundation/openst-base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
+  UpdatePricePoints = require(rootPrefix + '/app/services/conversionRates/UpdatePricePoints');
 
-const InstanceComposer = OSTBase.InstanceComposer;
+program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-require(rootPrefix + '/app/services/conversionRates/UpdatePricePoints');
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log('    node executables/UpdatePricePoints.js --cronProcessId 13');
+  logger.log('');
+  logger.log('');
+});
 
-const args = process.argv,
-  chainId = args[2];
+if (!program.cronProcessId) {
+  program.help();
+  process.exit(1);
+}
 
-let configStrategy = {};
+/**
+ * Class to update price oracle price points periodically.
+ *
+ * @class
+ */
+class UpdatePriceOraclePricePoints extends CronBase {
+  /**
+   * Class to update price oracle price points periodically.
+   *
+   * @param {Object} params
+   * @param {Number} params.cronProcessId
+   *
+   * @augments CronBase
+   *
+   * @constructor
+   */
+  constructor(params) {
+    super(params);
 
-// Usage demo.
-const usageDemo = function() {
-  logger.log('usage:', 'node executables/update_price_oracle_price_points.js chainId');
-  logger.log('* config Strategy FilePath is the path to the file which is storing the config strategy info.');
-};
+    const oThis = this;
 
-// Validate and sanitize the command line arguments.
-const validateAndSanitize = function() {
-  if (!chainId) {
-    logger.error('Chain id is not passed in the input.');
-    usageDemo();
-    process.exit(1);
+    oThis.canExit = true;
   }
-};
 
-// Validate and sanitize the input params.
-validateAndSanitize();
+  /**
+   * Cron kind
+   *
+   * @return {String}
+   *
+   * @private
+   */
+  get _cronKind() {
+    return cronProcessesConstants.updatePriceOraclePricePoints;
+  }
 
-class UpdatePriceOraclePricePoints {
-  async perform() {
+  /**
+   * Validate and sanitize
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _validateAndSanitize() {
+    const oThis = this;
+
+    if (!oThis.auxChainId) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_upp_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { auxChainId: oThis.auxChainId }
+        })
+      );
+    }
+  }
+
+  /**
+   * Pending tasks done
+   *
+   * @return {Boolean}
+   *
+   * @private
+   */
+  _pendingTasksDone() {
+    const oThis = this;
+
+    return oThis.canExit;
+  }
+
+  /**
+   * Start the cron.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _start() {
+    const oThis = this;
+
+    logger.step('Validating quoteCurrency.');
+    oThis._validateQuoteCurrency();
+
+    logger.step('Update price points.');
+    await oThis._updatePricePoint();
+
+    logger.step('Cron completed.');
+  }
+
+  /**
+   * Validate if quoteCurrency is valid.
+   *
+   * @return {Promise<never> | Promise<any>}
+   *
+   * @private
+   */
+  _validateQuoteCurrency() {
+    const oThis = this;
+
+    if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
+      logger.error('Please pass a valid quote currency.');
+      return Promise.reject();
+    }
+  }
+
+  async _updatePricePoint() {
     const oThis = this,
-      strategyByGroupHelperObj = new ConfigStrategyHelper(chainId),
-      configStrategyResp = await strategyByGroupHelperObj.getComplete();
+      updatePricePoints = new UpdatePricePoints({
+        auxChainId: oThis.auxChainId,
+        quoteCurrency: oThis.quoteCurrency
+      });
 
-    configStrategy = configStrategyResp.data;
-
-    let instanceComposer = new InstanceComposer(configStrategy);
-
-    if (Object.keys(configStrategy.auxConstants.priceOracles).length === 0) {
-      throw 'Price oracle contracts not defined';
-    }
-
-    for (let baseCurrency in configStrategy.auxConstants.priceOracles) {
-      logger.log('baseCurrency--------', configStrategy.auxConstants.priceOracles[baseCurrency]);
-
-      if (baseCurrency == conversionRateConstants.OST) {
-        let quoteCurrencies = configStrategy.auxConstants.priceOracles[baseCurrency];
-
-        for (let quoteCurrency in quoteCurrencies) {
-          if (quoteCurrency == conversionRateConstants.USD) {
-            logger.step("Updating quote currency '" + quoteCurrency + "' in base currency '" + baseCurrency + "'");
-
-            let ostPriceUpdater = instanceComposer.getShadowedClassFor(coreConstants.icNameSpace, 'UpdatePricePoints');
-            await new ostPriceUpdater({ currency: conversionRateConstants.USD }).perform();
-
-            process.exit(0);
-          } else {
-            throw "Unhandled quote currency '" + quoteCurrency + "' in base currency '" + baseCurrency + "'";
-          }
-        }
-      } else {
-        throw "Unhandled base currency '" + baseCurrency + "'";
-      }
-    }
+    await updatePricePoints.perform();
   }
 }
 
-// perform action
-const UpdatePriceOraclePricePointObj = new UpdatePriceOraclePricePoints();
-UpdatePriceOraclePricePointObj.perform().then(function(r) {
-  process.exit(0);
-});
+// Perform action
+new UpdatePriceOraclePricePoints({ cronProcessId: +program.cronProcessId })
+  .perform()
+  .then(function() {
+    process.exit(0);
+  })
+  .catch(function() {
+    process.exit(1);
+  });

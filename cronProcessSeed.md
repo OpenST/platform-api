@@ -225,6 +225,24 @@ function addCronProcessEntries() {
          })();
                  
        promiseArray.push(p12);
+       
+      // Create entry for updatePriceOraclePricePoints.
+       let p13 =  (function updatePriceOraclePricePoints() {
+         let cronParams = '{"auxChainId": 2000}',
+          insertParams = {
+           id: 13,
+           kind: 'updatePriceOraclePricePoints',
+           ip_address: '127.0.0.1',
+           chain_id: 2000,
+           params: cronParams,
+           status: 'stopped'
+          };
+          let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+          cronProcessObj = new CronProcessModel();
+          cronProcessObj.insertRecord(insertParams);
+         })();
+                 
+       promiseArray.push(p13);       
       
     return Promise.all(promiseArray);
 }

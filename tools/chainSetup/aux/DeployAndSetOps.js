@@ -99,6 +99,7 @@ class DeployAndSetOps {
 
     let requiredAddressKinds = [chainAddressConst.priceOracleOpsAddressKind, chainAddressConst.ownerKind];
 
+    // TODO: Fetch chainOwnerKind instead of ownerKind.
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
       kinds: requiredAddressKinds
