@@ -291,4 +291,11 @@ class FundBySealerAuxChainSpecific extends CronBase {
 
 logger.log('Starting cron to fund by sealer to chain owner.');
 
-new FundBySealerAuxChainSpecific({ cronProcessId: +program.cronProcessId }).perform();
+new FundBySealerAuxChainSpecific({ cronProcessId: +program.cronProcessId })
+  .perform()
+  .then(function() {
+    process.exit(0);
+  })
+  .catch(function() {
+    process.exit(1);
+  });

@@ -312,4 +312,11 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
 
 logger.log('Starting cron to fund eth by chainOwner.');
 
-new FundByChainOwnerOriginChainSpecific({ cronProcessId: +program.cronProcessId }).perform();
+new FundByChainOwnerOriginChainSpecific({ cronProcessId: +program.cronProcessId })
+  .perform()
+  .then(function() {
+    process.exit(0);
+  })
+  .catch(function() {
+    process.exit(1);
+  });
