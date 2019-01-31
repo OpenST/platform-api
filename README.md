@@ -237,12 +237,6 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 > node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
-* Start Eth funding cron
-```bash
-> source set_env_vars.sh
-> node executables/fund/eth.js --cronProcessId 9
-```
-
 //TODO: change amountToStake to amountToStakeInWei
 * St' Stake and Mint
 ```bash
@@ -273,61 +267,6 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 * Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
 ```bash
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
-```
-
-* Start ST prime funding cron
-```bash
-> source set_env_vars.sh
-> node executables/fund/stPrime.js --cronProcessId 10
-```
-
-### Fund OST Prime:
-
-```bash
-let config = null;
-rootPrefix = '.'
-coreConstants = require(rootPrefix + '/config/coreConstants')
-
-a = require('./helpers/configStrategy/ByChainId.js')
-b = new a(2000,2000);
-b.getComplete().then(function(r) {config = r.data});
-
-OSTBase = require('@openstfoundation/openst-base')
-InstanceComposer = OSTBase.InstanceComposer
-ic = new InstanceComposer(config)
-
-require('./lib/fund/oStPrime/ByChainOwner.js')
-
-FundOstPrimeByChainOwner = ic.getShadowedClassFor(coreConstants.icNameSpace,'FundOstPrimeByChainOwner');
-
-* To Deployer
-
-deployerAddress = '0x1d1671b27c9b2d6043b943a5c4b06aa8c921ee43'
-
-a = new FundOstPrimeByChainOwner({toAddress: deployerAddress, transferValueInWei: '100000000000000000000'})
-
-a.perform().then(console.log)
-
-* To Org Admin : For syncing state root & BT stake & Mint -> adminKind of aux
-
-adminAddress = '0x8de016da057ce082f56f3fa3a0899c1a9326531b'
-
-a = new FundOstPrimeByChainOwner({toAddress: adminAddress, transferValueInWei: '50000000000000000000'})
-
-a.perform().then(console.log)
-
-```
-
-### Fund Eth for economy setup:
-
-* Fund origin chain deployer:
-```bash
-transferAmountOnChain = require('./tools/helpers/TransferAmountOnChain.js');
-toAddress = '0xf8d64f328448ae5813e8057a3c81c6bdec0ce420' // origin deployer
-chainId = 1000 
-provider = 'ws://127.0.0.1:8546'
-amountInWei = 1000000000000000000 // 1 eth
-transferAmountOnChain._fundAddressWithEth(toAddress, chainId, provider, amountInWei).then(console.log)
 ```
 
 

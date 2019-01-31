@@ -17,7 +17,10 @@ const rootPrefix = '../..',
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -101,7 +104,19 @@ class Finalizer extends PublisherBase {
    */
   async _validateChainId() {
     // Fetch config strategy by chainId.
-    const oThis = this;
+    const oThis = this,
+      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+      configStrategyResp = await strategyByChainHelperObj.getComplete();
+
+    if (configStrategyResp.isFailure()) {
+      logger.error('Could not fetch configStrategy. Exiting the process.');
+      process.emit('SIGINT');
+    }
+
+    const configStrategy = configStrategyResp.data;
+
+    // Its an origin chain
+    oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
 
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
@@ -132,7 +147,7 @@ class Finalizer extends PublisherBase {
     const oThis = this;
 
     // Initialize BlockParser.
-    oThis.Finalizer = blockScannerObj.block.Finalize;
+    oThis.BlockScannerFinalizer = blockScannerObj.block.Finalize;
     oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
     oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
 
@@ -147,16 +162,12 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    let finalizer = new oThis.Finalizer({
-      chainId: oThis.chainId,
-      blockDelay: oThis.blockDelay
-    });
-
     oThis.openSTNotification = await sharedRabbitMqProvider.getInstance({
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });
 
+    let waitTime = 0;
     while (true) {
       // SIGINT Received
       if (oThis.stopPickingUpNewWork) {
@@ -165,28 +176,56 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       oThis.dataToDelete = [];
+      if (waitTime > 2 * 30 * 5) {
+        logger.notify('finalizer_stuck', 'Finalizer is stuck for more than 5 minutes for chainId: ', +oThis.chainId);
+      }
 
-      let finalizerResponse = await finalizer.perform();
+      let finalizer = new oThis.BlockScannerFinalizer({
+        chainId: oThis.chainId,
+        blockDelay: oThis.blockDelay
+      });
 
-      let currentBlockNotProcessable = !finalizerResponse.data.blockProcessable;
+      let blockToProcess = await finalizer.getBlockToFinalize();
 
-      if (currentBlockNotProcessable) {
-        logger.log('===Waiting for 2 secs');
+      let pendingTasks = await new BlockParserPendingTask().pendingBlockTasks(oThis.chainId, blockToProcess);
+      if (pendingTasks.length > 0) {
+        logger.log('=== Transactions not yet completely parsed for block: ', blockToProcess);
+        logger.log('=== Waiting for 2 secs');
+        waitTime += 2;
         await oThis.sleep(2000);
       } else {
-        if (finalizerResponse.data.processedBlock) {
-          await oThis._checkAfterReceiptTasksAndPublish(finalizerResponse.data);
+        waitTime = 0;
+        let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
+        if (validationResponse.isSuccess() && validationResponse.data.blockProcessable) {
+          // Intersect pending transactions for Origin chain
+          finalizer.currentBlockInfo.transactions = await oThis._intersectPendingTransactions(
+            finalizer.currentBlockInfo.transactions
+          );
+          let finalizerResponse = await finalizer.finalizeBlock();
+          if (finalizerResponse.isFailure()) {
+            logger.log('=== Finalization failed for block: ', blockToProcess);
+            logger.log('=== Waiting for 2 secs');
+            await oThis.sleep(2000);
+          } else {
+            if (finalizerResponse.data.processedBlock) {
+              await oThis._checkAfterReceiptTasksAndPublish(finalizerResponse.data);
 
-          await oThis._cleanupPendingTransactions();
+              await oThis._cleanupPendingTransactions();
 
-          await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
+              await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
 
-          logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
+              logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
 
-          await oThis._publishBlock(finalizerResponse.data.processedBlock);
+              await oThis._publishBlock(finalizerResponse.data.processedBlock);
+            }
+            logger.log('===Waiting for 10 milli-secs');
+            await oThis.sleep(10);
+          }
+        } else {
+          logger.log('=== Block not processable yet. ');
+          logger.log('=== Waiting for 2 secs');
+          await oThis.sleep(2000);
         }
-        logger.log('===Waiting for 10 milli-secs');
-        await oThis.sleep(10);
       }
 
       oThis.canExit = true;
@@ -393,6 +432,44 @@ class Finalizer extends PublisherBase {
 
   get _cronKind() {
     return cronProcessesConstants.blockFinalizer;
+  }
+
+  /**
+   * This method intersect block transactions with Pending transactions for Origin chain.
+   *
+   * @param {Array} blockTransactions
+   *
+   * @returns {Promise<Array>}
+   */
+  async _intersectPendingTransactions(blockTransactions) {
+    const oThis = this;
+
+    // In case of origin chain add transactions only if they are present in Pending transactions.
+    if (oThis.isOriginChain) {
+      let pendingTransactionModel = new oThis.PendingTransactionModel({
+          chainId: oThis.chainId
+        }),
+        transactionHashes = blockTransactions,
+        intersectData = [];
+      while (true) {
+        let batchedTransactionHashes = transactionHashes.splice(0, 50);
+        if (batchedTransactionHashes.length <= 0) {
+          break;
+        }
+        let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
+            oThis.chainId,
+            batchedTransactionHashes
+          ),
+          pendingTransactionsMap = pendingTransactionRsp.data;
+
+        for (let txHash in pendingTransactionsMap) {
+          intersectData.push(txHash);
+        }
+      }
+      return Promise.resolve(intersectData);
+    } else {
+      return Promise.resolve(blockTransactions);
+    }
   }
 }
 

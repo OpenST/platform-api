@@ -14,7 +14,8 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3');
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  Web3EthAccount = require('web3-eth-accounts');
 
 class ECRecover {
   /**
@@ -69,7 +70,7 @@ class ECRecover {
 
     logger.debug('provider------', provider);
 
-    let accountAddress = await web3Instance.eth.personal.ecRecover(oThis.messageToSign, oThis.personalSign);
+    let accountAddress = new Web3EthAccount('').recover(oThis.messageToSign, oThis.personalSign);
 
     if (!accountAddress) {
       return Promise.resolve(

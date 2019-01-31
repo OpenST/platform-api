@@ -149,8 +149,6 @@ class BlockParser extends PublisherBase {
       ? configStrategy.auxGeth.blockGenerationTime
       : configStrategy.originGeth.blockGenerationTime;
 
-    console.log('chainId--------', oThis.chainId, 'blockGenerationTime------', oThis.blockGenerationTime);
-
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
 
@@ -178,8 +176,6 @@ class BlockParser extends PublisherBase {
     const oThis = this;
 
     let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
-
-    logger.log('====Warming up geth pool for providers====', oThis.wsProviders);
 
     for (let index = 0; index < oThis.wsProviders.length; index++) {
       let provider = oThis.wsProviders[index];
@@ -255,9 +251,6 @@ class BlockParser extends PublisherBase {
           currentBlock = blockParserData.currentBlock,
           nextBlockToProcess = blockParserData.nextBlockToProcess,
           transactions = rawCurrentBlock.transactions || [];
-
-        console.log('currentBlock----', currentBlock);
-        console.log('nextBlockToProcess----', nextBlockToProcess);
 
         // If current block is not same as nextBlockToProcess, it means there
         // are more blocks to process; so sleep time is less.
