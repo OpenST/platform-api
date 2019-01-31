@@ -1,13 +1,9 @@
 'use strict';
 
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   stakerWhitelistedAddressConstants = require(rootPrefix + '/lib/globalConstant/stakerWhitelistedAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -144,18 +140,8 @@ class StakerWhitelistedAddress extends ModelBase {
    */
 
   static async flushCache(params) {
-    let configStrategyHelper = new ConfigStrategyHelper(params.clientId),
-      configStrategyRsp = await configStrategyHelper.get();
-
-    let ic = new InstanceComposer(configStrategyRsp.data);
-
-    require(rootPrefix + '/lib/cacheManagement/StakerWhitelistedAddress');
-
-    const StakerWhitelistedAddressCache = ic.getShadowedClassFor(
-      coreConstants.icNameSpace,
-      'StakerWhitelistedAddressCache'
-    );
-
+    const StakerWhitelistedAddressCache = require(rootPrefix +
+      '/lib/kitSaasSharedCacheManagement/StakerWhitelistedAddress');
     return new StakerWhitelistedAddressCache({
       tokenId: params.tokenId,
       address: params.stakerAddress

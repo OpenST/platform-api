@@ -22,9 +22,8 @@ const rootPrefix = '../../..',
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
+  StakerWhitelistedAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/StakerWhitelistedAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
-
-require(rootPrefix + '/lib/cacheManagement/StakerWhitelistedAddress');
 
 class GatewayComposer {
   constructor(params) {
@@ -104,12 +103,7 @@ class GatewayComposer {
    */
   async getGatewayComposerContractAddress() {
     const oThis = this;
-
-    //
-    let stakerWhitelistedCacheKlass = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'StakerWhitelistedAddressCache'),
-      stakerWhitelistedCacheObj = new stakerWhitelistedCacheKlass({
+    let stakerWhitelistedCacheObj = new StakerWhitelistedAddressCache({
         tokenId: oThis.tokenId,
         address: oThis.stakerAddress
       }),
