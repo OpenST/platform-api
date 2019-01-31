@@ -6,7 +6,7 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
-require(rootPrefix + '/app/services/user/DeviceManager');
+//require(rootPrefix + '/app/services/user/DeviceManager');
 
 /* Get user device managers*/
 router.get('/:user_id', function(req, res, next) {
