@@ -243,7 +243,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 > source set_env_vars.sh
 > node
 
-  beneficiary -> ownerKind of aux chain
+  beneficiary -> chainOwnerKind
   facilitator -> chainOwnerKind of origin chain
   stakerAddress -> chainOwnerKind of origin chain
   
