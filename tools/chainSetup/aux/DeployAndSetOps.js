@@ -77,7 +77,7 @@ class DeployAndSetOps {
 
     await oThis._deployPriceOracleContract();
 
-    await oThis._setWeb3Instance(oThis.adminAddress);
+    await oThis._setWeb3Instance(oThis.priceOracleOpsAddressKindKind);
 
     await oThis._setOpsContract();
   }
@@ -92,7 +92,7 @@ class DeployAndSetOps {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.adminKind];
+    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.priceOracleOpsAddressKindKind];
 
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
@@ -100,7 +100,7 @@ class DeployAndSetOps {
     });
 
     oThis.deployerAddress = chainAddressRsp.data.address[chainAddressConst.deployerKind];
-    oThis.adminAddress = chainAddressRsp.data.address[chainAddressConst.adminKind];
+    oThis.priceOracleOpsAddressKind = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKindKind];
   }
 
   /**
@@ -178,7 +178,7 @@ class DeployAndSetOps {
    */
   async _setOpsContract() {
     const oThis = this,
-      nonceRsp = await oThis._fetchNonce(oThis.adminAddress);
+      nonceRsp = await oThis._fetchNonce(oThis.priceOracleOpsAddressKind);
 
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
@@ -189,7 +189,7 @@ class DeployAndSetOps {
 
     let tx = deployAndSetInOpsHelper.setOpsAddressTx(
       oThis.web3Instance,
-      oThis.adminAddress,
+      oThis.priceOracleOpsAddressKind,
       oThis.contractAddress,
       txOptions
     );
