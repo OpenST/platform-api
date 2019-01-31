@@ -97,18 +97,13 @@ class DeployAndSetOps {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [
-      chainAddressConst.deployerKind,
-      chainAddressConst.priceOracleOpsAddressKind,
-      chainAddressConst.ownerKind
-    ];
+    let requiredAddressKinds = [chainAddressConst.priceOracleOpsAddressKind, chainAddressConst.ownerKind];
 
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
       kinds: requiredAddressKinds
     });
 
-    oThis.deployerAddress = chainAddressRsp.data.address[chainAddressConst.deployerKind];
     oThis.priceOracleOpsAddress = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
     oThis.ownerAddress = chainAddressRsp.data.address[chainAddressConst.ownerKind];
   }
@@ -148,15 +143,15 @@ class DeployAndSetOps {
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
       gas: '579067',
-      value: '0',
-      from: oThis.deployerAddress,
+      value: contractConstants.zeroValue,
+      from: oThis.ownerAddress,
       chainId: oThis.auxChainId
     };
 
     // Get raw transaction object.
     let txObject = deployAndSetInOpsHelper.deployRawTx(
       oThis.web3Instance,
-      oThis.deployerAddress,
+      oThis.ownerAddress,
       oThis.baseCurrency,
       oThis.quoteCurrency,
       txOptions
@@ -204,9 +199,10 @@ class DeployAndSetOps {
     // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '23657',
-      value: '0',
+      gas: '50000',
+      value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
+      to: oThis.contractAddress,
       chainId: oThis.auxChainId
     };
 
@@ -219,7 +215,6 @@ class DeployAndSetOps {
     );
 
     txOptions['data'] = txObject.encodeABI();
-    txOptions['to'] = oThis.contractAddress;
 
     // Submit transaction.
     let submitTransactionResponse = await new SubmitTransaction({

@@ -12,13 +12,15 @@ const requestPromise = require('request-promise'),
 
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   OstPricePointsCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/OstPricePoints'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate');
@@ -34,7 +36,7 @@ class UpdatePricePoints {
    *
    * @param {Object} params
    * @param {String/Number} params.auxChainId
-   * @param {String} params.currency: Currency to fetch price in. eg: (USD or EUR)
+   * @param {String} params.quoteCurrency: Currency to fetch price in. eg: (USD or EUR)
    *
    * @constructor
    */
@@ -42,7 +44,7 @@ class UpdatePricePoints {
     const oThis = this;
 
     oThis.auxChainId = params.auxChainId;
-    oThis.quoteCurrency = params.currency || conversionRateConstants.USD;
+    oThis.quoteCurrency = params.quoteCurrency || conversionRateConstants.USD;
 
     oThis.currentTime = Math.floor(new Date().getTime() / 1000);
     oThis.currentOstValue = null;
@@ -80,7 +82,7 @@ class UpdatePricePoints {
   async asyncPerform() {
     const oThis = this;
 
-    // Parse Coinmarketcap api response
+    // Parse CoinMarketCap API response
     await oThis._fetchPriceFromAPI();
 
     // Insert current ost value in database
@@ -102,20 +104,20 @@ class UpdatePricePoints {
 
     oThis.dbRowId = insertResponse.insertId;
 
+    // Fetch all relevant addresses.
     await oThis._fetchAddress();
 
+    // Create web3Instance.
     await oThis._setWeb3Instance();
 
     // Set current price in contract
     let contractResponse = await oThis._setPriceInContract();
     if (contractResponse.isFailure()) {
       logger.notify('a_s_cr_upp_2', 'Error while setting price in contract.', contractResponse);
-
       return;
     }
-    let transactionHash = contractResponse.data.transactionHash;
 
-    //let transactionHash = '0x6a40f1922d17d1e0e223f890c71d7bfcb47bed57a9d2dfb0c7198f5a44a91085';
+    let transactionHash = contractResponse.data.transactionHash;
 
     // Update transaction hash
     let updateTransactionResponse = await new CurrencyConversionRateModel().updateTransactionHash(
@@ -126,8 +128,6 @@ class UpdatePricePoints {
       logger.error('Error while updating transactionHash in table.');
       return Promise.reject();
     }
-
-    logger.debug(updateTransactionResponse);
 
     // Keep on checking for a price in contract whether its set to new value.
     await oThis._compareContractPrice();
@@ -146,8 +146,6 @@ class UpdatePricePoints {
 
     // Make CoinMarketCap API call.
     let response = await requestPromise(url);
-
-    logger.debug('response-----', response);
 
     try {
       let ostValue = JSON.parse(response)[0];
@@ -185,13 +183,13 @@ class UpdatePricePoints {
    */
   async _fetchAddress() {
     const oThis = this,
-      fetchAddressRsp = await new ChainAddressModel.fetchAddresses({
+      fetchAddressRsp = await new ChainAddressModel().fetchAddresses({
         chainId: oThis.auxChainId,
-        kind: [chainAddressConst.adminKind, chainAddressConst.priceOracleContractKind]
+        kinds: [chainAddressConst.priceOracleOpsAddressKind, chainAddressConst.priceOracleContractKind]
       });
 
     if (fetchAddressRsp.isSuccess()) {
-      oThis.adminAddress = fetchAddressRsp.data.address[chainAddressConst.adminKind];
+      oThis.priceOracleOpsAddress = fetchAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
       oThis.contractAddress = fetchAddressRsp.data.address[chainAddressConst.priceOracleContractKind];
     }
   }
@@ -206,9 +204,11 @@ class UpdatePricePoints {
   async _setWeb3Instance() {
     const oThis = this;
 
-    let wsProvider = oThis._configStrategyObject.chainWsProvider(oThis.auxChainId, 'readWrite');
-    oThis.SignerWeb3Instance = new SignerWeb3Provider(wsProvider, oThis.adminAddress);
-    oThis.web3Instance = await oThis.SignerWeb3Instance.getInstance();
+    let response = await chainConfigProvider.getFor([oThis.auxChainId]),
+      auxChainConfig = response[oThis.auxChainId];
+
+    oThis.wsProvider = auxChainConfig.auxGeth.readWrite.wsProviders[0];
+    oThis.web3Instance = web3Provider.getInstance(oThis.wsProvider).web3WsProvider;
   }
 
   /**
@@ -216,7 +216,7 @@ class UpdatePricePoints {
    *
    * @return {Promise<Result>}
    */
-  _setPriceInContract() {
+  async _setPriceInContract() {
     const oThis = this;
 
     logger.debug('Price Input for contract:' + oThis.currentOstValue.conversionRate);
@@ -228,7 +228,7 @@ class UpdatePricePoints {
     logger.debug('Price Point in Wei for contract:' + amountInWei);
 
     oThis.auxGasPrice = contractConstants.auxChainGasPrice;
-    oThis.gas = contractConstants.transferOstPrimeGas;
+    oThis.gas = '50000';
 
     // Get transaction object.
     let txResponse = new PriceOracleHelper(oThis.web3Instance).setPriceTx(
@@ -243,33 +243,34 @@ class UpdatePricePoints {
     // Prepare params for transaction.
     const encodedABI = txResponse.encodedABI,
       txParams = {
-        from: oThis.adminAddress,
+        from: oThis.priceOracleOpsAddress,
         to: oThis.contractAddress,
+        value: coreConstants.zeroValue,
         data: encodedABI,
         gas: oThis.gas,
         gasPrice: oThis.auxGasPrice
       };
 
-    // Set price data on contract.
-    let transactionHash = '';
-    return oThis.web3Instance.eth
-      .sendTransaction(txParams, function(error) {
-        if (error) {
-          logger.error('sendTxAsyncFromAddr :: sendTransaction :: error :: \n\t', error);
-          return Promise.reject(error);
-        }
-      })
-      .on('transactionHash', (txHash) => {
-        transactionHash = txHash;
-        logger.log('transactionHash: ', txHash);
-        return Promise.resolve(txHash);
-      })
-      .on('receipt', function(receipt) {
-        logger.win('\t - Receipt:', JSON.stringify(receipt), '\n');
-      })
-      .then(function() {
-        return Promise.resolve(responseHelper.successWithData({ transactionHash: transactionHash }));
-      });
+    // Submit transaction.
+    let submitTransactionResponse = await new SubmitTransaction({
+      chainId: oThis.auxChainId,
+      txOptions: txParams,
+      provider: oThis.wsProvider,
+      waitTillReceipt: 1
+    }).perform();
+
+    if (submitTransactionResponse && submitTransactionResponse.isFailure()) {
+      return Promise.reject(submitTransactionResponse);
+    }
+
+    // Fetch required attributes.
+    const transactionHash = submitTransactionResponse.data.transactionHash,
+      transactionReceipt = submitTransactionResponse.data.transactionReceipt;
+
+    logger.win('\t Transaction hash: ', transactionHash);
+    logger.win('\t Transaction receipt: ', transactionReceipt);
+
+    return Promise.resolve(responseHelper.successWithData({ transactionHash: transactionHash }));
   }
 
   /**
@@ -283,8 +284,8 @@ class UpdatePricePoints {
     const oThis = this;
 
     let chainId = oThis.auxChainId,
-      conversionRate = oThis.currentOstValue.conversionRate,
       dbRowId = oThis.dbRowId,
+      conversionRate = oThis.currentOstValue.conversionRate,
       attemptCountForVerifyPriceInContract = 1;
 
     return new Promise(function(onResolve, onReject) {
@@ -296,7 +297,7 @@ class UpdatePricePoints {
           return onReject(`dbRowId: ${dbRowId} maxRetryCountForVerifyPriceInContract reached`);
         }
 
-        let priceInDecimal = new PriceOracleHelper().decimalPrice(oThis.web3Instance, oThis.contractAddress);
+        let priceInDecimal = await new PriceOracleHelper().decimalPrice(oThis.web3Instance, oThis.contractAddress);
 
         if (priceInDecimal.isFailure()) {
           logger.notify('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal);
@@ -329,36 +330,6 @@ class UpdatePricePoints {
       };
       loopCompareContractPrice();
     });
-  }
-
-  /**
-   * Config strategy
-   *
-   * @return {Object}
-   *
-   * @private
-   */
-  get _configStrategy() {
-    const oThis = this;
-
-    return oThis.ic().configStrategy;
-  }
-
-  /**
-   * Object of config strategy klass
-   *
-   * @return {Object}
-   *
-   * @private
-   */
-  get _configStrategyObject() {
-    const oThis = this;
-
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
-
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
-
-    return oThis.configStrategyObj;
   }
 }
 
