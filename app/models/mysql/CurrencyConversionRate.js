@@ -5,8 +5,8 @@
  * @module app/models/mysql/CurrencyConversionRate
  */
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -28,9 +28,10 @@ class CurrencyConversionRateModel extends ModelBase {
   /**
    * Update transaction hash for a record
    *
-   * @param id
-   * @param transactionHash
-   * @return
+   * @param {Number} id
+   * @param {String} transactionHash
+   *
+   * @return {*|void}
    */
   updateTransactionHash(id, transactionHash) {
     const oThis = this;
@@ -44,9 +45,10 @@ class CurrencyConversionRateModel extends ModelBase {
   /**
    * Update Status for a record
    *
-   * @param id
-   * @param status
-   * @return
+   * @param {Number} id
+   * @param {String} status
+   *
+   * @return {*|void}
    */
   updateStatus(id, status) {
     const oThis = this;
@@ -63,11 +65,12 @@ class CurrencyConversionRateModel extends ModelBase {
   }
 
   /**
+   * Get last active rates.
    *
-   * @param chainId
-   * @param currency
+   * @param {Number} chainId
+   * @param {String} currency
    *
-   * @return
+   * @return {*|void}
    */
   getLastActiveRates(chainId, currency) {
     const oThis = this;
