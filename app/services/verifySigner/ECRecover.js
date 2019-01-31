@@ -82,6 +82,8 @@ class ECRecover {
       );
     }
 
+    accountAddress = accountAddress.toLowerCase();
+
     if (oThis.signer != accountAddress) {
       logger.error('Input owner address does not matches recovered address');
       return Promise.resolve(

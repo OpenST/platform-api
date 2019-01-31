@@ -27,7 +27,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byChainOwner/originChainSpecific --cronProcessId 1');
+  logger.log('    node executables/funding/byChainOwner/originChainSpecific --cronProcessId 9');
   logger.log('');
   logger.log('');
 });
@@ -139,9 +139,6 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     logger.step('Fetching balances of addresses.');
     await oThis._fetchBalances();
 
-    logger.step('Checking balance of chain owner.');
-    await oThis._checkSenderBalance();
-
     logger.step('Checking if addresses are eligible for transfer.');
     await oThis._checkIfEligibleForTransfer();
 
@@ -246,30 +243,6 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
   }
 
   /**
-   * Check sender balance which in this case is chain owner. If sender balance is less than minimum balance, return failure. Sender here is chainOwner.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _checkSenderBalance() {
-    const oThis = this,
-      addressKind = [chainAddressConstants.chainOwnerKind],
-      senderCurrentBalance = basicHelper.convertToBigNumber(oThis.addressesToBalanceMap[oThis.chainOwnerAddress]),
-      senderMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[addressKind]),
-      balanceValueToBeCheckedWith = senderMinimumBalance.mul(flowsForChainOwnerMinimumBalance);
-
-    if (senderCurrentBalance.lt(balanceValueToBeCheckedWith)) {
-      logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
-      logger.notify(
-        'e_f_bco_e_3',
-        'Low balance of addressKind: ' + addressKind + '. on chainId: ',
-        +oThis.originChainId
-      );
-    }
-  }
-
-  /**
    * Check which addresses are eligible to get funds and prepare params for transfer.
    *
    * @private
@@ -285,10 +258,16 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
         addressMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[addressKind]),
         addressCurrentBalance = basicHelper.convertToBigNumber(oThis.addressesToBalanceMap[address]);
 
-      // If addressKind is granter and it has less than threshold balance, send an error email.
+      // If addressKind is granter or chainOwner and it has less than threshold balance, send an error email.
       if (
-        addressKind === [chainAddressConstants.granterKind] &&
-        addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance * flowsForGranterMinimumBalance))
+        (addressKind === [chainAddressConstants.granterKind] &&
+          addressCurrentBalance.lt(
+            basicHelper.convertToWei(addressMinimumBalance.mul(flowsForGranterMinimumBalance))
+          )) ||
+        (addressKind === [chainAddressConstants.chainOwnerKind] &&
+          addressCurrentBalance.lt(
+            basicHelper.convertToWei(addressMinimumBalance.mul(flowsForChainOwnerMinimumBalance))
+          ))
       ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(

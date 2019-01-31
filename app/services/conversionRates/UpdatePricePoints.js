@@ -16,12 +16,12 @@ const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
+  OstPricePointsCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/OstPricePoints');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/providers/priceOracle');
-require(rootPrefix + '/lib/cacheManagement/OstPricePoints');
 
 class UpdatePricePoints {
   /**
@@ -219,8 +219,7 @@ class UpdatePricePoints {
     let ic = new InstanceComposer(configStrategy);
 
     let priceOracleProvider = ic.getInstanceFor(coreConstants.icNameSpace, 'getPriceOracleProvider'),
-      priceOracle = priceOracleProvider.getInstance().priceOracle,
-      ostPriceCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'OstPricePointsCache');
+      priceOracle = priceOracleProvider.getInstance().priceOracle;
 
     return new Promise(function(onResolve, onReject) {
       let loopCompareContractPrice = async function() {
@@ -244,7 +243,7 @@ class UpdatePricePoints {
 
           logger.win('Price point updated in contract.');
 
-          let clearCacheResponse = new ostPriceCache().clear();
+          let clearCacheResponse = new OstPricePointsCache({ chainId: chainId }).clear();
           if (!clearCacheResponse) {
             return onResolve('failed to clear cache.');
           }

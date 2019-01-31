@@ -245,19 +245,19 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       .where(['client_id IN (?)', clientIds])
       .fire();
 
-    oThis.tokenIds = [];
+    let tokenIds = [];
     for (let index = 0; index < clientTokenIds.length; index++) {
       let tokenId = clientTokenIds[index].id;
 
-      oThis.tokenIds.push(tokenId);
+      tokenIds.push(tokenId);
     }
 
     // Step 3: Fetch token addresses associated to tokenIds.
     let tokenIdAddresses = await new TokenAddressModel()
-      .select('address')
+      .select('*')
       .where([
         'token_id IN (?) AND kind IN (?)',
-        oThis.tokenIds,
+        tokenIds,
         [
           new TokenAddressModel().invertedKinds[tokenAddressConstants.auxFunderAddressKind],
           new TokenAddressModel().invertedKinds[tokenAddressConstants.auxWorkerAddressKind],
@@ -266,6 +266,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       ])
       .fire();
 
+    oThis.tokenIds = [];
     oThis.tokenAddresses = {};
     oThis.kindToAddressMap = {};
     for (let index = 0; index < tokenIdAddresses.length; index++) {
@@ -274,12 +275,15 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         addressKind = new TokenAddressModel().kinds[tokenIdAddress.kind],
         address = tokenIdAddress.address;
 
+      oThis.tokenIds.push(tokenId);
       oThis.kindToAddressMap[addressKind] = oThis.kindToAddressMap[addressKind] || [];
       oThis.kindToAddressMap[addressKind].push(address);
       oThis.tokenAddresses[tokenId] = oThis.tokenAddresses[tokenId] || {};
       oThis.tokenAddresses[tokenId][addressKind] = address;
       chainAddresses.push(address);
     }
+
+    oThis.tokenIds = [...new Set(oThis.tokenIds)];
 
     return chainAddresses;
   }
@@ -322,7 +326,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         let params = {
           from: tokenAuxFunderAddress,
           to: tokenAuxAdminAddress,
-          amountInWei: basicHelper.convertToWei(tokenAuxAdminMinimumBalance.mul(flowsForTransferBalance))
+          amountInWei: basicHelper.convertToWei(tokenAuxAdminMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
       }
@@ -331,7 +335,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         let params = {
           from: tokenAuxFunderAddress,
           to: tokenAuxWorkerCurrentBalance,
-          amountInWei: basicHelper.convertToWei(tokenAuxWorkerMinimumBalance.mul(flowsForTransferBalance))
+          amountInWei: basicHelper.convertToWei(tokenAuxWorkerMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
       }

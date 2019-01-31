@@ -297,8 +297,33 @@ a = new TokenDeployment({token_id: 2, client_id: 2})
 a.perform().then(console.log)
 ```
 
-#### Run Aggregator
+### Run Aggregator
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/Aggregator.js --cronProcessId 4
+```
+
+### Funding crons
+* Fund by chain owner origin chain specific
+```bash
+  source set_env_vars.sh
+  node executables/funding/byChainOwner/originChainSpecific --cronProcessId 9
+```
+
+* Fund by chain owner aux chain specific
+```bash
+  source set_env_vars.sh
+  node executables/funding/byChainOwner/auxChainSpecific.js --cronProcessId 10
+```
+
+* Fund by sealer aux chain specific
+```bash
+  source set_env_vars.sh
+  node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 11
+```
+
+* Fund by token aux funder aux chain specific
+```bash
+  source set_env_vars.sh
+  node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 12
 ```
