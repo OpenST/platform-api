@@ -288,7 +288,7 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
       // If addressKind is granter and it has less than threshold balance, send an error email.
       if (
         addressKind === [chainAddressConstants.granterKind] &&
-        addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance * flowsForGranterMinimumBalance))
+        addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance.mul(flowsForGranterMinimumBalance)))
       ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(
