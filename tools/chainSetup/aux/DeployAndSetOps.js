@@ -8,15 +8,15 @@ const OpenStOracle = require('@ostdotcom/ost-price-oracle'),
   deployAndSetInOpsHelper = new OpenStOracle.DeployAndSetInOpsHelper();
 
 const rootPrefix = '../../..',
-  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
@@ -73,11 +73,9 @@ class DeployAndSetOps {
 
     await oThis._fetchAddresses();
 
-    await oThis._setWeb3Instance(oThis.deployerAddress);
+    await oThis._setWeb3Instance();
 
     await oThis._deployPriceOracleContract();
-
-    await oThis._setWeb3Instance(oThis.priceOracleOpsAddressKind);
 
     await oThis._setOpsContract();
   }
@@ -92,7 +90,11 @@ class DeployAndSetOps {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.priceOracleOpsAddressKind];
+    let requiredAddressKinds = [
+      chainAddressConst.deployerKind,
+      chainAddressConst.priceOracleOpsAddressKind,
+      chainAddressConst.ownerKind
+    ];
 
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
@@ -100,7 +102,8 @@ class DeployAndSetOps {
     });
 
     oThis.deployerAddress = chainAddressRsp.data.address[chainAddressConst.deployerKind];
-    oThis.priceOracleOpsAddressKind = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
+    oThis.priceOracleOpsAddress = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
+    oThis.ownerAddress = chainAddressRsp.data.address[chainAddressConst.ownerKind];
   }
 
   /**
@@ -112,15 +115,14 @@ class DeployAndSetOps {
    *
    * @private
    */
-  async _setWeb3Instance(address) {
+  async _setWeb3Instance() {
     const oThis = this;
 
     let response = await chainConfigProvider.getFor([oThis.auxChainId]),
-      auxChainConfig = response[oThis.auxChainId],
-      wsProvider = auxChainConfig.auxGeth.readWrite.wsProviders[0];
+      auxChainConfig = response[oThis.auxChainId];
 
-    oThis.SignerWeb3Instance = new SignerWeb3Provider(wsProvider, address);
-    oThis.web3Instance = await oThis.SignerWeb3Instance.getInstance();
+    oThis.wsProvider = auxChainConfig.auxGeth.readWrite.wsProviders[0];
+    oThis.web3Instance = web3Provider.getInstance(oThis.wsProvider).web3WsProvider;
   }
 
   /**
@@ -131,17 +133,21 @@ class DeployAndSetOps {
    * @private
    */
   async _deployPriceOracleContract() {
-    const oThis = this,
-      nonceRsp = await oThis._fetchNonce(oThis.deployerAddress);
+    const oThis = this;
 
+    logger.step('Deploying Price oracle contract.');
+
+    // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '579067', // TODO: Add here.
-      nonce: nonceRsp.data['nonce'],
+      gas: '579067',
+      value: '0',
+      from: oThis.deployerAddress,
       chainId: oThis.auxChainId
     };
 
-    let tx = deployAndSetInOpsHelper.deployRawTx(
+    // Get raw transaction object.
+    let txObject = deployAndSetInOpsHelper.deployRawTx(
       oThis.web3Instance,
       oThis.deployerAddress,
       oThis.baseCurrency,
@@ -149,24 +155,31 @@ class DeployAndSetOps {
       txOptions
     );
 
-    logger.log('Deploying Price Oracle contract.');
+    txOptions['data'] = txObject.encodeABI();
 
-    return tx
-      .send(txOptions)
-      .on('transactionHash', function(transactionHash) {
-        logger.win('\t - Transaction hash:', transactionHash);
-      })
-      .on('error', function(error) {
-        logger.error('\t !! Error !!', error, '\n\t !! ERROR !!\n');
-        return Promise.reject(error);
-      })
-      .on('receipt', function(receipt) {
-        logger.win('\t - Receipt:', JSON.stringify(receipt), '\n');
-        oThis.contractAddress = receipt.contractAddress;
-      })
-      .then(async function() {
-        logger.log(`\t - Contract Address:`, oThis.contractAddress);
-      });
+    // Submit transaction.
+    let submitTransactionResponse = await new SubmitTransaction({
+      chainId: oThis.auxChainId,
+      txOptions: txOptions,
+      provider: oThis.wsProvider,
+      waitTillReceipt: 1
+    }).perform();
+
+    if (submitTransactionResponse && submitTransactionResponse.isFailure()) {
+      return Promise.reject(submitTransactionResponse);
+    }
+
+    // Fetch required attributes.
+    const transactionHash = submitTransactionResponse.data.transactionHash,
+      transactionReceipt = submitTransactionResponse.data.transactionReceipt;
+
+    oThis.contractAddress = transactionReceipt.contractAddress;
+
+    logger.win('\t Transaction hash: ', transactionHash);
+    logger.win('\t Transaction receipt: ', transactionReceipt);
+    logger.win('\t Contract Address: ', oThis.contractAddress);
+
+    logger.step('Price oracle contract deployed.');
   }
 
   /**
@@ -177,66 +190,61 @@ class DeployAndSetOps {
    * @private
    */
   async _setOpsContract() {
-    const oThis = this,
-      nonceRsp = await oThis._fetchNonce(oThis.priceOracleOpsAddressKind);
+    const oThis = this;
 
+    logger.step('Setting opsAddress in Price oracle contract.');
+
+    // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '579067', // TODO: Add here.
-      nonce: nonceRsp.data['nonce'],
+      gas: '579067',
+      value: '0',
+      from: oThis.ownerAddress,
       chainId: oThis.auxChainId
     };
 
-    let tx = deployAndSetInOpsHelper.setOpsAddressTx(
+    // Get raw transaction object.
+    let txObject = deployAndSetInOpsHelper.setOpsAddressTx(
       oThis.web3Instance,
-      oThis.priceOracleOpsAddressKind,
+      oThis.priceOracleOpsAddress,
       oThis.contractAddress,
       txOptions
     );
 
-    logger.log('Setting Price Oracle contract address in Ops Contract.');
+    txOptions['data'] = txObject.encodeABI();
 
-    return tx
-      .send(txOptions)
-      .on('transactionHash', function(transactionHash) {
-        logger.win('\t - Transaction hash:', transactionHash);
-        oThis.transactionHash = transactionHash;
-      })
-      .on('error', function(error) {
-        logger.error('\t !! Error !!', error, '\n\t !! ERROR !!\n');
-        return Promise.reject(error);
-      })
-      .on('receipt', function(receipt) {
-        logger.win('\t - Receipt:', JSON.stringify(receipt), '\n');
-      })
-      .then(async function() {
-        logger.win('Price Oracle Contract Address set in Ops contract.');
+    // Submit transaction.
+    let submitTransactionResponse = await new SubmitTransaction({
+      chainId: oThis.auxChainId,
+      txOptions: txOptions,
+      provider: oThis.wsProvider,
+      waitTillReceipt: 1
+    }).perform();
 
-        // Insert priceOracleContractAddress in chainAddresses table.
-        await new ChainAddressModel().insertAddress({
-          address: oThis.contractAddress,
-          chainId: oThis.auxChainId,
-          auxChainId: oThis.auxChainId,
-          chainKind: coreConstants.auxChainKind,
-          kind: chainAddressConst.priceOracleContractKind,
-          status: chainAddressConst.activeStatus
-        });
-      });
-  }
+    if (submitTransactionResponse && submitTransactionResponse.isFailure()) {
+      return Promise.reject(submitTransactionResponse);
+    }
 
-  /**
-   * Fetch nonce (calling this method means incrementing nonce in cache, use judiciously)
-   *
-   * @return {Promise}
-   *
-   * @private
-   */
-  async _fetchNonce(address) {
-    const oThis = this;
-    return new NonceManager({
-      address: address,
-      chainId: oThis.auxChainId
-    }).getNonce();
+    // Fetch required attributes.
+    const transactionHash = submitTransactionResponse.data.transactionHash,
+      transactionReceipt = submitTransactionResponse.data.transactionReceipt;
+
+    logger.win('\t Transaction hash: ', transactionHash);
+    logger.win('\t Transaction receipt: ', transactionReceipt);
+
+    logger.step('Price oracle opsAddress set in contract.');
+
+    // Insert priceOracleContractAddress in chainAddresses table.
+    await new ChainAddressModel().insertAddress({
+      address: oThis.contractAddress,
+      chainId: oThis.auxChainId,
+      auxChainId: oThis.auxChainId,
+      chainKind: coreConstants.auxChainKind,
+      kind: chainAddressConst.priceOracleContractKind,
+      status: chainAddressConst.activeStatus
+    });
+
+    logger.step('Price oracle contract address added in table.');
   }
 }
 

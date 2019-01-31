@@ -56,9 +56,6 @@ const fundingConfig = {
   [chainAddressConstants.granterKind]: '0.00000'
 };
 
-// Address kinds on which alert email is to be sent.
-const alertAddressKinds = [[chainAddressConstants.chainOwnerKind], [chainAddressConstants.granterKind]];
-
 /**
  * Class to fund eth by chain owner.
  *
