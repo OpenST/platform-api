@@ -166,16 +166,6 @@ class DeployAndSetOps {
       })
       .then(async function() {
         logger.log(`\t - Contract Address:`, oThis.contractAddress);
-
-        // Insert priceOracleContractAddress in chainAddresses table.
-        await new ChainAddressModel().insertAddress({
-          address: oThis.contractAddress,
-          chainId: oThis.auxChainId,
-          auxChainId: oThis.auxChainId,
-          chainKind: coreConstants.auxChainKind,
-          kind: chainAddressConst.priceOracleContractKind,
-          status: chainAddressConst.activeStatus
-        });
       });
   }
 
@@ -221,6 +211,16 @@ class DeployAndSetOps {
       })
       .then(async function() {
         logger.win('Price Oracle Contract Address set in Ops contract.');
+
+        // Insert priceOracleContractAddress in chainAddresses table.
+        await new ChainAddressModel().insertAddress({
+          address: oThis.contractAddress,
+          chainId: oThis.auxChainId,
+          auxChainId: oThis.auxChainId,
+          chainKind: coreConstants.auxChainKind,
+          kind: chainAddressConst.priceOracleContractKind,
+          status: chainAddressConst.activeStatus
+        });
       });
   }
 
