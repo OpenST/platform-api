@@ -312,6 +312,8 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
   /**
    * Check which addresses are eligible to get funds and prepare params for transfer.
    *
+   * @param {Object} currentAddressBalances
+   *
    * @private
    */
   _checkIfEligibleForTransfer(currentAddressBalances) {
@@ -415,7 +417,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     }
 
     oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
-    oThis.transferIdentifiers = [];
+    oThis.transferDetails = [];
 
     logger.step('Fetching balances of addresses from origin chain.');
 
@@ -438,16 +440,16 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
           amountInWei: basicHelper.convertToWei(facilitatorMinimumBalance.mul(flowsForTransferBalance))
         };
 
-        oThis.transferIdentifiers.push(params);
+        oThis.transferDetails.push(params);
       }
     }
 
-    if (oThis.transferIdentifiers.length > 0) {
+    if (oThis.transferDetails.length > 0) {
       oThis.canExit = false;
 
       const transferEth = new TransferEth({
         originChainId: oThis.originChainId,
-        transferDetails: oThis.transferIdentifiers
+        transferDetails: oThis.transferDetails
       });
 
       await transferEth.perform();
