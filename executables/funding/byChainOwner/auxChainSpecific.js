@@ -193,6 +193,10 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     // Fetch chainAddresses.
     const chainAddresses = await oThis._fetchAddressesForChain(auxChainId);
 
+    if (chainAddresses.length === 0) {
+      return;
+    }
+
     logger.step('Fetching balances of addresses from auxChainId: ' + auxChainId);
 
     // Fetch StPrime balance for addresses.
@@ -271,6 +275,10 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       clientIds.push(clientId);
     }
 
+    if (clientIds.length === 0) {
+      return chainAddresses;
+    }
+
     // Step 2: Fetch all tokenIds associated to clientIds.
     let clientTokenIds = await new TokenModel()
       .select('id')
@@ -282,6 +290,10 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       let tokenId = clientTokenIds[index].id;
 
       tokenIds.push(tokenId);
+    }
+
+    if (tokenIds.length === 0) {
+      return chainAddresses;
     }
 
     // Step 3: Fetch aux funder addresses associated to tokenIds.

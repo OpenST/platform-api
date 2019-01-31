@@ -9,13 +9,14 @@ const OpenStOracle = require('@ostdotcom/ost-price-oracle'),
 
 const rootPrefix = '../../..',
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
@@ -38,11 +39,9 @@ class DeployAndSetOps {
     const oThis = this;
 
     oThis.auxChainId = params['auxChainId'];
-    oThis.baseCurrency = conversionRateConstants.OST;
-    oThis.quoteCurrency = conversionRateConstants.USD;
+    oThis.baseCurrency = params.baseCurrency || conversionRateConstants.OST;
+    oThis.quoteCurrency = params.quoteCurrency || conversionRateConstants.USD;
 
-    oThis.chainId = null;
-    oThis.gasPrice = null;
     oThis.configStrategyObj = null;
   }
 
@@ -78,7 +77,7 @@ class DeployAndSetOps {
 
     await oThis._deployPriceOracleContract();
 
-    await oThis._setWeb3Instance(oThis.adminAddress);
+    await oThis._setWeb3Instance(oThis.priceOracleOpsAddressKind);
 
     await oThis._setOpsContract();
   }
@@ -93,7 +92,7 @@ class DeployAndSetOps {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.adminKind];
+    let requiredAddressKinds = [chainAddressConst.deployerKind, chainAddressConst.priceOracleOpsAddressKind];
 
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
@@ -101,7 +100,7 @@ class DeployAndSetOps {
     });
 
     oThis.deployerAddress = chainAddressRsp.data.address[chainAddressConst.deployerKind];
-    oThis.adminAddress = chainAddressRsp.data.address[chainAddressConst.adminKind];
+    oThis.priceOracleOpsAddressKind = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
   }
 
   /**
@@ -116,7 +115,10 @@ class DeployAndSetOps {
   async _setWeb3Instance(address) {
     const oThis = this;
 
-    let wsProvider = oThis._configStrategyObject.chainWsProvider(oThis.auxChainId, 'readWrite');
+    let response = await chainConfigProvider.getFor([oThis.auxChainId]),
+      auxChainConfig = response[oThis.auxChainId],
+      wsProvider = auxChainConfig.auxGeth.readWrite.wsProviders[0];
+
     oThis.SignerWeb3Instance = new SignerWeb3Provider(wsProvider, address);
     oThis.web3Instance = await oThis.SignerWeb3Instance.getInstance();
   }
@@ -164,21 +166,19 @@ class DeployAndSetOps {
       })
       .then(async function() {
         logger.log(`\t - Contract Address:`, oThis.contractAddress);
-
-        // Insert priceOracleContractAddress in chainAddresses table.
-        await new ChainAddressModel().insertAddress({
-          address: oThis.contractAddress,
-          chainId: oThis.auxChainId,
-          auxChainId: oThis.auxChainId,
-          kind: chainAddressConst.invertedKinds[chainAddressConst.priceOracleContractKind],
-          status: chainAddressConst.activeStatus
-        });
       });
   }
 
+  /**
+   * Set price oracle contract address in ops contract.
+   *
+   * @return {Promise<*>}
+   *
+   * @private
+   */
   async _setOpsContract() {
     const oThis = this,
-      nonceRsp = await oThis._fetchNonce(oThis.adminAddress);
+      nonceRsp = await oThis._fetchNonce(oThis.priceOracleOpsAddressKind);
 
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
@@ -189,7 +189,7 @@ class DeployAndSetOps {
 
     let tx = deployAndSetInOpsHelper.setOpsAddressTx(
       oThis.web3Instance,
-      oThis.adminAddress,
+      oThis.priceOracleOpsAddressKind,
       oThis.contractAddress,
       txOptions
     );
@@ -211,6 +211,16 @@ class DeployAndSetOps {
       })
       .then(async function() {
         logger.win('Price Oracle Contract Address set in Ops contract.');
+
+        // Insert priceOracleContractAddress in chainAddresses table.
+        await new ChainAddressModel().insertAddress({
+          address: oThis.contractAddress,
+          chainId: oThis.auxChainId,
+          auxChainId: oThis.auxChainId,
+          chainKind: coreConstants.auxChainKind,
+          kind: chainAddressConst.priceOracleContractKind,
+          status: chainAddressConst.activeStatus
+        });
       });
   }
 
@@ -227,36 +237,6 @@ class DeployAndSetOps {
       address: address,
       chainId: oThis.auxChainId
     }).getNonce();
-  }
-
-  /**
-   * Config strategy
-   *
-   * @return {Object}
-   *
-   * @private
-   */
-  get _configStrategy() {
-    const oThis = this;
-
-    return oThis.ic().configStrategy;
-  }
-
-  /**
-   * Object of config strategy klass
-   *
-   * @return {Object}
-   *
-   * @private
-   */
-  get _configStrategyObject() {
-    const oThis = this;
-
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
-
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
-
-    return oThis.configStrategyObj;
   }
 }
 

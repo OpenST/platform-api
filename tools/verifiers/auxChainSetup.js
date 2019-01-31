@@ -344,7 +344,7 @@ class AuxChainSetup {
       auxChainId: oThis.auxChainId,
       kind: chainAddressConstants.simpleStakeContractKind
     });
-    let dbSimpleStakeContractAddress = querySimpleStakeContractRsp.data.addresses;
+    let dbSimpleStakeContractAddress = querySimpleStakeContractRsp.data.address;
 
     logger.log('* Fetching Simple token contract address for this chain from database.');
     let querySimpleTokenRsp = await new ChainAddressModel().fetchAddress({
@@ -373,7 +373,7 @@ class AuxChainSetup {
 
     logger.log('* Validating the Simple Stake contract address.');
     let chainStakeVaultAddress = await gatewayContract.methods.stakeVault().call({});
-    if (dbSimpleStakeContractAddress[0].toLowerCase() !== chainStakeVaultAddress.toLowerCase()) {
+    if (dbSimpleStakeContractAddress.toLowerCase() !== chainStakeVaultAddress.toLowerCase()) {
       logger.error('Deployment verification Simple Stake contract address failed.');
       Promise.reject();
     }
@@ -424,7 +424,6 @@ class AuxChainSetup {
       dbCoGatewayContractAddress
     );
 
-    //What is remoteGateway for co-gateway (getting baseContractOrganizationKind, kind = 5)
     logger.log('* Validating the remote gateway contract address.');
     let chainRemoteCoGateway = await coGatewayContract.methods.remoteGateway().call({});
 
