@@ -155,8 +155,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
 new UpdatePriceOraclePricePoints({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
-    process.exit(0);
+    process.emit('SIGINT');
   })
   .catch(function() {
-    process.exit(1);
+    process.emit('SIGINT');
   });

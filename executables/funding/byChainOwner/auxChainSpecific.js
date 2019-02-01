@@ -26,7 +26,7 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses');
+  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -480,8 +480,8 @@ logger.log('Starting cron to fund eth by chainOwner.');
 new FundByChainOwnerAuxChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
-    process.exit(0);
+    process.emit('SIGINT');
   })
   .catch(function() {
-    process.exit(1);
+    process.emit('SIGINT');
   });

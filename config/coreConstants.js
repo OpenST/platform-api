@@ -174,6 +174,10 @@ class CoreConstants {
     return accepted_margin;
   }
 
+  get NOTIFIER_POSTFIX() {
+    return 'saas-api';
+  }
+
   get SHARED_MEMCACHE_KEY_PREFIX() {
     return 'sa_';
   }

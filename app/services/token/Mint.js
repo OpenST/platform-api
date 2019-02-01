@@ -13,8 +13,11 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
+  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
+  TokenDetailCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 class TokenMintDetails {
@@ -23,6 +26,7 @@ class TokenMintDetails {
     oThis.clientId = params.client_id;
 
     oThis.responseData = {};
+    oThis.tokenId = 0;
   }
 
   /**
@@ -55,13 +59,22 @@ class TokenMintDetails {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis._fetchTokenDetails();
+
     await oThis.getSimpleTokenContractAddress();
+
+    await oThis.getBrandedTokenContractAddress();
 
     await oThis.getOriginChainGasPrice();
 
     await oThis.calculateMinimumEthRequired();
 
     await oThis.calculateMinimumOstRequired();
+
+    oThis.responseData['contract_address'] = {
+      simple_token: oThis.simpleTokenAddress,
+      branded_token: oThis.brandedTokenAddress
+    };
 
     return responseHelper.successWithData(oThis.responseData);
   }
@@ -87,9 +100,58 @@ class TokenMintDetails {
       );
     }
 
-    oThis.responseData['contract_address'] = {
-      simple_token: { address: chainAddressesRsp.data[chainAddressConst.baseContractKind] }
-    };
+    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConst.baseContractKind];
+  }
+
+  /**
+   * This function fetches simple token contract address and sets in response data hash.
+   *
+   * @returns {Promise<*>}
+   */
+  async getBrandedTokenContractAddress() {
+    const oThis = this;
+
+    let getAddrRsp = await new TokenAddressCache({
+      tokenId: oThis.tokenId
+    }).fetch();
+
+    if (getAddrRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_m_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.brandedTokenAddress = getAddrRsp.data[tokenAddressConstants.brandedTokenContract];
+  }
+
+  /**
+   * Fetch token details for given client id
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _fetchTokenDetails() {
+    const oThis = this;
+
+    let cacheResponse = await new TokenDetailCache({ clientId: oThis.clientId }).fetch();
+
+    if (cacheResponse.isFailure()) {
+      logger.error('Could not fetched token details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            clientId: oThis.clientId
+          }
+        })
+      );
+    }
+
+    oThis.tokenId = cacheResponse.data['id'];
   }
 
   /**
