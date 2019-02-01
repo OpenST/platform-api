@@ -14,7 +14,7 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-require(rootPrefix + '/lib/sharedCacheManagement/AvailableShards');
+require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
 
 class Shard extends Base {
   constructor(params) {
