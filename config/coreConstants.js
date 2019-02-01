@@ -218,10 +218,6 @@ class CoreConstants {
     return process.env.BUFFER_VALUE_GAS_PRICE;
   }
 
-  get MAX_GAS_PRICE() {
-    return '0xDF8475800'; //60000000000 wei
-  }
-
   get icNameSpace() {
     return 'saas::SaasNamespace';
   }
@@ -251,7 +247,7 @@ class CoreConstants {
   }
 
   get GAS_USED_FOR_MINT() {
-    return '75000';
+    return '320000';
   }
 
   get FLOWS_FOR_MINIMUM_BALANCE() {

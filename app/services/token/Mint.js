@@ -110,13 +110,13 @@ class TokenMintDetails {
     const oThis = this;
 
     let averageGasUsedForMintBN = new BigNumber(coreConstants.GAS_USED_FOR_MINT),
-      gasPriceBN = new BigNumber(coreConstants.MAX_GAS_PRICE),
-      minumumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN),
-      bufferAmout = minumumEthRequired.div(2);
+      gasPriceBN = new BigNumber(coreConstants.MAX_VALUE_GAS_PRICE),
+      minimumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN),
+      bufferAmount = minimumEthRequired.div(2);
 
-    minumumEthRequired = minumumEthRequired.add(bufferAmout);
+    minimumEthRequired = minimumEthRequired.add(bufferAmount);
 
-    oThis.responseData['minimum_eth_required'] = minumumEthRequired.toString(10);
+    oThis.responseData['minimum_eth_required'] = minimumEthRequired.toString(10);
   }
 
   async calculateMinimumOstRequired() {
@@ -138,11 +138,12 @@ class TokenMintDetails {
 
     // (1/conversion_factor) * 10^18
     let conversionFactor = tokenData.data.conversionFactor,
+      decimal = tokenData.data.decimal,
       conversionFactorBN = new BigNumber(conversionFactor),
       oneAsBigNumber = new BigNumber('1'),
       tenAsBigNumber = new BigNumber('10'),
       minimumOstRequiredBN = oneAsBigNumber.div(conversionFactorBN),
-      minimumOstRequiredInWei = minimumOstRequiredBN.mul(tenAsBigNumber.toPower(18));
+      minimumOstRequiredInWei = minimumOstRequiredBN.mul(tenAsBigNumber.toPower(decimal));
 
     oThis.responseData['minimum_ost_required'] = minimumOstRequiredInWei.toString(10);
   }
