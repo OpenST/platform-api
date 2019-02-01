@@ -166,8 +166,6 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForWalletAddress + ')';
 
-    params['updatedTimestamp'] = Math.floor(new Date().getTime() / 1000);
-
     return oThis.putItem(Device.sanitizeParamsForUpdate(params), conditionalExpression);
   }
 
