@@ -20,6 +20,7 @@ class User extends Base {
     const oThis = this;
 
     oThis.shardNumber = params.shardNumber;
+    oThis.chainId = params.chainId;
   }
 
   /**
@@ -129,8 +130,11 @@ class User extends Base {
     const oThis = this,
       keyObj = {};
 
-    keyObj[oThis.shortNameFor('tokenId')] = { N: params['tokenId'].toString() };
-    keyObj[oThis.shortNameFor('userId')] = { S: params['userId'].toString() };
+    let tokenIdShortName = oThis.shortNameFor('tokenId'),
+      userIdShortName = oThis.shortNameFor('userId');
+
+    keyObj[tokenIdShortName] = { [oThis.shortNameToDataType[tokenIdShortName]]: params['tokenId'].toString() };
+    keyObj[userIdShortName] = { [oThis.shortNameToDataType[userIdShortName]]: params['userId'].toString() };
 
     return keyObj;
   }
@@ -141,31 +145,35 @@ class User extends Base {
    * @returns {Object}
    */
   tableSchema() {
-    const oThis = this,
-      tableSchema = {
-        TableName: oThis.tableName(),
-        KeySchema: [
-          {
-            AttributeName: oThis.shortNameFor('tokenId'),
-            KeyType: 'HASH'
-          }, //Partition key
-          {
-            AttributeName: oThis.shortNameFor('userId'),
-            KeyType: 'RANGE'
-          } //Sort key
-        ],
-        AttributeDefinitions: [
-          { AttributeName: oThis.shortNameFor('tokenId'), AttributeType: 'N' },
-          { AttributeName: oThis.shortNameFor('userId'), AttributeType: 'S' }
-        ],
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 1,
-          WriteCapacityUnits: 1
-        },
-        SSESpecification: {
-          Enabled: false
-        }
-      };
+    const oThis = this;
+
+    let tokenIdShortName = oThis.shortNameFor('tokenId'),
+      userIdShortName = oThis.shortNameFor('userId');
+
+    const tableSchema = {
+      TableName: oThis.tableName(),
+      KeySchema: [
+        {
+          AttributeName: tokenIdShortName,
+          KeyType: 'HASH'
+        }, //Partition key
+        {
+          AttributeName: userIdShortName,
+          KeyType: 'RANGE'
+        } //Sort key
+      ],
+      AttributeDefinitions: [
+        { AttributeName: tokenIdShortName, AttributeType: oThis.shortNameToDataType[tokenIdShortName] },
+        { AttributeName: userIdShortName, AttributeType: oThis.shortNameToDataType[userIdShortName] }
+      ],
+      ProvisionedThroughput: {
+        ReadCapacityUnits: 1,
+        WriteCapacityUnits: 1
+      },
+      SSESpecification: {
+        Enabled: false
+      }
+    };
 
     return tableSchema;
   }
