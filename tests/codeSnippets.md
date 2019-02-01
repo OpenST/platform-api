@@ -65,3 +65,24 @@ a.perform().then(console.log)
 
 
 ```
+
+
+### Manually retry a workflow step:
+
+```node
+
+params = {
+  currentStepId: 631,
+  workflowId: 35,
+  stepKind: 'setInternalActorForOwnerInUBT',
+  taskStatus: 'taskReadyToStart',
+  requestParams: {},
+  topic: 'workflow.economySetup'
+}
+
+economySetupRouterK = require('./executables/workflowRouter/EconomySetupRouter')
+economySetupRouter = new economySetupRouterK(params)
+economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
+
+
+```
