@@ -203,19 +203,34 @@ class ShardByToken extends Base {
   }
 
   /**
+   *
+   * @returns {Promise<*>}
+   */
+  async updateItem(data, conditionExpression) {
+    throw 'Can not update shard by tokens table';
+  }
+
+  /**
    * afterUpdate - Method to implement any after update actions
    *
    * @return {Promise<void>}
    */
-  async afterUpdate(params) {
-    const oThis = this;
-
-    let TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
+  static async afterUpdate(ic, params) {
+    let TokenShardNumbersCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
       cacheObject = new TokenShardNumbersCache({ tokenId: params.tokenId });
 
     await cacheObject.clear();
 
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    return ShardByToken;
   }
 
   static sanitizeParamsFromDdb(params) {

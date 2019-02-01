@@ -255,15 +255,22 @@ class Shard extends Base {
    *
    * @return {Promise<void>}
    */
-  async afterUpdate(params) {
-    const oThis = this;
-
-    let AvailableShardCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AvailableShardsCache'),
+  static async afterUpdate(ic) {
+    let AvailableShardCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AvailableShardsCache'),
       cacheObject = new AvailableShardCache({});
 
     await cacheObject.clear();
 
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    return Shard;
   }
 
   static sanitizeParamsFromDdb(params) {

@@ -197,9 +197,8 @@ class User extends Base {
    *
    * @return {Promise<void>}
    */
-  async afterUpdate(params) {
-    const oThis = this,
-      TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
+  static async afterUpdate(ic, params) {
+    const TokenUserDetailsCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
 
     let tokenUserDetailsCache = new TokenUserDetailsCache({
       tokenId: params.tokenId,
@@ -216,6 +215,15 @@ class User extends Base {
     params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
     params['status'] = tokenUserConstants.invertedStatuses[params['status']];
     return params;
+  }
+
+  /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    return User;
   }
 }
 
