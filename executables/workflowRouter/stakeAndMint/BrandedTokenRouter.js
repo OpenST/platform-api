@@ -23,6 +23,8 @@ const rootPrefix = '../../..',
   ProveGateway = require(rootPrefix + '/lib/stakeMintManagement/common/ProveGatewayOnCoGateway'),
   ConfirmStakeIntent = require(rootPrefix + '/lib/stakeMintManagement/common/ConfirmStakeIntentOnCoGateway'),
   FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   CheckGatewayComposerAllowance = require(rootPrefix +
     '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance');
 
@@ -74,7 +76,7 @@ class BtMintRouter extends WorkflowRouterBase {
 
     switch (oThis.stepKind) {
       case workflowStepConstants.btStakeAndMintInit:
-        return oThis.insertInitStep();
+        return oThis._initializeBTStakeMint();
 
       case workflowStepConstants.stakerRequestStakeTrx:
         oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
@@ -176,6 +178,29 @@ class BtMintRouter extends WorkflowRouterBase {
     uniqueStr += oThis.requestParams.requestStakeTransactionHash;
 
     return util.createSha256Digest(uniqueStr);
+  }
+
+  /**
+   * Initialize stake and mint BT
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  async _initializeBTStakeMint() {
+    const oThis = this;
+
+    let params = {
+      chainId: oThis.requestParams.originChainId,
+      auxChainId: oThis.requestParams.auxChainId,
+      kind: chainAddressConstants.facilitator
+    };
+    let resp = await new ChainAddressModel().fetchAddress(params);
+    if (resp.isSuccess()) {
+      Object.assign(oThis.requestParams, { facilitator: resp.data.address });
+    }
+
+    return oThis.insertInitStep();
   }
 }
 
