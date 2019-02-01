@@ -152,7 +152,7 @@ class TokenAddress extends ModelBase {
    * @returns {Promise<*>}
    */
   static flushCache(tokenId) {
-    const TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress');
+    const TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
     return new TokenAddressCache({
       tokenId: tokenId
     }).clear();

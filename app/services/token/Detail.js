@@ -14,9 +14,9 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenDetailCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress');
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
 
 /**
  * Class for token details.

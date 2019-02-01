@@ -21,8 +21,8 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
-  StakerWhitelistedAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/StakerWhitelistedAddress'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 class GatewayComposer {

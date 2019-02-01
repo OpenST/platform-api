@@ -5,6 +5,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   util = require(rootPrefix + '/lib/util');
 
 const mustache = require('mustache');
@@ -188,7 +189,7 @@ class User extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForTokenId + ') AND attribute_not_exists(' + shortNameForUserId + ')';
 
-    return oThis.putItem(params, conditionalExpression);
+    return oThis.putItem(User.sanitizeParamsForQuery(params), conditionalExpression);
   }
 
   /**
@@ -209,6 +210,12 @@ class User extends Base {
     await tokenUserDetailsCache.clear();
 
     return responseHelper.successWithData({});
+  }
+
+  static sanitizeParamsForQuery(params) {
+    params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
+    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
+    return params;
   }
 }
 
