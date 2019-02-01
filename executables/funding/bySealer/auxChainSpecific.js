@@ -36,14 +36,6 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-// Config for addresses which need to be funded.
-const fundingConfig = {
-  [chainAddressConstants.facilitator]: '0.53591',
-  [chainAddressConstants.adminKind]: '0.00355',
-  [chainAddressConstants.deployerKind]: '0.00000',
-  [tokenAddressConstants.auxFunderAddressKind]: '0.00240'
-};
-
 /**
  * Class to fund eth by chain owner.
  *
@@ -251,12 +243,12 @@ class FundBySealerAuxChainSpecific extends CronBase {
     // Fetch all addresses associated to auxChainId.
     let fetchAddrRsp = await new ChainAddressModel().fetchAddresses({
       chainId: auxChainId,
-      kinds: [chainAddressConstants.sealerKind]
+      kinds: [chainAddressConstants.auxSealerKind]
     });
 
     oThis.kindToAddressMap = fetchAddrRsp.data.addresses;
 
-    return fetchAddrRsp.data.addresses[chainAddressConstants.sealerKind];
+    return fetchAddrRsp.data.addresses[chainAddressConstants.auxSealerKind];
   }
 
   /**
@@ -270,7 +262,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
     oThis.transferDetails = [];
 
     // Fetch addresses from map.
-    const sealerAddresses = oThis.kindToAddressMap[chainAddressConstants.sealerKind];
+    const sealerAddresses = oThis.kindToAddressMap[chainAddressConstants.auxSealerKind];
 
     for (let i = 0; i < sealerAddresses.length; i++) {
       let sealerAddress = sealerAddresses[i];

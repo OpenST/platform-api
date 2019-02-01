@@ -204,19 +204,19 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
       coreConstants.subEnvironment === environmentInfoConstants.subEnvironment.main
     ) {
       // Fetch addresses.
-      oThis.granterAddress = chainAddressesRsp.data[chainAddressConstants.originGranterKind].address;
+      oThis.originGranterAddress = chainAddressesRsp.data[chainAddressConstants.originGranterKind].address;
       const stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address,
         stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
 
       // Add addresses to the array of addresses whose balance is to be fetched.
       oThis.addresses.push.apply(oThis.addresses, [
-        oThis.granterAddress,
+        oThis.originGranterAddress,
         stContractOwnerAddress,
         stContractAdminAddress
       ]);
 
       // Add addresses mapped to their kind.
-      oThis.kindToAddressMap[[chainAddressConstants.originGranterKind]] = oThis.granterAddress;
+      oThis.kindToAddressMap[[chainAddressConstants.originGranterKind]] = oThis.originGranterAddress;
       oThis.kindToAddressMap[[chainAddressConstants.stContractOwnerKind]] = stContractOwnerAddress;
       oThis.kindToAddressMap[[chainAddressConstants.stContractAdminKind]] = stContractAdminAddress;
     }

@@ -72,7 +72,7 @@ class TokenMintDetails {
     await oThis.calculateMinimumOstRequired();
 
     oThis.responseData['contract_address'] = {
-      simple_token: oThis.simpleTokenAddress,
+      simple_token: oThis.simpleTokenContractAddress,
       branded_token: oThis.brandedTokenAddress
     };
 
@@ -100,7 +100,7 @@ class TokenMintDetails {
       );
     }
 
-    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConst.stContractKind].address;
+    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConst.stContractKind].address;
   }
 
   /**
