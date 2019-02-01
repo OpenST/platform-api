@@ -315,8 +315,8 @@ logger.log('Starting cron to fund eth by chainOwner.');
 new FundByChainOwnerOriginChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
-    process.exit(0);
+    process.emit('SIGINT');
   })
   .catch(function() {
-    process.exit(1);
+    process.emit('SIGINT');
   });

@@ -294,8 +294,8 @@ logger.log('Starting cron to fund by sealer to chain owner.');
 new FundBySealerAuxChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
-    process.exit(0);
+    process.emit('SIGINT');
   })
   .catch(function() {
-    process.exit(1);
+    process.emit('SIGINT');
   });
