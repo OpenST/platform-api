@@ -37,7 +37,7 @@ class ChainAddress extends ModelBase {
    * @param {String} params.addressKind: address kind
    * @param {String} params.address: address
    * @param {Integer} params.knownAddressId: knownAddressId
-   * @param {String} params.deployedChainId: deployedChainId
+   * @param {Integer} params.deployedChainId: deployedChainId
    * @param {String} params.deployedChainKind: deployedChainKind
    * @param {String} params.status: status
    *
