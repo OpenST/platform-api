@@ -24,7 +24,7 @@ const rootPrefix = '../../..',
  *
  * @class
  */
-class DeployAndSetOps {
+class DeployAndSetInOps {
   /**
    * Constructor for deploy and set ops contract.
    *
@@ -252,4 +252,4 @@ class DeployAndSetOps {
   }
 }
 
-module.exports = DeployAndSetOps;
+module.exports = DeployAndSetInOps;
