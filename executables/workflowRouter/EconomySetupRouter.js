@@ -44,6 +44,7 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
+require(rootPrefix + '/lib/setup/economy/AssignShardsForClient');
 
 /**
  * Class for economy setup router.
@@ -350,6 +351,18 @@ class EconomySetupRouter extends WorkflowRouterBase {
         });
 
         return obj.perform();
+
+      case workflowStepConstants.assignShards:
+        logger.step('*** Assign shards for token');
+
+        let AssignShardsForClient = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssignShardsForClient');
+
+        let assignShards = new AssignShardsForClient({
+          tokenId: oThis.requestParams.tokenId,
+          clientId: oThis.requestParams.clientId
+        });
+
+        return assignShards.perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark Economy Setup As Success');

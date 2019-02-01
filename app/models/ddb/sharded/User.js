@@ -38,7 +38,7 @@ class User extends Base {
     return {
       tokenId: 'tid',
       userId: 'uid',
-      kind: 'k',
+      kind: 'ki',
       tokenHolderAddress: 'tha',
       multisigAddress: 'ma',
       deviceShardNumber: 'dsn',
@@ -68,7 +68,7 @@ class User extends Base {
     return {
       tid: 'N',
       uid: 'S',
-      k: 'N',
+      ki: 'N',
       tha: 'S',
       ma: 'S',
       dsn: 'N',
