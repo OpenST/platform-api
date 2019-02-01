@@ -1,14 +1,26 @@
 'use strict';
 
 const rootPrefix = '../../..',
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
-const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
+/**
+ * Class for chain address model.
+ *
+ * @class
+ */
 class ChainAddress extends ModelBase {
+  /**
+   * Constructor for chain address model.
+   *
+   * @augments ModelBase
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
 
@@ -18,55 +30,76 @@ class ChainAddress extends ModelBase {
   }
 
   /**
-   * insert address
+   * Insert address
    *
-   * @param {object} params - external passed parameters
-   * @param {String} params.address - address
-   * @param {Integer} params.chainId - chainId
-   * @param {Integer} params.auxChainId - auxChainId
-   * @param {String} params.chainKind - chain kind
-   * @param {String} params.kind - address kind
-   * @param {Integer} params.status - status
-   * @param {Integer} params.knownAddressId - knownAddressId
+   * @param {Object} params: external passed parameters
+   * @param {Integer} params.associatedAuxChainId: associatedAuxChainId
+   * @param {String} params.addressKind: address kind
+   * @param {String} params.address: address
+   * @param {Integer} params.knownAddressId: knownAddressId
+   * @param {String} params.deployedChainId: deployedChainId
+   * @param {String} params.deployedChainKind: deployedChainKind
+   * @param {String} params.status: status
    *
    * @return {Promise}
    */
   async insertAddress(params) {
     const oThis = this,
-      addressKind = params['kind'],
-      knownAddressId = params.knownAddressId,
-      addressKindInt = chainAddressConst.invertedKinds[addressKind];
+      associatedAuxChainId = params['associatedAuxChainId'],
+      addressKind = params['addressKind'],
+      address = params['address'],
+      knownAddressId = params['knownAddressId'],
+      deployedChainId = params['deployedChainId'],
+      deployedChainKind = params['deployedChainKind'],
+      status = params['status'];
 
-    if (!addressKindInt) {
+    if (!associatedAuxChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_es_1',
+          internal_error_identifier: 'm_m_ca_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
       );
     }
 
-    let whereClause = null;
-
-    if (params.auxChainId) {
-      whereClause = [
-        'chain_id = ? AND aux_chain_id = ? AND kind = ? AND chain_kind = ?',
-        params.chainId,
-        params.auxChainId,
-        chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedChainKinds[params.chainKind]
-      ];
-    } else {
-      whereClause = [
-        'chain_id = ? AND kind = ? AND chain_kind = ?',
-        params.chainId,
-        chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedChainKinds[params.chainKind]
-      ];
+    const addressKindInt = chainAddressConst.invertedKinds[addressKind];
+    if (!addressKindInt) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_ca_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
     }
 
-    if (chainAddressConst.uniqueKinds.indexOf(addressKind) > -1) {
+    if (!address) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_ca_3',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    const statusInt = chainAddressConst.invertedStatuses[status];
+    if (!statusInt) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_ca_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    const deployedChainKindInt = chainAddressConst.deployedChainKinds[deployedChainKind];
+
+    if (chainAddressConst.nonUniqueKinds.indexOf(addressKind) === -1) {
+      let whereClause = ['associated_aux_chain_id = ? AND kind = ?', associatedAuxChainId, addressKindInt];
+
       let existingRows = await oThis
         .select('*')
         .where(whereClause)
@@ -75,7 +108,7 @@ class ChainAddress extends ModelBase {
       if (existingRows.length > 0) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'm_m_es_2',
+            internal_error_identifier: 'm_m_ca_5',
             api_error_identifier: 'duplicate_entry',
             debug_options: {}
           })
@@ -83,22 +116,22 @@ class ChainAddress extends ModelBase {
       }
     }
 
-    let insertedRec = await new ChainAddress()
-      .insert({
-        chain_id: params.chainId,
-        aux_chain_id: params.auxChainId,
-        kind: addressKindInt,
-        chain_kind: chainAddressConst.invertedChainKinds[params.chainKind],
-        address: params.address.toLowerCase(),
-        status: chainAddressConst.invertedStatuses[chainAddressConst.activeStatus],
-        known_address_id: knownAddressId
-      })
-      .fire();
+    let insertParams = {
+      associated_aux_chain_id: associatedAuxChainId,
+      deployed_chain_id: deployedChainId,
+      deployed_chain_kind: deployedChainKindInt,
+      kind: addressKindInt,
+      known_address_id: knownAddressId,
+      status: statusInt,
+      address: address.toLowerCase()
+    };
+
+    let insertedRec = await oThis.insert(insertParams).fire();
 
     if (insertedRec.affectedRows === 0) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_es_3',
+          internal_error_identifier: 'm_m_ca_6',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -109,142 +142,72 @@ class ChainAddress extends ModelBase {
   }
 
   /**
-   * fetch address
+   * Update status of address.
    *
-   * @param {object} params: external passed parameters
-   * @param {Integer} params.chainId: chainId
-   * @param {Integer} params.auxChainId: auxChainId
-   * @param {String} params.kind: address kind
+   * @param {Object} params: external passed parameters
+   * @param {Integer} params.associatedAuxChainId: associatedAuxChainId
+   * @param {String} params.addressKind: address kind
+   * @param {String} params.status: status
    *
-   * @return {Promise}
+   * @param params
    */
-  async fetchAddress(params) {
+  async updateStatus(params) {
     const oThis = this,
-      addressKind = params['kind'],
+      associatedAuxChainId = params['associatedAuxChainId'],
+      addressKind = params['addressKind'],
+      status = params['status'],
+      statusInt = chainAddressConst.invertedStatuses[status],
       addressKindInt = chainAddressConst.invertedKinds[addressKind];
 
-    if (!addressKindInt) {
+    if (!associatedAuxChainId) {
+      if (associatedAuxChainId != 0) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'm_m_ca_7',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: {}
+          })
+        );
+      }
+    }
+
+    if (!statusInt) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_es_4',
+          internal_error_identifier: 'm_m_ca_8',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
       );
     }
 
-    let whereClause = null;
-
-    if (params.auxChainId) {
-      whereClause = [
-        'chain_id = ? AND aux_chain_id = ? AND kind = ? AND status = ?',
-        params.chainId,
-        params.auxChainId,
-        chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
-      ];
-    } else {
-      whereClause = [
-        'chain_id = ? AND kind = ? AND status = ?',
-        params.chainId,
-        chainAddressConst.invertedKinds[params.kind],
-        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
-      ];
+    if (!addressKindInt) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_ca_9',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
     }
 
-    let existingRows = await oThis
-      .select('*')
-      .where(whereClause)
+    let updateRsp = await oThis
+      .update({ status: statusInt })
+      .where({
+        associated_aux_chain_id: associatedAuxChainId,
+        kind: addressKindInt
+      })
       .fire();
 
-    let returnData;
-
-    if (chainAddressConst.uniqueKinds.indexOf(addressKind) > -1) {
-      returnData = { address: (existingRows[0] || {}).address };
-    } else {
-      let addresses = [];
-      for (let i = 0; i < existingRows.length; i++) {
-        addresses.push(existingRows[i].address);
-      }
-      returnData = { addresses: addresses };
+    if (updateRsp.affectedRows === 0) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'm_m_ca_10',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
     }
-
-    return responseHelper.successWithData(returnData);
-  }
-
-  /**
-   * fetch addresses
-   *
-   * @param {object} params - external passed parameters
-   * @param {Integer} params.chainId - chainId
-   * @param {Integer} params.auxChainId - auxChainId
-   * @param {Array} params.kinds - address kind
-   *
-   * @return {Promise}
-   */
-  async fetchAddresses(params) {
-    const oThis = this,
-      addressKinds = params['kinds'],
-      addressKindIntToStrMap = {};
-
-    for (let i = 0; i < addressKinds.length; i++) {
-      let addressKindStr = addressKinds[i],
-        addressKindInt = chainAddressConst.invertedKinds[addressKindStr];
-      if (!addressKindInt) {
-        return Promise.reject(
-          responseHelper.error({
-            internal_error_identifier: 'm_m_es_5',
-            api_error_identifier: 'something_went_wrong',
-            debug_options: { addressKind: addressKindStr }
-          })
-        );
-      }
-      addressKindIntToStrMap[addressKindInt] = addressKindStr;
-    }
-
-    let whereClause = null;
-
-    if (params.auxChainId) {
-      whereClause = [
-        'chain_id = ? AND aux_chain_id = ? AND status = ?',
-        params.chainId,
-        params.auxChainId,
-        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
-      ];
-    } else {
-      whereClause = [
-        'chain_id = ? AND status = ?',
-        params.chainId,
-        chainAddressConst.invertedStatuses[chainAddressConst.activeStatus]
-      ];
-    }
-
-    let returnData = {
-      address: {},
-      addresses: {}
-    };
-
-    let dbRows = await oThis
-      .select('*')
-      .where(whereClause)
-      .where(['kind IN (?)', Object.keys(addressKindIntToStrMap)])
-      .fire();
-
-    for (let i = 0; i < dbRows.length; i++) {
-      let dbRow = dbRows[i],
-        addressKindStr = chainAddressConst.kinds[dbRow.kind.toString()];
-
-      if (chainAddressConst.uniqueKinds.indexOf(addressKindStr) > -1) {
-        returnData['address'][addressKindStr] = dbRow.address;
-      } else {
-        if (!returnData['addresses'][addressKindStr]) {
-          returnData['addresses'][addressKindStr] = [];
-        }
-        returnData['addresses'][addressKindStr].push(dbRow.address);
-      }
-    }
-
-    return responseHelper.successWithData(returnData);
   }
 }
 
