@@ -2,7 +2,7 @@
 /**
  * Shard By Tokens Model.
  *
- * @module app/models/ddb/shared/ShardByToken.js
+ * @module app/models/ddb/shared/ShardByToken
  */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),

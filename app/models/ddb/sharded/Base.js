@@ -9,6 +9,7 @@ const mustache = require('mustache');
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   BaseModel = require(rootPrefix + '/app/models/ddb/Base'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   storageConstants = require(rootPrefix + '/lib/globalConstant/storage');
 
 // Following require(s) for registering into instance composer
@@ -27,6 +28,7 @@ class ShardedBase extends BaseModel {
    *
    * @param {Object} params
    * @param {Number} params.chainId: chainId
+   * @param {Number} params.shardNumber
    * @param {Number} params.consistentRead: (1,0)
    *
    * @constructor
@@ -34,10 +36,14 @@ class ShardedBase extends BaseModel {
   constructor(params) {
     super(params);
 
-    const oThis = this,
-      storageProvider = oThis.ic().getInstanceFor(coreConstants.icNameSpace, 'storageProvider');
+    const oThis = this;
 
-    oThis.openSTStorage = storageProvider.getInstance(storageConstants.sharded, params.chainId);
+    oThis.shardNumber = params.shardNumber;
+    oThis.chainId = params.chainId;
+
+    const storageProvider = oThis.ic().getInstanceFor(coreConstants.icNameSpace, 'storageProvider');
+
+    oThis.openSTStorage = storageProvider.getInstance(storageConstants.sharded, oThis.chainId);
     oThis.ddbServiceObj = oThis.openSTStorage.dynamoDBService;
   }
 
@@ -79,20 +85,23 @@ class ShardedBase extends BaseModel {
   }
 
   /**
-   * It should return the table name template.
-   *
-   * @returns {String}
-   */
-  tableNameTemplate() {
-    throw 'sub class to implement';
-  }
-
-  /**
    * It should return the map whose key should be replaced in the map.
    *
    * @returns {Object}
    */
   tableNameTemplateVars() {
+    const oThis = this;
+    return {
+      shardNumber: shardConstant.getShardSuffixFromShardNumber(oThis.shardNumber)
+    };
+  }
+
+  /**
+   * It should return the table name template.
+   *
+   * @returns {String}
+   */
+  tableNameTemplate() {
     throw 'sub class to implement';
   }
 }

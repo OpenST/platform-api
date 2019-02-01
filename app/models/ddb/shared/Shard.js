@@ -268,41 +268,13 @@ class Shard extends Base {
 
   static sanitizeParamsFromDdb(params) {
     params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
-    params['shardNumber'] = Shard.getShardSuffixFromShardNumber(params['shardNumber']);
     return params;
   }
 
   static sanitizeParamsForUpdate(params) {
     params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
-    params['shardNumber'] = Shard.getShardNumberFromShardSuffix(params['shardNumber']);
+    params['shardNumber'] = shardConstant.getShardNumberFromShardSuffix(params['shardNumber']);
     return params;
-  }
-
-  /**
-   *
-   * from shard number return table suffixes
-   *
-   * @param number
-   * @return {string}
-   */
-  static getShardSuffixFromShardNumber(number) {
-    number = parseInt(number);
-    if (number > 100) {
-      return number;
-    } else if (number > 10) {
-      return `0${number}`;
-    } else {
-      return `00${number}`;
-    }
-  }
-
-  /**
-   *
-   * @param string
-   * @return {number}
-   */
-  static getShardNumberFromShardSuffix(string) {
-    return parseInt(string);
   }
 }
 

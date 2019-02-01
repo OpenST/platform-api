@@ -2,7 +2,7 @@
 /**
  * Device model.
  *
- * @module app/models/ddb/sharded/Device.js
+ * @module app/models/ddb/sharded/Device
  */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
@@ -31,9 +31,6 @@ class Device extends Base {
    */
   constructor(params) {
     super(params);
-
-    const oThis = this;
-    oThis.shardNumber = params.shardNumber;
   }
 
   /**
@@ -81,47 +78,12 @@ class Device extends Base {
   }
 
   /**
-   * Returns the table name.
-   *
-   * @returns {String}
-   */
-  tableName() {
-    return this.tablePrefix + 'device_';
-  }
-
-  /**
    * Returns the table name template.
    *
    * @returns {String}
    */
   tableNameTemplate() {
     return 'device_{{shardNumber}}';
-  }
-
-  /**
-   * Returns the table name template variables.
-   *
-   * @returns {{shardNumber: *}}
-   */
-  tableNameTemplateVars() {
-    const oThis = this;
-
-    return {
-      shardNumber: oThis.shardNumber
-    };
-  }
-
-  /**
-   * tableName
-   *
-   * @return {*|void}
-   */
-  tableName() {
-    const oThis = this,
-      tableNameTemplate = oThis.tablePrefix + oThis.tableNameTemplate(),
-      tableNameVars = oThis.tableNameTemplateVars();
-
-    return mustache.render(tableNameTemplate, tableNameVars);
   }
 
   /**

@@ -2,7 +2,7 @@
 /**
  * Base class for shared models
  *
- * @module app/models/ddb/shared/Base.js
+ * @module app/models/ddb/shared/Base
  */
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),

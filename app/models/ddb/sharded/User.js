@@ -25,11 +25,6 @@ class User extends Base {
    */
   constructor(params) {
     super(params);
-
-    const oThis = this;
-
-    oThis.shardNumber = params.shardNumber;
-    oThis.chainId = params.chainId;
   }
 
   /**
@@ -85,47 +80,12 @@ class User extends Base {
   }
 
   /**
-   * Returns the table name.
-   *
-   * @returns {String}
-   */
-  tableName() {
-    return this.tablePrefix + 'users_';
-  }
-
-  /**
    * Returns the table name template.
    *
    * @returns {String}
    */
   tableNameTemplate() {
     return 'users_{{shardNumber}}';
-  }
-
-  /**
-   * Returns the table name template variables.
-   *
-   * @returns {{shardByTransactionShardIdentifier: *}}
-   */
-  tableNameTemplateVars() {
-    const oThis = this;
-
-    return {
-      shardNumber: oThis.shardNumber
-    };
-  }
-
-  /**
-   * tableName
-   *
-   * @return {*|void}
-   */
-  tableName() {
-    const oThis = this,
-      tableNameTemplate = oThis.tablePrefix + oThis.tableNameTemplate(),
-      tableNameVars = oThis.tableNameTemplateVars();
-
-    return mustache.render(tableNameTemplate, tableNameVars);
   }
 
   /**
