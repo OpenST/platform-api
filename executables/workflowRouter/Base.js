@@ -823,7 +823,6 @@ class WorkflowRouterBase {
   async _handleCaughtErrors(debugParams = null) {
     const oThis = this;
 
-    console.log('-1------------------------------------------');
     debugParams = basicHelper.isEmptyObject(debugParams) ? null : debugParams;
 
     if (oThis.currentStepId) {
@@ -835,10 +834,7 @@ class WorkflowRouterBase {
         status: new WorkflowStepsModel().invertedStatuses[workflowStepConstants.failedStatus]
       });
     }
-    console.log('-2------------------------------------------');
-    await oThis._clearWorkflowStatusCache(oThis.workflowId);
     await oThis._clearWorkflowStepsStatusCache(oThis.currentStepId);
-    console.log('-3------------------------------------------');
     await new WorkflowModel()
       .update({
         debug_params: debugParams,
@@ -846,9 +842,8 @@ class WorkflowRouterBase {
       })
       .where({ id: oThis.workflowId })
       .fire();
-    console.log('-4------------------------------------------');
     await oThis._clearWorkflowCache(oThis.workflowId);
-    console.log('-5------------------------------------------');
+    await oThis._clearWorkflowStatusCache(oThis.workflowId);
     await emailNotifier.notify('WorkflowFailed', '*** Workflow with id ', oThis.workflowId, 'failed!', {}, {});
 
     await oThis.ensureOnCatch();
