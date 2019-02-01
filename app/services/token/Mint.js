@@ -13,7 +13,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
+  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddresses'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
