@@ -25,7 +25,7 @@ const rootPrefix = '../../..',
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
-  ClientWhitelistingCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/ClientWhitelisting');
+  ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
 
 /**
  * Class for token deployment

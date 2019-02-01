@@ -328,6 +328,7 @@ class WorkflowRouterBase {
     if (oThis.currentStepId) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
     }
+    await oThis._clearWorkflowCache(oThis.workflowId);
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
     await oThis._clearWorkflowStepsStatusCache(oThis.workflowId);
 
