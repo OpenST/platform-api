@@ -19,7 +19,7 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   environmentInfoConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -45,15 +45,15 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 
 // Config for addresses which need to be funded.
 const fundingConfig = {
-  [chainAddressConstants.deployerKind]: '0.53591',
-  [chainAddressConstants.ownerKind]: '0.00355',
-  [chainAddressConstants.adminKind]: '0.00000',
-  [chainAddressConstants.tokenAdminKind]: '0.00240',
-  [chainAddressConstants.tokenWorkerKind]: '0.00172',
-  [chainAddressConstants.simpleTokenOwnerKind]: '0.03141',
-  [chainAddressConstants.simpleTokenAdminKind]: '0.00071',
-  [chainAddressConstants.chainOwnerKind]: '0.01160',
-  [chainAddressConstants.granterKind]: '0.00000'
+  [chainAddressConstants.originDeployerKind]: '0.53591',
+  [chainAddressConstants.stOrgContractOwnerKind]: '0.00355',
+  [chainAddressConstants.stOrgContractAdminKind]: '0.00000',
+  [chainAddressConstants.originDefaultBTOrgContractAdminKind]: '0.00240',
+  [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: '0.00172',
+  [chainAddressConstants.stContractOwnerKind]: '0.03141',
+  [chainAddressConstants.stContractAdminKind]: '0.00071',
+  [chainAddressConstants.masterInternalFunderKind]: '0.01160',
+  [chainAddressConstants.originGranterKind]: '0.00000'
 };
 
 /**
@@ -99,7 +99,7 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     if (!oThis.originChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_e_1',
+          internal_error_identifier: 'e_f_bco_ocs_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { originChainId: oThis.originChainId }
         })
@@ -156,44 +156,46 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new OriginChainAddressesCache(),
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_e_2',
+          internal_error_identifier: 'e_f_bco_ocs_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
+    oThis.masterInternalFunderAddress = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
 
-    const deployerAddress = chainAddressesRsp.data[chainAddressConstants.deployerKind],
-      ownerAddress = chainAddressesRsp.data[chainAddressConstants.ownerKind],
-      adminAddress = chainAddressesRsp.data[chainAddressConstants.adminKind],
-      tokenAdminAddress = chainAddressesRsp.data[chainAddressConstants.tokenAdminKind],
-      tokenWorkerAddress = chainAddressesRsp.data[chainAddressConstants.tokenWorkerKind];
+    const originDeployerAddress = chainAddressesRsp.data[chainAddressConstants.originDeployerKind].address,
+      stOrgContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractOwnerKind].address,
+      stOrgContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractAdminKind].address,
+      originDefaultBTOrgContractAdminAddress =
+        chainAddressesRsp.data[chainAddressConstants.originDefaultBTOrgContractAdminKind].address,
+      originDefaultBTOrgContractWorkerAddress =
+        chainAddressesRsp.data[chainAddressConstants.originDefaultBTOrgContractWorkerKind].address;
 
     // Addresses whose balances need to be fetched.
     oThis.addresses = [
-      oThis.chainOwnerAddress,
-      deployerAddress,
-      ownerAddress,
-      adminAddress,
-      tokenAdminAddress,
-      tokenWorkerAddress
+      oThis.masterInternalFunderAddress,
+      originDeployerAddress,
+      stOrgContractOwnerAddress,
+      stOrgContractAdminAddress,
+      originDefaultBTOrgContractAdminAddress,
+      originDefaultBTOrgContractWorkerAddress
     ];
 
     // Add addresses mapped to their kind.
     oThis.kindToAddressMap = {
-      [chainAddressConstants.deployerKind]: deployerAddress,
-      [chainAddressConstants.ownerKind]: ownerAddress,
-      [chainAddressConstants.adminKind]: adminAddress,
-      [chainAddressConstants.tokenAdminKind]: tokenAdminAddress,
-      [chainAddressConstants.tokenWorkerKind]: tokenWorkerAddress,
-      [chainAddressConstants.chainOwnerKind]: oThis.chainOwnerAddress
+      [chainAddressConstants.originDeployerKind]: originDeployerAddress,
+      [chainAddressConstants.stOrgContractOwnerKind]: stOrgContractOwnerAddress,
+      [chainAddressConstants.stOrgContractAdminKind]: stOrgContractAdminAddress,
+      [chainAddressConstants.originDefaultBTOrgContractAdminKind]: originDefaultBTOrgContractAdminAddress,
+      [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: originDefaultBTOrgContractWorkerAddress,
+      [chainAddressConstants.masterInternalFunderKind]: oThis.masterInternalFunderAddress
     };
 
     // If environment is not production and subEnvironment is main, then fetch two more addresses.
@@ -202,21 +204,21 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
       coreConstants.subEnvironment === environmentInfoConstants.subEnvironment.main
     ) {
       // Fetch addresses.
-      oThis.granterAddress = chainAddressesRsp.data[chainAddressConstants.granterKind];
-      const simpleTokenOwnerAddress = chainAddressesRsp.data[chainAddressConstants.simpleTokenOwnerKind],
-        simpleTokenAdminAddress = chainAddressesRsp.data[chainAddressConstants.simpleTokenAdminKind];
+      oThis.granterAddress = chainAddressesRsp.data[chainAddressConstants.originGranterKind].address;
+      const stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address,
+        stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
 
       // Add addresses to the array of addresses whose balance is to be fetched.
       oThis.addresses.push.apply(oThis.addresses, [
         oThis.granterAddress,
-        simpleTokenOwnerAddress,
-        simpleTokenAdminAddress
+        stContractOwnerAddress,
+        stContractAdminAddress
       ]);
 
       // Add addresses mapped to their kind.
-      oThis.kindToAddressMap[[chainAddressConstants.granterKind]] = oThis.granterAddress;
-      oThis.kindToAddressMap[[chainAddressConstants.simpleTokenOwnerKind]] = simpleTokenOwnerAddress;
-      oThis.kindToAddressMap[[chainAddressConstants.simpleTokenAdminKind]] = simpleTokenAdminAddress;
+      oThis.kindToAddressMap[[chainAddressConstants.originGranterKind]] = oThis.granterAddress;
+      oThis.kindToAddressMap[[chainAddressConstants.stContractOwnerKind]] = stContractOwnerAddress;
+      oThis.kindToAddressMap[[chainAddressConstants.stContractAdminKind]] = stContractAdminAddress;
     }
   }
 
@@ -257,18 +259,18 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
 
       // If addressKind is granter or chainOwner and it has less than threshold balance, send an error email.
       if (
-        (addressKind === [chainAddressConstants.granterKind] &&
+        (addressKind === [chainAddressConstants.originGranterKind] &&
           addressCurrentBalance.lt(
             basicHelper.convertToWei(addressMinimumBalance.mul(flowsForGranterMinimumBalance))
           )) ||
-        (addressKind === [chainAddressConstants.chainOwnerKind] &&
+        (addressKind === [chainAddressConstants.masterInternalFunderKind] &&
           addressCurrentBalance.lt(
             basicHelper.convertToWei(addressMinimumBalance.mul(flowsForChainOwnerMinimumBalance))
           ))
       ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(
-          'e_f_bco_e_4',
+          'e_f_bco_ocs_4',
           'Low balance of addressKind: ' + addressKind + '. on chainId: ',
           +oThis.originChainId
         );
@@ -277,7 +279,7 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
       // If address current balance is less thant the stipulated amount, these addresses need to be funded.
       else if (addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance.mul(flowsForMinimumBalance)))) {
         let params = {
-          from: oThis.chainOwnerAddress,
+          from: oThis.masterInternalFunderAddress,
           to: address,
           amountInWei: basicHelper.convertToWei(addressMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };

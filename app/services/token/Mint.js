@@ -13,7 +13,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
@@ -88,7 +88,7 @@ class TokenMintDetails {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id
-    let chainAddressCacheObj = new OriginChainAddressesCache(),
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -100,7 +100,7 @@ class TokenMintDetails {
       );
     }
 
-    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConst.baseContractKind];
+    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConst.stContractKind].address;
   }
 
   /**

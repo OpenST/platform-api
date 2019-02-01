@@ -26,7 +26,7 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -99,7 +99,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     if (!oThis.originChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_spe_1',
+          internal_error_identifier: 'e_f_bco_acs_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { originChainId: oThis.originChainId }
         })
@@ -133,6 +133,9 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     logger.step('Fetching all chainIds.');
     await oThis._fetchChainIds();
 
+    logger.step('Fetching master internal funder address.');
+    await oThis._fetchMasterInternalFunderAddress();
+
     logger.step('Transferring StPrime to auxChainId addresses.');
     await oThis._transferStPrimeToAll();
 
@@ -156,6 +159,32 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       oThis.chainIds = await chainConfigProvider.allChainIds();
       oThis.auxChainIds = oThis.chainIds.filter((chainId) => chainId !== oThis.originChainId);
     }
+  }
+
+  /**
+   * Fetch master internal funder address
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _fetchMasterInternalFunderAddress() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bco_acs_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.masterInternalFunderAddress = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
   }
 
   /**
@@ -398,7 +427,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
 
       if (toAddress && addressMinimumBalance) {
         let params = {
-          from: oThis.chainOwnerAddress,
+          from: oThis.masterInternalFunderAddress,
           to: toAddress,
           amountInWei: basicHelper.convertToWei(addressMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
@@ -417,25 +446,9 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
   async _transferEthToOriginFacilitators() {
     const oThis = this;
 
-    logger.step('Fetching addresses from origin chain.');
-
-    // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new OriginChainAddressesCache(),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
-
-    if (chainAddressesRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_f_bco_spe_2',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
-    oThis.transferDetails = [];
-
     logger.step('Fetching balances of addresses from origin chain.');
+
+    oThis.transferDetails = [];
 
     // Fetch eth balance of facilitators on origin chain.
     const getEthBalance = new GetEthBalance({
@@ -451,7 +464,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
 
       if (facilitatorCurrentBalance.lt(facilitatorMinimumBalance.mul(flowsForMinimumBalance))) {
         let params = {
-          from: oThis.chainOwnerAddress,
+          from: oThis.masterInternalFunderAddress,
           to: address,
           amountInWei: basicHelper.convertToWei(facilitatorMinimumBalance.mul(flowsForTransferBalance))
         };
