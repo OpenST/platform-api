@@ -13,12 +13,12 @@
 const program = require('commander');
 
 const rootPrefix = '..',
-  CronBase = require(rootPrefix + '/executables/CronBase'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
-  UpdatePricePoints = require(rootPrefix + '/app/services/conversionRates/UpdatePricePoints');
+  UpdatePricePoints = require(rootPrefix + '/app/services/conversionRates/UpdatePricePoints'),
+  CronBase = require(rootPrefix + '/executables/CronBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 

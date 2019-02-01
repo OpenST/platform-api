@@ -49,6 +49,7 @@ class UpdatePricePoints {
     oThis.currentTime = Math.floor(new Date().getTime() / 1000);
     oThis.currentOstValue = null;
     oThis.maxRetryCountForVerifyPriceInContract = 100;
+    oThis.setPricePointTxHash = null;
   }
 
   /**
@@ -82,57 +83,17 @@ class UpdatePricePoints {
   async asyncPerform() {
     const oThis = this;
 
-    // Parse CoinMarketCap API response
-    await oThis._fetchPriceFromAPI();
+    await oThis._fetchPricePointFromCoinMarketCapApi();
 
-    // Insert current ost value in database
-    let insertResponse = await new CurrencyConversionRateModel()
-      .insert({
-        chain_id: oThis.auxChainId,
-        base_currency: conversionRateConstants.invertedBaseCurrencies[oThis.currentOstValue.baseCurrency],
-        quote_currency: conversionRateConstants.invertedQuoteCurrencies[oThis.currentOstValue.quoteCurrency],
-        conversion_rate: oThis.currentOstValue.conversionRate,
-        timestamp: oThis.currentOstValue.timestamp,
-        status: conversionRateConstants.invertedStatuses[oThis.currentOstValue.status]
-      })
-      .fire();
+    await oThis._insertPricePointInTable();
 
-    if (!insertResponse) {
-      logger.error('Error while inserting data in table');
-      return Promise.reject();
-    }
-
-    oThis.dbRowId = insertResponse.insertId;
-
-    // Fetch all relevant addresses.
     await oThis._fetchAddress();
 
-    // Create web3Instance.
-    await oThis._setWeb3Instance();
+    await oThis._setPriceInContract();
 
-    // Set current price in contract
-    let contractResponse = await oThis._setPriceInContract();
-    if (contractResponse.isFailure()) {
-      logger.notify('a_s_cr_upp_2', 'Error while setting price in contract.', contractResponse);
-      return;
-    }
+    await oThis._updateTxHashInTable();
 
-    let transactionHash = contractResponse.data.transactionHash;
-
-    // Update transaction hash
-    let updateTransactionResponse = await new CurrencyConversionRateModel().updateTransactionHash(
-      oThis.dbRowId,
-      transactionHash
-    );
-    if (!updateTransactionResponse) {
-      logger.error('Error while updating transactionHash in table.');
-      return Promise.reject();
-    }
-
-    // Keep on checking for a price in contract whether its set to new value.
     await oThis._compareContractPrice();
-
-    return Promise.resolve();
   }
 
   /**
@@ -140,7 +101,7 @@ class UpdatePricePoints {
    *
    * Sets currentOstValue
    */
-  async _fetchPriceFromAPI() {
+  async _fetchPricePointFromCoinMarketCapApi() {
     const oThis = this;
     let url = exchangeUrl + '?convert=' + oThis.quoteCurrency;
 
@@ -172,6 +133,35 @@ class UpdatePricePoints {
     } catch (err) {
       logger.notify('a_s_cr_upp_5', 'Invalid Response from CoinMarket', response);
     }
+  }
+
+  /**
+   * Insert price points
+   *
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
+  async _insertPricePointInTable() {
+    const oThis = this;
+
+    // Insert current ost value in database
+    let insertResponse = await new CurrencyConversionRateModel()
+      .insert({
+        chain_id: oThis.auxChainId,
+        base_currency: conversionRateConstants.invertedBaseCurrencies[oThis.currentOstValue.baseCurrency],
+        quote_currency: conversionRateConstants.invertedQuoteCurrencies[oThis.currentOstValue.quoteCurrency],
+        conversion_rate: oThis.currentOstValue.conversionRate,
+        timestamp: oThis.currentOstValue.timestamp,
+        status: conversionRateConstants.invertedStatuses[oThis.currentOstValue.status]
+      })
+      .fire();
+
+    if (!insertResponse) {
+      logger.error('Error while inserting data in table');
+      return Promise.reject();
+    }
+
+    oThis.dbRowId = insertResponse.insertId;
   }
 
   /**
@@ -218,6 +208,8 @@ class UpdatePricePoints {
    */
   async _setPriceInContract() {
     const oThis = this;
+
+    await oThis._setWeb3Instance();
 
     logger.debug('Price Input for contract:' + oThis.currentOstValue.conversionRate);
     logger.debug('Quote Currency for contract:' + oThis.quoteCurrency);
@@ -270,7 +262,27 @@ class UpdatePricePoints {
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
 
-    return Promise.resolve(responseHelper.successWithData({ transactionHash: transactionHash }));
+    oThis.setPricePointTxHash = transactionHash;
+  }
+
+  /**
+   * Update Tx Hash in Table
+   *
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
+  async _updateTxHashInTable() {
+    const oThis = this;
+
+    // Update transaction hash
+    let updateTransactionResponse = await new CurrencyConversionRateModel().updateTransactionHash(
+      oThis.dbRowId,
+      oThis.setPricePointTxHash
+    );
+    if (!updateTransactionResponse) {
+      logger.error('Error while updating transactionHash in table.');
+      return Promise.reject();
+    }
   }
 
   /**
