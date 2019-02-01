@@ -10,6 +10,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   DeviceConstant = require(rootPrefix + '/lib/globalConstant/device');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -149,7 +150,7 @@ class Device extends Base {
   /**
    * Creates entry into Device table.
    *
-   * @param {Number} params.userId
+   * @param {String} params.userId
    * @param {String} params.walletAddress
    * @param {String} params.personalSignAddress
    * @param {String} params.deviceUuid
@@ -196,14 +197,51 @@ class Device extends Base {
   }
 
   /**
+   * Get device details.
+   *
+   * @param {Array} params [{userId: '1234', walletAddress: '0x123....'}, {userId: '1234', walletAddress: '0x123....'}]
+   * @param params[index].userId {String} - uuid
+   * @param params[index].walletAddress {String}
+   *
+   * @return {Promise<void>}
+   */
+  async getDeviceDetails(params) {
+    const oThis = this;
+
+    let keyObjArray = [];
+    for (let index = 0; index < params.length; index++) {
+      keyObjArray.push(
+        oThis._keyObj({
+          userId: params[index].userId,
+          walletAddress: params[index].walletAddress
+        })
+      );
+    }
+    return await oThis.batchGetItem(keyObjArray, 'userId');
+  }
+
+  /**
    * afterUpdate - Method to implement any after update actions
    *
    * @return {Promise<void>}
    */
-  async afterUpdate() {
-    const oThis = this;
+  static async afterUpdate(ic, rowData) {
+    require(rootPrefix + '/lib/cacheManagement/chain/DeviceDetail');
 
+    let cacheClass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
+    new cacheClass(rowData).clear();
+
+    logger.info('device cache cleared.');
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    return Device;
   }
 }
 

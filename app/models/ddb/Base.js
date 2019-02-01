@@ -92,6 +92,15 @@ class ModelBaseKlass {
   }
 
   /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    throw 'sub class to implement';
+  }
+
+  /**
    * This function replaces an existing entry
    *
    * @param {Object} rowMap
@@ -114,7 +123,8 @@ class ModelBaseKlass {
       return Promise.resolve(putItemResponse);
     }
 
-    await oThis.afterUpdate(rowMap);
+    let methodInstance = oThis.subClass['afterUpdate'];
+    await methodInstance.apply(oThis.subClass, [oThis.ic(), rowMap]);
 
     return Promise.resolve(putItemResponse);
   }
@@ -415,7 +425,8 @@ class ModelBaseKlass {
       return response;
     }
 
-    let afterUpdateResponse = await oThis.afterUpdate(data);
+    let methodInstance = oThis.subClass['afterUpdate'];
+    let afterUpdateResponse = await methodInstance.apply(oThis.subClass, [oThis.ic(), data]);
 
     if (afterUpdateResponse.isFailure()) {
       return afterUpdateResponse;
