@@ -75,7 +75,7 @@ class StartMint {
 
     await oThis._validateAndSanitize();
 
-    await oThis.startMinting();
+    return await oThis.startMinting();
   }
 
   /**
