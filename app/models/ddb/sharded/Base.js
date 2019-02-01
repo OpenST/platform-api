@@ -32,13 +32,12 @@ class ShardedBase extends BaseModel {
    * @constructor
    */
   constructor(params) {
-    super();
+    super(params);
 
     const oThis = this,
       storageProvider = oThis.ic().getInstanceFor(coreConstants.icNameSpace, 'storageProvider');
 
     oThis.openSTStorage = storageProvider.getInstance(storageConstants.sharded, params.chainId);
-    oThis.consistentRead = !!params.consistentRead;
     oThis.ddbServiceObj = oThis.openSTStorage.dynamoDBService;
   }
 

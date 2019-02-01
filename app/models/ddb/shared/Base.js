@@ -29,13 +29,11 @@ class SharedBaseKlass extends BaseModel {
    * @constructor
    */
   constructor(params) {
-    super();
+    super(params);
 
     const oThis = this,
       storageProvider = oThis.ic().getInstanceFor(coreConstants.icNameSpace, 'storageProvider'),
       openSTStorage = storageProvider.getInstance(storageConstants.shared);
-
-    oThis.consistentRead = !!params.consistentRead;
 
     oThis.ddbServiceObj = openSTStorage.dynamoDBService;
 

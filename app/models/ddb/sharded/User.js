@@ -14,6 +14,15 @@ const InstanceComposer = OSTBase.InstanceComposer;
 require(rootPrefix + '/lib/cacheMultiManagement/TokenUserDetailsCache');
 
 class User extends Base {
+  /**
+   *
+   * @param {Object} params
+   * @param {Number} params.chainId: chainId
+   * @param {Number} params.consistentRead: (1,0)
+   * @param {Number} params.shardNumber
+   *
+   * @constructor
+   */
   constructor(params) {
     super(params);
 

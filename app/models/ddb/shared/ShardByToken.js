@@ -216,6 +216,6 @@ class ShardByToken extends Base {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ShardByToken, coreConstants.icNameSpace, 'ShardByToken');
+InstanceComposer.registerAsShadowableClass(ShardByToken, coreConstants.icNameSpace, 'ShardByTokenModel');
 
 module.exports = ShardByToken;

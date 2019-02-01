@@ -24,9 +24,15 @@ class ModelBaseKlass {
   /**
    * Constructor for base class of all models
    *
+   * @param {Object} params
+   * @param {Number} params.consistentRead: (1,0)
+   *
    * @constructor
    */
-  constructor() {}
+  constructor(params) {
+    const oThis = this;
+    oThis.consistentRead = !!params.consistentRead;
+  }
 
   get tablePrefix() {
     return this.ic().configStrategy.constants.subEnvDdbTablePrefix;

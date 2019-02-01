@@ -23,6 +23,7 @@ class Device extends Base {
   /**
    *
    * @param {Object} params
+   * @param {Number} params.chainId: chainId
    * @param {Number} params.consistentRead: (1,0)
    * @param {Number} params.shardNumber
    *
@@ -210,6 +211,6 @@ class Device extends Base {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Device, coreConstants.icNameSpace, 'Device');
+InstanceComposer.registerAsShadowableClass(Device, coreConstants.icNameSpace, 'DeviceModel');
 
 module.exports = Device;

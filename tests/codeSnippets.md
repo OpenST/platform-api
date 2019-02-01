@@ -1,3 +1,27 @@
+### Fetch Chain Config Strategy:
+
+```node
+
+let config = null;
+rootPrefix = '.'
+coreConstants = require(rootPrefix + '/config/coreConstants')
+chainId = 2000;
+a = require('./helpers/configStrategy/ByChainId.js')
+b = new a(chainId);
+b.getComplete().then(function(r) {config = r.data});
+
+```
+
+### Create IC:
+
+```node
+
+OSTBase = require('@openstfoundation/openst-base')
+InstanceComposer = OSTBase.InstanceComposer
+ic = new InstanceComposer(config)
+
+```
+
 ### Fetch Client Config Strategy:
 
 ```node

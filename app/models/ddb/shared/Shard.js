@@ -2,13 +2,14 @@
 /**
  * Shard Model
  *
- * @module app/models/ddb/shared/Shard.js
+ * @module app/models/ddb/shared/Shard
  */
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   util = require(rootPrefix + '/lib/util');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -51,7 +52,7 @@ class Shard extends Base {
    */
   get shortNameToDataType() {
     return {
-      ek: 'S',
+      ek: 'N',
       sno: 'N',
       iafa: 'BOOL'
     };
@@ -75,10 +76,16 @@ class Shard extends Base {
    */
   _keyObj(params) {
     const oThis = this,
+      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
+      shortNameForShardNumber = oThis.shortNameFor('shardNumber'),
       keyObj = {};
 
-    keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'].toString() };
-    keyObj[oThis.shortNameFor('shardNumber')] = { N: params['shardNumber'].toString() };
+    keyObj[shortNameForEntityKind] = {
+      [oThis.shortNameToDataType[shortNameForEntityKind]]: params['entityKind'].toString()
+    };
+    keyObj[shortNameForShardNumber] = {
+      [oThis.shortNameToDataType[shortNameForShardNumber]]: params['shardNumber'].toString()
+    };
 
     return keyObj;
   }
@@ -90,32 +97,33 @@ class Shard extends Base {
    */
   tableSchema() {
     const oThis = this,
-      tableSchema = {
-        TableName: oThis.tableName(),
-        KeySchema: [
-          {
-            AttributeName: oThis.shortNameFor('entityKind'),
-            KeyType: 'HASH'
-          }, //Partition key
-          {
-            AttributeName: oThis.shortNameFor('shardNumber'),
-            KeyType: 'RANGE'
-          } //Sort key
-        ],
-        AttributeDefinitions: [
-          { AttributeName: oThis.shortNameFor('entityKind'), AttributeType: 'S' },
-          { AttributeName: oThis.shortNameFor('shardNumber'), AttributeType: 'N' }
-        ],
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 1,
-          WriteCapacityUnits: 1
-        },
-        SSESpecification: {
-          Enabled: false
-        }
-      };
+      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
+      shortNameForShardNumber = oThis.shortNameFor('shardNumber');
 
-    return tableSchema;
+    return {
+      TableName: oThis.tableName(),
+      KeySchema: [
+        {
+          AttributeName: oThis.shortNameFor('entityKind'),
+          KeyType: 'HASH'
+        }, //Partition key
+        {
+          AttributeName: oThis.shortNameFor('shardNumber'),
+          KeyType: 'RANGE'
+        } //Sort key
+      ],
+      AttributeDefinitions: [
+        { AttributeName: shortNameForEntityKind, AttributeType: oThis.shortNameToDataType[shortNameForEntityKind] },
+        { AttributeName: shortNameForShardNumber, AttributeType: oThis.shortNameToDataType[shortNameForShardNumber] }
+      ],
+      ProvisionedThroughput: {
+        ReadCapacityUnits: 1,
+        WriteCapacityUnits: 1
+      },
+      SSESpecification: {
+        Enabled: false
+      }
+    };
   }
 
   /**
@@ -136,7 +144,7 @@ class Shard extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForEntityKind + ') AND attribute_not_exists(' + shortNameForShardNumber + ')';
 
-    return oThis.putItem(params, conditionalExpression);
+    return oThis.putItem(Shard.sanitizeParamsForUpdate(params), conditionalExpression);
   }
 
   /**
@@ -157,7 +165,7 @@ class Shard extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForEntityKind + ') AND attribute_exists(' + shortNameForShardNumber + ')';
 
-    return oThis.updateItem(params, conditionalExpression);
+    return oThis.updateItem(Shard.sanitizeParamsForUpdate(params), conditionalExpression);
   }
 
   /**
@@ -168,17 +176,13 @@ class Shard extends Base {
   async getAvailableShards() {
     const oThis = this,
       shortNameForIsAvailable = oThis.shortNameFor('isAvailableForAllocation'),
-      shortNameForEntityKind = oThis.shortNameFor('entityKind'),
-      shortNameForShardNumber = oThis.shortNameFor('shardNumber'),
-      dataTypeForEntityKind = oThis.shortNameToDataType[shortNameForEntityKind],
-      dataTypeForShardNumber = oThis.shortNameToDataType[shortNameForShardNumber],
       availableShards = {};
 
     let queryParams = {
       TableName: oThis.tableName(),
       FilterExpression: `${shortNameForIsAvailable} = :iafa`,
       ExpressionAttributeValues: {
-        ':iafa': { BOOL: true }
+        ':iafa': { [oThis.shortNameToDataType[shortNameForIsAvailable]]: true }
       },
       ConsistentRead: oThis.consistentRead
     };
@@ -193,39 +197,37 @@ class Shard extends Base {
       return Promise.resolve(responseHelper.successWithData(availableShards));
     }
 
-    let row, entityKind, shardNumber;
+    let row, formattedRow;
 
     for (let i = 0; i < response.data.Items.length; i++) {
       row = response.data.Items[i];
-      entityKind = row[shortNameForEntityKind][dataTypeForEntityKind];
-      shardNumber = row[shortNameForShardNumber][dataTypeForShardNumber];
-      if (!availableShards[entityKind]) {
-        availableShards[entityKind] = [];
+      formattedRow = Shard.sanitizeParamsFromDdb(oThis._formatRowFromDynamo(row));
+      if (!availableShards[formattedRow['entityKind']]) {
+        availableShards[formattedRow['entityKind']] = [];
       }
-      availableShards[entityKind].push(shardNumber);
+      availableShards[formattedRow['entityKind']].push(formattedRow['shardNumber']);
     }
 
     return Promise.resolve(responseHelper.successWithData(availableShards));
   }
 
   /**
-   * Gets list of shards which are available for allocation
+   * Gets list of all shards (available or not)
+   *
+   * @param {String} entityKind
    *
    * @returns {Object}
    */
-  async getAvailableShardsOf(entityKind) {
+  async getAllShardsOf(entityKind) {
     const oThis = this,
-      shortNameForIsAvailable = oThis.shortNameFor('isAvailableForAllocation'),
       shortNameForEntityKind = oThis.shortNameFor('entityKind'),
       dataTypeForEntityKind = oThis.shortNameToDataType[shortNameForEntityKind];
 
     let queryParams = {
       TableName: oThis.tableName(),
       KeyConditionExpression: `${shortNameForEntityKind} = :ek`,
-      FilterExpression: `${shortNameForIsAvailable} = :iafa`,
       ExpressionAttributeValues: {
-        ':ek': { [dataTypeForEntityKind]: entityKind },
-        ':iafa': { BOOL: true }
+        ':ek': { [dataTypeForEntityKind]: shardConstant.invertedEntityKinds[entityKind] }
       }
     };
 
@@ -235,7 +237,17 @@ class Shard extends Base {
       return Promise.reject(response);
     }
 
-    return Promise.resolve(response);
+    let row,
+      formattedRow,
+      allShards = [];
+
+    for (let i = 0; i < response.data.Items.length; i++) {
+      row = response.data.Items[i];
+      formattedRow = Shard.sanitizeParamsFromDdb(oThis._formatRowFromDynamo(row));
+      allShards.push(formattedRow);
+    }
+
+    return Promise.resolve(responseHelper.successWithData(allShards));
   }
 
   /**
@@ -252,6 +264,45 @@ class Shard extends Base {
     await cacheObject.clear();
 
     return responseHelper.successWithData({});
+  }
+
+  static sanitizeParamsFromDdb(params) {
+    params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
+    params['shardNumber'] = Shard.getShardSuffixFromShardNumber(params['shardNumber']);
+    return params;
+  }
+
+  static sanitizeParamsForUpdate(params) {
+    params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
+    params['shardNumber'] = Shard.getShardNumberFromShardSuffix(params['shardNumber']);
+    return params;
+  }
+
+  /**
+   *
+   * from shard number return table suffixes
+   *
+   * @param number
+   * @return {string}
+   */
+  static getShardSuffixFromShardNumber(number) {
+    number = parseInt(number);
+    if (number > 100) {
+      return number;
+    } else if (number > 10) {
+      return `0${number}`;
+    } else {
+      return `00${number}`;
+    }
+  }
+
+  /**
+   *
+   * @param string
+   * @return {number}
+   */
+  static getShardNumberFromShardSuffix(string) {
+    return parseInt(string);
   }
 }
 
