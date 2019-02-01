@@ -5,14 +5,14 @@
  * @module app/models/ddb/sharded/Device
  */
 const rootPrefix = '../../../..',
+  util = require(rootPrefix + '/lib/util'),
   OSTBase = require('@openstfoundation/openst-base'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  util = require(rootPrefix + '/lib/util');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  DeviceConstant = require(rootPrefix + '/lib/globalConstant/device');
 
-const mustache = require('mustache'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const InstanceComposer = OSTBase.InstanceComposer;
 
 /**
  * Devices model class.
@@ -46,7 +46,7 @@ class Device extends Base {
       deviceUuid: 'du',
       deviceName: 'dn',
       status: 'sts',
-      updateTimestamp: 'uts'
+      updatedTimestamp: 'uts'
     };
   }
 
@@ -83,7 +83,7 @@ class Device extends Base {
    * @returns {String}
    */
   tableNameTemplate() {
-    return 'device_{{shardNumber}}';
+    return 'devices_{{shardNumber}}';
   }
 
   /**
@@ -95,10 +95,14 @@ class Device extends Base {
    */
   _keyObj(params) {
     const oThis = this,
-      keyObj = {};
+      keyObj = {},
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForWalletAddress = oThis.shortNameFor('walletAddress');
 
-    keyObj[oThis.shortNameFor('userId')] = { S: params['userId'] };
-    keyObj[oThis.shortNameFor('walletAddress')] = { S: params['walletAddress'] };
+    keyObj[shortNameForUserId] = { [oThis.shortNameToDataType[shortNameForUserId]]: params['userId'] };
+    keyObj[shortNameForWalletAddress] = {
+      [oThis.shortNameToDataType[shortNameForWalletAddress]]: params['walletAddress']
+    };
 
     return keyObj;
   }
@@ -110,21 +114,25 @@ class Device extends Base {
    */
   tableSchema() {
     const oThis = this,
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForWalletAddress = oThis.shortNameFor('walletAddress'),
+      dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
+      dataTypeForWalletAddress = oThis.shortNameToDataType[shortNameForWalletAddress],
       tableSchema = {
         TableName: oThis.tableName(),
         KeySchema: [
           {
-            AttributeName: oThis.shortNameFor('userId'),
+            AttributeName: shortNameForUserId,
             KeyType: 'HASH'
           }, //Partition key
           {
-            AttributeName: oThis.shortNameFor('walletAddress'),
+            AttributeName: shortNameForWalletAddress,
             KeyType: 'RANGE'
           } //Sort key
         ],
         AttributeDefinitions: [
-          { AttributeName: oThis.shortNameFor('userId'), AttributeType: 'S' },
-          { AttributeName: oThis.shortNameFor('walletAddress'), AttributeType: 'S' }
+          { AttributeName: shortNameForUserId, AttributeType: dataTypeForUserId },
+          { AttributeName: shortNameForWalletAddress, AttributeType: dataTypeForWalletAddress }
         ],
         ProvisionedThroughput: {
           ReadCapacityUnits: 1,
@@ -147,7 +155,7 @@ class Device extends Base {
    * @param {String} params.deviceUuid
    * @param {String} params.deviceName
    * @param {Number} params.status
-   * @param {Number} params.updateTimestamp
+   * @param {Number} params.updatedTimestamp
    * @returns {*|promise<result>}
    */
   create(params) {
@@ -158,7 +166,36 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForWalletAddress + ')';
 
-    return oThis.putItem(params, conditionalExpression);
+    params['updatedTimestamp'] = Math.floor(new Date().getTime() / 1000);
+
+    return oThis.putItem(Device.sanitizeParamsForUpdate(params), conditionalExpression);
+  }
+
+  /**
+   * updateStatus - Updates status of device
+   *
+   * @param params
+   * @param params.userId {String} - uuid
+   * @param params.walletAddress {String}
+   * @param params.status {String} - {REGISTERED,AUTHORIZING, AUTHORIZED, REVOKING, REVOKED}
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatus(params) {
+    const oThis = this,
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForWalletAddress = oThis.shortNameFor('walletAddress');
+
+    let conditionalExpression =
+      'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForWalletAddress + ')';
+
+    return oThis.updateItem(Device.sanitizeParamsForUpdate(params), conditionalExpression);
+  }
+
+  static sanitizeParamsForUpdate(params) {
+    params['status'] = DeviceConstant.invertedKinds[params['status']];
+    console.log('params', params);
+    return params;
   }
 
   /**
