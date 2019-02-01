@@ -16,7 +16,7 @@ const rootPrefix = '../../../..',
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
-  AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey'),
+  AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**

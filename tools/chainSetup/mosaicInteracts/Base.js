@@ -9,7 +9,7 @@ const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  AddressPrivateKeyCache = require(rootPrefix + '/lib/sharedCacheManagement/AddressPrivateKey');
+  AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey');
 
 /**
  * Class for setup tasks that are common across origin & aux chains
