@@ -10,14 +10,17 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  GrantEthOst = require(rootPrefix + '/app/services/token/GrantEthOst'),
   ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
+  TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
+  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup');
 
@@ -69,7 +72,15 @@ class Deployment {
   async asyncPerform() {
     const oThis = this;
 
-    return await oThis.startTokenDeployment();
+    let tokenDeploymentResponse = await oThis.startTokenDeployment();
+
+    if (!tokenDeploymentResponse.isSuccess()) {
+      return Promise.reject(tokenDeploymentResponse);
+    }
+
+    let startGrantEthOstResponse = await oThis._grantEthOst();
+
+    return Promise.resolve(tokenDeploymentResponse);
   }
 
   /**
@@ -182,7 +193,6 @@ class Deployment {
         })
       );
     }
-    logger.debug('cacheResponse-------', cacheResponse);
     return cacheResponse.data;
   }
 
@@ -250,7 +260,7 @@ class Deployment {
 
       let economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams);
 
-      return await economySetupRouterObj.perform();
+      return economySetupRouterObj.perform();
     }
     // Status of token deployment is not as expected.
     else {
@@ -312,6 +322,38 @@ class Deployment {
         }
       }
     }
+  }
+
+  /**
+   * Call service which grants ETH and OST to given address.
+   *
+   * @return {Promise<*>}
+   */
+  async _grantEthOst() {
+    const oThis = this;
+
+    // fetch meta-mask address for client
+    let tokenAddressCacheRsp = await new TokenAddressCache({
+      tokenId: oThis.tokenId
+    }).fetch();
+
+    if (tokenAddressCacheRsp.isFailure()) {
+      return Promise.reject(tokenAddressCacheRsp);
+    }
+
+    // meta-mask address will be the ownerAddress from token deployment.
+    let ownerAddress = tokenAddressCacheRsp.data[tokenAddressConstants.ownerAddressKind];
+
+    // grant ETH and OST for this address.
+    let grantEthOst = new GrantEthOst({ clientId: oThis.clientId, address: ownerAddress }),
+      grantEthOstResponse = await grantEthOst.perform();
+
+    if (!grantEthOstResponse.isSuccess()) {
+      logger.error('Granting ETH and OST has been failed.');
+      return Promise.resolve(grantEthOstResponse);
+    }
+
+    return Promise.resolve(grantEthOstResponse);
   }
 }
 
