@@ -9,7 +9,7 @@ const rootPrefix = '../..',
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ChainConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/shared/ChainConfigStrategyId'),
-  ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
+  ConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/ConfigStrategy');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
