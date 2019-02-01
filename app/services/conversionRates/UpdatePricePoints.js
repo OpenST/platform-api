@@ -22,7 +22,7 @@ const rootPrefix = '../../..',
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
-  OstPricePointsCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/OstPricePoints'),
+  OstPricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate');
 
 /**
