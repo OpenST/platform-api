@@ -192,7 +192,6 @@ class Device extends Base {
 
   static sanitizeParamsForUpdate(params) {
     params['status'] = DeviceConstant.invertedKinds[params['status']];
-    console.log('params', params);
     return params;
   }
 
