@@ -1,11 +1,4 @@
 'use strict';
-/*
- * Main application file
- *
- * * Author: Rachin
- * * Date: 23/10/2017
- * * Reviewed by: Sunil
- */
 
 const rootPrefix = '.';
 
@@ -28,7 +21,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   ValidateApiSignature = require(rootPrefix + '/app/services/validateApiSignature/ByApiKeySecret'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   customMiddleware = require(rootPrefix + '/helpers/customMiddleware'),
-  SystemServiceStatusesCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/systemServiceStatuses'),
+  SystemServiceStatusesCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/SystemServiceStatus'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   environmentInfo = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   basicHelper = require(rootPrefix + '/helpers/basic'),

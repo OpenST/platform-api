@@ -2,10 +2,10 @@
 /**
  * Deploy ops and set
  *
- * @module tools/chainSetup/origin/DeployGateway
+ * @module tools/chainSetup/aux/DeployAndSetOpsAndAdmin
  */
 const OpenStOracle = require('@ostdotcom/ost-price-oracle'),
-  deployAndSetInOpsHelper = new OpenStOracle.DeployAndSetInOpsHelper();
+  deployAndSetOpsAndAdminHelper = new OpenStOracle.DeployAndSetOpsAndAdminHelper();
 
 const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
@@ -24,7 +24,7 @@ const rootPrefix = '../../..',
  *
  * @class
  */
-class DeployAndSetInOps {
+class DeployAndSetOpsAndAdmin {
   /**
    * Constructor for deploy and set ops contract.
    *
@@ -99,7 +99,11 @@ class DeployAndSetInOps {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [chainAddressConst.priceOracleOpsAddressKind, chainAddressConst.ownerKind];
+    let requiredAddressKinds = [
+      chainAddressConst.priceOracleOpsAddressKind,
+      chainAddressConst.ownerKind,
+      chainAddressConst.adminKind
+    ];
 
     // TODO: Fetch chainOwnerKind instead of ownerKind. Also fetch adminKind.
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
@@ -109,7 +113,7 @@ class DeployAndSetInOps {
 
     oThis.priceOracleOpsAddress = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
     oThis.ownerAddress = chainAddressRsp.data.address[chainAddressConst.ownerKind];
-    oThis.adminAddress = '';
+    oThis.adminAddress = chainAddressRsp.data.address[chainAddressConst.adminKind];
   }
 
   /**
@@ -153,7 +157,7 @@ class DeployAndSetInOps {
     };
 
     // Get raw transaction object.
-    let txObject = deployAndSetInOpsHelper.deployRawTx(
+    let txObject = deployAndSetOpsAndAdminHelper.deployRawTx(
       oThis.web3Instance,
       oThis.ownerAddress,
       oThis.baseCurrency,
@@ -211,7 +215,7 @@ class DeployAndSetInOps {
     };
 
     // Get raw transaction object.
-    let txObject = deployAndSetInOpsHelper.setOpsAddressTx(
+    let txObject = deployAndSetOpsAndAdminHelper.setOpsAddressTx(
       oThis.web3Instance,
       oThis.priceOracleOpsAddress,
       oThis.contractAddress,
@@ -265,7 +269,7 @@ class DeployAndSetInOps {
     };
 
     // Get raw transaction object.
-    let txObject = deployAndSetInOpsHelper.setAdminAddressTx(
+    let txObject = deployAndSetOpsAndAdminHelper.setAdminAddressTx(
       oThis.web3Instance,
       oThis.adminAddress,
       oThis.contractAddress,
@@ -309,4 +313,4 @@ class DeployAndSetInOps {
   }
 }
 
-module.exports = DeployAndSetInOps;
+module.exports = DeployAndSetOpsAndAdmin;
