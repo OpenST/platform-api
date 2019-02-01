@@ -14,7 +14,7 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-require(rootPrefix + '/lib/cacheManagement/TokenShardNumbers');
+require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 
 class ShardByToken extends Base {
   constructor(params) {
