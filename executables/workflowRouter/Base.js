@@ -15,8 +15,8 @@ const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  WorkflowStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStatus.js'),
-  WorkflowStepsStatusCache = require(rootPrefix + '/lib/sharedCacheManagement/WorkflowStepsStatus');
+  WorkflowStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStatus'),
+  WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus');
 
 /**
  * Class for workflow router base.
