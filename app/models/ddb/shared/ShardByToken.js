@@ -9,6 +9,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   util = require(rootPrefix + '/lib/util');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -28,7 +29,7 @@ class ShardByToken extends Base {
   /**
    * Mapping of long column names to their short names.
    *
-   * @returns {{tokenId: Number, entityKind: string, shardNumber: Number}}
+   * @returns {{tokenId: Number, entityKind: Number, shardNumber: Number}}
    */
   get longToShortNamesMap() {
     return {
@@ -46,7 +47,7 @@ class ShardByToken extends Base {
   get shortNameToDataType() {
     return {
       ti: 'N',
-      ek: 'S',
+      ek: 'N',
       sn: 'N'
     };
   }
@@ -159,7 +160,7 @@ class ShardByToken extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForEntityKind + ') AND attribute_not_exists(' + shortNameForTokenId + ')';
 
-    return oThis.putItem(params, conditionalExpression);
+    return oThis.putItem(ShardByToken.sanitizeParamsForQuery(params), conditionalExpression);
   }
 
   /**
@@ -176,10 +177,11 @@ class ShardByToken extends Base {
     let keyObjArray = [];
 
     for (let i = 0; i < params.entityKinds.length; i++) {
+      let entityKind = shardConstant.invertedEntityKinds[params.entityKinds[i]];
       keyObjArray.push(
         oThis._keyObj({
           tokenId: params.tokenId,
-          entityKind: params.entityKinds[i]
+          entityKind: entityKind
         })
       );
     }
@@ -189,10 +191,11 @@ class ShardByToken extends Base {
     let result = {};
 
     for (let i = 0; i < params.entityKinds.length; i++) {
-      let entity = params.entityKinds[i];
+      let entityKind = params.entityKinds[i],
+        entityKindNum = shardConstant.invertedEntityKinds[entityKind];
 
-      if (response.data.hasOwnProperty(entity)) {
-        result[entity] = response.data[entity].shardNumber;
+      if (response.data.hasOwnProperty(entityKindNum)) {
+        result[entityKind] = response.data[entityKindNum].shardNumber;
       }
     }
 
@@ -213,6 +216,16 @@ class ShardByToken extends Base {
     await cacheObject.clear();
 
     return responseHelper.successWithData({});
+  }
+
+  static sanitizeParamsFromDdb(params) {
+    params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
+    return params;
+  }
+
+  static sanitizeParamsForQuery(params) {
+    params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
+    return params;
   }
 }
 
