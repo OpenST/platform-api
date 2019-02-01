@@ -65,7 +65,7 @@ class ClientWhitelisting extends ModelBase {
    * @returns {Promise<*>}
    */
   static flushCache(clientId) {
-    const ClientWhitelistingCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/ClientWhitelisting');
+    const ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
     return new ClientWhitelistingCache({
       clientId: clientId
     }).clear();
