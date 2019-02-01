@@ -82,6 +82,7 @@ const Main = async function() {
   }
 
   let resp = await (performerObj ? performerObj.perform() : handleError());
+  console.log(resp);
   if (resp.isFailure()) {
     throw resp;
   }
