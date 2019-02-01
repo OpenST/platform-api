@@ -15,7 +15,7 @@ const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  WorkflowStatusCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/WorkflowStatus'),
+  WorkflowStatusCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowStatus'),
   WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus'),
   emailNotifier = require(rootPrefix + '/lib/notifier');
 
