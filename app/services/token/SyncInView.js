@@ -15,7 +15,7 @@ const rootPrefix = '../../..',
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress');
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
 
 /**
  * Class for SyncInView

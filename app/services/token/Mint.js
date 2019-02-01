@@ -16,7 +16,7 @@ const rootPrefix = '../../..',
   OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
