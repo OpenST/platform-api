@@ -18,7 +18,7 @@ const rootPrefix = '../..',
   DeployAnchorHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployAnchor'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
+  gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 /**
  *

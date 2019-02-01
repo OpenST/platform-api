@@ -15,7 +15,7 @@ const rootPrefix = '../../..',
   TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
   OriginChainAddressesCache = require(rootPrefix + '/lib/sharedCacheManagement/OriginChainAddresses'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
+  gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 class TokenMintDetails {
   constructor(params) {

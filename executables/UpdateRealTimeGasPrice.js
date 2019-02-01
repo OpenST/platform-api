@@ -25,7 +25,7 @@ const rootPrefix = '..',
   localChainConfig = require(rootPrefix + '/tools/localSetup/config'),
   environmentConst = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   CronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  originChainGasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/estimateOriginChainGasPrice');
+  originChainGasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 const usageDemo = function() {
   logger.log('Usage:', 'node executables/updateRealtimeGasPrice.js cronProcessId');

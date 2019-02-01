@@ -23,7 +23,7 @@ const rootPrefix = '../../..',
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   StakerWhitelistedAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/StakerWhitelistedAddress'),
-  gasPriceCacheKlass = require(rootPrefix + '/lib/sharedCacheManagement/EstimateOriginChainGasPrice');
+  gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 class GatewayComposer {
   constructor(params) {
