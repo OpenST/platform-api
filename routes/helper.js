@@ -87,6 +87,8 @@ class RoutesHelper {
 
     let Service;
 
+    console.log('req.serviceParams------', req.serviceParams);
+
     if (req.decodedParams.clientConfigStrategyRequired) {
       let configStrategy = await oThis._fetchConfigStrategyByClientId(req.serviceParams['client_id']);
       let instanceComposer = new InstanceComposer(configStrategy);
