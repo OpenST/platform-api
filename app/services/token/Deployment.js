@@ -6,10 +6,12 @@
  */
 const rootPrefix = '../../..',
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
+  ClientPreProvisoning = require(rootPrefix + '/app/models/mysql/ClientPreProvisoning'),
   GrantEthOst = require(rootPrefix + '/app/services/token/GrantEthOst'),
   ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
@@ -22,7 +24,8 @@ const rootPrefix = '../../..',
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
-  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
+  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
+  ClientWhitelistingCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/ClientWhitelisting');
 
 /**
  * Class for token deployment
@@ -72,6 +75,8 @@ class Deployment {
   async asyncPerform() {
     const oThis = this;
 
+    await oThis._validateRequest();
+
     let tokenDeploymentResponse = await oThis.startTokenDeployment();
 
     if (!tokenDeploymentResponse.isSuccess()) {
@@ -81,6 +86,34 @@ class Deployment {
     let startGrantEthOstResponse = await oThis._grantEthOst();
 
     return Promise.resolve(tokenDeploymentResponse);
+  }
+
+  /**
+   *
+   * Validate request
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateRequest() {
+    const oThis = this;
+
+    if (basicHelper.isSandboxSubEnvironment()) {
+      return responseHelper.successWithData({});
+    }
+
+    let rsp = await new ClientWhitelistingCache({ clientId: oThis.clientId }).fetch();
+
+    if (!rsp.data.id) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_t_d_2',
+          api_error_identifier: 'unauthorized_for_main_env'
+        })
+      );
+    }
+
+    return responseHelper.successWithData({});
   }
 
   /**
@@ -97,14 +130,14 @@ class Deployment {
     let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId }),
       fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
 
-    // Config group is not associated for the given client.
-    if (fetchCacheRsp.isFailure()) {
-      // Assign config group for the client.
-      oThis.chainId = await oThis._assignConfigGroupsToClient();
-    }
-    // Config group is already associated for the given client.
-    else {
+    if (fetchCacheRsp.isSuccess()) {
+      // Config group is already associated for the given client.
       oThis.chainId = fetchCacheRsp.data[oThis.clientId].chainId;
+    } else {
+      // Config group is not associated for the given client.
+      fetchCacheRsp = await oThis._assignConfigGroupsToClient();
+
+      oThis.chainId = fetchCacheRsp.data.chainId;
     }
   }
 
@@ -118,35 +151,74 @@ class Deployment {
   async _assignConfigGroupsToClient() {
     const oThis = this;
 
-    // Fetch all config groups which are available for allocation.
-    let configGroups = new ConfigGroupsModel(),
-      configGroupsResponse = await configGroups
-        .select('*')
-        .where({
-          is_available_for_allocation: new ConfigGroupsModel().invertedIsAvailableForAllocation[
-            configGroupConstants.availableForAllocation
-          ]
-        })
-        .fire();
+    let rsp = await oThis._getChainIdFromPreProvisioning(),
+      insertParams = rsp.data;
 
-    // Select config group on round robin basis.
-    let configGroupRow = oThis.clientId % configGroupsResponse.length;
+    if (!insertParams.groupId) {
+      let configGroups = new ConfigGroupsModel(),
+        configGroupsResponse = await configGroups
+          .select('*')
+          .where({
+            is_available_for_allocation: new ConfigGroupsModel().invertedIsAvailableForAllocation[
+              configGroupConstants.availableForAllocation
+            ]
+          })
+          .fire();
 
-    // Fetch config group.
-    let configGroup = configGroupsResponse[configGroupRow],
-      chainId = configGroup.chain_id,
-      groupId = configGroup.group_id;
+      // Select config group on round robin basis.
+      let configGroupRow = oThis.clientId % configGroupsResponse.length;
+
+      // Fetch config group.
+      let configGroup = configGroupsResponse[configGroupRow];
+
+      insertParams = {
+        chainId: configGroup.chain_id,
+        groupId: configGroup.group_id
+      };
+    }
+
+    insertParams.clientId = oThis.clientId;
 
     // Insert entry in client config groups table.
-    await new ClientConfigGroupModel().insertRecord({
-      clientId: oThis.clientId,
-      chainId: chainId,
-      groupId: groupId
-    });
+    await new ClientConfigGroupModel().insertRecord(insertParams);
 
     logger.step('Entry created in client config groups table.');
 
-    return chainId;
+    return responseHelper.successWithData(insertParams);
+  }
+
+  /**
+   *
+   * fetch chain id from client pre provisioning
+   *
+   * @return {Promise<object>}
+   * @private
+   */
+  async _getChainIdFromPreProvisioning() {
+    const oThis = this;
+
+    let returnData;
+
+    let clientPreProvisoningConfig = await new ClientPreProvisoning().getDetailsByClientId(oThis.clientId);
+
+    if (clientPreProvisoningConfig.data.config && clientPreProvisoningConfig.data.config.config_group_id) {
+      let configGroupsModel = new ConfigGroupsModel(),
+        dbRows = await configGroupsModel
+          .select('*')
+          .where({
+            id: clientPreProvisoningConfig.data.config.config_group_id
+          })
+          .fire();
+
+      if (dbRows.length === 1) {
+        returnData = {
+          chainId: dbRows[0].chain_id,
+          groupId: dbRows[0].group_id
+        };
+      }
+    }
+
+    return responseHelper.successWithData(returnData);
   }
 
   /**
