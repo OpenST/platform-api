@@ -8,7 +8,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   BrandedTokenRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/BrandedTokenRouter'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),

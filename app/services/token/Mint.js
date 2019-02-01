@@ -12,12 +12,12 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  TokenCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress'),
   chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
-  TokenDetailCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/Token'),
+  TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 class TokenMintDetails {
