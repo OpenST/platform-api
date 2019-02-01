@@ -11,7 +11,7 @@ const mustache = require('mustache');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-require(rootPrefix + '/lib/cacheMultiManagement/TokenUserDetailsCache');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 class User extends Base {
   /**
