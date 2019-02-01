@@ -242,8 +242,26 @@ function addCronProcessEntries() {
           cronProcessObj.insertRecord(insertParams);
          })();
                  
-       promiseArray.push(p13);       
-      
+       promiseArray.push(p13);
+       
+      // Create entry for email .notifier.
+        let p14 =  (function updatePriceOraclePricePoints() {
+            let cronParams = '{}',
+            insertParams = {
+             id: 13,
+             kind: 'emailNotifier',
+             ip_address: '127.0.0.1',
+             chain_id: 2000,
+             params: cronParams,
+             status: 'stopped'
+            };
+            let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+            cronProcessObj = new CronProcessModel();
+            cronProcessObj.insertRecord(insertParams);
+        })();
+               
+        promiseArray.push(p14);       
+            
     return Promise.all(promiseArray);
 }
 
