@@ -22,7 +22,7 @@ const rootPrefix = '../../..',
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   TokenAddressCache = require(rootPrefix + '/lib/kitSaasSharedCacheManagement/TokenAddress'),
   EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
-  ClientConfigGroupCache = require(rootPrefix + '/lib/sharedCacheManagement/ClientConfigGroup');
+  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
 
 /**
  * Class for token deployment
