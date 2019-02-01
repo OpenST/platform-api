@@ -93,10 +93,12 @@ class ShardByToken extends Base {
    */
   _keyObj(params) {
     const oThis = this,
-      keyObj = {};
+      keyObj = {},
+      tokenIdShortName = oThis.shortNameFor('tokenId'),
+      entityKindShortName = oThis.shortNameFor('entityKind');
 
-    keyObj[oThis.shortNameFor('tokenId')] = { N: params['tokenId'].toString() };
-    keyObj[oThis.shortNameFor('entityKind')] = { S: params['entityKind'] };
+    keyObj[tokenIdShortName] = { [oThis.shortNameToDataType[tokenIdShortName]]: params['tokenId'].toString() };
+    keyObj[entityKindShortName] = { [oThis.shortNameToDataType[entityKindShortName]]: params['entityKind'] };
 
     return keyObj;
   }
@@ -107,31 +109,35 @@ class ShardByToken extends Base {
    * @returns {Object}
    */
   tableSchema() {
-    const oThis = this,
-      tableSchema = {
-        TableName: oThis.tableName(),
-        KeySchema: [
-          {
-            AttributeName: oThis.shortNameFor('tokenId'),
-            KeyType: 'HASH'
-          }, //Partition key
-          {
-            AttributeName: oThis.shortNameFor('entityKind'),
-            KeyType: 'RANGE'
-          } //Sort key
-        ],
-        AttributeDefinitions: [
-          { AttributeName: oThis.shortNameFor('tokenId'), AttributeType: 'N' },
-          { AttributeName: oThis.shortNameFor('entityKind'), AttributeType: 'S' }
-        ],
-        ProvisionedThroughput: {
-          ReadCapacityUnits: 1,
-          WriteCapacityUnits: 1
-        },
-        SSESpecification: {
-          Enabled: false
-        }
-      };
+    const oThis = this;
+
+    let tokenIdShortName = oThis.shortNameFor('tokenId'),
+      entityKindShortName = oThis.shortNameFor('entityKind');
+
+    const tableSchema = {
+      TableName: oThis.tableName(),
+      KeySchema: [
+        {
+          AttributeName: tokenIdShortName,
+          KeyType: 'HASH'
+        }, //Partition key
+        {
+          AttributeName: entityKindShortName,
+          KeyType: 'RANGE'
+        } //Sort key
+      ],
+      AttributeDefinitions: [
+        { AttributeName: tokenIdShortName, AttributeType: oThis.shortNameToDataType[tokenIdShortName] },
+        { AttributeName: entityKindShortName, AttributeType: oThis.shortNameToDataType[entityKindShortName] }
+      ],
+      ProvisionedThroughput: {
+        ReadCapacityUnits: 1,
+        WriteCapacityUnits: 1
+      },
+      SSESpecification: {
+        Enabled: false
+      }
+    };
 
     return tableSchema;
   }
