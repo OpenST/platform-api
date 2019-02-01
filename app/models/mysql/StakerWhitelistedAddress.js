@@ -140,8 +140,7 @@ class StakerWhitelistedAddress extends ModelBase {
    */
 
   static async flushCache(params) {
-    const StakerWhitelistedAddressCache = require(rootPrefix +
-      '/lib/kitSaasSharedCacheManagement/StakerWhitelistedAddress');
+    const StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress');
     return new StakerWhitelistedAddressCache({
       tokenId: params.tokenId,
       address: params.stakerAddress
