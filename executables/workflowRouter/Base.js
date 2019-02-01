@@ -472,6 +472,7 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkConfirmStakeStatus:
       case workflowStepConstants.checkProgressMintStatus:
       case workflowStepConstants.verifyEconomySetup:
+      case workflowStepConstants.assignShards:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 
