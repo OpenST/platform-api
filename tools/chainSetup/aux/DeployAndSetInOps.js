@@ -84,7 +84,9 @@ class DeployAndSetInOps {
 
     await oThis._deployPriceOracleContract();
 
-    await oThis._setOpsContract();
+    await oThis._setOpsAddress();
+
+    await oThis._setAdminAddress();
   }
 
   /**
@@ -99,7 +101,7 @@ class DeployAndSetInOps {
 
     let requiredAddressKinds = [chainAddressConst.priceOracleOpsAddressKind, chainAddressConst.ownerKind];
 
-    // TODO: Fetch chainOwnerKind instead of ownerKind.
+    // TODO: Fetch chainOwnerKind instead of ownerKind. Also fetch adminKind.
     let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
       chainId: oThis.auxChainId,
       kinds: requiredAddressKinds
@@ -107,6 +109,7 @@ class DeployAndSetInOps {
 
     oThis.priceOracleOpsAddress = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
     oThis.ownerAddress = chainAddressRsp.data.address[chainAddressConst.ownerKind];
+    oThis.adminAddress = '';
   }
 
   /**
@@ -186,13 +189,13 @@ class DeployAndSetInOps {
   }
 
   /**
-   * Set price oracle contract address in ops contract.
+   * Set ops address in price oracle contract.
    *
    * @return {Promise<*>}
    *
    * @private
    */
-  async _setOpsContract() {
+  async _setOpsAddress() {
     const oThis = this;
 
     logger.step('Setting opsAddress in Price oracle contract.');
@@ -236,7 +239,61 @@ class DeployAndSetInOps {
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
 
-    logger.step('Price oracle opsAddress set in contract.');
+    logger.step('opsAddress set in price oracle contract.');
+  }
+
+  /**
+   * Set admin address in price oracle contract.
+   *
+   * @return {Promise<*>}
+   *
+   * @private
+   */
+  async _setAdminAddress() {
+    const oThis = this;
+
+    logger.step('Setting adminAddress in Price oracle contract.');
+
+    // Prepare txOptions.
+    let txOptions = {
+      gasPrice: contractConstants.zeroGasPrice,
+      gas: '50000',
+      value: contractConstants.zeroValue,
+      from: oThis.ownerAddress,
+      to: oThis.contractAddress,
+      chainId: oThis.auxChainId
+    };
+
+    // Get raw transaction object.
+    let txObject = deployAndSetInOpsHelper.setAdminAddressTx(
+      oThis.web3Instance,
+      oThis.adminAddress,
+      oThis.contractAddress,
+      txOptions
+    );
+
+    txOptions['data'] = txObject.encodeABI();
+
+    // Submit transaction.
+    let submitTransactionResponse = await new SubmitTransaction({
+      chainId: oThis.auxChainId,
+      txOptions: txOptions,
+      provider: oThis.wsProvider,
+      waitTillReceipt: 1
+    }).perform();
+
+    if (submitTransactionResponse && submitTransactionResponse.isFailure()) {
+      return Promise.reject(submitTransactionResponse);
+    }
+
+    // Fetch required attributes.
+    const transactionHash = submitTransactionResponse.data.transactionHash,
+      transactionReceipt = submitTransactionResponse.data.transactionReceipt;
+
+    logger.win('\t Transaction hash: ', transactionHash);
+    logger.win('\t Transaction receipt: ', transactionReceipt);
+
+    logger.step('adminAddress set in price oracle contract.');
 
     // Insert priceOracleContractAddress in chainAddresses table.
     await new ChainAddressModel().insertAddress({
