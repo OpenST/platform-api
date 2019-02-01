@@ -8,7 +8,7 @@ const rootPrefix = '../..',
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/shared/ChainConfigStrategyIds'),
+  ChainConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/shared/ChainConfigStrategyId'),
   ConfigStrategyCache = require(rootPrefix + '/lib/sharedCacheMultiManagement/configStrategy');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
