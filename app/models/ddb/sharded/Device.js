@@ -176,7 +176,7 @@ class Device extends Base {
    * @param params
    * @param params.userId {String} - uuid
    * @param params.walletAddress {String}
-   * @param params.status {String} - {REGISTERED,AUTHORIZING, AUTHORIZED, REVOKING, REVOKED}
+   * @param params.status {String} - {REGISTERED, AUTHORIZING, AUTHORIZED, REVOKING, REVOKED}
    *
    * @return {Promise<void>}
    */
@@ -199,9 +199,9 @@ class Device extends Base {
   /**
    * Get device details.
    *
-   * @param {Array} params [{userId: '1234', walletAddress: '0x123....'}, {userId: '1234', walletAddress: '0x123....'}]
-   * @param params[index].userId {String} - uuid
-   * @param params[index].walletAddress {String}
+   * @param {Object} params
+   * @param {Integer} params.userId - uuid
+   * @param {Array} params.walletAddresses - array of addresses
    *
    * @return {Promise<void>}
    */
@@ -209,14 +209,15 @@ class Device extends Base {
     const oThis = this;
 
     let keyObjArray = [];
-    for (let index = 0; index < params.length; index++) {
+    for (let index = 0; index < params['walletAddresses'].length; index++) {
       keyObjArray.push(
         oThis._keyObj({
-          userId: params[index].userId,
-          walletAddress: params[index].walletAddress
+          userId: params.userId,
+          walletAddress: params.walletAddresses[index]
         })
       );
     }
+
     return await oThis.batchGetItem(keyObjArray, 'userId');
   }
 
@@ -225,11 +226,14 @@ class Device extends Base {
    *
    * @return {Promise<void>}
    */
-  static async afterUpdate(ic, rowData) {
-    require(rootPrefix + '/lib/cacheManagement/chain/DeviceDetail');
-
+  static async afterUpdate(ic, params) {
+    const oThis = this;
+    require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
     let cacheClass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
-    new cacheClass(rowData).clear();
+    new cacheClass({
+      userId: params.userId,
+      walletAddresses: [params.walletAddress]
+    }).clear();
 
     logger.info('device cache cleared.');
     return responseHelper.successWithData({});
