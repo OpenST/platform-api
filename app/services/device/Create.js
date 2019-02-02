@@ -14,14 +14,14 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   deviceConstant = require(rootPrefix + '/lib/globalConstant/device'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/device/GetShard');
 require(rootPrefix + '/app/models/ddb/sharded/Device');
-require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
  * Class for CreateDevice
@@ -40,12 +40,15 @@ class CreateDevice extends ServiceBase {
     super(params);
 
     const oThis = this;
+
     oThis.clientId = params.clientId;
     oThis.userId = params.userId;
     oThis.walletAddress = params.walletAddress;
     oThis.personalSignAddress = params.personalSignAddress;
     oThis.deviceName = params.deviceName;
     oThis.deviceUuid = params.deviceUuid;
+
+    oThis.tokenId = null;
   }
 
   /**
@@ -63,7 +66,7 @@ class CreateDevice extends ServiceBase {
         internal_error_identifier: 'l_d_c_1',
         api_error_identifier: 'something_went_wrong',
         debug_options: err,
-        error_config: {}
+        error_config: { error: err.toString() }
       });
     });
   }
@@ -77,6 +80,8 @@ class CreateDevice extends ServiceBase {
     const oThis = this;
 
     await oThis._validate();
+
+    oThis.tokenId = await oThis._getTokenId();
 
     oThis._sanitize();
 
@@ -115,15 +120,27 @@ class CreateDevice extends ServiceBase {
   }
 
   /**
+   * Get tokenId from tokens cache using clientId.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _getTokenId() {
+    const oThis = this,
+      tokenCache = new TokenCache({ clientId: oThis.clientId });
+    let tokenCacheResponse = await tokenCache.fetch();
+    return tokenCacheResponse.data.id;
+  }
+
+  /**
    * Sanitize input parameters.
    *
    */
   _sanitize() {
     const oThis = this;
-
-    oThis.personalSignAddress.toLowerCase();
-
-    oThis.walletAddress.toLowerCase();
+    oThis.userId = oThis.userId.toLowerCase();
+    oThis.personalSignAddress = oThis.personalSignAddress.toLowerCase();
+    oThis.walletAddress = oThis.walletAddress.toLowerCase();
   }
 
   /***
@@ -156,14 +173,16 @@ class CreateDevice extends ServiceBase {
    * @returns {Promise<*>}
    */
   async _create() {
-    const oThis = this;
+    const oThis = this,
+      TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
+      cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
+
+    let userData = cacheFetchRsp.data[oThis.userId];
 
     let Device = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel'),
-      GetShard = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetDeviceShard'),
-      getShard = new GetShard({ clientId: oThis.clientId }),
-      shardNumber = await getShard.perform(),
       chainId = oThis._configStrategyObject.auxChainId,
-      device = new Device({ chainId: chainId, shardNumber: shardNumber }),
+      device = new Device({ chainId: chainId, shardNumber: userData['deviceShardNumber'] }),
       params = {
         userId: oThis.userId,
         walletAddress: oThis.walletAddress,
@@ -177,7 +196,7 @@ class CreateDevice extends ServiceBase {
 
     await device.create(params);
 
-    logger.info('Entry created in device table with shardNumber ', shardNumber);
+    logger.info('Entry created in device table with shardNumber ', userData['deviceShardNumber']);
 
     return deviceFormatter.perform(params);
   }
