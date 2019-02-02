@@ -11,7 +11,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidator = require(rootPrefix + '/lib/validators/Common'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device');
+  GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
@@ -19,10 +19,11 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 const InstanceComposer = OSTBase.InstanceComposer;
 
 /**
+ * Class to get devices data by userId and wallet addresses.
  *
  * @class ByWalletAddress
  */
-class ByWalletAddress {
+class ByWalletAddress extends GetListBase {
   /**
    * @param params
    * @param {Number} params.userId
@@ -30,10 +31,9 @@ class ByWalletAddress {
    * @param {Integer} params.tokenId
    */
   constructor(params) {
+    super(params);
     const oThis = this;
-    oThis.userId = params.userId;
     oThis.address = params.address;
-    oThis.tokenId = params.tokenId;
 
     oThis.walletAddresses = [];
   }
@@ -68,33 +68,7 @@ class ByWalletAddress {
 
     await oThis._validateAndSanitize();
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailCache = new DeviceDetailCache({
-        userId: oThis.userId,
-        tokenId: oThis.tokenId,
-        walletAddresses: oThis.walletAddresses
-      }),
-      response = await deviceDetailCache.fetch(),
-      responseData = response.data,
-      formattedData = [];
-
-    for (let walletAddress in responseData) {
-      let row = responseData[walletAddress];
-
-      formattedData.push(
-        new DeviceFormatter({
-          userId: row.userId,
-          deviceUuid: row.deviceUuid,
-          status: row.status,
-          updatedTimestamp: row.updatedTimestamp,
-          walletAddress: row.walletAddress,
-          deviceName: row.deviceName,
-          personalSignAddress: row.personalSignAddress
-        }).perform()
-      );
-    }
-
-    return responseHelper.successWithData(formattedData);
+    return await oThis.getList();
   }
 
   /**
