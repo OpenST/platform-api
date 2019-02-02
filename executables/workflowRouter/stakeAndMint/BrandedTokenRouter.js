@@ -78,7 +78,7 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.btStakeAndMintInit:
         return oThis._initializeBTStakeMint();
 
-      case workflowStepConstants.stakerRequestStakeTrx:
+      case workflowStepConstants.recordRequestStakeTx:
         oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
         return new AddStakerSignedTrx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 

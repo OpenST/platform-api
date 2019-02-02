@@ -444,7 +444,7 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProgressStakeStatus:
       case workflowStepConstants.fetchStakeIntentMessageHash:
       case workflowStepConstants.btStakeAndMintInit:
-      case workflowStepConstants.stakerRequestStakeTrx:
+      case workflowStepConstants.recordRequestStakeTx:
       case workflowStepConstants.approveGatewayComposerTrx:
       case workflowStepConstants.fetchStakeRequestHash:
       case workflowStepConstants.checkGatewayComposerAllowance:

@@ -69,7 +69,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 
     '70': workflowStepConstants.btStakeAndMintInit,
     '71': workflowStepConstants.approveGatewayComposerTrx,
-    '72': workflowStepConstants.stakerRequestStakeTrx,
+    '72': workflowStepConstants.recordRequestStakeTx,
     '73': workflowStepConstants.checkGatewayComposerAllowance,
     '74': workflowStepConstants.fetchStakeRequestHash,
     '75': workflowStepConstants.acceptStake,
