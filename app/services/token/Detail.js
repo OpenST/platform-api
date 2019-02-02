@@ -2,7 +2,7 @@
 /**
  * This service gets the details of the economy from economy model
  *
- * @module app/services/token/AggregatedDetails
+ * @module app/services/token/Detail
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;

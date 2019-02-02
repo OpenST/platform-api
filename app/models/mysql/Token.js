@@ -48,6 +48,23 @@ class Token extends ModelBase {
     return invertedStatuses;
   }
 
+  async getDetailsByTokenId(tokenId) {
+    const oThis = this;
+
+    let dbRows = await oThis
+      .select('*')
+      .where({
+        id: tokenId
+      })
+      .fire();
+
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
+    return responseHelper.successWithData(oThis.formatDbData(dbRows[0]));
+  }
+
   async getDetailsByClientId(clientId) {
     const oThis = this;
 
@@ -62,9 +79,16 @@ class Token extends ModelBase {
       return responseHelper.successWithData({});
     }
 
-    let dbRow = dbRows[0];
+    return responseHelper.successWithData(oThis.formatDbData(dbRows[0]));
+  }
 
-    return responseHelper.successWithData({
+  /**
+   *
+   * @param dbRow
+   * @return {object}
+   */
+  formatDbData(dbRow) {
+    return {
       id: dbRow.id,
       clientId: dbRow.client_id,
       name: dbRow.name,
@@ -73,7 +97,7 @@ class Token extends ModelBase {
       decimal: dbRow.decimal,
       status: dbRow.status,
       createdAt: dbRow.created_at
-    });
+    };
   }
 
   /***

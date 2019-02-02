@@ -9,8 +9,7 @@ const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -41,6 +40,8 @@ class GetUser extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    oThis.userId = oThis.userId.toLowerCase();
+
     await oThis._fetchTokenDetails();
 
     if (!oThis.tokenId) {
@@ -55,7 +56,7 @@ class GetUser extends ServiceBase {
 
     let response = await oThis._fetchUser();
 
-    return Promise.resolve(response);
+    return Promise.resolve(responseHelper.successWithData({ user: response.data[oThis.userId] }));
   }
 
   /**

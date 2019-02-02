@@ -1,11 +1,38 @@
 'use strict';
 
+const rootPrefix = '../../..',
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName');
+
 const v2Signature = {
-  tokenDetails: {
+  [apiName.getToken]: {
     mandatory: [
       {
         parameter: 'client_id',
         validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.createUser]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: [{ parameter: 'kind', validatorMethod: 'validateUserKindString' }]
+  },
+
+  [apiName.getUser]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
       }
     ],
     optional: []
