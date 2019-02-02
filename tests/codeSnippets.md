@@ -86,3 +86,15 @@ economySetupRouter.perform().then(console.log).catch(function(err){console.log('
 
 
 ```
+
+### Decode TX Input Params from ABI
+
+```node
+
+const testABI = []
+abiDecoder.addABI(testABI);
+
+const testData = "";
+const decodedData = abiDecoder.decodeMethod(testData);
+
+```

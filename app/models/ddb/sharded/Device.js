@@ -218,7 +218,7 @@ class Device extends Base {
       );
     }
 
-    return await oThis.batchGetItem(keyObjArray, 'userId');
+    return await oThis.batchGetItem(keyObjArray, 'walletAddress');
   }
 
   /**

@@ -12,6 +12,7 @@ const rootPrefix = '../..',
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
+  WorkflowByClientCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowByClient'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
@@ -696,9 +697,26 @@ class WorkflowRouterBase {
    * @private
    */
   async _clearWorkflowCache(id) {
+    const oThis = this;
+
     let workflowCacheObj = new WorkflowCache({ workflowId: id });
 
     await workflowCacheObj.clear();
+
+    await oThis._clearWorkflowbyClientCache();
+  }
+
+  /**
+   * Clear workflow by client cache
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _clearWorkflowbyClientCache() {
+    const oThis = this;
+    let workflowByClientCacheObj = new WorkflowByClientCache({ clientId: oThis.clientId });
+
+    await workflowByClientCacheObj.clear();
   }
 
   /**
@@ -742,6 +760,7 @@ class WorkflowRouterBase {
 
     oThis.workflowId = workflowModelInsertResponse.insertId;
 
+    await oThis._clearWorkflowCache(oThis.workflowId);
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
     return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
@@ -909,7 +928,7 @@ class WorkflowRouterBase {
 
     await oThis._clearWorkflowCache(oThis.workflowId);
 
-    emailNotifier.internal('WorkflowFailed', '*** Workflow with id ', oThis.workflowId, 'failed!', {}, {});
+    emailNotifier.notify('WorkflowFailed', '*** Workflow with id ', oThis.workflowId, 'failed!', {}, {});
 
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {

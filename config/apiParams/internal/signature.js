@@ -94,6 +94,10 @@ const signature = {
       {
         parameter: 'client_id',
         validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'total_gas_for_mint',
+        validatorMethod: 'validateInteger'
       }
     ],
     optional: []
