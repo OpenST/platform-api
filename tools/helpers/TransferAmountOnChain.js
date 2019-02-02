@@ -4,9 +4,10 @@ const rootPrefix = '../..',
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 class TransferAmountOnChain {
@@ -15,11 +16,9 @@ class TransferAmountOnChain {
   async _fundAddressWithEth(toAddress, chainId, provider, amountInWei) {
     const oThis = this;
 
-    let chainOwnerAddressRsp = await new ChainAddressModel().fetchAddress({
-        chainId: chainId,
-        kind: chainAddressConstants.chainOwnerKind
-      }),
-      chainOwnerAddress = chainOwnerAddressRsp.data.address;
+    await oThis._fetchOriginAddress();
+
+    let chainOwnerAddress = oThis.masterInternalFunderAddress;
 
     let signerWeb3Object = new SignerWeb3Provider(provider, chainOwnerAddress),
       web3Instance = await signerWeb3Object.getInstance();
@@ -87,11 +86,9 @@ class TransferAmountOnChain {
 
     let web3Instance = await web3Provider.getInstance(provider).web3WsProvider;
 
-    let simpleTokenContractAddressRsp = await new ChainAddressModel().fetchAddress({
-        chainId: chainId,
-        kind: chainAddressConstants.baseContractKind
-      }),
-      simpleTokenContractAddress = simpleTokenContractAddressRsp.data.address;
+    await oThis._fetchOriginAddress();
+
+    let simpleTokenContractAddress = oThis.stContractAddress;
 
     await web3Instance.eth.accounts.wallet.add(privateKey);
 
@@ -130,11 +127,9 @@ class TransferAmountOnChain {
   async _fundAddressWithOSTPrime(toAddress, chainId, chainEndpoint, amountInWei) {
     const oThis = this;
 
-    let chainOwnerAddressRsp = await new ChainAddressModel().fetchAddress({
-        chainId: chainId,
-        kind: chainAddressConstants.chainOwnerKind
-      }),
-      chainOwnerAddress = chainOwnerAddressRsp.data.address;
+    await oThis._fetchOriginAddress();
+
+    let chainOwnerAddress = oThis.masterInternalFunderAddress;
 
     logger.debug('Fetched Chain Owner Address from database-----', chainOwnerAddress);
 
@@ -160,6 +155,33 @@ class TransferAmountOnChain {
       });
 
     await signerWeb3Object.removeAddressKey(chainOwnerAddress);
+  }
+
+  /**
+   * Fetch origin addresses.
+   *
+   * @return {Promise<*>}
+   *
+   * @private
+   */
+  async _fetchOriginAddress() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_h_taoc_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.masterInternalFunderAddress = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
+    oThis.stContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
   }
 
   /**

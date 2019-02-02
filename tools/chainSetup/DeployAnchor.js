@@ -18,7 +18,8 @@ const rootPrefix = '../..',
   DeployAnchorHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployAnchor'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
+  gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 /**
  *
@@ -82,16 +83,15 @@ class DeployAnchor {
 
     await oThis._initializeVars();
 
-    let signerAddress = await oThis._getDeployerAddr(),
-      organizationAddress = await oThis._getOrganizationAddr();
+    await oThis._getDeployAnchorAddresses();
 
     let params = {
       chainId: oThis.chainId,
       remoteChainId: oThis.remoteChainId,
-      signerAddress: signerAddress,
+      signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      organizationAddress: organizationAddress
+      organizationAddress: oThis.organizationAddress
     };
 
     let deployHelper = new DeployAnchorHelper(params);
@@ -124,6 +124,9 @@ class DeployAnchor {
         oThis.chainId = oThis._configStrategyObject.originChainId;
         oThis.anchorKind = chainAddressConstants.originAnchorContractKind;
         oThis.remoteChainId = oThis.auxChainId;
+        oThis.associatedAuxChainId = 0;
+        oThis.deployerKind = chainAddressConstants.originDeployerKind;
+        oThis.anchorOrganizationKind = chainAddressConstants.originAnchorOrgContractKind;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           gasPriceRsp = await gasPriceCacheObj.fetch();
@@ -134,68 +137,41 @@ class DeployAnchor {
         oThis.remoteChainId = oThis._configStrategyObject.originChainId;
         oThis.anchorKind = chainAddressConstants.auxAnchorContractKind;
         oThis.gasPrice = contractConstants.zeroGasPrice;
+        oThis.associatedAuxChainId = oThis.chainId;
+        oThis.deployerKind = chainAddressConstants.auxDeployerKind;
+        oThis.anchorOrganizationKind = chainAddressConstants.auxAnchorOrgContractKind;
+
         break;
       default:
         throw `unsupported chainKind: ${oThis.chainKind}`;
     }
   }
 
-  /***
-   *
-   * get deployer addr
+  /**
+   * Get addresses required for anchor contract deployment.
    *
    * @private
    *
    * @return {Promise}
-   *
    */
-  async _getDeployerAddr() {
+  async _getDeployAnchorAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind
-    });
+    // Fetch all addresses associated with mentioned chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.associatedAuxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_da_3',
+          internal_error_identifier: 't_cs_da_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get org contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getOrganizationAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.anchorOrganizationKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_da_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
+    oThis.signerAddress = chainAddressesRsp.data[oThis.deployerKind].address;
+    oThis.organizationAddress = chainAddressesRsp.data[oThis.anchorOrganizationKind].address;
   }
 
   /**
@@ -247,11 +223,15 @@ class DeployAnchor {
 
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
-      chainId: oThis.chainId,
-      auxChainId: oThis.auxChainId,
-      kind: oThis.anchorKind,
-      chainKind: oThis.chainKind
+      associatedAuxChainId: oThis.auxChainId,
+      addressKind: oThis.anchorKind,
+      deployedChainId: oThis.chainId,
+      deployedChainKind: oThis.chainKind,
+      status: chainAddressConstants.active
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }).clear();
   }
 
   /***

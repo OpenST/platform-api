@@ -46,14 +46,12 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // Config for addresses which need to be funded.
 const fundingConfig = {
   [chainAddressConstants.originDeployerKind]: '0.53591',
-  [chainAddressConstants.stOrgContractOwnerKind]: '0.00355',
-  [chainAddressConstants.stOrgContractAdminKind]: '0.00000',
+  [chainAddressConstants.stOrgContractOwnerKind]: '0.00116',
+  [chainAddressConstants.originAnchorOrgContractOwnerKind]: '0.00239',
   [chainAddressConstants.originDefaultBTOrgContractAdminKind]: '0.00240',
   [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: '0.00172',
-  [chainAddressConstants.stContractOwnerKind]: '0.03141',
-  [chainAddressConstants.stContractAdminKind]: '0.00071',
-  [chainAddressConstants.masterInternalFunderKind]: '0.01160',
-  [chainAddressConstants.originGranterKind]: '0.00000'
+  [chainAddressConstants.masterInternalFunderKind]: '0.6', // Just for alert. This value is not same as the one in Google Sheets.
+  [chainAddressConstants.originGranterKind]: '1' // Just for alert. This value is not same as the one in Google Sheets.
 };
 
 /**
@@ -172,7 +170,8 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
 
     const originDeployerAddress = chainAddressesRsp.data[chainAddressConstants.originDeployerKind].address,
       stOrgContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractOwnerKind].address,
-      stOrgContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractAdminKind].address,
+      originAnchorOrgContractOwnerAddress =
+        chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractOwnerKind].address,
       originDefaultBTOrgContractAdminAddress =
         chainAddressesRsp.data[chainAddressConstants.originDefaultBTOrgContractAdminKind].address,
       originDefaultBTOrgContractWorkerAddress =
@@ -183,7 +182,7 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
       oThis.masterInternalFunderAddress,
       originDeployerAddress,
       stOrgContractOwnerAddress,
-      stOrgContractAdminAddress,
+      originAnchorOrgContractOwnerAddress,
       originDefaultBTOrgContractAdminAddress,
       originDefaultBTOrgContractWorkerAddress
     ];
@@ -192,7 +191,7 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     oThis.kindToAddressMap = {
       [chainAddressConstants.originDeployerKind]: originDeployerAddress,
       [chainAddressConstants.stOrgContractOwnerKind]: stOrgContractOwnerAddress,
-      [chainAddressConstants.stOrgContractAdminKind]: stOrgContractAdminAddress,
+      [chainAddressConstants.originAnchorOrgContractOwnerKind]: originAnchorOrgContractOwnerAddress,
       [chainAddressConstants.originDefaultBTOrgContractAdminKind]: originDefaultBTOrgContractAdminAddress,
       [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: originDefaultBTOrgContractWorkerAddress,
       [chainAddressConstants.masterInternalFunderKind]: oThis.masterInternalFunderAddress
@@ -201,24 +200,16 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     // If environment is not production and subEnvironment is main, then fetch two more addresses.
     if (
       coreConstants.environment !== environmentInfoConstants.environment.production &&
-      coreConstants.subEnvironment === environmentInfoConstants.subEnvironment.main
+      coreConstants.subEnvironment !== environmentInfoConstants.subEnvironment.main
     ) {
       // Fetch addresses.
       oThis.originGranterAddress = chainAddressesRsp.data[chainAddressConstants.originGranterKind].address;
-      const stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address,
-        stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
 
       // Add addresses to the array of addresses whose balance is to be fetched.
-      oThis.addresses.push.apply(oThis.addresses, [
-        oThis.originGranterAddress,
-        stContractOwnerAddress,
-        stContractAdminAddress
-      ]);
+      oThis.addresses.push.apply(oThis.addresses, [oThis.originGranterAddress]);
 
       // Add addresses mapped to their kind.
       oThis.kindToAddressMap[[chainAddressConstants.originGranterKind]] = oThis.originGranterAddress;
-      oThis.kindToAddressMap[[chainAddressConstants.stContractOwnerKind]] = stContractOwnerAddress;
-      oThis.kindToAddressMap[[chainAddressConstants.stContractAdminKind]] = stContractAdminAddress;
     }
   }
 

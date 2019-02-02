@@ -25,7 +25,7 @@ class GenerateAuxAddress extends ChainAddressBase {
    * @constructor
    */
   constructor(chainId) {
-    super(chainId);
+    super();
     const oThis = this;
 
     oThis.chainId = chainId;
@@ -43,16 +43,33 @@ class GenerateAuxAddress extends ChainAddressBase {
     const oThis = this;
 
     let addressKinds = [
-      chainAddressConstants.deployerKind,
-      chainAddressConstants.ownerKind,
-      chainAddressConstants.adminKind,
-      chainAddressConstants.workerKind
+      chainAddressConstants.auxDeployerKind,
+      chainAddressConstants.interChainFacilitatorKind,
+
+      chainAddressConstants.stPrimeOrgContractOwnerKind,
+      chainAddressConstants.auxAnchorOrgContractOwnerKind,
+      chainAddressConstants.auxPriceOracleContractOwnerKind,
+
+      chainAddressConstants.stPrimeOrgContractAdminKind,
+      chainAddressConstants.auxAnchorOrgContractAdminKind,
+      chainAddressConstants.auxPriceOracleContractAdminKind,
+
+      chainAddressConstants.stPrimeOrgContractWorkerKind,
+      chainAddressConstants.auxAnchorOrgContractWorkerKind,
+      chainAddressConstants.auxPriceOracleContractWorkerKind
     ];
 
-    logger.log('* Generating address for aux  deployer.');
-    logger.log('* Generating address for aux  owner.');
-    logger.log('* Generating address for aux  admin.');
-    logger.log('* Generating address for aux  worker.');
+    logger.log('* Generating address auxDeployerKind.');
+    logger.log('* Generating address interChainFacilitatorKind.');
+    logger.log('* Generating address stPrimeOrgContractOwnerKind.');
+    logger.log('* Generating address auxAnchorOrgContractOwnerKind.');
+    logger.log('* Generating address auxPriceOracleContractOwnerKind.');
+    logger.log('* Generating address stPrimeOrgContractAdminKind.');
+    logger.log('* Generating address auxAnchorOrgContractAdminKind.');
+    logger.log('* Generating address auxPriceOracleContractAdminKind.');
+    logger.log('* Generating address stPrimeOrgContractWorkerKind.');
+    logger.log('* Generating address auxAnchorOrgContractWorkerKind.');
+    logger.log('* Generating address auxPriceOracleContractWorkerKind.');
 
     let addresses = await oThis._generateAddresses(addressKinds);
 

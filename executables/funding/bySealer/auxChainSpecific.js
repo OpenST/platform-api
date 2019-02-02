@@ -14,9 +14,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
@@ -241,14 +239,28 @@ class FundBySealerAuxChainSpecific extends CronBase {
     const oThis = this;
 
     // Fetch all addresses associated to auxChainId.
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddresses({
-      chainId: auxChainId,
-      kinds: [chainAddressConstants.auxSealerKind]
-    });
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    oThis.kindToAddressMap = fetchAddrRsp.data.addresses;
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bs_acs_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
 
-    return fetchAddrRsp.data.addresses[chainAddressConstants.auxSealerKind];
+    let sealerAddresses = [],
+      sealerAddressEntities = chainAddressesRsp.data[chainAddressConstants.auxSealerKind];
+
+    for (let index = 0; index < sealerAddressEntities.length; index++) {
+      sealerAddresses.push(sealerAddressEntities[index].address);
+    }
+
+    oThis.kindToAddressMap[chainAddressConstants.auxSealerKind] = sealerAddresses;
+
+    return sealerAddresses;
   }
 
   /**

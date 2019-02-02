@@ -9,17 +9,17 @@ const Path = require('path'),
 
 const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   localSetupHelper = require(rootPrefix + '/tools/localSetup/helper'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 // Declare variables.
 const hexStartsWith = '0x',
-  sealerPassPhrase = 'testtest',
   genesisTemplateLocation = Path.join(__dirname);
 
 /**
@@ -146,11 +146,12 @@ class GethManager {
    *
    * @param {String} chainType: 'origin' or 'aux'
    * @param {Number/String} chainId
+   * @param {String} sealerPassword: sealer password
    * @param {Object} allocAddressToAmountMap: {chainOwnerAllocAddress: allocAmount}
    *
    * @return {Promise<void>}
    */
-  async initChain(chainType, chainId, allocAddressToAmountMap) {
+  async initChain(chainType, chainId, sealerPassword, allocAddressToAmountMap) {
     const oThis = this,
       chainFolder = localSetupHelper.gethFolderFor(chainType, chainId),
       chainFolderAbsolutePath = localSetupHelper.setupFolderAbsolutePath() + '/' + chainFolder,
@@ -163,7 +164,7 @@ class GethManager {
 
     // Create password file.
     logger.info('* Creating password file.');
-    fileManager.touch(passwordFilePath, sealerPassPhrase);
+    fileManager.touch(passwordFilePath, sealerPassword);
 
     const sealerAddress = oThis._generateAddress(chainFolderAbsolutePath, passwordFileAbsolutePath),
       chainGenesisTemplateLocation = genesisTemplateLocation + '/poaGenesisTemplate' + '.json',
@@ -175,24 +176,7 @@ class GethManager {
     let chainConfigStrategy = await oThis.fetchConfig(chainId),
       blockGenerationTime = chainConfigStrategy[chainTypeString]['blockGenerationTime'];
 
-    // Adds sealer address to the DB.
-    await new ChainAddressModel().insertAddress({
-      chainId: chainId,
-      chainKind: chainKind,
-      kind: chainAddressConstants.sealerKind,
-      address: sealerAddress
-    });
-
-    let whereClause = [
-        'chain_kind = ? AND kind = ? AND status = 1',
-        chainAddressConstants.invertedChainKinds[coreConstants.originChainKind],
-        chainAddressConstants.invertedKinds[chainAddressConstants.chainOwnerKind]
-      ],
-      chainOwnerAddressRsp = await new ChainAddressModel()
-        .select(['address'])
-        .where(whereClause)
-        .fire(),
-      chainOwnerAddress = chainOwnerAddressRsp[0].address;
+    let chainOwnerAddress = oThis._fetchOriginAddresses();
 
     logger.debug('chainOwnerAddress----', chainOwnerAddress);
 
@@ -215,6 +199,8 @@ class GethManager {
     // Alloc balance in genesis files.
     logger.info('* Init ' + chainType + '-' + chainId + ' chain.');
     oThis._initChain(chainFolderAbsolutePath, chainGenesisLocation);
+
+    return { sealerAddress: sealerAddress };
   }
 
   /**
@@ -229,6 +215,32 @@ class GethManager {
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
     return configStrategyResp.data;
+  }
+
+  /**
+   * Fetch required origin addresses
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _fetchOriginAddresses() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_lc_gm_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
   }
 }
 

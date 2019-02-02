@@ -27,6 +27,8 @@ class Base {
     const oThis = this;
     oThis.chainId = null;
     oThis.chainKind = null;
+
+    oThis.numberOfFlowsForGas = 5;
   }
 
   /**
@@ -70,14 +72,14 @@ class Base {
 
     if (!generateAddrRsp.isSuccess()) {
       logger.error(`Address generation failed for chain kind: ${oThis.chainKind} -- chain id: ${oThis.chainId}`);
-      return oThis._getRespError('do_u_ca_b_ga1')
+      return oThis._getRespError('do_u_ca_b_ga_1');
     }
 
     logger.info('Generate Addresses Response: ', generateAddrRsp.toHash());
 
     let addresses = generateAddrRsp.data['addressKindToValueMap'];
 
-    return responseHelper.successWithData({addresses: addresses});
+    return responseHelper.successWithData({ addresses: addresses });
   }
 
   /**

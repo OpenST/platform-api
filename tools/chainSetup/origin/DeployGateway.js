@@ -16,6 +16,7 @@ const rootPrefix = '../../..',
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   DeployGatewayHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployGateway'),
   GasPriceCache = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
@@ -78,24 +79,21 @@ class DeployGateway {
 
     await oThis._initializeVars();
 
-    let signerAddress = await oThis._getDeployerAddr(),
-      organizationAddress = await oThis._getOrganizationAddr(),
-      simpleTokenContractAddress = await oThis._getSimpleTokenContractAddr(),
-      anchorAddress = await oThis._getAnchorAddr(),
-      messageBusLibAddress = await oThis._getMessageBusLibAddr(),
-      gatewayLibAddress = await oThis._getGatewayLibAddr();
+    await oThis._fetchOriginAddresses();
+
+    await oThis._fetchAuxAddresses();
 
     let params = {
       chainId: oThis.chainId,
-      signerAddress: signerAddress,
+      signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      organizationAddress: organizationAddress,
-      originContractAddress: simpleTokenContractAddress,
-      auxContractAddress: simpleTokenContractAddress,
-      anchorAddress: anchorAddress,
-      messageBusLibAddress: messageBusLibAddress,
-      gatewayLibAddress: gatewayLibAddress
+      organizationAddress: oThis.organizationAddress,
+      originContractAddress: oThis.simpleTokenContractAddress,
+      auxContractAddress: oThis.simpleTokenContractAddress,
+      anchorAddress: oThis.anchorAddress,
+      messageBusLibAddress: oThis.messageBusLibAddress,
+      gatewayLibAddress: oThis.gatewayLibAddress
     };
 
     let deployHelper = new DeployGatewayHelper(params);
@@ -114,9 +112,8 @@ class DeployGateway {
     return setupRsp;
   }
 
-  /***
-   *
-   * init vars
+  /**
+   * Init vars.
    *
    * @private
    */
@@ -130,24 +127,21 @@ class DeployGateway {
     oThis.gasPrice = gasPriceRsp.data;
   }
 
-  /***
-   *
-   * get deployer addr
-   *
-   * @private
+  /**
+   * Fetch required origin addresses
    *
    * @return {Promise}
    *
+   * @private
    */
-  async _getDeployerAddr() {
+  async _fetchOriginAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind
-    });
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_cs_o_dg_2',
@@ -156,27 +150,28 @@ class DeployGateway {
       );
     }
 
-    return fetchAddrRsp.data.address;
+    oThis.signerAddress = chainAddressesRsp.data[chainAddressConstants.originDeployerKind].address;
+    oThis.organizationAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
+    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+    oThis.messageBusLibAddress = chainAddressesRsp.data[chainAddressConstants.originMbLibContractKind].address;
+    oThis.gatewayLibAddress = chainAddressesRsp.data[chainAddressConstants.originGatewayLibContractKind].address;
   }
 
-  /***
-   *
-   * get org contract addr
-   *
-   * @private
+  /**
+   * Fetch required aux addresses
    *
    * @return {Promise}
    *
+   * @private
    */
-  async _getOrganizationAddr() {
+  async _fetchAuxAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.baseContractOrganizationKind
-    });
+    // Fetch all addresses associated with aux chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_cs_o_dg_3',
@@ -185,124 +180,7 @@ class DeployGateway {
       );
     }
 
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get simple token contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getSimpleTokenContractAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.baseContractKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_o_dg_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get anchor contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getAnchorAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.originAnchorContractKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_o_dg_6',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get message bus lib addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getMessageBusLibAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.messageBusLibKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_o_dg_7',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get gateway bus lib addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getGatewayLibAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.gatewayLibKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_o_dg_8',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
+    oThis.anchorAddress = chainAddressesRsp.data[chainAddressConstants.originAnchorContractKind].address;
   }
 
   /**
@@ -353,20 +231,25 @@ class DeployGateway {
     if (response.isFailure()) return response;
 
     await new ChainAddressModel().insertAddress({
-      chainId: oThis.chainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.originGatewayContractKind,
-      chainKind: oThis.chainKind,
-      address: response.data['contractAddress']
+      address: response.data['contractAddress'],
+      associatedAuxChainId: oThis.auxChainId,
+      addressKind: chainAddressConstants.originGatewayContractKind,
+      deployedChainId: oThis.chainId,
+      deployedChainKind: oThis.chainKind,
+      status: chainAddressConstants.active
     });
 
     await new ChainAddressModel().insertAddress({
-      chainId: oThis.chainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.simpleStakeContractKind,
-      chainKind: oThis.chainKind,
-      address: response.data[chainAddressConstants.simpleStakeContractKind]
+      address: response.data[chainAddressConstants.stSimpleStakeContractKind],
+      associatedAuxChainId: oThis.auxChainId,
+      addressKind: chainAddressConstants.stSimpleStakeContractKind,
+      deployedChainId: oThis.chainId,
+      deployedChainKind: oThis.chainKind,
+      status: chainAddressConstants.active
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }).clear();
   }
 
   /**

@@ -23,10 +23,10 @@ const rootPrefix = '../../..',
   ProveGateway = require(rootPrefix + '/lib/stakeMintManagement/common/ProveGatewayOnCoGateway'),
   ConfirmStakeIntent = require(rootPrefix + '/lib/stakeMintManagement/common/ConfirmStakeIntentOnCoGateway'),
   FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   CheckGatewayComposerAllowance = require(rootPrefix +
-    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance');
+    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 /**
  * Class for branded token mint router
@@ -190,15 +190,22 @@ class BtMintRouter extends WorkflowRouterBase {
   async _initializeBTStakeMint() {
     const oThis = this;
 
-    let params = {
-      chainId: oThis.requestParams.originChainId,
-      auxChainId: oThis.requestParams.auxChainId,
-      kind: chainAddressConstants.facilitator
-    };
-    let resp = await new ChainAddressModel().fetchAddress(params);
-    if (resp.isSuccess()) {
-      Object.assign(oThis.requestParams, { facilitator: resp.data.address });
+    // Fetch all addresses associated to auxChainId.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.requestParams.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_wr_snm_btr_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
     }
+
+    Object.assign(oThis.requestParams, {
+      facilitator: chainAddressesRsp.data[chainAddressConstants.interChainFacilitatorKind].address
+    });
 
     return oThis.insertInitStep();
   }

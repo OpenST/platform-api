@@ -13,14 +13,11 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   localChainConfig = require(rootPrefix + '/tools/localSetup/config'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 
 // Declare variables.
-const sealerPassphraseFile = 'sealer-passphrase',
-  sealerPassword = 'testtest';
+const sealerPassphraseFile = 'sealer-passphrase';
 
 /**
  * Class for service manager
@@ -155,11 +152,13 @@ class ServiceManager {
    * @param {String} chainType: 'aux' or 'origin'
    * @param {String/Number} chainId:
    * @param {String} purpose: if mentioned as deployment, geths will start with zero gas. Else in normal mode
+   * @param {String} sealerAddress: sealer address
+   * @param {String} sealerPassword: sealer password
    *
    * @return {String}
    * @private
    */
-  async _startGethCommand(chainType, chainId, purpose) {
+  async _startGethCommand(chainType, chainId, purpose, sealerAddress, sealerPassword) {
     const oThis = this,
       chainConfigStrategy = await oThis.fetchConfig(chainId),
       networkId =
@@ -194,14 +193,6 @@ class ServiceManager {
       fileManager.mkdir(setupHelper.logsFolder() + '/' + chainType + '-' + chainId.toString());
       gasPrice = contractConstants.defaultOriginChainGasPrice;
     }
-
-    let sealerAddress = await new ChainAddressModel().fetchAddress({
-      chainId: chainId,
-      kind: chainAddressConst.sealerKind
-    });
-
-    // Only one sealer address for local
-    const sealerAddr = sealerAddress.data.addresses[0];
 
     // Creating password file in a temp location
     fileManager.touch(chainFolder + '/' + sealerPassphraseFile, sealerPassword);
@@ -238,13 +229,13 @@ class ServiceManager {
       wsHost +
       " --rpccorsdomain 'null' " + //cors is set to null, for running myEtherWallet on localhost
       ' --etherbase ' +
-      sealerAddr +
+      sealerAddress +
       ' --mine --minerthreads 1 --targetgaslimit ' +
       gasLimit[chainType] +
       '  --gasprice "' +
       gasPrice +
       '" --unlock ' +
-      sealerAddr +
+      sealerAddress +
       ' --password ' +
       setupHelper.setupFolderAbsolutePath() +
       '/' +
@@ -267,15 +258,17 @@ class ServiceManager {
    * @param {String} chainType: 'aux' or 'origin'
    * @param {String/Number} chainId:
    * @param {String} purpose: if mentioned as deployment, geths will start with zero gas. Else in normal mode
+   * @param {String} sealerAddress: sealer address
+   * @param {String} sealerPassword: sealer password
    *
    * @returns {Promise<void>}
    */
-  async startGeth(chainType, chainId, purpose) {
+  async startGeth(chainType, chainId, purpose, sealerAddress, sealerPassword) {
     const oThis = this;
 
     // Start Geth
     logger.info('* Starting ' + chainType + '-' + chainId + ' chain.');
-    const cmd = await oThis._startGethCommand(chainType, chainId, purpose);
+    const cmd = await oThis._startGethCommand(chainType, chainId, purpose, sealerAddress, sealerPassword);
     logger.info(cmd);
     shellAsyncCmd.run(cmd);
 
@@ -307,22 +300,6 @@ class ServiceManager {
 
     fileManager.touch(gethFilePath, '#!/bin/sh');
     fileManager.append(gethFilePath, cmd);
-  }
-
-  /**
-   * Start all services for given purpose
-   *
-   * @param {String} chainType: 'aux' or 'origin'
-   * @param {String/Number} chainId
-   * @param {String} purpose: if mentioned as deployment, geths will start with zero gas. Else in normal mode
-   *
-   * @returns {Promise<void>}
-   */
-  async startServices(chainType, chainId, purpose) {
-    const oThis = this;
-
-    // Start geth nodes
-    await oThis.startGeth(chainType, chainId, purpose);
   }
 }
 

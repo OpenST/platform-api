@@ -9,7 +9,7 @@
 const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   GenerateChainKnownAddress = require(rootPrefix + '/lib/generateKnownAddress/ChainSetup');
 
 class generateInternalAddresses {
@@ -40,7 +40,7 @@ class generateInternalAddresses {
     const oThis = this;
 
     for (let i = 0; i < oThis.addressKinds.length; i++) {
-      if (!chainAddressConst.invertedKinds[oThis.addressKinds[i]]) {
+      if (!chainAddressConstants.invertedKinds[oThis.addressKinds[i]]) {
         fail`invalid kind ${oThis.addressKinds[i]}`;
       }
     }

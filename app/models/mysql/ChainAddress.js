@@ -4,7 +4,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
@@ -63,7 +63,7 @@ class ChainAddress extends ModelBase {
       );
     }
 
-    const addressKindInt = chainAddressConst.invertedKinds[addressKind];
+    const addressKindInt = chainAddressConstants.invertedKinds[addressKind];
     if (!addressKindInt) {
       return Promise.reject(
         responseHelper.error({
@@ -84,7 +84,7 @@ class ChainAddress extends ModelBase {
       );
     }
 
-    const statusInt = chainAddressConst.invertedStatuses[status];
+    const statusInt = chainAddressConstants.invertedStatuses[status];
     if (!statusInt) {
       return Promise.reject(
         responseHelper.error({
@@ -95,9 +95,9 @@ class ChainAddress extends ModelBase {
       );
     }
 
-    const deployedChainKindInt = chainAddressConst.deployedChainKinds[deployedChainKind];
+    const deployedChainKindInt = chainAddressConstants.deployedChainKinds[deployedChainKind];
 
-    if (chainAddressConst.nonUniqueKinds.indexOf(addressKind) === -1) {
+    if (chainAddressConstants.nonUniqueKinds.indexOf(addressKind) === -1) {
       let whereClause = ['associated_aux_chain_id = ? AND kind = ?', associatedAuxChainId, addressKindInt];
 
       let existingRows = await oThis
@@ -156,8 +156,8 @@ class ChainAddress extends ModelBase {
       associatedAuxChainId = params['associatedAuxChainId'],
       addressKind = params['addressKind'],
       status = params['status'],
-      statusInt = chainAddressConst.invertedStatuses[status],
-      addressKindInt = chainAddressConst.invertedKinds[addressKind];
+      statusInt = chainAddressConstants.invertedStatuses[status],
+      addressKindInt = chainAddressConstants.invertedKinds[addressKind];
 
     if (!associatedAuxChainId) {
       if (associatedAuxChainId != 0) {

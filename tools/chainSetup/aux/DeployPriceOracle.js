@@ -1,8 +1,8 @@
 'use strict';
 /**
- * Deploy ops and set
+ * Deploy Price Oracle
  *
- * @module tools/chainSetup/aux/DeployAndSetOpsAndAdmin
+ * @module tools/chainSetup/aux/DeployPriceOracle
  */
 const OpenStOracle = require('@ostdotcom/ost-price-oracle'),
   deployAndSetOpsAndAdminHelper = new OpenStOracle.DeployAndSetOpsAndAdminHelper();
@@ -15,7 +15,8 @@ const rootPrefix = '../../..',
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
@@ -24,7 +25,7 @@ const rootPrefix = '../../..',
  *
  * @class
  */
-class DeployAndSetOpsAndAdmin {
+class DeployPriceOracle {
   /**
    * Constructor for deploy and set ops contract.
    *
@@ -60,7 +61,7 @@ class DeployAndSetOpsAndAdmin {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_o_daso_1',
+          internal_error_identifier: 't_cs_a_dpo_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -99,21 +100,22 @@ class DeployAndSetOpsAndAdmin {
   async _fetchAddresses() {
     const oThis = this;
 
-    let requiredAddressKinds = [
-      chainAddressConst.priceOracleOpsAddressKind,
-      chainAddressConst.ownerKind,
-      chainAddressConst.adminKind
-    ];
+    // Fetch all addresses associated with aux chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    // TODO: Fetch chainOwnerKind instead of ownerKind. Also fetch adminKind.
-    let chainAddressRsp = await new ChainAddressModel().fetchAddresses({
-      chainId: oThis.auxChainId,
-      kinds: requiredAddressKinds
-    });
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_a_dpo_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
 
-    oThis.priceOracleOpsAddress = chainAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
-    oThis.ownerAddress = chainAddressRsp.data.address[chainAddressConst.ownerKind];
-    oThis.adminAddress = chainAddressRsp.data.address[chainAddressConst.adminKind];
+    oThis.ownerAddress = chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractOwnerKind].address;
+    oThis.adminAddress = chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractAdminKind].address;
+    oThis.workerAddress = chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractWorkerKind][0].address;
   }
 
   /**
@@ -217,7 +219,7 @@ class DeployAndSetOpsAndAdmin {
     // Get raw transaction object.
     let txObject = deployAndSetOpsAndAdminHelper.setOpsAddressTx(
       oThis.web3Instance,
-      oThis.priceOracleOpsAddress,
+      oThis.workerAddress,
       oThis.contractAddress,
       txOptions
     );
@@ -302,15 +304,18 @@ class DeployAndSetOpsAndAdmin {
     // Insert priceOracleContractAddress in chainAddresses table.
     await new ChainAddressModel().insertAddress({
       address: oThis.contractAddress,
-      chainId: oThis.auxChainId,
-      auxChainId: oThis.auxChainId,
-      chainKind: coreConstants.auxChainKind,
-      kind: chainAddressConst.priceOracleContractKind,
-      status: chainAddressConst.activeStatus
+      associatedAuxChainId: oThis.auxChainId,
+      addressKind: chainAddressConstants.auxPriceOracleContractKind,
+      deployedChainId: oThis.auxChainId,
+      deployedChainKind: coreConstants.auxChainKind,
+      status: chainAddressConstants.active
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }).clear();
 
     logger.step('Price oracle contract address added in table.');
   }
 }
 
-module.exports = DeployAndSetOpsAndAdmin;
+module.exports = DeployPriceOracle;

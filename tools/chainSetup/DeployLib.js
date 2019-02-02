@@ -13,6 +13,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   DeployLibs = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployLibs'),
@@ -85,10 +86,12 @@ class DeployLib {
 
     await oThis._initializeVars();
 
+    await oThis._getLibDeployementAddresses();
+
     let params = {
       chainId: oThis.chainId,
       libKind: oThis.libKind,
-      signerAddress: await oThis._getDeployerAddr(),
+      signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       merklePatriciaProofAddress: oThis.merklePatriciaProofAddress
@@ -122,6 +125,9 @@ class DeployLib {
     switch (oThis.chainKind) {
       case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
+        oThis.associatedAuxChainId = 0;
+        oThis.deployerKind = chainAddressConstants.originDeployerKind;
+        oThis.mppLibContractKind = chainAddressConstants.originMppLibContractKind;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           gasPriceRsp = await gasPriceCacheObj.fetch();
@@ -130,6 +136,9 @@ class DeployLib {
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
         oThis.auxChainId = oThis._configStrategyObject.auxChainId;
+        oThis.associatedAuxChainId = oThis.auxChainId;
+        oThis.deployerKind = chainAddressConstants.auxDeployerKind;
+        oThis.mppLibContractKind = chainAddressConstants.auxMppLibContractKind;
         oThis.gasPrice = contractConstants.zeroGasPrice;
         break;
       default:
@@ -139,79 +148,57 @@ class DeployLib {
     switch (oThis.libKind) {
       case 'merklePatriciaProof':
         oThis.stepKind = chainSetupLogsConstants.deployMerklePatriciaProofLibStepKind;
-        oThis.chainAddressKind = chainAddressConstants.merklePatriciaProofLibKind;
+        oThis.chainAddressKind =
+          oThis.chainKind == coreConstants.originChainKind
+            ? chainAddressConstants.originMppLibContractKind
+            : chainAddressConstants.auxMppLibContractKind;
         break;
       case 'messageBus':
         oThis.stepKind = chainSetupLogsConstants.deployMessageBusLibStepKind;
-        oThis.chainAddressKind = chainAddressConstants.messageBusLibKind;
-        oThis.merklePatriciaProofAddress = await oThis._merklePatriciaProofAddr();
+        oThis.chainAddressKind =
+          oThis.chainKind == coreConstants.originChainKind
+            ? chainAddressConstants.originMbLibContractKind
+            : chainAddressConstants.auxMbLibContractKind;
         break;
       case 'gateway':
         oThis.stepKind = chainSetupLogsConstants.deployGatewayLibStepKind;
-        oThis.chainAddressKind = chainAddressConstants.gatewayLibKind;
-        oThis.merklePatriciaProofAddress = await oThis._merklePatriciaProofAddr();
+        oThis.chainAddressKind =
+          oThis.chainKind == coreConstants.originChainKind
+            ? chainAddressConstants.originGatewayLibContractKind
+            : chainAddressConstants.auxGatewayLibContractKind;
         break;
       default:
         throw `unsupported libLind ${oThis.libKind}`;
     }
   }
 
-  /***
+  /**
    *
-   * get deployer addr
+   * Get addresses required for lib deployment
    *
    * @private
-   *
    * @return {Promise}
-   *
    */
-  async _getDeployerAddr() {
+  async _getLibDeployementAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind
-    });
+    // Fetch all addresses associated with mentioned chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.associatedAuxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_dl_3',
+          internal_error_identifier: 't_cs_dl_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get org contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _merklePatriciaProofAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.merklePatriciaProofLibKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_dl_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
+    oThis.signerAddress = chainAddressesRsp.data[oThis.deployerKind].address;
+    if (chainAddressesRsp.data[oThis.mppLibContractKind]) {
+      oThis.merklePatriciaProofAddress = chainAddressesRsp.data[oThis.mppLibContractKind].address;
     }
-
-    return fetchAddrRsp.data.address;
   }
 
   /**
@@ -263,10 +250,15 @@ class DeployLib {
 
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
-      chainId: oThis.chainId,
-      kind: oThis.chainAddressKind,
-      chainKind: oThis.chainKind
+      associatedAuxChainId: oThis.associatedAuxChainId,
+      addressKind: oThis.chainAddressKind,
+      deployedChainId: oThis.chainId,
+      deployedChainKind: oThis.chainKind,
+      status: chainAddressConstants.active
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis.associatedAuxChainId }).clear();
   }
 
   /***

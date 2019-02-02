@@ -11,9 +11,10 @@
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/helper'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis');
@@ -33,6 +34,9 @@ class OriginChainSetup {
   async validate() {
     const oThis = this;
 
+    logger.step('** Fetch origin chain addresses.');
+    await oThis._fetchOriginAddresses();
+
     logger.step('** Setting up web3 object for origin chain.');
     await oThis._setWeb3Obj();
 
@@ -40,20 +44,67 @@ class OriginChainSetup {
     await oThis._validateSimpleTokenContract();
 
     logger.step('** Validating Simple Token Contract Organization.');
-    await oThis._validateOrganization(chainAddressConstants.baseContractOrganizationKind);
+    await oThis._validateOrganization(chainAddressConstants.stOrgContractKind);
 
     logger.step('** Validating Anchor Contract Organization.');
-    await oThis._validateOrganization(chainAddressConstants.anchorOrganizationKind);
+    await oThis._validateOrganization(chainAddressConstants.originAnchorOrgContractKind);
 
     logger.step('** Validating Libs.');
-    await oThis._validateLib(chainAddressConstants.merklePatriciaProofLibKind);
-    await oThis._validateLib(chainAddressConstants.messageBusLibKind);
-    await oThis._validateLib(chainAddressConstants.gatewayLibKind);
+    await oThis._validateLib(chainAddressConstants.originMppLibContractKind);
+    await oThis._validateLib(chainAddressConstants.originMbLibContractKind);
+    await oThis._validateLib(chainAddressConstants.originGatewayLibContractKind);
 
     logger.win('* Origin Chain Setup Verification Done!!');
 
     process.exit(0);
     //return Promise.resolve();
+  }
+
+  /**
+   * Fetch required origin addresses
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _fetchOriginAddresses() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_v_ocs_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+    oThis.stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
+
+    oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
+    oThis.stOrgContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractAdminKind].address;
+    oThis.stOrgContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractOwnerKind].address;
+
+    oThis.originAnchorOrgContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractKind].address;
+    oThis.originAnchorOrgContractAdminAddress =
+      chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractAdminKind].address;
+    oThis.originAnchorOrgContractOwnerAddress =
+      chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractOwnerKind].address;
+
+    oThis.originMppLibContractAddress = chainAddressesRsp.data[chainAddressConstants.originMppLibContractKind].address;
+    oThis.originMbLibContractAddress = chainAddressesRsp.data[chainAddressConstants.originMbLibContractKind].address;
+    oThis.originGatewayLibContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.originGatewayLibContractKind].address;
+
+    oThis.stOrgContractWorkerAddresses = chainAddressesRsp.data[chainAddressConstants.stOrgContractWorkerKind];
+    oThis.originAnchorOrgContractWorkerAddresses =
+      chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
   }
 
   async _setWeb3Obj() {
@@ -74,11 +125,7 @@ class OriginChainSetup {
     const oThis = this;
 
     logger.log('* Fetching simple token contract address from database.');
-    let queryForSTContractRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.baseContractKind
-    });
-    let dbSimpleTokenContractAddress = queryForSTContractRsp.data.address;
+    let dbSimpleTokenContractAddress = oThis.simpleTokenContractAddress;
 
     logger.log('* Validating the deployed code on the address.');
     let rsp = await oThis.verifiersHelper.validateSimpleTokenContract(dbSimpleTokenContractAddress);
@@ -88,11 +135,7 @@ class OriginChainSetup {
     }
 
     logger.log('* Fetching simple token admin address from database.');
-    let queryForAdminRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.simpleTokenAdminKind
-    });
-    let dbSimpleTokenAdminAddress = queryForAdminRsp.data.address;
+    let dbSimpleTokenAdminAddress = oThis.stContractAdminAddress;
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(
       CoreAbis.simpleToken,
@@ -125,33 +168,30 @@ class OriginChainSetup {
   async _validateOrganization(organizationKind) {
     const oThis = this;
 
-    logger.log('* Fetching', organizationKind, 'contract address from database.');
-    let queryForOrganizationRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: organizationKind
-    });
-    let dbOrganizationContractAddress = queryForOrganizationRsp.data.address;
+    let dbOrganizationContractAddress = null,
+      dbAdminAddress = null,
+      dbAOwnerAddress = null,
+      dbWorkerAddressesMap = null;
 
-    logger.log('* Fetching admin address from database.');
-    let queryForAdminRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.adminKind
-    });
-    let dbAdminAddress = queryForAdminRsp.data.address;
-
-    logger.log('* Fetching owner address from database.');
-    let queryForOwnerRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.ownerKind
-    });
-    let dbAOwnerAddress = queryForOwnerRsp.data.address;
-
-    logger.log('* Fetching worker addresses from database.');
-    let queryForWorkerRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.workerKind
-    });
-    let dbWorkerAddresses = queryForWorkerRsp.data.addresses;
+    logger.log('* Fetching', organizationKind, ' related contract addresses from database.');
+    switch (organizationKind) {
+      case chainAddressConstants.stOrgContractKind:
+        dbOrganizationContractAddress = oThis.stOrgContractAddress;
+        dbAdminAddress = oThis.stOrgContractAdminAddress;
+        dbAOwnerAddress = oThis.stOrgContractOwnerAddress;
+        dbWorkerAddressesMap = oThis.stOrgContractWorkerAddresses;
+        break;
+      case chainAddressConstants.originAnchorOrgContractKind:
+        dbOrganizationContractAddress = oThis.originAnchorOrgContractAddress;
+        dbAdminAddress = oThis.originAnchorOrgContractAdminAddress;
+        dbAOwnerAddress = oThis.originAnchorOrgContractOwnerAddress;
+        dbWorkerAddressesMap = oThis.originAnchorOrgContractWorkerAddresses;
+        break;
+      default:
+        console.error('unhandled organizationKind found: ', organizationKind);
+        Promise.reject();
+        break;
+    }
 
     logger.log('* Validating the deployed code on the organization address.');
     let rsp = await oThis.verifiersHelper.validateContract(
@@ -185,8 +225,8 @@ class OriginChainSetup {
     }
 
     logger.log('* Validating the worker addresses with chain.');
-    for (let i = 0; i < dbWorkerAddresses.length; i++) {
-      let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddresses[i]).call({});
+    for (let i = 0; i < dbWorkerAddressesMap.length; i++) {
+      let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddressesMap[i].address).call({});
       if (!isWorkerResult) {
         logger.error('Deployment verification of', organizationKind, 'failed.');
         Promise.reject();
@@ -199,11 +239,25 @@ class OriginChainSetup {
 
     logger.info('*** Library:', libKind);
     logger.log('* Fetching', libKind, 'contract address from database.');
-    let queryForLibRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: libKind
-    });
-    let dbLibAddress = queryForLibRsp.data.address;
+
+    let dbLibAddress = null;
+
+    logger.log('* Fetching', libKind, ' related contract addresses from database.');
+    switch (libKind) {
+      case chainAddressConstants.originMppLibContractKind:
+        dbLibAddress = oThis.originMppLibContractAddress;
+        break;
+      case chainAddressConstants.originMbLibContractKind:
+        dbLibAddress = oThis.originMbLibContractAddress;
+        break;
+      case chainAddressConstants.originGatewayLibContractKind:
+        dbLibAddress = oThis.originGatewayLibContractAddress;
+        break;
+      default:
+        console.error('unhandled libKind found: ', libKind);
+        Promise.reject();
+        break;
+    }
 
     logger.log('* Validating the deployed code on the', libKind, 'address.');
     let rsp = await oThis.verifiersHelper.validateContract(

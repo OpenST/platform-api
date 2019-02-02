@@ -20,7 +20,6 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -49,11 +48,15 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
   flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE);
 
 // Config for addresses which need to be funded.
-const fundingConfig = {
-  [chainAddressConstants.interChainFacilitatorKind]: '0.53591',
-  [chainAddressConstants.stPrimeOrgContractAdminKind]: '0.00355',
-  [chainAddressConstants.auxDeployerKind]: '0.00000',
+const stPrimeFundingConfig = {
+  [chainAddressConstants.interChainFacilitatorKind]: '0.00158',
+  [chainAddressConstants.auxAnchorOrgContractAdminKind]: '0.00024',
+  [chainAddressConstants.auxDeployerKind]: '0.00671',
   [tokenAddressConstants.auxFunderAddressKind]: '0.00240'
+};
+
+const ethFundingConfig = {
+  [chainAddressConstants.interChainFacilitatorKind]: '0.01135'
 };
 
 /**
@@ -266,30 +269,31 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
    */
   async _fetchAddressesForChain(auxChainId) {
     const oThis = this;
-
     let chainAddresses = [];
+    oThis.kindToAddressMap = {};
 
     // Fetch all addresses associated to auxChainId.
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddresses({
-      chainId: auxChainId,
-      kinds: [chainAddressConstants.stPrimeOrgContractAdminKind, chainAddressConstants.auxDeployerKind]
-    });
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    oThis.kindToAddressMap = fetchAddrRsp.data.address;
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bco_acs_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
 
-    let kind = chainAddressConstants.invertedKinds[chainAddressConstants.interChainFacilitatorKind],
-      whereClause = ['chain_id = ? AND aux_chain_id = ? AND kind = ?', oThis.originChainId, auxChainId, kind],
-      facilitatorAddrRsp = await new ChainAddressModel()
-        .select('address')
-        .where(whereClause)
-        .fire();
-
-    let facilitatorAddress = facilitatorAddrRsp[0].address;
-
-    oThis.kindToAddressMap[chainAddressConstants.interChainFacilitatorKind] = facilitatorAddress;
-    oThis.facilitatorAddresses.push(facilitatorAddress);
+    oThis.kindToAddressMap[chainAddressConstants.auxAnchorOrgContractAdminKind] =
+      chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractAdminKind].address;
+    oThis.kindToAddressMap[chainAddressConstants.auxDeployerKind] =
+      chainAddressesRsp.data[chainAddressConstants.auxDeployerKind].address;
 
     // Fetch aux funder addresses on the auxChainId.
+    let facilitatorAddress = chainAddressesRsp.data[chainAddressConstants.interChainFacilitatorKind].address;
+    oThis.kindToAddressMap[chainAddressConstants.interChainFacilitatorKind] = facilitatorAddress;
+    oThis.facilitatorAddresses.push(facilitatorAddress);
 
     // Step 1: Fetch all clientIds associated to auxChainIds.
     let chainClientIds = await new ClientConfigGroup()
@@ -366,7 +370,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     oThis.transferDetails = [];
 
     // Fetch addresses from map.
-    const stPrimeOrgContractAdminAddress = oThis.kindToAddressMap[chainAddressConstants.stPrimeOrgContractAdminKind],
+    const stPrimeOrgContractAdminAddress = oThis.kindToAddressMap[chainAddressConstants.auxAnchorOrgContractAdminKind],
       auxChainDeployerAddress = oThis.kindToAddressMap[chainAddressConstants.auxDeployerKind],
       interChainFacilitatorAddress = oThis.kindToAddressMap[chainAddressConstants.interChainFacilitatorKind];
 
@@ -381,7 +385,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         // Admin kind.
         case stPrimeOrgContractAdminAddress:
           minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
-            fundingConfig[chainAddressConstants.stPrimeOrgContractAdminKind]
+            stPrimeFundingConfig[chainAddressConstants.auxAnchorOrgContractAdminKind]
           );
           if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
             toAddress = address;
@@ -392,7 +396,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         // Deployer kind.
         case auxChainDeployerAddress:
           minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
-            fundingConfig[chainAddressConstants.auxDeployerKind]
+            stPrimeFundingConfig[chainAddressConstants.auxDeployerKind]
           );
           if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
             toAddress = address;
@@ -403,7 +407,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         // Facilitator kind.
         case interChainFacilitatorAddress:
           minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
-            fundingConfig[chainAddressConstants.interChainFacilitatorKind]
+            stPrimeFundingConfig[chainAddressConstants.interChainFacilitatorKind]
           );
           if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
             toAddress = address;
@@ -415,7 +419,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
         // is an array of auxFunder addresses.
         default:
           minimumBalanceRequiredForAddress = basicHelper.convertToBigNumber(
-            fundingConfig[tokenAddressConstants.auxFunderAddressKind]
+            stPrimeFundingConfig[tokenAddressConstants.auxFunderAddressKind]
           );
 
           if (addressCurrentBalance < minimumBalanceRequiredForAddress.mul(flowsForMinimumBalance)) {
@@ -461,7 +465,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     for (let address in addressToBalanceMap) {
       let facilitatorCurrentBalance = basicHelper.convertToBigNumber(addressToBalanceMap[address]),
         facilitatorMinimumBalance = basicHelper.convertToBigNumber(
-          fundingConfig[chainAddressConstants.interChainFacilitatorKind]
+          ethFundingConfig[chainAddressConstants.interChainFacilitatorKind]
         );
 
       if (facilitatorCurrentBalance.lt(facilitatorMinimumBalance.mul(flowsForMinimumBalance))) {

@@ -103,7 +103,7 @@ class DeployGateway extends Base {
     oThis._removeKeyFromWallet(signerKey);
 
     let gatewayContractAddress = deployRsp.data['contractAddress'];
-    deployRsp.data[chainAddressConstants.simpleStakeContractKind] = await oThis.stakeVault(gatewayContractAddress);
+    deployRsp.data[chainAddressConstants.stSimpleStakeContractKind] = await oThis.stakeVault(gatewayContractAddress);
 
     return Promise.resolve(deployRsp);
   }

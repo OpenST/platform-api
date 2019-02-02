@@ -46,8 +46,8 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // TODO: Add executeTxWorkersKind.
 // Config for addresses which need to be funded.
 const fundingConfig = {
-  [tokenAddressConstants.auxAdminAddressKind]: '0.00024',
-  [tokenAddressConstants.auxWorkerAddressKind]: '0.00000'
+  [tokenAddressConstants.auxAdminAddressKind]: '0.00005',
+  [tokenAddressConstants.auxWorkerAddressKind]: '0.00005'
 };
 
 /**
@@ -158,8 +158,6 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
    */
   async _transferStPrimeToAll() {
     const oThis = this;
-
-    oThis.facilitatorAddresses = [];
 
     // Loop over all auxChainIds.
     for (let index = 0; index < oThis.auxChainIds.length; index++) {
