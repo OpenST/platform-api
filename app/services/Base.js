@@ -43,7 +43,7 @@ class ServicesBaseKlass {
       return responseHelper.error({
         internal_error_identifier: 's_b_1',
         api_error_identifier: 'something_went_wrong',
-        debug_options: err,
+        debug_options: { error: err.toString() },
         error_config: errorConfig
       });
     });

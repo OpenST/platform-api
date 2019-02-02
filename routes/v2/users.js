@@ -11,8 +11,8 @@ const router = express.Router();
 
 /* Get user device managers*/
 router.get('/:user_id/device-managers/', function(req, res, next) {
-  req.decodedParams.apiName = 'getDeviceManagers'; //review api names
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.apiName = 'getDeviceManagers'; //review
+  req.decodedParams.userId = req.params.user_id; // review
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {

@@ -28,6 +28,16 @@ const v2Signature = {
       { parameter: 'order', validatorMethod: 'validateOrderingString' },
       { parameter: 'page_no', validatorMethod: 'validateInteger' }
     ]
+  },
+
+  deviceManager: {
+    mandatory: [
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuid'
+      }
+    ],
+    optional: [{ parameter: 'client_id', validatorMethod: 'validateInteger' }]
   }
 };
 

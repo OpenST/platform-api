@@ -43,6 +43,11 @@ const v2ErrorConfig = {
     parameter: 'request_path',
     code: 'invalid',
     message: `Invalid request path`
+  },
+  invalid_client_id: {
+    parameter: 'client_id',
+    code: 'invalid',
+    message: 'Invalid client id'
   }
 };
 
