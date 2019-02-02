@@ -24,6 +24,7 @@ class TokenMintDetails {
   constructor(params) {
     const oThis = this;
     oThis.clientId = params.client_id;
+    oThis.totalGasForMint = params.total_gas_for_mint;
 
     oThis.responseData = {};
     oThis.tokenId = 0;
@@ -171,7 +172,7 @@ class TokenMintDetails {
   async calculateMinimumEthRequired() {
     const oThis = this;
 
-    let averageGasUsedForMintBN = new BigNumber(coreConstants.GAS_USED_FOR_MINT),
+    let averageGasUsedForMintBN = new BigNumber(oThis.totalGasForMint),
       gasPriceBN = new BigNumber(coreConstants.MAX_VALUE_GAS_PRICE),
       minimumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN),
       bufferAmount = minimumEthRequired.div(2);
