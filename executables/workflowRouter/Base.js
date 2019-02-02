@@ -909,7 +909,7 @@ class WorkflowRouterBase {
 
     await oThis._clearWorkflowCache(oThis.workflowId);
 
-    emailNotifier.internal('WorkflowFailed', '*** Workflow with id ', oThis.workflowId, 'failed!', {}, {});
+    emailNotifier.notify('WorkflowFailed', '*** Workflow with id ', oThis.workflowId, 'failed!', {}, {});
 
     // If row was updated successfully.
     if (+workflowsModelResp.affectedRows === 1) {
