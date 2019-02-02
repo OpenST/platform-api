@@ -7,6 +7,7 @@
 
 const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidator = require(rootPrefix + '/lib/validators/Common'),
@@ -34,8 +35,10 @@ require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
  * @param {String} params.deviceName
  * @param {String} params.deviceUuid
  */
-class CreateDevice {
+class CreateDevice extends ServiceBase {
   constructor(params) {
+    super(params);
+
     const oThis = this;
     oThis.clientId = params.clientId;
     oThis.userId = params.userId;
