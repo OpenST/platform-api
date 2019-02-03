@@ -68,7 +68,7 @@ source set_env_vars.sh
 
 * Clear cache.
 ```bash
-node  executables/flush/sharedMemcached.js 
+node  executables/flush/sharedMemcached.js
 ```
 
 * Setup Origin GETH and fund necessary addresses.
@@ -78,8 +78,6 @@ node  executables/flush/sharedMemcached.js
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
-
-Copy the 'Generate Addresses Response' from the script response above and save somewhere offline.
 
 * Start Origin GETH with this script.
 ```bash

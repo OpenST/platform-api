@@ -143,14 +143,13 @@ class DeployCoGateway {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_o_dcg_2',
+          internal_error_identifier: 't_cs_a_dcg_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
     oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
-    oThis.gatewayAddress = chainAddressesRsp.data[chainAddressConstants.originGatewayContractKind].address;
   }
 
   /**
@@ -170,7 +169,7 @@ class DeployCoGateway {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_o_dcg_3',
+          internal_error_identifier: 't_cs_a_dcg_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -182,6 +181,7 @@ class DeployCoGateway {
     oThis.anchorAddress = chainAddressesRsp.data[chainAddressConstants.auxAnchorContractKind].address;
     oThis.messageBusLibAddress = chainAddressesRsp.data[chainAddressConstants.auxMbLibContractKind].address;
     oThis.gatewayLibAddress = chainAddressesRsp.data[chainAddressConstants.auxGatewayLibContractKind].address;
+    oThis.gatewayAddress = chainAddressesRsp.data[chainAddressConstants.originGatewayContractKind].address;
   }
 
   /**
