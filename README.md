@@ -142,8 +142,13 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   sh ~/openst-setup/bin/aux-2000/aux-chain-zeroGas-2000.sh
 ```
 
-* Add sealer address.
-NOTE: Use metamask to export private key from keystore file. And add it to tables using following script.
+* Add sealer address.  
+NOTE: Use MyEtherWallet to export private key from keystore file. 
+Visit the following link `https://www.myetherwallet.com/#view-wallet-info` and select the `Keystore / JSON File` option. 
+Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
+`testtest`. Pass the address and privateKey in the command below.
+
+And add it to tables using following script.
 ```bash
   source set_env_vars.sh
   node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
