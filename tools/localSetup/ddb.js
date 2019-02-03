@@ -72,8 +72,7 @@ class CreateInitialDdbTablesForSaas {
       return responseHelper.error({
         internal_error_identifier: 't_ls_ddb_1',
         api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: {}
+        debug_options: err
       });
     });
   }
@@ -107,12 +106,12 @@ class CreateInitialDdbTablesForSaas {
         shardNumbers: oThis._generateShardNumbersArray(oThis.deviceShardCount),
         isAvailableForAllocation: true
       });
-      // , sessionShardObject = new CreateShard({
-      //   chainId: oThis.auxChainId,
-      //   entityKind: shardConstant.sessionEntityKind,
-      //   shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
-      //   isAvailableForAllocation: true
-      // })
+    // , sessionShardObject = new CreateShard({
+    //   chainId: oThis.auxChainId,
+    //   entityKind: shardConstant.sessionEntityKind,
+    //   shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
+    //   isAvailableForAllocation: true
+    // })
 
     // Create Shards table
     await shardsObject.createTable();

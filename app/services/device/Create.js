@@ -61,8 +61,7 @@ class CreateDevice extends ServiceBase {
       return responseHelper.error({
         internal_error_identifier: 'a_s_d_c_1',
         api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: { error: err.toString() }
+        debug_options: { error: err.toString() }
       });
     });
   }
