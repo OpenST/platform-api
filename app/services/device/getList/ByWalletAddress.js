@@ -10,7 +10,6 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidator = require(rootPrefix + '/lib/validators/Common'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
 // Following require(s) for registering into instance composer
@@ -28,7 +27,7 @@ class ByWalletAddress extends GetListBase {
    * @param params
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
-   * @param {String} params.address - comma seperated list of wallet addresses
+   * @param {String} params.address - comma separated list of wallet addresses
    * @param {Integer} [params.token_id]
    */
   constructor(params) {

@@ -9,7 +9,6 @@
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
