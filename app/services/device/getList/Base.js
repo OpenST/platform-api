@@ -10,13 +10,13 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 
-class GetListBase {
+class GetListBase extends ServiceBase {
   /**
    * @param params
    * @param {Integer} params.client_id
@@ -24,31 +24,14 @@ class GetListBase {
    * @param {Integer} [params.token_id]
    */
   constructor(params) {
+    super(params);
+
     const oThis = this;
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
 
     oThis.walletAddresses = [];
-  }
-
-  /**
-   * Main performer method.
-   *
-   * @returns {Promise<void>}
-   */
-  perform() {
-    const oThis = this;
-
-    return oThis._asyncPerform().catch(function(err) {
-      logger.error(`unhandled_catch in ${__filename}`, err);
-
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_d_gl_b_1',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: { error: err.toString() }
-      });
-    });
   }
 
   /**
@@ -61,7 +44,9 @@ class GetListBase {
 
     await oThis._sanitizeParams();
 
-    await oThis._setTokenId();
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
 
     await oThis._setWalletAddresses();
 
@@ -77,29 +62,6 @@ class GetListBase {
   _sanitizeParams() {
     const oThis = this;
     oThis.userId = oThis.userId.toLowerCase();
-  }
-
-  /**
-   *
-   * set token id if not passed in params
-   *
-   * @private
-   */
-  async _setTokenId() {
-    const oThis = this;
-
-    if (oThis.tokenId) {
-      return;
-    }
-
-    let cacheResponse = await new TokenDetailCache({ clientId: oThis.clientId }).fetch();
-
-    if (cacheResponse.isFailure() || !cacheResponse.data) {
-      logger.error('Could not fetched token details.');
-      return Promise.reject(cacheResponse);
-    }
-
-    oThis.tokenId = cacheResponse.data['id'];
   }
 
   /**

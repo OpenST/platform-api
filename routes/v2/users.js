@@ -6,6 +6,7 @@ const rootPrefix = '../..',
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   routeHelper = require(rootPrefix + '/routes/helper');
 
 const router = express.Router();
@@ -77,9 +78,14 @@ router.get('/:user_id/devices', function(req, res, next) {
 
   const dataFormatterFunc = async function(serviceResponse) {
     let devices = serviceResponse.data[resultType.devices],
-      formattedDevices = [];
+      formattedDevices = [],
+      buffer;
 
     for (let deviceUuid in devices) {
+      buffer = devices[deviceUuid];
+      if (!CommonValidators.validateObject(buffer)) {
+        continue;
+      }
       formattedDevices.push(new DeviceFormatter(devices[deviceUuid]).perform().data);
     }
 

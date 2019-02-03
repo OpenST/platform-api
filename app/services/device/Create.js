@@ -10,10 +10,8 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidator = require(rootPrefix + '/lib/validators/Common'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   deviceConstant = require(rootPrefix + '/lib/globalConstant/device'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
 
@@ -47,8 +45,6 @@ class CreateDevice extends ServiceBase {
     oThis.personalSignAddress = params.personal_sign_address;
     oThis.deviceName = params.device_name;
     oThis.deviceUuid = params.device_uuid;
-
-    oThis.tokenId = null;
   }
 
   /**
@@ -79,57 +75,11 @@ class CreateDevice extends ServiceBase {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis._validate();
-
-    oThis.tokenId = await oThis._getTokenId();
-
     oThis._sanitize();
 
+    await oThis._fetchTokenDetails();
+
     return await oThis._create();
-  }
-
-  /**
-   * This method validates input parameters.
-   *
-   */
-  _validate() {
-    const oThis = this;
-    //&& CommonValidator.validatePersonalSign(oThis.personalSignAddress)
-    if (
-      CommonValidator.validateUuidV4(oThis.userId) &&
-      CommonValidator.validateUuidV4(oThis.deviceUuid) &&
-      CommonValidator.validateEthAddress(oThis.walletAddress)
-    ) {
-      logger.info('Validations Done');
-    } else {
-      logger.info('Validations Failed');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'l_d_c_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            userId: oThis.userId,
-            deviceUuid: oThis.deviceUuid,
-            personalSignAddress: oThis.personalSignAddress,
-            walletAddress: oThis.walletAddress
-          },
-          error_config: {}
-        })
-      );
-    }
-  }
-
-  /**
-   * Get tokenId from tokens cache using clientId.
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _getTokenId() {
-    const oThis = this,
-      tokenCache = new TokenCache({ clientId: oThis.clientId });
-    let tokenCacheResponse = await tokenCache.fetch();
-    return tokenCacheResponse.data.id;
   }
 
   /**

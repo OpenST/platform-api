@@ -13,7 +13,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
+  CommonValidators = require(rootPrefix + '/lib/validators/Common');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
@@ -53,7 +53,9 @@ class Get extends ServiceBase {
 
     await oThis._sanitizeParams();
 
-    await oThis._setTokenId();
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
 
     await oThis._getUserDetailsFromDdb();
 
@@ -67,29 +69,6 @@ class Get extends ServiceBase {
   _sanitizeParams() {
     const oThis = this;
     oThis.userId = oThis.userId.toLowerCase();
-  }
-
-  /**
-   *
-   * set token id if not passed in params
-   *
-   * @private
-   */
-  async _setTokenId() {
-    const oThis = this;
-
-    if (oThis.tokenId) {
-      return;
-    }
-
-    let cacheResponse = await new TokenDetailCache({ clientId: oThis.clientId }).fetch();
-
-    if (cacheResponse.isFailure() || !cacheResponse.data) {
-      logger.error('Could not fetched token details.');
-      return Promise.reject(cacheResponse);
-    }
-
-    oThis.tokenId = cacheResponse.data['id'];
   }
 
   /**
@@ -113,7 +92,9 @@ class Get extends ServiceBase {
       Promise.reject(tokenUserDetailsCacheRsp);
     }
 
-    if (!tokenUserDetailsCacheRsp.data[oThis.userId]) {
+    oThis.details = tokenUserDetailsCacheRsp.data[oThis.userId];
+
+    if (!CommonValidators.validateObject(oThis.details)) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_dm_g_1',
@@ -122,8 +103,6 @@ class Get extends ServiceBase {
         })
       );
     }
-
-    oThis.details = tokenUserDetailsCacheRsp.data[oThis.userId];
   }
 
   async _getContractData() {

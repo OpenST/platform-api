@@ -9,7 +9,6 @@ const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   shardConst = require(rootPrefix + '/lib/globalConstant/shard'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -57,24 +56,6 @@ class Create extends ServiceBase {
     await oThis._allocateShards();
 
     return await oThis.createUser();
-  }
-
-  /**
-   * _fetchTokenDetails - fetch token details from cache
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _fetchTokenDetails() {
-    const oThis = this;
-
-    let tokenCache = new TokenCache({
-      clientId: oThis.clientId
-    });
-
-    let response = await tokenCache.fetch();
-
-    oThis.tokenId = response.data.id;
   }
 
   /**

@@ -63,9 +63,9 @@ const validateApiSignature = function(req, res, next) {
   assignParams(req);
 
   const handleParamValidationResult = function(result) {
-    console.log('result', result);
     if (result.isSuccess()) {
       req.decodedParams['client_id'] = result.data['clientId'];
+      req.decodedParams['token_id'] = result.data['tokenId'];
       next();
     } else {
       return result.renderResponse(res, errorConfig);
