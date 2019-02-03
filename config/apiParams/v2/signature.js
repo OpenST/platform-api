@@ -38,6 +38,21 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.getUserList]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'id',
+        validatorMethod: 'validateString'
+      }
+    ]
+  },
+
   [apiName.createUserDevice]: {
     mandatory: [
       {
@@ -54,7 +69,7 @@ const v2Signature = {
       },
       {
         parameter: 'personal_sign_address',
-        validatorMethod: 'validatePersonalSign'
+        validatorMethod: 'validateEthAddress'
       },
       {
         parameter: 'device_name',

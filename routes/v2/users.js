@@ -12,6 +12,8 @@ const router = express.Router();
 
 require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/Get');
+
+require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/getList/ByUserId');
 require(rootPrefix + '/app/services/device/getList/ByWalletAddress');
 
@@ -57,10 +59,10 @@ router.post('/:user_id/devices', function(req, res, next) {
   req.decodedParams.user_id = req.params.user_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
-      [resultType.device]: userFormattedRsp.data
+      [resultType.device]: formattedRsp.data
     };
   };
 

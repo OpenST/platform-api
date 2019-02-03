@@ -13,8 +13,8 @@ const rootPrefix = '../../..',
   CommonValidator = require(rootPrefix + '/lib/validators/Common'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   deviceConstant = require(rootPrefix + '/lib/globalConstant/device'),
-  DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -30,7 +30,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
  *
  * @param {Integer} params.client_id
  * @param {String} params.user_id - uuid
- * @param {String} params.wallet_address
+ * @param {String} params.address
  * @param {String} params.personal_sign_address
  * @param {String} params.device_name
  * @param {String} params.device_uuid
@@ -43,7 +43,7 @@ class CreateDevice extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
-    oThis.walletAddress = params.wallet_address;
+    oThis.walletAddress = params.address;
     oThis.personalSignAddress = params.personal_sign_address;
     oThis.deviceName = params.device_name;
     oThis.deviceUuid = params.device_uuid;
@@ -191,14 +191,13 @@ class CreateDevice extends ServiceBase {
         deviceName: oThis.deviceName,
         status: deviceConstant.registeredStatus,
         updatedTimestamp: Math.floor(new Date().getTime() / 1000)
-      },
-      deviceFormatter = new DeviceFormatter(params);
+      };
 
     await device.create(params);
 
     logger.info('Entry created in device table with shardNumber ', userData['deviceShardNumber']);
 
-    return deviceFormatter.perform(params);
+    return responseHelper.successWithData({ [resultType.device]: params });
   }
 }
 
