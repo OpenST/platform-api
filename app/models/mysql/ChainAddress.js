@@ -53,7 +53,7 @@ class ChainAddress extends ModelBase {
       deployedChainKind = params['deployedChainKind'],
       status = params['status'];
 
-    if (!associatedAuxChainId) {
+    if (!associatedAuxChainId && associatedAuxChainId != 0) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'm_m_ca_2',
@@ -100,7 +100,7 @@ class ChainAddress extends ModelBase {
     if (chainAddressConstants.nonUniqueKinds.indexOf(addressKind) === -1) {
       let whereClause = ['associated_aux_chain_id = ? AND kind = ?', associatedAuxChainId, addressKindInt];
 
-      let existingRows = await oThis
+      let existingRows = await new ChainAddress()
         .select('*')
         .where(whereClause)
         .fire();
@@ -126,7 +126,7 @@ class ChainAddress extends ModelBase {
       address: address.toLowerCase()
     };
 
-    let insertedRec = await oThis.insert(insertParams).fire();
+    let insertedRec = await new ChainAddress().insert(insertParams).fire();
 
     if (insertedRec.affectedRows === 0) {
       return Promise.reject(
@@ -191,7 +191,7 @@ class ChainAddress extends ModelBase {
       );
     }
 
-    let updateRsp = await oThis
+    let updateRsp = await new ChainAddress()
       .update({ status: statusInt })
       .where({
         associated_aux_chain_id: associatedAuxChainId,

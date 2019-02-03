@@ -62,7 +62,7 @@ class GethManager {
    * @param {String/Number} chainId
    * @param {String} chainGenesisLocation: genesis file location to be modified
    * @param {Object} allocAddressToAmountMap: {allocAddress: allocAmount}
-   * @parms {String} chainOwnerAddress: chainOwnerAddress
+   * @parms {String} masterInternalFunderAddress: masterInternalFunderAddress
    * @param {String} sealerAddress
    *
    * @return {Boolean}
@@ -74,7 +74,7 @@ class GethManager {
     chainId,
     chainGenesisLocation,
     sealerAddress,
-    chainOwnerAddress,
+    masterInternalFunderAddress,
     blockGenerationTime,
     allocAddressToAmountMap
   ) {
@@ -104,10 +104,10 @@ class GethManager {
     if (!allocAddressToAmountMap) {
       //if allocate amount is not specified, then allocates 800M by default.
       //we need this step (for setup on local machines) to fund some addresses for origin deployment
-      file.set('alloc.' + chainOwnerAddress + '.balance', '0x295be96e640669720000000');
+      file.set('alloc.' + masterInternalFunderAddress + '.balance', '0x295be96e640669720000000');
     } else {
       // Alloc balance to required address
-      file.set('alloc.' + chainOwnerAddress + '.balance', basicHelper.convertToHex(allocAmount));
+      file.set('alloc.' + masterInternalFunderAddress + '.balance', basicHelper.convertToHex(allocAmount));
     }
 
     // Set chainId.
@@ -173,12 +173,14 @@ class GethManager {
     let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind,
       chainTypeString = chainType === 'aux' ? 'auxGeth' : 'originGeth';
 
+    logger.info('* Fetch config strategy for chain id: ', chainId);
     let chainConfigStrategy = await oThis.fetchConfig(chainId),
       blockGenerationTime = chainConfigStrategy[chainTypeString]['blockGenerationTime'];
 
-    let chainOwnerAddress = oThis._fetchOriginAddresses();
+    logger.info('* Fetch master internal funder');
+    let masterInternalFunderAddress = await oThis._fetchOriginAddresses();
 
-    logger.debug('chainOwnerAddress----', chainOwnerAddress);
+    logger.debug('masterInternalFunderAddress----', masterInternalFunderAddress);
 
     // Copy genesis template file in chain folder
     logger.info('* Copying POA genesis template file.');
@@ -191,7 +193,7 @@ class GethManager {
       chainId,
       chainGenesisLocation,
       sealerAddress,
-      chainOwnerAddress,
+      masterInternalFunderAddress,
       blockGenerationTime,
       allocAddressToAmountMap
     );

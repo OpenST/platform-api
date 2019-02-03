@@ -16,9 +16,8 @@ class TransferAmountOnChain {
   async _fundAddressWithEth(toAddress, chainId, provider, amountInWei) {
     const oThis = this;
 
-    await oThis._fetchOriginAddress();
-
-    let chainOwnerAddress = oThis.masterInternalFunderAddress;
+    const originAddresses = await oThis._fetchOriginAddress(),
+      chainOwnerAddress = originAddresses.data[chainAddressConstants.masterInternalFunderKind].address;
 
     let signerWeb3Object = new SignerWeb3Provider(provider, chainOwnerAddress),
       web3Instance = await signerWeb3Object.getInstance();
@@ -86,9 +85,8 @@ class TransferAmountOnChain {
 
     let web3Instance = await web3Provider.getInstance(provider).web3WsProvider;
 
-    await oThis._fetchOriginAddress();
-
-    let simpleTokenContractAddress = oThis.stContractAddress;
+    const originAddresses = await oThis._fetchOriginAddress(),
+      simpleTokenContractAddress = originAddresses.data[chainAddressConstants.stContractKind].address;
 
     await web3Instance.eth.accounts.wallet.add(privateKey);
 
@@ -127,9 +125,8 @@ class TransferAmountOnChain {
   async _fundAddressWithOSTPrime(toAddress, chainId, chainEndpoint, amountInWei) {
     const oThis = this;
 
-    await oThis._fetchOriginAddress();
-
-    let chainOwnerAddress = oThis.masterInternalFunderAddress;
+    const originAddresses = await oThis._fetchOriginAddress(),
+      chainOwnerAddress = originAddresses.data[chainAddressConstants.masterInternalFunderKind].address;
 
     logger.debug('Fetched Chain Owner Address from database-----', chainOwnerAddress);
 
@@ -180,8 +177,7 @@ class TransferAmountOnChain {
       );
     }
 
-    oThis.masterInternalFunderAddress = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
-    oThis.stContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+    return chainAddressesRsp;
   }
 
   /**

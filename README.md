@@ -66,6 +66,11 @@ source set_env_vars.sh
 
 ### Origin Chain Setup
 
+* Clear cache.
+```bash
+node  executables/flush/sharedMemcached.js 
+```
+
 * Setup Origin GETH and fund necessary addresses.
 ```bash
   source set_env_vars.sh
