@@ -3,7 +3,8 @@
 const BrandedToken = require('@openstfoundation/brandedtoken.js');
 
 const rootPrefix = '../..',
-  CoreBins = require(rootPrefix + '/config/CoreBins');
+  CoreBins = require(rootPrefix + '/config/CoreBins'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 class VerifierHelper {
   constructor(web3Instance) {
@@ -88,14 +89,16 @@ class VerifierHelper {
     this function returns contract name for provided lib kind.
    */
   getLibNameFromKind(libKind) {
-    if (libKind === 'merklePatriciaProofLib') {
-      return 'MerklePatriciaProof';
-    }
-    if (libKind === 'messageBusLib') {
-      return 'MessageBus';
-    }
-    if (libKind === 'gatewayLib') {
-      return 'GatewayLib';
+    switch (libKind) {
+      case chainAddressConstants.auxMppLibContractKind:
+      case chainAddressConstants.originMppLibContractKind:
+        return 'MerklePatriciaProof';
+      case chainAddressConstants.auxMbLibContractKind:
+      case chainAddressConstants.originMbLibContractKind:
+        return 'MessageBus';
+      case chainAddressConstants.auxGatewayLibContractKind:
+      case chainAddressConstants.originGatewayLibContractKind:
+        return 'GatewayLib';
     }
   }
 }
