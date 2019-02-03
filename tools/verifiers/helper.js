@@ -76,7 +76,7 @@ class VerifierHelper {
     return 'Anchor';
   }
 
-  get getGatewayContractName() {
+  get gatewayContractName() {
     return 'EIP20Gateway';
   }
 

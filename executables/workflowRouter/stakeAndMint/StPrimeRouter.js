@@ -15,12 +15,12 @@ const rootPrefix = '../../..',
   CheckProgressMintStatus = require(rootPrefix + '/lib/stakeAndMint/common/CheckProgressMintStatus'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
   Approve = require(rootPrefix + '/lib/stakeMintManagement/stPrime/ApproveOriginGatewayInBase'),
-  ProgressStake = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressStakeOnGateway'),
+  ProgressStake = require(rootPrefix + '/lib/stakeAndMint/common/ProgressStake'),
   ProgressMint = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressMintOnCoGateway'),
   ProveGateway = require(rootPrefix + '/lib/stakeMintManagement/common/ProveGatewayOnCoGateway'),
   stPrimeMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/stPrimeConfig'),
   ConfirmStakeIntent = require(rootPrefix + '/lib/stakeAndMint/common/ConfirmStakeIntent'),
-  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash');
+  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeAndMint/common/FetchStakeIntentMessageHash');
 
 /**
  * Class for STPrime mint router.
