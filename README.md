@@ -87,7 +87,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 Granter address gets ETH and OST in this step.
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
+  node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xabc...'
 ```
 
 * Save simple token admin and owner addresses in database.

@@ -4,7 +4,7 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
-  OnlyForDevEnv = require(rootPrefix + '/lib/setup/originChain/OnlyForDevEnv'),
+  FundGranterAddress = require(rootPrefix + '/lib/setup/originChain/FundGranterAddress'),
   GenerateAuxAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateAuxAddress'),
   GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
   ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain');
@@ -64,7 +64,7 @@ const Main = async function() {
       handleError();
     }
 
-    performerObj = new OnlyForDevEnv(stOwnerPk, ethSenderPk);
+    performerObj = new FundGranterAddress(stOwnerPk, ethSenderPk);
   } else {
     return handleError();
   }
