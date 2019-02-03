@@ -67,6 +67,7 @@ router.post('/:user_id/devices', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'CreateDevice', 'r_it_1', null, dataFormatterFunc));
 });
 
+/* Get devices by userId */
 router.get('/:user_id/devices', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;

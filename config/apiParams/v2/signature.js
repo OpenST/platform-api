@@ -38,6 +38,55 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.createUserDevice]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'personal_sign_address',
+        validatorMethod: 'validatePersonalSign'
+      },
+      {
+        parameter: 'device_name',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'device_uuid',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getUserDevice]: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
+      }
+    ]
+  },
+
   get_transaction_ledger: {
     mandatory: [
       {
