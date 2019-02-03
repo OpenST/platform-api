@@ -90,8 +90,7 @@ router.get('/:user_id/devices', function(req, res, next) {
   };
 
   let serviceName;
-  if (req.params.address) {
-    req.decodedParams.address = req.params.address;
+  if (req.decodedParams.address) {
     serviceName = 'DeviceListByWalletAddress';
   } else {
     serviceName = 'DeviceListByUserId';

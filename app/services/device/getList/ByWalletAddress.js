@@ -28,13 +28,13 @@ class ByWalletAddress extends GetListBase {
    * @param params
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
-   * @param {String} params.address
+   * @param {String} params.address - comma seperated list of wallet addresses
    * @param {Integer} [params.token_id]
    */
   constructor(params) {
     super(params);
     const oThis = this;
-    oThis.address = params.address;
+    oThis.addressString = params.address;
   }
 
   /**
@@ -45,7 +45,7 @@ class ByWalletAddress extends GetListBase {
    */
   _sanitizeParams() {
     const oThis = this,
-      addresses = oThis.address.split(',');
+      addresses = oThis.addressString.split(',');
 
     super._sanitizeParams();
 
@@ -63,6 +63,10 @@ class ByWalletAddress extends GetListBase {
         oThis.walletAddresses.push(addresses[index].toLowerCase());
       }
     }
+  }
+
+  _setWalletAddresses() {
+    //DO nothing as already came in params
   }
 }
 
