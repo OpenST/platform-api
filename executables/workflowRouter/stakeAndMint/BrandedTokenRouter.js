@@ -15,7 +15,7 @@ const rootPrefix = '../../..',
   FetchStakeRequestHash = require(rootPrefix + '/lib/stakeAndMint/brandedToken/FetchStakeRequestHash'),
   RecordStakerTx = require(rootPrefix + '/lib/stakeAndMint/brandedToken/RecordStakerTx'),
   AcceptStakeByWorker = require(rootPrefix + '/lib/stakeAndMint/brandedToken/AcceptStakeRequest'),
-  CheckStepStatus = require(rootPrefix + '/lib/stakeAndMint/common/CheckStepStatus'),
+  CheckProgressMintStatus = require(rootPrefix + '/lib/stakeAndMint/common/CheckProgressMintStatus'),
   CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/CommitStateRoot'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
   ProgressStake = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressStakeOnGateway'),
@@ -109,7 +109,7 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.checkProgressMintStatus:
         let stepParams = {};
         Object.assign(stepParams, oThis.requestParams, { currentStep: oThis.stepKind });
-        return new CheckStepStatus(stepParams).perform();
+        return new CheckProgressMintStatus(stepParams).perform();
 
       case workflowStepConstants.commitStateRoot:
         let params = { fromOriginToAux: 1 };
