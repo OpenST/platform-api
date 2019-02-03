@@ -28,12 +28,12 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
  *
  * @class CreateDevice
  *
- * @param {Integer} params.clientId
- * @param {Integer} params.userId
- * @param {String} params.walletAddress
- * @param {String} params.personalSignAddress
- * @param {String} params.deviceName
- * @param {String} params.deviceUuid
+ * @param {Integer} params.client_id
+ * @param {String} params.user_id - uuid
+ * @param {String} params.wallet_address
+ * @param {String} params.personal_sign_address
+ * @param {String} params.device_name
+ * @param {String} params.device_uuid
  */
 class CreateDevice extends ServiceBase {
   constructor(params) {
@@ -41,12 +41,12 @@ class CreateDevice extends ServiceBase {
 
     const oThis = this;
 
-    oThis.clientId = params.clientId;
-    oThis.userId = params.userId;
-    oThis.walletAddress = params.walletAddress;
-    oThis.personalSignAddress = params.personalSignAddress;
-    oThis.deviceName = params.deviceName;
-    oThis.deviceUuid = params.deviceUuid;
+    oThis.clientId = params.client_id;
+    oThis.userId = params.user_id;
+    oThis.walletAddress = params.wallet_address;
+    oThis.personalSignAddress = params.personal_sign_address;
+    oThis.deviceName = params.device_name;
+    oThis.deviceUuid = params.device_uuid;
 
     oThis.tokenId = null;
   }
@@ -63,7 +63,7 @@ class CreateDevice extends ServiceBase {
       logger.error(' In catch block of lib/device/Create.js');
 
       return responseHelper.error({
-        internal_error_identifier: 'l_d_c_1',
+        internal_error_identifier: 'a_s_d_c_1',
         api_error_identifier: 'something_went_wrong',
         debug_options: err,
         error_config: { error: err.toString() }
