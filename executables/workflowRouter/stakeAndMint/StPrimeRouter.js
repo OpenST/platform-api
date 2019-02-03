@@ -19,7 +19,7 @@ const rootPrefix = '../../..',
   ProgressMint = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressMintOnCoGateway'),
   ProveGateway = require(rootPrefix + '/lib/stakeMintManagement/common/ProveGatewayOnCoGateway'),
   stPrimeMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/stPrimeConfig'),
-  ConfirmStakeIntent = require(rootPrefix + '/lib/stakeMintManagement/common/ConfirmStakeIntentOnCoGateway'),
+  ConfirmStakeIntent = require(rootPrefix + '/lib/stakeAndMint/common/ConfirmStakeIntent'),
   FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash');
 
 /**
