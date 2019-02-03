@@ -167,7 +167,7 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForWalletAddress + ')';
 
-    return oThis.putItem(Device.sanitizeParamsForUpdate(params), conditionalExpression);
+    return oThis.putItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
   }
 
   /**
@@ -176,7 +176,7 @@ class Device extends Base {
    * @param params
    * @param params.userId {String} - uuid
    * @param params.walletAddress {String}
-   * @param params.status {String} - {REGISTERED,AUTHORIZING, AUTHORIZED, REVOKING, REVOKED}
+   * @param params.status {String} - {REGISTERED, AUTHORIZING, AUTHORIZED, REVOKING, REVOKED}
    *
    * @return {Promise<void>}
    */
@@ -188,20 +188,25 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForWalletAddress + ')';
 
-    return oThis.updateItem(Device.sanitizeParamsForUpdate(params), conditionalExpression);
+    return oThis.updateItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
   }
 
-  static sanitizeParamsForUpdate(params) {
+  static sanitizeParamsToInsert(params) {
     params['status'] = DeviceConstant.invertedKinds[params['status']];
+    return params;
+  }
+
+  static sanitizeParamsToDisplay(params) {
+    params['status'] = DeviceConstant.kinds[params['status']];
     return params;
   }
 
   /**
    * Get device details.
    *
-   * @param {Array} params [{userId: '1234', walletAddress: '0x123....'}, {userId: '1234', walletAddress: '0x123....'}]
-   * @param params[index].userId {String} - uuid
-   * @param params[index].walletAddress {String}
+   * @param {Object} params
+   * @param {Integer} params.userId - uuid
+   * @param {Array} params.walletAddresses - array of addresses
    *
    * @return {Promise<void>}
    */
@@ -209,15 +214,22 @@ class Device extends Base {
     const oThis = this;
 
     let keyObjArray = [];
-    for (let index = 0; index < params.length; index++) {
+    for (let index = 0; index < params['walletAddresses'].length; index++) {
       keyObjArray.push(
         oThis._keyObj({
-          userId: params[index].userId,
-          walletAddress: params[index].walletAddress
+          userId: params.userId,
+          walletAddress: params.walletAddresses[index]
         })
       );
     }
-    return await oThis.batchGetItem(keyObjArray, 'userId');
+    return await oThis.batchGetItem(keyObjArray, 'walletAddress');
+  }
+
+  _formatRowFromDynamo(dbRow) {
+    const oThis = this;
+    let formattedDbRow = super._formatRowFromDynamo(dbRow);
+    formattedDbRow = Device.sanitizeParamsToDisplay(formattedDbRow);
+    return formattedDbRow;
   }
 
   /**
@@ -225,14 +237,68 @@ class Device extends Base {
    *
    * @return {Promise<void>}
    */
-  static async afterUpdate(ic, rowData) {
-    require(rootPrefix + '/lib/cacheManagement/chain/DeviceDetail');
-
+  static async afterUpdate(ic, params) {
+    const oThis = this;
+    require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
     let cacheClass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
-    new cacheClass(rowData).clear();
+    new cacheClass({
+      userId: params.userId,
+      walletAddresses: [params.walletAddress]
+    }).clear();
 
     logger.info('device cache cleared.');
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Get paginated data
+   *
+   * @param {Number} userId
+   * @param LastEvaluatedKey
+   *
+   * @returns {Promise<*>}
+   */
+  async getWalletAddresses(userId, LastEvaluatedKey) {
+    const oThis = this,
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId];
+
+    let queryParams = {
+      TableName: oThis.tableName(),
+      KeyConditionExpression: `${shortNameForUserId} = :uid`,
+      ExpressionAttributeValues: {
+        ':uid': { [dataTypeForUserId]: userId.toString() }
+      },
+      ProjectionExpression: oThis.shortNameFor('walletAddress'),
+      Limit: DeviceConstant.pageLimit,
+      ScanIndexForward: false
+    };
+    if (LastEvaluatedKey) {
+      queryParams['ExclusiveStartKey'] = LastEvaluatedKey;
+    }
+
+    let response = await oThis.ddbServiceObj.query(queryParams);
+
+    if (response.isFailure()) {
+      return Promise.reject(response);
+    }
+
+    let row,
+      formattedRow,
+      walletAddresses = [];
+
+    for (let i = 0; i < response.data.Items.length; i++) {
+      row = response.data.Items[i];
+      formattedRow = oThis._formatRowFromDynamo(row);
+      walletAddresses.push(formattedRow.walletAddress);
+    }
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        walletAddresses: walletAddresses,
+        nextPagePayload: { LastEvaluatedKey: response.data.LastEvaluatedKey || '' }
+      })
+    );
   }
 
   /**

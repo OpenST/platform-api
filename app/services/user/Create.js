@@ -9,17 +9,20 @@ const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   shardConst = require(rootPrefix + '/lib/globalConstant/shard'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 const uuidv4 = require('uuid/v4'),
   InstanceComposer = OSTBase.InstanceComposer;
 
+require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/User');
 
-class AddUser extends ServiceBase {
+class Create extends ServiceBase {
   /**
    * @constructor
    *
@@ -34,6 +37,8 @@ class AddUser extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.kind = params.kind || tokenUserConstants.userKind;
+
+    oThis.shardNumbersMap = {};
   }
 
   /**
@@ -46,31 +51,34 @@ class AddUser extends ServiceBase {
 
     await oThis._fetchTokenDetails();
 
-    let response = await oThis.createUser();
+    oThis.userId = uuidv4();
 
-    if (response.isSuccess()) {
-      return Promise.resolve(responseHelper.successWithData({ id: oThis.userId }));
-    } else {
-      return Promise.resolve(response);
-    }
+    await oThis._allocateShards();
+
+    return await oThis.createUser();
   }
 
   /**
-   * _fetchTokenDetails - fetch token details from cache
+   * _allocateShards - allocate shards
    *
-   * @return {Promise<void>}
    * @private
    */
-  async _fetchTokenDetails() {
+  async _allocateShards() {
     const oThis = this;
 
-    let tokenCache = new TokenCache({
-      clientId: oThis.clientId
-    });
+    let AvailableShardCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AvailableShardsCache'),
+      availableShardCache = new AvailableShardCache();
 
-    let response = await tokenCache.fetch();
+    let response = await availableShardCache.fetch(),
+      availableShards = response.data;
 
-    oThis.tokenId = response.data.id;
+    let r1 = basicHelper.getRandomNumber(0, availableShards[shardConstant.deviceEntityKind].length - 1);
+    // let r2 = basicHelper.getRandomNumber(0, availableShards[shardConstant.sessionEntityKind].length - 1);
+    // let r3 = basicHelper.getRandomNumber(0, availableShards[shardConstant.recoveryAddressEntityKind].length - 1);
+
+    oThis.shardNumbersMap[shardConstant.deviceEntityKind] = availableShards[shardConstant.deviceEntityKind][r1];
+    // oThis.shardNumbersMap[shardConstant.sessionEntityKind] = availableShards[shardConstant.sessionEntityKind][r2];
+    // oThis.shardNumbersMap[shardConstant.recoveryAddressEntityKind] = availableShards[shardConstant.recoveryAddressEntityKind][r3];
   }
 
   /**
@@ -87,15 +95,13 @@ class AddUser extends ServiceBase {
 
     let timeInSecs = Math.floor(Date.now() / 1000);
 
-    oThis.userId = uuidv4();
-
     let params = {
       tokenId: oThis.tokenId,
       userId: oThis.userId,
       kind: oThis.kind,
-      deviceShardNumber: shardNumbers.data[shardConst.deviceEntityKind],
-      sessionShardNumber: shardNumbers.data[shardConst.sessionEntityKind],
-      recoveryAddressShardNumber: shardNumbers.data[shardConst.recoveryAddressEntityKind],
+      deviceShardNumber: oThis.shardNumbersMap[shardConst.deviceEntityKind],
+      // sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
+      // recoveryAddressShardNumber: oThis.shardNumbersMap[shardConst.recoveryAddressEntityKind],
       status: tokenUserConstants.createdStatus,
       updateTimestamp: timeInSecs
     };
@@ -111,10 +117,12 @@ class AddUser extends ServiceBase {
     let User = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel'),
       user = new User({ shardNumber: shardNumbers.data[shardConst.userEntityKind] });
 
-    return user.insertUser(params);
+    let insertRsp = user.insertUser(params);
+
+    return responseHelper.successWithData({ [resultType.user]: params });
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AddUser, coreConstants.icNameSpace, 'AddUser');
+InstanceComposer.registerAsShadowableClass(Create, coreConstants.icNameSpace, 'CreateUser');
 
 module.exports = {};

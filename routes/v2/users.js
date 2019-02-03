@@ -1,49 +1,127 @@
 const express = require('express');
 
 const rootPrefix = '../..',
-  DeviceManagersFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManagers'),
-  userDataFormatter = require(rootPrefix + '/lib/formatter/entity/user'),
+  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   routeHelper = require(rootPrefix + '/routes/helper');
 
 const router = express.Router();
 
-//require(rootPrefix + '/app/services/user/DeviceManager');
+require(rootPrefix + '/app/services/user/Create');
+require(rootPrefix + '/app/services/user/Get');
 
-/* Get user device managers*/
-router.get('/:user_id/device-managers/', function(req, res, next) {
-  req.decodedParams.apiName = 'getDeviceManagers'; //review api names
-  req.decodedParams.userId = req.params.user_id; // review params
+require(rootPrefix + '/app/services/device/Create');
+require(rootPrefix + '/app/services/device/getList/ByUserId');
+require(rootPrefix + '/app/services/device/getList/ByWalletAddress');
+
+require(rootPrefix + '/app/services/deviceManager/Get');
+
+/* Create user*/
+router.post('/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.createUser;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const deviceManagersFormatterRsp = await new DeviceManagersFormatter(serviceResponse.data).perform();
-
-    serviceResponse.data = deviceManagersFormatterRsp.data;
+    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    serviceResponse.data = {
+      result_type: resultType.user,
+      [resultType.user]: userFormattedRsp.data
+    };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceManager', 'r_t_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'CreateUser', 'r_it_1', null, dataFormatterFunc));
 });
 
 /* Get user*/
 router.get('/:user_id', function(req, res, next) {
-  req.decodedParams.apiName = 'getUser'; //review api names
-  req.decodedParams.user_id = req.params.user_id; // review params
-  req.decodedParams.client_id = req.params.client_id;
+  req.decodedParams.apiName = apiName.getUser;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = userDataFormatter.perform(serviceResponse.data);
-
-    serviceResponse.data = userFormattedRsp.data;
+    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    serviceResponse.data = {
+      result_type: resultType.user,
+      [resultType.user]: userFormattedRsp.data
+    };
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetUser', 'r_t_2', null, dataFormatterFunc));
 });
 
-router.post('/', function(req, res, next) {
-  req.decodedParams.apiName = 'addUser';
-  req.decodedParams.configStrategyRequired = false;
+/* Create device for user*/
+router.post('/:user_id/devices', function(req, res, next) {
+  req.decodedParams.apiName = apiName.createUserDevice;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AddUser', 'r_it_1'));
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'CreateDevice', 'r_it_1', null, dataFormatterFunc));
+});
+
+/* Get devices by userId */
+router.get('/:user_id/devices', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserDevice;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let devices = serviceResponse.data[resultType.devices],
+      formattedDevices = [],
+      buffer;
+
+    for (let deviceUuid in devices) {
+      buffer = devices[deviceUuid];
+      if (!CommonValidators.validateObject(buffer)) {
+        continue;
+      }
+      formattedDevices.push(new DeviceFormatter(devices[deviceUuid]).perform().data);
+    }
+
+    serviceResponse.data = {
+      result_type: resultType.devices,
+      [resultType.devices]: formattedDevices
+    };
+  };
+
+  let serviceName;
+  if (req.decodedParams.address) {
+    serviceName = 'DeviceListByWalletAddress';
+  } else {
+    serviceName = 'DeviceListByUserId';
+  }
+
+  Promise.resolve(routeHelper.perform(req, res, next, serviceName, 'r_it_1', null, dataFormatterFunc));
+});
+
+/* Get user device managers*/
+router.get('/:user_id/device-managers/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserDeviceManager;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const deviceManagersFormatterRsp = await new DeviceManagerFormatter(
+      serviceResponse.data[resultType.deviceManager]
+    ).perform();
+    serviceResponse.data = {
+      result_type: resultType.deviceManager,
+      [resultType.deviceManager]: deviceManagersFormatterRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceManager', 'r_t_1', null, dataFormatterFunc));
 });
 
 module.exports = router;

@@ -1,7 +1,9 @@
 const express = require('express');
 
 const rootPrefix = '../..',
-  TokensFormatter = require(rootPrefix + '/lib/formatter/entity/Tokens'),
+  TokenFormatter = require(rootPrefix + '/lib/formatter/entity/Token'),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   routeHelper = require(rootPrefix + '/routes/helper');
 
 const router = express.Router();
@@ -10,13 +12,16 @@ require(rootPrefix + '/app/services/token/Detail');
 
 /* Get tokens details*/
 router.get('/', function(req, res, next) {
-  req.decodedParams.apiName = 'tokenDetails';
+  req.decodedParams.apiName = apiName.getToken;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const tokensFormatterRsp = await new TokensFormatter(serviceResponse.data).perform();
+    const tokensFormatterRsp = await new TokenFormatter(serviceResponse.data).perform();
 
-    serviceResponse.data = tokensFormatterRsp.data;
+    serviceResponse.data = {
+      result_type: resultType.token,
+      [resultType.token]: tokensFormatterRsp.data
+    };
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_t_1', null, dataFormatterFunc));

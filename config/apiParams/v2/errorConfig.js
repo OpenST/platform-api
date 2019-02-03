@@ -14,6 +14,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `List of supported signature kinds (${apiSignature.hmacKind})`
   },
+  unsupported_signature_kind: {
+    parameter: 'signature_kind',
+    code: 'invalid',
+    message: `This signature kind is not supported for this endpoint.`
+  },
   invalid_request_timestamp: {
     parameter: 'request_timestamp',
     code: 'invalid',
@@ -39,10 +44,35 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid signature`
   },
+  invalid_user_id: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `Invalid user_id`
+  },
   invalid_request_path: {
     parameter: 'request_path',
     code: 'invalid',
     message: `Invalid request path`
+  },
+  invalid_client_id: {
+    parameter: 'client_id',
+    code: 'invalid',
+    message: 'Invalid client id'
+  },
+  invalid_wallet_address: {
+    parameter: 'wallet_address',
+    code: 'invalid',
+    message: 'Invalid wallet_address'
+  },
+  invalid_personal_sign_address: {
+    parameter: 'personal_sign_address',
+    code: 'invalid',
+    message: 'Invalid personal_sign_address'
+  },
+  invalid_address: {
+    parameter: 'address',
+    code: 'invalid',
+    message: 'Invalid address'
   }
 };
 

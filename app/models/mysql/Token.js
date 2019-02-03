@@ -48,6 +48,25 @@ class Token extends ModelBase {
     return invertedStatuses;
   }
 
+  async getDetailsByTokenId(tokenId) {
+    const oThis = this;
+
+    let dbRows = await oThis
+      .select('client_id')
+      .where({
+        id: tokenId
+      })
+      .fire();
+
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
+    return responseHelper.successWithData({
+      clientId: dbRows[0].client_id
+    });
+  }
+
   async getDetailsByClientId(clientId) {
     const oThis = this;
 
@@ -62,9 +81,16 @@ class Token extends ModelBase {
       return responseHelper.successWithData({});
     }
 
-    let dbRow = dbRows[0];
+    return responseHelper.successWithData(oThis.formatDbData(dbRows[0]));
+  }
 
-    return responseHelper.successWithData({
+  /**
+   *
+   * @param dbRow
+   * @return {object}
+   */
+  formatDbData(dbRow) {
+    return {
       id: dbRow.id,
       clientId: dbRow.client_id,
       name: dbRow.name,
@@ -73,21 +99,27 @@ class Token extends ModelBase {
       decimal: dbRow.decimal,
       status: dbRow.status,
       createdAt: dbRow.created_at
-    });
+    };
   }
 
   /***
    * Flush cache
    *
-   * @param tokenId
+   * @param {object} params
    *
    * @returns {Promise<*>}
    */
-  static flushCache(clientId) {
-    const TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
+  static async flushCache(params) {
+    const TokenByClientIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
 
-    return new TokenCache({
-      clientId: clientId
+    await new TokenByClientIdCache({
+      clientId: params.clientId
+    }).clear();
+
+    const TokenByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId');
+
+    await new TokenByTokenIdCache({
+      tokenId: params.tokenId
     }).clear();
   }
 }

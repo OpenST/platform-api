@@ -50,13 +50,11 @@ class InitialSetup {
     const oThis = this;
 
     return oThis.asyncPerform().catch(function(err) {
-      logger.error(' In catch block of tools/localSetup/block-scanner/initialSetup.js::perform');
-
+      logger.error(`In catch block of ${__filename}`);
       return responseHelper.error({
         internal_error_identifier: 't_ls_bs_is_1',
         api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: {}
+        debug_options: { err: err.toString() }
       });
     });
   }

@@ -8,6 +8,7 @@ const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
@@ -28,6 +29,9 @@ class ServicesBaseKlass {
   constructor(params) {
     const oThis = this;
     oThis.params = params;
+
+    oThis.tokenId = null;
+    oThis.token = null;
   }
 
   /**
@@ -37,15 +41,19 @@ class ServicesBaseKlass {
    */
   perform() {
     const oThis = this;
+
     return oThis._asyncPerform().catch(function(err) {
-      // If asyncPerform fails, run the below catch block.
-      logger.error(' In catch block of services/Base.js', err);
-      return responseHelper.error({
-        internal_error_identifier: 's_b_1',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: errorConfig
-      });
+      if (responseHelper.isCustomResult(err)) {
+        return err;
+      } else {
+        logger.error(' In catch block of services/Base.js', err);
+        return responseHelper.error({
+          internal_error_identifier: 's_b_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { error: err.toString() },
+          error_config: errorConfig
+        });
+      }
     });
   }
 
@@ -57,6 +65,34 @@ class ServicesBaseKlass {
    */
   async _asyncPerform() {
     throw 'sub-class to implement';
+  }
+
+  /**
+   * _fetchTokenDetails - fetch token details from cache
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _fetchTokenDetails() {
+    const oThis = this;
+
+    let tokenCache = new TokenCache({
+      clientId: oThis.clientId
+    });
+
+    let response = await tokenCache.fetch();
+    if (!response.data) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_b_1',
+          api_error_identifier: 'token_not_setup',
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.token = response.data;
+    oThis.tokenId = oThis.token.id;
   }
 }
 

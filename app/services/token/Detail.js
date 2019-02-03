@@ -2,7 +2,7 @@
 /**
  * This service gets the details of the economy from economy model
  *
- * @module app/services/token/AggregatedDetails
+ * @module app/services/token/Detail
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -14,7 +14,6 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
 
@@ -39,8 +38,6 @@ class TokenDetail extends ServiceBase {
 
     oThis.originChainId = null;
     oThis.auxChainId = null;
-    oThis.tokenDetails = null;
-    oThis.tokenId = null;
     oThis.tokenAddresses = null;
     oThis.economyContractAddress = null;
     oThis.economyDetails = null;
@@ -54,9 +51,12 @@ class TokenDetail extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._fetchTokenDetails();
+
     await oThis._setChainIds();
 
-    await oThis._fetchTokenDetails();
+    oThis.token['originChainId'] = oThis.originChainId;
+    oThis.token['auxChainId'] = oThis.auxChainId;
 
     await oThis._fetchTokenAddresses();
 
@@ -64,7 +64,7 @@ class TokenDetail extends ServiceBase {
 
     return Promise.resolve(
       responseHelper.successWithData({
-        tokenDetails: oThis.tokenDetails,
+        tokenDetails: oThis.token,
         tokenAddresses: oThis.tokenAddresses,
         economyDetails: oThis.economyDetails
       })
@@ -83,38 +83,6 @@ class TokenDetail extends ServiceBase {
 
     oThis.originChainId = configStrategy[configStrategyConstants.originGeth]['chainId'];
     oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth]['chainId'];
-  }
-
-  /**
-   * Fetch token details for given client id
-   *
-   * @return {Promise<never>}
-   * @private
-   */
-  async _fetchTokenDetails() {
-    const oThis = this;
-
-    let cacheResponse = await new TokenDetailCache({ clientId: oThis.clientId }).fetch();
-
-    if (cacheResponse.isFailure()) {
-      logger.error('Could not fetched token details.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_d_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            clientId: oThis.clientId
-          }
-        })
-      );
-    }
-
-    oThis.tokenDetails = cacheResponse.data;
-
-    oThis.tokenDetails['originChainId'] = oThis.originChainId;
-    oThis.tokenDetails['auxChainId'] = oThis.auxChainId;
-
-    oThis.tokenId = oThis.tokenDetails['id'];
   }
 
   /**

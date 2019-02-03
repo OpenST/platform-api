@@ -305,7 +305,7 @@ class Deployment {
       .fire();
 
     // Clear token cache.
-    await new TokenCache({ clientId: oThis.clientId }).clear();
+    await TokenModel.flushCache({ clientId: oThis.clientId, tokenId: oThis.tokenId });
 
     // If row was updated successfully.
     if (+tokenModelResp.affectedRows === 1) {

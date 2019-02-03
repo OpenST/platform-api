@@ -65,8 +65,7 @@ class AddChain {
       return responseHelper.error({
         internal_error_identifier: 't_ls_bs_ac_1',
         api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: {}
+        debug_options: err
       });
     });
   }
