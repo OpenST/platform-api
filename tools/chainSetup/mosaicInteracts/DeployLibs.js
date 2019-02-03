@@ -1,23 +1,24 @@
 'use strict';
-
 /**
- * deploy libs
+ * Deploy libs
  *
  * @module /tools/chainSetup/mosaicInteracts/DeployLibs
  */
+const MosaicTbd = require('@openstfoundation/mosaic-tbd');
+
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base');
 
 /**
+ * Class for deploying libs.
  *
  * @class
  */
 class DeployLibs extends Base {
   /**
-   * Constructor
+   * Constructor for deploying libs.
    *
    * @param {Object} params
    * @param {String} params.libKind - type of lib to be deployed
@@ -60,7 +61,7 @@ class DeployLibs extends Base {
       .catch(function(errorResponse) {
         logger.error(errorResponse);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_c_dl_1',
+          internal_error_identifier: 't_cs_mi_dl_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });

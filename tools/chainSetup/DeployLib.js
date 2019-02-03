@@ -86,7 +86,7 @@ class DeployLib {
 
     await oThis._initializeVars();
 
-    await oThis._getLibDeployementAddresses();
+    await oThis._getLibDeploymentAddresses();
 
     let params = {
       chainId: oThis.chainId,
@@ -173,13 +173,13 @@ class DeployLib {
   }
 
   /**
-   *
    * Get addresses required for lib deployment
    *
    * @private
+   *
    * @return {Promise}
    */
-  async _getLibDeployementAddresses() {
+  async _getLibDeploymentAddresses() {
     const oThis = this;
 
     // Fetch all addresses associated with mentioned chain id.
