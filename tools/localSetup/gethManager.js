@@ -20,6 +20,7 @@ const rootPrefix = '../..',
 
 // Declare variables.
 const hexStartsWith = '0x',
+  sealerPassword = 'testtest',
   genesisTemplateLocation = Path.join(__dirname);
 
 /**
@@ -146,12 +147,11 @@ class GethManager {
    *
    * @param {String} chainType: 'origin' or 'aux'
    * @param {Number/String} chainId
-   * @param {String} sealerPassword: sealer password
    * @param {Object} allocAddressToAmountMap: {chainOwnerAllocAddress: allocAmount}
    *
    * @return {Promise<void>}
    */
-  async initChain(chainType, chainId, sealerPassword, allocAddressToAmountMap) {
+  async initChain(chainType, chainId, allocAddressToAmountMap) {
     const oThis = this,
       chainFolder = localSetupHelper.gethFolderFor(chainType, chainId),
       chainFolderAbsolutePath = localSetupHelper.setupFolderAbsolutePath() + '/' + chainFolder,
