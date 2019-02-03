@@ -95,7 +95,21 @@ class ChainAddress extends ModelBase {
       );
     }
 
-    const deployedChainKindInt = chainAddressConstants.deployedChainKinds[deployedChainKind];
+    let deployedChainKindInt = null;
+    if (deployedChainKind) {
+      deployedChainKindInt = chainAddressConstants.invertedDeployedChainKinds[deployedChainKind];
+      if (!deployedChainKindInt) {
+        if (!statusInt) {
+          return Promise.reject(
+            responseHelper.error({
+              internal_error_identifier: 'm_m_ca_5',
+              api_error_identifier: 'something_went_wrong',
+              debug_options: { deployedChainKind: deployedChainKind }
+            })
+          );
+        }
+      }
+    }
 
     if (chainAddressConstants.nonUniqueKinds.indexOf(addressKind) === -1) {
       let whereClause = ['associated_aux_chain_id = ? AND kind = ?', associatedAuxChainId, addressKindInt];
@@ -108,7 +122,7 @@ class ChainAddress extends ModelBase {
       if (existingRows.length > 0) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'm_m_ca_5',
+            internal_error_identifier: 'm_m_ca_6',
             api_error_identifier: 'duplicate_entry',
             debug_options: {}
           })
@@ -131,7 +145,7 @@ class ChainAddress extends ModelBase {
     if (insertedRec.affectedRows === 0) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_ca_6',
+          internal_error_identifier: 'm_m_ca_7',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -163,7 +177,7 @@ class ChainAddress extends ModelBase {
       if (associatedAuxChainId != 0) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'm_m_ca_7',
+            internal_error_identifier: 'm_m_ca_8',
             api_error_identifier: 'something_went_wrong',
             debug_options: {}
           })
@@ -174,7 +188,7 @@ class ChainAddress extends ModelBase {
     if (!statusInt) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_ca_8',
+          internal_error_identifier: 'm_m_ca_9',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -184,7 +198,7 @@ class ChainAddress extends ModelBase {
     if (!addressKindInt) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_ca_9',
+          internal_error_identifier: 'm_m_ca_10',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -202,7 +216,7 @@ class ChainAddress extends ModelBase {
     if (updateRsp.affectedRows === 0) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'm_m_ca_10',
+          internal_error_identifier: 'm_m_ca_11',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
