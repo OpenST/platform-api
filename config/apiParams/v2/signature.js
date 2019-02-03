@@ -106,6 +106,25 @@ const v2Signature = {
     ]
   },
 
+  [apiName.getUserDeviceManager]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      }
+    ]
+  },
+
   get_transaction_ledger: {
     mandatory: [
       {

@@ -106,9 +106,13 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const deviceManagersFormatterRsp = await new DeviceManagerFormatter(serviceResponse.data).perform();
-
-    serviceResponse.data = deviceManagersFormatterRsp.data;
+    const deviceManagersFormatterRsp = await new DeviceManagerFormatter(
+      serviceResponse.data[resultType.deviceManager]
+    ).perform();
+    serviceResponse.data = {
+      result_type: resultType.deviceManager,
+      [resultType.deviceManager]: deviceManagersFormatterRsp.data
+    };
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceManager', 'r_t_1', null, dataFormatterFunc));
