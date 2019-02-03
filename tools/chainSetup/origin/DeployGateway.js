@@ -236,7 +236,7 @@ class DeployGateway {
       addressKind: chainAddressConstants.originGatewayContractKind,
       deployedChainId: oThis.chainId,
       deployedChainKind: oThis.chainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     await new ChainAddressModel().insertAddress({
@@ -245,7 +245,7 @@ class DeployGateway {
       addressKind: chainAddressConstants.stSimpleStakeContractKind,
       deployedChainId: oThis.chainId,
       deployedChainKind: oThis.chainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     // Clear chain address cache.

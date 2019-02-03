@@ -254,7 +254,7 @@ class DeployLib {
       addressKind: oThis.chainAddressKind,
       deployedChainId: oThis.chainId,
       deployedChainKind: oThis.chainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     // Clear chain address cache.

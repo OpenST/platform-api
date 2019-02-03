@@ -176,7 +176,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
       addressKind: chainAddressConstants.stPrimeContractKind,
       deployedChainId: oThis._auxChainId,
       deployedChainKind: coreConstants.auxChainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     // Clear chain address cache.

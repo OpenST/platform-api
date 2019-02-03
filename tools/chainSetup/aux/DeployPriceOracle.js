@@ -308,7 +308,7 @@ class DeployPriceOracle {
       addressKind: chainAddressConstants.auxPriceOracleContractKind,
       deployedChainId: oThis.auxChainId,
       deployedChainKind: coreConstants.auxChainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     // Clear chain address cache.

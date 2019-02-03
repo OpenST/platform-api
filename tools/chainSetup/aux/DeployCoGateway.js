@@ -237,7 +237,7 @@ class DeployCoGateway {
       addressKind: chainAddressConstants.auxCoGatewayContractKind,
       deployedChainId: oThis.chainId,
       deployedChainKind: oThis.chainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     // Clear chain address cache.
