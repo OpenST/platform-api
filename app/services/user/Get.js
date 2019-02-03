@@ -9,13 +9,14 @@ const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
-class GetUser extends ServiceBase {
+class Get extends ServiceBase {
   /**
    * @constructor
    *
@@ -56,7 +57,7 @@ class GetUser extends ServiceBase {
 
     let response = await oThis._fetchUser();
 
-    return Promise.resolve(responseHelper.successWithData({ user: response.data[oThis.userId] }));
+    return Promise.resolve(responseHelper.successWithData({ [resultType.user]: response.data[oThis.userId] }));
   }
 
   /**
@@ -91,6 +92,6 @@ class GetUser extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(GetUser, coreConstants.icNameSpace, 'GetUser');
+InstanceComposer.registerAsShadowableClass(Get, coreConstants.icNameSpace, 'GetUser');
 
 module.exports = {};

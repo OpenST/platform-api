@@ -13,6 +13,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 const uuidv4 = require('uuid/v4'),
@@ -22,7 +23,7 @@ require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/User');
 
-class AddUser extends ServiceBase {
+class Create extends ServiceBase {
   /**
    * @constructor
    *
@@ -137,10 +138,10 @@ class AddUser extends ServiceBase {
 
     let insertRsp = user.insertUser(params);
 
-    return responseHelper.successWithData({ user: params });
+    return responseHelper.successWithData({ [resultType.user]: params });
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AddUser, coreConstants.icNameSpace, 'AddUser');
+InstanceComposer.registerAsShadowableClass(Create, coreConstants.icNameSpace, 'CreateUser');
 
 module.exports = {};

@@ -95,6 +95,6 @@ class ByWalletAddress extends GetListBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ByWalletAddress, coreConstants.icNameSpace, 'ByWalletAddress');
+InstanceComposer.registerAsShadowableClass(ByWalletAddress, coreConstants.icNameSpace, 'DeviceListByWalletAddress');
 
 module.exports = {};

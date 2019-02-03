@@ -75,6 +75,6 @@ class ListByUserId extends GetListBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ListByUserId, coreConstants.icNameSpace, 'ListByUserId');
+InstanceComposer.registerAsShadowableClass(ListByUserId, coreConstants.icNameSpace, 'DeviceListByUserId');
 
 module.exports = {};

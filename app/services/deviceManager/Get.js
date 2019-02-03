@@ -2,7 +2,7 @@
 /**
  * This service fetches the device manager details for given user id  .
  *
- * @module app/services/token/AggregatedDetails
+ * @module app/services/deviceManager/Get
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -23,7 +23,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
  *
  * @class
  */
-class DeviceManager extends ServiceBase {
+class Get extends ServiceBase {
   /**
    *
    * @param {Object} params
@@ -144,4 +144,4 @@ class DeviceManager extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(DeviceManager, coreConstants.icNameSpace, 'DeviceManager');
+InstanceComposer.registerAsShadowableClass(Get, coreConstants.icNameSpace, 'GetDeviceManager');
