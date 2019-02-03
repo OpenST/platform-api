@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 'use strict';
 
+const program = require('commander');
+
 const rootPrefix = '../..',
-  GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
+  OnlyForDevEnv = require(rootPrefix + '/lib/setup/originChain/OnlyForDevEnv'),
   GenerateAuxAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateAuxAddress'),
-  ForNonProductionMain = require(rootPrefix + '/lib/setup/originChain/ForNonProductionMain'),
-  OnlyForDevEnv = require(rootPrefix + '/lib/setup/originChain/OnlyForDevEnv');
+  GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
+  ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain');
 
-const command = require('commander');
-
-command
+program
   .version('0.1.0')
   .usage('[options]')
   .option('-o, --generate-origin-addresses', 'Generate addresses required for origin chain')
@@ -22,7 +22,7 @@ command
   .parse(process.argv);
 
 const handleError = function() {
-  command.outputHelp();
+  program.outputHelp();
   throw 'Required parameters are missing!';
 };
 
@@ -30,53 +30,41 @@ let performerObj = null,
   performOptions = {};
 
 const Main = async function() {
+  if (program.generateOriginAddresses) {
+    let chainId = program.chainId,
+      ethSenderPk = program.ethSenderPk;
 
-  if (command.generateOriginAddresses) {
-
-    let chaiId = command.chainId
-      , ethSenderPk = command.ethSenderPk
-    ;
-
-    if (!chaiId || !ethSenderPk) {
+    if (!chainId || !ethSenderPk) {
       handleError();
     }
 
-    performerObj = new GenerateOriginAddress(chaiId, ethSenderPk);
-
-  } else if (command.generateAuxAddresses) {
-
-    let chaiId = command.chainId;
+    performerObj = new GenerateOriginAddress(chainId, ethSenderPk);
+  } else if (program.generateAuxAddresses) {
+    let chaiId = program.chainId;
 
     if (!chaiId) {
       handleError();
     }
 
     performerObj = new GenerateAuxAddress(chaiId);
-
-  } else if (command.deployStContracts) {
-
-    let chaiId = command.chainId
-      , ethSenderPk = command.ethSenderPk
-    ;
+  } else if (program.deployStContracts) {
+    let chaiId = program.chainId,
+      ethSenderPk = program.ethSenderPk;
 
     if (!chaiId || !ethSenderPk) {
       handleError();
     }
 
-    performerObj = new ForNonProductionMain(chaiId, ethSenderPk);
-
-  } else if (command.fundGranter) {
-
-    let ethSenderPk = command.ethSenderPk
-      , stOwnerPk = command.stOwnerPk
-    ;
+    performerObj = new ExceptProductionMain(chaiId, ethSenderPk);
+  } else if (program.fundGranter) {
+    let ethSenderPk = program.ethSenderPk,
+      stOwnerPk = program.stOwnerPk;
 
     if (!ethSenderPk || !stOwnerPk) {
       handleError();
     }
 
     performerObj = new OnlyForDevEnv(stOwnerPk, ethSenderPk);
-
   } else {
     return handleError();
   }

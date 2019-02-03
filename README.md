@@ -87,7 +87,7 @@ node  executables/flush/sharedMemcached.js
 * Setup Simple Token (only for non production_main env)
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/forNonProductionMain.js --originChainId 1000
+  node executables/setup/origin/exceptProductionMain.js --originChainId 1000
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
