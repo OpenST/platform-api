@@ -12,9 +12,6 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   Web3EthAccount = require('web3-eth-accounts');
 
 class ECRecover {
@@ -26,7 +23,6 @@ class ECRecover {
   constructor(params) {
     const oThis = this;
 
-    oThis.clientId = params.client_id;
     oThis.signer = params.signer.toLowerCase();
     oThis.personalSign = params.personal_sign;
     oThis.messageToSign = params.message_to_sign;
@@ -64,12 +60,6 @@ class ECRecover {
 
     oThis._validateParameters();
 
-    let providers = await oThis._getProvidersFromConfig(),
-      provider = providers.data[0], //select one provider from provider endpoints array
-      web3Instance = web3Provider.getInstance(provider).web3WsProvider;
-
-    logger.debug('provider------', provider);
-
     let accountAddress = new Web3EthAccount('').recover(oThis.messageToSign, oThis.personalSign);
 
     if (!accountAddress) {
@@ -84,7 +74,7 @@ class ECRecover {
 
     accountAddress = accountAddress.toLowerCase();
 
-    if (oThis.signer != accountAddress) {
+    if (oThis.signer !== accountAddress) {
       logger.error('Input owner address does not matches recovered address');
       return Promise.resolve(
         responseHelper.error({
@@ -130,18 +120,6 @@ class ECRecover {
         debug_options: {}
       });
     }
-  }
-
-  async _getProvidersFromConfig() {
-    const oThis = this;
-
-    let csHelper = new ConfigStrategyHelper(0),
-      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
-      configForChain = csResponse.data[configStrategyConstants.originGeth],
-      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
-      providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
-
-    return Promise.resolve(responseHelper.successWithData(providers));
   }
 }
 

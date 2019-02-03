@@ -52,7 +52,7 @@ class Token extends ModelBase {
     const oThis = this;
 
     let dbRows = await oThis
-      .select('*')
+      .select('client_id')
       .where({
         id: tokenId
       })
@@ -62,7 +62,9 @@ class Token extends ModelBase {
       return responseHelper.successWithData({});
     }
 
-    return responseHelper.successWithData(oThis.formatDbData(dbRows[0]));
+    return responseHelper.successWithData({
+      clientId: dbRows[0].client_id
+    });
   }
 
   async getDetailsByClientId(clientId) {
@@ -103,15 +105,21 @@ class Token extends ModelBase {
   /***
    * Flush cache
    *
-   * @param tokenId
+   * @param {object} params
    *
    * @returns {Promise<*>}
    */
-  static flushCache(clientId) {
-    const TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
+  static async flushCache(params) {
+    const TokenByClientIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
 
-    return new TokenCache({
-      clientId: clientId
+    await new TokenByClientIdCache({
+      clientId: params.clientId
+    }).clear();
+
+    const TokenByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId');
+
+    await new TokenByTokenIdCache({
+      tokenId: params.tokenId
     }).clear();
   }
 }
