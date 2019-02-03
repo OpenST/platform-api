@@ -32,6 +32,8 @@ class TransferAmountOnChain {
       value: amountInWei //transfer amt in wei
     };
 
+    logger.debug('Eth transfer transaction params: ', txParams);
+
     await web3Instance.eth
       .sendTransaction(txParams)
       .then(function(response) {
@@ -65,6 +67,8 @@ class TransferAmountOnChain {
       nonce: nonce,
       value: amountInWei //transfer amt in wei
     };
+
+    logger.debug('Eth transfer using private key transaction params: ', txParams);
 
     await web3Instance.eth
       .sendTransaction(txParams)
@@ -107,6 +111,8 @@ class TransferAmountOnChain {
         nonce: nonce,
         gas: 60000
       };
+
+    logger.debug('OST transfer transaction params: ', ostTransferParams);
 
     await web3Instance.eth
       .sendTransaction(ostTransferParams)

@@ -58,7 +58,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     await oThis._insertIntoChainSetupLogs(chainSetupConstants.deployBaseContractStepKind, deployerResponse);
 
-    oThis._insertIntoChainAddress(deployerResponse);
+    await oThis._insertIntoChainAddress(deployerResponse);
 
     return deployerResponse;
   }
@@ -121,7 +121,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
       addressKind: chainAddressConstants.stContractKind,
       deployedChainId: oThis.configStrategyObject.originChainId,
       deployedChainKind: coreConstants.originChainKind,
-      status: chainAddressConstants.active
+      status: chainAddressConstants.activeStatus
     });
 
     // Clear chain address cache.

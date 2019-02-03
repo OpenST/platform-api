@@ -58,7 +58,7 @@ class ChainAddress extends ModelBase {
         responseHelper.error({
           internal_error_identifier: 'm_m_ca_2',
           api_error_identifier: 'something_went_wrong',
-          debug_options: {}
+          debug_options: { associatedAuxChainId: associatedAuxChainId }
         })
       );
     }
@@ -69,7 +69,7 @@ class ChainAddress extends ModelBase {
         responseHelper.error({
           internal_error_identifier: 'm_m_ca_1',
           api_error_identifier: 'something_went_wrong',
-          debug_options: {}
+          debug_options: { addressKind: addressKind }
         })
       );
     }
@@ -90,7 +90,7 @@ class ChainAddress extends ModelBase {
         responseHelper.error({
           internal_error_identifier: 'm_m_ca_4',
           api_error_identifier: 'something_went_wrong',
-          debug_options: {}
+          debug_options: { status: status }
         })
       );
     }
