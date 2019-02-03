@@ -47,21 +47,10 @@ source set_env_vars.sh
 
 ```
 
-* Config Strategy Seed for Auxiliary configurations (for local setup)
-```bash
-# Add Auxiliary Configs
-./devops/exec/configStrategy.js --add-aux-configs
-
-# Note: For staging and production follow help
-```
-
 * Activate configurations
 ```bash
 # Activate Global configurations
 ./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
-
-# Activate Auxiliary Chain configurations
-./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
 ```
 
 ### Origin Chain Setup
@@ -84,7 +73,7 @@ node  executables/flush/sharedMemcached.js
   sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
 
-* Setup Simple Token (only for non production_main env)
+* Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/exceptProductionMain.js --originChainId 1000
@@ -95,6 +84,7 @@ node  executables/flush/sharedMemcached.js
 Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev-environment].
+Granter address gets ETH and OST in this step.
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
@@ -106,9 +96,9 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
-* Fund chain owner with OSTs (pass ST Owner private key in parameter)
+* Fund master internal funder with OSTs
     - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
-    - otherwise, run following script to fund chain owner with OSTs.
+    - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...'
@@ -130,6 +120,20 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 ```
 
 ### Auxiliary Chain Setup
+
+* Config Strategy Seed for Auxiliary configurations (for local setup)
+```bash
+# Add Auxiliary Configs
+./devops/exec/configStrategy.js --add-aux-configs
+
+# Note: For staging and production follow help
+```
+
+* Activate configurations
+```bash
+# Activate Auxiliary Chain configurations
+./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
+```
 
 * Setup Aux GETH and necessary addresses.
 ```bash
