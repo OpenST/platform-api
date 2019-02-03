@@ -25,8 +25,7 @@ const rootPrefix = '../../..',
   FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  CheckGatewayComposerAllowance = require(rootPrefix +
-    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance');
+  CheckGatewayComposerAllowance = require(rootPrefix + '/lib/stakeAndMint/brandedToken/CheckGatewayComposerAllowance');
 
 /**
  * Class for branded token mint router
