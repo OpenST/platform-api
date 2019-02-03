@@ -20,7 +20,7 @@ const rootPrefix = '../../..',
   ProveGateway = require(rootPrefix + '/lib/stakeMintManagement/common/ProveGatewayOnCoGateway'),
   stPrimeMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/stPrimeConfig'),
   ConfirmStakeIntent = require(rootPrefix + '/lib/stakeAndMint/common/ConfirmStakeIntent'),
-  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash');
+  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeAndMint/common/FetchStakeIntentMessageHash');
 
 /**
  * Class for STPrime mint router.
