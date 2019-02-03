@@ -26,9 +26,9 @@ const InstanceComposer = OSTBase.InstanceComposer;
 class ByWalletAddress extends GetListBase {
   /**
    * @param params
-   * @param {Number} params.userId
+   * @param {String} params.user_id - uuid
    * @param {String} params.address
-   * @param {Integer} params.tokenId
+   * @param {Integer} params.token_id
    */
   constructor(params) {
     super(params);

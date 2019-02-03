@@ -17,8 +17,8 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 class GetListBase {
   constructor(params) {
     const oThis = this;
-    oThis.userId = params.userId;
-    oThis.tokenId = params.tokenId;
+    oThis.userId = params.user_id;
+    oThis.tokenId = params.token_id;
   }
 
   /**

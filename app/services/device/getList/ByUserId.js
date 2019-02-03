@@ -25,8 +25,8 @@ const InstanceComposer = OSTBase.InstanceComposer;
 class ListByUserId extends GetListBase {
   /**
    * @param params
-   * @param {Number} params.userId
-   * @param {Integer} params.tokenId
+   * @param {String} params.user_id - uuid
+   * @param {Integer} params.token_id
    */
   constructor(params) {
     super(params);
