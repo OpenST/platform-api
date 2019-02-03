@@ -26,49 +26,15 @@ const InstanceComposer = OSTBase.InstanceComposer;
 class ByWalletAddress extends GetListBase {
   /**
    * @param params
+   * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
    * @param {String} params.address
-   * @param {Integer} params.token_id
+   * @param {Integer} [params.token_id]
    */
   constructor(params) {
     super(params);
     const oThis = this;
     oThis.address = params.address;
-
-    oThis.walletAddresses = [];
-  }
-
-  /**
-   * Main performer method.
-   *
-   * @returns {Promise<void>}
-   */
-  perform() {
-    const oThis = this;
-
-    return oThis.asyncPerform().catch(function(err) {
-      logger.error(' In catch block of app/services/device/getList/ByWalletAddress');
-
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_d_gl_bwa',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: err.toString()
-      });
-    });
-  }
-
-  /**
-   * Async performer
-   *
-   * @returns {Promise<*|result>}
-   */
-  async asyncPerform() {
-    const oThis = this;
-
-    await oThis._validateAndSanitize();
-
-    return await oThis.getList();
   }
 
   /**
@@ -77,17 +43,22 @@ class ByWalletAddress extends GetListBase {
    * @returns {*}
    * @private
    */
-  _validateAndSanitize() {
+  _sanitizeParams() {
     const oThis = this,
       addresses = oThis.address.split(',');
 
+    super._sanitizeParams();
+
     for (let index = 0; index < addresses.length; index++) {
       if (!CommonValidator.validateEthAddress(addresses[index])) {
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_d_gl_bwa_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { address: addresses[index] }
-        });
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_d_gl_bwa_1',
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_address'],
+            debug_options: { address: addresses[index] }
+          })
+        );
       } else {
         oThis.walletAddresses.push(addresses[index].toLowerCase());
       }

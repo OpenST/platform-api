@@ -86,7 +86,7 @@ const v2Signature = {
   [apiName.getUserDevice]: {
     mandatory: [
       {
-        parameter: 'token_id',
+        parameter: 'client_id',
         validatorMethod: 'validateInteger'
       },
       {
@@ -97,7 +97,11 @@ const v2Signature = {
     optional: [
       {
         parameter: 'address',
-        validatorMethod: 'validateEthAddress'
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
       }
     ]
   },

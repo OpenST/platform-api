@@ -8,8 +8,6 @@
 const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
 // Following require(s) for registering into instance composer
@@ -25,41 +23,18 @@ const InstanceComposer = OSTBase.InstanceComposer;
 class ListByUserId extends GetListBase {
   /**
    * @param params
+   * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
-   * @param {Integer} params.token_id
+   * @param {Integer} [params.token_id]
    */
   constructor(params) {
     super(params);
-    const oThis = this;
-    oThis.walletAddresses = [];
   }
 
   /**
-   * Main performer method.
-   *
-   * @returns {Promise<void>}
+   * @private
    */
-  perform() {
-    const oThis = this;
-
-    return oThis.asyncPerform().catch(function(err) {
-      logger.error(' In catch block of app/services/device/getList/ByUserId');
-
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_d_gl_bui',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: err,
-        error_config: err.toString()
-      });
-    });
-  }
-
-  /**
-   * Async performer
-   *
-   * @returns {Promise<*|result>}
-   */
-  async asyncPerform() {
+  async _setWalletAddresses() {
     const oThis = this;
 
     let WalletAddressesByUserId = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
@@ -70,8 +45,6 @@ class ListByUserId extends GetListBase {
       response = await walletAddressesByUserId.fetch();
 
     oThis.walletAddresses = response.data['walletAddresses'];
-
-    return oThis.getList();
   }
 }
 

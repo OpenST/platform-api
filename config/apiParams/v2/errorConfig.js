@@ -68,6 +68,11 @@ const v2ErrorConfig = {
     parameter: 'personal_sign_address',
     code: 'invalid',
     message: 'Invalid personal_sign_address'
+  },
+  invalid_address: {
+    parameter: 'address',
+    code: 'invalid',
+    message: 'Invalid address'
   }
 };
 
