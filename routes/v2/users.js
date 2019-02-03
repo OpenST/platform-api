@@ -9,8 +9,8 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
-require(rootPrefix + '/app/services/tokenUsers/AddUser');
-require(rootPrefix + '/app/services/tokenUsers/GetUser');
+require(rootPrefix + '/app/services/tokenUser/AddUser');
+require(rootPrefix + '/app/services/tokenUser/GetUser');
 
 /* Get user device managers*/
 router.get('/:user_id/device-managers/', function(req, res, next) {
