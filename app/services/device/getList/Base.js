@@ -31,6 +31,7 @@ class GetListBase extends ServiceBase {
     oThis.tokenId = params.token_id;
 
     oThis.walletAddresses = [];
+    oThis.nextPagePayload = null;
   }
 
   /**
@@ -49,7 +50,17 @@ class GetListBase extends ServiceBase {
 
     await oThis._setWalletAddresses();
 
-    return await oThis._getUserDeviceDataFromCache();
+    let response = await oThis._getUserDeviceDataFromCache();
+
+    let returnData = {
+      [resultType.devices]: response.data
+    };
+
+    if (oThis.nextPagePayload) {
+      returnData[resultType.nextPagePayload] = oThis.nextPagePayload;
+    }
+
+    return responseHelper.successWithData(returnData);
   }
 
   /**
@@ -90,7 +101,7 @@ class GetListBase extends ServiceBase {
       return Promise.reject(response);
     }
 
-    return responseHelper.successWithData({ [resultType.devices]: response.data });
+    return response;
   }
 }
 

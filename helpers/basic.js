@@ -13,6 +13,7 @@ const rootPrefix = '..',
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   apiErrorConfig = require(rootPrefix + '/config/apiParams/apiErrorConfig'),
   v2ParamErrorConfig = require(rootPrefix + '/config/apiParams/v2/errorConfig'),
+  base64Helper = require(rootPrefix + '/lib/base64Helper'),
   internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig');
 
 class BasicHelperKlass {
@@ -490,6 +491,14 @@ class BasicHelperKlass {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  encryptNextPagePayload(object) {
+    return base64Helper.encode(JSON.stringify(object));
+  }
+
+  decryptNextPagePayload(string) {
+    return JSON.parse(base64Helper.decode(string));
   }
 }
 

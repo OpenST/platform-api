@@ -10,6 +10,8 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   DeviceConstant = require(rootPrefix + '/lib/globalConstant/device');
 
@@ -254,11 +256,12 @@ class Device extends Base {
    * Get paginated data
    *
    * @param {Number} userId
-   * @param LastEvaluatedKey
+   * @param {Number} [limit] - optional
+   * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getWalletAddresses(userId, LastEvaluatedKey) {
+  async getWalletAddresses(userId, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForUserId = oThis.shortNameFor('userId'),
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId];
@@ -270,11 +273,10 @@ class Device extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('walletAddress'),
-      Limit: DeviceConstant.pageLimit,
-      ScanIndexForward: false
+      Limit: limit || pagination.maxDeviceListPageSize
     };
-    if (LastEvaluatedKey) {
-      queryParams['ExclusiveStartKey'] = LastEvaluatedKey;
+    if (lastEvaluatedKey) {
+      queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
     }
 
     let response = await oThis.ddbServiceObj.query(queryParams);
@@ -293,12 +295,19 @@ class Device extends Base {
       walletAddresses.push(formattedRow.walletAddress);
     }
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        walletAddresses: walletAddresses,
-        nextPagePayload: { LastEvaluatedKey: response.data.LastEvaluatedKey || '' }
-      })
-    );
+    let responseData = {
+      walletAddresses: walletAddresses
+    };
+
+    if (response.data.LastEvaluatedKey) {
+      responseData['nextPagePayload'] = {
+        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
+          lastEvaluatedKey: response.data.LastEvaluatedKey
+        })
+      };
+    }
+
+    return Promise.resolve(responseHelper.successWithData(responseData));
   }
 
   /**
@@ -313,4 +322,4 @@ class Device extends Base {
 
 InstanceComposer.registerAsShadowableClass(Device, coreConstants.icNameSpace, 'DeviceModel');
 
-module.exports = Device;
+module.exports = {};

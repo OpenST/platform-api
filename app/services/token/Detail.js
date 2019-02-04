@@ -12,6 +12,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -59,8 +60,6 @@ class TokenDetail extends ServiceBase {
     oThis.token['auxChainId'] = oThis.auxChainId;
 
     await oThis._fetchTokenAddresses();
-
-    await oThis._getEconomyDetailsFromDdb();
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -115,6 +114,13 @@ class TokenDetail extends ServiceBase {
     oThis.tokenAddresses = cacheResponse.data;
 
     oThis.economyContractAddress = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
+
+    if (!oThis.economyContractAddress) {
+      oThis.economyDetails = {};
+      return Promise.resolve();
+    }
+
+    await oThis._getEconomyDetailsFromDdb();
   }
 
   /**
@@ -136,19 +142,20 @@ class TokenDetail extends ServiceBase {
 
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched economy details from DDB.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_d_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            clientId: oThis.clientId,
-            economyContractAddresses: [oThis.economyContractAddress]
-          }
-        })
-      );
+      return Promise.reject(cacheResponse);
     }
 
     oThis.economyDetails = cacheResponse.data[oThis.economyContractAddress];
+
+    if (!CommonValidators.validateObject(oThis.economyDetails)) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_4',
+          api_error_identifier: 'resource_not_found',
+          debug_options: {}
+        })
+      );
+    }
   }
 }
 
