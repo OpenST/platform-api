@@ -197,6 +197,11 @@ const steps = {
       workflowStepConstants.verifySetInternalActorForOwnerInUBT
     ],
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.assignShards]
+  },
+  [workflowStepConstants.assignShards]: {
+    kind: workflowStepConstants.assignShards,
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.markSuccess]
   },
   [workflowStepConstants.markSuccess]: {
