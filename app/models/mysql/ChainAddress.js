@@ -1,4 +1,9 @@
 'use strict';
+/**
+ * Model class for chain addresses table.
+ *
+ * @module app/models/mysql/ChainAddress
+ */
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),

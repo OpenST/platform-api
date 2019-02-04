@@ -94,7 +94,8 @@ class DeployCoGateway {
       anchorAddress: oThis.anchorAddress,
       gatewayAddress: oThis.gatewayAddress,
       messageBusLibAddress: oThis.messageBusLibAddress,
-      gatewayLibAddress: oThis.gatewayLibAddress
+      gatewayLibAddress: oThis.gatewayLibAddress,
+      gas: contractConstants.deployCoGatewayGas
     };
 
     let deployHelper = new DeployCoGatewayHelper(params);

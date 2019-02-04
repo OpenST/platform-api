@@ -57,7 +57,8 @@ class InitializeSimpleTokenPrime extends SetupSTPrimeBase {
       gasPrice: contractConstants.zeroGasPrice,
       from: oThis.masterInternalFunderAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.chainId
+      chainId: oThis.chainId,
+      gas: contractConstants.initializeStPrimeGas
     };
 
     let helperObj = new SetupSTPrimeBase.STPrimeSetupHelper(oThis._web3Instance),

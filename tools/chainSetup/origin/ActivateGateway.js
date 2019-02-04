@@ -11,6 +11,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -89,7 +90,8 @@ class ActivateGateway {
       chainEndpoint: oThis._configStrategyObject.chainRpcProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       gatewayAddress: oThis.gatewayContractAddress,
-      coGatewayAddress: oThis.coGatewayContractAddress
+      coGatewayAddress: oThis.coGatewayContractAddress,
+      gas: contractConstants.activateGatewayGas
     };
 
     let helper = new ActivateGatewayHelper(params);

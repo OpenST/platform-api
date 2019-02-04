@@ -34,6 +34,19 @@ class BasicHelperKlass {
   }
 
   /**
+   * Get the multiple of max gas price in origin with some buffer (example: 75Gwei will return '75')
+   * Buffer right now is 1 Gwei.
+   *
+   * @return {String}
+   */
+  getOriginMaxGasPriceMultiplierWithBuffer() {
+    let maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_VALUE_GAS_PRICE),
+      maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(this.convertToBigNumber(1))).toString(10);
+
+    return String(Number(maxGasValueInString) + 1);
+  }
+
+  /**
    * Convert the given big number in Gwei to wei
    * @param {BigNumber} num
    */

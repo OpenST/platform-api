@@ -94,7 +94,8 @@ class DeployLib {
       signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      merklePatriciaProofAddress: oThis.merklePatriciaProofAddress
+      merklePatriciaProofAddress: oThis.merklePatriciaProofAddress,
+      gas: oThis.gas
     };
 
     let deployHelper = new DeployLibs(params);
@@ -152,6 +153,7 @@ class DeployLib {
           oThis.chainKind == coreConstants.originChainKind
             ? chainAddressConstants.originMppLibContractKind
             : chainAddressConstants.auxMppLibContractKind;
+        oThis.gas = contractConstants.deployMppLibGas;
         break;
       case 'messageBus':
         oThis.stepKind = chainSetupLogsConstants.deployMessageBusLibStepKind;
@@ -159,6 +161,7 @@ class DeployLib {
           oThis.chainKind == coreConstants.originChainKind
             ? chainAddressConstants.originMbLibContractKind
             : chainAddressConstants.auxMbLibContractKind;
+        oThis.gas = contractConstants.deployMbLibGas;
         break;
       case 'gateway':
         oThis.stepKind = chainSetupLogsConstants.deployGatewayLibStepKind;
@@ -166,6 +169,7 @@ class DeployLib {
           oThis.chainKind == coreConstants.originChainKind
             ? chainAddressConstants.originGatewayLibContractKind
             : chainAddressConstants.auxGatewayLibContractKind;
+        oThis.gas = contractConstants.deployGatewayLibGas;
         break;
       default:
         throw `unsupported libLind ${oThis.libKind}`;

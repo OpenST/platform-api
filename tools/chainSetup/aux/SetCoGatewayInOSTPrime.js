@@ -124,7 +124,8 @@ class SetCoGatewayInOSTPrime {
       gasPrice: contractConstants.zeroGasPrice,
       from: oThis.adminAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.auxChainId
+      chainId: oThis.auxChainId,
+      gas: contractConstants.setCoGatewayToStPrimeGas
     };
 
     let contractResponse = await stPrimeSetupHelper.setCoGateway(

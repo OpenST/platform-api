@@ -10,6 +10,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
@@ -93,7 +94,8 @@ class DeployGateway {
       auxContractAddress: oThis.simpleTokenContractAddress,
       anchorAddress: oThis.anchorAddress,
       messageBusLibAddress: oThis.messageBusLibAddress,
-      gatewayLibAddress: oThis.gatewayLibAddress
+      gatewayLibAddress: oThis.gatewayLibAddress,
+      gas: contractConstants.deployGatewayGas
     };
 
     let deployHelper = new DeployGatewayHelper(params);

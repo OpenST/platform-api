@@ -250,10 +250,6 @@ class CoreConstants {
     return '100000';
   }
 
-  get GAS_USED_FOR_MINT() {
-    return '320000';
-  }
-
   get FLOWS_FOR_MINIMUM_BALANCE() {
     return 5;
   }

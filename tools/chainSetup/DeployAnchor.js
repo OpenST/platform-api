@@ -91,7 +91,8 @@ class DeployAnchor {
       signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      organizationAddress: oThis.organizationAddress
+      organizationAddress: oThis.organizationAddress,
+      gas: contractConstants.deployAnchorGas
     };
 
     let deployHelper = new DeployAnchorHelper(params);

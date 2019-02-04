@@ -1,23 +1,23 @@
 'use strict';
-
 /**
  * Generate address for Origin and Auxiliary chains
  *
  * @module devops/utils/GenerateAddress
  */
+
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   TransferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain');
 
 /**
- * Class for Generating addresses for Origin and Auxiliary chains
+ * Class for Generating addresses for origin chains
  *
  * @class
  */
@@ -25,7 +25,8 @@ class GenerateOriginAddress extends ChainAddressBase {
   /**
    * Constructor
    *
-   * @param chainId {number}
+   * @param {Number} chainId
+   * @param {String} ethSenderPk
    *
    * @constructor
    */

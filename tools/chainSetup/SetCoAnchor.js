@@ -94,7 +94,8 @@ class SetCoAnchor {
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       anchorContractAddress: oThis.anchorContractAddress,
-      coAnchorContractAddress: oThis.coAnchorContractAddress
+      coAnchorContractAddress: oThis.coAnchorContractAddress,
+      gas: contractConstants.setCoAnchorGas
     };
 
     let helper = new SetCoAnchorHelper(params);

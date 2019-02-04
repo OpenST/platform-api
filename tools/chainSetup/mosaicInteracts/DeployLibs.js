@@ -27,6 +27,7 @@ class DeployLibs extends Base {
    * @param {String} params.chainEndpoint - url to connect to chain
    * @param {String} params.gasPrice -  gas price to use
    * @param {String} [params.merklePatriciaProofAddress] - merklePatriciaProof lib address
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -86,7 +87,8 @@ class DeployLibs extends Base {
         gasPrice: oThis.gasPrice,
         from: oThis.signerAddress,
         nonce: nonceRsp.data['nonce'],
-        chainId: oThis.chainId
+        chainId: oThis.chainId,
+        gas: oThis.gas
       };
 
     let libsHelperObj = new DeployLibs.LibsHelper(oThis._web3Instance);

@@ -91,7 +91,8 @@ class SetupOrganization {
       gasPrice: oThis.gasPrice,
       ownerAddress: oThis.ownerAddress,
       adminAddress: oThis.adminAddress,
-      workerAddresses: oThis.workerAddresses
+      workerAddresses: oThis.workerAddresses,
+      gas: contractConstants.setupOrganizationGas
     };
 
     let setupOrganizationHelper = new SetupOrganizationHelper(params);
