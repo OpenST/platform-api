@@ -119,9 +119,9 @@ class Create extends ServiceBase {
 
     let insertRsp = user.insertUser(params);
 
-    if (insertRsp.isFailure()) {
-      return Promise.reject(insertRsp);
-    }
+    // if (insertRsp.isFailure()) {
+    //   return Promise.reject(insertRsp);
+    // }
 
     return responseHelper.successWithData({ [resultType.user]: params });
   }
