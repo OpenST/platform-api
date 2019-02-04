@@ -322,4 +322,4 @@ class Device extends Base {
 
 InstanceComposer.registerAsShadowableClass(Device, coreConstants.icNameSpace, 'DeviceModel');
 
-module.exports = Device;
+module.exports = {};

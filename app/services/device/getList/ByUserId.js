@@ -32,7 +32,7 @@ class ListByUserId extends GetListBase {
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
    * @param {Integer} [params.token_id]
-   * @param {integer} [params.limit] - number of results to be returned on this page
+   * @param {Integer} [params.limit] - number of results to be returned on this page
    * @param {String} params.pagination_identifier - pagination identifier to fetch page
    */
   constructor(params) {
