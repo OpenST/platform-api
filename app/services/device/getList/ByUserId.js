@@ -41,7 +41,7 @@ class ListByUserId extends GetListBase {
     const oThis = this;
 
     oThis.limit = params.limit;
-    oThis.paginationIdentifier = params.pagination_identifier;
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
     oThis.paginationParams = null;
     oThis.defaultDeviceListPageSize = pagination.defaultDeviceListPageSize;
   }
@@ -120,7 +120,9 @@ class ListByUserId extends GetListBase {
 
     let deviceObj = new DeviceModel({ shardNumber: userData['deviceShardNumber'] });
 
-    return deviceObj.getWalletAddresses(oThis.userId, oThis.limit, oThis.paginationParams.lastEvaluatedKey);
+    let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
+
+    return deviceObj.getWalletAddresses(oThis.userId, oThis.limit, lastEvaluatedKey);
   }
 
   /**

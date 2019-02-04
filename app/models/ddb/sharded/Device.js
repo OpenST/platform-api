@@ -11,6 +11,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   DeviceConstant = require(rootPrefix + '/lib/globalConstant/device');
 
@@ -294,12 +295,19 @@ class Device extends Base {
       walletAddresses.push(formattedRow.walletAddress);
     }
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        walletAddresses: walletAddresses,
-        nextPagePayload: { lastEvaluatedKey: response.data.LastEvaluatedKey || '' }
-      })
-    );
+    let responseData = {
+      walletAddresses: walletAddresses
+    };
+
+    if (response.data.LastEvaluatedKey) {
+      responseData['nextPagePayload'] = {
+        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
+          lastEvaluatedKey: response.data.LastEvaluatedKey
+        })
+      };
+    }
+
+    return Promise.resolve(responseHelper.successWithData(responseData));
   }
 
   /**
