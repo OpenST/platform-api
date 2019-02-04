@@ -103,11 +103,6 @@ originDeployer = '0x70e339ffeb9cef3e19fae77e87ac23ee8876820b';
 auxChainId = 2000;
 originChainId = 1000;
 
-//staging S4 vars
-chainOwner = '0xdb1e53cc6b8e0fd3971741da0c6c6e081178969a';
-facilitator = '0xfea0c18c79e0cb037b02a90c1aed7efffea5acc5';
-auxChainId = 200;
-
 a = require('./lib/getBalance/Eth')
 b = new a({originChainId: originChainId, addresses: [chainOwner, originDeployer, facilitator]})
 b.perform().then(console.log)
