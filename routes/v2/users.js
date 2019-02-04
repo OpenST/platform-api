@@ -89,10 +89,8 @@ router.get('/:user_id/devices', function(req, res, next) {
       formattedDevices.push(new DeviceFormatter(devices[deviceUuid]).perform().data);
     }
 
-    serviceResponse.data = {
-      result_type: resultType.devices,
-      [resultType.devices]: formattedDevices
-    };
+    serviceResponse.data['result_type'] = resultType.devices;
+    serviceResponse.data[resultType.devices] = formattedDevices;
   };
 
   let serviceName;

@@ -73,6 +73,16 @@ const v2ErrorConfig = {
     parameter: 'address',
     code: 'invalid',
     message: 'Invalid address'
+  },
+  invalid_pagination_limit: {
+    parameter: 'limit',
+    code: 'invalid',
+    message: 'Invalid limit'
+  },
+  invalid_pagination_identifier: {
+    parameter: 'pagination_identifier',
+    code: 'invalid',
+    message: 'Invalid pagination_identifier'
   }
 };
 
