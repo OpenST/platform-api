@@ -422,7 +422,7 @@ class AuxChainSetup {
     logger.log('* Validating the deployed code for Gateway address.');
     let rsp = await oThis.verifiersHelper.validateContract(
       dbGatewayContractAddress,
-      oThis.verifiersHelper.getGatewayContractName
+      oThis.verifiersHelper.gatewayContractName
     );
     if (!rsp) {
       logger.error('Deployment verification of gateway contract failed.');
@@ -431,7 +431,7 @@ class AuxChainSetup {
 
     let verifierHelperObj = new VerifiersHelper(oThis.originWeb3Instance);
     let gatewayContract = await verifierHelperObj.getContractObj(
-      verifierHelperObj.getGatewayContractName,
+      verifierHelperObj.gatewayContractName,
       dbGatewayContractAddress
     );
 

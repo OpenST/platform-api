@@ -7,7 +7,7 @@ const steps = {
   [workflowStepConstants.btStakeAndMintInit]: {
     kind: workflowStepConstants.btStakeAndMintInit,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.approveGatewayComposerTrx, workflowStepConstants.stakerRequestStakeTrx]
+    onSuccess: [workflowStepConstants.approveGatewayComposerTrx, workflowStepConstants.recordRequestStakeTx]
   },
   [workflowStepConstants.approveGatewayComposerTrx]: {
     kind: workflowStepConstants.approveGatewayComposerTrx,
@@ -20,15 +20,15 @@ const steps = {
     readDataFrom: [workflowStepConstants.approveGatewayComposerTrx],
     onSuccess: [workflowStepConstants.acceptStake]
   },
-  [workflowStepConstants.stakerRequestStakeTrx]: {
-    kind: workflowStepConstants.stakerRequestStakeTrx,
+  [workflowStepConstants.recordRequestStakeTx]: {
+    kind: workflowStepConstants.recordRequestStakeTx,
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.fetchStakeRequestHash]
   },
   [workflowStepConstants.fetchStakeRequestHash]: {
     kind: workflowStepConstants.fetchStakeRequestHash,
     onFailure: workflowStepConstants.markFailure,
-    readDataFrom: [workflowStepConstants.stakerRequestStakeTrx],
+    readDataFrom: [workflowStepConstants.recordRequestStakeTx],
     onSuccess: [workflowStepConstants.acceptStake]
   },
   [workflowStepConstants.acceptStake]: {
