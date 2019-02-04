@@ -46,7 +46,7 @@ class User extends Base {
       sessionShardNumber: 'ssn',
       recoveryAddressShardNumber: 'rasn',
       status: 'sts',
-      updateTimestamp: 'uts'
+      updatedTimestamp: 'uts'
     };
   }
 

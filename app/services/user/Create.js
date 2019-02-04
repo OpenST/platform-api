@@ -103,7 +103,7 @@ class Create extends ServiceBase {
       // sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
       // recoveryAddressShardNumber: oThis.shardNumbersMap[shardConst.recoveryAddressEntityKind],
       status: tokenUserConstants.createdStatus,
-      updateTimestamp: timeInSecs
+      updatedTimestamp: timeInSecs
     };
 
     if (oThis.tokenHolderAddress) {
