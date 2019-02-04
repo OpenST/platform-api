@@ -5,6 +5,7 @@
  * @module app/services/token/GrantEthOs
  */
 const rootPrefix = '../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -64,6 +65,14 @@ class GrantEthOst {
    */
   async asyncPerform() {
     const oThis = this;
+
+    if (basicHelper.isMainSubEnvironment()) {
+      return responseHelper.error({
+        internal_error_identifier: 's_t_geo_1',
+        api_error_identifier: 'route_prohibited_in_main',
+        debug_options: {}
+      });
+    }
 
     return await oThis.startGranting();
   }
