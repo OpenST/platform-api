@@ -83,6 +83,11 @@ const v2ErrorConfig = {
     parameter: 'pagination_identifier',
     code: 'invalid',
     message: 'Invalid pagination_identifier'
+  },
+  token_not_setup: {
+    parameter: 'client_id',
+    code: 'invalid',
+    message: 'Token not setup'
   }
 };
 
