@@ -26,6 +26,32 @@ sudo cp ~/workspace/go-ethereum/build/bin/geth /usr/local/bin
 brew services start rabbitmq
 ```
 
+## Start Dynamo DB
+```bash
+java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
+```
+
+### Block-scanner Setup
+
+* Create all the shared tables by running the following script: 
+    ```bash
+    source set_env_vars.sh
+    # For origin chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
+    ```
+* Run the addChain service and pass all the necessary parameters:
+    ```bash
+    source set_env_vars.sh
+    # For origin chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    ```
+    * Mandatory parameters: chainId, networkId
+    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
+
 ## Setup
 * Install all the packages.
 ```
@@ -150,7 +176,7 @@ Granter address gets ETH and OST in this step.
 NOTE: Use MyEtherWallet to export private key from keystore file. 
 Visit the following link `https://www.myetherwallet.com/#view-wallet-info` and select the `Keystore / JSON File` option. 
 Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
-`testtest`. Pass the address and privateKey in the command below.
+`testtest`. Pass the address and privateKey (including 0x) in the command below.
 
 And add it to tables using following script.
 ```bash
@@ -172,32 +198,6 @@ And add it to tables using following script.
 ```
 
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
-
-### Block-scanner Setup
-
-* Run following command to start Dynamo DB.
-  ```bash
-  java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
-  ```
-
-* Create all the shared tables by running the following script: 
-    ```bash
-    source set_env_vars.sh
-    # For origin chain
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
-    # For auxiliary chain
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
-    ```
-* Run the addChain service and pass all the necessary parameters:
-    ```bash
-    source set_env_vars.sh
-    # For origin chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
-    # For auxiliary chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
-    ```
-    * Mandatory parameters: chainId, networkId
-    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
    
 ### Run block-scanner
 
