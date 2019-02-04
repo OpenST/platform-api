@@ -31,6 +31,22 @@ let performerObj = null,
 
 const Main = async function() {
   if (program.generateOriginAddresses) {
+    let chainId = program.chainId;
+
+    if (!chainId) {
+      handleError();
+    }
+
+    performerObj = new GenerateOriginAddress(chainId);
+  } else if (program.generateAuxAddresses) {
+    let chainId = program.chainId;
+
+    if (!chainId) {
+      handleError();
+    }
+
+    performerObj = new GenerateAuxAddress(chainId);
+  } else if (program.deployStContracts) {
     let chainId = program.chainId,
       ethSenderPk = program.ethSenderPk;
 
@@ -38,24 +54,7 @@ const Main = async function() {
       handleError();
     }
 
-    performerObj = new GenerateOriginAddress(chainId, ethSenderPk);
-  } else if (program.generateAuxAddresses) {
-    let chaiId = program.chainId;
-
-    if (!chaiId) {
-      handleError();
-    }
-
-    performerObj = new GenerateAuxAddress(chaiId);
-  } else if (program.deployStContracts) {
-    let chaiId = program.chainId,
-      ethSenderPk = program.ethSenderPk;
-
-    if (!chaiId || !ethSenderPk) {
-      handleError();
-    }
-
-    performerObj = new ExceptProductionMain(chaiId, ethSenderPk);
+    performerObj = new ExceptProductionMain(chainId, ethSenderPk);
   } else if (program.fundGranter) {
     let ethSenderPk = program.ethSenderPk,
       stOwnerPk = program.stOwnerPk;

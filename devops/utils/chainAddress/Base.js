@@ -7,8 +7,14 @@
  */
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses');
+  GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  TransferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain');
+
+const originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
 
 /**
  * Class for Generating addresses for Origin and Auxiliary chains
@@ -27,8 +33,6 @@ class Base {
     const oThis = this;
     oThis.chainId = null;
     oThis.chainKind = null;
-
-    oThis.numberOfFlowsForGas = 5;
   }
 
   /**
@@ -80,6 +84,49 @@ class Base {
     let addresses = generateAddrRsp.data['addressKindToValueMap'];
 
     return responseHelper.successWithData({ addresses: addresses });
+  }
+
+  /**
+   * Fund address with ETH
+   *
+   * @param address {string} - address to fund ETH to
+   * @param amount {Number} - amount in eth which is to be funded
+   *
+   * @returns {Promise<void>}
+   *
+   * @private
+   */
+  async _fundAddressWithEth(address, amount) {
+    const oThis = this;
+
+    let providers = await oThis._getProvidersFromConfig(),
+      provider = providers.data[0], //select one provider from provider endpoints array
+      amountInWei = basicHelper
+        .convertToWei(String(amount))
+        .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
+        .toString(10);
+
+    await TransferAmountOnChain._fundAddressWithEth(address, oThis.originChainId, provider, amountInWei);
+  }
+
+  /**
+   * get providers from config
+   *
+   * @returns {Promise<any>}
+   * @private
+   */
+  async _getProvidersFromConfig() {
+    const oThis = this;
+
+    let csHelper = new ConfigStrategyHelper(0),
+      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
+      configForChain = csResponse.data[configStrategyConstants.originGeth],
+      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
+      providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
+
+    oThis.originChainId = configForChain.chainId;
+
+    return responseHelper.successWithData(providers);
   }
 
   /**

@@ -6,15 +6,10 @@
  */
 
 const rootPrefix = '../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  TransferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
  * Class for Generating addresses for origin chains
@@ -26,17 +21,15 @@ class GenerateOriginAddress extends ChainAddressBase {
    * Constructor
    *
    * @param {Number} chainId
-   * @param {String} ethSenderPk
    *
    * @constructor
    */
-  constructor(chainId, ethSenderPk) {
+  constructor(chainId) {
     super(chainId);
     const oThis = this;
 
     oThis.chainId = chainId;
     oThis.chainKind = coreConstants.originChainKind;
-    oThis.ethSenderPk = ethSenderPk;
   }
 
   /**
@@ -51,7 +44,7 @@ class GenerateOriginAddress extends ChainAddressBase {
 
     let addressKinds = [
       chainAddressConstants.originDeployerKind,
-      chainAddressConstants.masterInternalFunderKind,
+      //chainAddressConstants.masterInternalFunderKind,
 
       chainAddressConstants.stOrgContractOwnerKind,
       chainAddressConstants.originAnchorOrgContractOwnerKind,
@@ -67,7 +60,7 @@ class GenerateOriginAddress extends ChainAddressBase {
     ];
 
     logger.log('* Generating address originDeployerKind.');
-    logger.log('* Generating address masterInternalFunderKind.');
+    //logger.log('* Generating address masterInternalFunderKind.');
     logger.log('* Generating address stOrgContractOwnerKind.');
     logger.log('* Generating address originAnchorOrgContractOwnerKind.');
     logger.log('* Generating address stOrgContractAdminKind.');
@@ -85,29 +78,26 @@ class GenerateOriginAddress extends ChainAddressBase {
       logger.log(
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
-      await oThis._fundAddressWithEth(
-        addresses[chainAddressConstants.originDeployerKind],
-        0.53591 * oThis.numberOfFlowsForGas
-      );
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], 0.0072);
 
-      logger.log(
-        `* Funding origin owner address (${addresses[chainAddressConstants.stOrgContractOwnerKind]}) with ETH.`
-      );
-      await oThis._fundAddressWithEth(
-        addresses[chainAddressConstants.stOrgContractOwnerKind],
-        0.00239 * oThis.numberOfFlowsForGas
-      );
-
-      logger.log(
-        `* Funding origin owner address (${
-          addresses[chainAddressConstants.originAnchorOrgContractOwnerKind]
-        }) with ETH.`
-      );
-      await oThis._fundAddressWithEth(
-        addresses[chainAddressConstants.originAnchorOrgContractOwnerKind],
-        0.00116 * oThis.numberOfFlowsForGas
-      );
-
+      // logger.log(
+      //   `* Funding origin owner address (${addresses[chainAddressConstants.stOrgContractOwnerKind]}) with ETH.`
+      // );
+      // await oThis._fundAddressWithEth(
+      //   addresses[chainAddressConstants.stOrgContractOwnerKind],
+      //   0.00239 * oThis.numberOfFlowsForGas
+      // );
+      //
+      // logger.log(
+      //   `* Funding origin owner address (${
+      //     addresses[chainAddressConstants.originAnchorOrgContractOwnerKind]
+      //   }) with ETH.`
+      // );
+      // await oThis._fundAddressWithEth(
+      //   addresses[chainAddressConstants.originAnchorOrgContractOwnerKind],
+      //   0.00116 * oThis.numberOfFlowsForGas
+      // );
+      //
       // logger.log(`* Funding origin admin address (${addresses[chainAddressConstants.stOrgContractAdminKind]}) with ETH.`);
       // await oThis._fundAddressWithEth(addresses[chainAddressConstants.stOrgContractAdminKind], 0.00000 * oThis.numberOfFlowsForGas);
       //
@@ -117,64 +107,28 @@ class GenerateOriginAddress extends ChainAddressBase {
       // logger.log(`* Funding origin chain owner address (${addresses[chainAddressConstants.masterInternalFunderKind]}) with ETH.`);
       // await oThis._fundAddressWithEth(addresses[chainAddressConstants.masterInternalFunderKind], 0.01265 * oThis.numberOfFlowsForGas);
 
-      logger.log(
-        `* Funding origin token admin address (${
-          addresses[chainAddressConstants.originDefaultBTOrgContractAdminKind]
-        }) with ETH.`
-      );
-      await oThis._fundAddressWithEth(
-        addresses[chainAddressConstants.originDefaultBTOrgContractAdminKind],
-        0.0024 * oThis.numberOfFlowsForGas
-      );
-
-      logger.log(
-        `* Funding origin token worker address (${
-          addresses[chainAddressConstants.originDefaultBTOrgContractWorkerKind]
-        }) with ETH.`
-      );
-      await oThis._fundAddressWithEth(
-        addresses[chainAddressConstants.originDefaultBTOrgContractWorkerKind],
-        0.00172 * oThis.numberOfFlowsForGas
-      );
+      // logger.log(
+      //   `* Funding origin token admin address (${
+      //     addresses[chainAddressConstants.originDefaultBTOrgContractAdminKind]
+      //   }) with ETH.`
+      // );
+      // await oThis._fundAddressWithEth(
+      //   addresses[chainAddressConstants.originDefaultBTOrgContractAdminKind],
+      //   0.0024 * oThis.numberOfFlowsForGas
+      // );
+      //
+      // logger.log(
+      //   `* Funding origin token worker address (${
+      //     addresses[chainAddressConstants.originDefaultBTOrgContractWorkerKind]
+      //   }) with ETH.`
+      // );
+      // await oThis._fundAddressWithEth(
+      //   addresses[chainAddressConstants.originDefaultBTOrgContractWorkerKind],
+      //   0.00172 * oThis.numberOfFlowsForGas
+      // );
     }
 
     return addressesResp;
-  }
-
-  /**
-   * fund address with ETH
-   *
-   * @param address {string} - address to fund ETH to
-   * @param amount {number} - amount in eth which is to be funded
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _fundAddressWithEth(address, amount) {
-    const oThis = this;
-
-    let providers = await oThis._getProvidersFromConfig(),
-      provider = providers.data[0], //select one provider from provider endpoints array
-      amountInWei = basicHelper.convertToWei(amount);
-
-    await TransferAmountOnChain._fundAddressWithEthUsingPk(
-      address,
-      oThis.ethSenderPk,
-      oThis.chainId,
-      provider,
-      amountInWei
-    );
-  }
-
-  async _getProvidersFromConfig() {
-    const oThis = this;
-
-    let csHelper = new ConfigStrategyHelper(0),
-      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
-      configForChain = csResponse.data[configStrategyConstants.originGeth],
-      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
-      providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
-
-    return responseHelper.successWithData(providers);
   }
 }
 
