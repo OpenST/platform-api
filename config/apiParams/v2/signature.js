@@ -102,6 +102,14 @@ const v2Signature = {
       {
         parameter: 'token_id',
         validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'pagination_identifier',
+        validatorMethod: 'validateString'
       }
     ]
   },
@@ -121,18 +129,6 @@ const v2Signature = {
       {
         parameter: 'token_id',
         validatorMethod: 'validateInteger'
-      },
-      {
-        parameter: 'limit',
-        validatorMethod: 'validateInteger'
-      },
-      {
-        parameter: 'limit',
-        validatorMethod: 'validateInteger'
-      },
-      {
-        parameter: 'pagination_identifier',
-        validatorMethod: 'validateString'
       }
     ]
   },
