@@ -245,10 +245,10 @@ function addCronProcessEntries() {
        promiseArray.push(p13);
        
       // Create entry for email .notifier.
-        let p14 =  (function updatePriceOraclePricePoints() {
+        let p14 =  (function emailNotifier() {
             let cronParams = '{}',
             insertParams = {
-             id: 13,
+             id: 14,
              kind: 'emailNotifier',
              ip_address: '127.0.0.1',
              chain_id: 2000,
