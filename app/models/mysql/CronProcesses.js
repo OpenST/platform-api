@@ -25,7 +25,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '11': cronProcessesConstant.fundBySealerAuxChainSpecific,
     '12': cronProcessesConstant.fundByTokenAuxFunderAuxChainSpecific,
     '13': cronProcessesConstant.updatePriceOraclePricePoints,
-    '14': cronProcessesConstant.emailNotifier
+    '14': cronProcessesConstant.emailNotifier,
+    '15': cronProcessesConstant.executeTransaction
   },
   statuses = {
     '1': cronProcessesConstant.runningStatus,
