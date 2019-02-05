@@ -7,12 +7,23 @@ const rootPrefix = '../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 class VerifierHelper {
+  /**
+   * Constructor
+   *
+   * @param web3Instance
+   */
   constructor(web3Instance) {
     const oThis = this;
 
     oThis.web3Instance = web3Instance;
   }
 
+  /**
+   * Check simple token byte code
+   *
+   * @param STContractAddress
+   * @return {Promise<boolean>}
+   */
   async validateSimpleTokenContract(STContractAddress) {
     const oThis = this;
 
@@ -24,6 +35,14 @@ class VerifierHelper {
     return coreBinCode.indexOf(chainCode) !== -1;
   }
 
+  /**
+   * Validate Contract byte code
+   *
+   * @param contractAddress
+   * @param contractName
+   *
+   * @return {Promise<boolean>}
+   */
   async validateContract(contractAddress, contractName) {
     const oThis = this;
 
@@ -37,6 +56,13 @@ class VerifierHelper {
     return binCode.indexOf(chainCode) !== -1;
   }
 
+  /**
+   * Get contract object for queries
+   *
+   * @param contractName
+   * @param contractAddress
+   * @return {Promise<oThis.web3Instance.eth.Contract>}
+   */
   async getContractObj(contractName, contractAddress) {
     const oThis = this;
 
@@ -45,21 +71,46 @@ class VerifierHelper {
     return new oThis.web3Instance.eth.Contract(abiOfOrganization, contractAddress);
   }
 
+  /**
+   * Abi and bin provider for branded-token.js
+   * @return {BtAbiBinProvider}
+   * @constructor
+   */
   static get AbiBinProviderHelper() {
     return BrandedToken.AbiBinProvider;
   }
 
+  /**
+   * Get given organization contract abi
+   *
+   * @param organizationName
+   * @return {Promise<void>}
+   * @private
+   */
   async _getABI(organizationName) {
     const oThis = this;
 
     return await new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
   }
 
+  /**
+   * Get given contract bin
+   *
+   * @param contractName
+   * @return {Promise<void>}
+   * @private
+   */
   async _getBIN(contractName) {
     const oThis = this;
 
     return await new VerifierHelper.AbiBinProviderHelper().getBIN(contractName);
   }
+
+  /**
+   * ==========================================
+   * Following methods return contract names for know contracts
+   * ==========================================
+   */
 
   get getSimpleTokenContractName() {
     return 'SimpleToken';
@@ -85,8 +136,11 @@ class VerifierHelper {
     return 'EIP20CoGateway';
   }
 
-  /*
-    this function returns contract name for provided lib kind.
+  /**
+   * Returns contract name for provided lib kind.
+   *
+   * @param libKind
+   * @return {string}
    */
   getLibNameFromKind(libKind) {
     switch (libKind) {
