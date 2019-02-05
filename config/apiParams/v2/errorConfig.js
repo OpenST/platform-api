@@ -69,6 +69,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid personal_sign_address'
   },
+  invalid_api_signer_address: {
+    parameter: 'api_signer_address',
+    code: 'invalid',
+    message: 'Invalid api_signer_address'
+  },
   invalid_address: {
     parameter: 'address',
     code: 'invalid',
