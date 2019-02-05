@@ -34,6 +34,15 @@ class BasicHelperKlass {
   }
 
   /**
+   * Create a duplicate object
+   *
+   * @return {Object}
+   */
+  deepDup(obj) {
+    return JSON.parse(JSON.stringify(obj));
+  }
+
+  /**
    * Get the multiple of max gas price in origin with some buffer (example: 75Gwei will return '75')
    * Buffer right now is 1 Gwei.
    *

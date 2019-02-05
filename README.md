@@ -329,10 +329,22 @@ a.perform().then(console.log)
   node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 11
 ```
 
-* Fund by chain owner aux chain specific
+* Fund by chain owner aux chain specific chain addresses
 ```bash
   source set_env_vars.sh
-  node executables/funding/byChainOwner/auxChainSpecific.js --cronProcessId 10
+  node executables/funding/byChainOwner/auxChainSpecific/chainAddresses.js --cronProcessId 10
+```
+
+* Fund by chain owner aux chain specific token funder addresses
+```bash
+  source set_env_vars.sh
+  node executables/funding/byChainOwner/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 15
+```
+
+* Fund by chain owner aux chain specific inter chain facilitator addresses on origin chain.
+```bash
+  source set_env_vars.sh
+  node executables/funding/byChainOwner/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 16
 ```
 
 * Fund by token aux funder aux chain specific

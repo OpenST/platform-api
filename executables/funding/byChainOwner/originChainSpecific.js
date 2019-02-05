@@ -41,17 +41,40 @@ if (!program.cronProcessId) {
 const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
   flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
   flowsForGranterMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_GRANTER_ECONOMY_SETUP),
-  flowsForChainOwnerMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP);
+  flowsForChainOwnerMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP),
+  originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
 
 // Config for addresses which need to be funded.
 const fundingConfig = {
-  [chainAddressConstants.originDeployerKind]: '0.53591',
-  [chainAddressConstants.stOrgContractOwnerKind]: '0.00116',
-  [chainAddressConstants.originAnchorOrgContractOwnerKind]: '0.00239',
-  [chainAddressConstants.originDefaultBTOrgContractAdminKind]: '0.00240',
-  [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: '0.00172',
-  [chainAddressConstants.masterInternalFunderKind]: '0.6', // Just for alert. This value is not same as the one in Google Sheets.
-  [chainAddressConstants.originGranterKind]: '1' // Just for alert. This value is not same as the one in Google Sheets.
+  [chainAddressConstants.originDeployerKind]: {
+    oneGWeiMinAmount: '0.00955',
+    fundForFlows: flowsForTransferBalance,
+    fundIfLessThanFlows: flowsForMinimumBalance
+  },
+  [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
+    oneGWeiMinAmount: '0.00010',
+    fundForFlows: flowsForTransferBalance,
+    fundIfLessThanFlows: flowsForMinimumBalance
+  },
+  [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
+    oneGWeiMinAmount: '0.00007',
+    fundForFlows: flowsForTransferBalance,
+    fundIfLessThanFlows: flowsForMinimumBalance
+  }
+};
+
+// Alert Config
+const alertConfig = {
+  [chainAddressConstants.masterInternalFunderKind]: {
+    minAmount: '0.6',
+    alertIfLessThanFlows: flowsForChainOwnerMinimumBalance,
+    alertRequired: true
+  },
+  [chainAddressConstants.originGranterKind]: {
+    minAmount: '1',
+    alertIfLessThanFlows: flowsForGranterMinimumBalance,
+    alertRequired: coreConstants.subEnvironment !== environmentInfoConstants.subEnvironment.main
+  }
 };
 
 /**
@@ -135,10 +158,10 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     await oThis._fetchBalances();
 
     logger.step('Checking if addresses are eligible for transfer.');
-    await oThis._checkIfEligibleForTransfer();
+    await oThis._sendFundsIfNeeded();
 
-    logger.step('Transferring amount.');
-    await oThis._transfer();
+    logger.step('Sending alert emails if needed.');
+    await oThis._sendAlertIfNeeded();
 
     logger.step('Cron completed.');
   }
@@ -168,48 +191,18 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
 
     oThis.masterInternalFunderAddress = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
 
-    const originDeployerAddress = chainAddressesRsp.data[chainAddressConstants.originDeployerKind].address,
-      stOrgContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractOwnerKind].address,
-      originAnchorOrgContractOwnerAddress =
-        chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractOwnerKind].address,
-      originDefaultBTOrgContractAdminAddress =
-        chainAddressesRsp.data[chainAddressConstants.originDefaultBTOrgContractAdminKind].address,
-      originDefaultBTOrgContractWorkerAddress =
-        chainAddressesRsp.data[chainAddressConstants.originDefaultBTOrgContractWorkerKind].address;
+    oThis.AdddressesToKindMap = {};
 
-    // Addresses whose balances need to be fetched.
-    oThis.addresses = [
-      oThis.masterInternalFunderAddress,
-      originDeployerAddress,
-      stOrgContractOwnerAddress,
-      originAnchorOrgContractOwnerAddress,
-      originDefaultBTOrgContractAdminAddress,
-      originDefaultBTOrgContractWorkerAddress
-    ];
+    // Populate Address in fund config
+    for (let addressKind in fundingConfig) {
+      fundingConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
+      oThis.AdddressesToKindMap[fundingConfig[addressKind].address] = addressKind;
+    }
 
-    // Add addresses mapped to their kind.
-    oThis.kindToAddressMap = {
-      [chainAddressConstants.originDeployerKind]: originDeployerAddress,
-      [chainAddressConstants.stOrgContractOwnerKind]: stOrgContractOwnerAddress,
-      [chainAddressConstants.originAnchorOrgContractOwnerKind]: originAnchorOrgContractOwnerAddress,
-      [chainAddressConstants.originDefaultBTOrgContractAdminKind]: originDefaultBTOrgContractAdminAddress,
-      [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: originDefaultBTOrgContractWorkerAddress,
-      [chainAddressConstants.masterInternalFunderKind]: oThis.masterInternalFunderAddress
-    };
-
-    // If environment is not production and subEnvironment is main, then fetch two more addresses.
-    if (
-      coreConstants.environment !== environmentInfoConstants.environment.production &&
-      coreConstants.subEnvironment !== environmentInfoConstants.subEnvironment.main
-    ) {
-      // Fetch addresses.
-      oThis.originGranterAddress = chainAddressesRsp.data[chainAddressConstants.originGranterKind].address;
-
-      // Add addresses to the array of addresses whose balance is to be fetched.
-      oThis.addresses.push.apply(oThis.addresses, [oThis.originGranterAddress]);
-
-      // Add addresses mapped to their kind.
-      oThis.kindToAddressMap[[chainAddressConstants.originGranterKind]] = oThis.originGranterAddress;
+    // Populate Address in alert config
+    for (let addressKind in alertConfig) {
+      alertConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
+      oThis.AdddressesToKindMap[alertConfig[addressKind].address] = addressKind;
     }
   }
 
@@ -226,10 +219,23 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     // Fetch eth balances
     const getEthBalance = new GetEthBalance({
       originChainId: oThis.originChainId,
-      addresses: oThis.addresses
+      addresses: Object.keys(oThis.AdddressesToKindMap)
     });
 
-    oThis.addressesToBalanceMap = await getEthBalance.perform();
+    let addressesToBalanceMap = await getEthBalance.perform();
+
+    // Populate balance in funding config and alert config
+    for (let address in addressesToBalanceMap) {
+      let balance = addressesToBalanceMap[address],
+        addressKind = oThis.AdddressesToKindMap[address];
+
+      if (fundingConfig[addressKind]) {
+        fundingConfig[addressKind].balance = balance;
+      }
+      if (alertConfig[addressKind]) {
+        alertConfig[addressKind].balance = balance;
+      }
+    }
   }
 
   /**
@@ -237,69 +243,71 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
    *
    * @private
    */
-  _checkIfEligibleForTransfer() {
+  async _sendFundsIfNeeded() {
     const oThis = this;
 
-    oThis.transferDetails = [];
+    let transferDetails = [];
 
-    // Loop over oThis.kindToAddressMap.
-    for (let addressKind in oThis.kindToAddressMap) {
-      let address = oThis.kindToAddressMap[addressKind],
-        addressMinimumBalance = basicHelper.convertToBigNumber(fundingConfig[addressKind]),
-        addressCurrentBalance = basicHelper.convertToBigNumber(oThis.addressesToBalanceMap[address]);
+    for (let addressKind in fundingConfig) {
+      let fundingAddressDetails = fundingConfig[addressKind],
+        address = fundingAddressDetails.address,
+        addressMinimumBalance = basicHelper
+          .convertToWei(String(fundingAddressDetails.oneGWeiMinAmount))
+          .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
+        addressCurrentBalance = basicHelper.convertToBigNumber(fundingAddressDetails.balance);
 
-      // If addressKind is granter or chainOwner and it has less than threshold balance, send an error email.
+      if (addressCurrentBalance.lt(addressMinimumBalance.mul(fundingAddressDetails.fundIfLessThanFlows))) {
+        let params = {
+          from: oThis.masterInternalFunderAddress,
+          to: address,
+          amountInWei: addressMinimumBalance.mul(fundingAddressDetails.fundForFlows).toString(10)
+        };
+        transferDetails.push(params);
+      }
+    }
+
+    logger.step('Transferring amount.');
+    if (transferDetails.length > 0) {
+      oThis.canExit = false;
+
+      const transferEth = new TransferEth({
+        originChainId: oThis.originChainId,
+        transferDetails: transferDetails
+      });
+
+      await transferEth.perform();
+      oThis.canExit = true;
+    }
+  }
+
+  /**
+   * Send alerts if needed
+   *
+   * @private
+   */
+  async _sendAlertIfNeeded() {
+    const oThis = this;
+
+    for (let addressKind in alertConfig) {
+      let alertConfigDetails = alertConfig[addressKind],
+        address = alertConfigDetails.address,
+        addressMinimumBalance = basicHelper
+          .convertToWei(String(alertConfigDetails.minAmount))
+          .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
+        addressCurrentBalance = basicHelper.convertToBigNumber(alertConfigDetails.balance);
+
       if (
-        (addressKind === [chainAddressConstants.originGranterKind] &&
-          addressCurrentBalance.lt(
-            basicHelper.convertToWei(addressMinimumBalance.mul(flowsForGranterMinimumBalance))
-          )) ||
-        (addressKind === [chainAddressConstants.masterInternalFunderKind] &&
-          addressCurrentBalance.lt(
-            basicHelper.convertToWei(addressMinimumBalance.mul(flowsForChainOwnerMinimumBalance))
-          ))
+        addressCurrentBalance.lt(addressMinimumBalance.mul(alertConfigDetails.alertIfLessThanFlows)) &&
+        alertConfigDetails.alertRequired
       ) {
         logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
         logger.notify(
           'e_f_bco_ocs_4',
           'Low balance of addressKind: ' + addressKind + '. on chainId: ',
-          +oThis.originChainId
+          +oThis.originChainId + ' Address: ' + address
         );
       }
-
-      // If address current balance is less thant the stipulated amount, these addresses need to be funded.
-      else if (addressCurrentBalance.lt(basicHelper.convertToWei(addressMinimumBalance.mul(flowsForMinimumBalance)))) {
-        let params = {
-          from: oThis.masterInternalFunderAddress,
-          to: address,
-          amountInWei: basicHelper.convertToWei(addressMinimumBalance.mul(flowsForTransferBalance)).toString(10)
-        };
-        oThis.transferDetails.push(params);
-      }
     }
-  }
-
-  /**
-   * Transfer eth.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _transfer() {
-    const oThis = this;
-
-    oThis.canExit = false;
-
-    if (oThis.transferDetails.length > 0) {
-      const transferEth = new TransferEth({
-        originChainId: oThis.originChainId,
-        transferDetails: oThis.transferDetails
-      });
-
-      await transferEth.perform();
-    }
-    oThis.canExit = true;
   }
 }
 
