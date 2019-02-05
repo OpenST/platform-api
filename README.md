@@ -167,6 +167,14 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
   ```
 
+* Create all SAAS Owned DDB Tables
+  ```bash
+  source set_env_vars.sh
+  node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --deviceShardCount 1  
+  ```
+  * Mandatory parameters: auxChainId
+  * Optional parameters (defaults to 1): userShardCount, deviceShardCount, deviceShardCount
+    
 * Create all the shared tables by running the following script: 
     ```bash
     source set_env_vars.sh
