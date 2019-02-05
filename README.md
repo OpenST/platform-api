@@ -26,6 +26,56 @@ sudo cp ~/workspace/go-ethereum/build/bin/geth /usr/local/bin
 brew services start rabbitmq
 ```
 
+## Setup
+* Install all the packages.
+```
+npm install
+```
+
+* Source all the ENV vars.
+```bash
+source set_env_vars.sh
+```
+
+## Seed config strategy for origin as well as auxiliary chain.
+
+* Clear cache.
+```bash
+node  executables/flush/sharedMemcached.js
+```
+
+
+* Config Strategy Seed for Global configurations (for local setup)
+```bash
+
+# Add Global Configs
+./devops/exec/configStrategy.js --add-global-configs
+
+# Note: For staging and production follow help
+
+```
+
+* Activate configurations
+```bash
+# Activate Global configurations
+./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
+```
+
+* Config Strategy Seed for Auxiliary configurations (for local setup)
+```bash
+# Add Auxiliary Configs
+./devops/exec/configStrategy.js --add-aux-configs
+
+# Note: For staging and production follow help
+```
+
+* Activate configurations
+```bash
+# Activate Auxiliary Chain configurations
+./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
+```
+
+
 ## Start Dynamo DB
 ```bash
 java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
@@ -51,33 +101,6 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
     ```
     * Mandatory parameters: chainId, networkId
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
-
-## Setup
-* Install all the packages.
-```
-npm install
-```
-
-* Source all the ENV vars.
-```bash
-source set_env_vars.sh
-```
-
-* Config Strategy Seed for Global configurations (for local setup)
-```bash
-
-# Add Global Configs
-./devops/exec/configStrategy.js --add-global-configs
-
-# Note: For staging and production follow help
-
-```
-
-* Activate configurations
-```bash
-# Activate Global configurations
-./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
-```
 
 ### Origin Chain Setup
 
@@ -147,20 +170,6 @@ Granter address gets ETH and OST in this step.
 
 ### Auxiliary Chain Setup
 
-* Config Strategy Seed for Auxiliary configurations (for local setup)
-```bash
-# Add Auxiliary Configs
-./devops/exec/configStrategy.js --add-aux-configs
-
-# Note: For staging and production follow help
-```
-
-* Activate configurations
-```bash
-# Activate Auxiliary Chain configurations
-./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
-```
-
 * Setup Aux GETH and necessary addresses.
 ```bash
   source set_env_vars.sh
@@ -174,7 +183,7 @@ Granter address gets ETH and OST in this step.
 
 * Add sealer address.  
 NOTE: Use MyEtherWallet to export private key from keystore file. 
-Visit the following link `https://www.myetherwallet.com/#view-wallet-info` and select the `Keystore / JSON File` option. 
+Visit the following link [MyEtherWallet](https://www.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
 Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
 `testtest`. Pass the address and privateKey (including 0x) in the command below.
 

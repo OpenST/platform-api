@@ -314,7 +314,7 @@ class AuxChainSetup {
       verifierHelperObj = new VerifiersHelper(oThis.auxWeb3Instance);
       chainId = oThis.auxChainId;
       remoteChainId = parseInt(oThis.originChainId);
-      coAnchorAddress = '0x0000000000000000000000000000000000000000';
+      coAnchorAddress = oThis.originAnchorContractAddress;
     }
 
     let dbAnchorOrganizationAddress = null,

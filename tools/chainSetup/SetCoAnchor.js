@@ -127,6 +127,9 @@ class SetCoAnchor {
         oThis.originChainId = oThis._configStrategyObject.originChainId;
         oThis.associatedAuxChainId = 0;
         oThis.anchorOrgContractOwnerKind = chainAddressConstants.originAnchorOrgContractOwnerKind;
+        // Define anchor and co-anchor addresses here.
+        oThis.anchorContractAddressKind = chainAddressConstants.originAnchorContractKind;
+        oThis.coAnchorContractAddressKind = chainAddressConstants.auxAnchorContractKind;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           garPriceRsp = await gasPriceCacheObj.fetch();
@@ -139,6 +142,9 @@ class SetCoAnchor {
         oThis.originChainId = oThis._configStrategyObject.originChainId;
         oThis.associatedAuxChainId = oThis.auxChainId;
         oThis.anchorOrgContractOwnerKind = chainAddressConstants.auxAnchorOrgContractOwnerKind;
+        // Define anchor and co-anchor addresses here.
+        oThis.anchorContractAddressKind = chainAddressConstants.auxAnchorContractKind;
+        oThis.coAnchorContractAddressKind = chainAddressConstants.originAnchorContractKind;
 
         oThis.gasPrice = contractConstants.zeroGasPrice;
         oThis.otherChainKind = coreConstants.originChainKind;
@@ -201,8 +207,8 @@ class SetCoAnchor {
       );
     }
 
-    oThis.anchorContractAddress = chainAddressesRsp.data[chainAddressConstants.originAnchorContractKind].address;
-    oThis.coAnchorContractAddress = chainAddressesRsp.data[chainAddressConstants.auxAnchorContractKind].address;
+    oThis.anchorContractAddress = chainAddressesRsp.data[oThis.anchorContractAddressKind].address;
+    oThis.coAnchorContractAddress = chainAddressesRsp.data[oThis.coAnchorContractAddressKind].address;
   }
 
   /**
