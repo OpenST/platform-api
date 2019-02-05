@@ -85,6 +85,7 @@ class OriginChainSetup {
 
     oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
     oThis.stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
+    oThis.stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address;
 
     oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
     oThis.stOrgContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractAdminKind].address;
@@ -107,6 +108,12 @@ class OriginChainSetup {
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
   }
 
+  /**
+   * Set Origin web3 Obj
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _setWeb3Obj() {
     const oThis = this;
 
@@ -121,6 +128,12 @@ class OriginChainSetup {
     oThis.verifiersHelper = new VerifiersHelper(oThis.web3Instance);
   }
 
+  /**
+   * Validate simple token contract
+   *
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateSimpleTokenContract() {
     const oThis = this;
 
@@ -137,12 +150,15 @@ class OriginChainSetup {
     logger.log('* Fetching simple token admin address from database.');
     let dbSimpleTokenAdminAddress = oThis.stContractAdminAddress;
 
+    logger.log('* Fetching simple token admin owner from database.');
+    let dbSimpleTokenOwnerAddress = oThis.stContractOwnerAddress;
+
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(
       CoreAbis.simpleToken,
       dbSimpleTokenContractAddress
     );
-    logger.log('* Validating the deployed code on the address.');
 
+    logger.log('* Validating simple token admin address.');
     let chainSimpleTokenAdminAddress = await simpleTokenContractObj.methods.adminAddress().call({});
     if (chainSimpleTokenAdminAddress.toLowerCase() !== dbSimpleTokenAdminAddress.toLowerCase()) {
       logger.error(
@@ -150,6 +166,18 @@ class OriginChainSetup {
         chainSimpleTokenAdminAddress,
         'different from database value -',
         dbSimpleTokenAdminAddress
+      );
+      return Promise.reject();
+    }
+
+    logger.log('* Validating simple token owner address.');
+    let chainSimpleTokenOwnerAddress = await simpleTokenContractObj.methods.owner().call({});
+    if (chainSimpleTokenOwnerAddress.toLowerCase() !== dbSimpleTokenOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Admin address of simple token -',
+        chainSimpleTokenOwnerAddress,
+        'different from database value -',
+        dbSimpleTokenOwnerAddress
       );
       return Promise.reject();
     }
@@ -165,6 +193,13 @@ class OriginChainSetup {
     }
   }
 
+  /**
+   * Validate Simple Token & Origin Anchor organization contracts
+   *
+   * @param organizationKind
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateOrganization(organizationKind) {
     const oThis = this;
 
@@ -234,6 +269,15 @@ class OriginChainSetup {
     }
   }
 
+  /**
+   * Validate given library deployment
+   *
+   * @param libKind
+   *
+   * @return {Promise<Promise<never> | Promise<any>>}
+   *
+   * @private
+   */
   async _validateLib(libKind) {
     const oThis = this;
 
