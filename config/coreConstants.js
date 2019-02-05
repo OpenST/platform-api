@@ -270,6 +270,10 @@ class CoreConstants {
     return 10;
   }
 
+  get txWorkerCount() {
+    return 5;
+  }
+
   /**
    * Batch delete retry count
    *
