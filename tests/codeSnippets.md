@@ -85,12 +85,19 @@ economySetupRouter = new economySetupRouterK(params)
 economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
 
 
+abiDecoder = require('abi-decoder')
+testABI = [{"constant":true,"inputs":[],"name":"organization","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"coAnchor","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"inputs":[{"name":"_remoteChainId","type":"uint256"},{"name":"_blockHeight","type":"uint256"},{"name":"_stateRoot","type":"bytes32"},{"name":"_maxStateRoots","type":"uint256"},{"name":"_organization","type":"address"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_blockHeight","type":"uint256"},{"indexed":false,"name":"_stateRoot","type":"bytes32"}],"name":"StateRootAvailable","type":"event"},{"constant":false,"inputs":[{"name":"_coAnchor","type":"address"}],"name":"setCoAnchorAddress","outputs":[{"name":"success_","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_blockHeight","type":"uint256"}],"name":"getStateRoot","outputs":[{"name":"stateRoot_","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"getLatestStateRootBlockHeight","outputs":[{"name":"height_","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_blockHeight","type":"uint256"},{"name":"_stateRoot","type":"bytes32"}],"name":"anchorStateRoot","outputs":[{"name":"success_","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getRemoteChainId","outputs":[{"name":"remoteChainId_","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"}]
+abiDecoder.addABI(testABI);
+
+testData = "0x5cf12c78000000000000000000000000000000000000000000000000000000000000003ee696e5400a7d294c1e309b39217fb605c6cdcaa3c520bc498e679bfb93b58d26"
+decodedData = abiDecoder.decodeMethod(testData)
+
 ```
 
 ### Check and transfer ETH & STPrime.
 
 ```js
-chainOwner = '0xb45d7ec6199c347374332c60fe3a2f20c6d7da91';
+chainOwner = '0xc75d1d02fcab92625f92bc573600753075695b96';
 facilitator = '0x74ecff0a31e9a5630587fecab413395ec7359f3a';
 owner = '0xdb1e53cc6b8e0fd3971741da0c6c6e081178969a';
 
@@ -115,9 +122,10 @@ a = require('./lib/transfer/Eth')
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]})
 b.perform().then(console.log)
 
+chainOwner = '0xc75d1d02fcab92625f92bc573600753075695b96';
+auxChainId = 2000;
 a = require('./lib/transfer/StPrime')
-b = new a({auxChainId: auxChainId, transferDetails: [{from: chainOwner,to: '0x9266f942c4674b9471b8eb903478eb325056dd30', amountInWei:'1999999977900000000'},
-{from: c,to:'0x48803484991537a70aa376b4239029cd7787a37b', amountInWei:'1999999977900000000'}]})
+b = new a({auxChainId: auxChainId, transferDetails: [{from: chainOwner,to: '0xcdc463aa7b937fe477f59d9421658dc7ebb097ea', amountInWei:'989999600000000000000'}]})
 b.perform().then(console.log)
 
 
