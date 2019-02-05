@@ -3,13 +3,14 @@
 
 const rootPrefix = '../..',
   command = require('commander'),
-  InsertCron = 'devops/utils/cronServices/InsertCron.js';
+  InsertCronKlass = require(rootPrefix + '/devops/utils/cronServices/CreateCron.js');
 
 command
   .version('0.1.0')
   .usage('[options]')
-  .option('-f, --cron-file <required>', 'Cron json path ')
-  .option('-c, --create', 'Create crons ')
+  .option('-c, --create', 'Make an entry for cron job')
+  .option('-f, --in-file <required>', 'Input JSON for task')
+  .option('-o, --out-file <required>', 'Output JSON for task')
   .parse(process.argv);
 
 const handleError = function() {
@@ -20,21 +21,26 @@ const handleError = function() {
 const Main = async function() {
   let performerObj = null;
 
-  performerObj = new InsertCron(command.cronFile);
+  if (command.create) {
+    performerObj = new InsertCronKlass(command.inFile, command.outFile);
+  } else {
+    handleError();
+  }
 
-  let resp = await performerObj.perform();
+  let resp = performerObj ? await performerObj.perform() : handleError();
   if (resp.isFailure()) {
     throw resp;
   }
 
   return resp;
 };
+
 Main()
   .then(function(data) {
-    console.error('\nMain data: ', data);
+    console.error('\ndevops/exec/cronServices.js::data: ', JSON.stringify(data));
     process.exit(0);
   })
   .catch(function(err) {
-    console.error('\nMain error: ', err);
+    console.error('\ndevops/exec/cronServices.js::error: ', err);
     process.exit(1);
   });
