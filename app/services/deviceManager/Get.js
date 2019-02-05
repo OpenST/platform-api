@@ -19,7 +19,7 @@ require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
- * Class for token details.
+ * Class for manager details.
  *
  * @class
  */
