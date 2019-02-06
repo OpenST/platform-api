@@ -39,6 +39,20 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.postTokenHolder]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.getUserList]: {
     mandatory: [
       {

@@ -3,6 +3,7 @@ const express = require('express');
 const rootPrefix = '../..',
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -120,6 +121,23 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceManager', 'r_t_1', null, dataFormatterFunc));
+});
+
+/* Get token holders */
+router.post('/:user_id/token-holders/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postTokenHolder;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = false;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    serviceResponse.data = {
+      result_type: resultType.user,
+      [resultType.user]: userFormattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'CreateTokenHolder', 'r_t_1', null, dataFormatterFunc));
 });
 
 module.exports = router;

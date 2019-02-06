@@ -48,6 +48,10 @@ class ApiAuthentication {
       [apiName.createUserDevice]: {
         supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/devices/'
+      },
+      [apiName.postTokenHolder]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/token-holders/'
       }
     };
     return postRequestConfig;
