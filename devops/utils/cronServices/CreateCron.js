@@ -3,8 +3,7 @@
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
-  Util = require(rootPrefix + '/lib/util.js'),
+  AddCronProcessService = require(rootPrefix + '/lib/addCronProcess'),
   fs = require('fs');
 
 /**
@@ -61,11 +60,13 @@ class CreateCron {
       let cron = oThis.jsonData[i],
         dbParams = cron['db_params'];
 
+      // Iterate over next when cron process entry already present
       if (cron['identifier']) {
         continue;
       }
 
-      let result = await oThis.insertDb(dbParams);
+      // Add cron process entry in DB
+      let result = await oThis.addCronProcess(dbParams);
 
       if (result['insertId'] > 0) {
         cron['identifier'] = result['insertId'];
@@ -95,16 +96,16 @@ class CreateCron {
 
   /**
    *
-   * Create entry in DB for cron task
+   * Add cron process
    *
    * @param {Object} dbParams - Create parameters
    *
    * @returns {Promise<void>}
    *
    */
-  async insertDb(dbParams) {
-    let cronProcessObj = new CronProcessModel();
-    return cronProcessObj.insertRecord(dbParams);
+  async addCronProcess(dbParams) {
+    let serviceObj = new AddCronProcessService(dbParams);
+    return serviceObj.perform();
   }
 }
 
