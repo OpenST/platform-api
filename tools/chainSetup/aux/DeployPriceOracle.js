@@ -152,7 +152,7 @@ class DeployPriceOracle {
     // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '579067',
+      gas: contractConstants.deployPriceOracleContractGas,
       value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
       chainId: oThis.auxChainId
@@ -209,7 +209,7 @@ class DeployPriceOracle {
     // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '50000',
+      gas: contractConstants.setPriceOracleContractOpsAddressGas,
       value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
       to: oThis.contractAddress,
@@ -263,7 +263,7 @@ class DeployPriceOracle {
     // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      gas: '50000',
+      gas: contractConstants.setPriceOracleContractAdminAddressGas,
       value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
       to: oThis.contractAddress,
@@ -303,7 +303,7 @@ class DeployPriceOracle {
 
     // Insert priceOracleContractAddress in chainAddresses table.
     await new ChainAddressModel().insertAddress({
-      address: oThis.contractAddress,
+      address: oThis.contractAddress.toLowerCase(),
       associatedAuxChainId: oThis.auxChainId,
       addressKind: chainAddressConstants.auxPriceOracleContractKind,
       deployedChainId: oThis.auxChainId,
