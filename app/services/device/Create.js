@@ -56,13 +56,17 @@ class CreateDevice extends ServiceBase {
     const oThis = this;
 
     return oThis.asyncPerform().catch(function(err) {
-      logger.error(' In catch block of lib/device/Create.js');
+      if (responseHelper.isCustomResult(err)) {
+        return err;
+      } else {
+        logger.error(' In catch block of lib/device/Create.js');
 
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_d_c_1',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: { error: err.toString() }
-      });
+        return responseHelper.error({
+          internal_error_identifier: 'a_s_d_c_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { error: err.toString() }
+        });
+      }
     });
   }
 

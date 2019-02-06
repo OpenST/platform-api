@@ -161,7 +161,7 @@ class Device extends Base {
    * @param {Number} params.updatedTimestamp
    * @returns {*|promise<result>}
    */
-  create(params) {
+  async create(params) {
     const oThis = this,
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForWalletAddress = oThis.shortNameFor('walletAddress');
@@ -169,7 +169,15 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForWalletAddress + ')';
 
-    return oThis.putItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
+    let putItemResponse = await oThis.putItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
+
+    if (putItemResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
+      return responseHelper.error({
+        internal_error_identifier: 'a_s_d_c_2',
+        api_error_identifier: 'conditional_check_failed',
+        debug_options: { error: putItemResponse.toHash() }
+      });
+    }
   }
 
   /**
