@@ -12,7 +12,7 @@ const rootPrefix = '../../..',
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   SimpleTokenStake = require(rootPrefix + '/lib/stakeAndMint/stPrime/Stake'),
-  CheckProgressMintStatus = require(rootPrefix + '/lib/stakeAndMint/stPrime/CheckProgressMintStatus'),
+  CheckMintStatus = require(rootPrefix + '/lib/stakeAndMint/stPrime/CheckMintStatus'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
   Approve = require(rootPrefix + '/lib/stakeAndMint/stPrime/ApproveOriginGateway'),
   ProgressStake = require(rootPrefix + '/lib/stakeAndMint/stPrime/ProgressStake'),
@@ -73,7 +73,7 @@ class StPrimeMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.checkProgressMintStatus:
         let stepParams = {};
         Object.assign(stepParams, oThis.requestParams, { currentStep: oThis.stepKind });
-        return new CheckProgressMintStatus(stepParams).perform();
+        return new CheckMintStatus(stepParams).perform();
 
       // ST prime minting
       case workflowStepConstants.stPrimeApprove:
