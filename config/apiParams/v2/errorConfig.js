@@ -59,6 +59,16 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid client id'
   },
+  invalid_token_id: {
+    parameter: 'token_id',
+    code: 'invalid',
+    message: 'Invalid token id'
+  },
+  invalid_id: {
+    parameter: 'id',
+    code: 'invalid',
+    message: 'Invalid id'
+  },
   invalid_wallet_address: {
     parameter: 'wallet_address',
     code: 'invalid',
@@ -84,7 +94,22 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address. Max comma seperated 25 addresses allowed'
   },
-  invalid_pagination_limit: {
+  invalid_address: {
+    parameter: 'address',
+    code: 'invalid',
+    message: 'Invalid address.'
+  },
+  invalid_device_name: {
+    parameter: 'device_name',
+    code: 'invalid',
+    message: 'Invalid device_name.'
+  },
+  invalid_device_uuid: {
+    parameter: 'device_uuid',
+    code: 'invalid',
+    message: 'Invalid device_uuid'
+  },
+  invalid_limit: {
     parameter: 'limit',
     code: 'invalid',
     message: 'Invalid limit'

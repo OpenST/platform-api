@@ -82,7 +82,7 @@ class ListByUserId extends GetListBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 's_d_glb_uid_2',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_pagination_limit'],
+          params_error_identifiers: ['invalid_limit'],
           debug_options: {}
         })
       );
