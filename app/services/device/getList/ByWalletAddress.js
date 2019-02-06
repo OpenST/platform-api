@@ -10,6 +10,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidator = require(rootPrefix + '/lib/validators/Common'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
@@ -48,7 +49,8 @@ class ByWalletAddress extends GetListBase {
 
     super._sanitizeParams();
 
-    let addresses = oThis.addressString.split(',');
+    let addresses = basicHelper.commaSeperatedStrToArray(oThis.addressString);
+
     if (addresses.length > pagination.maxDeviceListPageSize) {
       return Promise.reject(
         responseHelper.paramValidationError({
