@@ -76,7 +76,7 @@
       },
       "chainId": 1000,
       "client": "geth",
-      "blockGenerationTime": 15,
+      "blockGenerationTime": 4,
       "finalizeAfterBlocks": 24
     },
     "constants": {
