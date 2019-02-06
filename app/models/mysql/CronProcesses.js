@@ -7,31 +7,31 @@
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
-  cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   util = require(rootPrefix + '/lib/util');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = {
-    '1': cronProcessesConstant.blockParser,
-    '2': cronProcessesConstant.transactionParser,
-    '3': cronProcessesConstant.blockFinalizer,
-    '4': cronProcessesConstant.economyAggregator,
-    '5': cronProcessesConstant.workflowWorker,
-    '6': cronProcessesConstant.updateRealtimeGasPrice,
-    '7': cronProcessesConstant.fundEth,
-    '8': cronProcessesConstant.fundStPrime,
-    '9': cronProcessesConstant.fundByChainOwnerOriginChainSpecific,
-    '10': cronProcessesConstant.fundByChainOwnerAuxChainSpecific,
-    '11': cronProcessesConstant.fundBySealerAuxChainSpecific,
-    '12': cronProcessesConstant.fundByTokenAuxFunderAuxChainSpecific,
-    '13': cronProcessesConstant.updatePriceOraclePricePoints,
-    '14': cronProcessesConstant.emailNotifier,
-    '15': cronProcessesConstant.executeTransaction
+    '1': cronProcessesConstants.blockParser,
+    '2': cronProcessesConstants.transactionParser,
+    '3': cronProcessesConstants.blockFinalizer,
+    '4': cronProcessesConstants.economyAggregator,
+    '5': cronProcessesConstants.workflowWorker,
+    '6': cronProcessesConstants.updateRealtimeGasPrice,
+    '7': cronProcessesConstants.fundEth,
+    '8': cronProcessesConstants.fundStPrime,
+    '9': cronProcessesConstants.fundByChainOwnerOriginChainSpecific,
+    '10': cronProcessesConstants.fundByChainOwnerAuxChainSpecific,
+    '11': cronProcessesConstants.fundBySealerAuxChainSpecific,
+    '12': cronProcessesConstants.fundByTokenAuxFunderAuxChainSpecific,
+    '13': cronProcessesConstants.updatePriceOraclePricePoints,
+    '14': cronProcessesConstants.emailNotifier,
+    '15': cronProcessesConstants.executeTransaction
   },
   statuses = {
-    '1': cronProcessesConstant.runningStatus,
-    '2': cronProcessesConstant.stoppedStatus,
-    '3': cronProcessesConstant.inactiveStatus
+    '1': cronProcessesConstants.runningStatus,
+    '2': cronProcessesConstants.stoppedStatus,
+    '3': cronProcessesConstants.inactiveStatus
   },
   invertedKinds = util.invert(kinds),
   invertedStatuses = util.invert(statuses);
