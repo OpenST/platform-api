@@ -18,7 +18,8 @@ const rootPrefix = '../../../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   DeployerKlass = require(rootPrefix + '/tools/helpers/Deploy'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
 
 /**
  *
@@ -79,7 +80,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
     let deployParams = {
       deployerAddr: oThis.signerAddress,
       gasPrice: oThis.gasPrice,
-      gas: 1164898,
+      gas: contractConstants.deploySimpleTokenGas,
       web3Provider: oThis.web3Instance,
       contractBin: CoreBins.simpleToken,
       contractAbi: CoreAbis.simpleToken,

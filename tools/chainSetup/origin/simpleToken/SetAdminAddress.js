@@ -14,7 +14,8 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis');
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
 
 /**
  *
@@ -77,7 +78,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
       gasPrice: oThis.gasPrice,
-      gas: 4000000
+      gas: contractConstants.setAdminSimpleTokenGas
     };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);

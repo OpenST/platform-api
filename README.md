@@ -77,6 +77,8 @@ node  executables/flush/sharedMemcached.js
 
 ## Start Dynamo DB
 ```bash
+rm ~/dynamodb_local_latest/shared-local-instance.db
+
 java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
 ```
 
@@ -94,9 +96,9 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
     ```bash
     source set_env_vars.sh
     # For origin chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2 
     # For auxiliary chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
+    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2
     ```
     * Mandatory parameters: chainId, networkId
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
@@ -253,7 +255,7 @@ And add it to tables using following script.
   node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
-NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `\lib\globalConstant\contract.js` before starting ST Prime 
+NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `/lib/globalConstant/contract.js` before starting ST Prime 
 Stake and Mint on zero-gas.
 
 //TODO: change amountToStake to amountToStakeInWei
@@ -262,9 +264,9 @@ Stake and Mint on zero-gas.
 > source set_env_vars.sh
 > node
 
-  beneficiary -> chainOwnerKind
-  facilitator -> chainOwnerKind of origin chain
-  stakerAddress -> chainOwnerKind of origin chain
+  beneficiary -> masterInternalFunderKind
+  facilitator -> masterInternalFunderKind
+  stakerAddress -> masterInternalFunderKind
   
    params = {
           stepKind: 'stPrimeStakeAndMintInit',
@@ -272,15 +274,42 @@ Stake and Mint on zero-gas.
           clientId: 0,
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0x7bc30b33a53a61ae3090f8d129782a394a56bf9f', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0xff477d285ab4060165d070ae11663ee7a5f91b41', 
-          amountToStake: '100000000000000000000', beneficiary: '0x7bc30b33a53a61ae3090f8d129782a394a56bf9f'
+          requestParams: {
+            stakerAddress: '0x6d86fca87122affa6bf476a80de4fb3c5da2997a', 
+            originChainId: 1000, 
+            auxChainId: 2000, 
+            facilitator: '0x6d86fca87122affa6bf476a80de4fb3c5da2997a', 
+            amountToStake: '100000000000000000000', 
+            beneficiary: '0x6d86fca87122affa6bf476a80de4fb3c5da2997a'
           }
       }
+      
+    params = {
+        currentStepId: 30,
+        workflowId: 2,
+        stepKind: 'fetchStakeIntentMessageHash',
+        taskStatus: 'taskReadyToStart',
+        clientId: 0,
+        chainId: 1000,
+        topic: 'workflow.stPrimeStakeAndMint',
+    } 
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
    
    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
+   
+```
+
+```js
+        params = {
+              stepKind: '', //step kind of row from where it need to restart
+              taskStatus: 'taskReadyToStart',
+              clientId: 0,
+              chainId: 1000,
+              topic: 'workflow.stPrimeStakeAndMint',
+              workflowId: , //Workflow id
+              currentStepId: //Id of table from where it need to restart
+          }
 ```
 
 * Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
@@ -288,7 +317,7 @@ Stake and Mint on zero-gas.
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-* Revert the auxChainGasPrice value back to the previous value.
+* Revert the auxChainGasPrice value in file lib/globalConstant/contract.js back to the previous value.
 
 
 ### Open up config group for allocation

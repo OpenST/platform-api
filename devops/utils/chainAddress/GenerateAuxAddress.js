@@ -125,7 +125,7 @@ class GenerateAuxAddress extends ChainAddressBase {
     const oThis = this;
 
     logger.log('* Funding origin deployer address with ETH.');
-    await oThis._fundAddressWithEth(oThis.originDeployerAddress, 0.0068);
+    await oThis._fundAddressWithEth(oThis.originDeployerAddress, 0.0069);
 
     logger.log('* Funding st org contract owner address with ETH.');
     await oThis._fundAddressWithEth(oThis.stOrgContractOwnerAddress, 0.00012);

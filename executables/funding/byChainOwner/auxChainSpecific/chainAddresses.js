@@ -42,7 +42,7 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // Config for addresses which need to be funded per chain by OST Prime
 const stPrimeFundingPerChainConfig = {
   [chainAddressConstants.interChainFacilitatorKind]: {
-    oneGWeiMinOSTPrimeAmount: '0.00204',
+    oneGWeiMinOSTPrimeAmount: '0.01522',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   },

@@ -8,7 +8,8 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
 
 class TransferAmountOnChain {
   constructor() {}
@@ -26,7 +27,7 @@ class TransferAmountOnChain {
 
     let txParams = {
       from: chainOwnerAddress,
-      gas: 60000,
+      gas: contractConstants.transferEthGas,
       to: toAddress,
       nonce: nonce,
       value: amountInWei //transfer amt in wei
@@ -62,7 +63,7 @@ class TransferAmountOnChain {
 
     let txParams = {
       from: senderAddress,
-      gas: 60000,
+      gas: contractConstants.transferEthGas,
       to: toAddress,
       nonce: nonce,
       value: amountInWei //transfer amt in wei
@@ -109,7 +110,7 @@ class TransferAmountOnChain {
         to: simpleTokenContractAddress,
         data: encodedABI,
         nonce: nonce,
-        gas: 60000
+        gas: contractConstants.transferOstGas
       };
 
     logger.debug('OST transfer transaction params: ', ostTransferParams);
@@ -141,7 +142,7 @@ class TransferAmountOnChain {
 
     let txParams = {
       from: chainOwnerAddress,
-      gas: 60000,
+      gas: contractConstants.transferOstPrimeGas,
       to: toAddress,
       value: amountInWei //transfer amt in wei
     };
