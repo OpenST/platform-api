@@ -204,7 +204,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     const oThis = this;
 
     const transferEth = new TransferEth({
-      auxChainId: oThis.originChainId,
+      originChainId: oThis.originChainId,
       transferDetails: transferDetails
     });
 

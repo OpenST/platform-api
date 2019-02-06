@@ -44,7 +44,6 @@ source set_env_vars.sh
 node  executables/flush/sharedMemcached.js
 ```
 
-
 * Config Strategy Seed for Global configurations (for local setup)
 ```bash
 
@@ -103,11 +102,6 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
 
 ### Origin Chain Setup
-
-* Clear cache.
-```bash
-node  executables/flush/sharedMemcached.js
-```
 
 * Setup Origin GETH and fund necessary addresses.
 ```bash
@@ -255,8 +249,8 @@ And add it to tables using following script.
 
 * Start Workflow router factory
 ```bash
-> source set_env_vars.sh
-> node executables/workflowRouter/factory.js --cronProcessId 5
+  source set_env_vars.sh
+  node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
 //TODO: change amountToStake to amountToStakeInWei
@@ -275,9 +269,9 @@ And add it to tables using following script.
           clientId: 0,
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0x18610a68d0093edc3b8144537ffeb3e1ad12f447', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0x74c8f42317503bb830f3a25a1f5113f9bcfabaa2', 
-          amountToStake: '10000000000000000000000', beneficiary: '0xf4431c184e92cf797e77648bd1f9b0d8329b0f0f'
+          requestParams: {stakerAddress: '0x7bc30b33a53a61ae3090f8d129782a394a56bf9f', 
+          originChainId: 1000, auxChainId: 2000, facilitator: '0xff477d285ab4060165d070ae11663ee7a5f91b41', 
+          amountToStake: '100000000000000000000', beneficiary: '0x7bc30b33a53a61ae3090f8d129782a394a56bf9f'
           }
       }
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')

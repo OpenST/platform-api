@@ -48,7 +48,7 @@ function addCronProcessEntries() {
     
   // Create entry for Aux blockFinalizer.
     let p3 =  (function auxBlockFinalizer() {
-      let cronParams = '{"blockDelay": 24, "chainId":2000}',
+      let cronParams = '{"blockDelay": 6, "chainId":2000}',
         insertParams = {
           id: 3,
           kind: 'blockFinalizer',

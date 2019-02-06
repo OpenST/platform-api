@@ -44,7 +44,7 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // Eth funding config per chain
 const ethFundingConfig = {
   [chainAddressConstants.interChainFacilitatorKind]: {
-    oneGWeiMinAmount: '0.00060',
+    oneGWeiMinAmount: '0.00080',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   }
