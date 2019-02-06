@@ -199,14 +199,14 @@ class Deployment {
 
     let returnData;
 
-    let clientPreProvisoningConfig = await new ClientPreProvisoning().getDetailsByClientId(oThis.clientId);
+    let clientPreProvisioningConfig = await new ClientPreProvisoning().getDetailsByClientId(oThis.clientId);
 
-    if (clientPreProvisoningConfig.data.config && clientPreProvisoningConfig.data.config.config_group_id) {
+    if (clientPreProvisioningConfig.data.config && clientPreProvisioningConfig.data.config.config_group_id) {
       let configGroupsModel = new ConfigGroupsModel(),
         dbRows = await configGroupsModel
           .select('*')
           .where({
-            id: clientPreProvisoningConfig.data.config.config_group_id
+            id: clientPreProvisioningConfig.data.config.config_group_id
           })
           .fire();
 

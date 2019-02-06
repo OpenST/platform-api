@@ -6,21 +6,8 @@
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  OSTBase = require('@openstfoundation/openst-base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  shardConst = require(rootPrefix + '/lib/globalConstant/shard'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
-
-const uuidv4 = require('uuid/v4'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
-require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
-require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
-require(rootPrefix + '/app/models/ddb/sharded/User');
 
 class Create extends ServiceBase {
   /**
@@ -47,10 +34,8 @@ class Create extends ServiceBase {
    * @return {Promise<void>}
    */
   async _asyncPerform() {
-    return Promise.resolve(responseHelper.successWithData());
+    return Promise.resolve(responseHelper.successWithData({}));
   }
 }
-
-InstanceComposer.registerAsShadowableClass(Create, coreConstants.icNameSpace, 'CreateTokenHolder');
 
 module.exports = {};
