@@ -7,6 +7,7 @@
 
 const rootPrefix = '../../..',
   OSTBase = require('@openstfoundation/openst-base'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -146,7 +147,7 @@ class CreateDevice extends ServiceBase {
         updatedTimestamp: Math.floor(new Date().getTime() / 1000)
       };
 
-    await device.create(params);
+    await device.create(basicHelper.deepDup(params));
 
     logger.info('Entry created in device table with shardNumber ', userData['deviceShardNumber']);
 
