@@ -253,6 +253,9 @@ And add it to tables using following script.
   node executables/workflowRouter/factory.js --cronProcessId 5
 ```
 
+NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `\lib\globalConstant\contract.js` before starting ST Prime 
+Stake and Mint on zero-gas.
+
 //TODO: change amountToStake to amountToStakeInWei
 * St' Stake and Mint
 ```bash
@@ -284,6 +287,8 @@ And add it to tables using following script.
 ```bash
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
+
+* Revert the auxChainGasPrice value back to the previous value.
 
 
 ### Open up config group for allocation
