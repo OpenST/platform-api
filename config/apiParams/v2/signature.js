@@ -83,7 +83,7 @@ const v2Signature = {
         validatorMethod: 'validateEthAddress'
       },
       {
-        parameter: 'personal_sign_address',
+        parameter: 'api_signer_address',
         validatorMethod: 'validateEthAddress'
       },
       {

@@ -30,7 +30,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
  * @param {Integer} params.client_id
  * @param {String} params.user_id - uuid
  * @param {String} params.address
- * @param {String} params.personal_sign_address
+ * @param {String} params.api_signer_address
  * @param {String} params.device_name
  * @param {String} params.device_uuid
  */
@@ -43,7 +43,7 @@ class CreateDevice extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.walletAddress = params.address;
-    oThis.personalSignAddress = params.personal_sign_address;
+    oThis.personalSignAddress = params.api_signer_address;
     oThis.deviceName = params.device_name;
     oThis.deviceUuid = params.device_uuid;
   }
