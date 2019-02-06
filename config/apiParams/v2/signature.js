@@ -92,7 +92,7 @@ const v2Signature = {
       },
       {
         parameter: 'device_uuid',
-        validatorMethod: 'validateUuidV4'
+        validatorMethod: 'validateString'
       }
     ],
     optional: []
