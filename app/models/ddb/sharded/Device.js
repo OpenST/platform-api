@@ -240,12 +240,17 @@ class Device extends Base {
    * @return {Promise<void>}
    */
   static async afterUpdate(ic, params) {
-    const oThis = this;
     require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-    let cacheClass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
-    new cacheClass({
+    let DeviceDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
+    new DeviceDetailCache({
       userId: params.userId,
       walletAddresses: [params.walletAddress]
+    }).clear();
+
+    require(rootPrefix + '/lib/cacheManagement/chain/WalletAddressesByUserId');
+    let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId');
+    new WalletAddressesByUserId({
+      userId: params.userId
     }).clear();
 
     logger.info('device cache cleared.');
