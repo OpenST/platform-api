@@ -57,6 +57,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '31': workflowStepConstants.verifySetInternalActorForOwnerInUBT,
     '32': workflowStepConstants.verifyEconomySetup,
     '33': workflowStepConstants.assignShards,
+    '45': workflowStepConstants.generateTxWorkerAddresses,
 
     '60': workflowStepConstants.stPrimeStakeAndMintInit,
     '61': workflowStepConstants.stPrimeApprove,

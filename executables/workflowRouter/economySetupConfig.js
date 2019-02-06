@@ -18,6 +18,11 @@ const steps = {
   [workflowStepConstants.generateTokenAddresses]: {
     kind: workflowStepConstants.generateTokenAddresses,
     onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.generateTxWorkerAddresses]
+  },
+  [workflowStepConstants.generateTxWorkerAddresses]: {
+    kind: workflowStepConstants.generateTxWorkerAddresses,
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.fundAuxFunderAddress]
   },
   [workflowStepConstants.fundAuxFunderAddress]: {

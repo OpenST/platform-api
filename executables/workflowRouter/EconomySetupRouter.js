@@ -20,11 +20,12 @@ const rootPrefix = '../..',
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  FundStPrimeToTokenAddress = require(rootPrefix + '/lib/fund/stPrime/TokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
   PostGatewayComposerDeploy = require(rootPrefix + '/lib/setup/economy/PostGatewayComposerDeploy'),
-  FundStPrimeToTokenAddress = require(rootPrefix + '/lib/fund/stPrime/TokenAddress'),
+  GenerateExTxWorker = require(rootPrefix + '/lib/executeTransactionManagement/GenerateExTxWorker'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress'),
   util = require(rootPrefix + '/lib/util');
 
@@ -98,6 +99,15 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.generateTokenAddresses:
         logger.step('*** Generate Token Addresses');
         return new generateTokenAddresses(oThis.requestParams).perform();
+
+      case workflowStepConstants.generateTxWorkerAddresses:
+        logger.step('*** Generate Tx worker  Addresses');
+        let generateExTxWorker = new GenerateExTxWorker({
+          tokenId: oThis.requestParams.tokenId,
+          chainId: oThis.requestParams.auxChainId
+        });
+
+        return await generateExTxWorker.perform();
 
       case workflowStepConstants.fundAuxFunderAddress:
         logger.step('*** Funding Aux Funder');
