@@ -39,6 +39,11 @@
     "code": "NOT_FOUND",
     "message": "The requested resource could not be located."
   },
+  "unsupported_routes": {
+    "http_code": "410",
+    "code": "UNSUPPORTED_VERSION",
+    "message": "Unsupported version of the API is being requested upon."
+  },
   "data_not_found": {
     "http_code": "404",
     "code": "NOT_FOUND",
@@ -333,11 +338,6 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The request was good, but nevertheless could not be processed."
-  },
-  "invalid_address": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
   },
   "st_prime_transfer_failed": {
     "http_code": "422",

@@ -66,7 +66,8 @@ class ECRecover {
       return Promise.resolve(
         responseHelper.error({
           internal_error_identifier: 'a_s_vs_ecr_2',
-          api_error_identifier: 'invalid_address'
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_signer_address']
         })
       );
     }
@@ -78,7 +79,8 @@ class ECRecover {
       return Promise.resolve(
         responseHelper.error({
           internal_error_identifier: 'a_s_vs_ecr_3',
-          api_error_identifier: 'invalid_address'
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_signer_address']
         })
       );
     }

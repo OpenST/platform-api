@@ -171,6 +171,16 @@ const checkSystemServiceStatuses = async function(req, res, next) {
   next();
 };
 
+const handleDepricatedRoutes = function(req, res, next) {
+  return responseHelper
+    .error({
+      internal_error_identifier: 'a_8',
+      api_error_identifier: 'unsupported_routes',
+      debug_options: {}
+    })
+    .renderResponse(res, errorConfig);
+};
+
 const appendInternalVersion = function(req, res, next) {
   req.decodedParams.apiVersion = apiVersions.internal;
   next();
@@ -278,6 +288,12 @@ if (cluster.isMaster) {
     The sanitizer() piece of code should always be before routes for jwt and after validateApiSignature for sdk.
     Docs: https://www.npmjs.com/package/express-sanitized
   */
+
+  // Mark older routes as UNSUPPORTED_VERSION
+  app.use('/transaction-types', handleDepricatedRoutes);
+  app.use('/users', handleDepricatedRoutes);
+  app.use('/v1', handleDepricatedRoutes);
+  app.use('/v1.1', handleDepricatedRoutes);
 
   // Following are the routes
   app.use('/', internalRoutes);
@@ -393,7 +409,7 @@ function onError(error) {
   switch (error.code) {
     case 'EACCES':
       //TODO:- temp change (remove this and use notify)
-      logger.error('a_6', bind + ' requires elevated privileges');
+      logger.error('a_7', bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':

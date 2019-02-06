@@ -10,6 +10,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidator = require(rootPrefix + '/lib/validators/Common'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
 // Following require(s) for registering into instance composer
@@ -43,18 +44,29 @@ class ByWalletAddress extends GetListBase {
    * @private
    */
   _sanitizeParams() {
-    const oThis = this,
-      addresses = oThis.addressString.split(',');
+    const oThis = this;
 
     super._sanitizeParams();
+
+    let addresses = oThis.addressString.split(',');
+    if (addresses.length > pagination.maxDeviceListPageSize) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_d_gl_bwa_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_filter_address'],
+          debug_options: { address: oThis.addressString }
+        })
+      );
+    }
 
     for (let index = 0; index < addresses.length; index++) {
       if (!CommonValidator.validateEthAddress(addresses[index])) {
         return Promise.reject(
           responseHelper.paramValidationError({
-            internal_error_identifier: 'a_s_d_gl_bwa_1',
+            internal_error_identifier: 'a_s_d_gl_bwa_2',
             api_error_identifier: 'invalid_api_params',
-            params_error_identifiers: ['invalid_address'],
+            params_error_identifiers: ['invalid_filter_address'],
             debug_options: { address: addresses[index] }
           })
         );

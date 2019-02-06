@@ -74,10 +74,15 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid api_signer_address'
   },
-  invalid_address: {
-    parameter: 'address',
+  invalid_signer_address: {
+    parameter: 'signer',
     code: 'invalid',
     message: 'Invalid address'
+  },
+  invalid_filter_address: {
+    parameter: 'address',
+    code: 'invalid',
+    message: 'Invalid address. Max comma seperated 25 addresses allowed'
   },
   invalid_pagination_limit: {
     parameter: 'limit',
