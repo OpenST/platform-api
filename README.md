@@ -275,24 +275,14 @@ Stake and Mint on zero-gas.
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
           requestParams: {
-            stakerAddress: '0x6d86fca87122affa6bf476a80de4fb3c5da2997a', 
+            stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
             originChainId: 1000, 
             auxChainId: 2000, 
-            facilitator: '0x6d86fca87122affa6bf476a80de4fb3c5da2997a', 
-            amountToStake: '100000000000000000000', 
-            beneficiary: '0x6d86fca87122affa6bf476a80de4fb3c5da2997a'
+            facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+            amountToStake: '100000000000000000001', 
+            beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
           }
       }
-      
-    params = {
-        currentStepId: 30,
-        workflowId: 2,
-        stepKind: 'fetchStakeIntentMessageHash',
-        taskStatus: 'taskReadyToStart',
-        clientId: 0,
-        chainId: 1000,
-        topic: 'workflow.stPrimeStakeAndMint',
-    } 
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
    
@@ -327,24 +317,6 @@ let auxChainId = 2000;
 let auxGroupId = 2000;
 
 ConfigGroupModel.markAsAvailableForAllocation(auxChainId, auxGroupId).then(console.log);
-```
-
-### Token Setup
-* Create entry in tokens table.
-```bash
->  cd kit-api
->  source set_env_vars.sh
->  rails c 
-    params = {client_id:1,name:"KingFisher Ultra",symbol:"KFU",conversion_factor:0.8}
-    TokenManagement::InsertTokenDetails.new(params).perform
-```
-
-* Start Economy Setup
-```bash
-
-TokenDeployment = require('./app/services/token/Deployment.js');
-a = new TokenDeployment({token_id: 2, client_id: 2})
-a.perform().then(console.log)
 ```
 
 ### Run Aggregator

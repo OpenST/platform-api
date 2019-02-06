@@ -45,19 +45,19 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
   originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
 
 // Config for addresses which need to be funded.
-const fundingConfig = {
+const ethFundingConfig = {
   [chainAddressConstants.originDeployerKind]: {
-    oneGWeiMinAmount: '0.00955',
+    oneGWeiMinAmount: '0.01240',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   },
   [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
-    oneGWeiMinAmount: '0.00010',
+    oneGWeiMinAmount: '0.00012',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   },
   [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
-    oneGWeiMinAmount: '0.00007',
+    oneGWeiMinAmount: '0.00010',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   }
@@ -194,9 +194,9 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
     oThis.AdddressesToKindMap = {};
 
     // Populate Address in fund config
-    for (let addressKind in fundingConfig) {
-      fundingConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
-      oThis.AdddressesToKindMap[fundingConfig[addressKind].address] = addressKind;
+    for (let addressKind in ethFundingConfig) {
+      ethFundingConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
+      oThis.AdddressesToKindMap[ethFundingConfig[addressKind].address] = addressKind;
     }
 
     // Populate Address in alert config
@@ -229,8 +229,8 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
       let balance = addressesToBalanceMap[address],
         addressKind = oThis.AdddressesToKindMap[address];
 
-      if (fundingConfig[addressKind]) {
-        fundingConfig[addressKind].balance = balance;
+      if (ethFundingConfig[addressKind]) {
+        ethFundingConfig[addressKind].balance = balance;
       }
       if (alertConfig[addressKind]) {
         alertConfig[addressKind].balance = balance;
@@ -248,8 +248,8 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
 
     let transferDetails = [];
 
-    for (let addressKind in fundingConfig) {
-      let fundingAddressDetails = fundingConfig[addressKind],
+    for (let addressKind in ethFundingConfig) {
+      let fundingAddressDetails = ethFundingConfig[addressKind],
         address = fundingAddressDetails.address,
         addressMinimumBalance = basicHelper
           .convertToWei(String(fundingAddressDetails.oneGWeiMinAmount))

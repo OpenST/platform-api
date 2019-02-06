@@ -79,7 +79,6 @@ params = {
   requestParams: {},
   topic: 'workflow.economySetup'
 }
-
 economySetupRouterK = require('./executables/workflowRouter/EconomySetupRouter')
 economySetupRouter = new economySetupRouterK(params)
 economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
