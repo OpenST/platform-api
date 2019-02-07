@@ -54,9 +54,11 @@ class TokenRule extends ModelBase {
         token_id: params.tokenId,
         rule_id: params.ruleId,
         address: params.address.toLowerCase(),
-        status: tokenRuleConstants.invertedStatus[params.status]
+        status: tokenRuleConstants.invertedStatuses[params.status]
       })
       .fire();
+
+    await TokenRule.flushCache(params.tokenId, params.ruleId);
 
     return Promise.resolve(responseHelper.successWithData(insertResponse.insertId));
   }
@@ -74,39 +76,45 @@ class TokenRule extends ModelBase {
 
     let whereClause = ['token_id = ? AND rule_id = ?', tokenId, ruleId];
 
-    return await oThis
+    let updateRsp = await oThis
       .update({
-        status: tokenRuleConstants.invertedStatus[status]
+        status: tokenRuleConstants.invertedStatuses[status]
       })
       .where(whereClause)
       .fire();
+
+    await TokenRule.flushCache(tokenId, ruleId);
+
+    return updateRsp;
   }
 
   /**
    *
    * @param tokenId
+   * @param ruleId
    * @return {Promise<*|result>}
    */
-  async getDetailsByTokenId(tokenId) {
+  async getDetails(tokenId, ruleId) {
     const oThis = this;
 
     let details = await oThis
       .select('*')
-      .where(['token_id = ?', tokenId])
+      .where(['token_id = ? AND rule_id = ?', tokenId, ruleId])
       .fire();
 
-    if (details.length === 0) {
-      logger.error('No entry found for given chainId and group Id');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_m_m_cg_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
+    let responseData = {};
+
+    let dbRow = details[0];
+    if (dbRow) {
+      responseData = {
+        id: dbRow.id,
+        ruleId: dbRow.rule_id,
+        address: dbRow.address,
+        status: dbRow.status
+      };
     }
 
-    return details[0];
+    return responseHelper.successWithData(responseData);
   }
 
   _validateInputParams(params) {
@@ -140,7 +148,10 @@ class TokenRule extends ModelBase {
    *
    * @returns {Promise<*>}
    */
-  static flushCache() {}
+  static flushCache(tokenId, ruleId) {
+    let Cache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRule');
+    return new Cache({ tokenId: tokenId, ruleId: ruleId }).clear();
+  }
 }
 
 module.exports = TokenRule;
