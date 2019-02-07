@@ -7,12 +7,16 @@ const rootPrefix = '../..',
   FundGranterAddress = require(rootPrefix + '/lib/setup/originChain/FundGranterAddress'),
   GenerateAuxAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateAuxAddress'),
   GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
+  GenerateMasterInternalFunderAddress = require(rootPrefix +
+    '/devops/utils/chainAddress/GenerateMasterInternalFunderAddress'),
   ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain');
 
 program
   .version('0.1.0')
   .usage('[options]')
+  .option('-m, --generate-master-internal-address', 'Generate master internal funder address for this ENV')
   .option('-o, --generate-origin-addresses', 'Generate addresses required for origin chain')
+  .option('-n, --fund-master-internal-address', 'Fund master internal funder with ETH')
   .option('-a, --generate-aux-addresses', 'Generate addresses required for auxiliary chain')
   .option('-d, --deploy-st-contracts', 'Generate addresses required for auxiliary chain')
   .option('-f, --fund-granter', 'Fund granter with ETH and OST')
@@ -30,7 +34,23 @@ let performerObj = null,
   performOptions = {};
 
 const Main = async function() {
-  if (program.generateOriginAddresses) {
+  if (program.generateMasterInternalAddress) {
+    let chainId = program.chainId;
+
+    if (!chainId) {
+      handleError();
+    }
+
+    performerObj = new GenerateMasterInternalFunderAddress(chainId);
+  } else if (program.fundMasterMnternalAddress) {
+    let chainId = program.chainId;
+
+    if (!chainId) {
+      handleError();
+    }
+
+    performerObj = new GenerateMasterInternalFunderAddress(chainId);
+  } else if (program.generateOriginAddresses) {
     let chainId = program.chainId;
 
     if (!chainId) {
