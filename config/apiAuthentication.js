@@ -57,7 +57,7 @@ class ApiAuthentication {
     return postRequestConfig;
   }
 
-  get getRequestsDataExtractionReges() {
+  get getRequestsDataExtractionRegex() {
     const oThis = this;
     if (getRequestRegexes) {
       return getRequestRegexes;
@@ -66,7 +66,7 @@ class ApiAuthentication {
     return getRequestRegexes;
   }
 
-  get postRequestsDataExtractionReges() {
+  get postRequestsDataExtractionRegex() {
     const oThis = this;
     if (postRequestRegexes) {
       return postRequestRegexes;

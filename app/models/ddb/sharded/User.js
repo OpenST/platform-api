@@ -206,6 +206,42 @@ class User extends Base {
   }
 
   /**
+   * updateStatus - Updates status of device
+   *
+   * @param {Object} params
+   * @param {String/Number} params.tokenId
+   * @param {String/Number} params.userId
+   * @param params.status {String} - {created}
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatus(params) {
+    const oThis = this,
+      shortNameForTokenId = oThis.shortNameFor('tokenId'),
+      shortNameForUserId = oThis.shortNameFor('userId');
+
+    const createdKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.createdStatus];
+
+    let conditionalExpression =
+      'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')' + '';
+
+    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression, 'ALL_NEW');
+  }
+
+  /**
+   * Sanitize params to insert in User table.
+   *
+   * @param {Object} params
+   * @param {String} params.status
+   *
+   * @return {*}
+   */
+  static sanitizeParamsToInsert(params) {
+    params['status'] = tokenUserConstants.invertedKinds[params['status']];
+    return params;
+  }
+
+  /**
    * afterUpdate - Method to implement any after update actions
    *
    * @return {Promise<void>}

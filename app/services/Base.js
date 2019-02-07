@@ -68,9 +68,10 @@ class ServicesBaseKlass {
   }
 
   /**
-   * _fetchTokenDetails - fetch token details from cache
+   * Fetch token details: fetch token details from cache
    *
    * @return {Promise<void>}
+   *
    * @private
    */
   async _fetchTokenDetails() {
