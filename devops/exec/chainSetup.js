@@ -9,20 +9,22 @@ const rootPrefix = '../..',
   GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
   GenerateMasterInternalFunderAddress = require(rootPrefix +
     '/devops/utils/chainAddress/GenerateMasterInternalFunderAddress'),
+  FundMasterInternalFunderAddress = require(rootPrefix + '/devops/utils/chainAddress/FundMasterInternalFunderAddress'),
   ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain');
 
 program
   .version('0.1.0')
   .usage('[options]')
-  .option('-m, --generate-master-internal-address', 'Generate master internal funder address for this ENV')
+  .option('-m, --generate-master-internal-funder-address', 'Generate master internal funder address for this ENV')
+  .option('-n, --fund-master-internal-funder-address', 'Fund master internal funder with ETH')
   .option('-o, --generate-origin-addresses', 'Generate addresses required for origin chain')
-  .option('-n, --fund-master-internal-address', 'Fund master internal funder with ETH')
   .option('-a, --generate-aux-addresses', 'Generate addresses required for auxiliary chain')
   .option('-d, --deploy-st-contracts', 'Generate addresses required for auxiliary chain')
   .option('-f, --fund-granter', 'Fund granter with ETH and OST')
   .option('-c, --chain-id <number>', 'Chain id required for actions -o, -a and -d', parseInt)
-  .option('-e, --eth-sender-pk <string>', 'ETH sender private key. Required for action -d and -f')
-  .option('-s, --st-owner-pk <string>', 'ST Owner private key. Required for action -f')
+  .option('-e, --eth-owner-private-key <string>', 'ETH sender private key. Required for action -n')
+  .option('-s, --st-owner-private-key <string>', 'ST Owner private key. Required for action -f')
+  .option('-t, --amount <string>', 'Amount that needs to be transfered')
   .parse(process.argv);
 
 const handleError = function() {
@@ -34,7 +36,7 @@ let performerObj = null,
   performOptions = {};
 
 const Main = async function() {
-  if (program.generateMasterInternalAddress) {
+  if (program.generateMasterInternalFunderAddress) {
     let chainId = program.chainId;
 
     if (!chainId) {
@@ -42,14 +44,16 @@ const Main = async function() {
     }
 
     performerObj = new GenerateMasterInternalFunderAddress(chainId);
-  } else if (program.fundMasterMnternalAddress) {
-    let chainId = program.chainId;
+  } else if (program.fundMasterMnternalFunderAddress) {
+    let chainId = program.chainId,
+      ethOwnerPrivateKey = program.ethOwnerPrivateKey,
+      amount = program.amount;
 
-    if (!chainId) {
+    if (!chainId || !ethOwnerPrivateKey || !amount) {
       handleError();
     }
 
-    performerObj = new GenerateMasterInternalFunderAddress(chainId);
+    performerObj = new FundMasterInternalFunderAddress(chainId, ethOwnerPrivateKey, parseFloat(amount));
   } else if (program.generateOriginAddresses) {
     let chainId = program.chainId;
 

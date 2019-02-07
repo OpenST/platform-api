@@ -79,53 +79,6 @@ class GenerateOriginAddress extends ChainAddressBase {
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
       await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], 0.0072);
-
-      // logger.log(
-      //   `* Funding origin owner address (${addresses[chainAddressConstants.stOrgContractOwnerKind]}) with ETH.`
-      // );
-      // await oThis._fundAddressWithEth(
-      //   addresses[chainAddressConstants.stOrgContractOwnerKind],
-      //   0.00239 * oThis.numberOfFlowsForGas
-      // );
-      //
-      // logger.log(
-      //   `* Funding origin owner address (${
-      //     addresses[chainAddressConstants.originAnchorOrgContractOwnerKind]
-      //   }) with ETH.`
-      // );
-      // await oThis._fundAddressWithEth(
-      //   addresses[chainAddressConstants.originAnchorOrgContractOwnerKind],
-      //   0.00116 * oThis.numberOfFlowsForGas
-      // );
-      //
-      // logger.log(`* Funding origin admin address (${addresses[chainAddressConstants.stOrgContractAdminKind]}) with ETH.`);
-      // await oThis._fundAddressWithEth(addresses[chainAddressConstants.stOrgContractAdminKind], 0.00000 * oThis.numberOfFlowsForGas);
-      //
-      // logger.log(`* Funding origin admin address (${addresses[chainAddressConstants.originAnchorOrgContractAdminKind]}) with ETH.`);
-      // await oThis._fundAddressWithEth(addresses[chainAddressConstants.originAnchorOrgContractAdminKind], 0.00000 * oThis.numberOfFlowsForGas);
-
-      // logger.log(`* Funding origin chain owner address (${addresses[chainAddressConstants.masterInternalFunderKind]}) with ETH.`);
-      // await oThis._fundAddressWithEth(addresses[chainAddressConstants.masterInternalFunderKind], 0.01265 * oThis.numberOfFlowsForGas);
-
-      // logger.log(
-      //   `* Funding origin token admin address (${
-      //     addresses[chainAddressConstants.originDefaultBTOrgContractAdminKind]
-      //   }) with ETH.`
-      // );
-      // await oThis._fundAddressWithEth(
-      //   addresses[chainAddressConstants.originDefaultBTOrgContractAdminKind],
-      //   0.0024 * oThis.numberOfFlowsForGas
-      // );
-      //
-      // logger.log(
-      //   `* Funding origin token worker address (${
-      //     addresses[chainAddressConstants.originDefaultBTOrgContractWorkerKind]
-      //   }) with ETH.`
-      // );
-      // await oThis._fundAddressWithEth(
-      //   addresses[chainAddressConstants.originDefaultBTOrgContractWorkerKind],
-      //   0.00172 * oThis.numberOfFlowsForGas
-      // );
     }
 
     return addressesResp;
