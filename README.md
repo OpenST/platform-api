@@ -87,7 +87,7 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
 * Create all SAAS Owned DDB Tables
   ```bash
   source set_env_vars.sh
-  node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --deviceShardCount 1  
+  node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2
   ```
   * Mandatory parameters: auxChainId
   * Optional parameters (defaults to 1): userShardCount, deviceShardCount, deviceShardCount
