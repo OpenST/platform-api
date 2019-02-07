@@ -18,11 +18,6 @@ const InstanceComposer = OSTBase.InstanceComposer;
 require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 
-/**
- * Class for getting block transactions service
- *
- * @class
- */
 class GetUsersList extends ServiceBase {
   /**
    * @constructor
