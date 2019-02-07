@@ -24,7 +24,7 @@ program
   .option('-c, --chain-id <number>', 'Chain id required for actions -o, -a and -d', parseInt)
   .option('-e, --eth-owner-private-key <string>', 'ETH sender private key. Required for action -n')
   .option('-s, --st-owner-private-key <string>', 'ST Owner private key. Required for action -f')
-  .option('-t, --amount <string>', 'Amount that needs to be transfered')
+  .option('-t, --amount <string>', 'Amount that needs to be transfered, Required for action -n')
   .parse(process.argv);
 
 const handleError = function() {

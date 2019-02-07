@@ -30,7 +30,7 @@
 * Generate master internal funder address for this ENV
 ```bash
   source set_env_vars.sh
-  node devops/exec/chainSetup.js --generate-master-internal-address --chain-id 3
+  node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
@@ -46,7 +46,7 @@
 * [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
 ```bash
   source set_env_vars.sh
-  node devops/exec/chainSetup.js --fund-master-internal-funder --chain-id 3 --ethOwnerPrivateKey '0x0as..'
+  node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0as..' --amount 10
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
