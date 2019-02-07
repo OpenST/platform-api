@@ -49,6 +49,26 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  invalid_session_addresses: {
+    parameter: 'session_addresses',
+    code: 'invalid',
+    message: `Invalid session_addresses`
+  },
+  invalid_session_address: {
+    parameter: 'session_address',
+    code: 'invalid',
+    message: `Invalid session_address`
+  },
+  invalid_expiration_height: {
+    parameter: 'expiration_height',
+    code: 'invalid',
+    message: `Invalid expiration_height`
+  },
+  invalid_spending_limit: {
+    parameter: 'spending_limit',
+    code: 'invalid',
+    message: `Invalid spending_limit`
+  },
   missing_user_id: {
     parameter: 'user_id',
     code: 'missing',
