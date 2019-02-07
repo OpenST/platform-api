@@ -14,6 +14,7 @@ const router = express.Router();
 
 require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/Get');
+require(rootPrefix + '/app/services/user/CreateTokenHolder');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/getList/ByUserId');
@@ -127,7 +128,7 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
 router.post('/:user_id/token-holders/', function(req, res, next) {
   req.decodedParams.apiName = apiName.postTokenHolder;
   req.decodedParams.userId = req.params.user_id; // review params
-  req.decodedParams.clientConfigStrategyRequired = false;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
     const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
