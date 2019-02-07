@@ -134,7 +134,15 @@ router.post('/:user_id/token-holders/', function(req, res, next) {
     const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
-      [resultType.user]: userFormattedRsp.data
+      [resultType.user]: {
+        userId: 'test123',
+        tokenId: 'test123',
+        tokenHolderAddress: 'test123',
+        multisigAddress: 'test123',
+        kind: '1',
+        updatedTimestamp: 'test123',
+        status: '2'
+      } //userFormattedRsp.data
     };
   };
 
