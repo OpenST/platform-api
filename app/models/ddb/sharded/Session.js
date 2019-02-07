@@ -318,4 +318,4 @@ class Session extends Base {
 
 InstanceComposer.registerAsShadowableClass(Session, coreConstants.icNameSpace, 'SessionModel');
 
-module.exports = Session;
+module.exports = {};

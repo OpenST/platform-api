@@ -34,7 +34,7 @@ program.on('--help', () => {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    ' node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 1'
+    ' node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2'
   );
   logger.log('');
   logger.log('');
@@ -105,13 +105,13 @@ class CreateInitialDdbTablesForSaas {
         entityKind: shardConstant.deviceEntityKind,
         shardNumbers: oThis._generateShardNumbersArray(oThis.deviceShardCount),
         isAvailableForAllocation: true
+      }),
+      sessionShardObject = new CreateShard({
+        chainId: oThis.auxChainId,
+        entityKind: shardConstant.sessionEntityKind,
+        shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
+        isAvailableForAllocation: true
       });
-    // , sessionShardObject = new CreateShard({
-    //   chainId: oThis.auxChainId,
-    //   entityKind: shardConstant.sessionEntityKind,
-    //   shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
-    //   isAvailableForAllocation: true
-    // })
 
     // Create Shards table
     await shardsObject.createTable();
@@ -126,7 +126,7 @@ class CreateInitialDdbTablesForSaas {
     await deviceShardObject.perform();
 
     // Create Session table(s)
-    // await sessionShardObject.perform();
+    await sessionShardObject.perform();
   }
 
   /**
