@@ -4,15 +4,10 @@ const rootPrefix = '../../..',
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
 const v2ErrorConfig = {
-  invalid_status_transactions_ledger: {
-    parameter: 'status',
-    code: 'invalid',
-    message: 'status should have comma seperated status filters (eg: processing,waiting_for_mining,complete,failed)'
-  },
   invalid_signature_kind: {
     parameter: 'signature_kind',
     code: 'invalid',
-    message: `List of supported signature kinds (${apiSignature.hmacKind})`
+    message: `List of supported signature kinds (${apiSignature.hmacKind}, ${apiSignature.personalSignKind})`
   },
   unsupported_signature_kind: {
     parameter: 'signature_kind',
@@ -44,10 +39,20 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid signature`
   },
+  missing_api_signature: {
+    parameter: 'signature',
+    code: 'missing',
+    message: `missing signature`
+  },
   invalid_user_id: {
     parameter: 'user_id',
     code: 'invalid',
     message: `Invalid user_id`
+  },
+  missing_user_id: {
+    parameter: 'user_id',
+    code: 'missing',
+    message: `missing user_id`
   },
   invalid_request_path: {
     parameter: 'request_path',
@@ -59,10 +64,20 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid client id'
   },
+  missing_client_id: {
+    parameter: 'client_id',
+    code: 'missing',
+    message: 'missing client id'
+  },
   invalid_token_id: {
     parameter: 'token_id',
     code: 'invalid',
     message: 'Invalid token id'
+  },
+  missing_token_id: {
+    parameter: 'token_id',
+    code: 'missing',
+    message: 'missing token id'
   },
   invalid_id: {
     parameter: 'id',
@@ -74,20 +89,40 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid wallet_address'
   },
+  missing_wallet_address: {
+    parameter: 'wallet_address',
+    code: 'missing',
+    message: 'missing wallet_address'
+  },
   invalid_personal_sign_address: {
     parameter: 'personal_sign_address',
     code: 'invalid',
     message: 'Invalid personal_sign_address'
+  },
+  missing_personal_sign_address: {
+    parameter: 'personal_sign_address',
+    code: 'missing',
+    message: 'missing personal_sign_address'
   },
   invalid_api_signer_address: {
     parameter: 'api_signer_address',
     code: 'invalid',
     message: 'Invalid api_signer_address'
   },
+  missing_api_signer_address: {
+    parameter: 'api_signer_address',
+    code: 'missing',
+    message: 'missing api_signer_address'
+  },
   invalid_signer_address: {
     parameter: 'signer',
     code: 'invalid',
     message: 'Invalid address'
+  },
+  missing_signer_address: {
+    parameter: 'signer',
+    code: 'missing',
+    message: 'missing address'
   },
   invalid_filter_address: {
     parameter: 'address',
@@ -99,15 +134,30 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address.'
   },
+  missing_address: {
+    parameter: 'address',
+    code: 'missing',
+    message: 'missing address.'
+  },
   invalid_device_name: {
     parameter: 'device_name',
     code: 'invalid',
     message: 'Invalid device_name.'
   },
+  missing_device_name: {
+    parameter: 'device_name',
+    code: 'missing',
+    message: 'missing device_name.'
+  },
   invalid_device_uuid: {
     parameter: 'device_uuid',
     code: 'invalid',
     message: 'Invalid device_uuid'
+  },
+  missing_device_uuid: {
+    parameter: 'device_uuid',
+    code: 'missing',
+    message: 'missing device_uuid'
   },
   invalid_limit: {
     parameter: 'limit',
