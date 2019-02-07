@@ -44,6 +44,10 @@ require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
 require(rootPrefix + '/lib/setup/economy/AssignShardsForClient');
+require(rootPrefix + '/lib/setup/economy/DeployTokenRules');
+require(rootPrefix + '/lib/setup/economy/DeployTokenHolderMaster');
+require(rootPrefix + '/lib/setup/economy/DeployUserWalletFactory');
+require(rootPrefix + '/lib/setup/economy/DeployGnosisSafeMultiSigMaster');
 
 /**
  * Class for economy setup router.
@@ -335,6 +339,85 @@ class EconomySetupRouter extends WorkflowRouterBase {
 
         return new VerifyTransactionStatus({
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setInternalActorForOwnerInUBT),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.deployTokenRules:
+        logger.step('*** Deploy Token Rules');
+
+        let DeployTokenRules = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployTokenRules');
+
+        let deployTokenRules = new DeployTokenRules(oThis.requestParams);
+
+        return deployTokenRules.perform();
+
+      case workflowStepConstants.saveTokenRules:
+        logger.step('*** Saving Token Rules Address in DB');
+
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenRules),
+          kind: tokenAddressConstants.tokenRulesContract,
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.deployTokenHolderMasterCopy:
+        logger.step('*** Deploy Token Holder MasterCopy');
+
+        let DeployTokenHolderMaster = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployTokenHolderMaster');
+
+        let deployTokenHolderMaster = new DeployTokenHolderMaster(oThis.requestParams);
+
+        return deployTokenHolderMaster.perform();
+
+      case workflowStepConstants.saveTokenHolderMasterCopy:
+        logger.step('*** Saving Token Holder Address in DB');
+
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenHolderMasterCopy),
+          kind: tokenAddressConstants.tokenHolderMasterCopyContract,
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.deployUserWalletFactory:
+        logger.step('*** Deploy User wallet Factory');
+
+        let DeployUserWalletFactory = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployUserWalletFactory');
+
+        let deployUserWalletFactory = new DeployUserWalletFactory(oThis.requestParams);
+
+        return deployUserWalletFactory.perform();
+
+      case workflowStepConstants.saveUserWalletFactory:
+        logger.step('*** Saving User Wallet Factory');
+
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUserWalletFactory),
+          kind: tokenAddressConstants.userWalletFactoryContract,
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.deployGnosisSafeMultiSigMasterCopy:
+        logger.step('*** Deploy GnosisSafe MultiSig MasterCopy');
+
+        let DeployGnosisSafeMultiSigMaster = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'DeployGnosisSafeMultiSigMaster'
+        );
+
+        let deployGnosisSafeMultiSigMaster = new DeployGnosisSafeMultiSigMaster(oThis.requestParams);
+
+        return deployGnosisSafeMultiSigMaster.perform();
+
+      case workflowStepConstants.saveGnosisSafeMultiSigMasterCopy:
+        logger.step('*** Save GnosisSafe MultiSig MasterCopy Address in DB');
+
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGnosisSafeMultiSigMasterCopy),
+          kind: tokenAddressConstants.gnosisSafeMultiSigMasterCopyContract,
           chainId: oThis.requestParams.auxChainId
         }).perform();
 

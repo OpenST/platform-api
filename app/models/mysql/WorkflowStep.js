@@ -58,6 +58,17 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '32': workflowStepConstants.verifyEconomySetup,
     '33': workflowStepConstants.assignShards,
 
+    '34': workflowStepConstants.deployTokenRules,
+    '35': workflowStepConstants.saveTokenRules,
+    '36': workflowStepConstants.deployTokenHolderMasterCopy,
+    '37': workflowStepConstants.saveTokenHolderMasterCopy,
+    '38': workflowStepConstants.deployUserWalletFactory,
+    '39': workflowStepConstants.saveUserWalletFactory,
+    '40': workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
+    '41': workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
+
+    '45': workflowStepConstants.generateTxWorkerAddresses,
+
     '60': workflowStepConstants.stPrimeStakeAndMintInit,
     '61': workflowStepConstants.stPrimeApprove,
     '62': workflowStepConstants.simpleTokenStake,

@@ -1,8 +1,8 @@
 'use strict';
 /**
- * This is model for workflow_setup table.
+ * This is model for token_addresses table.
  *
- * @module app/models/mysql/WorkflowStep
+ * @module app/models/mysql/TokenAddress
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
@@ -29,7 +29,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '54': tokenAddressConstants.utilityBrandedTokenContract,
     '55': tokenAddressConstants.tokenGatewayContract,
     '56': tokenAddressConstants.tokenCoGatewayContract,
-    '57': tokenAddressConstants.simpleStakeContract
+    '57': tokenAddressConstants.simpleStakeContract,
+    '58': tokenAddressConstants.tokenRulesContract,
+    '59': tokenAddressConstants.tokenHolderMasterCopyContract,
+    '60': tokenAddressConstants.userWalletFactoryContract,
+    '61': tokenAddressConstants.gnosisSafeMultiSigMasterCopyContract
   },
   invertedKinds = util.invert(kinds),
   statuses = {

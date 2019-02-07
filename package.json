@@ -16,6 +16,7 @@
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@openstfoundation/mosaic-facilitator.js": "https://github.com/OpenSTFoundation/mosaic-facilitator.js.git#master",
     "@openstfoundation/brandedtoken.js": "https://github.com/OpenSTFoundation/brandedtoken.js.git#develop",
+    "@openstfoundation/openst.js": "https://github.com/OpenSTFoundation/openst.js.git#develop",
     "@ostdotcom/ost-dynamic-gas-price": "0.9.1-beta.1",
     "@ostdotcom/ost-price-oracle": "1.0.5-beta.8",
     "abi-decoder": "1.2.0",

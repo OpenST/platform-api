@@ -141,7 +141,11 @@ const steps = {
       workflowStepConstants.setCoGatewayInUbt,
       workflowStepConstants.setGatewayInBt,
       workflowStepConstants.deployGatewayComposer,
-      workflowStepConstants.setInternalActorForOwnerInUBT
+      workflowStepConstants.setInternalActorForOwnerInUBT,
+      workflowStepConstants.deployTokenRules,
+      workflowStepConstants.deployTokenHolderMasterCopy,
+      workflowStepConstants.deployUserWalletFactory,
+      workflowStepConstants.deployGnosisSafeMultiSigMasterCopy
     ]
   },
   [workflowStepConstants.setCoGatewayInUbt]: {
@@ -188,13 +192,61 @@ const steps = {
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.verifyEconomySetup]
   },
+  [workflowStepConstants.deployTokenRules]: {
+    kind: workflowStepConstants.deployTokenRules,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveTokenRules]
+  },
+  [workflowStepConstants.saveTokenRules]: {
+    kind: workflowStepConstants.saveTokenRules,
+    readDataFrom: [workflowStepConstants.deployTokenRules],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.deployTokenHolderMasterCopy]: {
+    kind: workflowStepConstants.deployTokenHolderMasterCopy,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveTokenHolderMasterCopy]
+  },
+  [workflowStepConstants.saveTokenHolderMasterCopy]: {
+    kind: workflowStepConstants.saveTokenHolderMasterCopy,
+    readDataFrom: [workflowStepConstants.deployTokenHolderMasterCopy],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.deployUserWalletFactory]: {
+    kind: workflowStepConstants.deployUserWalletFactory,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveUserWalletFactory]
+  },
+  [workflowStepConstants.saveUserWalletFactory]: {
+    kind: workflowStepConstants.saveUserWalletFactory,
+    readDataFrom: [workflowStepConstants.deployUserWalletFactory],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.deployGnosisSafeMultiSigMasterCopy]: {
+    kind: workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveGnosisSafeMultiSigMasterCopy]
+  },
+  [workflowStepConstants.saveGnosisSafeMultiSigMasterCopy]: {
+    kind: workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
+    readDataFrom: [workflowStepConstants.deployGnosisSafeMultiSigMasterCopy],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
   [workflowStepConstants.verifyEconomySetup]: {
     kind: workflowStepConstants.verifyEconomySetup,
     prerequisites: [
       workflowStepConstants.verifySetCoGatewayInUbt,
       workflowStepConstants.verifySetGatewayInBt,
       workflowStepConstants.verifyDeployGatewayComposer,
-      workflowStepConstants.verifySetInternalActorForOwnerInUBT
+      workflowStepConstants.verifySetInternalActorForOwnerInUBT,
+      workflowStepConstants.deployTokenRules,
+      workflowStepConstants.deployTokenHolderMasterCopy,
+      workflowStepConstants.deployUserWalletFactory,
+      workflowStepConstants.deployGnosisSafeMultiSigMasterCopy
     ],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.assignShards]
