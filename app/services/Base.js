@@ -9,6 +9,7 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
@@ -94,6 +95,56 @@ class ServicesBaseKlass {
 
     oThis.token = response.data;
     oThis.tokenId = oThis.token.id;
+  }
+
+  /**
+   * _validatePaginationParams - Validate Pagination Params
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validatePaginationParams() {
+    const oThis = this;
+
+    if (oThis.paginationIdentifier) {
+      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
+      if (!CommonValidators.validateDdbNextPagePayload(oThis.paginationParams)) {
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 's_b_2',
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_pagination_identifier'],
+            debug_options: {}
+          })
+        );
+      }
+    }
+
+    let defaultPageSize = oThis._defaultPageSize(),
+      maxPageSize = oThis._maxPageSize();
+
+    let limitVas = CommonValidators.validateAndSanitizeLimit(oThis.limit, defaultPageSize, maxPageSize);
+
+    if (!limitVas[0]) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 's_b_3',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_pagination_limit'],
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.limit = limitVas[1];
+  }
+
+  _defaultPageSize() {
+    throw 'Sub-class to implement';
+  }
+
+  _maxPageSize() {
+    throw 'Sub-class to implement';
   }
 }
 

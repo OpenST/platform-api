@@ -55,6 +55,26 @@ router.get('/:user_id', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'GetUser', 'r_t_2', null, dataFormatterFunc));
 });
 
+/* Get users*/
+router.get('/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserList;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let users = serviceResponse.data[resultType.users],
+      formattedUsers = [];
+
+    for (let index in users) {
+      formattedUsers.push(new UserFormatter(users[index]).perform().data);
+    }
+
+    serviceResponse.data['result_type'] = resultType.users;
+    serviceResponse.data[resultType.users] = formattedUsers;
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetUsersList', 'r_t_3', null, dataFormatterFunc));
+});
+
 /* Create device for user*/
 router.post('/:user_id/devices', function(req, res, next) {
   req.decodedParams.apiName = apiName.createUserDevice;

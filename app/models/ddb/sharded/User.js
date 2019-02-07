@@ -8,6 +8,8 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 const mustache = require('mustache');
@@ -239,6 +241,63 @@ class User extends Base {
   static sanitizeParamsToInsert(params) {
     params['status'] = tokenUserConstants.invertedKinds[params['status']];
     return params;
+  }
+
+  /**
+   * Get token users paginated data
+   *
+   * @param {Number} tokenId
+   * @param {Number} [limit] - optional
+   * @param [lastEvaluatedKey] - optional
+   *
+   * @returns {Promise<*>}
+   */
+  async getUsers(tokenId, limit, lastEvaluatedKey) {
+    const oThis = this,
+      shortNameForTokenId = oThis.shortNameFor('tokenId'),
+      dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId];
+
+    let queryParams = {
+      TableName: oThis.tableName(),
+      KeyConditionExpression: `${shortNameForTokenId} = :tid`,
+      ExpressionAttributeValues: {
+        ':tid': { [dataTypeForTokenId]: tokenId.toString() }
+      },
+      Limit: limit || pagination.defaultUserListPageSize
+    };
+    if (lastEvaluatedKey) {
+      queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
+    }
+
+    let response = await oThis.ddbServiceObj.query(queryParams);
+
+    if (response.isFailure()) {
+      return Promise.reject(response);
+    }
+
+    let row,
+      formattedRow,
+      users = [];
+
+    for (let i = 0; i < response.data.Items.length; i++) {
+      row = response.data.Items[i];
+      formattedRow = oThis._formatRowFromDynamo(row);
+      users.push(formattedRow);
+    }
+
+    let responseData = {
+      users: users
+    };
+
+    if (response.data.LastEvaluatedKey) {
+      responseData['nextPagePayload'] = {
+        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
+          lastEvaluatedKey: response.data.LastEvaluatedKey
+        })
+      };
+    }
+
+    return Promise.resolve(responseHelper.successWithData(responseData));
   }
 
   /**
