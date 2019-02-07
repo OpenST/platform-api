@@ -12,8 +12,6 @@ const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
-const mustache = require('mustache');
-
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
@@ -208,12 +206,85 @@ class User extends Base {
   }
 
   /**
-   * updateStatus - Updates status of device
+   * Update status of user from created to activating
+   *
+   * @param {String/Number} tokenId
+   * @param {String} userId
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatusFromCreatedToActivating(tokenId, userId) {
+    const oThis = this,
+      shortNameForTokenId = oThis.shortNameFor('tokenId'),
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForKind = oThis.shortNameFor('kind'),
+      shortNameForStatus = oThis.shortNameFor('status'),
+      dataTypeForKind = oThis.shortNameToDataType[shortNameForKind],
+      dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId],
+      dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
+      dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
+      userKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.userKind],
+      createdStatusInt = tokenUserConstants.invertedStatuses[tokenUserConstants.createdStatus],
+      activatingStatusInt = tokenUserConstants.invertedStatuses[tokenUserConstants.activatingStatus];
+
+    let finalResponse = {};
+
+    const updateQuery = {
+      TableName: oThis.tableName(),
+      Key: {
+        tid: { [dataTypeForTokenId]: tokenId.toString() },
+        uid: { [dataTypeForUserId]: userId.toString() }
+      },
+      ConditionExpression:
+        'attribute_exists(' +
+        shortNameForTokenId +
+        ') AND attribute_exists(' +
+        shortNameForUserId +
+        ')' +
+        ' AND #createdStatus = :createdStatus AND #userKind = :userKind',
+      ExpressionAttributeNames: {
+        '#createdStatus': shortNameForStatus,
+        '#activatingStatus': shortNameForStatus,
+        '#userKind': shortNameForKind
+      },
+      ExpressionAttributeValues: {
+        ':createdStatus': { [dataTypeForStatus]: createdStatusInt },
+        ':activatingStatus': { [dataTypeForStatus]: activatingStatusInt },
+        ':userKind': { [dataTypeForKind]: userKindInt }
+      },
+      UpdateExpression: 'SET #activatingStatus = :activatingStatus',
+      ReturnValues: 'ALL_NEW'
+    };
+
+    let updateQueryResponse = await oThis.ddbServiceObj.updateItem(updateQuery);
+
+    if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
+      return responseHelper.error({
+        internal_error_identifier: 'a_m_d_s_u_1',
+        api_error_identifier: 'conditional_check_failed',
+        debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    updateQueryResponse = updateQueryResponse.data.Attributes;
+
+    for (let attribute in updateQueryResponse) {
+      let attributeLongName = oThis.shortToLongNamesMap[attribute],
+        dataTypeForAttribute = oThis.shortNameToDataType[attribute];
+
+      finalResponse[attributeLongName] = updateQueryResponse[attribute][dataTypeForAttribute];
+    }
+
+    return Promise.resolve(responseHelper.successWithData(finalResponse));
+  }
+
+  /**
+   * Update status of user
    *
    * @param {Object} params
    * @param {String/Number} params.tokenId
-   * @param {String/Number} params.userId
-   * @param params.status {String} - {created}
+   * @param {String} params.userId
+   * @param {String} params.status: 'created' or 'activating' or 'activated'
    *
    * @return {Promise<void>}
    */
@@ -222,24 +293,21 @@ class User extends Base {
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       shortNameForUserId = oThis.shortNameFor('userId');
 
-    const createdKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.createdStatus];
-
     let conditionalExpression =
-      'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')' + '';
+      'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')';
 
-    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression, 'ALL_NEW');
+    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression);
   }
 
   /**
-   * Sanitize params to insert in User table.
+   * Sanitize params for insert.
    *
-   * @param {Object} params
-   * @param {String} params.status
+   * @param params
    *
    * @return {*}
    */
   static sanitizeParamsToInsert(params) {
-    params['status'] = tokenUserConstants.invertedKinds[params['status']];
+    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
     return params;
   }
 

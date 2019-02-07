@@ -8,9 +8,9 @@ const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions');
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 

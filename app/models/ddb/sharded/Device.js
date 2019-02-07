@@ -215,8 +215,8 @@ class Device extends Base {
    * Get device details.
    *
    * @param {Object} params
-   * @param {Integer} params.userId - uuid
-   * @param {Array} params.walletAddresses - array of addresses
+   * @param {Integer} params.userId: uuid
+   * @param {Array} params.walletAddresses: array of addresses
    *
    * @return {Promise<void>}
    */
