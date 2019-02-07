@@ -4,10 +4,14 @@
  *
  * @module app/services/user/CreateTokenHolder
  */
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 /**
@@ -50,7 +54,19 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis.updateUserStatus();
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return Promise.resolve(
+      responseHelper.successWithData({
+        [resultType.user]: {
+          userId: 'test123',
+          tokenId: 'test123',
+          tokenHolderAddress: 'test123',
+          multisigAddress: 'test123',
+          kind: '1',
+          updatedTimestamp: 'test123',
+          status: '2'
+        }
+      })
+    );
   }
 
   /**
@@ -71,5 +87,7 @@ class CreateTokenHolder extends ServiceBase {
     return CreateTokenHolder;
   }
 }
+
+InstanceComposer.registerAsShadowableClass(CreateTokenHolder, coreConstants.icNameSpace, 'CreateTokenHolder');
 
 module.exports = {};
