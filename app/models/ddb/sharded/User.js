@@ -220,12 +220,22 @@ class User extends Base {
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       shortNameForUserId = oThis.shortNameFor('userId');
 
-    let conditionalExpression =
-      'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')';
+    const createdKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.createdStatus];
 
-    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression);
+    let conditionalExpression =
+      'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')' + '';
+
+    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression, 'ALL_NEW');
   }
 
+  /**
+   * Sanitize params to insert in User table.
+   *
+   * @param {Object} params
+   * @param {String} params.status
+   *
+   * @return {*}
+   */
   static sanitizeParamsToInsert(params) {
     params['status'] = tokenUserConstants.invertedKinds[params['status']];
     return params;

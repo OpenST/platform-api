@@ -378,10 +378,12 @@ class ModelBaseKlass {
    * This function overrides specific attributes
    *
    * @param {Object} data
+   * @param {String} conditionExpression
+   * @param {String} [returnValues]: 'ALL_OLD' or 'UPDATED_OLD' or 'ALL_NEW' or 'UPDATED_NEW'. Defaults to NONE.
    *
    * @returns {Promise<void>}
    */
-  async updateItem(data, conditionExpression) {
+  async updateItem(data, conditionExpression, returnValues) {
     const oThis = this;
 
     let formattedQuery = {};
@@ -390,7 +392,7 @@ class ModelBaseKlass {
     formattedQuery['ExpressionAttributeValues'] = {};
 
     formattedQuery['Key'] = oThis._keyObj(data);
-    formattedQuery['ReturnValues'] = 'NONE';
+    formattedQuery['ReturnValues'] = returnValues || 'NONE';
     formattedQuery['TableName'] = oThis.tableName();
 
     let keys = Object.keys(formattedQuery['Key']),
@@ -432,7 +434,7 @@ class ModelBaseKlass {
       return afterUpdateResponse;
     }
 
-    return afterUpdateResponse;
+    return response;
   }
 
   /**

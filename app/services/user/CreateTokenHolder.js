@@ -1,7 +1,8 @@
 'use strict';
-
-/*
- * This service helps in adding Token User in our System
+/**
+ * This service helps in adding Token holders in our System.
+ *
+ * @module app/services/user/CreateTokenHolder
  */
 
 const rootPrefix = '../../..',
@@ -9,32 +10,65 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
-class Create extends ServiceBase {
+/**
+ * Class for creating token holder for user.
+ *
+ * @class
+ */
+class CreateTokenHolder extends ServiceBase {
   /**
-   * @constructor
+   * Constructor for creating token holder for user.
    *
    * @param params
-   * @param params.client_id              {Number} - client Id
-   * @param params.kind              {String} - Kind (Company/User)
+   * @param {String} params.user_id: user Id
+   * @param {Number} params.client_id: client Id
+   * @param {String} params.kind: Kind (Company/User)
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
 
+    oThis.userId = params.user_id;
+
     oThis.clientId = params.client_id;
-    oThis.kind = params.kind || tokenUserConstants.userKind;
 
     oThis.shardNumbersMap = {};
   }
 
   /**
-   * Perform - perform user creation
+   * Perform: perform token holder creation
    *
    * @return {Promise<void>}
    */
   async _asyncPerform() {
+    const oThis = this;
+
+    await oThis._fetchTokenDetails();
+
+    await oThis.updateUserStatus();
+
     return Promise.resolve(responseHelper.successWithData({}));
+  }
+
+  /**
+   * Update user status from created to activating after performing certain validations.
+   *
+   * @return {Promise<void>}
+   */
+  async updateUserStatus() {
+    const oThis = this;
+  }
+
+  /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    return CreateTokenHolder;
   }
 }
 

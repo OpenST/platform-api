@@ -89,7 +89,9 @@ class ShardByToken extends Base {
    * Primary key of the table.
    *
    * @param params
+   *
    * @returns {Object}
+   *
    * @private
    */
   _keyObj(params) {
