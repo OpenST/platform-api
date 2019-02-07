@@ -39,7 +39,7 @@ source set_env_vars.sh
 
 ## Seed config strategy for origin as well as auxiliary chain.
 
-* Clear cache. [Sunil: Why are we keeping memcache in env and database?]
+* Clear cache.
 ```bash
 node  executables/flush/sharedMemcached.js
 ```
@@ -56,7 +56,7 @@ node  executables/flush/sharedMemcached.js
 
 * Activate configurations
 ```bash
-# Activate Global configurations [Sunil: Why group id is same as chain id? Can't we have multiple groups?]
+# Activate Global configurations
 ./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
 ```
 
@@ -70,12 +70,12 @@ node  executables/flush/sharedMemcached.js
 
 * Activate configurations
 ```bash
-# Activate Auxiliary Chain configurations [Sunil: Why group id is same as chain id? Can't we have multiple groups?]
+# Activate Auxiliary Chain configurations
 ./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
 ```
 
 
-## [Only Development] Start Dynamo DB
+## Start Dynamo DB
 ```bash
 rm ~/dynamodb_local_latest/shared-local-instance.db
 
@@ -84,46 +84,28 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
 
 ### Block-scanner Setup
 
-* Create origin DDB Tables (Run the addChain service and pass all the necessary parameters): 
+* Create all the shared tables by running the following script: 
     ```bash
     source set_env_vars.sh
-    # For origin chain [Sunil: Let's move them in Devops]
+    # For origin chain
     node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
-    # For origin chain [Sunil: Let's move them in Devops]
-    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2 
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
     ```
-    
-* Create Aux DDB Tables (Run the addChain service and pass all the necessary parameters):
+* Run the addChain service and pass all the necessary parameters:
     ```bash
     source set_env_vars.sh
-    # For auxiliary chain [Sunil: Let's move them in Devops]
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000 
-    # For auxiliary chain [Sunil: Let's move them in Devops]
+    # For origin chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2 
+    # For auxiliary chain
     node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2
-    ```   
+    ```
     * Mandatory parameters: chainId, networkId
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
-    
-### [Except Development] Mark Origin Chain highest block to void full chain parsing
-
-* Create entry in DDB table for highest block on origin chain. [Sunil: Let's move them in Devops]
-
-```bash
-  source set_env_vars.sh
-  node executables/oneTimers/insertInDDBForOriginHighestBlock.js
-```
 
 ### Origin Chain Setup
 
-* Generate master internal funder address for this ENV
-```bash
-  source set_env_vars.sh
-  node devops/exec/chainSetup.js --generate-master-internal-address --chain-id 3
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
-```
-
-* [Only Development] Setup Origin GETH and fund necessary addresses. [Sunil: Let's move it to local setup folder and rename to setupGeth.js]
+* Setup Origin GETH and fund necessary addresses.
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/gethAndAddresses.js --originChainId 1000
@@ -131,23 +113,7 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
-* [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
-```bash
-  source set_env_vars.sh
-  node devops/exec/chainSetup.js --fund-master-internal-funder --chain-id 3
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
-```
-
-* Generate origin address and fund them
-```bash
-  source set_env_vars.sh
-  node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
-```
-
-* [Only Development] Start Origin GETH with this script.
+* Start Origin GETH with this script.
 ```bash
   sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
@@ -155,18 +121,17 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/exceptProductionMain.js --originChainId 1000 [Sunil: Let's move them in Devops. Do we want to use transferAmountChain.js?]
+  node executables/setup/origin/exceptProductionMain.js --originChainId 1000
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
 Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
-* Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
+* Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev-environment].
 Granter address gets ETH and OST in this step.
 ```bash
   source set_env_vars.sh
-  [Sunil: Let's move them in Devops. Create Granter address separately from devops, with sandbox condition. Also add sandbox consdition while funding. Also pass --ethOwnerPrivateKey in this script]
   node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xabc...'
 ```
 
@@ -176,12 +141,12 @@ Granter address gets ETH and OST in this step.
   node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
-* Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
+* Fund master internal funder with OSTs
     - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
     - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...' [Sunil: rename funderPrivateKey to stOwnerPrivateKey]
+  node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...'
 ```
 
 * Setup Origin Contracts
@@ -240,6 +205,13 @@ And add it to tables using following script.
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
    
 ### Run block-scanner
+
+* [Only for devops] Create entry in DDB table for highest block on origin chain.
+
+```bash
+  source set_env_vars.sh
+  node executables/oneTimers/insertInDDBForOriginHighestBlock.js
+```
 
 * Run Auxiliary Transaction Parser
 ```bash
