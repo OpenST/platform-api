@@ -2,7 +2,7 @@
 /**
  * This executable adds the required shards for a particular chain.
  *
- * @module /tools/localSetup/block-scanner/addChain
+ * @module /executables/setup/blockScanner/addChain
  */
 const program = require('commander');
 
@@ -25,7 +25,7 @@ program.on('--help', () => {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2'
+    '    node executables/setup/blockScanner/addChain.js --chainId 1000 --networkId 1 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2'
   );
   logger.log('');
   logger.log('');
@@ -60,7 +60,7 @@ class AddChain {
     const oThis = this;
 
     return oThis.asyncPerform().catch(function(err) {
-      logger.error(' In catch block of tools/localSetup/block-scanner/addChain.js');
+      logger.error(' In catch block of executables/setup/blockScanner/addChain.js');
 
       return responseHelper.error({
         internal_error_identifier: 't_ls_bs_ac_1',

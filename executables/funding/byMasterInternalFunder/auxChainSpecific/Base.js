@@ -2,7 +2,7 @@
 /**
  * Base class for aux chain specific by chain owner funding crons.
  *
- * @module executables/funding/byChainOwner/auxChainSpecific/Base
+ * @module executables/funding/byMasterInternalFunder/auxChainSpecific/Base
  */
 
 const rootPrefix = '../../../..',

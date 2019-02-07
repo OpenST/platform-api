@@ -2,7 +2,7 @@
 /**
  * Cron to fund eth by chainOwner to chain specific inter chain facilitator addresses
  *
- * @module executables/funding/byChainOwner/auxChainSpecific/interChainFacilitatorAddresses
+ * @module executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses
  *
  * This cron expects originChainId and auxChainIds as parameter in the params.
  */
@@ -16,7 +16,8 @@ const rootPrefix = '../../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  AuxChainSpecificFundingCronBase = require(rootPrefix + '/executables/funding/byChainOwner/auxChainSpecific/Base');
+  AuxChainSpecificFundingCronBase = require(rootPrefix +
+    '/executables/funding/byMasterInternalFunder/auxChainSpecific/Base');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -25,7 +26,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/funding/byChainOwner/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 16'
+    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 16'
   );
   logger.log('');
   logger.log('');

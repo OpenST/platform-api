@@ -12,7 +12,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/setup/origin/gethAndAddresses.js --originChainId 1000');
+  logger.log('    node tools/localSetup/origin/setupGeth.js --originChainId 1000');
   logger.log('');
   logger.log('');
 });
@@ -22,7 +22,7 @@ if (!program.originChainId) {
   process.exit(1);
 }
 
-new OriginGethSetup(program.originChainId).perform().then(function(response) {
-  logger.log('Generate Addresses Response:', response);
+new OriginGethSetup(program.originChainId).perform().then(function() {
+  logger.log('Origin chain setup DONE!');
   process.exit(0);
 });
