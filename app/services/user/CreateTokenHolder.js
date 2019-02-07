@@ -34,6 +34,9 @@ class CreateTokenHolder extends ServiceBase {
    * @param {String} params.user_id: user Id
    * @param {Number} params.client_id: client Id
    * @param {Number} params.device_address: device address
+   * @param {Array} params.session_addresses: session address
+   * @param {String/Number} params.expiration_height: expiration height
+   * @param {String/Number} params.spending_limit: spending limit
    *
    * @constructor
    */
@@ -45,6 +48,9 @@ class CreateTokenHolder extends ServiceBase {
     oThis.userId = params.user_id;
     oThis.clientId = params.client_id;
     oThis.deviceAddress = params.device_address;
+    oThis.sessionAddresses = params.session_addresses;
+    oThis.expirationHeight = params.expiration_height;
+    oThis.spendingLimit = params.spending_limit;
 
     oThis.userShardNumber = null;
     oThis.deviceShardNumber = null;
@@ -187,6 +193,7 @@ class CreateTokenHolder extends ServiceBase {
         })
       );
     }
+
     if (!deviceDetails.data[oThis.deviceAddress]) {
       await oThis._rollbackUserStatusToCreated();
       logger.error('Invalid device address.');

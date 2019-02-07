@@ -1,19 +1,25 @@
 'use strict';
 
-const rootPrefix = '../../../..',
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  util = require(rootPrefix + '/lib/util'),
-  Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
-
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
+const rootPrefix = '../../../..',
+  util = require(rootPrefix + '/lib/util'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  sessionConstants = require(rootPrefix + '/lib/globalConstant/session');
+
+/**
+ * Class for session model.
+ *
+ * @class
+ */
 class Session extends Base {
   /**
+   * Constructor for session model.
    *
    * @param {Object} params
    * @param {Number} params.chainId: chainId
@@ -141,7 +147,8 @@ class Session extends Base {
   /**
    * Creates new session in Dynamo
    *
-   * @param params
+   * @param {Object} params
+   *
    * @return {Promise}
    */
   async createSession(params) {
