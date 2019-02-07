@@ -12,7 +12,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
@@ -56,7 +56,7 @@ class SetupSimpleTokenBase {
 
     if (basicHelper.isProduction() && basicHelper.isMainSubEnvironment()) {
       return responseHelper.error({
-        internal_error_identifier: 't_cs_o_st_b_2',
+        internal_error_identifier: 't_cs_o_st_b_1',
         api_error_identifier: 'action_prohibited_in_prod_main',
         debug_options: {}
       });
@@ -69,7 +69,7 @@ class SetupSimpleTokenBase {
         logger.error('tools/chainSetup/origin/simpleToken/Base::perform::catch');
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_o_st_b_1',
+          internal_error_identifier: 't_cs_o_st_b_2',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -194,12 +194,20 @@ class SetupSimpleTokenBase {
   async getSimpleTokenContractAddr() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.baseContractKind
-    });
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    return fetchAddrRsp.data['address'];
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_o_st_b_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
   }
 }
 

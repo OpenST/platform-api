@@ -26,6 +26,7 @@ class ActivateGateway extends Base {
    * @param {String} params.gasPrice -  gas price to use
    * @param {String} params.gatewayAddress - gateway contract address which is to be activated
    * @param {String} params.coGatewayAddress - co gateway contract address (aux chain's gateway contract address)
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -56,7 +57,8 @@ class ActivateGateway extends Base {
     let txOptions = {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce']
+      nonce: nonceRsp.data['nonce'],
+      gas: oThis.gas
     };
 
     let helperObj = new ActivateGateway.GatewayHelper(oThis._web3Instance),

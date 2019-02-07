@@ -12,21 +12,20 @@ const rootPrefix = '../../..',
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   btMintingStepsConfig = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/brandedTokenConfig'),
-  FetchStakeRequestHash = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/FetchStakeRequestHash'),
-  AddStakerSignedTrx = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/AddStakerSignedTransaction'),
-  AcceptStakeByWorker = require(rootPrefix + '/lib/stakeMintManagement/brandedToken/AcceptStakeByWorker'),
-  CheckStepStatus = require(rootPrefix + '/lib/stakeMintManagement/common/CheckStepStatus'),
+  FetchStakeRequestHash = require(rootPrefix + '/lib/stakeAndMint/brandedToken/FetchStakeRequestHash'),
+  RecordStakerTx = require(rootPrefix + '/lib/stakeAndMint/brandedToken/RecordStakerTx'),
+  AcceptStakeByWorker = require(rootPrefix + '/lib/stakeAndMint/brandedToken/AcceptStakeRequest'),
+  CheckMintStatus = require(rootPrefix + '/lib/stakeAndMint/brandedToken/CheckMintStatus'),
   CommitStateRoot = require(rootPrefix + '/lib/stateRootSync/CommitStateRoot'),
   UpdateStateRootCommits = require(rootPrefix + '/lib/stateRootSync/UpdateStateRootCommits'),
-  ProgressStake = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressStakeOnGateway'),
-  ProgressMint = require(rootPrefix + '/lib/stakeMintManagement/common/ProgressMintOnCoGateway'),
-  ProveGateway = require(rootPrefix + '/lib/stakeMintManagement/common/ProveGatewayOnCoGateway'),
-  ConfirmStakeIntent = require(rootPrefix + '/lib/stakeMintManagement/common/ConfirmStakeIntentOnCoGateway'),
-  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeMintManagement/common/FetchStakeIntentMessageHash'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ProgressStake = require(rootPrefix + '/lib/stakeAndMint/brandedToken/ProgressStake'),
+  ProgressMint = require(rootPrefix + '/lib/stakeAndMint/brandedToken/ProgressMint'),
+  ProveGateway = require(rootPrefix + '/lib/stakeAndMint/brandedToken/ProveGateway'),
+  ConfirmStakeIntent = require(rootPrefix + '/lib/stakeAndMint/brandedToken/ConfirmStakeIntent'),
+  FetchStakeIntentMessage = require(rootPrefix + '/lib/stakeAndMint/common/FetchStakeIntentMessageHash'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  CheckGatewayComposerAllowance = require(rootPrefix +
-    '/lib/stakeMintManagement/brandedToken/CheckGatewayComposerAllowance');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  CheckGatewayComposerAllowance = require(rootPrefix + '/lib/stakeAndMint/brandedToken/CheckGatewayComposerAllowance');
 
 /**
  * Class for branded token mint router
@@ -78,30 +77,22 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.btStakeAndMintInit:
         return oThis._initializeBTStakeMint();
 
-      case workflowStepConstants.stakerRequestStakeTrx:
-        oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
-        return new AddStakerSignedTrx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
-
-      case workflowStepConstants.fetchStakeRequestHash:
-        return new FetchStakeRequestHash(oThis.requestParams).perform();
-
       case workflowStepConstants.approveGatewayComposerTrx:
         oThis.requestParams.transactionHash = oThis.requestParams.approveTransactionHash;
-        return new AddStakerSignedTrx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
+        return new RecordStakerTx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.checkGatewayComposerAllowance:
         return new CheckGatewayComposerAllowance(oThis.requestParams).perform();
 
+      case workflowStepConstants.recordRequestStakeTx:
+        oThis.requestParams.transactionHash = oThis.requestParams.requestStakeTransactionHash;
+        return new RecordStakerTx(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
+
+      case workflowStepConstants.fetchStakeRequestHash:
+        return new FetchStakeRequestHash(oThis.requestParams).perform();
+
       case workflowStepConstants.acceptStake:
         return new AcceptStakeByWorker(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
-
-      case workflowStepConstants.markSuccess:
-        logger.step('*** Mark branded token stake and mint as success');
-        return oThis.handleSuccess();
-
-      case workflowStepConstants.markFailure:
-        logger.step('*** Mark branded token stake and mint as failed');
-        return oThis.handleFailure();
 
       case workflowStepConstants.checkStakeStatus:
       case workflowStepConstants.checkProveGatewayStatus:
@@ -110,7 +101,10 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.checkProgressMintStatus:
         let stepParams = {};
         Object.assign(stepParams, oThis.requestParams, { currentStep: oThis.stepKind });
-        return new CheckStepStatus(stepParams).perform();
+        return new CheckMintStatus(stepParams).perform();
+
+      case workflowStepConstants.fetchStakeIntentMessageHash:
+        return new FetchStakeIntentMessage(oThis.requestParams).perform();
 
       case workflowStepConstants.commitStateRoot:
         let params = { fromOriginToAux: 1 };
@@ -138,8 +132,13 @@ class BtMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.progressMint:
         return new ProgressMint(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      case workflowStepConstants.fetchStakeIntentMessageHash:
-        return new FetchStakeIntentMessage(oThis.requestParams).perform();
+      case workflowStepConstants.markSuccess:
+        logger.step('*** Mark branded token stake and mint as success');
+        return oThis.handleSuccess();
+
+      case workflowStepConstants.markFailure:
+        logger.step('*** Mark branded token stake and mint as failed');
+        return oThis.handleFailure();
 
       default:
         return Promise.reject(
@@ -190,15 +189,22 @@ class BtMintRouter extends WorkflowRouterBase {
   async _initializeBTStakeMint() {
     const oThis = this;
 
-    let params = {
-      chainId: oThis.requestParams.originChainId,
-      auxChainId: oThis.requestParams.auxChainId,
-      kind: chainAddressConstants.facilitator
-    };
-    let resp = await new ChainAddressModel().fetchAddress(params);
-    if (resp.isSuccess()) {
-      Object.assign(oThis.requestParams, { facilitator: resp.data.address });
+    // Fetch all addresses associated to auxChainId.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.requestParams.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_wr_snm_btr_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
     }
+
+    Object.assign(oThis.requestParams, {
+      facilitator: chainAddressesRsp.data[chainAddressConstants.interChainFacilitatorKind].address
+    });
 
     return oThis.insertInitStep();
   }

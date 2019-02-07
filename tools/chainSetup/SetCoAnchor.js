@@ -1,18 +1,19 @@
 'use strict';
-
 /**
- * set co anchor of anchor contract
+ * Set co anchor of anchor contract
  *
  * @module tools/chainSetup/SetCoAnchor
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../..',
-  OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   SetCoAnchorHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/SetCoAnchor'),
@@ -64,7 +65,7 @@ class SetCoAnchor {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_sac_1',
+          internal_error_identifier: 't_cs_sca_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -83,17 +84,18 @@ class SetCoAnchor {
 
     await oThis._initializeVars();
 
-    let signerAddress = await oThis._getOwnerAddr(),
-      anchorContractAddress = await oThis._getAnchorContractAddr(),
-      coAnchorContractAddress = await oThis._getCoAnchorContractAddr();
+    await oThis._getOwnerAddr();
+
+    await oThis._getAnchorContractAddresses();
 
     let params = {
       chainId: oThis.chainId,
-      signerAddress: signerAddress,
+      signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      anchorContractAddress: anchorContractAddress,
-      coAnchorContractAddress: coAnchorContractAddress
+      anchorContractAddress: oThis.anchorContractAddress,
+      coAnchorContractAddress: oThis.coAnchorContractAddress,
+      gas: contractConstants.setCoAnchorGas
     };
 
     let helper = new SetCoAnchorHelper(params);
@@ -123,6 +125,11 @@ class SetCoAnchor {
       case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
         oThis.originChainId = oThis._configStrategyObject.originChainId;
+        oThis.associatedAuxChainId = 0;
+        oThis.anchorOrgContractOwnerKind = chainAddressConstants.originAnchorOrgContractOwnerKind;
+        // Define anchor and co-anchor addresses here.
+        oThis.anchorContractAddressKind = chainAddressConstants.originAnchorContractKind;
+        oThis.coAnchorContractAddressKind = chainAddressConstants.auxAnchorContractKind;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           garPriceRsp = await gasPriceCacheObj.fetch();
@@ -133,6 +140,12 @@ class SetCoAnchor {
       case coreConstants.auxChainKind:
         oThis.chainId = oThis.auxChainId;
         oThis.originChainId = oThis._configStrategyObject.originChainId;
+        oThis.associatedAuxChainId = oThis.auxChainId;
+        oThis.anchorOrgContractOwnerKind = chainAddressConstants.auxAnchorOrgContractOwnerKind;
+        // Define anchor and co-anchor addresses here.
+        oThis.anchorContractAddressKind = chainAddressConstants.auxAnchorContractKind;
+        oThis.coAnchorContractAddressKind = chainAddressConstants.originAnchorContractKind;
+
         oThis.gasPrice = contractConstants.zeroGasPrice;
         oThis.otherChainKind = coreConstants.originChainKind;
         break;
@@ -153,21 +166,20 @@ class SetCoAnchor {
   async _getOwnerAddr() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.ownerKind
-    });
+    // Fetch all addresses associated with mentioned chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.associatedAuxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_da_3',
+          internal_error_identifier: 't_cs_sca_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
+    oThis.signerAddress = chainAddressesRsp.data[oThis.anchorOrgContractOwnerKind].address;
   }
 
   /***
@@ -179,55 +191,24 @@ class SetCoAnchor {
    * @return {Promise}
    *
    */
-  async _getAnchorContractAddr() {
+  async _getAnchorContractAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.originChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.originAnchorContractKind
-    });
+    // Fetch all addresses associated with aux chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_da_4',
+          internal_error_identifier: 't_cs_sca_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get co anchor contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getCoAnchorContractAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.auxAnchorContractKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_da_5',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
+    oThis.anchorContractAddress = chainAddressesRsp.data[oThis.anchorContractAddressKind].address;
+    oThis.coAnchorContractAddress = chainAddressesRsp.data[oThis.coAnchorContractAddressKind].address;
   }
 
   /**

@@ -32,6 +32,7 @@ class DeployGateway extends Base {
    * @param {String} params.organizationAddress - organization address
    * @param {String} params.messageBusLibAddress
    * @param {String} params.gatewayLibAddress
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -68,7 +69,8 @@ class DeployGateway extends Base {
     let txOptions = {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce']
+      nonce: nonceRsp.data['nonce'],
+      gas: oThis.gas
     };
 
     let helperObj = new DeployGateway.GatewayHelper(oThis._web3Instance),
@@ -103,7 +105,7 @@ class DeployGateway extends Base {
     oThis._removeKeyFromWallet(signerKey);
 
     let gatewayContractAddress = deployRsp.data['contractAddress'];
-    deployRsp.data[chainAddressConstants.simpleStakeContractKind] = await oThis.stakeVault(gatewayContractAddress);
+    deployRsp.data[chainAddressConstants.stSimpleStakeContractKind] = await oThis.stakeVault(gatewayContractAddress);
 
     return Promise.resolve(deployRsp);
   }

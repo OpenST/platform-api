@@ -1,13 +1,16 @@
 'use strict';
-
 /**
  * Deploy simpleToken
  *
  * @module tools/chainSetup/origin/simpleToken/Deploy
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer,
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
+  CoreBins = require(rootPrefix + '/config/CoreBins'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -15,8 +18,8 @@ const rootPrefix = '../../../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   DeployerKlass = require(rootPrefix + '/tools/helpers/Deploy'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
-  CoreBins = require(rootPrefix + '/config/CoreBins');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
 
 /**
  *
@@ -56,7 +59,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     await oThis._insertIntoChainSetupLogs(chainSetupConstants.deployBaseContractStepKind, deployerResponse);
 
-    oThis._insertIntoChainAddress(deployerResponse);
+    await oThis._insertIntoChainAddress(deployerResponse);
 
     return deployerResponse;
   }
@@ -77,7 +80,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
     let deployParams = {
       deployerAddr: oThis.signerAddress,
       gasPrice: oThis.gasPrice,
-      gas: 1164898,
+      gas: contractConstants.deploySimpleTokenGas,
       web3Provider: oThis.web3Instance,
       contractBin: CoreBins.simpleToken,
       contractAbi: CoreAbis.simpleToken,
@@ -115,10 +118,15 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     await new ChainAddressModel().insertAddress({
       address: deployerResponse.data['contractAddress'],
-      chainId: oThis.configStrategyObject.originChainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: coreConstants.originChainKind
+      associatedAuxChainId: 0,
+      addressKind: chainAddressConstants.stContractKind,
+      deployedChainId: oThis.configStrategyObject.originChainId,
+      deployedChainKind: coreConstants.originChainKind,
+      status: chainAddressConstants.activeStatus
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: 0 }).clear();
   }
 }
 

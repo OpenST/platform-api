@@ -1,16 +1,18 @@
 'use strict';
-
 /**
  * Deploy simpleToken
  *
  * @module tools/chainSetup/origin/simpleTokenPrime/Deploy
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer,
   SetupSTPrimeBase = require(rootPrefix + '/tools/chainSetup/aux/simpleTokenPrime/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -45,25 +47,26 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
   async _asyncPerform() {
     const oThis = this;
 
-    let deployerAddress = await oThis._getDeployerAddr(),
-      simpleTokenAddress = await oThis._getSimpleTokenContractAddr(),
-      organizationAddress = await oThis._getSTPrimeOrgContractAddr(),
-      deployerKey = await oThis._fetchPrivateKey(deployerAddress);
+    await oThis._fetchOriginAddresses();
+    await oThis._fetchAuxAddresses();
+
+    let deployerKey = await oThis._fetchPrivateKey(oThis.deployerAddress);
 
     oThis._addKeyToWallet(deployerKey);
 
-    let nonceRsp = await oThis._fetchNonce(deployerAddress);
+    let nonceRsp = await oThis._fetchNonce(oThis.deployerAddress);
 
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
-      from: deployerAddress,
+      from: oThis.deployerAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.chainId
+      chainId: oThis.chainId,
+      gas: contractConstants.deployStPrimeGas
     };
 
     let helperObj = new SetupSTPrimeBase.STPrimeSetupHelper(oThis._web3Instance),
       deployerResponse = await helperObj
-        .deploy(simpleTokenAddress, organizationAddress, txOptions)
+        .deploy(oThis.simpleTokenAddress, oThis.organizationAddress, txOptions)
         .then(function(txReceipt) {
           logger.debug('txReceipt', txReceipt);
           return responseHelper.successWithData({
@@ -75,7 +78,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
         .catch(function(errorResponse) {
           logger.error(errorResponse);
           return responseHelper.error({
-            internal_error_identifier: 't_cos_so_1',
+            internal_error_identifier: 't_cs_a_stp_d_1',
             api_error_identifier: 'unhandled_catch_response',
             debug_options: {}
           });
@@ -88,8 +91,8 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
       processedParams: {
         chainId: oThis._auxChainId,
         deployerAddress: oThis.deployerAddress,
-        simpleTokenAddress: simpleTokenAddress,
-        organizationAddress: organizationAddress
+        simpleTokenAddress: oThis.simpleTokenAddress,
+        organizationAddress: oThis.organizationAddress
       }
     };
 
@@ -100,91 +103,59 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
     return deployerResponse;
   }
 
-  /***
-   *
-   * get deployer addr
+  /**
+   * fetch required origin addresses
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getDeployerAddr() {
+  async _fetchOriginAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
-      kind: chainAddressConstants.deployerKind
-    });
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_o_stp_d_1',
+          internal_error_identifier: 't_cs_a_stp_d_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
+    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
   }
 
-  /***
-   *
-   * get simple token contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getSimpleTokenContractAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._originChainId,
-      kind: chainAddressConstants.baseContractKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_o_stp_d_2',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get STPrime org contract addr
+  /**
+   * fetch required aux addresses
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getSTPrimeOrgContractAddr() {
+  async _fetchAuxAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis._auxChainId,
-      kind: chainAddressConstants.baseContractOrganizationKind
-    });
+    // Fetch all addresses associated with aux chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis._auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_o_stp_d_3',
+          internal_error_identifier: 't_cs_a_stp_d_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
+    oThis.deployerAddress = chainAddressesRsp.data[chainAddressConstants.auxDeployerKind].address;
+    oThis.organizationAddress = chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractKind].address;
   }
 
   /***
@@ -202,10 +173,15 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
 
     await new ChainAddressModel().insertAddress({
       address: deployerResponse.data['contractAddress'],
-      chainId: oThis._auxChainId,
-      kind: chainAddressConstants.baseContractKind,
-      chainKind: coreConstants.auxChainKind
+      associatedAuxChainId: oThis._auxChainId,
+      addressKind: chainAddressConstants.stPrimeContractKind,
+      deployedChainId: oThis._auxChainId,
+      deployedChainKind: coreConstants.auxChainKind,
+      status: chainAddressConstants.activeStatus
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis._auxChainId }).clear();
   }
 }
 

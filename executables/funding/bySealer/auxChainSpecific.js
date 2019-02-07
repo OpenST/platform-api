@@ -14,11 +14,9 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -35,14 +33,6 @@ if (!program.cronProcessId) {
   program.help();
   process.exit(1);
 }
-
-// Config for addresses which need to be funded.
-const fundingConfig = {
-  [chainAddressConstants.facilitator]: '0.53591',
-  [chainAddressConstants.adminKind]: '0.00355',
-  [chainAddressConstants.deployerKind]: '0.00000',
-  [tokenAddressConstants.auxFunderAddressKind]: '0.00240'
-};
 
 /**
  * Class to fund eth by chain owner.
@@ -121,6 +111,9 @@ class FundBySealerAuxChainSpecific extends CronBase {
     logger.step('Fetching all chainIds.');
     await oThis._fetchChainIds();
 
+    logger.step('fetch master internal funder address');
+    await oThis._fetchMasterInternalFunderAddress();
+
     logger.step('Transferring StPrime to auxChainId addresses.');
     await oThis._transferStPrimeToAll();
 
@@ -143,6 +136,32 @@ class FundBySealerAuxChainSpecific extends CronBase {
     } else {
       oThis.chainIds = oThis.auxChainIds;
     }
+  }
+
+  /**
+   * Fetch master internal funder address.
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _fetchMasterInternalFunderAddress() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bs_acs_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.masterInternalFunderAddress = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
   }
 
   /**
@@ -219,18 +238,29 @@ class FundBySealerAuxChainSpecific extends CronBase {
   async _fetchAddressesForChain(auxChainId) {
     const oThis = this;
 
-    // fetch chain owner address
-    await oThis._fetchChainOwnerAddress();
-
     // Fetch all addresses associated to auxChainId.
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddresses({
-      chainId: auxChainId,
-      kinds: [chainAddressConstants.sealerKind]
-    });
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    oThis.kindToAddressMap = fetchAddrRsp.data.addresses;
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bs_acs_3',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
 
-    return fetchAddrRsp.data.addresses[chainAddressConstants.sealerKind];
+    let sealerAddresses = [],
+      sealerAddressEntities = chainAddressesRsp.data[chainAddressConstants.auxSealerKind];
+
+    for (let index = 0; index < sealerAddressEntities.length; index++) {
+      sealerAddresses.push(sealerAddressEntities[index].address);
+    }
+
+    oThis.kindToAddressMap[chainAddressConstants.auxSealerKind] = sealerAddresses;
+
+    return sealerAddresses;
   }
 
   /**
@@ -244,7 +274,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
     oThis.transferDetails = [];
 
     // Fetch addresses from map.
-    const sealerAddresses = oThis.kindToAddressMap[chainAddressConstants.sealerKind];
+    const sealerAddresses = oThis.kindToAddressMap[chainAddressConstants.auxSealerKind];
 
     for (let i = 0; i < sealerAddresses.length; i++) {
       let sealerAddress = sealerAddresses[i];
@@ -257,7 +287,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
       if (basicHelper.convertToWei(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
         oThis.transferDetails.push({
           from: sealerAddress,
-          to: oThis.chainOwnerAddress,
+          to: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
             .convertToWei(sealerAddressBalance)
             .minus(basicHelper.convertToWei(1))
@@ -265,27 +295,6 @@ class FundBySealerAuxChainSpecific extends CronBase {
         });
       }
     }
-  }
-
-  async _fetchChainOwnerAddress() {
-    const oThis = this;
-
-    // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new OriginChainAddressesCache(),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
-
-    logger.debug('chainAddressesRsp-----', chainAddressesRsp);
-
-    if (chainAddressesRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_f_bco_spe_2',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    oThis.chainOwnerAddress = chainAddressesRsp.data[chainAddressConstants.chainOwnerKind];
   }
 }
 

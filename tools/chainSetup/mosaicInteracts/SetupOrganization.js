@@ -28,6 +28,7 @@ class SetupOrganization extends Base {
    * @param {String} params.ownerAddress - address which would become owner of this organization contract
    * @param {String} params.adminAddress - address which would become admin of this organization contract
    * @param {Array<String>} params.workerAddresses - whitelisted worker addresses of this organization contract
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -62,7 +63,8 @@ class SetupOrganization extends Base {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.chainId
+      chainId: oThis.chainId,
+      gas: oThis.gas
     };
 
     let orgHelperObj = new SetupOrganization.OrganizationHelper(oThis._web3Instance),

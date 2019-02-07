@@ -1,21 +1,27 @@
 'use strict';
 
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
+  util = require(rootPrefix + '/lib/util'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  util = require(rootPrefix + '/lib/util');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 const mustache = require('mustache');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
+/**
+ * Class for user model.
+ *
+ * @class
+ */
 class User extends Base {
   /**
+   * Constructor for user model.
    *
    * @param {Object} params
    * @param {Number} params.chainId: chainId
@@ -63,6 +69,7 @@ class User extends Base {
 
   /**
    * shortNameToDataType
+   *
    * @return {{}}
    */
   get shortNameToDataType() {
@@ -92,8 +99,12 @@ class User extends Base {
   /**
    * Primary key of the table.
    *
-   * @param params
+   * @param {Object} params
+   * @param {String/Number} params.tokenId
+   * @param {String/Number} params.userId
+   *
    * @returns {Object}
+   *
    * @private
    */
   _keyObj(params) {
@@ -149,11 +160,11 @@ class User extends Base {
   }
 
   /**
-   * getUsersByIds
+   * Get Users By ids
    *
-   * @param params
-   * @param params.tokenId {Number} - tokenId of users group to fetch
-   * @param params.userIds {Array}  - user ids of the users
+   * @param {Object} params
+   * @param {Number} params.tokenId: tokenId of users group to fetch
+   * @param {Array}  params.userIds: user ids of the users
    *
    * @return {Promise<void>}
    */
@@ -175,9 +186,11 @@ class User extends Base {
   }
 
   /**
-   * insertShard - Inserts a new user in user shards
+   * InsertShard - Inserts a new user in user shards
    *
-   * @param params
+   * @param {Object} params
+   * @param {String/Number} params.tokenId
+   * @param {String/Number} params.userId
    *
    * @return {string}
    */
@@ -211,6 +224,13 @@ class User extends Base {
     return responseHelper.successWithData({});
   }
 
+  /**
+   * Sanitize query for params
+   *
+   * @param {Object} params
+   *
+   * @return {*}
+   */
   static sanitizeParamsForQuery(params) {
     params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
     params['status'] = tokenUserConstants.invertedStatuses[params['status']];

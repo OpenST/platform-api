@@ -48,7 +48,7 @@ function addCronProcessEntries() {
     
   // Create entry for Aux blockFinalizer.
     let p3 =  (function auxBlockFinalizer() {
-      let cronParams = '{"blockDelay": 24, "chainId":2000}',
+      let cronParams = '{"blockDelay": 6, "chainId":2000}',
         insertParams = {
           id: 3,
           kind: 'blockFinalizer',
@@ -172,12 +172,12 @@ function addCronProcessEntries() {
         
       promiseArray.push(p9);
       
-    // Create entry for fundByChainOwnerAuxChainSpecific.
-      let p10 =  (function fundByChainOwnerAuxChainSpecific() {
+    // Create entry for fundByChainOwnerAuxChainSpecificChainAddresses.
+      let p10 =  (function fundByChainOwnerAuxChainSpecificChainAddresses() {
         let cronParams = '{"originChainId": 1000, "auxChainIds": [2000]}',
            insertParams = {
              id: 10,
-             kind: 'fundByChainOwnerAuxChainSpecific',
+             kind: 'fundByChainOwnerAuxChainSpecificChainAddresses',
              ip_address: '127.0.0.1',
              chain_id: null,
              params: cronParams,
@@ -260,7 +260,44 @@ function addCronProcessEntries() {
             cronProcessObj.insertRecord(insertParams);
         })();
                
-        promiseArray.push(p14);       
+        promiseArray.push(p14);   
+       
+      // Create entry for fundByChainOwnerAuxChainSpecificTokenFunderAddresses.
+        let p15 =  (function fundByChainOwnerAuxChainSpecificTokenFunderAddresses() {
+          let cronParams = '{"originChainId": 1000, "auxChainIds": [2000]}',
+            insertParams = {
+              id: 15,
+              kind: 'fundByChainOwnerAuxChainSpecificTokenFunderAddresses',
+              ip_address: '127.0.0.1',
+              chain_id: null,
+              params: cronParams,
+              status: 'stopped'
+            };
+          let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+          cronProcessObj = new CronProcessModel();
+          cronProcessObj.insertRecord(insertParams);
+        })();
+          
+        promiseArray.push(p15); 
+        
+     // Create entry for fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses.
+      let p16 =  (function fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses() {
+        let cronParams = '{"originChainId": 1000, "auxChainIds": [2000]}',
+          insertParams = {
+            id: 16,
+            kind: 'fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses',
+            ip_address: '127.0.0.1',
+            chain_id: null,
+            params: cronParams,
+            status: 'stopped'
+       };
+       let CronProcessModel = require('./app/models/mysql/CronProcesses'),
+       cronProcessObj = new CronProcessModel();
+       cronProcessObj.insertRecord(insertParams);
+     })();
+       
+     promiseArray.push(p16);    
+            
             
     return Promise.all(promiseArray);
 }

@@ -1,15 +1,16 @@
 'use strict';
-
 /**
- * deploy anchor contract class
+ * Deploy anchor contract class
  *
  * @module /tools/chainSetup/mosaicInteracts/DeployAnchor
  */
+
+const MosaicTbd = require('@openstfoundation/mosaic-tbd');
+
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base');
 
 /**
  *
@@ -25,6 +26,7 @@ class DeployAnchor extends Base {
    * @param {String} params.chainEndpoint - url to connect to chain
    * @param {String} params.gasPrice -  gas price to use
    * @param {String} params.organizationAddress - organization address for this contract
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -61,7 +63,8 @@ class DeployAnchor extends Base {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.chainId
+      chainId: oThis.chainId,
+      gas: oThis.gas
     };
 
     logger.debug('txOptions-------', txOptions);

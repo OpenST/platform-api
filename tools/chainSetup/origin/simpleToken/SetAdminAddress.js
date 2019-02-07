@@ -1,19 +1,21 @@
 'use strict';
-
 /**
- * set admin
+ * Set admin
  *
  * @module tools/chainSetup/origin/simpleToken/SetAdminAddress
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer,
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis');
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
 
 /**
  *
@@ -76,7 +78,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
       gasPrice: oThis.gasPrice,
-      gas: 4000000
+      gas: contractConstants.setAdminSimpleTokenGas
     };
 
     let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);

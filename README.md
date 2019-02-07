@@ -37,6 +37,13 @@ npm install
 source set_env_vars.sh
 ```
 
+## Seed config strategy for origin as well as auxiliary chain.
+
+* Clear cache.
+```bash
+node  executables/flush/sharedMemcached.js
+```
+
 * Config Strategy Seed for Global configurations (for local setup)
 ```bash
 
@@ -45,6 +52,12 @@ source set_env_vars.sh
 
 # Note: For staging and production follow help
 
+```
+
+* Activate configurations
+```bash
+# Activate Global configurations
+./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
 ```
 
 * Config Strategy Seed for Auxiliary configurations (for local setup)
@@ -57,12 +70,47 @@ source set_env_vars.sh
 
 * Activate configurations
 ```bash
-# Activate Global configurations
-./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
-
 # Activate Auxiliary Chain configurations
 ./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 2000
 ```
+
+
+## Start Dynamo DB
+```bash
+rm ~/dynamodb_local_latest/shared-local-instance.db
+
+java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
+```
+
+### Block-scanner Setup
+
+* Create all SAAS Owned DDB Tables
+  ```bash
+  source set_env_vars.sh
+  node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --deviceShardCount 1  
+  ```
+  * Mandatory parameters: auxChainId
+  * Optional parameters (defaults to 1): userShardCount, deviceShardCount, deviceShardCount
+
+
+* Create all the shared tables by running the following script: 
+    ```bash
+    source set_env_vars.sh
+    # For origin chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
+    ```
+* Run the addChain service and pass all the necessary parameters:
+    ```bash
+    source set_env_vars.sh
+    # For origin chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2 
+    # For auxiliary chain
+    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2
+    ```
+    * Mandatory parameters: chainId, networkId
+    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
 
 ### Origin Chain Setup
 
@@ -74,17 +122,15 @@ source set_env_vars.sh
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
-Copy the 'Generate Addresses Response' from the script response above and save somewhere offline.
-
 * Start Origin GETH with this script.
 ```bash
   sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
 
-* Setup Simple Token (only for non production_main env)
+* Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/forNonProductionMain.js --originChainId 1000
+  node executables/setup/origin/exceptProductionMain.js --originChainId 1000
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
@@ -92,9 +138,10 @@ Copy the 'Generate Addresses Response' from the script response above and save s
 Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [only for dev-environment].
+Granter address gets ETH and OST in this step.
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/onlyForDevEnv.js --stOwnerPrivateKey '0xabc...'
+  node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xabc...'
 ```
 
 * Save simple token admin and owner addresses in database.
@@ -103,9 +150,9 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
-* Fund chain owner with OSTs (pass ST Owner private key in parameter)
+* Fund master internal funder with OSTs
     - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
-    - otherwise, run following script to fund chain owner with OSTs.
+    - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
   source set_env_vars.sh
   node executables/setup/origin/fundChainOwner.js --funderPrivateKey '0xabc...'
@@ -139,7 +186,13 @@ Copy the 'Setup Simple Token response' from the script response above and save s
   sh ~/openst-setup/bin/aux-2000/aux-chain-zeroGas-2000.sh
 ```
 
-* Add sealer address [Not for dev-environment].
+* Add sealer address.  
+NOTE: Use MyEtherWallet to export private key from keystore file. 
+Visit the following link [MyEtherWallet](https://www.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
+Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
+`testtest`. Pass the address and privateKey (including 0x) in the command below.
+
+And add it to tables using following script.
 ```bash
   source set_env_vars.sh
   node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
@@ -160,39 +213,6 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
 
-### Block-scanner Setup
-
-* Run following command to start Dynamo DB.
-  ```bash
-  java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
-  ```
-
-* Create all SAAS Owned DDB Tables
-  ```bash
-  source set_env_vars.sh
-  node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --deviceShardCount 1  
-  ```
-  * Mandatory parameters: auxChainId
-  * Optional parameters (defaults to 1): userShardCount, deviceShardCount, deviceShardCount
-    
-* Create all the shared tables by running the following script: 
-    ```bash
-    source set_env_vars.sh
-    # For origin chain
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 1000
-    # For auxiliary chain
-    node tools/localSetup/block-scanner/initialSetup.js --chainId 2000
-    ```
-* Run the addChain service and pass all the necessary parameters:
-    ```bash
-    source set_env_vars.sh
-    # For origin chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
-    # For auxiliary chain
-    node tools/localSetup/block-scanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2
-    ```
-    * Mandatory parameters: chainId, networkId
-    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
    
 ### Run block-scanner
 
@@ -241,9 +261,12 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 
 * Start Workflow router factory
 ```bash
-> source set_env_vars.sh
-> node executables/workflowRouter/factory.js --cronProcessId 5
+  source set_env_vars.sh
+  node executables/workflowRouter/factory.js --cronProcessId 5
 ```
+
+NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `/lib/globalConstant/contract.js` before starting ST Prime 
+Stake and Mint on zero-gas.
 
 //TODO: change amountToStake to amountToStakeInWei
 * St' Stake and Mint
@@ -251,9 +274,9 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 > source set_env_vars.sh
 > node
 
-  beneficiary -> chainOwnerKind
-  facilitator -> facilitator
-  stakerAddress -> chainOwnerKind
+  beneficiary -> masterInternalFunderKind
+  facilitator -> masterInternalFunderKind
+  stakerAddress -> masterInternalFunderKind
   
    params = {
           stepKind: 'stPrimeStakeAndMintInit',
@@ -261,21 +284,40 @@ Copy the 'Setup Simple Token response' from the script response above and save s
           clientId: 0,
           chainId: 1000,
           topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {stakerAddress: '0x18610a68d0093edc3b8144537ffeb3e1ad12f447', 
-          originChainId: 1000, auxChainId: 2000, facilitator: '0x74c8f42317503bb830f3a25a1f5113f9bcfabaa2', 
-          amountToStake: '10000000000000000000000', beneficiary: '0xf4431c184e92cf797e77648bd1f9b0d8329b0f0f'
+          requestParams: {
+            stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+            originChainId: 1000, 
+            auxChainId: 2000, 
+            facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+            amountToStake: '100000000000000000001', 
+            beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
           }
       }
    stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
    stPrimeRouter = new stPrimeRouterK(params)
    
    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
+   
+```
+
+```js
+        params = {
+              stepKind: '', //step kind of row from where it need to restart
+              taskStatus: 'taskReadyToStart',
+              clientId: 0,
+              chainId: 1000,
+              topic: 'workflow.stPrimeStakeAndMint',
+              workflowId: , //Workflow id
+              currentStepId: //Id of table from where it need to restart
+          }
 ```
 
 * Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
 ```bash
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
+
+* Revert the auxChainGasPrice value in file lib/globalConstant/contract.js back to the previous value.
 
 
 ### Open up config group for allocation
@@ -285,24 +327,6 @@ let auxChainId = 2000;
 let auxGroupId = 2000;
 
 ConfigGroupModel.markAsAvailableForAllocation(auxChainId, auxGroupId).then(console.log);
-```
-
-### Token Setup
-* Create entry in tokens table.
-```bash
->  cd kit-api
->  source set_env_vars.sh
->  rails c 
-    params = {client_id:1,name:"KingFisher Ultra",symbol:"KFU",conversion_factor:0.8}
-    TokenManagement::InsertTokenDetails.new(params).perform
-```
-
-* Start Economy Setup
-```bash
-
-TokenDeployment = require('./app/services/token/Deployment.js');
-a = new TokenDeployment({token_id: 2, client_id: 2})
-a.perform().then(console.log)
 ```
 
 ### Run Aggregator
@@ -324,10 +348,22 @@ a.perform().then(console.log)
   node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 11
 ```
 
-* Fund by chain owner aux chain specific
+* Fund by chain owner aux chain specific chain addresses
 ```bash
   source set_env_vars.sh
-  node executables/funding/byChainOwner/auxChainSpecific.js --cronProcessId 10
+  node executables/funding/byChainOwner/auxChainSpecific/chainAddresses.js --cronProcessId 10
+```
+
+* Fund by chain owner aux chain specific token funder addresses
+```bash
+  source set_env_vars.sh
+  node executables/funding/byChainOwner/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 15
+```
+
+* Fund by chain owner aux chain specific inter chain facilitator addresses on origin chain.
+```bash
+  source set_env_vars.sh
+  node executables/funding/byChainOwner/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 16
 ```
 
 * Fund by token aux funder aux chain specific

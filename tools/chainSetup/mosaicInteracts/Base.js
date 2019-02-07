@@ -26,6 +26,7 @@ class Base {
    * @param {String} params.signerAddress: address who signs Tx
    * @param {String} params.chainEndpoint: url to connect to chain
    * @param {String} params.gasPrice: gas price to use
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -37,6 +38,7 @@ class Base {
     oThis.chainEndpoint = params['chainEndpoint'];
     oThis.signerAddress = params['signerAddress'];
     oThis.gasPrice = params['gasPrice'];
+    oThis.gas = params['gas'];
 
     oThis.web3InstanceObj = null;
   }

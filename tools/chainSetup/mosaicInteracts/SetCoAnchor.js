@@ -1,15 +1,16 @@
 'use strict';
-
 /**
- * set co anchor contract class
+ * Set co anchor contract class
  *
  * @module /tools/chainSetup/mosaicInteracts/SetCoAnchor
  */
+
+const MosaicTbd = require('@openstfoundation/mosaic-tbd');
+
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base');
 
 /**
  *
@@ -26,6 +27,7 @@ class SetCoAnchor extends Base {
    * @param {String} params.gasPrice -  gas price to use
    * @param {String} params.anchorContractAddress - anchor address for which co anchor is to be set
    * @param {String} params.coAnchorContractAddress - co anchor address to be set
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -54,11 +56,11 @@ class SetCoAnchor extends Base {
     oThis._addKeyToWallet(signerKey);
 
     let txOptions = {
-      gas: 4000000,
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.chainId
+      chainId: oThis.chainId,
+      gas: oThis.gas
     };
 
     let anchorHelperObj = new SetCoAnchor.AnchorHelper(oThis._web3Instance),

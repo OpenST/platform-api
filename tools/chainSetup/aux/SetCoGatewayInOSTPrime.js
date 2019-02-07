@@ -12,7 +12,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
@@ -62,7 +62,7 @@ class SetCoGatewayInOSTPrime {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_o_dcg_1',
+          internal_error_identifier: 't_cs_a_scgop_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -79,13 +79,9 @@ class SetCoGatewayInOSTPrime {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._getAdminAddresses();
+    await oThis._fetchAuxAddresses();
 
     await oThis._setWeb3Instance();
-
-    await oThis._getCoGatewayAddress();
-
-    await oThis._getSTPrimeContractAddr();
 
     await oThis._setCoGatewayInOSTPrime();
 
@@ -128,7 +124,8 @@ class SetCoGatewayInOSTPrime {
       gasPrice: contractConstants.zeroGasPrice,
       from: oThis.adminAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.auxChainId
+      chainId: oThis.auxChainId,
+      gas: contractConstants.setCoGatewayToStPrimeGas
     };
 
     let contractResponse = await stPrimeSetupHelper.setCoGateway(
@@ -167,89 +164,32 @@ class SetCoGatewayInOSTPrime {
   }
 
   /**
-   * _getCoGatewayAddress
-   *
-   * @return {Promise<never>}
-   * @private
-   */
-  async _getCoGatewayAddress() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.auxCoGatewayContractKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_es_scgubt_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    oThis.coGateWayContractAddress = fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * Get simple token prime contract addr
+   * fetch required aux addresses
    *
    * @private
    *
    * @return {Promise}
    *
    */
-  async _getSTPrimeContractAddr() {
+  async _fetchAuxAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.baseContractKind
-    });
+    // Fetch all addresses associated with aux chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_o_dcg_5',
+          internal_error_identifier: 't_cs_a_scgop_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    oThis.stPrimeContractAddress = fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get worker addresses
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getAdminAddresses() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.adminKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_5',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-    oThis.adminAddress = fetchAddrRsp.data.address;
-
-    return oThis.adminAddress;
+    oThis.coGateWayContractAddress = chainAddressesRsp.data[chainAddressConstants.auxCoGatewayContractKind].address;
+    oThis.stPrimeContractAddress = chainAddressesRsp.data[chainAddressConstants.stPrimeContractKind].address;
+    oThis.adminAddress = chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractAdminKind].address;
   }
 
   /**

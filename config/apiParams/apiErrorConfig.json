@@ -429,6 +429,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Invalid Shard Name"
   },
+  "invalid_transaction_hash": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Invalid transaction hash"
+  },
   "acquire_lock_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",

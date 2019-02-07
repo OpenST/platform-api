@@ -9,17 +9,18 @@ const Path = require('path'),
 
 const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   fileManager = require(rootPrefix + '/tools/localSetup/fileManager'),
   localSetupHelper = require(rootPrefix + '/tools/localSetup/helper'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId');
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 // Declare variables.
 const hexStartsWith = '0x',
-  sealerPassPhrase = 'testtest',
+  sealerPassword = 'testtest',
   genesisTemplateLocation = Path.join(__dirname);
 
 /**
@@ -62,7 +63,7 @@ class GethManager {
    * @param {String/Number} chainId
    * @param {String} chainGenesisLocation: genesis file location to be modified
    * @param {Object} allocAddressToAmountMap: {allocAddress: allocAmount}
-   * @parms {String} chainOwnerAddress: chainOwnerAddress
+   * @parms {String} masterInternalFunderAddress: masterInternalFunderAddress
    * @param {String} sealerAddress
    *
    * @return {Boolean}
@@ -74,7 +75,7 @@ class GethManager {
     chainId,
     chainGenesisLocation,
     sealerAddress,
-    chainOwnerAddress,
+    masterInternalFunderAddress,
     blockGenerationTime,
     allocAddressToAmountMap
   ) {
@@ -104,10 +105,10 @@ class GethManager {
     if (!allocAddressToAmountMap) {
       //if allocate amount is not specified, then allocates 800M by default.
       //we need this step (for setup on local machines) to fund some addresses for origin deployment
-      file.set('alloc.' + chainOwnerAddress + '.balance', '0x295be96e640669720000000');
+      file.set('alloc.' + masterInternalFunderAddress + '.balance', '0x295be96e640669720000000');
     } else {
       // Alloc balance to required address
-      file.set('alloc.' + chainOwnerAddress + '.balance', basicHelper.convertToHex(allocAmount));
+      file.set('alloc.' + masterInternalFunderAddress + '.balance', basicHelper.convertToHex(allocAmount));
     }
 
     // Set chainId.
@@ -163,7 +164,7 @@ class GethManager {
 
     // Create password file.
     logger.info('* Creating password file.');
-    fileManager.touch(passwordFilePath, sealerPassPhrase);
+    fileManager.touch(passwordFilePath, sealerPassword);
 
     const sealerAddress = oThis._generateAddress(chainFolderAbsolutePath, passwordFileAbsolutePath),
       chainGenesisTemplateLocation = genesisTemplateLocation + '/poaGenesisTemplate' + '.json',
@@ -172,29 +173,14 @@ class GethManager {
     let chainKind = chainType === 'aux' ? coreConstants.auxChainKind : coreConstants.originChainKind,
       chainTypeString = chainType === 'aux' ? 'auxGeth' : 'originGeth';
 
+    logger.info('* Fetch config strategy for chain id: ', chainId);
     let chainConfigStrategy = await oThis.fetchConfig(chainId),
       blockGenerationTime = chainConfigStrategy[chainTypeString]['blockGenerationTime'];
 
-    // Adds sealer address to the DB.
-    await new ChainAddressModel().insertAddress({
-      chainId: chainId,
-      chainKind: chainKind,
-      kind: chainAddressConstants.sealerKind,
-      address: sealerAddress
-    });
+    logger.info('* Fetch master internal funder');
+    let masterInternalFunderAddress = await oThis._fetchOriginAddresses();
 
-    let whereClause = [
-        'chain_kind = ? AND kind = ? AND status = 1',
-        chainAddressConstants.invertedChainKinds[coreConstants.originChainKind],
-        chainAddressConstants.invertedKinds[chainAddressConstants.chainOwnerKind]
-      ],
-      chainOwnerAddressRsp = await new ChainAddressModel()
-        .select(['address'])
-        .where(whereClause)
-        .fire(),
-      chainOwnerAddress = chainOwnerAddressRsp[0].address;
-
-    logger.debug('chainOwnerAddress----', chainOwnerAddress);
+    logger.debug('masterInternalFunderAddress----', masterInternalFunderAddress);
 
     // Copy genesis template file in chain folder
     logger.info('* Copying POA genesis template file.');
@@ -207,7 +193,7 @@ class GethManager {
       chainId,
       chainGenesisLocation,
       sealerAddress,
-      chainOwnerAddress,
+      masterInternalFunderAddress,
       blockGenerationTime,
       allocAddressToAmountMap
     );
@@ -215,6 +201,8 @@ class GethManager {
     // Alloc balance in genesis files.
     logger.info('* Init ' + chainType + '-' + chainId + ' chain.');
     oThis._initChain(chainFolderAbsolutePath, chainGenesisLocation);
+
+    return { sealerAddress: sealerAddress };
   }
 
   /**
@@ -229,6 +217,32 @@ class GethManager {
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
     return configStrategyResp.data;
+  }
+
+  /**
+   * Fetch required origin addresses
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _fetchOriginAddresses() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_lc_gm_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
   }
 }
 

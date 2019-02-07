@@ -368,6 +368,7 @@ class WorkflowRouterBase {
     }
 
     if (oThis.taskStatus == workflowStepConstants.taskDone) {
+      logger.step(`${oThis.stepKind}: called for taskDone`);
       oThis.currentStepDataToBeUpdated.status = new WorkflowStepsModel().invertedStatuses[
         workflowStepConstants.processedStatus
       ];
@@ -444,7 +445,7 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProgressStakeStatus:
       case workflowStepConstants.fetchStakeIntentMessageHash:
       case workflowStepConstants.btStakeAndMintInit:
-      case workflowStepConstants.stakerRequestStakeTrx:
+      case workflowStepConstants.recordRequestStakeTx:
       case workflowStepConstants.approveGatewayComposerTrx:
       case workflowStepConstants.fetchStakeRequestHash:
       case workflowStepConstants.checkGatewayComposerAllowance:
@@ -476,6 +477,15 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProgressMintStatus:
       case workflowStepConstants.verifyEconomySetup:
       case workflowStepConstants.assignShards:
+
+      case workflowStepConstants.deployTokenRules:
+      case workflowStepConstants.saveTokenRules:
+      case workflowStepConstants.deployTokenHolderMasterCopy:
+      case workflowStepConstants.saveTokenHolderMasterCopy:
+      case workflowStepConstants.deployUserWalletFactory:
+      case workflowStepConstants.saveUserWalletFactory:
+      case workflowStepConstants.deployGnosisSafeMultiSigMasterCopy:
+      case workflowStepConstants.saveGnosisSafeMultiSigMasterCopy:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 
@@ -526,7 +536,7 @@ class WorkflowRouterBase {
       let dependencyResponse = await oThis.checkDependencies(nextStep);
 
       if (!dependencyResponse.data.dependencyResolved) {
-        logger.debug('dependencyNotResolved: waiting');
+        logger.debug(`${oThis.stepKind} : dependencyNotResolved: waiting`);
         continue;
       }
 

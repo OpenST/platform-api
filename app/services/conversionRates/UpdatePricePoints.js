@@ -18,10 +18,10 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   OstPricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate');
 
@@ -97,9 +97,9 @@ class UpdatePricePoints {
   }
 
   /**
-   * Parse Response from coinmarketcap
+   * Parse Response from CoinMarketCap
    *
-   * Sets currentOstValue
+   * Sets oThis.currentOstValue
    */
   async _fetchPricePointFromCoinMarketCapApi() {
     const oThis = this;
@@ -139,6 +139,7 @@ class UpdatePricePoints {
    * Insert price points
    *
    * @return {Promise<Promise<never> | Promise<any>>}
+   *
    * @private
    */
   async _insertPricePointInTable() {
@@ -172,16 +173,24 @@ class UpdatePricePoints {
    * @private
    */
   async _fetchAddress() {
-    const oThis = this,
-      fetchAddressRsp = await new ChainAddressModel().fetchAddresses({
-        chainId: oThis.auxChainId,
-        kinds: [chainAddressConst.priceOracleOpsAddressKind, chainAddressConst.priceOracleContractKind]
-      });
+    const oThis = this;
 
-    if (fetchAddressRsp.isSuccess()) {
-      oThis.priceOracleOpsAddress = fetchAddressRsp.data.address[chainAddressConst.priceOracleOpsAddressKind];
-      oThis.contractAddress = fetchAddressRsp.data.address[chainAddressConst.priceOracleContractKind];
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_cr_upp_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
     }
+
+    oThis.auxPriceOracleContractWorkerAddress =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractWorkerKind][0].address;
+    oThis.auxPriceOracleContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractKind].address;
   }
 
   /**
@@ -227,7 +236,7 @@ class UpdatePricePoints {
       oThis.web3Instance,
       conversionRateConstants.OST,
       oThis.quoteCurrency,
-      oThis.contractAddress,
+      oThis.auxPriceOracleContractAddress,
       amountInWei,
       oThis.auxGasPrice
     );
@@ -235,8 +244,8 @@ class UpdatePricePoints {
     // Prepare params for transaction.
     const encodedABI = txResponse.encodedABI,
       txParams = {
-        from: oThis.priceOracleOpsAddress,
-        to: oThis.contractAddress,
+        from: oThis.auxPriceOracleContractWorkerAddress,
+        to: oThis.auxPriceOracleContractAddress,
         value: coreConstants.zeroValue,
         data: encodedABI,
         gas: oThis.gas,
@@ -269,6 +278,7 @@ class UpdatePricePoints {
    * Update Tx Hash in Table
    *
    * @return {Promise<Promise<never> | Promise<any>>}
+   *
    * @private
    */
   async _updateTxHashInTable() {
@@ -309,7 +319,10 @@ class UpdatePricePoints {
           return onReject(`dbRowId: ${dbRowId} maxRetryCountForVerifyPriceInContract reached`);
         }
 
-        let priceInDecimal = await new PriceOracleHelper().decimalPrice(oThis.web3Instance, oThis.contractAddress);
+        let priceInDecimal = await new PriceOracleHelper().decimalPrice(
+          oThis.web3Instance,
+          oThis.auxPriceOracleContractAddress
+        );
 
         if (priceInDecimal.isFailure()) {
           logger.notify('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal);

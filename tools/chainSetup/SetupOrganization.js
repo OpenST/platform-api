@@ -13,6 +13,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   SetupOrganizationHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/SetupOrganization'),
@@ -62,7 +63,7 @@ class SetupOrganization {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 't_cs_sao_1',
+          internal_error_identifier: 't_cs_so_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -81,19 +82,17 @@ class SetupOrganization {
 
     await oThis._initializeVars();
 
-    let signerAddress = await oThis._getDeployerAddr(),
-      ownerAddress = await oThis._getOwnerAddr(),
-      adminAddress = await oThis._getAdminAddr(),
-      workerAddresses = await oThis._getWorkerAddresses();
+    await oThis._getAddresses();
 
     let params = {
       chainId: oThis.chainId,
-      signerAddress: signerAddress,
+      signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
-      ownerAddress: ownerAddress,
-      adminAddress: adminAddress,
-      workerAddresses: workerAddresses
+      ownerAddress: oThis.ownerAddress,
+      adminAddress: oThis.adminAddress,
+      workerAddresses: oThis.workerAddresses,
+      gas: contractConstants.setupOrganizationGas
     };
 
     let setupOrganizationHelper = new SetupOrganizationHelper(params);
@@ -124,6 +123,8 @@ class SetupOrganization {
     switch (oThis.chainKind) {
       case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
+        oThis.associatedAuxChainId = 0;
+        oThis.deployerAddressKind = chainAddressConstants.originDeployerKind;
 
         let gasPriceCacheObj = new gasPriceCacheKlass(),
           gasPriceRsp = await gasPriceCacheObj.fetch();
@@ -131,6 +132,9 @@ class SetupOrganization {
         break;
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
+        oThis.associatedAuxChainId = oThis.chainId;
+        oThis.deployerAddressKind = chainAddressConstants.auxDeployerKind;
+
         oThis.gasPrice = contractConstants.zeroGasPrice;
         break;
       default:
@@ -138,131 +142,68 @@ class SetupOrganization {
     }
 
     switch (oThis.addressKind) {
-      case chainAddressConstants.baseContractOrganizationKind:
+      case chainAddressConstants.stOrgContractKind:
         oThis.stepKind = chainSetupLogsConstants.setupBaseContractOrganizationStepKind;
+        oThis.ownerAddressKind = chainAddressConstants.stOrgContractOwnerKind;
+        oThis.adminAddressKind = chainAddressConstants.stOrgContractAdminKind;
+        oThis.workerAddressesKind = chainAddressConstants.stOrgContractWorkerKind;
         break;
-      case chainAddressConstants.anchorOrganizationKind:
+      case chainAddressConstants.stPrimeOrgContractKind:
+        oThis.stepKind = chainSetupLogsConstants.setupBaseContractOrganizationStepKind;
+        oThis.ownerAddressKind = chainAddressConstants.stPrimeOrgContractOwnerKind;
+        oThis.adminAddressKind = chainAddressConstants.stPrimeOrgContractAdminKind;
+        oThis.workerAddressesKind = chainAddressConstants.stPrimeOrgContractWorkerKind;
+        break;
+      case chainAddressConstants.originAnchorOrgContractKind:
         oThis.stepKind = chainSetupLogsConstants.setupAnchorOrganizationStepKind;
+        oThis.ownerAddressKind = chainAddressConstants.originAnchorOrgContractOwnerKind;
+        oThis.adminAddressKind = chainAddressConstants.originAnchorOrgContractAdminKind;
+        oThis.workerAddressesKind = chainAddressConstants.originAnchorOrgContractWorkerKind;
+        break;
+      case chainAddressConstants.auxAnchorOrgContractKind:
+        oThis.stepKind = chainSetupLogsConstants.setupAnchorOrganizationStepKind;
+        oThis.ownerAddressKind = chainAddressConstants.auxAnchorOrgContractOwnerKind;
+        oThis.adminAddressKind = chainAddressConstants.auxAnchorOrgContractAdminKind;
+        oThis.workerAddressesKind = chainAddressConstants.auxAnchorOrgContractWorkerKind;
         break;
       default:
         throw `unsupported addressKind: ${oThis.addressKind}`;
     }
   }
 
-  /***
+  /**
+   * Fetch necessary addresses.
    *
-   * get STPrime org contract addr
+   * @return {Promise<never>}
    *
    * @private
-   *
-   * @return {Promise}
-   *
    */
-  async _getDeployerAddr() {
+  async _getAddresses() {
     const oThis = this;
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.deployerKind
-    });
+    // Fetch all addresses associated with mentioned chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.associatedAuxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    if (!fetchAddrRsp.data.address) {
+    if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_2',
+          internal_error_identifier: 't_cs_so_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
-    return fetchAddrRsp.data.address;
-  }
+    oThis.signerAddress = chainAddressesRsp.data[oThis.deployerAddressKind].address;
+    oThis.ownerAddress = chainAddressesRsp.data[oThis.ownerAddressKind].address;
+    oThis.adminAddress = chainAddressesRsp.data[oThis.adminAddressKind].address;
+    oThis.workerAddresses = [];
 
-  /***
-   *
-   * get STPrime org contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getOwnerAddr() {
-    const oThis = this;
+    let workerAddressEntities = chainAddressesRsp.data[oThis.workerAddressesKind];
 
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.ownerKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_3',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
+    for (let i = 0; i < workerAddressEntities.length; i++) {
+      oThis.workerAddresses.push(workerAddressEntities[i].address);
     }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get STPrime org contract addr
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getAdminAddr() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.adminKind
-    });
-
-    if (!fetchAddrRsp.data.address) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.address;
-  }
-
-  /***
-   *
-   * get worker addresses
-   *
-   * @private
-   *
-   * @return {Promise}
-   *
-   */
-  async _getWorkerAddresses() {
-    const oThis = this;
-
-    let fetchAddrRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.chainId,
-      kind: chainAddressConstants.workerKind
-    });
-
-    if (!fetchAddrRsp.data.addresses) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 't_cs_a_stp_do_5',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    return fetchAddrRsp.data.addresses;
   }
 
   /**
@@ -314,10 +255,15 @@ class SetupOrganization {
 
     await new ChainAddressModel().insertAddress({
       address: response.data['contractAddress'],
-      chainId: oThis.chainId,
-      kind: oThis.addressKind,
-      chainKind: oThis.chainKind
+      associatedAuxChainId: oThis.associatedAuxChainId,
+      addressKind: oThis.addressKind,
+      deployedChainId: oThis.chainId,
+      deployedChainKind: oThis.chainKind,
+      status: chainAddressConstants.activeStatus
     });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis.associatedAuxChainId }).clear();
   }
 
   /***

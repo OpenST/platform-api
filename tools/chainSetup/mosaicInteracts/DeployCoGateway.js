@@ -32,6 +32,7 @@ class DeployCoGateway extends Base {
    * @param {String} params.organizationAddress - organization address
    * @param {String} params.messageBusLibAddress
    * @param {String} params.gatewayLibAddress
+   * @param {Number} params.gas: required gas for tx
    *
    * @constructor
    */
@@ -70,7 +71,8 @@ class DeployCoGateway extends Base {
       gasPrice: oThis.gasPrice,
       from: oThis.signerAddress,
       nonce: nonceRsp.data['nonce'],
-      chainId: oThis.chainId
+      chainId: oThis.chainId,
+      gas: oThis.gas
     };
 
     let helperObj = new DeployCoGateway.CoGatewayHelper(oThis._web3Instance),

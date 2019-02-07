@@ -15,7 +15,7 @@ const rootPrefix = '../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/helper');
 
@@ -39,6 +39,11 @@ if (!program.auxChainId) {
  *
  */
 class AuxChainSetup {
+  /**
+   * constructor
+   *
+   * @param params
+   */
   constructor(params) {
     const oThis = this;
     oThis.auxChainId = params.auxChainId;
@@ -49,8 +54,19 @@ class AuxChainSetup {
     oThis.verifiersHelper = null;
   }
 
+  /**
+   * Validate aux chain setup
+   *
+   * @return {Promise<void>}
+   */
   async validate() {
     const oThis = this;
+
+    logger.step('** Fetch aux chain addresses');
+    await oThis._fetchAuxAddresses();
+
+    logger.step('** Fetch origin chain addresses');
+    await oThis._fetchOriginAddresses();
 
     logger.step('** Setting up web3 object for aux chain.');
     await oThis._setWeb3Obj();
@@ -59,10 +75,10 @@ class AuxChainSetup {
     await oThis._validateSimpleTokenPrimeContract();
 
     logger.step('** Validating Simple Token Prime Contract Organization.');
-    await oThis._validateOrganization(chainAddressConstants.baseContractOrganizationKind);
+    await oThis._validateOrganization(chainAddressConstants.stPrimeOrgContractKind);
 
     logger.step('** Validating Anchor Contract Organization.');
-    await oThis._validateOrganization(chainAddressConstants.anchorOrganizationKind);
+    await oThis._validateOrganization(chainAddressConstants.auxAnchorOrgContractKind);
 
     logger.step('** Validating Anchor Contract.');
     await oThis._validateAnchor(chainAddressConstants.originAnchorContractKind);
@@ -71,9 +87,9 @@ class AuxChainSetup {
     await oThis._validateAnchor(chainAddressConstants.auxAnchorContractKind);
 
     logger.step('** Validating Aux Libs.');
-    await oThis._validateLib(chainAddressConstants.merklePatriciaProofLibKind);
-    await oThis._validateLib(chainAddressConstants.messageBusLibKind);
-    await oThis._validateLib(chainAddressConstants.gatewayLibKind);
+    await oThis._validateLib(chainAddressConstants.auxMppLibContractKind);
+    await oThis._validateLib(chainAddressConstants.auxMbLibContractKind);
+    await oThis._validateLib(chainAddressConstants.auxGatewayLibContractKind);
 
     await oThis._validateGatewayAndCoGateway();
 
@@ -83,6 +99,94 @@ class AuxChainSetup {
     //return Promise.resolve();
   }
 
+  /**
+   * Fetch required aux addresses
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _fetchAuxAddresses() {
+    const oThis = this;
+
+    // Fetch all addresses associated with aux chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_v_acs_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.stPrimeContractAddress = chainAddressesRsp.data[chainAddressConstants.stPrimeContractKind].address;
+    oThis.stPrimeOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractKind].address;
+    oThis.auxAnchorContractAddress = chainAddressesRsp.data[chainAddressConstants.auxAnchorContractKind].address;
+    oThis.auxAnchorOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractKind].address;
+    oThis.originAnchorContractAddress = chainAddressesRsp.data[chainAddressConstants.originAnchorContractKind].address;
+    oThis.auxCoGatewayContractAddress = chainAddressesRsp.data[chainAddressConstants.auxCoGatewayContractKind].address;
+    oThis.originGatewayContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.originGatewayContractKind].address;
+    oThis.stSimpleStakeContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.stSimpleStakeContractKind].address;
+
+    oThis.auxMppLibContractAddress = chainAddressesRsp.data[chainAddressConstants.auxMppLibContractKind].address;
+    oThis.auxMbLibContractAddress = chainAddressesRsp.data[chainAddressConstants.auxMbLibContractKind].address;
+    oThis.auxGatewayLibContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.auxGatewayLibContractKind].address;
+
+    oThis.stPrimeOrgContractAdminAddress =
+      chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractAdminKind].address;
+    oThis.auxAnchorOrgContractAdminAddress =
+      chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractAdminKind].address;
+    oThis.stPrimeOrgContractOwnerAddress =
+      chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractOwnerKind].address;
+    oThis.auxAnchorOrgContractOwnerAddress =
+      chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractOwnerKind].address;
+    oThis.stPrimeOrgContractWorkerAddresses =
+      chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractWorkerKind];
+    oThis.auxAnchorOrgContractWorkerAddresses =
+      chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractWorkerKind];
+  }
+
+  /**
+   * Fetch required origin addresses
+   *
+   * @return {Promise}
+   *
+   * @private
+   */
+  async _fetchOriginAddresses() {
+    const oThis = this;
+
+    // Fetch all addresses associated with origin chain id.
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_v_acs_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.stContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+    oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
+    oThis.originAnchorOrgContractAddress =
+      chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractKind].address;
+  }
+
+  /**
+   * Set web3 object for Aux chain
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _setWeb3Obj() {
     const oThis = this;
 
@@ -101,23 +205,20 @@ class AuxChainSetup {
     oThis.verifiersHelper = new VerifiersHelper(oThis.auxWeb3Instance);
   }
 
+  /**
+   * Validate simple token prime contract deployement
+   *
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateSimpleTokenPrimeContract() {
     const oThis = this;
 
     logger.log('* Fetching simple token prime contract address from database.');
-    let queryForSTContractRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.baseContractKind
-    });
-    let dbSimpleTokenPrimeContractAddress = queryForSTContractRsp.data.address;
+    let dbSimpleTokenPrimeContractAddress = oThis.stPrimeContractAddress;
 
     logger.log('* Fetching Co-Gateway contract address for this chain from database.');
-    let queryCoGatewayRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.auxCoGatewayContractKind
-    });
-    let dbCoGatewayContractAddress = queryCoGatewayRsp.data.address;
+    let dbCoGatewayContractAddress = oThis.auxCoGatewayContractAddress;
 
     logger.log('* Validating the deployed code on the address.');
     let rsp = await oThis.verifiersHelper.validateContract(
@@ -139,6 +240,24 @@ class AuxChainSetup {
       Promise.reject();
     }
 
+    logger.log('* Validating if OSTPrime organization contract address.');
+    let chainStPrimeOrganizationContractAddress = await stPrimeContractObj.methods.organization().call({});
+
+    let dbStPrimeOrganizationContractAddress = oThis.stPrimeOrgContractAddress;
+
+    if (dbStPrimeOrganizationContractAddress.toLowerCase() !== chainStPrimeOrganizationContractAddress.toLowerCase()) {
+      logger.error('OSTPrime organization contract address is invalid.');
+    }
+
+    logger.log('* Validating OSTPrime token address.');
+    let chainStPrimeTokenAddress = await stPrimeContractObj.methods.token().call({});
+
+    let dbStPrimeTokenAddress = oThis.stContractAddress;
+
+    if (dbStPrimeTokenAddress.toLowerCase() !== chainStPrimeTokenAddress.toLowerCase()) {
+      logger.error('OSTPrime token address is invalid.');
+    }
+
     logger.log('* Validating if co-gateway is set for OSTPrime contract or not.');
     let chainCoGatewayAddress = await stPrimeContractObj.methods.coGateway().call({});
 
@@ -150,36 +269,40 @@ class AuxChainSetup {
     }
   }
 
+  /**
+   * Validate given organization deployment
+   *
+   * @param organizationKind
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateOrganization(organizationKind) {
     const oThis = this;
 
-    logger.log('* Fetching', organizationKind, 'contract address from database.');
-    let queryForOrganizationRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: organizationKind
-    });
-    let dbOrganizationContractAddress = queryForOrganizationRsp.data.address;
+    let dbOrganizationContractAddress = null,
+      dbAdminAddress = null,
+      dbAOwnerAddress = null,
+      dbWorkerAddressesMap = null;
 
-    logger.log('* Fetching admin address of', organizationKind, 'from database.');
-    let queryForAdminRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.adminKind
-    });
-    let dbAdminAddress = queryForAdminRsp.data.address;
-
-    logger.log('* Fetching owner address of', organizationKind, 'from database.');
-    let queryForOwnerRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.ownerKind
-    });
-    let dbAOwnerAddress = queryForOwnerRsp.data.address;
-
-    logger.log('* Fetching worker addresses of', organizationKind, 'from database.');
-    let queryForWorkerRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: chainAddressConstants.workerKind
-    });
-    let dbWorkerAddresses = queryForWorkerRsp.data.addresses;
+    logger.log('* Fetching', organizationKind, ' related contract addresses from database.');
+    switch (organizationKind) {
+      case chainAddressConstants.stPrimeOrgContractKind:
+        dbOrganizationContractAddress = oThis.stPrimeOrgContractAddress;
+        dbAdminAddress = oThis.stPrimeOrgContractAdminAddress;
+        dbAOwnerAddress = oThis.stPrimeOrgContractOwnerAddress;
+        dbWorkerAddressesMap = oThis.stPrimeOrgContractWorkerAddresses;
+        break;
+      case chainAddressConstants.auxAnchorOrgContractKind:
+        dbOrganizationContractAddress = oThis.auxAnchorOrgContractAddress;
+        dbAdminAddress = oThis.auxAnchorOrgContractAdminAddress;
+        dbAOwnerAddress = oThis.auxAnchorOrgContractOwnerAddress;
+        dbWorkerAddressesMap = oThis.auxAnchorOrgContractWorkerAddresses;
+        break;
+      default:
+        console.error('unhandled organizationKind found: ', organizationKind);
+        Promise.reject();
+        break;
+    }
 
     logger.log('* Validating the deployed code on the', organizationKind, 'address.');
     let rsp = await oThis.verifiersHelper.validateContract(
@@ -213,8 +336,8 @@ class AuxChainSetup {
     }
 
     logger.log('* Validating the worker addresses of', organizationKind, 'with chain.');
-    for (let i = 0; i < dbWorkerAddresses.length; i++) {
-      let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddresses[i]).call({});
+    for (let i = 0; i < dbWorkerAddressesMap.length; i++) {
+      let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddressesMap[i].address).call({});
       if (!isWorkerResult) {
         logger.error('Deployment verification of', organizationKind, 'failed.');
         Promise.reject();
@@ -222,6 +345,13 @@ class AuxChainSetup {
     }
   }
 
+  /**
+   * Validate given anchor contract deployment
+   *
+   * @param anchorKind
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateAnchor(anchorKind) {
     const oThis = this;
 
@@ -234,35 +364,32 @@ class AuxChainSetup {
       verifierHelperObj = new VerifiersHelper(oThis.originWeb3Instance);
       chainId = oThis.originChainId;
       remoteChainId = parseInt(oThis.auxChainId);
-
-      logger.log('* Fetching co-anchor address for anchor from database.');
-      let queryForOrganizationRsp = await new ChainAddressModel().fetchAddress({
-        chainId: oThis.auxChainId,
-        auxChainId: oThis.auxChainId,
-        kind: chainAddressConstants.auxAnchorContractKind
-      });
-      coAnchorAddress = queryForOrganizationRsp.data.address;
+      coAnchorAddress = oThis.auxAnchorContractAddress;
     } else {
       verifierHelperObj = new VerifiersHelper(oThis.auxWeb3Instance);
       chainId = oThis.auxChainId;
       remoteChainId = parseInt(oThis.originChainId);
-      coAnchorAddress = '0x0000000000000000000000000000000000000000';
+      coAnchorAddress = oThis.originAnchorContractAddress;
     }
 
-    logger.log('* Fetching anchor organization address of from database.');
-    let queryForOrganizationRsp = await new ChainAddressModel().fetchAddress({
-      chainId: chainId,
-      kind: chainAddressConstants.anchorOrganizationKind
-    });
-    let dbAnchorOrganizationAddress = queryForOrganizationRsp.data.address;
+    let dbAnchorOrganizationAddress = null,
+      dbAnchorContractAddress = null;
 
-    logger.log('* Fetching anchor contract address of from database.');
-    let queryForAnchorRsp = await new ChainAddressModel().fetchAddress({
-      chainId: chainId,
-      auxChainId: oThis.auxChainId,
-      kind: anchorKind
-    });
-    let dbAnchorContractAddress = queryForAnchorRsp.data.address;
+    logger.log('* Fetching', anchorKind, ' related contract addresses from database.');
+    switch (anchorKind) {
+      case chainAddressConstants.originAnchorContractKind:
+        dbAnchorOrganizationAddress = oThis.originAnchorOrgContractAddress;
+        dbAnchorContractAddress = oThis.originAnchorContractAddress;
+        break;
+      case chainAddressConstants.auxAnchorContractKind:
+        dbAnchorOrganizationAddress = oThis.auxAnchorOrgContractAddress;
+        dbAnchorContractAddress = oThis.auxAnchorContractAddress;
+        break;
+      default:
+        console.error('unhandled anchorKind found: ', anchorKind);
+        Promise.reject();
+        break;
+    }
 
     logger.log('* Validating the deployed code on the', anchorKind, 'address.');
     let rsp = await verifierHelperObj.validateContract(
@@ -297,16 +424,35 @@ class AuxChainSetup {
     }
   }
 
+  /**
+   * Validate specific Aux library contract deployement
+   *
+   * @param libKind
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateLib(libKind) {
     const oThis = this;
 
     logger.info('** Library:', libKind);
     logger.log('* Fetching', libKind, 'contract address from database.');
-    let queryForLibRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      kind: libKind
-    });
-    let dbLibAddress = queryForLibRsp.data.address;
+    let dbLibAddress = null;
+
+    switch (libKind) {
+      case chainAddressConstants.auxMppLibContractKind:
+        dbLibAddress = oThis.auxMppLibContractAddress;
+        break;
+      case chainAddressConstants.auxMbLibContractKind:
+        dbLibAddress = oThis.auxMbLibContractAddress;
+        break;
+      case chainAddressConstants.auxGatewayLibContractKind:
+        dbLibAddress = oThis.auxGatewayLibContractAddress;
+        break;
+      default:
+        console.error('unhandled libKind found: ', libKind);
+        Promise.reject();
+        break;
+    }
 
     logger.log('* Validating the deployed code on the', libKind, 'address.');
     let rsp = await oThis.verifiersHelper.validateContract(
@@ -319,46 +465,32 @@ class AuxChainSetup {
     }
   }
 
+  /**
+   * Validate gateway and co-gateway contract deployments
+   *
+   * @return {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
   async _validateGatewayAndCoGateway() {
     const oThis = this;
 
     logger.log('* Fetching Gateway contract address for this chain from database.');
-    let queryGatewayRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.originChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.originGatewayContractKind
-    });
-    let dbGatewayContractAddress = queryGatewayRsp.data.address;
+    let dbGatewayContractAddress = oThis.originGatewayContractAddress;
 
     logger.log('* Fetching Co-Gateway contract address for this chain from database.');
-    let queryCoGatewayRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.auxChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.auxCoGatewayContractKind
-    });
-    let dbCoGatewayContractAddress = queryCoGatewayRsp.data.address;
+    let dbCoGatewayContractAddress = oThis.auxCoGatewayContractAddress;
 
     logger.log('* Fetching SimpleStake contract address for this chain from database.');
-    let querySimpleStakeContractRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.originChainId,
-      auxChainId: oThis.auxChainId,
-      kind: chainAddressConstants.simpleStakeContractKind
-    });
-    let dbSimpleStakeContractAddress = querySimpleStakeContractRsp.data.address;
+    let dbSimpleStakeContractAddress = oThis.stSimpleStakeContractAddress;
 
     logger.log('* Fetching Simple token contract address for this chain from database.');
-    let querySimpleTokenRsp = await new ChainAddressModel().fetchAddress({
-      chainId: oThis.originChainId,
-      kind: chainAddressConstants.baseContractKind
-    });
-
-    let simpleTokenContractAdress = querySimpleTokenRsp.data.address;
+    let simpleTokenContractAddress = oThis.stContractAddress;
 
     logger.step('** Validating Gateway contract.');
     logger.log('* Validating the deployed code for Gateway address.');
     let rsp = await oThis.verifiersHelper.validateContract(
       dbGatewayContractAddress,
-      oThis.verifiersHelper.getGatewayContractName
+      oThis.verifiersHelper.gatewayContractName
     );
     if (!rsp) {
       logger.error('Deployment verification of gateway contract failed.');
@@ -367,9 +499,27 @@ class AuxChainSetup {
 
     let verifierHelperObj = new VerifiersHelper(oThis.originWeb3Instance);
     let gatewayContract = await verifierHelperObj.getContractObj(
-      verifierHelperObj.getGatewayContractName,
+      verifierHelperObj.gatewayContractName,
       dbGatewayContractAddress
     );
+
+    let dbOrganizationContractAddress = oThis.stOrgContractAddress;
+
+    logger.log('* Validating the Gateway contract address.');
+    let chainGatewayContractAddress = await gatewayContract.methods.organization().call({});
+    if (dbOrganizationContractAddress.toLowerCase() !== chainGatewayContractAddress.toLowerCase()) {
+      logger.error('Deployment verification Gateway contract address failed.');
+      Promise.reject();
+    }
+
+    let dbOriginAnchorContractAddress = oThis.originAnchorContractAddress;
+
+    logger.log('* Validating the state root provider address.');
+    let gatewayStateRootProviderAddress = await gatewayContract.methods.stateRootProvider().call({});
+    if (dbOriginAnchorContractAddress.toLowerCase() !== gatewayStateRootProviderAddress.toLowerCase()) {
+      logger.error('Deployment verification Gateway contract address failed.');
+      Promise.reject();
+    }
 
     logger.log('* Validating the Simple Stake contract address.');
     let chainStakeVaultAddress = await gatewayContract.methods.stakeVault().call({});
@@ -388,7 +538,7 @@ class AuxChainSetup {
     logger.log('* Validating token address in Gateway *');
     let token = await gatewayContract.methods.token().call({});
 
-    if (token.toLowerCase() != simpleTokenContractAdress.toLowerCase()) {
+    if (token.toLowerCase() != simpleTokenContractAddress.toLowerCase()) {
       logger.error('Token is not set to simple token');
       Promise.reject();
     }
@@ -396,7 +546,7 @@ class AuxChainSetup {
     logger.log('* Validating base token address in Gateway *');
     let baseToken = await gatewayContract.methods.baseToken().call({});
 
-    if (baseToken.toLowerCase() != simpleTokenContractAdress.toLowerCase()) {
+    if (baseToken.toLowerCase() != simpleTokenContractAddress.toLowerCase()) {
       logger.error('Base token is not set to simple token');
       Promise.reject();
     }
@@ -436,6 +586,46 @@ class AuxChainSetup {
     let CoGatewayActivated = await gatewayContract.methods.activated().call({});
     if (!CoGatewayActivated) {
       logger.error('Deployment verification of Co-gateway Activation failed.');
+      Promise.reject();
+    }
+
+    let dbValueTokenAddress = oThis.stContractAddress;
+
+    logger.log('* Validating value token address.');
+    let chainValueToken = await coGatewayContract.methods.valueToken().call({});
+
+    if (dbValueTokenAddress.toLowerCase() !== chainValueToken.toLowerCase()) {
+      logger.error('Verification check for value token address failed.');
+      Promise.reject();
+    }
+
+    let dbUtilityTokenAddress = oThis.stPrimeContractAddress;
+
+    logger.log('* Validating utility token address.');
+    let chainUtilityToken = await coGatewayContract.methods.utilityToken().call({});
+
+    if (dbUtilityTokenAddress.toLowerCase() !== chainUtilityToken.toLowerCase()) {
+      logger.error('Verification check for utility token address failed.');
+      Promise.reject();
+    }
+
+    let dbCoGatewayStateRootProvider = oThis.auxAnchorContractAddress;
+
+    logger.log('* Validating the state root provider gateway contract address.');
+    let chainCoGatewayStateRootProvider = await coGatewayContract.methods.stateRootProvider().call({});
+
+    if (dbCoGatewayStateRootProvider.toLowerCase() !== chainCoGatewayStateRootProvider.toLowerCase()) {
+      logger.error('Verification check co-gateway state root provider failed.');
+      Promise.reject();
+    }
+
+    let dbCoGatewayOrganizationAddress = oThis.stPrimeOrgContractAddress;
+
+    logger.log('* Validating the state root provider gateway contract address.');
+    let chainCoGatewayOrganizationAddress = await coGatewayContract.methods.organization().call({});
+
+    if (dbCoGatewayOrganizationAddress.toLowerCase() !== chainCoGatewayOrganizationAddress.toLowerCase()) {
+      logger.error('Verification check co-gateway state root provider failed.');
       Promise.reject();
     }
   }

@@ -8,13 +8,12 @@
 
 const rootPrefix = '../../..',
   BigNumber = require('bignumber.js'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
-  OriginChainAddressesCache = require(rootPrefix + '/lib/cacheManagement/shared/OriginChainAddress'),
-  chainAddressConst = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
@@ -73,7 +72,7 @@ class TokenMintDetails {
     await oThis.calculateMinimumOstRequired();
 
     oThis.responseData['contract_address'] = {
-      simple_token: oThis.simpleTokenAddress,
+      simple_token: oThis.simpleTokenContractAddress,
       branded_token: oThis.brandedTokenAddress
     };
 
@@ -89,7 +88,7 @@ class TokenMintDetails {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id
-    let chainAddressCacheObj = new OriginChainAddressesCache(),
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -101,7 +100,7 @@ class TokenMintDetails {
       );
     }
 
-    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConst.baseContractKind];
+    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
   }
 
   /**
@@ -119,7 +118,7 @@ class TokenMintDetails {
     if (getAddrRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_2',
+          internal_error_identifier: 'a_s_t_m_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -143,7 +142,7 @@ class TokenMintDetails {
       logger.error('Could not fetched token details.');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_d_2',
+          internal_error_identifier: 'a_s_t_m_4',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
             clientId: oThis.clientId
@@ -192,7 +191,7 @@ class TokenMintDetails {
       logger.error('Token data not found!!');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_3',
+          internal_error_identifier: 'a_s_t_m_5',
           api_error_identifier: 'something_went_wrong',
           debug_options: { client_id: oThis.clientId }
         })

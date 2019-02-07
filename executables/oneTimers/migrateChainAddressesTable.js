@@ -5,8 +5,7 @@ const rootPrefix = '../..',
   ORIGINCHAINID = 1000,
   OldChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   NewChainAddressModel = require(rootPrefix + '/executables/oneTimers/ChainAddress'),
-  KnownAddressModel = require(rootPrefix + '/app/models/mysql/KnownAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
+  KnownAddressModel = require(rootPrefix + '/app/models/mysql/KnownAddress');
 
 class MigrateChainAddressesTable {
   constructor() {}
