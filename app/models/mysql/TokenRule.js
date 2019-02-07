@@ -64,7 +64,7 @@ class TokenRule extends ModelBase {
   }
 
   /**
-   * This method updates status.
+   * This method updates status for given token id and rule id.
    *
    * @param tokenId
    * @param ruleId
@@ -117,6 +117,13 @@ class TokenRule extends ModelBase {
     return responseHelper.successWithData(responseData);
   }
 
+  /**
+   * Validate input params
+   *
+   * @param params
+   * @return {*}
+   * @private
+   */
   _validateInputParams(params) {
     const oThis = this;
 

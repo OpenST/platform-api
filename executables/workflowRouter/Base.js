@@ -477,7 +477,6 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProgressMintStatus:
       case workflowStepConstants.verifyEconomySetup:
       case workflowStepConstants.assignShards:
-
       case workflowStepConstants.deployTokenRules:
       case workflowStepConstants.saveTokenRules:
       case workflowStepConstants.deployTokenHolderMasterCopy:
@@ -486,6 +485,10 @@ class WorkflowRouterBase {
       case workflowStepConstants.saveUserWalletFactory:
       case workflowStepConstants.deployGnosisSafeMultiSigMasterCopy:
       case workflowStepConstants.saveGnosisSafeMultiSigMasterCopy:
+      case workflowStepConstants.addPriceOracleInPricerRule:
+      case workflowStepConstants.verifyAddPriceOracleInPricerRule:
+      case workflowStepConstants.setAcceptedMarginInPricerRule:
+      case workflowStepConstants.verifySetAcceptedMarginInPricerRule:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 

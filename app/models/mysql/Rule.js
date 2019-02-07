@@ -53,7 +53,7 @@ class Rule extends ModelBase {
 
     let insertResponse = await oThis
       .insert({
-        tokenId: params.tokenId || 0,
+        token_id: params.tokenId || 0,
         name: params.name,
         kind: ruleConstants.invertedKinds[params.kind],
         abi: JSON.stringify(params.abi)

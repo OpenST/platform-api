@@ -49,6 +49,8 @@ require(rootPrefix + '/lib/setup/economy/DeployTokenRules');
 require(rootPrefix + '/lib/setup/economy/DeployTokenHolderMaster');
 require(rootPrefix + '/lib/setup/economy/DeployUserWalletFactory');
 require(rootPrefix + '/lib/setup/economy/DeployGnosisSafeMultiSigMaster');
+require(rootPrefix + '/lib/setup/economy/AddPriceOracleInPricerRule');
+require(rootPrefix + '/lib/setup/economy/SetAcceptedMarginInPricerRule');
 
 /**
  * Class for economy setup router.
@@ -428,6 +430,46 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGnosisSafeMultiSigMasterCopy),
           kind: tokenAddressConstants.gnosisSafeMultiSigMasterCopyContract,
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.addPriceOracleInPricerRule:
+        logger.step('*** Add Price Oracle To Pricer Rule');
+
+        let AddPriceOracleToPricerRule = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'AddPriceOracleToPricerRule'
+        );
+
+        let addPriceOracleToPricerRule = new AddPriceOracleToPricerRule(oThis.requestParams);
+
+        return addPriceOracleToPricerRule.perform();
+
+      case workflowStepConstants.verifyAddPriceOracleInPricerRule:
+        logger.step('*** Verify Add Price Oracle To Pricer Rule');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.addPriceOracleInPricerRule),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.setAcceptedMarginInPricerRule:
+        logger.step('*** Set accepted margin in pricer rule');
+
+        let SetAcceptedMarginInPricerRule = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'SetAcceptedMarginInPricerRule'
+        );
+
+        let setAcceptedMarginInPricerRule = new SetAcceptedMarginInPricerRule(oThis.requestParams);
+
+        return setAcceptedMarginInPricerRule.perform();
+
+      case workflowStepConstants.verifySetAcceptedMarginInPricerRule:
+        logger.step('*** Verify Set accepted margin in pricer rule');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setAcceptedMarginInPricerRule),
           chainId: oThis.requestParams.auxChainId
         }).perform();
 

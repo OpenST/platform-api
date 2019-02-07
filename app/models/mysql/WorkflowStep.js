@@ -57,7 +57,6 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '31': workflowStepConstants.verifySetInternalActorForOwnerInUBT,
     '32': workflowStepConstants.verifyEconomySetup,
     '33': workflowStepConstants.assignShards,
-    '45': workflowStepConstants.generateTxWorkerAddresses,
 
     '34': workflowStepConstants.deployTokenRules,
     '35': workflowStepConstants.saveTokenRules,
@@ -67,8 +66,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '39': workflowStepConstants.saveUserWalletFactory,
     '40': workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
     '41': workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
+    '42': workflowStepConstants.addPriceOracleInPricerRule,
+    '43': workflowStepConstants.verifyAddPriceOracleInPricerRule,
+    '44': workflowStepConstants.setAcceptedMarginInPricerRule,
+    '45': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
 
-    '45': workflowStepConstants.generateTxWorkerAddresses,
+    '50': workflowStepConstants.generateTxWorkerAddresses,
 
     '60': workflowStepConstants.stPrimeStakeAndMintInit,
     '61': workflowStepConstants.stPrimeApprove,
