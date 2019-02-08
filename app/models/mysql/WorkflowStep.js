@@ -76,6 +76,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
 
     '50': workflowStepConstants.generateTxWorkerAddresses,
+    '51': workflowStepConstants.fundExTxWorkers,
 
     '60': workflowStepConstants.stPrimeStakeAndMintInit,
     '61': workflowStepConstants.stPrimeApprove,
