@@ -72,8 +72,9 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._updateUserStatusToActivating();
 
-    await oThis._updateDeviceStatusToAuthorising().catch(async function() {
+    await oThis._updateDeviceStatusToAuthorising().catch(async function(error) {
       await oThis._rollbackUserStatusToCreated();
+      return error;
     });
 
     return Promise.resolve(
@@ -137,7 +138,7 @@ class CreateTokenHolder extends ServiceBase {
       logger.error('Could not update user status from created to activating.');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_1',
+          internal_error_identifier: 'a_s_u_cth_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -170,11 +171,11 @@ class CreateTokenHolder extends ServiceBase {
       deviceConstants.authorisingStatus
     );
 
-    if (deviceStatusUpdateResponse.isFailure()) {
-      logger.error('Could not device status from registered to authorising.');
+    if (deviceStatusUpdateResponse.isFailure() || !deviceStatusUpdateResponse.data.deviceUuid) {
+      logger.error('Could not update device status from registered to authorising.');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_2',
+          internal_error_identifier: 'a_s_u_cth_3',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -209,7 +210,7 @@ class CreateTokenHolder extends ServiceBase {
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
       logger.notify(
-        'a_s_u_cth_3',
+        'a_s_u_cth_4',
         'Could not rollback user status back to created. TokenId: ',
         oThis.tokenId,
         ' UserId: ',
@@ -217,7 +218,7 @@ class CreateTokenHolder extends ServiceBase {
       );
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_4',
+          internal_error_identifier: 'a_s_u_cth_5',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

@@ -253,8 +253,8 @@ class Device extends Base {
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
       dataTypeForWalletAddress = oThis.shortNameToDataType[shortNameForWalletAddress],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
-      initialStatusInt = deviceConstants.invertedStatuses[initialStatus],
-      finalStatusInt = deviceConstants.invertedStatuses[finalStatus];
+      initialStatusInt = deviceConstants.invertedKinds[initialStatus],
+      finalStatusInt = deviceConstants.invertedKinds[finalStatus];
 
     let finalResponse = {};
 
@@ -277,9 +277,9 @@ class Device extends Base {
       },
       ExpressionAttributeValues: {
         ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
-        ':finalStatusInt': { [dataTypeForStatus]: finalStatusInt }
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
       },
-      UpdateExpression: 'SET #finalStatusInt = :finalStatusInt',
+      UpdateExpression: 'SET #finalStatus = :finalStatus',
       ReturnValues: 'ALL_NEW'
     };
 

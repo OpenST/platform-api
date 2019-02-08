@@ -243,7 +243,7 @@ class User extends Base {
         ') AND attribute_exists(' +
         shortNameForUserId +
         ')' +
-        ' AND #createdStatus = :createdStatus AND #userKind = :userKind',
+        ' AND #initialStatus = :initialStatus AND #userKind = :userKind',
       ExpressionAttributeNames: {
         '#initialStatus': shortNameForStatus,
         '#finalStatus': shortNameForStatus,
