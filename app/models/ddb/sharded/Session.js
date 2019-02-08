@@ -7,6 +7,7 @@ const rootPrefix = '../../../..',
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   util = require(rootPrefix + '/lib/util'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
 
 const OSTBase = require('@openstfoundation/openst-base'),
@@ -105,9 +106,8 @@ class Session extends Base {
    * @returns {Object}
    */
   tableSchema() {
-    const oThis = this;
-
-    let userIdShortName = oThis.shortNameFor('userId'),
+    const oThis = this,
+      userIdShortName = oThis.shortNameFor('userId'),
       addressShortName = oThis.shortNameFor('address');
 
     const tableSchema = {
@@ -303,6 +303,27 @@ class Session extends Base {
    * @return {Promise<void>}
    */
   static async afterUpdate(ic, params) {
+    require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
+    let SessionsByAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
+      sessionsByAddressCache = new SessionsByAddressCache({
+        userId: params.userId,
+        addresses: [params.address]
+      });
+
+    await sessionsByAddressCache.clear();
+
+    require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
+    let SessionAddressesByUserIdCache = ic.getShadowedClassFor(
+        coreConstants.icNameSpace,
+        'SessionAddressesByUserIdCache'
+      ),
+      sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
+        userId: params.userId
+      });
+
+    await sessionAddressesByUserIdCache.clear();
+
+    logger.info('Session caches cleared.');
     return responseHelper.successWithData({});
   }
 

@@ -129,6 +129,37 @@ const v2Signature = {
     ]
   },
 
+  [apiName.getUserSessions]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'address',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validatePaginationIdentifier'
+      }
+    ]
+  },
+
   [apiName.getUserDeviceManager]: {
     mandatory: [
       {

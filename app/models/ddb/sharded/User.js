@@ -1,18 +1,16 @@
 'use strict';
 
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
-  Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
 
-const mustache = require('mustache');
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
@@ -227,7 +225,7 @@ class User extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')' + '';
 
-    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression, 'ALL_NEW');
+    return oThis.updateItem(User.sanitizeParamsForDdb(params), conditionalExpression, 'ALL_NEW');
   }
 
   /**
@@ -238,7 +236,7 @@ class User extends Base {
    *
    * @return {*}
    */
-  static sanitizeParamsToInsert(params) {
+  static sanitizeParamsForDdb(params) {
     params['status'] = tokenUserConstants.invertedKinds[params['status']];
     return params;
   }

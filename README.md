@@ -289,7 +289,7 @@ Stake and Mint on zero-gas.
             originChainId: 1000, 
             auxChainId: 2000, 
             facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
-            amountToStake: '100000000000000000001', 
+            amountToStake: '1000000000000000000000000', 
             beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
           }
       }

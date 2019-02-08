@@ -522,6 +522,10 @@ class BasicHelperKlass {
   decryptNextPagePayload(string) {
     return JSON.parse(base64Helper.decode(string));
   }
+
+  sanitizeAddress(address) {
+    return address.toLowerCase();
+  }
 }
 
 module.exports = new BasicHelperKlass();

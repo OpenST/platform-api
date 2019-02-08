@@ -169,7 +169,7 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForWalletAddress + ')';
 
-    let putItemResponse = await oThis.putItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
+    let putItemResponse = await oThis.putItem(Device.sanitizeParamsForDdb(params), conditionalExpression);
 
     if (putItemResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
@@ -198,15 +198,15 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForWalletAddress + ')';
 
-    return oThis.updateItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
+    return oThis.updateItem(Device.sanitizeParamsForDdb(params), conditionalExpression);
   }
 
-  static sanitizeParamsToInsert(params) {
+  static sanitizeParamsForDdb(params) {
     params['status'] = DeviceConstant.invertedKinds[params['status']];
     return params;
   }
 
-  static sanitizeParamsToDisplay(params) {
+  static sanitizeParamsFromDdb(params) {
     params['status'] = DeviceConstant.kinds[params['status']];
     return params;
   }
@@ -238,7 +238,7 @@ class Device extends Base {
   _formatRowFromDynamo(dbRow) {
     const oThis = this;
     let formattedDbRow = super._formatRowFromDynamo(dbRow);
-    formattedDbRow = Device.sanitizeParamsToDisplay(formattedDbRow);
+    formattedDbRow = Device.sanitizeParamsFromDdb(formattedDbRow);
     return formattedDbRow;
   }
 
@@ -249,17 +249,21 @@ class Device extends Base {
    */
   static async afterUpdate(ic, params) {
     require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-    let DeviceDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
-    new DeviceDetailCache({
-      userId: params.userId,
-      walletAddresses: [params.walletAddress]
-    }).clear();
+    let DeviceDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+      deviceDetailCache = new DeviceDetailCache({
+        userId: params.userId,
+        walletAddresses: [params.walletAddress]
+      });
+
+    await deviceDetailCache.clear();
 
     require(rootPrefix + '/lib/cacheManagement/chain/WalletAddressesByUserId');
-    let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId');
-    new WalletAddressesByUserId({
-      userId: params.userId
-    }).clear();
+    let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
+      walletAddressesByUserId = new WalletAddressesByUserId({
+        userId: params.userId
+      });
+
+    await walletAddressesByUserId.clear();
 
     logger.info('device cache cleared.');
     return responseHelper.successWithData({});

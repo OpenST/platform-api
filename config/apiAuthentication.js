@@ -31,6 +31,10 @@ class ApiAuthentication {
       [apiName.getUserDeviceManager]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/device-managers/'
+      },
+      [apiName.getUserSessions]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/sessions/'
       }
     };
     return getRequestConfig;
