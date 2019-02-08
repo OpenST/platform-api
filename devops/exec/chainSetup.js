@@ -72,22 +72,22 @@ const Main = async function() {
     performerObj = new GenerateAuxAddress(chainId);
   } else if (program.deployStContracts) {
     let chainId = program.chainId,
-      ethSenderPk = program.ethSenderPk;
+      ethOwnerPrivateKey = program.ethOwnerPrivateKey;
 
-    if (!chainId || !ethSenderPk) {
+    if (!chainId || !ethOwnerPrivateKey) {
       handleError();
     }
 
-    performerObj = new ExceptProductionMain(chainId, ethSenderPk);
+    performerObj = new ExceptProductionMain(chainId, ethOwnerPrivateKey);
   } else if (program.fundGranter) {
-    let ethSenderPk = program.ethSenderPk,
-      stOwnerPk = program.stOwnerPk;
+    let ethOwnerPrivateKey = program.ethOwnerPrivateKey,
+      stOwnerPrivateKey = program.stOwnerPrivateKey;
 
-    if (!ethSenderPk || !stOwnerPk) {
+    if (!ethOwnerPrivateKey || !stOwnerPrivateKey) {
       handleError();
     }
 
-    performerObj = new FundGranterAddress(stOwnerPk, ethSenderPk);
+    performerObj = new FundGranterAddress(stOwnerPrivateKey, ethOwnerPrivateKey);
   } else {
     return handleError();
   }

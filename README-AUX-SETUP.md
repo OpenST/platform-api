@@ -21,7 +21,7 @@
 * Create all SAAS Owned DDB Tables
   ```bash
   source set_env_vars.sh
-  node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2 [Sunil: Let's move them in executables]  
+  node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2
   ```
   * Mandatory parameters: auxChainId
   * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
@@ -46,10 +46,10 @@
   node devops/exec/chainSetup.js --generate-aux-addresses --chain-id 200
 ```
 
-* [Only Development] Setup Aux GETH and necessary addresses. [Sunil: Let's move it to local setup folder and rename to setupGeth.js]
+* [Only Development] Setup Aux GETH and necessary addresses.
 ```bash
   source set_env_vars.sh
-  node executables/setup/aux/gethAndAddresses.js --originChainId 1000 --auxChainId 2000
+  node tools/localSetup/aux/setupGeth.js --originChainId 1000 --auxChainId 2000
 ```
 
 * [Only Development] Start AUX GETH (with Zero Gas Price) with this script.
@@ -106,7 +106,7 @@ And add it to tables using following script.
 
 ## ST Prime Stake and Mint in Zero Gas
 
-NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `/lib/globalConstant/contract.js` before starting ST Prime 
+#### NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `/lib/globalConstant/contract.js` before starting ST Prime 
 Stake and Mint on zero-gas.
 
 //TODO: change amountToStake to amountToStakeInWei
@@ -157,7 +157,7 @@ Stake and Mint on zero-gas.
   sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-* Revert the auxChainGasPrice value in file lib/globalConstant/contract.js back to the previous value.
+#### Revert the auxChainGasPrice value in file lib/globalConstant/contract.js back to the previous value.
 
 ## Run Aggregator
 ```bash

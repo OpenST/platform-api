@@ -1,26 +1,22 @@
 'use strict';
 /**
- * This script is used for creating initial set of DDB tables used by SAAS
+ * This script is used for creating initial set of AUX specific DDB tables used by SAAS
  *
- * Usage: node tools/localSetup/ddb
- *
- * @module tools/localSetup/ddb
+ * @module executables/setup/aux/saasDdb
  */
-const program = require('commander');
+const program = require('commander'),
+  OSTBase = require('@openstfoundation/openst-base');
 
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
+const InstanceComposer = OSTBase.InstanceComposer;
+
 require(rootPrefix + '/lib/shardManagement/Create');
-require(rootPrefix + '/app/models/ddb/shared/Shard');
-require(rootPrefix + '/app/models/ddb/shared/ShardByToken');
 
 program
   .option('--auxChainId <auxChainId>', 'Aux Chain id')
@@ -33,8 +29,9 @@ program.on('--help', () => {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
+  // TODO - userShardCount, deviceShardCount, sessionShardCount - this should be array of shard numbers
   logger.log(
-    ' node tools/localSetup/ddb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 1'
+    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2'
   );
   logger.log('');
   logger.log('');
@@ -44,7 +41,7 @@ program.on('--help', () => {
  *
  * @class
  */
-class CreateInitialDdbTablesForSaas {
+class CreateInitialAuxDdbTablesForSaas {
   /**
    * Constructor
    *
@@ -59,7 +56,7 @@ class CreateInitialDdbTablesForSaas {
   }
 
   /**
-   * Main performer method for the class.
+   * Perform
    *
    * @returns {Promise<void>}
    */
@@ -70,7 +67,7 @@ class CreateInitialDdbTablesForSaas {
       logger.error(`${__filename}::perform`);
 
       return responseHelper.error({
-        internal_error_identifier: 't_ls_ddb_1',
+        internal_error_identifier: 'e_s_a_sd_1',
         api_error_identifier: 'something_went_wrong',
         debug_options: err
       });
@@ -78,7 +75,7 @@ class CreateInitialDdbTablesForSaas {
   }
 
   /**
-   * Async performer.
+   * Async perform
    *
    * @returns {Promise<void>}
    */
@@ -88,13 +85,9 @@ class CreateInitialDdbTablesForSaas {
       strategyFetchRsp = await strategyByChainHelper.getComplete(),
       configStrategy = strategyFetchRsp.data,
       ic = new InstanceComposer(configStrategy),
-      CreateShard = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateShard'),
-      ShardModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ShardModel'),
-      ShardByTokenModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ShardByTokenModel');
+      CreateShard = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateShard');
 
-    let shardsObject = new ShardModel({}),
-      shardByTokenObject = new ShardByTokenModel({}),
-      userShardObject = new CreateShard({
+    let userShardObject = new CreateShard({
         chainId: oThis.auxChainId,
         entityKind: shardConstant.userEntityKind,
         shardNumbers: oThis._generateShardNumbersArray(oThis.userShardCount),
@@ -112,12 +105,6 @@ class CreateInitialDdbTablesForSaas {
     //   shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
     //   isAvailableForAllocation: true
     // })
-
-    // Create Shards table
-    await shardsObject.createTable();
-
-    // Create Shard By Tokens table
-    await shardByTokenObject.createTable();
 
     // Create User table(s)
     await userShardObject.perform();
@@ -169,11 +156,11 @@ const validateAndSanitize = function() {
 
 validateAndSanitize();
 
-let setupInit = new CreateInitialDdbTablesForSaas(program);
+let setupInit = new CreateInitialAuxDdbTablesForSaas(program);
 setupInit
   .perform()
   .then(function() {
-    logger.win('Tables created.');
+    logger.win('Created Initial Aux Ddb Tables For Saas.');
     process.exit(0);
   })
   .catch(function(err) {

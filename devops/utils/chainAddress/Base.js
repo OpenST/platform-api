@@ -12,7 +12,9 @@ const rootPrefix = '../../..',
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  TransferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain');
+  TransferEth = require(rootPrefix + '/lib/fund/eth/Transfer'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 const originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
 
@@ -89,14 +91,14 @@ class Base {
   /**
    * Fund address with ETH
    *
-   * @param address {string} - address to fund ETH to
-   * @param amount {Number} - amount in eth which is to be funded
+   * @param toAddress {String} - address to fund ETH to
+   * @param amount {String<Number>} - amount in eth which is to be funded
    *
    * @returns {Promise<void>}
    *
    * @private
    */
-  async _fundAddressWithEth(address, amount) {
+  async _fundAddressWithEth(toAddress, amount) {
     const oThis = this;
 
     let providers = await oThis._getProvidersFromConfig(),
@@ -106,7 +108,39 @@ class Base {
         .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
         .toString(10);
 
-    await TransferAmountOnChain._fundAddressWithEth(address, oThis.originChainId, provider, amountInWei);
+    await new TransferEth({
+      toAddress: toAddress,
+      fromAddress: oThis._fetchMasterInternalFunderAddress(),
+      amountInWei: amountInWei,
+      waitTillReceipt: 1,
+      originChainId: oThis.originChainId
+    }).perform();
+  }
+
+  /**
+   * Fetch master internal funder address
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _fetchMasterInternalFunderAddress() {
+    const oThis = this;
+
+    // Fetch all addresses from origin chain addresses
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'do_u_ca_b_ga_2',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    return chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
   }
 
   /**

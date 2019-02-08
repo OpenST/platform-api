@@ -10,7 +10,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  transferAmountOnChain = require(rootPrefix + '/tools/helpers/TransferAmountOnChain'),
+  TransferEthUsingPK = require(rootPrefix + '/lib/fund/eth/TransferUsingPK'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -78,15 +78,15 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
 
     let providers = await oThis._getProvidersFromConfig(),
       provider = providers.data[0],
-      amountInWei = basicHelper.convertToWei(oThis.amount).toString(10); // transfer amount
+      amountInWei = basicHelper.convertToWei(amount).toString(10); // transfer amount
 
-    await transferAmountOnChain._fundAddressWithEthUsingPk(
-      address,
-      oThis.ethOwnerPrivateKey,
-      oThis.chainId,
-      provider,
-      amountInWei
-    );
+    await new TransferEthUsingPK({
+      toAddress: address,
+      fromAddressPrivateKey: oThis.ethOwnerPrivateKey,
+      amountInWei: amountInWei,
+      originChainId: oThis.chainId,
+      provider: provider
+    }).perform();
   }
 
   /**

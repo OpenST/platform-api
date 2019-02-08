@@ -103,7 +103,7 @@ class GrantEthOstRouter extends WorkflowRouterBase {
         logger.step('******** Grant Eth ********');
         return await new GrantEth({
           originChainId: oThis.requestParams.originChainId,
-          address: oThis.requestParams.address,
+          toAddress: oThis.requestParams.address,
           clientId: oThis.requestParams.clientId,
           pendingTransactionExtraData: oThis.requestParams.pendingTransactionExtraData
         }).perform();
@@ -120,7 +120,7 @@ class GrantEthOstRouter extends WorkflowRouterBase {
         logger.step('******** Grant Ost ********');
         return await new GrantOst({
           originChainId: oThis.requestParams.originChainId,
-          address: oThis.requestParams.address,
+          toAddress: oThis.requestParams.address,
           clientId: oThis.requestParams.clientId,
           pendingTransactionExtraData: oThis.requestParams.pendingTransactionExtraData
         }).perform();

@@ -14,7 +14,13 @@
 ./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
 ```
 
-## Setup Origin Block Scanner and [SUNIL: SAAS DDB Need to be added here]
+## Setup Origin Block Scanner and SAAS DDB
+
+* Create all SAAS Owned DDB Tables
+  ```bash
+  source set_env_vars.sh
+  node executables/setup/origin/saasDdb.js
+  ```
 
 * Create origin DDB Tables (Run the addChain service and pass all the necessary parameters): 
     ```bash
@@ -26,6 +32,8 @@
     ```
 
 ## Origin Chain Setup
+
+#### [Only DevOps] NOTE: Make sure to make `defaultOriginChainGasPrice` value is changed from 50 Gwei to something lower mentioned in ETH Gas Station. in `/lib/globalConstant/contract.js`
 
 * Generate master internal funder address for this ENV
 ```bash
@@ -66,6 +74,8 @@
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
+#### [Only DevOps] NOTE: revert `defaultOriginChainGasPrice` in `/lib/globalConstant/contract.js`
+
 * [Only Development] Start Origin GETH with this script.
 ```bash
   sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
@@ -74,7 +84,7 @@
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
   source set_env_vars.sh
-  node executables/setup/origin/exceptProductionMain.js --originChainId 1000 [Sunil: Do we want to use transferAmountChain.js?]
+  node executables/setup/origin/exceptProductionMain.js --originChainId 1000
   
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
@@ -85,8 +95,7 @@ Copy the 'Setup Simple Token response' from the script response above and save s
 Granter address gets ETH and OST in this step.
 ```bash
   source set_env_vars.sh
-  [Sunil: Create Granter address separately, with sandbox condition. Also add sandbox condition while funding. Also pass --ethOwnerPrivateKey in this script]
-  node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xabc...'
+  node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xabc...' --ethOwnerPrivateKey '0xabc...'
 ```
 
 * Save simple token admin and owner addresses in database.
