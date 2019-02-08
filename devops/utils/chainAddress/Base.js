@@ -101,12 +101,10 @@ class Base {
   async _fundAddressWithEth(toAddress, amount) {
     const oThis = this;
 
-    let providers = await oThis._getProvidersFromConfig(),
-      provider = providers.data[0], //select one provider from provider endpoints array
-      amountInWei = basicHelper
-        .convertToWei(String(amount))
-        .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
-        .toString(10);
+    let amountInWei = basicHelper
+      .convertToWei(String(amount))
+      .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
+      .toString(10);
 
     await new TransferEth({
       toAddress: toAddress,
