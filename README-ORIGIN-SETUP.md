@@ -33,7 +33,7 @@
 
 ## Origin Chain Setup
 
-#### [Only DevOps] NOTE: Make sure to make `defaultOriginChainGasPrice` value is changed from 50 Gwei to something lower mentioned in ETH Gas Station. in `/lib/globalConstant/contract.js`
+#### [Only DevOps] NOTE: Make sure to make `defaultOriginChainGasPrice` value is changed from 10 Gwei to something lower mentioned in ETH Gas Station. in `/lib/globalConstant/contract.js`
 
 * Generate master internal funder address for this ENV
 ```bash
