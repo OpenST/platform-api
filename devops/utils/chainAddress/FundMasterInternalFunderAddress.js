@@ -25,14 +25,15 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
   /**
    * Constructor
    *
-   * @param {Number} chainId
-   * @param {String} External ETH funder private key
-   * @param {Decimal} amount that needs to be transfered
+   * @param chainId
+   * @param ethOwnerPrivateKey
+   * @param amount
    *
    * @constructor
    */
   constructor(chainId, ethOwnerPrivateKey, amount) {
     super();
+
     const oThis = this;
     oThis.chainId = chainId;
     oThis.ethOwnerPrivateKey = ethOwnerPrivateKey;
@@ -60,7 +61,7 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
     let masterInternalFunderAddr = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
     logger.log(`* Fund address of kind masterInternalFunderKind: ${masterInternalFunderAddr}`);
 
-    await oThis._fundAddressWithEth(masterInternalFunderAddr);
+    await oThis._fundAddressWithEth(masterInternalFunderAddr, oThis.amount);
 
     return responseHelper.successWithData({});
   }

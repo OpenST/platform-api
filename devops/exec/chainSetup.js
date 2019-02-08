@@ -40,7 +40,7 @@ const Main = async function() {
     }
 
     performerObj = new GenerateMasterInternalFunderAddress(chainId);
-  } else if (program.fundMasterMnternalFunderAddress) {
+  } else if (program.fundMasterInternalFunderAddress) {
     let chainId = program.chainId,
       ethOwnerPrivateKey = program.ethOwnerPrivateKey,
       amount = program.amount;
@@ -49,7 +49,7 @@ const Main = async function() {
       handleError();
     }
 
-    performerObj = new FundMasterInternalFunderAddress(chainId, ethOwnerPrivateKey, parseFloat(amount));
+    performerObj = new FundMasterInternalFunderAddress(chainId, ethOwnerPrivateKey, amount);
   } else if (program.generateOriginAddresses) {
     let chainId = program.chainId;
 

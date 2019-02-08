@@ -51,7 +51,7 @@
 let address = '0xb50...'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address}),
-addressPrivateKeyCache.fetchDecryptedData().then(console.log);
+addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Funder PK: ", res.data.private_key_d)});
 ```
 NOTE: Copy the ETH funder private key for later use.
 
@@ -61,15 +61,15 @@ NOTE: Copy the ETH funder private key for later use.
     node tools/localSetup/origin/setupGeth.js --originChainId 1000
 ```
 
+* [Only Development] Start Origin GETH with this script.
+```bash
+    sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
+```
+
 * [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0as..' --amount 10
-```
-
-* [Only Development] Start Origin GETH with this script.
-```bash
-    sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
 
 * Create entry in DDB table for highest block on origin chain.
