@@ -72,7 +72,9 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._updateUserStatusToActivating();
 
-    await oThis._validateDeviceAddressStatus();
+    await oThis._validateDeviceAddressStatus().catch(async function() {
+      await oThis._rollbackUserStatusToCreated();
+    });
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -163,7 +165,6 @@ class CreateTokenHolder extends ServiceBase {
 
     if (deviceDetails.isFailure()) {
       logger.error('Could not fetch device details.');
-      await oThis._rollbackUserStatusToCreated();
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_cth_3',
@@ -174,7 +175,6 @@ class CreateTokenHolder extends ServiceBase {
     }
 
     if (!deviceDetails.data[oThis.deviceAddress]) {
-      await oThis._rollbackUserStatusToCreated();
       logger.error('Invalid device address.');
       return Promise.reject(
         responseHelper.error({
@@ -189,7 +189,6 @@ class CreateTokenHolder extends ServiceBase {
     let deviceCurrentStatus = deviceDetails.data[oThis.deviceAddress].status;
 
     if (deviceCurrentStatus !== deviceConstants.registeredStatus) {
-      await oThis._rollbackUserStatusToCreated();
       logger.error('Status of device address is not registered. Current status is: ', deviceCurrentStatus);
       return Promise.reject(
         responseHelper.error({
