@@ -6,8 +6,8 @@
  */
 
 const rootPrefix = '../..',
-  GrantOst = require(rootPrefix + '/lib/fund/ost/GrantOst'),
-  GrantEth = require(rootPrefix + '/lib/fund/eth/GrantEth'),
+  GrantOst = require(rootPrefix + '/lib/setup/grant/Ost'),
+  GrantEth = require(rootPrefix + '/lib/setup/grant/Eth'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),

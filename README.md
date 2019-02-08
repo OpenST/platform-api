@@ -37,7 +37,7 @@ npm install
 source set_env_vars.sh
 ```
 
-* Clear cache. [Sunil: Why are we keeping memcache in env and database?]
+* Clear cache.
 ```bash
 node  executables/flush/sharedMemcached.js
 ```
