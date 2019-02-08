@@ -101,7 +101,7 @@ class GrantEthOstRouter extends WorkflowRouterBase {
 
       case workflowStepConstants.grantEth:
         logger.step('******** Grant Eth ********');
-        return await new GrantEth({
+        return new GrantEth({
           originChainId: oThis.requestParams.originChainId,
           toAddress: oThis.requestParams.address,
           clientId: oThis.requestParams.clientId,
@@ -118,7 +118,7 @@ class GrantEthOstRouter extends WorkflowRouterBase {
 
       case workflowStepConstants.grantOst:
         logger.step('******** Grant Ost ********');
-        return await new GrantOst({
+        return new GrantOst({
           originChainId: oThis.requestParams.originChainId,
           toAddress: oThis.requestParams.address,
           clientId: oThis.requestParams.clientId,
@@ -136,12 +136,12 @@ class GrantEthOstRouter extends WorkflowRouterBase {
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark Grant Eth and Ost As Success');
 
-        return await oThis.handleSuccess();
+        return oThis.handleSuccess();
 
       case workflowStepConstants.markFailure:
         logger.step('*** Mark Grant Eth and Ost As Failed');
 
-        return await oThis.handleFailure();
+        return oThis.handleFailure();
 
       default:
         return Promise.reject(

@@ -247,7 +247,7 @@ async function executeTransaction() {
       queue_topic_suffix: 'asdsdfgf'
     }
   };
-  return await new addCronProcess(insertParams).perform().then(console.log);
+  return new addCronProcess(insertParams).perform().then(console.log);
 }
 
 addCronProcessEntries();

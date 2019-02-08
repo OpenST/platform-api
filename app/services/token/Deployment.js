@@ -231,7 +231,7 @@ class Deployment {
    * @private
    */
   async _fetchWorkflowDetails(clientId) {
-    return await new WorkflowModel()
+    return new WorkflowModel()
       .select('*')
       .where({
         client_id: clientId

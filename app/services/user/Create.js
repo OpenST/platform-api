@@ -55,7 +55,7 @@ class Create extends ServiceBase {
 
     await oThis._allocateShards();
 
-    return await oThis.createUser();
+    return oThis.createUser();
   }
 
   /**

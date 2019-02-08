@@ -63,7 +63,7 @@ class ConfigGroups extends ModelBase {
 
     await oThis._validateChainAndGroupIds(params.chainId, params.groupId);
 
-    return await new ConfigGroups()
+    return new ConfigGroups()
       .insert({
         chain_id: params.chainId,
         group_id: params.groupId

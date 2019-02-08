@@ -53,7 +53,7 @@ class ClientConfigGroups extends ModelBase {
 
     await oThis._validateChainAndGroupIds(params.chainId, params.groupId);
 
-    return await oThis
+    return oThis
       .insert({
         client_id: params.clientId,
         chain_id: params.chainId,

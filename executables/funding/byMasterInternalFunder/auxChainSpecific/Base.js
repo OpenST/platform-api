@@ -148,7 +148,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       addresses: addresses
     });
 
-    return await getStPrimeBalance.perform();
+    return getStPrimeBalance.perform();
   }
 
   /**
@@ -167,7 +167,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       addresses: addresses
     });
 
-    return await getEthBalance.perform();
+    return getEthBalance.perform();
   }
 
   /**

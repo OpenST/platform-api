@@ -68,12 +68,12 @@ class StateRootSyncRouter extends WorkflowRouterBase {
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark State Root Sync As Success');
 
-        return await oThis.handleSuccess();
+        return oThis.handleSuccess();
 
       case workflowStepConstants.markFailure:
         logger.step('*** Mark State Root Sync As Failed');
 
-        return await oThis.handleFailure();
+        return oThis.handleFailure();
 
       default:
         return Promise.reject(

@@ -232,7 +232,7 @@ class Device extends Base {
         })
       );
     }
-    return await oThis.batchGetItem(keyObjArray, 'walletAddress');
+    return oThis.batchGetItem(keyObjArray, 'walletAddress');
   }
 
   _formatRowFromDynamo(dbRow) {

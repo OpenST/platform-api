@@ -74,7 +74,7 @@ class TokenRule extends ModelBase {
 
     let whereClause = ['token_id = ? AND rule_id = ?', tokenId, ruleId];
 
-    return await oThis
+    return oThis
       .update({
         status: tokenRuleConstants.invertedStatus[status]
       })

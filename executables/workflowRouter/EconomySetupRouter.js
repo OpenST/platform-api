@@ -111,7 +111,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
           chainId: oThis.requestParams.auxChainId
         });
 
-        return await generateExTxWorker.perform();
+        return generateExTxWorker.perform();
 
       case workflowStepConstants.fundAuxFunderAddress:
         logger.step('*** Funding Aux Funder');
