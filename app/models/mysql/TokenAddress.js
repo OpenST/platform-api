@@ -70,6 +70,14 @@ class TokenAddress extends ModelBase {
     return invertedKinds;
   }
 
+  get statuses() {
+    return statuses;
+  }
+
+  get invertedStatuses() {
+    return invertedStatuses;
+  }
+
   /**
    * Get token address details by token_id and kind
    *
