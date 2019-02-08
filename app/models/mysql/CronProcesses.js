@@ -5,10 +5,10 @@
  * @module /app/models/mysql/cronProcesses
  */
 const rootPrefix = '../../..',
+  util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  util = require(rootPrefix + '/lib/util');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = {
@@ -28,7 +28,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '14': cronProcessesConstants.emailNotifier,
     '15': cronProcessesConstants.fundByChainOwnerAuxChainSpecificTokenFunderAddresses,
     '16': cronProcessesConstants.fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses,
-    '17': cronProcessesConstants.executeTransaction
+    '17': cronProcessesConstants.executeTransaction,
+    '18': cronProcessesConstants.auxWorkflowWorker
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
