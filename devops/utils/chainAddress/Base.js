@@ -110,7 +110,7 @@ class Base {
 
     await new TransferEth({
       toAddress: toAddress,
-      fromAddress: oThis._fetchMasterInternalFunderAddress(),
+      fromAddress: await oThis._fetchMasterInternalFunderAddress(),
       amountInWei: amountInWei,
       waitTillReceipt: 1,
       originChainId: oThis.originChainId

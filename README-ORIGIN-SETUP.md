@@ -42,33 +42,31 @@
 
 * Generate master internal funder address for this ENV
 ```bash
-  source set_env_vars.sh
-  node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
 ```
 
 * [Only Development] Setup Origin GETH and fund necessary addresses.
 ```bash
-  source set_env_vars.sh
-  node tools/localSetup/origin/setupGeth.js --originChainId 1000
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
+    source set_env_vars.sh
+    node tools/localSetup/origin/setupGeth.js --originChainId 1000
 ```
 
 * [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
 ```bash
-  source set_env_vars.sh
-  node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0as..' --amount 10
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0as..' --amount 10
+```
+
+* [Only Development] Start Origin GETH with this script.
+```bash
+    sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
 ```
 
 * Create entry in DDB table for highest block on origin chain.
-
 ```bash
-  source set_env_vars.sh
-  node executables/oneTimers/insertInDDBForOriginHighestBlock.js
+    source set_env_vars.sh
+    node executables/oneTimers/insertInDDBForOriginHighestBlock.js
 ```
 
 * Generate origin address and fund them
@@ -80,11 +78,6 @@
 ```
 
 #### [Only DevOps] NOTE: Revert DEFAULT_VALUE_GAS_PRICE gas price
-
-* [Only Development] Start Origin GETH with this script.
-```bash
-  sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
-```
 
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
