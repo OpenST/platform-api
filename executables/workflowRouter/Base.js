@@ -482,6 +482,10 @@ class WorkflowRouterBase {
       case workflowStepConstants.assignShards:
       case workflowStepConstants.deployTokenRules:
       case workflowStepConstants.saveTokenRules:
+      case workflowStepConstants.deployPricerRule:
+      case workflowStepConstants.savePricerRule:
+      case workflowStepConstants.registerPricerRule:
+      case workflowStepConstants.verifyRegisterPricerRule:
       case workflowStepConstants.deployTokenHolderMasterCopy:
       case workflowStepConstants.saveTokenHolderMasterCopy:
       case workflowStepConstants.deployUserWalletFactory:

@@ -66,10 +66,14 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '39': workflowStepConstants.saveUserWalletFactory,
     '40': workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
     '41': workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
-    '42': workflowStepConstants.addPriceOracleInPricerRule,
-    '43': workflowStepConstants.verifyAddPriceOracleInPricerRule,
-    '44': workflowStepConstants.setAcceptedMarginInPricerRule,
-    '45': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
+    '42': workflowStepConstants.deployPricerRule,
+    '43': workflowStepConstants.savePricerRule,
+    '44': workflowStepConstants.registerPricerRule,
+    '45': workflowStepConstants.verifyRegisterPricerRule,
+    '46': workflowStepConstants.addPriceOracleInPricerRule,
+    '47': workflowStepConstants.verifyAddPriceOracleInPricerRule,
+    '48': workflowStepConstants.setAcceptedMarginInPricerRule,
+    '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
 
     '50': workflowStepConstants.generateTxWorkerAddresses,
 

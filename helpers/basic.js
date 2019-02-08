@@ -523,6 +523,18 @@ class BasicHelperKlass {
     return JSON.parse(base64Helper.decode(string));
   }
 
+  /**
+   * Converts conversion rate to contract interpreted string. ex 1.5 -> 150000
+   * @param conversionRate
+   * @return {string}
+   */
+  computeConversionRateForContract(conversionRate) {
+    let conversionFactorFromDB = new BigNumber(conversionRate),
+      conversionMultiplier = new BigNumber(coreConstants.CONVERSION_RATE_MULTIPLIER);
+    let conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
+    return conversionRateForContractBigNumber.toString();
+  }
+
   sanitizeAddress(address) {
     return address.toLowerCase();
   }

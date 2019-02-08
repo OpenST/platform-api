@@ -162,7 +162,7 @@ const steps = {
     kind: workflowStepConstants.verifySetCoGatewayInUbt,
     readDataFrom: [workflowStepConstants.setCoGatewayInUbt],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.setGatewayInBt]: {
     kind: workflowStepConstants.setGatewayInBt,
@@ -173,7 +173,7 @@ const steps = {
     kind: workflowStepConstants.verifySetGatewayInBt,
     readDataFrom: [workflowStepConstants.setGatewayInBt],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.deployGatewayComposer]: {
     kind: workflowStepConstants.deployGatewayComposer,
@@ -184,7 +184,7 @@ const steps = {
     kind: workflowStepConstants.verifyDeployGatewayComposer,
     readDataFrom: [workflowStepConstants.deployGatewayComposer],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.setInternalActorForOwnerInUBT]: {
     kind: workflowStepConstants.setInternalActorForOwnerInUBT,
@@ -195,7 +195,7 @@ const steps = {
     kind: workflowStepConstants.verifySetInternalActorForOwnerInUBT,
     readDataFrom: [workflowStepConstants.setInternalActorForOwnerInUBT],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.deployTokenRules]: {
     kind: workflowStepConstants.deployTokenRules,
@@ -206,7 +206,7 @@ const steps = {
     kind: workflowStepConstants.saveTokenRules,
     readDataFrom: [workflowStepConstants.deployTokenRules],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.deployTokenHolderMasterCopy]: {
     kind: workflowStepConstants.deployTokenHolderMasterCopy,
@@ -217,7 +217,7 @@ const steps = {
     kind: workflowStepConstants.saveTokenHolderMasterCopy,
     readDataFrom: [workflowStepConstants.deployTokenHolderMasterCopy],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.deployUserWalletFactory]: {
     kind: workflowStepConstants.deployUserWalletFactory,
@@ -228,7 +228,7 @@ const steps = {
     kind: workflowStepConstants.saveUserWalletFactory,
     readDataFrom: [workflowStepConstants.deployUserWalletFactory],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
   [workflowStepConstants.deployGnosisSafeMultiSigMasterCopy]: {
     kind: workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
@@ -239,19 +239,75 @@ const steps = {
     kind: workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
     readDataFrom: [workflowStepConstants.deployGnosisSafeMultiSigMasterCopy],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.deployPricerRule]
   },
-  [workflowStepConstants.verifyEconomySetup]: {
-    kind: workflowStepConstants.verifyEconomySetup,
+  [workflowStepConstants.deployPricerRule]: {
+    kind: workflowStepConstants.deployPricerRule,
     prerequisites: [
       workflowStepConstants.verifySetCoGatewayInUbt,
       workflowStepConstants.verifySetGatewayInBt,
       workflowStepConstants.verifyDeployGatewayComposer,
       workflowStepConstants.verifySetInternalActorForOwnerInUBT,
-      workflowStepConstants.deployTokenRules,
-      workflowStepConstants.deployTokenHolderMasterCopy,
-      workflowStepConstants.deployUserWalletFactory,
-      workflowStepConstants.deployGnosisSafeMultiSigMasterCopy
+      workflowStepConstants.saveTokenRules,
+      workflowStepConstants.saveTokenHolderMasterCopy,
+      workflowStepConstants.saveUserWalletFactory,
+      workflowStepConstants.saveGnosisSafeMultiSigMasterCopy
+    ],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.savePricerRule]
+  },
+  [workflowStepConstants.savePricerRule]: {
+    kind: workflowStepConstants.savePricerRule,
+    readDataFrom: [workflowStepConstants.deployPricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [
+      workflowStepConstants.registerPricerRule,
+      workflowStepConstants.addPriceOracleInPricerRule,
+      workflowStepConstants.setAcceptedMarginInPricerRule
+    ]
+  },
+  [workflowStepConstants.registerPricerRule]: {
+    kind: workflowStepConstants.registerPricerRule,
+    prerequisites: [workflowStepConstants.savePricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyRegisterPricerRule]
+  },
+  [workflowStepConstants.verifyRegisterPricerRule]: {
+    kind: workflowStepConstants.verifyRegisterPricerRule,
+    readDataFrom: [workflowStepConstants.registerPricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.addPriceOracleInPricerRule]: {
+    kind: workflowStepConstants.addPriceOracleInPricerRule,
+    prerequisites: [workflowStepConstants.savePricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyAddPriceOracleInPricerRule]
+  },
+  [workflowStepConstants.verifyAddPriceOracleInPricerRule]: {
+    kind: workflowStepConstants.verifyAddPriceOracleInPricerRule,
+    readDataFrom: [workflowStepConstants.addPriceOracleInPricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.setAcceptedMarginInPricerRule]: {
+    kind: workflowStepConstants.setAcceptedMarginInPricerRule,
+    prerequisites: [workflowStepConstants.savePricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifySetAcceptedMarginInPricerRule]
+  },
+  [workflowStepConstants.verifySetAcceptedMarginInPricerRule]: {
+    kind: workflowStepConstants.verifySetAcceptedMarginInPricerRule,
+    readDataFrom: [workflowStepConstants.setAcceptedMarginInPricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.verifyEconomySetup]: {
+    kind: workflowStepConstants.verifyEconomySetup,
+    prerequisites: [
+      workflowStepConstants.verifyRegisterPricerRule,
+      workflowStepConstants.verifyAddPriceOracleInPricerRule,
+      workflowStepConstants.verifySetAcceptedMarginInPricerRule
     ],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.assignShards]
