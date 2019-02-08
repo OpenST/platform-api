@@ -7,7 +7,7 @@
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  cronProcessesConstant = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   util = require(rootPrefix + '/lib/util');
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
@@ -28,12 +28,12 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '14': cronProcessesConstant.emailNotifier,
     '15': cronProcessesConstant.fundByChainOwnerAuxChainSpecificTokenFunderAddresses,
     '16': cronProcessesConstant.fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses,
-    '17': cronProcessesConstants.executeTransaction
+    '17': cronProcessesConstant.executeTransaction
   },
   statuses = {
-    '1': cronProcessesConstants.runningStatus,
-    '2': cronProcessesConstants.stoppedStatus,
-    '3': cronProcessesConstants.inactiveStatus
+    '1': cronProcessesConstant.runningStatus,
+    '2': cronProcessesConstant.stoppedStatus,
+    '3': cronProcessesConstant.inactiveStatus
   },
   invertedKinds = util.invert(kinds),
   invertedStatuses = util.invert(statuses);

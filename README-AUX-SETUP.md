@@ -4,36 +4,32 @@
 
 * AUX Configs Seed
 ```bash
-# Add Auxiliary Configs
-./devops/exec/configStrategy.js --add-aux-configs
+    ./devops/exec/configStrategy.js --add-aux-configs
 
-# Note: For staging and production follow help
+    # Note: For staging and production follow help
 ```
 
 * Activate AUX Configs
 ```bash
-# Activate Auxiliary Chain configurations
-./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 1
+    ./devops/exec/configStrategy.js --activate-configs --chain-id 2000 --group-id 1
 ```
 
 ## Setup AUX Block Scanner and SAAS DDB
 
 * Create all SAAS Owned DDB Tables
-  ```bash
-  source set_env_vars.sh
-  node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2
-  ```
-  * Mandatory parameters: auxChainId
-  * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
+```bash
+    source set_env_vars.sh
+    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2
+```
+    * Mandatory parameters: auxChainId
+    * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
 
 * Create Aux DDB Tables (Run the addChain service and pass all the necessary parameters):
-    ```bash
+```bash
     source set_env_vars.sh
-    # For auxiliary chain
-    node executables/setup/blockScanner/initialSetup.js --chainId 2000 
-    # For auxiliary chain
+    node executables/setup/blockScanner/initialSetup.js --chainId 2000
     node executables/setup/blockScanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2
-    ```   
+```
     * Mandatory parameters: chainId, networkId
     * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
 
@@ -43,7 +39,7 @@
 * Generate AUX addresses and Fund.
 ```bash
   source set_env_vars.sh
-  node devops/exec/chainSetup.js --generate-aux-addresses --chain-id 200
+  node devops/exec/chainSetup.js --generate-aux-addresses --chain-id 2000
 ```
 
 * [Only Development] Setup Aux GETH and necessary addresses.
@@ -58,15 +54,15 @@
 ```
 
 * Add sealer address.  
-NOTE: Use MyEtherWallet to export private key from keystore file. 
-Visit the following link [MyEtherWallet](https://www.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
-Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
-`testtest`. Pass the address and privateKey (including 0x) in the command below.
+  NOTE: Use MyEtherWallet to export private key from keystore file. 
+  Visit the following link [MyEtherWallet](https://www.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
+  Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
+  `testtest`. Pass the address and privateKey (including 0x) in the command below.
 
 And add it to tables using following script.
 ```bash
-  source set_env_vars.sh
-  node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
+    source set_env_vars.sh
+    node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
 ```
 
 * Setup Aux Contracts

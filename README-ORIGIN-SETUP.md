@@ -51,7 +51,7 @@
 let address = '0xb50...'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address}),
-addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Funder PK: ", res.data.private_key_d)});
+addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
 ```
 NOTE: Copy the ETH funder private key for later use.
 
@@ -84,8 +84,6 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
 ```
 
-#### [Only DevOps] NOTE: Revert DEFAULT_VALUE_GAS_PRICE gas price
-
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
@@ -104,7 +102,7 @@ Granter address gets ETH and OST in this step.
 * Save simple token admin and owner addresses in database.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0x6bD62276eD2162978327Dee327dF85ed4F27Ad05' --owner '0x2d178cec0ec435F0eEe3AAc6f07d742DF46c31be'
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
@@ -112,7 +110,7 @@ Granter address gets ETH and OST in this step.
     - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0x1098118bb2078c0b002e2b173ed63a8c255c0bf7f821efcd61fa8978791f484a'
+    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xabc...'
 ```
 
 * Setup Origin Contracts
@@ -120,6 +118,8 @@ Granter address gets ETH and OST in this step.
     source set_env_vars.sh
     node executables/setup/origin/contracts.js --originChainId 1000
 ```
+
+#### [Only DevOps] NOTE: Revert DEFAULT_VALUE_GAS_PRICE gas price
 
 * Verifier script for origin chain setup
     - You can verify local chain setup and contract deployment using following scripts.
