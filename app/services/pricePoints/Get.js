@@ -7,6 +7,7 @@
 const rootPrefix = '../../..',
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
@@ -15,37 +16,16 @@ const rootPrefix = '../../..',
  *
  * @class
  */
-class PricePointsGet {
+class PricePointsGet extends ServiceBase {
   /**
    * Constructor for Price Points Get API
    *
    * @constructor
    */
   constructor(params) {
+    super();
     const oThis = this;
     oThis.clientId = params.client_id;
-  }
-
-  /**
-   * perform
-   * @return {Promise<>}
-   */
-  perform() {
-    const oThis = this;
-
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error('app/services/pricePoints/get::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 's_pp_g_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
   }
 
   /**
@@ -53,13 +33,13 @@ class PricePointsGet {
    *
    * @return {Promise<any>}
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
-    let fetchChainIdRsp = await oThis.fetchChainId(oThis.clientId),
+    let fetchChainIdRsp = await oThis._fetchChainId(oThis.clientId),
       auxChainId = fetchChainIdRsp.data;
 
-    let pricePointsRsp = await oThis.fetchPricePointsData({ chainId: auxChainId }),
+    let pricePointsRsp = await oThis._fetchPricePointsData({ chainId: auxChainId }),
       pricePointsData = pricePointsRsp.data;
 
     return Promise.resolve(responseHelper.successWithData(pricePointsData));
@@ -72,7 +52,7 @@ class PricePointsGet {
    *
    * @returns {Promise<>} chainId
    */
-  async fetchChainId(clientId) {
+  async _fetchChainId(clientId) {
     const oThis = this;
 
     let clientConfigGroupCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
@@ -104,7 +84,7 @@ class PricePointsGet {
    *
    * @returns {Promise<*>}
    */
-  async fetchPricePointsData(params) {
+  async _fetchPricePointsData(params) {
     const oThis = this;
 
     let chainId = params.chainId,

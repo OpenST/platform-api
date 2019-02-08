@@ -23,7 +23,7 @@ router.get('/', function(req, res, next) {
   };
 
   Promise.resolve(
-    routeHelper.perform(req, res, next, '/app/services/pricePoints/get', 'r_pp_1', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, '/app/services/pricePoints/Get', 'r_pp_1', null, dataFormatterFunc)
   );
 });
 
