@@ -254,6 +254,16 @@ class FundBySealerAuxChainSpecific extends CronBase {
     let sealerAddresses = [],
       sealerAddressEntities = chainAddressesRsp.data[chainAddressConstants.auxSealerKind];
 
+    if (!sealerAddressEntities || sealerAddressEntities.length == 0) {
+      logger.error('No sealer present for aux chain id: ', auxChainId);
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_bs_acs_4',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
     for (let index = 0; index < sealerAddressEntities.length; index++) {
       sealerAddresses.push(sealerAddressEntities[index].address);
     }

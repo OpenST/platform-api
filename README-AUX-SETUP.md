@@ -161,7 +161,6 @@ Stake and Mint on zero-gas.
   node executables/blockScanner/Aggregator.js --cronProcessId 4
 ```
 
-
 ### Funding crons
 
 * Fund by sealer aux chain specific
