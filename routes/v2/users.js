@@ -15,6 +15,7 @@ const router = express.Router();
 require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/Get');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
+require(rootPrefix + '/app/services/user/GetTokenHolder');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/getList/ByUserId');

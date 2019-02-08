@@ -1,8 +1,8 @@
 'use strict';
 /**
- * This service helps in fetching user from our system.
+ * Get token holder for a user.
  *
- * @module app/services/user/Get.js
+ * @module app/services/user/GetTokenHolder
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -14,21 +14,22 @@ const rootPrefix = '../../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
- * Class to get user.
+ * Class to get token holder.
  *
  * @class
  */
-class Get extends ServiceBase {
+class GetTokenHolder extends ServiceBase {
   /**
-   * Constructor for getting user
+   * Constructor to get token holder.
    *
-   * @param params
-   * @param {Number} params.client_id: client Id
-   * @param {Number} params.token_id: token Id
-   * @param {String} params.user_id: user Id
+   * @param {Object} params
+   * @param {String} params.user_id
+   * @param {String/Number} params.client_id
+   * @param {String/Number} [params.token_id]
    *
    * @constructor
    */
@@ -37,15 +38,17 @@ class Get extends ServiceBase {
 
     const oThis = this;
 
-    oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
+    oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
   }
 
   /**
-   * perform - perform user creation
+   * Async performer
    *
    * @return {Promise<void>}
+   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -61,20 +64,31 @@ class Get extends ServiceBase {
     if (!CommonValidators.validateObject(response.data[oThis.userId])) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_g_1',
-          api_error_identifier: 'resource_not_found',
+          internal_error_identifier: 'a_s_u_gth_1',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['invalid_user_id'],
           debug_options: {}
         })
       );
     }
+    response = response.data[oThis.userId];
 
-    return Promise.resolve(responseHelper.successWithData({ [resultType.user]: response.data[oThis.userId] }));
+    let responseEntity = {
+      userId: response.userId,
+      address: response.tokenHolderAddress,
+      status: response.status, // This is the integer value of the status. User formatter converts this to a string at the end.
+      updatedTimestamp: response.updatedTimestamp
+    };
+
+    return Promise.resolve(responseHelper.successWithData({ [resultType.user]: responseEntity }));
   }
 
   /**
    * Fetch user details.
    *
-   * @return {Promise<string>}
+   * @return {Promise<String>}
+   *
+   * @private
    */
   async _fetchUser() {
     const oThis = this,
@@ -85,6 +99,6 @@ class Get extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Get, coreConstants.icNameSpace, 'GetUser');
+InstanceComposer.registerAsShadowableClass(GetTokenHolder, coreConstants.icNameSpace, 'GetTokenHolder');
 
 module.exports = {};
