@@ -229,8 +229,6 @@ class User extends Base {
       initialStatusInt = tokenUserConstants.invertedStatuses[initialStatus],
       finalStatusInt = tokenUserConstants.invertedStatuses[finalStatus];
 
-    let finalResponse = {};
-
     const updateQuery = {
       TableName: oThis.tableName(),
       Key: {
@@ -270,14 +268,21 @@ class User extends Base {
 
     updateQueryResponse = updateQueryResponse.data.Attributes;
 
-    for (let attribute in updateQueryResponse) {
-      let attributeLongName = oThis.shortToLongNamesMap[attribute],
-        dataTypeForAttribute = oThis.shortNameToDataType[attribute];
-
-      finalResponse[attributeLongName] = updateQueryResponse[attribute][dataTypeForAttribute];
-    }
+    let finalResponse = oThis._formatRowFromDynamo(updateQueryResponse);
 
     return Promise.resolve(responseHelper.successWithData(finalResponse));
+  }
+
+  _formatRowFromDynamo(dbRow) {
+    const oThis = this;
+    let formattedDbRow = super._formatRowFromDynamo(dbRow);
+    formattedDbRow = User.sanitizeParamsToDisplay(formattedDbRow);
+    return formattedDbRow;
+  }
+
+  static sanitizeParamsToDisplay(params) {
+    params['status'] = tokenUserConstants.statuses[params['status']];
+    return params;
   }
 
   /**

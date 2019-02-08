@@ -256,8 +256,6 @@ class Device extends Base {
       initialStatusInt = deviceConstants.invertedKinds[initialStatus],
       finalStatusInt = deviceConstants.invertedKinds[finalStatus];
 
-    let finalResponse = {};
-
     const updateQuery = {
       TableName: oThis.tableName(),
       Key: {
@@ -295,12 +293,7 @@ class Device extends Base {
 
     updateQueryResponse = updateQueryResponse.data.Attributes;
 
-    for (let attribute in updateQueryResponse) {
-      let attributeLongName = oThis.shortToLongNamesMap[attribute],
-        dataTypeForAttribute = oThis.shortNameToDataType[attribute];
-
-      finalResponse[attributeLongName] = updateQueryResponse[attribute][dataTypeForAttribute];
-    }
+    let finalResponse = oThis._formatRowFromDynamo(updateQueryResponse);
 
     return Promise.resolve(responseHelper.successWithData(finalResponse));
   }

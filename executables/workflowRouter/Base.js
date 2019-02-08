@@ -6,19 +6,19 @@
  */
 const rootPrefix = '../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
-  WorkflowByClientCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowByClient'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   WorkflowStatusCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowStatus'),
-  WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus'),
-  emailNotifier = require(rootPrefix + '/lib/notifier');
+  WorkflowByClientCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowByClient'),
+  WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus');
 
 /**
  * Class for workflow router base.
