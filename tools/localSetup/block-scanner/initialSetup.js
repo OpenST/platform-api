@@ -95,7 +95,6 @@ class InitialSetup {
     await shardByEconomyAddressObject.createTable();
     // Create Economy table
     await economyObject.createTable();
-
     // Create ChainCronData table
     await chainCronDataObject.createTable();
   }

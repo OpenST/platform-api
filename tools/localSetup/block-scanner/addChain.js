@@ -99,13 +99,13 @@ const validateAndSanitize = function() {
 validateAndSanitize();
 
 let addChain = new AddChain(program);
-addChain.perform();
-// TODO @shlok: Get this checked.
-//   .then(function() {
-//   logger.win('Shards added for the chain.');
-//   process.exit(0);
-// })
-//   .catch(function(err) {
-//     logger.error('Faced error: ', err);
-//     process.exit(1);
-//   });
+addChain
+  .perform()
+  .then(function() {
+    logger.win('Shards added for the chain.');
+    process.exit(0);
+  })
+  .catch(function(err) {
+    logger.error('Faced error: ', err);
+    process.exit(1);
+  });
