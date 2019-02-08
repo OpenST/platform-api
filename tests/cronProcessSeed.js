@@ -32,7 +32,8 @@ async function addCronProcessEntries() {
 
   await emailNotifier();
 
-  await executeTransaction();
+  await executeTransaction('one');
+  await executeTransaction('another');
 
   process.exit(1);
 }
@@ -232,10 +233,9 @@ async function emailNotifier() {
   return new addCronProcess(insertParams).perform().then(console.log);
 }
 
-async function executeTransaction() {
+async function executeTransaction(queue_topic_suffix) {
   console.log('creating executeTransaction');
   let insertParams = {
-    id: 15,
     kind: 'executeTransaction',
     ip_address: '127.0.0.1',
     chain_id: 2000,
@@ -244,7 +244,7 @@ async function executeTransaction() {
     },
     status: 'stopped',
     options: {
-      queue_topic_suffix: 'asdsdfgf'
+      queue_topic_suffix: queue_topic_suffix
     }
   };
   return new addCronProcess(insertParams).perform().then(console.log);

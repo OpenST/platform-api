@@ -132,8 +132,10 @@ class ListByUserId extends GetListBase {
   async _fetchFromCache() {
     const oThis = this;
 
-    let WalletAddressesByUserId = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
-      walletAddressesByUserId = new WalletAddressesByUserId({
+    let WalletAddressesByUserIdKlass = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
+      walletAddressesByUserId = new WalletAddressesByUserIdKlass({
         userId: oThis.userId,
         tokenId: oThis.tokenId
       });

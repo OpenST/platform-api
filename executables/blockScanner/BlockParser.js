@@ -259,14 +259,13 @@ class BlockParser extends PublisherBase {
           if (transactions.length > 0) {
             await oThis.distributeTransactions(rawCurrentBlock, nodesWithBlock);
           }
+          logger.step('Current Processed block: ', currentBlock, 'with Tx Count: ', transactions.length);
           await oThis.sleep(10);
         } else {
           await oThis.sleep(oThis.blockGenerationTime * 1000);
         }
 
         oThis.blockToProcess = nextBlockToProcess;
-
-        logger.step('Current Processed block: ', currentBlock, 'with Tx Count: ', transactions.length);
       } else {
         // If blockParser returns an error then sleep for 10 ms and try again.
         await oThis.sleep(10);

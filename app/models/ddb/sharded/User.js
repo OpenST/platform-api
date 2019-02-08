@@ -1,16 +1,16 @@
 'use strict';
 
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
-  Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
 
-const mustache = require('mustache');
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
@@ -202,7 +202,122 @@ class User extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForTokenId + ') AND attribute_not_exists(' + shortNameForUserId + ')';
 
-    return oThis.putItem(User.sanitizeParamsForQuery(params), conditionalExpression);
+    return oThis.putItem(params, conditionalExpression);
+  }
+
+  /**
+   * updateStatus - Updates status of device
+   *
+   * @param {Object} params
+   * @param {String/Number} params.tokenId
+   * @param {String/Number} params.userId
+   * @param params.status {String} - {created}
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatus(params) {
+    const oThis = this,
+      shortNameForTokenId = oThis.shortNameFor('tokenId'),
+      shortNameForUserId = oThis.shortNameFor('userId');
+
+    const createdKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.createdStatus];
+
+    let conditionalExpression =
+      'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')' + '';
+
+    return oThis.updateItem(params, conditionalExpression, 'ALL_NEW');
+  }
+
+  /**
+   * Sanitize query for params
+   *
+   * @param {Object} params
+   *
+   * @return {*}
+   */
+  _sanitizeRowForDynamo(params) {
+    if (params['kind']) {
+      params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
+    }
+    if (params['tokenHolderAddress']) {
+      params['tokenHolderAddress'] = basicHelper.sanitizeAddress(params['tokenHolderAddress']);
+    }
+    if (params['multisigAddress']) {
+      params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
+    }
+    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
+    return params;
+  }
+
+  /**
+   *
+   * method to perform extra formatting
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowFromDynamo(dbRow) {
+    dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
+    dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
+    return dbRow;
+  }
+
+  /**
+   * Get token users paginated data
+   *
+   * @param {Number} tokenId
+   * @param {Number} [limit] - optional
+   * @param [lastEvaluatedKey] - optional
+   *
+   * @returns {Promise<*>}
+   */
+  async getUsers(tokenId, limit, lastEvaluatedKey) {
+    const oThis = this,
+      shortNameForTokenId = oThis.shortNameFor('tokenId'),
+      dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId];
+
+    let queryParams = {
+      TableName: oThis.tableName(),
+      KeyConditionExpression: `${shortNameForTokenId} = :tid`,
+      ExpressionAttributeValues: {
+        ':tid': { [dataTypeForTokenId]: tokenId.toString() }
+      },
+      Limit: limit || pagination.defaultUserListPageSize
+    };
+    if (lastEvaluatedKey) {
+      queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
+    }
+
+    let response = await oThis.ddbServiceObj.query(queryParams);
+
+    if (response.isFailure()) {
+      return Promise.reject(response);
+    }
+
+    let row,
+      formattedRow,
+      users = [];
+
+    for (let i = 0; i < response.data.Items.length; i++) {
+      row = response.data.Items[i];
+      formattedRow = oThis._formatRowFromDynamo(row);
+      users.push(formattedRow);
+    }
+
+    let responseData = {
+      users: users
+    };
+
+    if (response.data.LastEvaluatedKey) {
+      responseData['nextPagePayload'] = {
+        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
+          lastEvaluatedKey: response.data.LastEvaluatedKey
+        })
+      };
+    }
+
+    return Promise.resolve(responseHelper.successWithData(responseData));
   }
 
   /**
@@ -222,19 +337,6 @@ class User extends Base {
     await tokenUserDetailsCache.clear();
 
     return responseHelper.successWithData({});
-  }
-
-  /**
-   * Sanitize query for params
-   *
-   * @param {Object} params
-   *
-   * @return {*}
-   */
-  static sanitizeParamsForQuery(params) {
-    params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
-    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
-    return params;
   }
 
   /**

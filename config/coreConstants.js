@@ -266,8 +266,16 @@ class CoreConstants {
     return 10;
   }
 
-  get txWorkerCount() {
+  get TX_WORKER_COUNT() {
     return 5;
+  }
+
+  get MINIMUM_NO_OF_EXECUTE_TRANSACTION() {
+    return 100;
+  }
+
+  get TOTAL_NO_OF_EXECUTE_TRANSACTION() {
+    return 1000;
   }
 
   /**

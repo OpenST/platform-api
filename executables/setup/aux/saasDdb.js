@@ -98,13 +98,13 @@ class CreateInitialAuxDdbTablesForSaas {
         entityKind: shardConstant.deviceEntityKind,
         shardNumbers: oThis._generateShardNumbersArray(oThis.deviceShardCount),
         isAvailableForAllocation: true
+      }),
+      sessionShardObject = new CreateShard({
+        chainId: oThis.auxChainId,
+        entityKind: shardConstant.sessionEntityKind,
+        shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
+        isAvailableForAllocation: true
       });
-    // , sessionShardObject = new CreateShard({
-    //   chainId: oThis.auxChainId,
-    //   entityKind: shardConstant.sessionEntityKind,
-    //   shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
-    //   isAvailableForAllocation: true
-    // })
 
     // Create User table(s)
     await userShardObject.perform();
@@ -113,7 +113,7 @@ class CreateInitialAuxDdbTablesForSaas {
     await deviceShardObject.perform();
 
     // Create Session table(s)
-    // await sessionShardObject.perform();
+    await sessionShardObject.perform();
   }
 
   /**

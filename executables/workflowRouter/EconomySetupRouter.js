@@ -27,6 +27,8 @@ const rootPrefix = '../..',
   PostGatewayComposerDeploy = require(rootPrefix + '/lib/setup/economy/PostGatewayComposerDeploy'),
   GenerateExTxWorker = require(rootPrefix + '/lib/executeTransactionManagement/GenerateExTxWorker'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress'),
+  PostPricerRuleDeploy = require(rootPrefix + '/lib/setup/economy/PostPricerRuleDeploy'),
+  PostRegisterPricerRule = require(rootPrefix + '/lib/setup/economy/PostRegisterPricerRule'),
   util = require(rootPrefix + '/lib/util');
 
 // Following require(s) for registering into instance composer
@@ -49,6 +51,10 @@ require(rootPrefix + '/lib/setup/economy/DeployTokenRules');
 require(rootPrefix + '/lib/setup/economy/DeployTokenHolderMaster');
 require(rootPrefix + '/lib/setup/economy/DeployUserWalletFactory');
 require(rootPrefix + '/lib/setup/economy/DeployGnosisSafeMultiSigMaster');
+require(rootPrefix + '/lib/setup/economy/DeployPricerRule');
+require(rootPrefix + '/lib/setup/economy/RegisterPricerRule');
+require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
+require(rootPrefix + '/lib/setup/economy/SetAcceptedMarginInPricerRule');
 
 /**
  * Class for economy setup router.
@@ -367,7 +373,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenRules),
-          kind: tokenAddressConstants.tokenRulesContract,
+          kind: tokenAddressConstants.tokenRulesContractKind,
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
@@ -386,7 +392,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenHolderMasterCopy),
-          kind: tokenAddressConstants.tokenHolderMasterCopyContract,
+          kind: tokenAddressConstants.tokenHolderMasterCopyContractKind,
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
@@ -405,7 +411,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUserWalletFactory),
-          kind: tokenAddressConstants.userWalletFactoryContract,
+          kind: tokenAddressConstants.userWalletFactoryContractKind,
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
@@ -427,7 +433,83 @@ class EconomySetupRouter extends WorkflowRouterBase {
         return new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGnosisSafeMultiSigMasterCopy),
-          kind: tokenAddressConstants.gnosisSafeMultiSigMasterCopyContract,
+          kind: tokenAddressConstants.gnosisSafeMultiSigMasterCopyContractKind,
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.deployPricerRule:
+        logger.step('*** Deploy Pricer Rule');
+
+        let DeployPricerRule = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployPricerRule');
+
+        let deployPricerRule = new DeployPricerRule(oThis.requestParams);
+
+        return deployPricerRule.perform();
+
+      case workflowStepConstants.savePricerRule:
+        logger.step('*** Save Pricer Rule Address in DB');
+
+        return new PostPricerRuleDeploy({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployPricerRule),
+          auxChainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.registerPricerRule:
+        logger.step('*** Register Pricer Rule');
+
+        let RegisterPricerRule = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RegisterPricerRule');
+
+        let registerPricerRule = new RegisterPricerRule(oThis.requestParams);
+
+        return registerPricerRule.perform();
+
+      case workflowStepConstants.verifyRegisterPricerRule:
+        logger.step('*** Verify Pricer Rule was registered');
+
+        return new PostRegisterPricerRule({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployPricerRule),
+          auxChainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.addPriceOracleInPricerRule:
+        logger.step('*** Add Price Oracle To Pricer Rule');
+
+        let AddPriceOracleToPricerRule = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'AddPriceOracleToPricerRule'
+        );
+
+        let addPriceOracleToPricerRule = new AddPriceOracleToPricerRule(oThis.requestParams);
+
+        return addPriceOracleToPricerRule.perform();
+
+      case workflowStepConstants.verifyAddPriceOracleInPricerRule:
+        logger.step('*** Verify Add Price Oracle To Pricer Rule');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.addPriceOracleInPricerRule),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.setAcceptedMarginInPricerRule:
+        logger.step('*** Set accepted margin in pricer rule');
+
+        let SetAcceptedMarginInPricerRule = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'SetAcceptedMarginInPricerRule'
+        );
+
+        let setAcceptedMarginInPricerRule = new SetAcceptedMarginInPricerRule(oThis.requestParams);
+
+        return setAcceptedMarginInPricerRule.perform();
+
+      case workflowStepConstants.verifySetAcceptedMarginInPricerRule:
+        logger.step('*** Verify Set accepted margin in pricer rule');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setAcceptedMarginInPricerRule),
           chainId: oThis.requestParams.auxChainId
         }).perform();
 

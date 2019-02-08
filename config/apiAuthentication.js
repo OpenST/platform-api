@@ -31,6 +31,14 @@ class ApiAuthentication {
       [apiName.getUserDeviceManager]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/device-managers/'
+      },
+      [apiName.getUserSessions]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/sessions/'
+      },
+      [apiName.getPricePoints]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/price-points/'
       }
     };
     return getRequestConfig;
@@ -57,7 +65,7 @@ class ApiAuthentication {
     return postRequestConfig;
   }
 
-  get getRequestsDataExtractionReges() {
+  get getRequestsDataExtractionRegex() {
     const oThis = this;
     if (getRequestRegexes) {
       return getRequestRegexes;
@@ -66,7 +74,7 @@ class ApiAuthentication {
     return getRequestRegexes;
   }
 
-  get postRequestsDataExtractionReges() {
+  get postRequestsDataExtractionRegex() {
     const oThis = this;
     if (postRequestRegexes) {
       return postRequestRegexes;

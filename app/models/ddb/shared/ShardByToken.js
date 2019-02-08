@@ -89,7 +89,9 @@ class ShardByToken extends Base {
    * Primary key of the table.
    *
    * @param params
+   *
    * @returns {Object}
+   *
    * @private
    */
   _keyObj(params) {
@@ -143,6 +145,16 @@ class ShardByToken extends Base {
     return tableSchema;
   }
 
+  _sanitizeRowFromDynamo(params) {
+    params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
+    return params;
+  }
+
+  _sanitizeRowForDynamo(params) {
+    params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
+    return params;
+  }
+
   /**
    * insertShardByTokens - Inserts tokenId, its entity and shardNumber
    *
@@ -160,7 +172,7 @@ class ShardByToken extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForEntityKind + ') AND attribute_not_exists(' + shortNameForTokenId + ')';
 
-    return oThis.putItem(ShardByToken.sanitizeParamsForQuery(params), conditionalExpression);
+    return oThis.putItem(params, conditionalExpression);
   }
 
   /**
@@ -191,11 +203,9 @@ class ShardByToken extends Base {
     let result = {};
 
     for (let i = 0; i < params.entityKinds.length; i++) {
-      let entityKind = params.entityKinds[i],
-        entityKindNum = shardConstant.invertedEntityKinds[entityKind];
-
-      if (response.data.hasOwnProperty(entityKindNum)) {
-        result[entityKind] = response.data[entityKindNum].shardNumber;
+      let entityKind = params.entityKinds[i];
+      if (response.data.hasOwnProperty(entityKind)) {
+        result[entityKind] = response.data[entityKind].shardNumber;
       }
     }
 
@@ -231,16 +241,6 @@ class ShardByToken extends Base {
    */
   get subClass() {
     return ShardByToken;
-  }
-
-  static sanitizeParamsFromDdb(params) {
-    params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
-    return params;
-  }
-
-  static sanitizeParamsForQuery(params) {
-    params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
-    return params;
   }
 }
 
