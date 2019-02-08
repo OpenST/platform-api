@@ -39,7 +39,37 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.postTokenHolder]: {
+  [apiName.createTokenHolder]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'device_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'session_addresses',
+        validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'expiration_height',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'spending_limit',
+        validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getTokenHolder]: {
     mandatory: [
       {
         parameter: 'client_id',

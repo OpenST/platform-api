@@ -31,6 +31,10 @@ class ApiAuthentication {
       [apiName.getUserDeviceManager]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/device-managers/'
+      },
+      [apiName.getTokenHolder]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/token-holders/'
       }
     };
     return getRequestConfig;
@@ -49,7 +53,7 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/devices/'
       },
-      [apiName.postTokenHolder]: {
+      [apiName.createTokenHolder]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/token-holders/'
       }
