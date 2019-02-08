@@ -73,11 +73,11 @@ class Create extends ServiceBase {
       availableShards = response.data;
 
     let r1 = basicHelper.getRandomNumber(0, availableShards[shardConstant.deviceEntityKind].length - 1);
-    // let r2 = basicHelper.getRandomNumber(0, availableShards[shardConstant.sessionEntityKind].length - 1);
+    let r2 = basicHelper.getRandomNumber(0, availableShards[shardConstant.sessionEntityKind].length - 1);
     // let r3 = basicHelper.getRandomNumber(0, availableShards[shardConstant.recoveryAddressEntityKind].length - 1);
 
     oThis.shardNumbersMap[shardConstant.deviceEntityKind] = availableShards[shardConstant.deviceEntityKind][r1];
-    // oThis.shardNumbersMap[shardConstant.sessionEntityKind] = availableShards[shardConstant.sessionEntityKind][r2];
+    oThis.shardNumbersMap[shardConstant.sessionEntityKind] = availableShards[shardConstant.sessionEntityKind][r2];
     // oThis.shardNumbersMap[shardConstant.recoveryAddressEntityKind] = availableShards[shardConstant.recoveryAddressEntityKind][r3];
   }
 
@@ -100,7 +100,7 @@ class Create extends ServiceBase {
       userId: oThis.userId,
       kind: oThis.kind,
       deviceShardNumber: oThis.shardNumbersMap[shardConst.deviceEntityKind],
-      // sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
+      sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
       // recoveryAddressShardNumber: oThis.shardNumbersMap[shardConst.recoveryAddressEntityKind],
       status: tokenUserConstants.createdStatus,
       updatedTimestamp: timeInSecs
@@ -118,10 +118,6 @@ class Create extends ServiceBase {
       user = new User({ shardNumber: shardNumbers.data[shardConst.userEntityKind] });
 
     let insertRsp = user.insertUser(params);
-
-    // if (insertRsp.isFailure()) {
-    //   return Promise.reject(insertRsp);
-    // }
 
     return responseHelper.successWithData({ [resultType.user]: params });
   }

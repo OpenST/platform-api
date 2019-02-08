@@ -133,9 +133,9 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
     msgParams.topic = messageParams.topics[0];
 
     switch (msgParams.topic) {
-      case workflowTopicConstant.createTokenHolder:
-        const CreateTokenHolderRouter = require(rootPrefix + '/executables/auxWorkflowRouter/CreateTokenHolderRouter');
-        return new CreateTokenHolderRouter(msgParams).perform();
+      case workflowTopicConstant.userSetup:
+        const UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
+        return new UserSetupRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];

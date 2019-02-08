@@ -68,8 +68,6 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '40': workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
     '41': workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
 
-    '45': workflowStepConstants.generateTxWorkerAddresses,
-
     '60': workflowStepConstants.stPrimeStakeAndMintInit,
     '61': workflowStepConstants.stPrimeApprove,
     '62': workflowStepConstants.simpleTokenStake,
@@ -113,7 +111,14 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '172': workflowStepConstants.grantEth,
     '173': workflowStepConstants.verifyGrantEth,
     '174': workflowStepConstants.grantOst,
-    '175': workflowStepConstants.verifyGrantOst
+    '175': workflowStepConstants.verifyGrantOst,
+
+    '181': workflowStepConstants.userSetupInit,
+    '182': workflowStepConstants.addSessionAddresses,
+    '183': workflowStepConstants.addUserInWalletFactory,
+    '184': workflowStepConstants.fetchRegisteredUserEvent,
+    '185': workflowStepConstants.activateUser,
+    '186': workflowStepConstants.rollbackUserSetup
   },
   invertedKinds = util.invert(kinds);
 
