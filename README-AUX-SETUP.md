@@ -80,7 +80,7 @@ And add it to tables using following script.
 
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
    
-## Run block-scanner crons and factory
+## Run block-scanner crons
 
 * Run Auxiliary Transaction Parser
 ```bash
