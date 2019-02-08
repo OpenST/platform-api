@@ -27,7 +27,12 @@ if (!program.stOwnerPrivateKey) {
   process.exit(1);
 }
 
-new FundGranterAddress(program.stOwnerPrivateKey).perform().then(function(response) {
+if (!program.ethOwnerPrivateKey) {
+  program.help();
+  process.exit(1);
+}
+
+new FundGranterAddress(program.stOwnerPrivateKey, program.ethOwnerPrivateKey).perform().then(function(response) {
   logger.log('response:', response);
   process.exit(0);
 });
