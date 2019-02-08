@@ -210,10 +210,12 @@ class User extends Base {
    *
    * @param {String/Number} tokenId
    * @param {String} userId
+   * @param {String} initialStatus
+   * @param {String} finalStatus
    *
    * @return {Promise<void>}
    */
-  async updateStatusFromCreatedToActivating(tokenId, userId) {
+  async updateStatusFromInitialToFinal(tokenId, userId, initialStatus, finalStatus) {
     const oThis = this,
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       shortNameForUserId = oThis.shortNameFor('userId'),
@@ -224,8 +226,8 @@ class User extends Base {
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
       userKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.userKind],
-      createdStatusInt = tokenUserConstants.invertedStatuses[tokenUserConstants.createdStatus],
-      activatingStatusInt = tokenUserConstants.invertedStatuses[tokenUserConstants.activatingStatus];
+      initialStatusInt = tokenUserConstants.invertedStatuses[initialStatus],
+      finalStatusInt = tokenUserConstants.invertedStatuses[finalStatus];
 
     let finalResponse = {};
 
@@ -243,16 +245,16 @@ class User extends Base {
         ')' +
         ' AND #createdStatus = :createdStatus AND #userKind = :userKind',
       ExpressionAttributeNames: {
-        '#createdStatus': shortNameForStatus,
-        '#activatingStatus': shortNameForStatus,
+        '#initialStatus': shortNameForStatus,
+        '#finalStatus': shortNameForStatus,
         '#userKind': shortNameForKind
       },
       ExpressionAttributeValues: {
-        ':createdStatus': { [dataTypeForStatus]: createdStatusInt },
-        ':activatingStatus': { [dataTypeForStatus]: activatingStatusInt },
+        ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
         ':userKind': { [dataTypeForKind]: userKindInt }
       },
-      UpdateExpression: 'SET #activatingStatus = :activatingStatus',
+      UpdateExpression: 'SET #finalStatus = :finalStatus',
       ReturnValues: 'ALL_NEW'
     };
 

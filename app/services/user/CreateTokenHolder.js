@@ -72,7 +72,7 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._updateUserStatusToActivating();
 
-    await oThis._validateDeviceAddressStatus().catch(async function() {
+    await oThis._updateDeviceStatusToAuthorising().catch(async function() {
       await oThis._rollbackUserStatusToCreated();
     });
 
@@ -126,13 +126,18 @@ class CreateTokenHolder extends ServiceBase {
       });
 
     logger.log('Updating user status from created to activating.');
-    let userStatusUpdateResponse = await userModel.updateStatusFromCreatedToActivating(oThis.tokenId, oThis.userId);
+    let userStatusUpdateResponse = await userModel.updateStatusFromInitialToFinal(
+      oThis.tokenId,
+      oThis.userId,
+      tokenUserConstants.createdStatus,
+      tokenUserConstants.activatingStatus
+    );
 
     if (userStatusUpdateResponse.isFailure()) {
       logger.error('Could not update user status from created to activating.');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_2',
+          internal_error_identifier: 'a_s_u_cth_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -150,49 +155,26 @@ class CreateTokenHolder extends ServiceBase {
    *
    * @private
    */
-  async _validateDeviceAddressStatus() {
+  async _updateDeviceStatusToAuthorising() {
     const oThis = this,
       DeviceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel'),
       deviceModel = new DeviceModel({
         shardNumber: oThis.deviceShardNumber
       });
 
-    logger.log('Fetching device details.');
-    let deviceDetails = await deviceModel.getDeviceDetails({
-      userId: oThis.userId,
-      walletAddresses: [oThis.deviceAddress]
-    });
+    logger.log('Updating device details.');
+    let deviceStatusUpdateResponse = await deviceModel.updateStatusFromInitialToFinal(
+      oThis.userId,
+      oThis.deviceAddress,
+      deviceConstants.registeredStatus,
+      deviceConstants.authorisingStatus
+    );
 
-    if (deviceDetails.isFailure()) {
-      logger.error('Could not fetch device details.');
+    if (deviceStatusUpdateResponse.isFailure()) {
+      logger.error('Could not device status from registered to authorising.');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_3',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-
-    if (!deviceDetails.data[oThis.deviceAddress]) {
-      logger.error('Invalid device address.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_4',
-          api_error_identifier: 'invalid_device_address',
-          debug_options: {}
-        })
-      );
-    }
-
-    logger.log('Checking if device status is registered or not.');
-    let deviceCurrentStatus = deviceDetails.data[oThis.deviceAddress].status;
-
-    if (deviceCurrentStatus !== deviceConstants.registeredStatus) {
-      logger.error('Status of device address is not registered. Current status is: ', deviceCurrentStatus);
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_5',
+          internal_error_identifier: 'a_s_u_cth_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
@@ -227,7 +209,7 @@ class CreateTokenHolder extends ServiceBase {
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
       logger.notify(
-        'a_s_u_cth_6',
+        'a_s_u_cth_3',
         'Could not rollback user status back to created. TokenId: ',
         oThis.tokenId,
         ' UserId: ',
@@ -235,7 +217,7 @@ class CreateTokenHolder extends ServiceBase {
       );
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_7',
+          internal_error_identifier: 'a_s_u_cth_4',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

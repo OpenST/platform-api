@@ -13,7 +13,7 @@ const rootPrefix = '../../../..',
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  DeviceConstant = require(rootPrefix + '/lib/globalConstant/device');
+  deviceConstants = require(rootPrefix + '/lib/globalConstant/device');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -173,7 +173,7 @@ class Device extends Base {
 
     if (putItemResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
-        internal_error_identifier: 'a_s_d_c_2',
+        internal_error_identifier: 'a_m_d_s_d_1',
         api_error_identifier: 'conditional_check_failed',
         debug_options: { error: putItemResponse.toHash() }
       });
@@ -202,12 +202,12 @@ class Device extends Base {
   }
 
   static sanitizeParamsToInsert(params) {
-    params['status'] = DeviceConstant.invertedKinds[params['status']];
+    params['status'] = deviceConstants.invertedKinds[params['status']];
     return params;
   }
 
   static sanitizeParamsToDisplay(params) {
-    params['status'] = DeviceConstant.kinds[params['status']];
+    params['status'] = deviceConstants.kinds[params['status']];
     return params;
   }
 
@@ -233,6 +233,76 @@ class Device extends Base {
       );
     }
     return await oThis.batchGetItem(keyObjArray, 'walletAddress');
+  }
+
+  /**
+   * Update status of device from initial status to final status.
+   *
+   * @param {String} userId
+   * @param {String} walletAddress
+   * @param {String} initialStatus
+   * @param {String} finalStatus
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatusFromInitialToFinal(userId, walletAddress, initialStatus, finalStatus) {
+    const oThis = this,
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForWalletAddress = oThis.shortNameFor('walletAddress'),
+      shortNameForStatus = oThis.shortNameFor('status'),
+      dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
+      dataTypeForWalletAddress = oThis.shortNameToDataType[shortNameForWalletAddress],
+      dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
+      initialStatusInt = deviceConstants.invertedStatuses[initialStatus],
+      finalStatusInt = deviceConstants.invertedStatuses[finalStatus];
+
+    let finalResponse = {};
+
+    const updateQuery = {
+      TableName: oThis.tableName(),
+      Key: {
+        uid: { [dataTypeForUserId]: userId },
+        wa: { [dataTypeForWalletAddress]: walletAddress }
+      },
+      ConditionExpression:
+        'attribute_exists(' +
+        shortNameForUserId +
+        ') AND attribute_exists(' +
+        shortNameForWalletAddress +
+        ')' +
+        ' AND #initialStatus = :initialStatus',
+      ExpressionAttributeNames: {
+        '#initialStatus': shortNameForStatus,
+        '#finalStatus': shortNameForStatus
+      },
+      ExpressionAttributeValues: {
+        ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
+        ':finalStatusInt': { [dataTypeForStatus]: finalStatusInt }
+      },
+      UpdateExpression: 'SET #finalStatusInt = :finalStatusInt',
+      ReturnValues: 'ALL_NEW'
+    };
+
+    let updateQueryResponse = await oThis.ddbServiceObj.updateItem(updateQuery);
+
+    if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
+      return responseHelper.error({
+        internal_error_identifier: 'a_m_d_s_d_2',
+        api_error_identifier: 'conditional_check_failed',
+        debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    updateQueryResponse = updateQueryResponse.data.Attributes;
+
+    for (let attribute in updateQueryResponse) {
+      let attributeLongName = oThis.shortToLongNamesMap[attribute],
+        dataTypeForAttribute = oThis.shortNameToDataType[attribute];
+
+      finalResponse[attributeLongName] = updateQueryResponse[attribute][dataTypeForAttribute];
+    }
+
+    return Promise.resolve(responseHelper.successWithData(finalResponse));
   }
 
   _formatRowFromDynamo(dbRow) {
