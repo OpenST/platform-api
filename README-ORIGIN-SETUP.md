@@ -33,7 +33,7 @@
 
 ## Origin Chain Setup
 
-#### [Only DevOps] NOTE: Make sure to make `defaultOriginChainGasPrice` value is changed from 10 Gwei to something lower mentioned in ETH Gas Station. in `/lib/globalConstant/contract.js`
+#### [Only DevOps] NOTE: Make sure you review DEFAULT_VALUE_GAS_PRICE gas price from https://ethgasstation.info/txPoolReport.php, as dynamic gas price cron is not yet active.
 
 * Generate master internal funder address for this ENV
 ```bash
@@ -74,7 +74,7 @@
   # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
 ```
 
-#### [Only DevOps] NOTE: revert `defaultOriginChainGasPrice` in `/lib/globalConstant/contract.js`
+#### [Only DevOps] NOTE: Revert DEFAULT_VALUE_GAS_PRICE gas price
 
 * [Only Development] Start Origin GETH with this script.
 ```bash
