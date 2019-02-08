@@ -4,32 +4,37 @@
 
 * Global Configs Seed
 ```bash
-./devops/exec/configStrategy.js --add-global-configs
+    source set_env_vars.sh
+    ./devops/exec/configStrategy.js --add-global-configs
 
-# Note: For staging and production follow help
-
+    # Note: For staging and production follow help
 ```
+
 * Activate Global Configs
 ```bash
-./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
+    source set_env_vars.sh
+    ./devops/exec/configStrategy.js --activate-configs --chain-id 0 --group-id 0
 ```
 
-## Setup Origin Block Scanner and SAAS DDB
+## Create common tables for SAAS DDB
 
-* Create all SAAS Owned DDB Tables
-  ```bash
-  source set_env_vars.sh
-  node executables/setup/origin/saasDdb.js
-  ```
-
-* Create origin DDB Tables (Run the addChain service and pass all the necessary parameters): 
-    ```bash
+* Create all SAAS Owned DDB Tables - (shards and shard_by_tokens)
+```bash
     source set_env_vars.sh
-    # For origin chain
+    node executables/setup/origin/saasDdb.js
+```
+
+## Create common tables for Origin Block Scanner DDB
+* Create Tables
+```bash
+    source set_env_vars.sh
     node executables/setup/blockScanner/initialSetup.js --chainId 1000
-    # For origin chain
+```
+
+## Create sharded tables for Origin Block Scanner DDB
+```bash
     node executables/setup/blockScanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2 
-    ```
+```
 
 ## Origin Chain Setup
 
