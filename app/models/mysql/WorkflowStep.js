@@ -68,8 +68,6 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '40': workflowStepConstants.deployGnosisSafeMultiSigMasterCopy,
     '41': workflowStepConstants.saveGnosisSafeMultiSigMasterCopy,
 
-    '45': workflowStepConstants.generateTxWorkerAddresses,
-
     '60': workflowStepConstants.stPrimeStakeAndMintInit,
     '61': workflowStepConstants.stPrimeApprove,
     '62': workflowStepConstants.simpleTokenStake,
