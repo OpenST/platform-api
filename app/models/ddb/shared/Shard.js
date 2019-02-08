@@ -126,6 +126,17 @@ class Shard extends Base {
     };
   }
 
+  _sanitizeRowFromDynamo(params) {
+    params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
+    return params;
+  }
+
+  _sanitizeRowForDynamo(params) {
+    params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
+    params['shardNumber'] = shardConstant.getShardNumberFromShardSuffix(params['shardNumber']);
+    return params;
+  }
+
   /**
    * insertShard - Inserts a new shard kind
    *
@@ -144,7 +155,7 @@ class Shard extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForEntityKind + ') AND attribute_not_exists(' + shortNameForShardNumber + ')';
 
-    return oThis.putItem(Shard.sanitizeParamsForUpdate(params), conditionalExpression);
+    return oThis.putItem(params, conditionalExpression);
   }
 
   /**
@@ -165,7 +176,7 @@ class Shard extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForEntityKind + ') AND attribute_exists(' + shortNameForShardNumber + ')';
 
-    return oThis.updateItem(Shard.sanitizeParamsForUpdate(params), conditionalExpression);
+    return oThis.updateItem(params, conditionalExpression);
   }
 
   /**
@@ -197,15 +208,16 @@ class Shard extends Base {
       return Promise.resolve(responseHelper.successWithData(availableShards));
     }
 
-    let row, formattedRow;
+    let row, formattedRow, sanitizedRow;
 
     for (let i = 0; i < response.data.Items.length; i++) {
       row = response.data.Items[i];
-      formattedRow = Shard.sanitizeParamsFromDdb(oThis._formatRowFromDynamo(row));
-      if (!availableShards[formattedRow['entityKind']]) {
-        availableShards[formattedRow['entityKind']] = [];
+      formattedRow = oThis._formatRowFromDynamo(row);
+      sanitizedRow = oThis._sanitizeRowFromDynamo(formattedRow);
+      if (!availableShards[sanitizedRow['entityKind']]) {
+        availableShards[sanitizedRow['entityKind']] = [];
       }
-      availableShards[formattedRow['entityKind']].push(formattedRow['shardNumber']);
+      availableShards[sanitizedRow['entityKind']].push(sanitizedRow['shardNumber']);
     }
 
     return Promise.resolve(responseHelper.successWithData(availableShards));
@@ -239,12 +251,14 @@ class Shard extends Base {
 
     let row,
       formattedRow,
+      sanitizedRow,
       allShards = [];
 
     for (let i = 0; i < response.data.Items.length; i++) {
       row = response.data.Items[i];
-      formattedRow = Shard.sanitizeParamsFromDdb(oThis._formatRowFromDynamo(row));
-      allShards.push(formattedRow);
+      formattedRow = oThis._formatRowFromDynamo(row);
+      sanitizedRow = oThis._sanitizeRowFromDynamo(formattedRow);
+      allShards.push(sanitizedRow);
     }
 
     return Promise.resolve(responseHelper.successWithData(allShards));
@@ -271,17 +285,6 @@ class Shard extends Base {
    */
   get subClass() {
     return Shard;
-  }
-
-  static sanitizeParamsFromDdb(params) {
-    params['entityKind'] = shardConstant.entityKinds[params['entityKind']];
-    return params;
-  }
-
-  static sanitizeParamsForUpdate(params) {
-    params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
-    params['shardNumber'] = shardConstant.getShardNumberFromShardSuffix(params['shardNumber']);
-    return params;
   }
 }
 

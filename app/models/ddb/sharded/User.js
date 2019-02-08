@@ -202,7 +202,7 @@ class User extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForTokenId + ') AND attribute_not_exists(' + shortNameForUserId + ')';
 
-    return oThis.putItem(User.sanitizeParamsForQuery(params), conditionalExpression);
+    return oThis.putItem(params, conditionalExpression);
   }
 
   /**
@@ -225,20 +225,42 @@ class User extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')' + '';
 
-    return oThis.updateItem(User.sanitizeParamsForDdb(params), conditionalExpression, 'ALL_NEW');
+    return oThis.updateItem(params, conditionalExpression, 'ALL_NEW');
   }
 
   /**
-   * Sanitize params to insert in User table.
+   * Sanitize query for params
    *
    * @param {Object} params
-   * @param {String} params.status
    *
    * @return {*}
    */
-  static sanitizeParamsForDdb(params) {
-    params['status'] = tokenUserConstants.invertedKinds[params['status']];
+  _sanitizeRowForDynamo(params) {
+    if (params['kind']) {
+      params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
+    }
+    if (params['tokenHolderAddress']) {
+      params['tokenHolderAddress'] = basicHelper.sanitizeAddress(params['tokenHolderAddress']);
+    }
+    if (params['multisigAddress']) {
+      params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
+    }
+    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
     return params;
+  }
+
+  /**
+   *
+   * method to perform extra formatting
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowFromDynamo(dbRow) {
+    dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
+    dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
+    return dbRow;
   }
 
   /**
@@ -315,19 +337,6 @@ class User extends Base {
     await tokenUserDetailsCache.clear();
 
     return responseHelper.successWithData({});
-  }
-
-  /**
-   * Sanitize query for params
-   *
-   * @param {Object} params
-   *
-   * @return {*}
-   */
-  static sanitizeParamsForQuery(params) {
-    params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
-    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
-    return params;
   }
 
   /**

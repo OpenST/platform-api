@@ -152,7 +152,7 @@ class Session extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForAddress + ')';
 
-    return oThis.putItem(Session.sanitizeParamsForInsert(params), conditionalExpression);
+    return oThis.putItem(params, conditionalExpression);
   }
 
   /**
@@ -259,42 +259,34 @@ class Session extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForAddress + ')';
 
-    return oThis.updateItem(Session.sanitizeParamsForInsert(updateParams), conditionalExpression);
+    return oThis.updateItem(updateParams, conditionalExpression);
   }
 
   /**
-   * Data formatter for response
+   *
+   * method to perform extra formatting
    *
    * @param dbRow
    * @return {Object}
    * @private
    */
-  _formatRowFromDynamo(dbRow) {
-    let formattedDbRow = super._formatRowFromDynamo(dbRow);
-    formattedDbRow = Session.sanitizeParamsForResponse(formattedDbRow);
-    return formattedDbRow;
+  _sanitizeRowFromDynamo(dbRow) {
+    dbRow['status'] = sessionConstants.sessionStatuses[dbRow['status']];
+    return dbRow;
   }
 
   /**
-   * Sanitize params for insert
    *
-   * @param params
-   * @return {*}
-   */
-  static sanitizeParamsForInsert(params) {
-    params['status'] = sessionConstants.invertedSessionStatuses[params['status']];
-    return params;
-  }
-
-  /**
-   * Sanitize params for response
+   * method to perform extra formatting
    *
-   * @param params
-   * @return {*}
+   * @param dbRow
+   * @return {Object}
+   * @private
    */
-  static sanitizeParamsForResponse(params) {
-    params['status'] = sessionConstants.sessionStatuses[params['status']];
-    return params;
+  _sanitizeRowForDynamo(dbRow) {
+    dbRow['status'] = sessionConstants.invertedSessionStatuses[dbRow['status']];
+    dbRow['address'] = basicHelper.sanitizeAddress(dbRow['address']);
+    return dbRow;
   }
 
   /**
