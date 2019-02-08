@@ -46,6 +46,15 @@
     node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
 ```
 
+* [Only Development] Get ETH funder private key
+```js
+let address = '0xb50...'; // master internal funder address
+let rootPrefix = '.';
+addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address}),
+addressPrivateKeyCache.fetchDecryptedData().then(console.log);
+```
+NOTE: Copy the ETH funder private key for later use.
+
 * [Only Development] Setup Origin GETH and fund necessary addresses.
 ```bash
     source set_env_vars.sh
@@ -71,58 +80,52 @@
 
 * Generate origin address and fund them
 ```bash
-  source set_env_vars.sh
-  node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
 ```
 
 #### [Only DevOps] NOTE: Revert DEFAULT_VALUE_GAS_PRICE gas price
 
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
-  source set_env_vars.sh
-  node executables/setup/origin/exceptProductionMain.js --originChainId 1000
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
+    source set_env_vars.sh
+    node executables/setup/origin/exceptProductionMain.js --originChainId 1000 --ethOwnerPrivateKey '0xabc...'
 ```
 
-Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
+NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
 Granter address gets ETH and OST in this step.
 ```bash
-  source set_env_vars.sh
-  node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xabc...' --ethOwnerPrivateKey '0xabc...'
+    source set_env_vars.sh
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...'
 ```
 
 * Save simple token admin and owner addresses in database.
 ```bash
-  source set_env_vars.sh
-  node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
+    source set_env_vars.sh
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0x6bD62276eD2162978327Dee327dF85ed4F27Ad05' --owner '0x2d178cec0ec435F0eEe3AAc6f07d742DF46c31be'
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
     - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
     - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
-  source set_env_vars.sh
-  node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xabc...'
+    source set_env_vars.sh
+    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0x1098118bb2078c0b002e2b173ed63a8c255c0bf7f821efcd61fa8978791f484a'
 ```
 
 * Setup Origin Contracts
 ```bash
-  source set_env_vars.sh
-  node executables/setup/origin/contracts.js --originChainId 1000
-  
-  # Do not worry about errors having code - l_c_m_i_4. These come due to cache miss.
+    source set_env_vars.sh
+    node executables/setup/origin/contracts.js --originChainId 1000
 ```
 
 * Verifier script for origin chain setup
     - You can verify local chain setup and contract deployment using following scripts.
 ```bash
-  source set_env_vars.sh
-  node tools/verifiers/originChainSetup.js
+    source set_env_vars.sh
+    node tools/verifiers/originChainSetup.js
 ```
 
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.

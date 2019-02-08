@@ -4,13 +4,11 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
-  FundGranterAddress = require(rootPrefix + '/lib/setup/originChain/FundGranterAddress'),
   GenerateAuxAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateAuxAddress'),
   GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
   GenerateMasterInternalFunderAddress = require(rootPrefix +
     '/devops/utils/chainAddress/GenerateMasterInternalFunderAddress'),
-  FundMasterInternalFunderAddress = require(rootPrefix + '/devops/utils/chainAddress/FundMasterInternalFunderAddress'),
-  ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain');
+  FundMasterInternalFunderAddress = require(rootPrefix + '/devops/utils/chainAddress/FundMasterInternalFunderAddress');
 
 program
   .version('0.1.0')
@@ -19,8 +17,6 @@ program
   .option('-n, --fund-master-internal-funder-address', 'Fund master internal funder with ETH')
   .option('-o, --generate-origin-addresses', 'Generate addresses required for origin chain')
   .option('-a, --generate-aux-addresses', 'Generate addresses required for auxiliary chain')
-  .option('-d, --deploy-st-contracts', 'Generate addresses required for auxiliary chain')
-  .option('-f, --fund-granter', 'Fund granter with ETH and OST')
   .option('-c, --chain-id <number>', 'Chain id required for actions -o, -a and -d', parseInt)
   .option('-e, --eth-owner-private-key <string>', 'ETH sender private key. Required for action -n')
   .option('-s, --st-owner-private-key <string>', 'ST Owner private key. Required for action -f')
@@ -70,24 +66,6 @@ const Main = async function() {
     }
 
     performerObj = new GenerateAuxAddress(chainId);
-  } else if (program.deployStContracts) {
-    let chainId = program.chainId,
-      ethOwnerPrivateKey = program.ethOwnerPrivateKey;
-
-    if (!chainId || !ethOwnerPrivateKey) {
-      handleError();
-    }
-
-    performerObj = new ExceptProductionMain(chainId, ethOwnerPrivateKey);
-  } else if (program.fundGranter) {
-    let ethOwnerPrivateKey = program.ethOwnerPrivateKey,
-      stOwnerPrivateKey = program.stOwnerPrivateKey;
-
-    if (!ethOwnerPrivateKey || !stOwnerPrivateKey) {
-      handleError();
-    }
-
-    performerObj = new FundGranterAddress(stOwnerPrivateKey, ethOwnerPrivateKey);
   } else {
     return handleError();
   }
