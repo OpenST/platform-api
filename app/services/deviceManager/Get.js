@@ -12,8 +12,8 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common');
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');

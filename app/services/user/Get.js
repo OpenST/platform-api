@@ -1,29 +1,37 @@
 'use strict';
-
-/*
- * This service helps in fetching user from our system
+/**
+ * This service helps in fetching user from our system.
+ *
+ * @module app/services/user/Get.js
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
-
-const InstanceComposer = OSTBase.InstanceComposer;
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
+/**
+ * Class to get user.
+ *
+ * @class
+ */
 class Get extends ServiceBase {
   /**
-   * @constructor
+   * Constructor for getting user
    *
    * @param params
-   * @param params.client_id {Number} - client Id
-   * @param params.token_id {Number} - token Id
-   * @param params.user_id {String} - user_id (user Id)
+   * @param {Number} params.client_id: client Id
+   * @param {Number} params.token_id: token Id
+   * @param {String} params.user_id: user Id
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -65,14 +73,14 @@ class Get extends ServiceBase {
   }
 
   /**
-   * createUser - Creates new user
+   * Fetch user details.
    *
    * @return {Promise<string>}
    */
   async _fetchUser() {
     const oThis = this,
-      TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] });
+      TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] });
 
     return tokenUserDetailsCacheObj.fetch();
   }

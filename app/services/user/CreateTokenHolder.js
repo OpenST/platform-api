@@ -57,32 +57,11 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
-   * Main performer method for the class.
-   *
-   * @returns {Promise<void>}
-   */
-  perform() {
-    const oThis = this;
-
-    return oThis._asyncPerform().catch(async function(err) {
-      if (responseHelper.isCustomResult(err)) {
-        return err;
-      } else {
-        logger.error(' In catch block of app/services/user/CreateTokenHolder.js');
-
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { error: err.toString() }
-        });
-      }
-    });
-  }
-
-  /**
    * Async performer
    *
    * @return {Promise<void>}
+   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
