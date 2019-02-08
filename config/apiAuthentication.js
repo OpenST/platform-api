@@ -35,6 +35,10 @@ class ApiAuthentication {
       [apiName.getUserSessions]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/'
+      },
+      [apiName.getPricePoints]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/price-points/'
       }
     };
     return getRequestConfig;

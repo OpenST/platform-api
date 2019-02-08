@@ -177,6 +177,16 @@ const v2Signature = {
         validatorMethod: 'validateInteger'
       }
     ]
+  },
+
+  [apiName.getPricePoints]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: []
   }
 };
 
