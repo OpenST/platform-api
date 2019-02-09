@@ -50,7 +50,7 @@
 ```js
 let address = '0xb50...'; // master internal funder address
 let rootPrefix = '.';
-addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address}),
+addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
 ```
 NOTE: Copy the ETH funder private key for later use.
