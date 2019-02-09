@@ -75,7 +75,7 @@ class StartMint {
 
     await oThis._validateAndSanitize();
 
-    return await oThis.startMinting();
+    return oThis.startMinting();
   }
 
   /**
@@ -172,7 +172,7 @@ class StartMint {
    * @private
    */
   async _fetchWorkflowDetails(clientId) {
-    return await new WorkflowStepsModel()
+    return new WorkflowStepsModel()
       .select('*')
       .where({
         client_id: clientId

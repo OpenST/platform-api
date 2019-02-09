@@ -2,7 +2,7 @@
 /**
  * Base class for aux chain specific by chain owner funding crons.
  *
- * @module executables/funding/byChainOwner/auxChainSpecific/Base
+ * @module executables/funding/byMasterInternalFunder/auxChainSpecific/Base
  */
 
 const rootPrefix = '../../../..',
@@ -148,7 +148,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       addresses: addresses
     });
 
-    return await getStPrimeBalance.perform();
+    return getStPrimeBalance.perform();
   }
 
   /**
@@ -167,7 +167,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       addresses: addresses
     });
 
-    return await getEthBalance.perform();
+    return getEthBalance.perform();
   }
 
   /**

@@ -1,6 +1,6 @@
 {
   "chainId": 2000,
-  "groupId": 2000,
+  "groupId": 1,
   "config": {
     "memcached": {
       "engine": "memcached",

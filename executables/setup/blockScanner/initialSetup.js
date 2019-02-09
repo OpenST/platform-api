@@ -2,9 +2,7 @@
 /**
  * This script is used for initial setup i.e.  to create shared tables.
  *
- * Usage: node tools/localSetup/block-scanner/initialSetup.js
- *
- * @module tools/localSetup/block-scanner/initialSetup
+ * @module executables/setup/blockScanner/initialSetup.js
  */
 const program = require('commander');
 
@@ -19,7 +17,7 @@ program.on('--help', () => {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log(' node tools/localSetup/block-scanner/initialSetup.js --chainId 1000');
+  logger.log(' node executables/setup/blockScanner/initialSetup.js --chainId 1000');
   logger.log('');
   logger.log('');
 });

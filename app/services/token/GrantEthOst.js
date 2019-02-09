@@ -74,7 +74,7 @@ class GrantEthOst {
       });
     }
 
-    return await oThis.startGranting();
+    return oThis.startGranting();
   }
 
   /**
@@ -119,7 +119,7 @@ class GrantEthOst {
 
     let grantEthOstRouter = new GrantEthOstRouter(paramsForGrantEthOstRouter);
 
-    return await grantEthOstRouter.perform();
+    return grantEthOstRouter.perform();
   }
 }
 

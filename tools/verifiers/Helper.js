@@ -90,7 +90,7 @@ class VerifierHelper {
   async _getABI(organizationName) {
     const oThis = this;
 
-    return await new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
+    return new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
   }
 
   /**
@@ -103,7 +103,7 @@ class VerifierHelper {
   async _getBIN(contractName) {
     const oThis = this;
 
-    return await new VerifierHelper.AbiBinProviderHelper().getBIN(contractName);
+    return new VerifierHelper.AbiBinProviderHelper().getBIN(contractName);
   }
 
   /**

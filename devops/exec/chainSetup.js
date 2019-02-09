@@ -4,21 +4,23 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
-  FundGranterAddress = require(rootPrefix + '/lib/setup/originChain/FundGranterAddress'),
   GenerateAuxAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateAuxAddress'),
   GenerateOriginAddress = require(rootPrefix + '/devops/utils/chainAddress/GenerateOriginAddress'),
-  ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain');
+  GenerateMasterInternalFunderAddress = require(rootPrefix +
+    '/devops/utils/chainAddress/GenerateMasterInternalFunderAddress'),
+  FundMasterInternalFunderAddress = require(rootPrefix + '/devops/utils/chainAddress/FundMasterInternalFunderAddress');
 
 program
   .version('0.1.0')
   .usage('[options]')
+  .option('-m, --generate-master-internal-funder-address', 'Generate master internal funder address for this ENV')
+  .option('-n, --fund-master-internal-funder-address', 'Fund master internal funder with ETH')
   .option('-o, --generate-origin-addresses', 'Generate addresses required for origin chain')
   .option('-a, --generate-aux-addresses', 'Generate addresses required for auxiliary chain')
-  .option('-d, --deploy-st-contracts', 'Generate addresses required for auxiliary chain')
-  .option('-f, --fund-granter', 'Fund granter with ETH and OST')
   .option('-c, --chain-id <number>', 'Chain id required for actions -o, -a and -d', parseInt)
-  .option('-e, --eth-sender-pk <string>', 'ETH sender private key. Required for action -d and -f')
-  .option('-s, --st-owner-pk <string>', 'ST Owner private key. Required for action -f')
+  .option('-e, --eth-owner-private-key <string>', 'ETH sender private key. Required for action -n')
+  .option('-s, --st-owner-private-key <string>', 'ST Owner private key. Required for action -f')
+  .option('-t, --amount <string>', 'Amount that needs to be transfered, Required for action -n')
   .parse(process.argv);
 
 const handleError = function() {
@@ -30,7 +32,25 @@ let performerObj = null,
   performOptions = {};
 
 const Main = async function() {
-  if (program.generateOriginAddresses) {
+  if (program.generateMasterInternalFunderAddress) {
+    let chainId = program.chainId;
+
+    if (!chainId) {
+      handleError();
+    }
+
+    performerObj = new GenerateMasterInternalFunderAddress(chainId);
+  } else if (program.fundMasterInternalFunderAddress) {
+    let chainId = program.chainId,
+      ethOwnerPrivateKey = program.ethOwnerPrivateKey,
+      amount = program.amount;
+
+    if (!chainId || !ethOwnerPrivateKey || !amount) {
+      handleError();
+    }
+
+    performerObj = new FundMasterInternalFunderAddress(chainId, ethOwnerPrivateKey, amount);
+  } else if (program.generateOriginAddresses) {
     let chainId = program.chainId;
 
     if (!chainId) {
@@ -46,24 +66,6 @@ const Main = async function() {
     }
 
     performerObj = new GenerateAuxAddress(chainId);
-  } else if (program.deployStContracts) {
-    let chainId = program.chainId,
-      ethSenderPk = program.ethSenderPk;
-
-    if (!chainId || !ethSenderPk) {
-      handleError();
-    }
-
-    performerObj = new ExceptProductionMain(chainId, ethSenderPk);
-  } else if (program.fundGranter) {
-    let ethSenderPk = program.ethSenderPk,
-      stOwnerPk = program.stOwnerPk;
-
-    if (!ethSenderPk || !stOwnerPk) {
-      handleError();
-    }
-
-    performerObj = new FundGranterAddress(stOwnerPk, ethSenderPk);
   } else {
     return handleError();
   }

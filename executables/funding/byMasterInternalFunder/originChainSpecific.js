@@ -1,8 +1,8 @@
 'use strict';
 /**
- * Cron to fund eth by chainOwner.
+ * Cron to fund eth by master internal funder.
  *
- * @module executables/funding/byChainOwner/originChainSpecific
+ * @module executables/funding/byMasterInternalFunder/originChainSpecific
  *
  * This cron expects originChainId as a parameter in the params.
  */
@@ -27,7 +27,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byChainOwner/originChainSpecific --cronProcessId 9');
+  logger.log('    node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 9');
   logger.log('');
   logger.log('');
 });
@@ -41,7 +41,9 @@ if (!program.cronProcessId) {
 const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
   flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
   flowsForGranterMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_GRANTER_ECONOMY_SETUP),
-  flowsForChainOwnerMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP),
+  flowsForMasterInternalFunderMinimumBalance = basicHelper.convertToBigNumber(
+    coreConstants.FLOWS_FOR_CHAIN_OWNER_ECONOMY_SETUP
+  ),
   originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
 
 // Config for addresses which need to be funded.
@@ -67,7 +69,7 @@ const ethFundingConfig = {
 const alertConfig = {
   [chainAddressConstants.masterInternalFunderKind]: {
     minAmount: '0.6',
-    alertIfLessThanFlows: flowsForChainOwnerMinimumBalance,
+    alertIfLessThanFlows: flowsForMasterInternalFunderMinimumBalance,
     alertRequired: true
   },
   [chainAddressConstants.originGranterKind]: {
@@ -82,7 +84,7 @@ const alertConfig = {
  *
  * @class
  */
-class FundByChainOwnerOriginChainSpecific extends CronBase {
+class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   /**
    * Constructor to fund eth by chain owner.
    *
@@ -104,7 +106,7 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundByChainOwnerOriginChainSpecific;
+    return cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific;
   }
 
   /**
@@ -311,9 +313,9 @@ class FundByChainOwnerOriginChainSpecific extends CronBase {
   }
 }
 
-logger.log('Starting cron to fund eth by chainOwner.');
+logger.log('Starting cron to fund eth by master internal funder.');
 
-new FundByChainOwnerOriginChainSpecific({ cronProcessId: +program.cronProcessId })
+new FundByMasterInternalFunderOriginChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
     process.emit('SIGINT');

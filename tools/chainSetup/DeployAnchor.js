@@ -38,11 +38,11 @@ class DeployAnchor {
   constructor(params) {
     const oThis = this;
 
-    oThis.chainKind = params['chainKind'];
+    oThis.chainKind = params.chainKind;
+    oThis.auxChainId = params.auxChainId;
 
     oThis.chainId = null;
     oThis.anchorKind = null;
-    oThis.auxChainId = params.auxChainId;
     oThis.gasPrice = null;
     oThis.configStrategyObj = null;
   }

@@ -2,7 +2,7 @@
 /**
  * Cron to fund stPrime by chainOwner to chain specific addresses.
  *
- * @module executables/funding/byChainOwner/auxChainSpecific/chainAddresses
+ * @module executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses
  *
  * This cron expects originChainId and auxChainIds as parameter in the params.
  */
@@ -16,7 +16,8 @@ const rootPrefix = '../../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  AuxChainSpecificFundingCronBase = require(rootPrefix + '/executables/funding/byChainOwner/auxChainSpecific/Base');
+  AuxChainSpecificFundingCronBase = require(rootPrefix +
+    '/executables/funding/byMasterInternalFunder/auxChainSpecific/Base');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -24,7 +25,9 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byChainOwner/auxChainSpecific/chainAddresses.js --cronProcessId 10');
+  logger.log(
+    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 10'
+  );
   logger.log('');
   logger.log('');
 });

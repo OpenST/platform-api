@@ -20,7 +20,7 @@ const rootPrefix = '../..',
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  FundStPrimeToTokenAddress = require(rootPrefix + '/lib/fund/stPrime/TokenAddress'),
+  FundStPrimeToTokenAddress = require(rootPrefix + '/lib/setup/economy/FundStPrimeToTokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
   VerifyTransactionStatus = require(rootPrefix + '/lib/setup/economy/VerifyTransactionStatus'),
@@ -117,7 +117,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
           chainId: oThis.requestParams.auxChainId
         });
 
-        return await generateExTxWorker.perform();
+        return generateExTxWorker.perform();
 
       case workflowStepConstants.fundAuxFunderAddress:
         logger.step('*** Funding Aux Funder');

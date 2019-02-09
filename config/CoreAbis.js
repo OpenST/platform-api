@@ -7,10 +7,12 @@
  */
 
 const fs = require('fs'),
-  path = require('path');
+  path = require('path'),
+  BrandedToken = require('@openstfoundation/brandedtoken.js');
 
-const rootPrefix = '..',
-  nameToAbiMap = {};
+const rootPrefix = '..';
+
+const nameToAbiMap = {};
 
 function parseFile(filePath, options) {
   filePath = path.join(__dirname, '/' + filePath);
@@ -37,6 +39,10 @@ class CoreAbis {
     if (nameToAbiMap['simpleToken']) return nameToAbiMap['simpleToken'];
     nameToAbiMap['simpleToken'] = parseFile(rootPrefix + '/contracts/abi/SimpleToken.abi', 'utf8');
     return nameToAbiMap['simpleToken'];
+  }
+
+  static get utilityBrandedToken() {
+    return new BrandedToken.AbiBinProvider().getABI('UtilityBrandedToken');
   }
 }
 
