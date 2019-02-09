@@ -194,6 +194,14 @@ Stake and Mint on zero-gas.
 ```
 
 
+### Insert Pricer ABI into rules table
+``` bash
+> source set_env_vars.sh
+> node
+    InsertPricerAbiKlass = require('./lib/setup/InsertPricerAbiIntoRulesTable.js');
+    new InsertPricerAbiKlass().perform().then(console.log).catch(console.log)
+```
+
 ###### ALWAYS AT THE END
 ### Open up config group for allocation
 ```js
