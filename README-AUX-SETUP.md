@@ -82,6 +82,12 @@ And add it to tables using following script.
    
 ## Run block-scanner crons
 
+* Start Aux Workflow router factory
+```bash
+  source set_env_vars.sh
+  node executables/auxWorkflowRouter/factory.js --cronProcessId 18
+```
+
 * Run Auxiliary Transaction Parser
 ```bash
   source set_env_vars.sh
