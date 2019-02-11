@@ -27,7 +27,7 @@ class Create extends ServiceBase {
    * @constructor
    *
    * @param params
-   * @param params.client_id              {Number} - client Id
+   * @param params.client_id         {Number} - client Id
    * @param params.kind              {String} - Kind (Company/User)
    */
   constructor(params) {
@@ -55,7 +55,7 @@ class Create extends ServiceBase {
 
     await oThis._allocateShards();
 
-    return await oThis.createUser();
+    return oThis.createUser();
   }
 
   /**
@@ -72,8 +72,8 @@ class Create extends ServiceBase {
     let response = await availableShardCache.fetch(),
       availableShards = response.data;
 
-    let r1 = basicHelper.getRandomNumber(0, availableShards[shardConstant.deviceEntityKind].length - 1);
-    let r2 = basicHelper.getRandomNumber(0, availableShards[shardConstant.sessionEntityKind].length - 1);
+    let r1 = basicHelper.getRandomNumber(0, availableShards[shardConstant.deviceEntityKind].length - 1),
+      r2 = basicHelper.getRandomNumber(0, availableShards[shardConstant.sessionEntityKind].length - 1);
     // let r3 = basicHelper.getRandomNumber(0, availableShards[shardConstant.recoveryAddressEntityKind].length - 1);
 
     oThis.shardNumbersMap[shardConstant.deviceEntityKind] = availableShards[shardConstant.deviceEntityKind][r1];

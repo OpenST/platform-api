@@ -20,7 +20,7 @@ async function addCronProcessEntries() {
 
   await transactionOriginParser();
 
-  await fundByChainOwnerOriginChainSpecific();
+  await fundByMasterInternalFunderOriginChainSpecific();
 
   await fundByChainOwnerAuxChainSpecific();
 
@@ -150,12 +150,12 @@ async function transactionOriginParser() {
   return new addCronProcess(insertParams).perform().then(console.log);
 }
 
-async function fundByChainOwnerOriginChainSpecific() {
-  console.log('creating fundByChainOwnerOriginChainSpecific');
+async function fundByMasterInternalFunderOriginChainSpecific() {
+  console.log('creating fundByMasterInternalFunderOriginChainSpecific');
   let cronParams = { originChainId: 1000 },
     insertParams = {
       id: 9,
-      kind: 'fundByChainOwnerOriginChainSpecific',
+      kind: 'fundByMasterInternalFunderOriginChainSpecific',
       ip_address: '127.0.0.1',
       chain_id: 1000,
       cron_params: cronParams,
@@ -247,7 +247,7 @@ async function executeTransaction(queue_topic_suffix) {
       queue_topic_suffix: queue_topic_suffix
     }
   };
-  return await new addCronProcess(insertParams).perform().then(console.log);
+  return new addCronProcess(insertParams).perform().then(console.log);
 }
 
 addCronProcessEntries();

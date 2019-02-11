@@ -329,9 +329,12 @@ class WorkflowRouterBase {
     if (oThis.currentStepId) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
     }
-    await oThis._clearWorkflowCache(oThis.workflowId);
-    await oThis._clearWorkflowStatusCache(oThis.workflowId);
-    await oThis._clearWorkflowStepsStatusCache(oThis.workflowId);
+
+    if (oThis.workflowId) {
+      await oThis._clearWorkflowCache(oThis.workflowId);
+      await oThis._clearWorkflowStatusCache(oThis.workflowId);
+      await oThis._clearWorkflowStepsStatusCache(oThis.workflowId);
+    }
 
     let response = await oThis._performStep();
 
@@ -477,15 +480,24 @@ class WorkflowRouterBase {
       case workflowStepConstants.checkProgressMintStatus:
       case workflowStepConstants.verifyEconomySetup:
       case workflowStepConstants.assignShards:
-
       case workflowStepConstants.deployTokenRules:
       case workflowStepConstants.saveTokenRules:
+      case workflowStepConstants.deployPricerRule:
+      case workflowStepConstants.savePricerRule:
+      case workflowStepConstants.registerPricerRule:
+      case workflowStepConstants.verifyRegisterPricerRule:
       case workflowStepConstants.deployTokenHolderMasterCopy:
       case workflowStepConstants.saveTokenHolderMasterCopy:
       case workflowStepConstants.deployUserWalletFactory:
       case workflowStepConstants.saveUserWalletFactory:
       case workflowStepConstants.deployGnosisSafeMultiSigMasterCopy:
       case workflowStepConstants.saveGnosisSafeMultiSigMasterCopy:
+      case workflowStepConstants.addPriceOracleInPricerRule:
+      case workflowStepConstants.verifyAddPriceOracleInPricerRule:
+      case workflowStepConstants.setAcceptedMarginInPricerRule:
+      case workflowStepConstants.verifySetAcceptedMarginInPricerRule:
+      case workflowStepConstants.deployProxyFactory:
+      case workflowStepConstants.saveProxyFactory:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 

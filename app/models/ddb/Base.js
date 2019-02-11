@@ -101,6 +101,30 @@ class ModelBaseKlass {
   }
 
   /**
+   *
+   * method to perform extra formatting on data passed in params before sending to DDB formatter method
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowFromDynamo(dbRow) {
+    throw 'sub class to implement';
+  }
+
+  /**
+   *
+   * method to perform extra formatting on formatted data
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowForDynamo(dbRow) {
+    throw 'sub class to implement';
+  }
+
+  /**
    * This function replaces an existing entry
    *
    * @param {Object} rowMap
@@ -110,8 +134,10 @@ class ModelBaseKlass {
   async putItem(rowMap, conditionalExpression) {
     const oThis = this;
 
+    let sanitizedRowMap = oThis._sanitizeRowForDynamo(rowMap);
+
     let formattedData = {
-      Item: oThis._formatDataForDynamo(rowMap),
+      Item: oThis._formatRowForDynamo(sanitizedRowMap),
       TableName: oThis.tableName(),
       ConditionExpression: conditionalExpression
     };
@@ -124,7 +150,7 @@ class ModelBaseKlass {
     }
 
     let methodInstance = oThis.subClass['afterUpdate'];
-    await methodInstance.apply(oThis.subClass, [oThis.ic(), rowMap]);
+    await methodInstance.apply(oThis.subClass, [oThis.ic(), sanitizedRowMap]);
 
     return Promise.resolve(putItemResponse);
   }
@@ -163,10 +189,10 @@ class ModelBaseKlass {
         batchedFormattedData = [];
 
       for (let i = 0; i < batchedRawData.length; i++) {
-        let rowData = batchedRawData[i];
+        let rowData = oThis._sanitizeRowForDynamo(batchedRawData[i]);
         batchedFormattedData.push({
           PutRequest: {
-            Item: oThis._formatDataForDynamo(rowData)
+            Item: oThis._formatRowForDynamo(rowData)
           }
         });
       }
@@ -386,17 +412,18 @@ class ModelBaseKlass {
   async updateItem(data, conditionExpression, returnValues) {
     const oThis = this;
 
-    let formattedQuery = {};
+    let sanitizedData = oThis._sanitizeRowForDynamo(data),
+      formattedQuery = {};
 
     formattedQuery['ExpressionAttributeNames'] = {};
     formattedQuery['ExpressionAttributeValues'] = {};
 
-    formattedQuery['Key'] = oThis._keyObj(data);
+    formattedQuery['Key'] = oThis._keyObj(sanitizedData);
     formattedQuery['ReturnValues'] = returnValues || 'NONE';
     formattedQuery['TableName'] = oThis.tableName();
 
     let keys = Object.keys(formattedQuery['Key']),
-      formattedData = oThis._formatDataForDynamo(data);
+      formattedData = oThis._formatRowForDynamo(sanitizedData);
 
     for (let i = 0; i < keys.length; i++) {
       let key = keys[i];
@@ -428,7 +455,7 @@ class ModelBaseKlass {
     }
 
     let methodInstance = oThis.subClass['afterUpdate'];
-    let afterUpdateResponse = await methodInstance.apply(oThis.subClass, [oThis.ic(), data]);
+    let afterUpdateResponse = await methodInstance.apply(oThis.subClass, [oThis.ic(), sanitizedData]);
 
     if (afterUpdateResponse.isFailure()) {
       return afterUpdateResponse;
@@ -447,7 +474,7 @@ class ModelBaseKlass {
    *
    * @private
    */
-  _formatDataForDynamo(rowMap) {
+  _formatRowForDynamo(rowMap) {
     const oThis = this;
 
     let formattedRowData = oThis._keyObj(rowMap);
@@ -489,9 +516,10 @@ class ModelBaseKlass {
     // Loop over response from DB.
     for (let i = 0; i < dbRows.length; i++) {
       // Loop over all the keys received in a row.
-      let formattedRow = oThis._formatRowFromDynamo(dbRows[i]);
+      let formattedRow = oThis._formatRowFromDynamo(dbRows[i]),
+        sanitizedRow = oThis._sanitizeRowFromDynamo(formattedRow);
 
-      finalResponse[formattedRow[primaryKey]] = formattedRow;
+      finalResponse[sanitizedRow[primaryKey]] = sanitizedRow;
     }
 
     return finalResponse;
@@ -520,13 +548,15 @@ class ModelBaseKlass {
           case 'L':
             let formattedSerializedList = [];
             for (let i = 0; i < dataValue.length; i++) {
-              formattedSerializedList.push(oThis._formatRowFromDynamo(dataValue[i]));
+              let sanitizedRow = oThis._sanitizeRowFromDynamo(dataValue[i]);
+              formattedSerializedList.push(oThis._formatRowFromDynamo(sanitizedRow));
             }
             break;
           case 'M':
             let formattedSerializedMap = {};
             for (let key in dataValue) {
-              formattedSerializedMap[key] = oThis._formatRowFromDynamo(dataValue[key]);
+              let sanitizedRow = oThis._sanitizeRowFromDynamo(dataValue[key]);
+              formattedSerializedMap[key] = oThis._formatRowFromDynamo(sanitizedRow);
             }
             break;
           default:

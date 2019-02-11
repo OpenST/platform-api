@@ -104,7 +104,7 @@ class StakerWhitelistedAddress extends ModelBase {
       idsToInactivate.push(existingRows[i].id);
     }
 
-    return await oThis
+    return oThis
       .update({
         status: stakerWhitelistedAddressConstants.invertedStatuses[stakerWhitelistedAddressConstants.inActiveStatus]
       })

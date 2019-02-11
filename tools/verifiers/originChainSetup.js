@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  VerifiersHelper = require(rootPrefix + '/tools/verifiers/helper'),
+  VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
   CoreAbis = require(rootPrefix + '/config/CoreAbis');
 
 /**

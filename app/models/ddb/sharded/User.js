@@ -1,16 +1,16 @@
 'use strict';
 
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
-  Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
@@ -309,13 +309,36 @@ class User extends Base {
   /**
    * Sanitize params for insert.
    *
-   * @param params
+   * @param {Object} params
    *
    * @return {*}
    */
-  static sanitizeParamsToInsert(params) {
+  _sanitizeRowForDynamo(params) {
+    if (params['kind']) {
+      params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
+    }
+    if (params['tokenHolderAddress']) {
+      params['tokenHolderAddress'] = basicHelper.sanitizeAddress(params['tokenHolderAddress']);
+    }
+    if (params['multisigAddress']) {
+      params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
+    }
     params['status'] = tokenUserConstants.invertedStatuses[params['status']];
     return params;
+  }
+
+  /**
+   *
+   * method to perform extra formatting
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowFromDynamo(dbRow) {
+    dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
+    dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
+    return dbRow;
   }
 
   /**
@@ -392,19 +415,6 @@ class User extends Base {
     await tokenUserDetailsCache.clear();
 
     return responseHelper.successWithData({});
-  }
-
-  /**
-   * Sanitize query for params
-   *
-   * @param {Object} params
-   *
-   * @return {*}
-   */
-  static sanitizeParamsForQuery(params) {
-    params['kind'] = tokenUserConstants.invertedKinds[params['kind']];
-    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
-    return params;
   }
 
   /**

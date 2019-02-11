@@ -108,12 +108,12 @@ class StPrimeMintRouter extends WorkflowRouterBase {
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark ST Prime Minting As Success');
 
-        return await oThis.handleSuccess();
+        return oThis.handleSuccess();
 
       case workflowStepConstants.markFailure:
         logger.step('*** Mark ST Prime Minting As Failed');
 
-        return await oThis.handleFailure();
+        return oThis.handleFailure();
 
       default:
         return Promise.reject(

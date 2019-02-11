@@ -231,7 +231,7 @@ class Deployment {
    * @private
    */
   async _fetchWorkflowDetails(clientId) {
-    return await new WorkflowModel()
+    return new WorkflowModel()
       .select('*')
       .where({
         client_id: clientId
@@ -417,7 +417,7 @@ class Deployment {
     let ownerAddress = tokenAddressCacheRsp.data[tokenAddressConstants.ownerAddressKind];
 
     // grant ETH and OST for this address.
-    let grantEthOst = new GrantEthOst({ clientId: oThis.clientId, address: ownerAddress }),
+    let grantEthOst = new GrantEthOst({ client_id: oThis.clientId, address: ownerAddress }),
       grantEthOstResponse = await grantEthOst.perform();
 
     if (!grantEthOstResponse.isSuccess()) {

@@ -42,8 +42,6 @@ class SetCoAnchor {
     oThis.auxChainId = params['auxChainId'];
 
     oThis.chainId = null;
-    oThis.originChainId = null;
-    oThis.otherChainKind = null;
     oThis.gasPrice = null;
     oThis.configStrategyObj = null;
   }
@@ -124,7 +122,6 @@ class SetCoAnchor {
     switch (oThis.chainKind) {
       case coreConstants.originChainKind:
         oThis.chainId = oThis._configStrategyObject.originChainId;
-        oThis.originChainId = oThis._configStrategyObject.originChainId;
         oThis.associatedAuxChainId = 0;
         oThis.anchorOrgContractOwnerKind = chainAddressConstants.originAnchorOrgContractOwnerKind;
         // Define anchor and co-anchor addresses here.
@@ -135,11 +132,9 @@ class SetCoAnchor {
           garPriceRsp = await gasPriceCacheObj.fetch();
         oThis.gasPrice = garPriceRsp.data;
 
-        oThis.otherChainKind = coreConstants.auxChainKind;
         break;
       case coreConstants.auxChainKind:
         oThis.chainId = oThis.auxChainId;
-        oThis.originChainId = oThis._configStrategyObject.originChainId;
         oThis.associatedAuxChainId = oThis.auxChainId;
         oThis.anchorOrgContractOwnerKind = chainAddressConstants.auxAnchorOrgContractOwnerKind;
         // Define anchor and co-anchor addresses here.
@@ -147,7 +142,6 @@ class SetCoAnchor {
         oThis.coAnchorContractAddressKind = chainAddressConstants.originAnchorContractKind;
 
         oThis.gasPrice = contractConstants.zeroGasPrice;
-        oThis.otherChainKind = coreConstants.originChainKind;
         break;
       default:
         throw `unsupported chainKind: ${oThis.chainKind}`;

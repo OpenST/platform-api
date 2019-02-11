@@ -60,7 +60,6 @@ class Device extends Base {
    */
   get shortToLongNamesMap() {
     const oThis = this;
-
     return util.invert(oThis.longToShortNamesMap);
   }
 
@@ -169,7 +168,7 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForWalletAddress + ')';
 
-    let putItemResponse = await oThis.putItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
+    let putItemResponse = await oThis.putItem(params, conditionalExpression);
 
     if (putItemResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
@@ -178,6 +177,8 @@ class Device extends Base {
         debug_options: { error: putItemResponse.toHash() }
       });
     }
+
+    return putItemResponse;
   }
 
   /**
@@ -209,6 +210,7 @@ class Device extends Base {
   static sanitizeParamsToDisplay(params) {
     params['status'] = deviceConstants.kinds[params['status']];
     return params;
+    return oThis.updateItem(params, conditionalExpression);
   }
 
   /**
@@ -232,9 +234,39 @@ class Device extends Base {
         })
       );
     }
-    return await oThis.batchGetItem(keyObjArray, 'walletAddress');
+    return oThis.batchGetItem(keyObjArray, 'walletAddress');
   }
 
+  /**
+   *
+   * method to perform extra formatting
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowFromDynamo(dbRow) {
+    dbRow['status'] = DeviceConstant.kinds[dbRow['status']];
+    return dbRow;
+  }
+
+  /**
+   *
+   * method to perform extra formatting
+   *
+   * @param dbRow
+   * @return {Object}
+   * @private
+   */
+  _sanitizeRowForDynamo(dbRow) {
+    dbRow['status'] = DeviceConstant.invertedKinds[dbRow['status']];
+    dbRow['walletAddress'] = basicHelper.sanitizeAddress(dbRow['walletAddress']);
+    if (dbRow['personalSignAddress']) {
+      dbRow['personalSignAddress'] = basicHelper.sanitizeAddress(dbRow['personalSignAddress']);
+    }
+
+    return dbRow;
+  }
   /**
    * Update status of device from initial status to final status.
    *
@@ -312,17 +344,21 @@ class Device extends Base {
    */
   static async afterUpdate(ic, params) {
     require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-    let DeviceDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache');
-    new DeviceDetailCache({
-      userId: params.userId,
-      walletAddresses: [params.walletAddress]
-    }).clear();
+    let DeviceDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+      deviceDetailCache = new DeviceDetailCache({
+        userId: params.userId,
+        walletAddresses: [params.walletAddress]
+      });
+
+    await deviceDetailCache.clear();
 
     require(rootPrefix + '/lib/cacheManagement/chain/WalletAddressesByUserId');
-    let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId');
-    new WalletAddressesByUserId({
-      userId: params.userId
-    }).clear();
+    let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
+      walletAddressesByUserId = new WalletAddressesByUserId({
+        userId: params.userId
+      });
+
+    await walletAddressesByUserId.clear();
 
     logger.info('device cache cleared.');
     return responseHelper.successWithData({});
