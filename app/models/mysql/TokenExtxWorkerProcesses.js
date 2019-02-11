@@ -8,7 +8,7 @@ const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  tokenExtxWorkerProcessesConstants = require(rootPrefix + '/lib/globalConstant/TokenExtxWorkerProcesses');
+  tokenExtxWorkerProcessesConstants = require(rootPrefix + '/lib/globalConstant/tokenExtxWorkerProcesses');
 
 // Declare variables.
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
