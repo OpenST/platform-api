@@ -20,7 +20,7 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '6': cronProcessesConstants.updateRealtimeGasPrice,
     '7': cronProcessesConstants.fundEth,
     '8': cronProcessesConstants.fundStPrime,
-    '9': cronProcessesConstants.fundByChainOwnerOriginChainSpecific,
+    '9': cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific,
     '10': cronProcessesConstants.fundByChainOwnerAuxChainSpecificChainAddresses,
     '11': cronProcessesConstants.fundBySealerAuxChainSpecific,
     '12': cronProcessesConstants.fundByTokenAuxFunderAuxChainSpecific,
