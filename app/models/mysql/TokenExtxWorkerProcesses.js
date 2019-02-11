@@ -7,14 +7,11 @@
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  tokenExtxWorkerProcessesConstants = require(rootPrefix + '/lib/globalConstant/TokenExtxWorkerProcesses');
 
 // Declare variables.
-const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
-  properties = {
-    //hasSTPrime, onHold, blocking
-  },
-  invertedProperties = util.invert(properties);
+const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
  * Class for token address model
@@ -33,14 +30,8 @@ class TokenExtxWorkerProcesses extends ModelBase {
     const oThis = this;
 
     oThis.tableName = 'token_extx_worker_processes';
-  }
 
-  get properties() {
-    return properties;
-  }
-
-  get invertedProperties() {
-    return invertedProperties;
+    oThis.bitColumns = { properties: tokenExtxWorkerProcessesConstants.invertedProperties };
   }
 }
 

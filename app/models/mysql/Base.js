@@ -46,34 +46,6 @@ class ModelBase extends MysqlQueryBuilders {
   }
 
   /**
-   * Validate all Bitwise columns of a model for uniqueness.
-   *
-   * @return {String}
-   */
-  validateBitColumns() {
-    const oThis = this;
-
-    // Validate only if model has bitwise columns
-    if (Object.keys(oThis.bitColumns).length > 0) {
-      let allBits = [];
-
-      for (let columnName in oThis.bitColumns) {
-        let bitNameTobitValueMap = oThis.bitColumns[columnName];
-
-        for (let bitName in bitNameTobitValueMap) {
-          if (allBits.includes(bitName)) {
-            throw 'Bit Keys name should be unique across all columns of model.';
-          } else {
-            allBits.push(bitName);
-          }
-        }
-      }
-    }
-
-    return 'success';
-  }
-
-  /**
    * Set Bit in the column for a given bit string.
    *
    * @param bitName
