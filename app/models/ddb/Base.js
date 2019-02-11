@@ -128,6 +128,7 @@ class ModelBaseKlass {
    * This function replaces an existing entry
    *
    * @param {Object} rowMap
+   * @param {String} conditionalExpression
    *
    * @returns {Promise<void>}
    */

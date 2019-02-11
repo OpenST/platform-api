@@ -210,7 +210,6 @@ class Device extends Base {
   static sanitizeParamsToDisplay(params) {
     params['status'] = deviceConstants.statuses[params['status']];
     return params;
-    return oThis.updateItem(params, conditionalExpression);
   }
 
   /**
@@ -238,15 +237,16 @@ class Device extends Base {
   }
 
   /**
+   * Method to perform extra formatting
    *
-   * method to perform extra formatting
+   * @param {Object} dbRow
    *
-   * @param dbRow
    * @return {Object}
+   *
    * @private
    */
   _sanitizeRowFromDynamo(dbRow) {
-    dbRow['status'] = DeviceConstant.kinds[dbRow['status']];
+    dbRow['status'] = deviceConstants.statuses[dbRow['status']];
     return dbRow;
   }
 
@@ -259,7 +259,7 @@ class Device extends Base {
    * @private
    */
   _sanitizeRowForDynamo(dbRow) {
-    dbRow['status'] = DeviceConstant.invertedKinds[dbRow['status']];
+    dbRow['status'] = deviceConstants.invertedStatuses[dbRow['status']];
     dbRow['walletAddress'] = basicHelper.sanitizeAddress(dbRow['walletAddress']);
     if (dbRow['personalSignAddress']) {
       dbRow['personalSignAddress'] = basicHelper.sanitizeAddress(dbRow['personalSignAddress']);

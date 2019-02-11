@@ -14,7 +14,11 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter'),
+  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');
@@ -74,8 +78,10 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._updateDeviceStatusToAuthorising().catch(async function(error) {
       await oThis._rollbackUserStatusToCreated();
-      return error;
+      return Promise.reject(error);
     });
+
+    await oThis._initUserSetupWorkflow();
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -186,6 +192,56 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
+   * Init user set-up workflow.
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _initUserSetupWorkflow() {
+    const oThis = this;
+
+    // Fetch client config group.
+    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId }),
+      fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
+
+    if (fetchCacheRsp.isFailure()) {
+      logger.error(
+        'ClientId has no config group assigned to it. This means that client has not been deployed successfully.'
+      );
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_cth_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+    const auxChainId = fetchCacheRsp.data[oThis.clientId].chainId,
+      requestParams = {
+        auxChainId: auxChainId,
+        tokenId: oThis.tokenId,
+        userId: oThis.userId,
+        deviceAddress: oThis.deviceAddress,
+        sessionAddresses: oThis.sessionAddresses,
+        sessionSpendingLimit: oThis.spendingLimit,
+        sessionExpiration: oThis.expirationHeight
+      },
+      userSetupInitParams = {
+        stepKind: workflowStepConstants.userSetupInit,
+        taskStatus: workflowStepConstants.taskReadyToStart,
+        clientId: oThis.clientId,
+        chainId: auxChainId,
+        topic: workflowTopicConstants.userSetup,
+        requestParams: requestParams
+      };
+
+    const userSetupObj = new UserSetupRouter(userSetupInitParams);
+
+    return userSetupObj.perform();
+  }
+
+  /**
    * Rollback user status back to created.
    *
    * @return {Promise<never>}
@@ -210,7 +266,7 @@ class CreateTokenHolder extends ServiceBase {
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
       logger.notify(
-        'a_s_u_cth_4',
+        'a_s_u_cth_5',
         'Could not rollback user status back to created. TokenId: ',
         oThis.tokenId,
         ' UserId: ',
@@ -218,7 +274,7 @@ class CreateTokenHolder extends ServiceBase {
       );
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_5',
+          internal_error_identifier: 'a_s_u_cth_6',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

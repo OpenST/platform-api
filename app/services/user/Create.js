@@ -15,7 +15,7 @@ const rootPrefix = '../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
-const uuidv4 = require('uuid/v4'),
+const uuidV4 = require('uuid/v4'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
@@ -51,7 +51,7 @@ class Create extends ServiceBase {
 
     await oThis._fetchTokenDetails();
 
-    oThis.userId = uuidv4();
+    oThis.userId = uuidV4();
 
     await oThis._allocateShards();
 
