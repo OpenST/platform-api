@@ -55,6 +55,7 @@ require(rootPrefix + '/lib/setup/economy/DeployPricerRule');
 require(rootPrefix + '/lib/setup/economy/RegisterPricerRule');
 require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 require(rootPrefix + '/lib/setup/economy/SetAcceptedMarginInPricerRule');
+require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker');
 
 /**
  * Class for economy setup router.
@@ -118,6 +119,17 @@ class EconomySetupRouter extends WorkflowRouterBase {
         });
 
         return generateExTxWorker.perform();
+
+      case workflowStepConstants.fundExTxWorkers:
+        logger.step('******* Fund execute transaction workers.');
+        console.log('oThis.requestParams.auxChainId ======', oThis.requestParams.auxChainId);
+        let FundExTxWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundExTxWorker'),
+          fundExTxWorkerObj = new FundExTxWorker({
+            tokenId: oThis.requestParams.tokenId,
+            chainId: oThis.requestParams.auxChainId
+          });
+
+        return await fundExTxWorkerObj.perform();
 
       case workflowStepConstants.fundAuxFunderAddress:
         logger.step('*** Funding Aux Funder');

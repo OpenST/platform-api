@@ -34,6 +34,11 @@ const steps = {
     kind: workflowStepConstants.verifyFundAuxFunderAddress,
     onFailure: workflowStepConstants.markFailure,
     readDataFrom: [workflowStepConstants.fundAuxFunderAddress],
+    onSuccess: [workflowStepConstants.fundExTxWorkers]
+  },
+  [workflowStepConstants.fundExTxWorkers]: {
+    kind: workflowStepConstants.fundExTxWorkers,
+    onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.fundAuxAdminAddress, workflowStepConstants.fundAuxWorkerAddress]
   },
   [workflowStepConstants.fundAuxAdminAddress]: {
