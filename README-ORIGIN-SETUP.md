@@ -130,6 +130,13 @@ Granter address gets ETH and OST in this step.
 
 * Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
 
+### Insert Pricer ABI into rules table
+``` bash
+> source set_env_vars.sh
+> node
+    InsertPricerAbiKlass = require('./lib/setup/InsertPricerAbiIntoRulesTable.js');
+    new InsertPricerAbiKlass().perform().then(console.log).catch(console.log)
+```
 
 ### Run block-scanner crons and factory
 
