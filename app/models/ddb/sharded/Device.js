@@ -202,12 +202,12 @@ class Device extends Base {
   }
 
   static sanitizeParamsToInsert(params) {
-    params['status'] = deviceConstants.invertedKinds[params['status']];
+    params['status'] = deviceConstants.invertedStatuses[params['status']];
     return params;
   }
 
   static sanitizeParamsToDisplay(params) {
-    params['status'] = deviceConstants.kinds[params['status']];
+    params['status'] = deviceConstants.statuses[params['status']];
     return params;
   }
 
@@ -253,8 +253,8 @@ class Device extends Base {
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
       dataTypeForWalletAddress = oThis.shortNameToDataType[shortNameForWalletAddress],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
-      initialStatusInt = deviceConstants.invertedKinds[initialStatus],
-      finalStatusInt = deviceConstants.invertedKinds[finalStatus];
+      initialStatusInt = deviceConstants.invertedStatuses[initialStatus],
+      finalStatusInt = deviceConstants.invertedStatuses[finalStatus];
 
     const updateQuery = {
       TableName: oThis.tableName(),
