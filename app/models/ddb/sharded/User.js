@@ -51,6 +51,7 @@ class User extends Base {
       deviceShardNumber: 'dsn',
       sessionShardNumber: 'ssn',
       recoveryAddressShardNumber: 'rasn',
+      saasApiStatus: 'sas',
       status: 'sts',
       updatedTimestamp: 'uts'
     };
@@ -82,6 +83,7 @@ class User extends Base {
       dsn: 'N',
       ssn: 'N',
       rasn: 'N',
+      sas: 'N',
       sts: 'N',
       uts: 'N'
     };
