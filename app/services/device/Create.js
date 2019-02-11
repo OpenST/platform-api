@@ -12,8 +12,8 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  deviceConstant = require(rootPrefix + '/lib/globalConstant/device'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -143,7 +143,7 @@ class CreateDevice extends ServiceBase {
         personalSignAddress: oThis.personalSignAddress,
         deviceUuid: oThis.deviceUuid,
         deviceName: oThis.deviceName,
-        status: deviceConstant.registeredStatus,
+        status: deviceConstants.registeredStatus,
         updatedTimestamp: Math.floor(new Date().getTime() / 1000)
       };
 

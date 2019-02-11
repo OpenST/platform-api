@@ -293,6 +293,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       chainAddresses.push(address);
     }
 
+    // Convert an array to a set and then convert it back to an array.
     oThis.tokenIds = [...new Set(oThis.tokenIds)];
 
     return chainAddresses;
