@@ -22,6 +22,7 @@ const rootPrefix = '../..',
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/ActivateUser');
+require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
 
 /**
  * Class for User Setup router.
@@ -64,9 +65,6 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
     const configStrategy = await oThis.getConfigStrategy(),
       ic = new InstanceComposer(configStrategy);
 
-    let ActivateUserKlass = {},
-      activateUserObj = {};
-
     switch (oThis.stepKind) {
       case workflowStepConstants.userSetupInit:
         return oThis.insertInitStep();
@@ -88,17 +86,17 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
 
       // Update Contract addresses in user and activate it.
       case workflowStepConstants.activateUser:
-        ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser');
-        activateUserObj = new ActivateUserKlass(oThis.requestParams);
+        let ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
+          activateUserObj = new ActivateUserKlass(oThis.requestParams);
 
         return activateUserObj.perform();
 
       // Rollback user and device and sessions
       case workflowStepConstants.rollbackUserSetup:
-        ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser');
-        activateUserObj = new ActivateUserKlass(oThis.requestParams);
+        let RollbackKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RollbackUserActivation'),
+          rollbackObj = new RollbackKlass(oThis.requestParams);
 
-        return activateUserObj.perform();
+        return rollbackObj.perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark User SetUp As Success.');
