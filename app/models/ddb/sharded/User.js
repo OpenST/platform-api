@@ -1,5 +1,8 @@
 'use strict';
 
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -8,9 +11,6 @@ const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
-
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
@@ -202,7 +202,7 @@ class User extends Base {
     let conditionalExpression =
       'attribute_not_exists(' + shortNameForTokenId + ') AND attribute_not_exists(' + shortNameForUserId + ')';
 
-    return oThis.putItem(User.sanitizeParamsForQuery(params), conditionalExpression);
+    return oThis.putItem(params, conditionalExpression);
   }
 
   /**
@@ -303,7 +303,7 @@ class User extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForTokenId + ') AND attribute_exists(' + shortNameForUserId + ')';
 
-    return oThis.updateItem(User.sanitizeParamsToInsert(params), conditionalExpression);
+    return oThis.updateItem(params, conditionalExpression);
   }
 
   /**
@@ -312,6 +312,8 @@ class User extends Base {
    * @param {Object} params
    *
    * @return {*}
+   *
+   * @private
    */
   _sanitizeRowForDynamo(params) {
     if (params['kind']) {
@@ -328,11 +330,12 @@ class User extends Base {
   }
 
   /**
+   * Method to perform extra formatting
    *
-   * method to perform extra formatting
+   * @param {Object} dbRow
    *
-   * @param dbRow
    * @return {Object}
+   *
    * @private
    */
   _sanitizeRowFromDynamo(dbRow) {

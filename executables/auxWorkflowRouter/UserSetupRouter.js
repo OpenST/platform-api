@@ -20,8 +20,8 @@ const rootPrefix = '../..',
   FetchUserRegisteredEvent = require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails');
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/ActivateUser');
+require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
 
 /**
