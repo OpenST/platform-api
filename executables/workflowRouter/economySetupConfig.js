@@ -268,7 +268,8 @@ const steps = {
     onSuccess: [
       workflowStepConstants.registerPricerRule,
       workflowStepConstants.addPriceOracleInPricerRule,
-      workflowStepConstants.setAcceptedMarginInPricerRule
+      workflowStepConstants.setAcceptedMarginInPricerRule,
+      workflowStepConstants.deployProxyFactory
     ]
   },
   [workflowStepConstants.registerPricerRule]: {
@@ -307,12 +308,25 @@ const steps = {
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.verifyEconomySetup]
   },
+  [workflowStepConstants.deployProxyFactory]: {
+    kind: workflowStepConstants.deployProxyFactory,
+    prerequisites: [workflowStepConstants.savePricerRule],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.saveProxyFactory]
+  },
+  [workflowStepConstants.saveProxyFactory]: {
+    kind: workflowStepConstants.saveProxyFactory,
+    readDataFrom: [workflowStepConstants.deployProxyFactory],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
   [workflowStepConstants.verifyEconomySetup]: {
     kind: workflowStepConstants.verifyEconomySetup,
     prerequisites: [
       workflowStepConstants.verifyRegisterPricerRule,
       workflowStepConstants.verifyAddPriceOracleInPricerRule,
-      workflowStepConstants.verifySetAcceptedMarginInPricerRule
+      workflowStepConstants.verifySetAcceptedMarginInPricerRule,
+      workflowStepConstants.saveProxyFactory
     ],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.assignShards]

@@ -34,7 +34,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '58': tokenAddressConstants.tokenRulesContractKind,
     '59': tokenAddressConstants.tokenHolderMasterCopyContractKind,
     '60': tokenAddressConstants.userWalletFactoryContractKind,
-    '61': tokenAddressConstants.gnosisSafeMultiSigMasterCopyContractKind
+    '61': tokenAddressConstants.gnosisSafeMultiSigMasterCopyContractKind,
+    '62': tokenAddressConstants.proxyFactoryContractKind
   },
   invertedKinds = util.invert(kinds),
   statuses = {

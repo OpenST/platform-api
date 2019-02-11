@@ -496,6 +496,8 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifyAddPriceOracleInPricerRule:
       case workflowStepConstants.setAcceptedMarginInPricerRule:
       case workflowStepConstants.verifySetAcceptedMarginInPricerRule:
+      case workflowStepConstants.deployProxyFactory:
+      case workflowStepConstants.saveProxyFactory:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 

@@ -55,6 +55,7 @@ require(rootPrefix + '/lib/setup/economy/DeployPricerRule');
 require(rootPrefix + '/lib/setup/economy/RegisterPricerRule');
 require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 require(rootPrefix + '/lib/setup/economy/SetAcceptedMarginInPricerRule');
+require(rootPrefix + '/lib/setup/economy/DeployProxyFactory');
 require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker');
 
 /**
@@ -522,6 +523,25 @@ class EconomySetupRouter extends WorkflowRouterBase {
 
         return new VerifyTransactionStatus({
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setAcceptedMarginInPricerRule),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.deployProxyFactory:
+        logger.step('*** Deploy Proxy Factory');
+
+        let DeployProxyFactory = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeployProxyFactory');
+
+        let deployProxyFactory = new DeployProxyFactory(oThis.requestParams);
+
+        return deployProxyFactory.perform();
+
+      case workflowStepConstants.saveProxyFactory:
+        logger.step('*** Save Proxy Factory address in DB');
+
+        return new InsertAddressIntoTokenAddress({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployProxyFactory),
+          kind: tokenAddressConstants.proxyFactoryContractKind,
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
