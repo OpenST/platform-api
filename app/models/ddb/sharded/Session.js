@@ -9,6 +9,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session');
 
