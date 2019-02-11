@@ -9,16 +9,17 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
-  AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  userSetupStepsConfig = require(rootPrefix + '/executables/auxWorkflowRouter/userSetupConfig'),
+  AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
   AddUserInWalletFactory = require(rootPrefix + '/lib/setup/user/AddUserInUserWalletFactory'),
+  userSetupStepsConfig = require(rootPrefix + '/executables/auxWorkflowRouter/userSetupConfig'),
   FetchUserRegisteredEvent = require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails');
 
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/ActivateUser');
 
@@ -63,6 +64,9 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
     const configStrategy = await oThis.getConfigStrategy(),
       ic = new InstanceComposer(configStrategy);
 
+    let ActivateUserKlass = {},
+      activateUserObj = {};
+
     switch (oThis.stepKind) {
       case workflowStepConstants.userSetupInit:
         return oThis.insertInitStep();
@@ -71,6 +75,7 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.addSessionAddresses:
         let AddSessionAddressKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
           addSessionAddrObj = new AddSessionAddressKlass(oThis.requestParams);
+
         return addSessionAddrObj.perform();
 
       // Add user in User wallet factory.
@@ -83,15 +88,17 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
 
       // Update Contract addresses in user and activate it.
       case workflowStepConstants.activateUser:
-        let ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
-          activateUserObj = new ActivateUserKlass(oThis.requestParams);
+        ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser');
+        activateUserObj = new ActivateUserKlass(oThis.requestParams);
+
         return activateUserObj.perform();
 
       // Rollback user and device and sessions
       case workflowStepConstants.rollbackUserSetup:
-        let AactivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
-          aactivateUserObj = new AactivateUserKlass(oThis.requestParams);
-        return aactivateUserObj.perform();
+        ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser');
+        activateUserObj = new ActivateUserKlass(oThis.requestParams);
+
+        return activateUserObj.perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark User SetUp As Success.');

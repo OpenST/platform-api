@@ -3,7 +3,6 @@ const express = require('express');
 const rootPrefix = '../..',
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -12,6 +11,7 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/Get');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
