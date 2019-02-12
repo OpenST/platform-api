@@ -184,7 +184,7 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
 
 /* Create token holders */
 router.post('/:user_id/activate-user/', function(req, res, next) {
-  req.decodedParams.apiName = apiName.createTokenHolder;
+  req.decodedParams.apiName = apiName.activateUser;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 

@@ -39,7 +39,7 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.createTokenHolder]: {
+  [apiName.activateUser]: {
     mandatory: [
       {
         parameter: 'client_id',
