@@ -46,6 +46,7 @@ class Session extends Base {
       address: 'adr',
       expirationHeight: 'eh',
       spendingLimit: 'sl',
+      knownAddressId: 'kai',
       status: 's',
       updatedTimestamp: 'uts'
     };
@@ -72,6 +73,7 @@ class Session extends Base {
       adr: 'S',
       eh: 'N',
       sl: 'N',
+      kai: 'N',
       s: 'N',
       uts: 'N'
     };

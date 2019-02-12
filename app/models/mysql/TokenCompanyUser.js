@@ -29,7 +29,7 @@ class TokenCompanyUser extends ModelBase {
   constructor() {
     super({ dbName: dbName });
     const oThis = this;
-    oThis.tableName = 'company_token_holders';
+    oThis.tableName = 'token_company_users';
   }
 
   /**
@@ -55,6 +55,8 @@ class TokenCompanyUser extends ModelBase {
         user_uuid: params.userUuid
       })
       .fire();
+
+    await TokenCompanyUser.flushCache(params.tokenId);
 
     return Promise.resolve(responseHelper.successWithData(insertResponse.insertId));
   }
@@ -88,6 +90,20 @@ class TokenCompanyUser extends ModelBase {
     return responseHelper.successWithData({
       userUuids: userUuids
     });
+  }
+
+  /***
+   *
+   * flush cache
+   *
+   * @param tokenId
+   * @returns {Promise<*>}
+   */
+  static flushCache(tokenId) {
+    const TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail');
+    return new TokenCompanyUserCache({
+      tokenId: tokenId
+    }).clear();
   }
 }
 
