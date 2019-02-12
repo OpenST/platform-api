@@ -204,13 +204,15 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     // identify which file/function to initiate to execute task of specific kind.
     // Query in workflow_steps to get details pf parent id in message params
     let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
+      kind = messageParams.message.kind;
+
+    console.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
-      console.log('message specific perform called.......\n', messageParams);
+      console.log('message message message message message specific perform called.......\n');
       //message specific perform called.
     } else if (kind == kwcConstant.commandMsg) {
-      console.log('Command specific perform called.......\n', messageParams);
+      console.log('Command Command Command Command Command specific perform called.......\n');
       let commandProcessorResponse = null;
       await oThis._commandResponseActions(commandProcessorResponse);
     }
