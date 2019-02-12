@@ -200,21 +200,21 @@ router.post('/:user_id/token-holders/', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'CreateTokenHolder', 'r_v_u_7', null, dataFormatterFunc));
 });
 
-/* Get token holders */
-router.get('/:user_id/token-holders/', function(req, res, next) {
-  req.decodedParams.apiName = apiName.getTokenHolder;
-  req.decodedParams.userId = req.params.user_id; // review params
-  req.decodedParams.clientConfigStrategyRequired = true;
-
-  const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
-    serviceResponse.data = {
-      result_type: resultType.user,
-      [resultType.user]: userFormattedRsp.data
-    };
-  };
-
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_t_1', null, dataFormatterFunc));
-});
+// /* Get token holders */
+// router.get('/:user_id/token-holders/', function(req, res, next) {
+//   req.decodedParams.apiName = apiName.getTokenHolder;
+//   req.decodedParams.userId = req.params.user_id; // review params
+//   req.decodedParams.clientConfigStrategyRequired = true;
+//
+//   const dataFormatterFunc = async function(serviceResponse) {
+//     const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+//     serviceResponse.data = {
+//       result_type: resultType.user,
+//       [resultType.user]: userFormattedRsp.data
+//     };
+//   };
+//
+//   Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_t_1', null, dataFormatterFunc));
+// });
 
 module.exports = router;
