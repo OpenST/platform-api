@@ -10,14 +10,14 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
 
