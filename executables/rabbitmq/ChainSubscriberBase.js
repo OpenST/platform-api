@@ -11,7 +11,9 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
+  cronProcessHandlerObject = new cronProcessHandler();
 
 /**
  * Class for subscriber base.
@@ -116,15 +118,17 @@ class SubscriberBase extends CronBase {
     let subData = oThis.subscriptionData[topicName];
 
     // below condition is to save from multiple subscriptions by command messages.
-    if (!oThis.subscriptionData[topicName]['subscribed']) {
+    if (oThis.subscriptionData[topicName]['subscribed'] == 0) {
       oThis.subscriptionData[topicName]['subscribed'] = 1;
+
+      oThis.promiseQueueManager(topicName);
 
       if (subData['consumerTag']) {
         process.emit('RESUME_CONSUME', subData['consumerTag']);
       } else {
         openStNotification.subscribeEvent
           .rabbit(
-            subData.topicName,
+            [subData.topicName],
             {
               queue: subData.queueName,
               ackRequired: oThis.ackRequired,
@@ -132,7 +136,7 @@ class SubscriberBase extends CronBase {
             },
             function(params) {
               // Promise is required to be returned to manually ack messages in RMQ
-              return oThis.promiseQueueManager(topicName).createPromise(params);
+              return oThis.subscriptionData[topicName]['promiseQueueManager'].createPromise(params);
             },
             function(consumerTag) {
               oThis.subscriptionData[topicName]['consumerTag'] = consumerTag;
@@ -160,26 +164,26 @@ class SubscriberBase extends CronBase {
   _promiseExecutor(onResolve, onReject, messageParams) {
     const oThis = this;
 
-    oThis.unAckCount++;
-
     try {
       messageParams = JSON.parse(messageParams);
     } catch (err) {
       logger.error('Error in JSON parse ', err);
       return onResolve();
     }
+    oThis._incrementUnAck(messageParams);
+
     oThis
       ._processMessage(messageParams)
       .then(function() {
-        oThis.unAckCount--;
+        oThis._decrementUnAck(messageParams);
         onResolve();
       })
       .catch(function(error) {
-        oThis.unAckCount--;
+        oThis._decrementUnAck(messageParams);
         logger.error(
           'e_bs_w_5',
           'Error in process message from rmq. unAckCount ->',
-          oThis.unAckCount,
+          oThis._getUnAck(messageParams),
           'Error: ',
           error,
           'Params: ',
@@ -202,10 +206,59 @@ class SubscriberBase extends CronBase {
   _pendingTasksDone() {
     const oThis = this;
 
-    if (oThis.unAckCount !== oThis.PromiseQueueManager.getPendingCount()) {
-      logger.error('ERROR :: unAckCount and pending counts are not in sync.');
+    for (let topicName in oThis.subscriptionData) {
+      let subData = oThis.subscriptionData[topicName];
+      if (subData.unAckCount !== subData['promiseQueueManager'].getPendingCount()) {
+        logger.error('ERROR :: unAckCount and pending counts are not in sync for', topicName);
+      }
+
+      if (!(subData['promiseQueueManager'].getPendingCount() == 0 && subData['unAckCount'] == 0)) {
+        return false;
+      }
     }
-    return !oThis.PromiseQueueManager.getPendingCount() && !oThis.unAckCount;
+    return true;
+  }
+
+  /**
+   * Attach SIGINT/SIGTERM handlers to the current process.
+   */
+  attachHandlers() {
+    const oThis = this;
+
+    let handle = function() {
+      for (let topicName in oThis.subscriptionData) {
+        oThis.stopPickingUpNewTasks(topicName);
+      }
+
+      if (oThis._pendingTasksDone()) {
+        logger.info(':: No pending tasks. Changing the status ');
+        cronProcessHandlerObject.stopProcess(oThis.cronProcessId).then(function() {
+          logger.info('Status and last_ended_at updated in table. Killing process.');
+
+          // Stop the process only after the entry has been updated in the table.
+          process.exit(1);
+        });
+      } else {
+        logger.info(':: There are pending tasks. Waiting for completion.');
+        setTimeout(handle, 1000);
+      }
+    };
+
+    process.on('SIGINT', handle);
+    process.on('SIGTERM', handle);
+  }
+
+  /**
+   * Stops consumption upon invocation
+   */
+  stopPickingUpNewTasks(topicName) {
+    const oThis = this;
+
+    oThis.subscriptionData[topicName]['subscribed'] = 0;
+    if (oThis.subscriptionData[topicName].consumerTag) {
+      logger.info(':: :: Cancelling consumption on tag=====', oThis.subscriptionData[topicName].consumerTag);
+      process.emit('CANCEL_CONSUME', oThis.subscriptionData[topicName].consumerTag);
+    }
   }
 
   get timeoutInMilliSecs() {
@@ -222,18 +275,6 @@ class SubscriberBase extends CronBase {
     process.kill(process.pid, 'SIGTERM');
   }
 
-  async _beforeSubscribe() {
-    throw 'sub class to implement.';
-  }
-
-  get _topicsToSubscribe() {
-    throw 'sub class to implement.';
-  }
-
-  get _queueName() {
-    throw 'sub class to implement.';
-  }
-
   get _processNamePrefix() {
     throw 'sub class to implement.';
   }
@@ -243,6 +284,14 @@ class SubscriberBase extends CronBase {
   }
 
   _processMessage() {
+    throw 'sub class to implement.';
+  }
+
+  _incrementUnAck() {
+    throw 'sub class to implement.';
+  }
+
+  _decrementUnAck() {
     throw 'sub class to implement.';
   }
 }
