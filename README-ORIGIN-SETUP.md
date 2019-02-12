@@ -43,7 +43,7 @@
 * Generate master internal funder address for this ENV
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
+    node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 1000
 ```
 
 * [Only Development] Get ETH funder private key

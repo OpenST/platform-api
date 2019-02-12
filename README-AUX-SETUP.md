@@ -78,7 +78,11 @@ And add it to tables using following script.
   node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
-* Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
+* Update price points.
+```bash
+   source set_env_vars.sh
+   node executables/UpdatePricePoints.js --cronProcessId 13
+```
    
 ## Run block-scanner crons
 
