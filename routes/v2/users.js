@@ -1,16 +1,15 @@
-const express = require('express');
+const express = require('express'),
+  router = express.Router();
 
 const rootPrefix = '../..',
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   routeHelper = require(rootPrefix + '/routes/helper'),
-  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   SessionFormatter = require(rootPrefix + '/lib/formatter/entity/Session'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common');
-
-const router = express.Router();
+  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -184,7 +183,7 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
 });
 
 /* Create token holders */
-router.post('/:user_id/token-holders/', function(req, res, next) {
+router.post('/:user_id/activate-user/', function(req, res, next) {
   req.decodedParams.apiName = apiName.createTokenHolder;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
