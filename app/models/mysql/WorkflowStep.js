@@ -76,6 +76,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
     '52': workflowStepConstants.deployProxyFactory,
     '53': workflowStepConstants.saveProxyFactory,
+    '54': workflowStepConstants.initializeCompanyTokenHolderInDb,
+    '55': workflowStepConstants.createCompanyWallet,
+    '56': workflowStepConstants.verifyCreateCompanyWallet,
+    '57': workflowStepConstants.setInternalActorForCompanyTHInUBT,
+    '58': workflowStepConstants.verifySetInternalActorForCompanyTHInUBT,
 
     '50': workflowStepConstants.generateTxWorkerAddresses,
     '51': workflowStepConstants.fundExTxWorkers,

@@ -498,6 +498,11 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifySetAcceptedMarginInPricerRule:
       case workflowStepConstants.deployProxyFactory:
       case workflowStepConstants.saveProxyFactory:
+      case workflowStepConstants.initializeCompanyTokenHolderInDb:
+      case workflowStepConstants.createCompanyWallet:
+      case workflowStepConstants.verifyCreateCompanyWallet:
+      case workflowStepConstants.setInternalActorForCompanyTHInUBT:
+      case workflowStepConstants.verifySetInternalActorForCompanyTHInUBT:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 

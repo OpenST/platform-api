@@ -9,6 +9,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session');
 
@@ -45,6 +46,7 @@ class Session extends Base {
       address: 'adr',
       expirationHeight: 'eh',
       spendingLimit: 'sl',
+      knownAddressId: 'kai',
       status: 's',
       updatedTimestamp: 'uts'
     };
@@ -71,6 +73,7 @@ class Session extends Base {
       adr: 'S',
       eh: 'N',
       sl: 'N',
+      kai: 'N',
       s: 'N',
       uts: 'N'
     };
