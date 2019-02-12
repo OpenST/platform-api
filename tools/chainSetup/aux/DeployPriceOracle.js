@@ -39,7 +39,7 @@ class DeployPriceOracle {
   constructor(params) {
     const oThis = this;
 
-    oThis.auxChainId = params['auxChainId'];
+    oThis.auxChainId = params.auxChainId;
     oThis.baseCurrency = params.baseCurrency || conversionRateConstants.OST;
     oThis.quoteCurrency = params.quoteCurrency || conversionRateConstants.USD;
 
@@ -49,34 +49,9 @@ class DeployPriceOracle {
   /**
    * Perform
    *
-   * @return {Promise<result>}
+   * @returns {Promise<void>}
    */
-  perform() {
-    const oThis = this;
-
-    return oThis._asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error(`${__filename}::perform::catch`);
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 't_cs_a_dpo_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
-  }
-
-  /**
-   * Async perform
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _asyncPerform() {
+  async perform() {
     const oThis = this;
 
     await oThis._fetchAddresses();
