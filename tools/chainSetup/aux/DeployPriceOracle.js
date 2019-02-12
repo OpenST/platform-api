@@ -15,9 +15,9 @@ const rootPrefix = '../../..',
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
@@ -146,8 +146,6 @@ class DeployPriceOracle {
    */
   async _deployPriceOracleContract() {
     const oThis = this;
-
-    logger.step('Deploying Price oracle contract.');
 
     // Prepare txOptions.
     let txOptions = {
