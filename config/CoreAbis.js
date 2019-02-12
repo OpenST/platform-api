@@ -8,7 +8,8 @@
 
 const fs = require('fs'),
   path = require('path'),
-  BrandedToken = require('@openstfoundation/brandedtoken.js');
+  BrandedToken = require('@openstfoundation/brandedtoken.js'),
+  OpenStJs = require('@openstfoundation/openst.js');
 
 const rootPrefix = '..';
 
@@ -43,6 +44,10 @@ class CoreAbis {
 
   static get utilityBrandedToken() {
     return new BrandedToken.AbiBinProvider().getABI('UtilityBrandedToken');
+  }
+
+  static get GnosisSafe() {
+    return new OpenStJs.AbiBinProvider().getABI('GnosisSafe');
   }
 }
 
