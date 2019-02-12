@@ -69,6 +69,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid spending_limit`
   },
+  invalid_known_address_ids: {
+    parameter: 'knownAddressIds',
+    code: 'invalid',
+    message: `Invalid knownAddressIds`
+  },
   missing_user_id: {
     parameter: 'user_id',
     code: 'missing',

@@ -21,7 +21,6 @@ const BigNumber = require('bignumber.js');
 class SessionListBase extends ServiceBase {
   /**
    * @param params
-   * @param {Integer}  params.client_id
    * @param {String}   params.user_id - uuid
    * @param {Integer} [params.token_id]
    */
@@ -29,7 +28,6 @@ class SessionListBase extends ServiceBase {
     super(params);
 
     const oThis = this;
-    oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
 

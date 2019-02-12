@@ -51,6 +51,7 @@ class User extends Base {
       deviceShardNumber: 'dsn',
       sessionShardNumber: 'ssn',
       recoveryAddressShardNumber: 'rasn',
+      saasApiStatus: 'sas',
       status: 'sts',
       updatedTimestamp: 'uts'
     };
@@ -82,6 +83,7 @@ class User extends Base {
       dsn: 'N',
       ssn: 'N',
       rasn: 'N',
+      sas: 'N',
       sts: 'N',
       uts: 'N'
     };
@@ -219,13 +221,10 @@ class User extends Base {
     const oThis = this,
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       shortNameForUserId = oThis.shortNameFor('userId'),
-      shortNameForKind = oThis.shortNameFor('kind'),
       shortNameForStatus = oThis.shortNameFor('status'),
-      dataTypeForKind = oThis.shortNameToDataType[shortNameForKind],
       dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId],
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
-      userKindInt = tokenUserConstants.invertedKinds[tokenUserConstants.userKind],
       initialStatusInt = tokenUserConstants.invertedStatuses[initialStatus],
       finalStatusInt = tokenUserConstants.invertedStatuses[finalStatus];
 
@@ -241,16 +240,14 @@ class User extends Base {
         ') AND attribute_exists(' +
         shortNameForUserId +
         ')' +
-        ' AND #initialStatus = :initialStatus AND #userKind = :userKind',
+        ' AND #initialStatus = :initialStatus',
       ExpressionAttributeNames: {
         '#initialStatus': shortNameForStatus,
-        '#finalStatus': shortNameForStatus,
-        '#userKind': shortNameForKind
+        '#finalStatus': shortNameForStatus
       },
       ExpressionAttributeValues: {
         ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
-        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
-        ':userKind': { [dataTypeForKind]: userKindInt }
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
       },
       UpdateExpression: 'SET #finalStatus = :finalStatus',
       ReturnValues: 'ALL_NEW'

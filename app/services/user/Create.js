@@ -2,6 +2,8 @@
 
 /*
  * This service helps in adding Token User in our System
+ *
+ * Note:- if token id is provided in parameter,
  */
 
 const rootPrefix = '../../..',
@@ -27,8 +29,9 @@ class Create extends ServiceBase {
    * @constructor
    *
    * @param params
-   * @param params.client_id         {Number} - client Id
-   * @param params.kind              {String} - Kind (Company/User)
+   * @param {Number} params.client_id - client Id
+   * @param {Number} [params.token_id] - token Id
+   * @param {String} params.kind - Kind (Company/User)
    */
   constructor(params) {
     super(params);
@@ -36,6 +39,7 @@ class Create extends ServiceBase {
     const oThis = this;
 
     oThis.clientId = params.client_id;
+    oThis.tokenId = params.token_id;
     oThis.kind = params.kind || tokenUserConstants.userKind;
 
     oThis.shardNumbersMap = {};
@@ -49,7 +53,9 @@ class Create extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._fetchTokenDetails();
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
 
     oThis.userId = uuidV4();
 

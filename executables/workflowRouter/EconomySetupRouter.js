@@ -57,6 +57,10 @@ require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 require(rootPrefix + '/lib/setup/economy/SetAcceptedMarginInPricerRule');
 require(rootPrefix + '/lib/setup/economy/DeployProxyFactory');
 require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker');
+require(rootPrefix + '/lib/setup/economy/InitCompanyTokenHolder');
+require(rootPrefix + '/lib/setup/economy/AddCompanyWallet');
+require(rootPrefix + '/lib/setup/economy/PostAddCompanyWallet');
+require(rootPrefix + '/lib/setup/economy/SetInternalActorForCompanyTokenHolderInUBT');
 
 /**
  * Class for economy setup router.
@@ -542,6 +546,54 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployProxyFactory),
           kind: tokenAddressConstants.proxyFactoryContractKind,
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.initializeCompanyTokenHolderInDb:
+        logger.step('*** Initialize Company Token Holder in DB');
+
+        let InitCompanyTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'InitCompanyTokenHolder');
+
+        let initCompanyTokenHolder = new InitCompanyTokenHolder(oThis.requestParams);
+
+        return initCompanyTokenHolder.perform();
+
+      case workflowStepConstants.createCompanyWallet:
+        logger.step('*** Submit Tx to Create Company Wallet ');
+
+        let AddCompanyWallet = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AddCompanyWallet');
+
+        let addCompanyWallet = new AddCompanyWallet(oThis.requestParams);
+
+        return addCompanyWallet.perform();
+
+      case workflowStepConstants.verifyCreateCompanyWallet:
+        logger.step('*** Verify if Company Wallet was created');
+
+        let PostAddCompanyWallet = ic.getShadowedClassFor(coreConstants.icNameSpace, 'PostAddCompanyWallet');
+
+        oThis.requestParams.transactionHash = oThis.getTransactionHashForKind(
+          workflowStepConstants.createCompanyWallet
+        );
+
+        let postAddCompanyWallet = new PostAddCompanyWallet(oThis.requestParams);
+
+        return postAddCompanyWallet.perform();
+
+      case workflowStepConstants.setInternalActorForCompanyTHInUBT:
+        logger.step('*** Set Internal Actor For Company Token Holder ');
+
+        let SetInternalActorForCompanyTokenHolderInUBT = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'SetInternalActorForCompanyTokenHolderInUBT'
+        );
+        return new SetInternalActorForCompanyTokenHolderInUBT(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifySetInternalActorForCompanyTHInUBT:
+        logger.step('*** Verify internal actor was set for Company Token Holder');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setInternalActorForCompanyTHInUBT),
           chainId: oThis.requestParams.auxChainId
         }).perform();
 

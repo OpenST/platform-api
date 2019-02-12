@@ -282,7 +282,7 @@ const steps = {
     kind: workflowStepConstants.verifyRegisterPricerRule,
     readDataFrom: [workflowStepConstants.registerPricerRule],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.assignShards]
   },
   [workflowStepConstants.addPriceOracleInPricerRule]: {
     kind: workflowStepConstants.addPriceOracleInPricerRule,
@@ -294,7 +294,7 @@ const steps = {
     kind: workflowStepConstants.verifyAddPriceOracleInPricerRule,
     readDataFrom: [workflowStepConstants.addPriceOracleInPricerRule],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.assignShards]
   },
   [workflowStepConstants.setAcceptedMarginInPricerRule]: {
     kind: workflowStepConstants.setAcceptedMarginInPricerRule,
@@ -306,7 +306,7 @@ const steps = {
     kind: workflowStepConstants.verifySetAcceptedMarginInPricerRule,
     readDataFrom: [workflowStepConstants.setAcceptedMarginInPricerRule],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.assignShards]
   },
   [workflowStepConstants.deployProxyFactory]: {
     kind: workflowStepConstants.deployProxyFactory,
@@ -318,10 +318,10 @@ const steps = {
     kind: workflowStepConstants.saveProxyFactory,
     readDataFrom: [workflowStepConstants.deployProxyFactory],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.verifyEconomySetup]
+    onSuccess: [workflowStepConstants.assignShards]
   },
-  [workflowStepConstants.verifyEconomySetup]: {
-    kind: workflowStepConstants.verifyEconomySetup,
+  [workflowStepConstants.assignShards]: {
+    kind: workflowStepConstants.assignShards,
     prerequisites: [
       workflowStepConstants.verifyRegisterPricerRule,
       workflowStepConstants.verifyAddPriceOracleInPricerRule,
@@ -329,10 +329,39 @@ const steps = {
       workflowStepConstants.saveProxyFactory
     ],
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.assignShards]
+    onSuccess: [workflowStepConstants.initializeCompanyTokenHolderInDb]
   },
-  [workflowStepConstants.assignShards]: {
-    kind: workflowStepConstants.assignShards,
+  [workflowStepConstants.initializeCompanyTokenHolderInDb]: {
+    kind: workflowStepConstants.initializeCompanyTokenHolderInDb,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.createCompanyWallet]
+  },
+  [workflowStepConstants.createCompanyWallet]: {
+    kind: workflowStepConstants.createCompanyWallet,
+    readDataFrom: [workflowStepConstants.initializeCompanyTokenHolderInDb],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyCreateCompanyWallet]
+  },
+  [workflowStepConstants.verifyCreateCompanyWallet]: {
+    kind: workflowStepConstants.verifyCreateCompanyWallet,
+    readDataFrom: [workflowStepConstants.initializeCompanyTokenHolderInDb],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.setInternalActorForCompanyTHInUBT]
+  },
+  [workflowStepConstants.setInternalActorForCompanyTHInUBT]: {
+    kind: workflowStepConstants.setInternalActorForCompanyTHInUBT,
+    readDataFrom: [workflowStepConstants.verifyCreateCompanyWallet],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifySetInternalActorForCompanyTHInUBT]
+  },
+  [workflowStepConstants.verifySetInternalActorForCompanyTHInUBT]: {
+    kind: workflowStepConstants.verifySetInternalActorForCompanyTHInUBT,
+    readDataFrom: [workflowStepConstants.setInternalActorForCompanyTHInUBT],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyEconomySetup]
+  },
+  [workflowStepConstants.verifyEconomySetup]: {
+    kind: workflowStepConstants.verifyEconomySetup,
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.markSuccess]
   },
