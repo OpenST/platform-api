@@ -50,7 +50,7 @@ class Get extends ServiceBase {
 
     let response = await oThis._fetchChain();
 
-    if (!CommonValidators.validateObject(response.data[[resultType.chain]])) {
+    if (!CommonValidators.validateInteger(response.data.blockHeight)) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_c_g_1',

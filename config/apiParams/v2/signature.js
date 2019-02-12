@@ -74,6 +74,10 @@ const v2Signature = {
       {
         parameter: 'chain_id',
         validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
       }
     ],
     optional: []
