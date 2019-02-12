@@ -81,14 +81,14 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
 
   _prepareData() {
     const oThis = this,
-      chainId = oThis.initProcessResp.processDetails.chainId,
       queueTopicSuffix = oThis.initProcessResp.processDetails.queueTopicSuffix;
 
-    oThis.exTxTopicName = kwcConstant.exTxTopicName(chainId, queueTopicSuffix);
-    oThis.cMsgTopicName = kwcConstant.commandMessageTopicName(chainId, queueTopicSuffix);
+    oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
+    oThis.exTxTopicName = kwcConstant.exTxTopicName(oThis.auxChainId, queueTopicSuffix);
+    oThis.cMsgTopicName = kwcConstant.commandMessageTopicName(oThis.auxChainId, queueTopicSuffix);
 
-    let exTxQueueName = kwcConstant.exTxQueueName(chainId, queueTopicSuffix),
-      cMsgQueueName = kwcConstant.commandMessageQueueName(chainId, queueTopicSuffix);
+    let exTxQueueName = kwcConstant.exTxQueueName(oThis.auxChainId, queueTopicSuffix),
+      cMsgQueueName = kwcConstant.commandMessageQueueName(oThis.auxChainId, queueTopicSuffix);
 
     oThis.subscriptionData[oThis.exTxTopicName] = {
       topicName: oThis.exTxTopicName,
