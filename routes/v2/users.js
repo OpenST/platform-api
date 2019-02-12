@@ -1,16 +1,15 @@
-const express = require('express');
+const express = require('express'),
+  router = express.Router();
 
 const rootPrefix = '../..',
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   routeHelper = require(rootPrefix + '/routes/helper'),
-  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   SessionFormatter = require(rootPrefix + '/lib/formatter/entity/Session'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common');
-
-const router = express.Router();
+  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -184,8 +183,8 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
 });
 
 /* Create token holders */
-router.post('/:user_id/token-holders/', function(req, res, next) {
-  req.decodedParams.apiName = apiName.createTokenHolder;
+router.post('/:user_id/activate-user/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.activateUser;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -200,21 +199,21 @@ router.post('/:user_id/token-holders/', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'CreateTokenHolder', 'r_v_u_7', null, dataFormatterFunc));
 });
 
-/* Get token holders */
-router.get('/:user_id/token-holders/', function(req, res, next) {
-  req.decodedParams.apiName = apiName.getTokenHolder;
-  req.decodedParams.userId = req.params.user_id; // review params
-  req.decodedParams.clientConfigStrategyRequired = true;
-
-  const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
-    serviceResponse.data = {
-      result_type: resultType.user,
-      [resultType.user]: userFormattedRsp.data
-    };
-  };
-
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_t_1', null, dataFormatterFunc));
-});
+// /* Get token holders */
+// router.get('/:user_id/token-holders/', function(req, res, next) {
+//   req.decodedParams.apiName = apiName.getTokenHolder;
+//   req.decodedParams.userId = req.params.user_id; // review params
+//   req.decodedParams.clientConfigStrategyRequired = true;
+//
+//   const dataFormatterFunc = async function(serviceResponse) {
+//     const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+//     serviceResponse.data = {
+//       result_type: resultType.user,
+//       [resultType.user]: userFormattedRsp.data
+//     };
+//   };
+//
+//   Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_t_1', null, dataFormatterFunc));
+// });
 
 module.exports = router;
