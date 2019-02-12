@@ -69,6 +69,16 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.getChain]: {
+    mandatory: [
+      {
+        parameter: 'chain_id',
+        validatorMethod: 'validateInteger'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.getTokenHolder]: {
     mandatory: [
       {

@@ -2,7 +2,7 @@
 /**
  * This service helps in fetching user from our system.
  *
- * @module app/services/user/Get.js
+ * @module app/services/user/Get
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
