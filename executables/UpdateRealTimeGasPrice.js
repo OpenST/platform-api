@@ -88,9 +88,9 @@ class UpdateRealTimeGasPrice extends CronBase {
         estimatedGasPriceBN = new BigNumber(estimatedGasPrice),
         estimatedGasPriceBNInWei = estimatedGasPriceBN.mul(1000000000);
 
-      let minGasPriceBN = new BigNumber(coreConstants.MIN_VALUE_GAS_PRICE),
-        maxGasPriceBN = new BigNumber(coreConstants.MAX_VALUE_GAS_PRICE),
-        bufferGasBN = new BigNumber(coreConstants.BUFFER_VALUE_GAS_PRICE),
+      let minGasPriceBN = new BigNumber(coreConstants.MIN_ORIGIN_GAS_PRICE),
+        maxGasPriceBN = new BigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
+        bufferGasBN = new BigNumber(coreConstants.BUFFER_ORIGIN_GAS_PRICE),
         gasPriceToBeSubmittedBN = estimatedGasPriceBNInWei.plus(bufferGasBN);
 
       if (gasPriceToBeSubmittedBN.lt(minGasPriceBN)) {

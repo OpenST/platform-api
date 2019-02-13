@@ -26,7 +26,7 @@ class CoreConstants {
   }
 
   get SHARED_MEMCACHE_SERVERS() {
-    return process.env.OST_SHARED_MEMCACHE_SERVERS.split(',');
+    return process.env.SA_SHARED_MEMCACHE_SERVERS.split(',');
   }
 
   get environment() {
@@ -109,16 +109,16 @@ class CoreConstants {
     return process.env.SA_KIT_SAAS_MYSQL_PASSWORD;
   }
 
-  get AWS_ACCESS_KEY() {
-    return process.env.SA_AWS_ACCESS_KEY;
+  get KMS_AWS_ACCESS_KEY() {
+    return process.env.SA_KMS_AWS_ACCESS_KEY;
   }
 
-  get AWS_SECRET_KEY() {
-    return process.env.SA_AWS_SECRET_KEY;
+  get KMS_AWS_SECRET_KEY() {
+    return process.env.SA_KMS_AWS_SECRET_KEY;
   }
 
-  get AWS_REGION() {
-    return process.env.SA_AWS_REGION;
+  get KMS_AWS_REGION() {
+    return process.env.SA_KMS_AWS_REGION;
   }
 
   get KMS_API_KEY_ARN() {
@@ -129,12 +129,12 @@ class CoreConstants {
     return process.env.SA_API_KEY_KMS_ID;
   }
 
-  get KMS_MANAGED_ADDR_KEY_ARN() {
-    return process.env.SA_MANAGED_ADDRESS_KMS_ARN;
+  get KMS_KNOWN_ADDR_KEY_ARN() {
+    return process.env.SA_KNOWN_ADDRESS_KMS_ARN;
   }
 
-  get KMS_MANAGED_ADDR_KEY_ID() {
-    return process.env.SA_MANAGED_ADDRESS_KMS_ID;
+  get KMS_KNOWN_ADDR_KEY_ID() {
+    return process.env.SA_KNOWN_ADDRESS_KMS_ID;
   }
 
   get KMS_CONFIG_STRATEGY_KEY_ARN() {
@@ -146,32 +146,22 @@ class CoreConstants {
   }
 
   // JWT details
-  get SAAS_API_SECRET_KEY() {
-    return process.env.CA_SAAS_API_SECRET_KEY;
+  get INTERNAL_API_SECRET_KEY() {
+    return process.env.SA_INTERNAL_API_SECRET_KEY;
   }
 
   // SHA256 details
   get GENERIC_SHA_KEY() {
-    return process.env.CA_GENERIC_SHA_KEY;
+    return process.env.SA_GENERIC_SHA_KEY;
   }
 
   // Cache data key
   get CACHE_SHA_KEY() {
-    return process.env.CR_CACHE_DATA_SHA_KEY;
+    return process.env.SA_CACHE_DATA_SHA_KEY;
   }
 
   get DEBUG_ENABLED() {
     return process.env.OST_DEBUG_ENABLED;
-  }
-
-  // Price oracle details
-  get ACCEPTED_PRICE_FLUCTUATION_FOR_PAYMENT() {
-    let accepted_margin = {};
-    try {
-      accepted_margin = JSON.parse(process.env.SA_ACCEPTED_PRICE_FLUCTUATION_FOR_PAYMENT);
-    } catch (err) {}
-
-    return accepted_margin;
   }
 
   get NOTIFIER_POSTFIX() {
@@ -198,28 +188,24 @@ class CoreConstants {
     return process.env.OST_WEB3_POOL_SIZE;
   }
 
-  get ENV_IDENTIFIER() {
-    return process.env.ENV_IDENTIFIER ? process.env.ENV_IDENTIFIER : '';
+  get SA_ENV_IDENTIFIER() {
+    return process.env.SA_ENV_IDENTIFIER ? process.env.SA_ENV_IDENTIFIER : '';
   }
 
-  get APP_SHARED_DIRECTORY() {
-    return process.env.APP_SHARED_DIRECTORY;
+  get MIN_ORIGIN_GAS_PRICE() {
+    return process.env.SA_MIN_ORIGIN_GAS_PRICE;
   }
 
-  get MIN_VALUE_GAS_PRICE() {
-    return process.env.MIN_VALUE_GAS_PRICE;
+  get MAX_ORIGIN_GAS_PRICE() {
+    return process.env.SA_MAX_ORIGIN_GAS_PRICE;
   }
 
-  get MAX_VALUE_GAS_PRICE() {
-    return process.env.MAX_VALUE_GAS_PRICE;
+  get DEFAULT_ORIGIN_GAS_PRICE() {
+    return process.env.SA_DEFAULT_ORIGIN_GAS_PRICE;
   }
 
-  get DEFAULT_VALUE_GAS_PRICE() {
-    return process.env.DEFAULT_VALUE_GAS_PRICE;
-  }
-
-  get BUFFER_VALUE_GAS_PRICE() {
-    return process.env.BUFFER_VALUE_GAS_PRICE;
+  get BUFFER_ORIGIN_GAS_PRICE() {
+    return process.env.SA_BUFFER_ORIGIN_GAS_PRICE;
   }
 
   get icNameSpace() {

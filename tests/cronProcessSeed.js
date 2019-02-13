@@ -68,7 +68,7 @@ async function transactionAuxParser() {
 
 async function auxBlockFinalizer() {
   console.log('creating auxBlockFinalizer');
-  let cronParams = { blockDelay: 24, chainId: 2000 },
+  let cronParams = { chainId: 2000 },
     insertParams = {
       id: 3,
       kind: 'blockFinalizer',
@@ -110,7 +110,7 @@ async function workflowWorker() {
 
 async function originBlockFinalizer() {
   console.log('creating originBlockFinalizer');
-  let cronParams = { blockDelay: 24, chainId: 1000 },
+  let cronParams = { chainId: 1000 },
     insertParams = {
       id: 6,
       kind: 'blockFinalizer',

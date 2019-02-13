@@ -50,7 +50,7 @@ java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynam
 ```
 
 ## ORIGIN CHAIN SETUP
-    README-ORIGIN-SETUP.md
+[README-ORIGIN-SETUP.md](README-ORIGIN-SETUP.md)
 
-# AUX CHAIN SETUP
-    README-AUX-SETUP.md
+## AUX CHAIN SETUP
+[README-AUX-SETUP.md](README-AUX-SETUP.md)

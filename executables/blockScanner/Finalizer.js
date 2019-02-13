@@ -15,7 +15,7 @@ const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
-  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
+  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -84,12 +84,6 @@ class Finalizer extends PublisherBase {
       process.emit('SIGINT');
     }
 
-    // Validate blockDelay
-    if (!oThis.blockDelay) {
-      logger.error('Invalid blockDelay. Exiting the cron.');
-      process.emit('SIGINT');
-    }
-
     logger.step('All validations done.');
   }
 
@@ -120,6 +114,9 @@ class Finalizer extends PublisherBase {
 
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
+
+    // Get block delay
+    oThis.blockDelay = blockScannerProvider.getFinalizeAfterBlockFor(oThis.chainId);
 
     // Get ChainModel.
     const ChainModel = blockScannerObj.model.Chain,
@@ -162,7 +159,7 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.openSTNotification = await sharedRabbitMqProvider.getInstance({
+    oThis.openSTNotification = await rabbitMqProvider.getInstance({
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });

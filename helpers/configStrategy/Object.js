@@ -124,6 +124,16 @@ class ConfigStrategyObject {
     return oThis.configStrategy[configStrategyConstants.auxGeth][intent].rpcProvider;
   }
 
+  originFinalizeAfterBlocks() {
+    const oThis = this;
+    return oThis.configStrategy[configStrategyConstants.originGeth].finalizeAfterBlocks;
+  }
+
+  auxFinalizeAfterBlocks() {
+    const oThis = this;
+    return oThis.configStrategy[configStrategyConstants.auxGeth].finalizeAfterBlocks;
+  }
+
   chainRpcProviders(chainId, intent) {
     const oThis = this;
     if (oThis.auxChainId == chainId) {

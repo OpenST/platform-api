@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
+  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 /**
@@ -121,7 +121,7 @@ class SubscriberBase extends CronBase {
   async _startSubscription() {
     const oThis = this;
 
-    const openStNotification = await sharedRabbitMqProvider.getInstance({
+    const openStNotification = await rabbitMqProvider.getInstance({
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });

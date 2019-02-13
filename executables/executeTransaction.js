@@ -6,12 +6,13 @@
  */
 const program = require('commander');
 
-const rootPrefix = '../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
-  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+const rootPrefix = '..',
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
+  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/initProcess'),
+  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -19,26 +20,25 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/workflowRouter/factory.js --cronProcessId 3');
+  logger.log('    node executables/executeTransaction.js --cronProcessId 15');
   logger.log('');
   logger.log('');
 });
 
-if (!program.cronProcessId) {
+let cronProcessId = +program.cronProcessId;
+if (!cronProcessId) {
   program.help();
   process.exit(1);
 }
 
-let cronProcessId = +program.cronProcessId;
-
 /**
- * Class for workflow router factory.
+ * Class for Execute Transaction Process.
  *
  * @class
  */
-class WorkflowRouterFactory extends ChainSubscriberBase {
+class ExecuteTransactionProcess extends ChainSubscriberBase {
   /**
-   * Constructor for workflow router factory.
+   * Constructor for Execute Transaction Process.
    *
    * @augments SubscriberBase
    *
@@ -52,6 +52,9 @@ class WorkflowRouterFactory extends ChainSubscriberBase {
 
     const oThis = this;
     oThis.subscriptionData = {};
+    oThis.initProcessResp = {};
+    oThis.exTxTopicName = null;
+    oThis.cMsgTopicName = null;
   }
 
   /**
@@ -65,86 +68,53 @@ class WorkflowRouterFactory extends ChainSubscriberBase {
     const oThis = this;
 
     // Query to get queue_topic suffix & chainId
-    await oThis.init();
+    oThis.initProcessResp = await new InitProcessKlass({ processId: cronProcessId }).perform();
 
     oThis._prepareData();
 
-    await oThis._startSubscription(oThis._messageTopicToSubscribe);
-    await oThis._startSubscription(oThis._cqTopicToSubscribe);
+    if (oThis.initProcessResp.shouldStartTxQueConsume == 1) {
+      await oThis._startSubscription(oThis.exTxTopicName);
+    }
+    await oThis._startSubscription(oThis.cMsgTopicName);
 
     return true;
   }
 
   /**
-   * Query and collect extx workers process data.
-   * @returns {Promise}
+   * Prepare subscription data.
+   *
+   * @returns {{}}
    * @private
    */
-  async init() {
-    const oThis = this,
-      initProcessResp = await new initProcess({ processId: cronProcessId }).perform();
-
-    return true;
-  }
-
   _prepareData() {
-    const oThis = this;
-    oThis.subscriptionData[oThis._messageTopicToSubscribe] = {
-      topicName: oThis._messageTopicToSubscribe,
-      queueName: oThis._messageQueueName,
+    const oThis = this,
+      queueTopicSuffix = oThis.initProcessResp.processDetails.queueTopicSuffix;
+
+    oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
+    oThis.exTxTopicName = kwcConstant.exTxTopicName(oThis.auxChainId, queueTopicSuffix);
+    oThis.cMsgTopicName = kwcConstant.commandMessageTopicName(oThis.auxChainId, queueTopicSuffix);
+
+    let exTxQueueName = kwcConstant.exTxQueueName(oThis.auxChainId, queueTopicSuffix),
+      cMsgQueueName = kwcConstant.commandMessageQueueName(oThis.auxChainId, queueTopicSuffix);
+
+    oThis.subscriptionData[oThis.exTxTopicName] = {
+      topicName: oThis.exTxTopicName,
+      queueName: exTxQueueName,
+      promiseQueueManager: null,
+      unAckCount: 0,
       prefetchCount: oThis.prefetchCount,
       subscribed: 0
     };
-    oThis.subscriptionData[oThis._cqTopicToSubscribe] = {
-      topicName: oThis._cqTopicToSubscribe,
-      queueName: oThis._commandQueueName,
+    oThis.subscriptionData[oThis.cMsgTopicName] = {
+      topicName: oThis.cMsgTopicName,
+      queueName: cMsgQueueName,
+      promiseQueueManager: null,
+      unAckCount: 0,
       prefetchCount: 1,
       subscribed: 0
     };
-  }
 
-  /**
-   * Topics to subscribe
-   *
-   * @returns {*[]}
-   *
-   * @private
-   */
-  get _messageTopicToSubscribe() {
-    return 'execute_transaction_topic.' + 'chainId' + 'topicQueueSuffix';
-  }
-
-  /**
-   * Queue name
-   *
-   * @returns {String}
-   *
-   * @private
-   */
-  get _messageQueueName() {
-    return 'workflow';
-  }
-
-  /**
-   * Topics to subscribe
-   *
-   * @returns {*[]}
-   *
-   * @private
-   */
-  get _cqTopicToSubscribe() {
-    return 'ex_tx_command_message_topic.' + 'chainId' + 'topicQueueSuffix';
-  }
-
-  /**
-   * Queue name
-   *
-   * @returns {String}
-   *
-   * @private
-   */
-  get _commandQueueName() {
-    return 'workflow';
+    return oThis.subscriptionData;
   }
 
   /**
@@ -155,7 +125,7 @@ class WorkflowRouterFactory extends ChainSubscriberBase {
    * @private
    */
   get _processNamePrefix() {
-    return 'workflow_processor';
+    return 'execute_transaction_processor';
   }
 
   /**
@@ -178,7 +148,70 @@ class WorkflowRouterFactory extends ChainSubscriberBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.workflowWorker;
+    return cronProcessesConstants.executeTransaction;
+  }
+
+  /**
+   * Increment Unack count.
+   *
+   * @param messageParams
+   * @returns {boolean}
+   * @private
+   */
+  _incrementUnAck(messageParams) {
+    const oThis = this;
+
+    let msgParams = messageParams.message.payload,
+      kind = msgParams.kind;
+
+    if (kind == kwcConstant.executeTx) {
+      oThis.subscriptionData[oThis.exTxTopicName].unAckCount++;
+    } else if (kind == kwcConstant.commandMsg) {
+      oThis.subscriptionData[oThis.cMsgTopicName].unAckCount++;
+    }
+    return true;
+  }
+
+  /**
+   * Decrement Unack count.
+   *
+   * @param messageParams
+   * @returns {boolean}
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    const oThis = this;
+
+    let msgParams = messageParams.message.payload,
+      kind = msgParams.kind;
+
+    if (kind == kwcConstant.executeTx) {
+      oThis.subscriptionData[oThis.exTxTopicName].unAckCount--;
+    } else if (kind == kwcConstant.commandMsg) {
+      oThis.subscriptionData[oThis.cMsgTopicName].unAckCount--;
+    }
+    return true;
+  }
+
+  /**
+   * Get Unack count.
+   *
+   * @param messageParams
+   * @returns {number}
+   * @private
+   */
+  _getUnAck(messageParams) {
+    const oThis = this;
+
+    let msgParams = messageParams.message.payload,
+      kind = msgParams.kind;
+
+    if (kind == kwcConstant.executeTx) {
+      return oThis.subscriptionData[oThis.exTxTopicName].unAckCount;
+    } else if (kind == kwcConstant.commandMsg) {
+      return oThis.subscriptionData[oThis.cMsgTopicName].unAckCount;
+    }
+    return 0;
   }
 
   /**
@@ -196,44 +229,53 @@ class WorkflowRouterFactory extends ChainSubscriberBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    // identify which file/function to initiate to execute task of specific kind.
-    // Query in workflow_steps to get details pf parent id in message params
+    // Identify which file/function to initiate to execute task of specific kind.
+    // Query in workflow_steps to get details pf parent id in message params.
     let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
+      kind = messageParams.message.kind;
+
+    console.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
-      console.log('message specific perform called.......\n', messageParams);
+      logger.info('Message specific perform called.......\n');
       //message specific perform called.
     } else if (kind == kwcConstant.commandMsg) {
-      console.log('Command specific perform called.......\n', messageParams);
-      let commandProcessorResponse = null;
-      await oThis.commandResponseActions(commandProcessorResponse);
+      logger.info('Command specific perform called.......\n');
+      let commandMessageParams = {
+        chainId: oThis.auxChainId,
+        commandMessage: msgParams
+      };
+      let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
+      await oThis._commandResponseActions(commandProcessorResponse);
     }
     return true;
   }
 
-  async commandResponseActions(commandProcessorResponse) {
+  /**
+   * Actions to take on command messages.
+   *
+   * @param commandProcessorResponse
+   * @returns {Promise<boolean>}
+   * @private
+   */
+  async _commandResponseActions(commandProcessorResponse) {
     const oThis = this;
 
     if (
+      commandProcessorResponse &&
       commandProcessorResponse.data.shouldStartTxQueConsume &&
       commandProcessorResponse.data.shouldStartTxQueConsume === 1
     ) {
-      await oThis._startSubscription(oThis._messageTopicToSubscribe);
+      await oThis._startSubscription(oThis.exTxTopicName);
     } else if (
+      commandProcessorResponse &&
       commandProcessorResponse.data.shouldStopTxQueConsume &&
       commandProcessorResponse.data.shouldStopTxQueConsume === 1
     ) {
-      process.emit('CANCEL_CONSUME', intentToConsumerTagMap.exTxQueue);
-      oThis.subscriptionData[oThis._messageTopicToSubscribe]['subscribed'] = 0;
+      oThis.stopPickingUpNewTasks(oThis.exTxTopicName);
     }
     return true;
   }
 }
 
-new WorkflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform();
-
-setInterval(function() {
-  logger.info('Ending the process. Sending SIGINT.');
-  process.emit('SIGINT');
-}, 45 * 60 * 1000);
+new ExecuteTransactionProcess({ cronProcessId: +program.cronProcessId }).perform();
