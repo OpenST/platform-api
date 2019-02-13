@@ -56,7 +56,7 @@ const ethFundingConfig = {
  *
  * @class
  */
-class FundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses extends AuxChainSpecificFundingCronBase {
+class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses extends AuxChainSpecificFundingCronBase {
   /**
    * Constructor fund eth by chainOwner to chain specific inter chain facilitator addresses
    *
@@ -78,7 +78,7 @@ class FundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses extends Aux
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses;
+    return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses;
   }
 
   /**
@@ -216,7 +216,7 @@ class FundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses extends Aux
 
 logger.log('Starting cron to fund StPrime to chain addresses by chainOwner.');
 
-new FundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses({ cronProcessId: +program.cronProcessId })
+new fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
     process.emit('SIGINT');
