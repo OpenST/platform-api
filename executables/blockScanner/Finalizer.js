@@ -84,12 +84,6 @@ class Finalizer extends PublisherBase {
       process.emit('SIGINT');
     }
 
-    // Validate blockDelay
-    if (!oThis.blockDelay) {
-      logger.error('Invalid blockDelay. Exiting the cron.');
-      process.emit('SIGINT');
-    }
-
     logger.step('All validations done.');
   }
 
@@ -120,6 +114,9 @@ class Finalizer extends PublisherBase {
 
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
+
+    // Get block delay
+    oThis.blockDelay = blockScannerProvider.getFinalizeAfterBlockFor(oThis.chainId);
 
     // Get ChainModel.
     const ChainModel = blockScannerObj.model.Chain,
@@ -476,3 +473,8 @@ class Finalizer extends PublisherBase {
 logger.step('Block finalizer process started.');
 
 new Finalizer({ cronProcessId: +program.cronProcessId }).perform();
+
+setInterval(function() {
+  logger.info('Ending the process. Sending SIGINT.');
+  process.emit('SIGINT');
+}, 30 * 60 * 1000);

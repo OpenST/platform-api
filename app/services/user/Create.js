@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 const uuidV4 = require('uuid/v4'),
@@ -43,6 +44,7 @@ class Create extends ServiceBase {
     oThis.kind = params.kind || tokenUserConstants.userKind;
 
     oThis.shardNumbersMap = {};
+    oThis.configStrategyObj = null;
   }
 
   /**
@@ -76,14 +78,16 @@ class Create extends ServiceBase {
       availableShardCache = new AvailableShardCache();
 
     let response = await availableShardCache.fetch(),
-      availableShards = response.data;
+      allAvailableShards = response.data,
+      availableShardsForChain = allAvailableShards[oThis._configStrategyObject.auxChainId];
 
-    let r1 = basicHelper.getRandomNumber(0, availableShards[shardConstant.deviceEntityKind].length - 1),
-      r2 = basicHelper.getRandomNumber(0, availableShards[shardConstant.sessionEntityKind].length - 1);
-    // let r3 = basicHelper.getRandomNumber(0, availableShards[shardConstant.recoveryAddressEntityKind].length - 1);
+    let r1 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstant.deviceEntityKind].length - 1),
+      r2 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstant.sessionEntityKind].length - 1);
+    // let r3 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstant.recoveryAddressEntityKind].length - 1);
 
-    oThis.shardNumbersMap[shardConstant.deviceEntityKind] = availableShards[shardConstant.deviceEntityKind][r1];
-    oThis.shardNumbersMap[shardConstant.sessionEntityKind] = availableShards[shardConstant.sessionEntityKind][r2];
+    oThis.shardNumbersMap[shardConstant.deviceEntityKind] = availableShardsForChain[shardConstant.deviceEntityKind][r1];
+    oThis.shardNumbersMap[shardConstant.sessionEntityKind] =
+      availableShardsForChain[shardConstant.sessionEntityKind][r2];
     // oThis.shardNumbersMap[shardConstant.recoveryAddressEntityKind] = availableShards[shardConstant.recoveryAddressEntityKind][r3];
   }
 
@@ -126,6 +130,21 @@ class Create extends ServiceBase {
     let insertRsp = user.insertUser(params);
 
     return responseHelper.successWithData({ [resultType.user]: params });
+  }
+
+  /**
+   * Object of config strategy class
+   *
+   * @return {Object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
+
+    return oThis.configStrategyObj;
   }
 }
 

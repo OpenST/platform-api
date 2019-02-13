@@ -49,7 +49,7 @@ class BasicHelperKlass {
    * @return {String}
    */
   getOriginMaxGasPriceMultiplierWithBuffer() {
-    let maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_VALUE_GAS_PRICE),
+    let maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
       maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(this.convertToBigNumber(1))).toString(10);
 
     return String(Number(maxGasValueInString) + 1);
@@ -537,6 +537,16 @@ class BasicHelperKlass {
 
   sanitizeAddress(address) {
     return address.toLowerCase();
+  }
+
+  /**
+   *
+   * @param {String} dateStr
+   * @return {Integer} timestamp
+   *
+   */
+  dateToSecondsTimestamp(dateStr) {
+    return Math.floor(new Date(dateStr).getTime() / 1000);
   }
 }
 

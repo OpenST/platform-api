@@ -209,6 +209,11 @@ class SubscriberBase extends CronBase {
 
     for (let topicName in oThis.subscriptionData) {
       let subData = oThis.subscriptionData[topicName];
+
+      if (!subData['promiseQueueManager']) {
+        continue;
+      }
+
       if (subData.unAckCount !== subData['promiseQueueManager'].getPendingCount()) {
         logger.error('ERROR :: unAckCount and pending counts are not in sync for', topicName);
       }

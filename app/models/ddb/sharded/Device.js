@@ -26,7 +26,6 @@ class Device extends Base {
   /**
    *
    * @param {Object} params
-   * @param {Number} params.chainId: chainId
    * @param {Number} params.consistentRead: (1,0)
    * @param {Number} params.shardNumber
    *
@@ -85,7 +84,7 @@ class Device extends Base {
    * @returns {String}
    */
   tableNameTemplate() {
-    return 'devices_{{shardNumber}}';
+    return '{{chainId}}_devices_{{shardNumber}}';
   }
 
   /**
@@ -199,17 +198,7 @@ class Device extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForWalletAddress + ')';
 
-    return oThis.updateItem(Device.sanitizeParamsToInsert(params), conditionalExpression);
-  }
-
-  static sanitizeParamsToInsert(params) {
-    params['status'] = deviceConstants.invertedStatuses[params['status']];
-    return params;
-  }
-
-  static sanitizeParamsToDisplay(params) {
-    params['status'] = deviceConstants.statuses[params['status']];
-    return params;
+    return oThis.updateItem(params, conditionalExpression);
   }
 
   /**
@@ -264,9 +253,9 @@ class Device extends Base {
     if (dbRow['personalSignAddress']) {
       dbRow['personalSignAddress'] = basicHelper.sanitizeAddress(dbRow['personalSignAddress']);
     }
-
     return dbRow;
   }
+
   /**
    * Update status of device from initial status to final status.
    *
@@ -325,16 +314,9 @@ class Device extends Base {
 
     updateQueryResponse = updateQueryResponse.data.Attributes;
 
-    let finalResponse = oThis._formatRowFromDynamo(updateQueryResponse);
+    let finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse);
 
     return Promise.resolve(responseHelper.successWithData(finalResponse));
-  }
-
-  _formatRowFromDynamo(dbRow) {
-    const oThis = this;
-    let formattedDbRow = super._formatRowFromDynamo(dbRow);
-    formattedDbRow = Device.sanitizeParamsToDisplay(formattedDbRow);
-    return formattedDbRow;
   }
 
   /**

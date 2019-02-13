@@ -23,7 +23,6 @@ class Session extends Base {
    * Constructor for session model.
    *
    * @param {Object} params
-   * @param {Number} params.chainId: chainId
    * @param {Number} params.consistentRead: (1,0)
    * @param {Number} params.shardNumber
    *
@@ -85,7 +84,7 @@ class Session extends Base {
    * @returns {String}
    */
   tableNameTemplate() {
-    return 'sessions_{{shardNumber}}';
+    return '{{chainId}}_sessions_{{shardNumber}}';
   }
 
   /**

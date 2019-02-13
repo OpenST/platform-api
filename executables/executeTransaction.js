@@ -7,11 +7,12 @@
 const program = require('commander');
 
 const rootPrefix = '..',
+  kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/initProcess'),
-  kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -31,13 +32,13 @@ if (!cronProcessId) {
 }
 
 /**
- * Class for workflow router factory.
+ * Class for Execute Transaction Process.
  *
  * @class
  */
 class ExecuteTransactionProcess extends ChainSubscriberBase {
   /**
-   * Constructor for workflow router factory.
+   * Constructor for Execute Transaction Process.
    *
    * @augments SubscriberBase
    *
@@ -79,6 +80,12 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     return true;
   }
 
+  /**
+   * Prepare subscription data.
+   *
+   * @returns {{}}
+   * @private
+   */
   _prepareData() {
     const oThis = this,
       queueTopicSuffix = oThis.initProcessResp.processDetails.queueTopicSuffix;
@@ -144,6 +151,13 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     return cronProcessesConstants.executeTransaction;
   }
 
+  /**
+   * Increment Unack count.
+   *
+   * @param messageParams
+   * @returns {boolean}
+   * @private
+   */
   _incrementUnAck(messageParams) {
     const oThis = this;
 
@@ -158,6 +172,13 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     return true;
   }
 
+  /**
+   * Decrement Unack count.
+   *
+   * @param messageParams
+   * @returns {boolean}
+   * @private
+   */
   _decrementUnAck(messageParams) {
     const oThis = this;
 
@@ -172,6 +193,13 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     return true;
   }
 
+  /**
+   * Get Unack count.
+   *
+   * @param messageParams
+   * @returns {number}
+   * @private
+   */
   _getUnAck(messageParams) {
     const oThis = this;
 
@@ -201,22 +229,35 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    // identify which file/function to initiate to execute task of specific kind.
-    // Query in workflow_steps to get details pf parent id in message params
+    // Identify which file/function to initiate to execute task of specific kind.
+    // Query in workflow_steps to get details pf parent id in message params.
     let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
+      kind = messageParams.message.kind;
+
+    console.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
-      console.log('message specific perform called.......\n', messageParams);
+      logger.info('Message specific perform called.......\n');
       //message specific perform called.
     } else if (kind == kwcConstant.commandMsg) {
-      console.log('Command specific perform called.......\n', messageParams);
-      let commandProcessorResponse = null;
+      logger.info('Command specific perform called.......\n');
+      let commandMessageParams = {
+        chainId: oThis.auxChainId,
+        commandMessage: msgParams
+      };
+      let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
       await oThis._commandResponseActions(commandProcessorResponse);
     }
     return true;
   }
 
+  /**
+   * Actions to take on command messages.
+   *
+   * @param commandProcessorResponse
+   * @returns {Promise<boolean>}
+   * @private
+   */
   async _commandResponseActions(commandProcessorResponse) {
     const oThis = this;
 

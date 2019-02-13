@@ -38,7 +38,7 @@
 
 ## Origin Chain Setup
 
-#### [Only DevOps] NOTE: Make sure you review DEFAULT_VALUE_GAS_PRICE gas price from https://ethgasstation.info/txPoolReport.php, as dynamic gas price cron is not yet active.
+#### [Only DevOps] NOTE: Make sure you review SA_DEFAULT_ORIGIN_GAS_PRICE gas price from https://ethgasstation.info/txPoolReport.php, as dynamic gas price cron is not yet active.
 
 * Generate master internal funder address for this ENV
 ```bash
@@ -119,7 +119,7 @@ Granter address gets ETH and OST in this step.
     node executables/setup/origin/contracts.js --originChainId 1000
 ```
 
-#### [Only DevOps] NOTE: Revert DEFAULT_VALUE_GAS_PRICE gas price
+#### [Only DevOps] NOTE: Revert SA_DEFAULT_ORIGIN_GAS_PRICE gas price
 
 * Verifier script for origin chain setup
     - You can verify local chain setup and contract deployment using following scripts.
