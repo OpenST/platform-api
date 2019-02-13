@@ -538,6 +538,16 @@ class BasicHelperKlass {
   sanitizeAddress(address) {
     return address.toLowerCase();
   }
+
+  /**
+   *
+   * @param {String} dateStr
+   * @return {Integer} timestamp
+   *
+   */
+  dateToSecondsTimestamp(dateStr) {
+    return Math.floor(new Date(dateStr).getTime() / 1000);
+  }
 }
 
 module.exports = new BasicHelperKlass();

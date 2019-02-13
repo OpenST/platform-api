@@ -12,6 +12,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -20,18 +21,17 @@ require(rootPrefix + '/lib/shardManagement/Create');
 
 program
   .option('--auxChainId <auxChainId>', 'Aux Chain id')
-  .option('--userShardCount [userShardCount]', 'Number of user shards to be created')
-  .option('--deviceShardCount [deviceShardCount]', 'Number of device shards to be created')
-  .option('--sessionShardCount [sessionShardCount]', 'Number of sessions address shards to be created')
+  .option('--userShardNoStr [userShardNoStr]', 'Comma seperated numbers for which user shards has be created')
+  .option('--deviceShardNoStr [deviceShardNoStr]', 'Comma seperated numbers for which device shards has be created')
+  .option('--sessionShardNoStr [sessionShardNoStr]', 'Comma seperated numbers for which session shards has be created')
   .parse(process.argv);
 
 program.on('--help', () => {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  // TODO - userShardCount, deviceShardCount, sessionShardCount - this should be array of shard numbers
   logger.log(
-    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2'
+    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2,3 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2'
   );
   logger.log('');
   logger.log('');
@@ -45,14 +45,20 @@ class CreateInitialAuxDdbTablesForSaas {
   /**
    * Constructor
    *
+   * @param {Object} params
+   * @param {Number} params.auxChainId - chain id
+   * @param {Array} params.userShardNos - array of numbers using which shards are to be created
+   * @param {Array} params.deviceShardNos - array of numbers using which shards are to be created
+   * @param {Array} params.sessionShardNos - array of numbers using which shards are to be created
+   *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
     oThis.auxChainId = params.auxChainId;
-    oThis.userShardCount = params.userShardCount;
-    oThis.deviceShardCount = params.deviceShardCount;
-    oThis.sessionShardCount = params.sessionShardCount;
+    oThis.userShardNos = params.userShardNos;
+    oThis.deviceShardNos = params.deviceShardNos;
+    oThis.sessionShardNos = params.sessionShardNos;
   }
 
   /**
@@ -90,19 +96,19 @@ class CreateInitialAuxDdbTablesForSaas {
     let userShardObject = new CreateShard({
         chainId: oThis.auxChainId,
         entityKind: shardConstant.userEntityKind,
-        shardNumbers: oThis._generateShardNumbersArray(oThis.userShardCount),
+        shardNumbers: oThis.userShardNos,
         isAvailableForAllocation: true
       }),
       deviceShardObject = new CreateShard({
         chainId: oThis.auxChainId,
         entityKind: shardConstant.deviceEntityKind,
-        shardNumbers: oThis._generateShardNumbersArray(oThis.deviceShardCount),
+        shardNumbers: oThis.deviceShardNos,
         isAvailableForAllocation: true
       }),
       sessionShardObject = new CreateShard({
         chainId: oThis.auxChainId,
         entityKind: shardConstant.sessionEntityKind,
-        shardNumbers: oThis._generateShardNumbersArray(oThis.sessionShardCount),
+        shardNumbers: oThis.sessionShardNos,
         isAvailableForAllocation: true
       });
 
@@ -115,21 +121,6 @@ class CreateInitialAuxDdbTablesForSaas {
     // Create Session table(s)
     await sessionShardObject.perform();
   }
-
-  /**
-   *
-   * @param count
-   * @return {Array}
-   * @private
-   */
-  _generateShardNumbersArray(count) {
-    const oThis = this;
-    let shardNumbers = [];
-    for (let i = 1; i <= parseInt(count); i++) {
-      shardNumbers.push(i);
-    }
-    return shardNumbers;
-  }
 }
 
 /**
@@ -137,21 +128,20 @@ class CreateInitialAuxDdbTablesForSaas {
  */
 const validateAndSanitize = function() {
   if (!program.auxChainId) {
+    logger.error('Aux Chain Id missing');
     program.help();
     process.exit(1);
   }
 
-  if (!program.userShardCount) {
-    program.userShardCount = 1;
+  if (!program.userShardNoStr || !program.deviceShardNoStr || !program.sessionShardNoStr) {
+    logger.error('Mandatory shard no str in params missing');
+    program.help();
+    process.exit(1);
   }
 
-  if (!program.deviceShardCount) {
-    program.deviceShardCount = 1;
-  }
-
-  if (!program.sessionShardCount) {
-    program.sessionShardCount = 1;
-  }
+  program.userShardNos = basicHelper.commaSeperatedStrToArray(program.userShardNoStr);
+  program.deviceShardNos = basicHelper.commaSeperatedStrToArray(program.deviceShardNoStr);
+  program.sessionShardNos = basicHelper.commaSeperatedStrToArray(program.sessionShardNoStr);
 };
 
 validateAndSanitize();

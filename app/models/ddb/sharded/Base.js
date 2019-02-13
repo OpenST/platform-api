@@ -10,6 +10,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   BaseModel = require(rootPrefix + '/app/models/ddb/Base'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   storageConstants = require(rootPrefix + '/lib/globalConstant/storage');
 
 // Following require(s) for registering into instance composer
@@ -27,7 +28,6 @@ class ShardedBase extends BaseModel {
    * @augments BaseModel
    *
    * @param {Object} params
-   * @param {Number} params.chainId: chainId
    * @param {Number} params.shardNumber
    * @param {Number} params.consistentRead: (1,0)
    *
@@ -39,12 +39,21 @@ class ShardedBase extends BaseModel {
     const oThis = this;
 
     oThis.shardNumber = params.shardNumber;
-    oThis.chainId = params.chainId;
 
     const storageProvider = oThis.ic().getInstanceFor(coreConstants.icNameSpace, 'storageProvider');
 
+    oThis.configStrategyObj = null;
+
     oThis.openSTStorage = storageProvider.getInstance(storageConstants.sharded, oThis.chainId);
     oThis.ddbServiceObj = oThis.openSTStorage.dynamoDBService;
+  }
+
+  /**
+   * returns aux chain Id
+   */
+  get chainId() {
+    const oThis = this;
+    return oThis._configStrategyObject.auxChainId;
   }
 
   /**
@@ -92,7 +101,8 @@ class ShardedBase extends BaseModel {
   tableNameTemplateVars() {
     const oThis = this;
     return {
-      shardNumber: shardConstant.getShardSuffixFromShardNumber(oThis.shardNumber)
+      shardNumber: shardConstant.getShardSuffixFromShardNumber(oThis.shardNumber),
+      chainId: oThis.chainId
     };
   }
 
@@ -103,6 +113,21 @@ class ShardedBase extends BaseModel {
    */
   tableNameTemplate() {
     throw 'sub class to implement';
+  }
+
+  /**
+   * Object of config strategy class
+   *
+   * @return {Object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
+
+    return oThis.configStrategyObj;
   }
 }
 

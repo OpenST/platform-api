@@ -14,8 +14,6 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
-require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
-
 class Shard extends Base {
   constructor(params) {
     super(params);
@@ -53,7 +51,7 @@ class Shard extends Base {
   get shortNameToDataType() {
     return {
       ek: 'N',
-      sno: 'N',
+      sno: 'S',
       iafa: 'BOOL'
     };
   }
@@ -133,7 +131,6 @@ class Shard extends Base {
 
   _sanitizeRowForDynamo(params) {
     params['entityKind'] = shardConstant.invertedEntityKinds[params['entityKind']];
-    params['shardNumber'] = shardConstant.getShardNumberFromShardSuffix(params['shardNumber']);
     return params;
   }
 
@@ -208,16 +205,21 @@ class Shard extends Base {
       return Promise.resolve(responseHelper.successWithData(availableShards));
     }
 
-    let row, formattedRow, sanitizedRow;
+    let row, formattedRow, sanitizedRow, buffer, chainId;
 
     for (let i = 0; i < response.data.Items.length; i++) {
       row = response.data.Items[i];
       formattedRow = oThis._formatRowFromDynamo(row);
       sanitizedRow = oThis._sanitizeRowFromDynamo(formattedRow);
-      if (!availableShards[sanitizedRow['entityKind']]) {
-        availableShards[sanitizedRow['entityKind']] = [];
+      buffer = Shard.splitShardNoStr(sanitizedRow['shardNumber']);
+      chainId = buffer.chainId;
+      if (!availableShards[chainId]) {
+        availableShards[chainId] = {};
       }
-      availableShards[sanitizedRow['entityKind']].push(sanitizedRow['shardNumber']);
+      if (!availableShards[chainId][sanitizedRow['entityKind']]) {
+        availableShards[chainId][sanitizedRow['entityKind']] = [];
+      }
+      availableShards[chainId][sanitizedRow['entityKind']].push(buffer.shardNumber);
     }
 
     return Promise.resolve(responseHelper.successWithData(availableShards));
@@ -265,11 +267,22 @@ class Shard extends Base {
   }
 
   /**
+   * Subclass to return its own class here
+   *
+   * @returns {object}
+   */
+  get subClass() {
+    return Shard;
+  }
+
+  /**
    * afterUpdate - Method to implement any after update actions
    *
    * @return {Promise<void>}
    */
   static async afterUpdate(ic) {
+    require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
+
     let AvailableShardCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AvailableShardsCache'),
       cacheObject = new AvailableShardCache({});
 
@@ -279,12 +292,31 @@ class Shard extends Base {
   }
 
   /**
-   * Subclass to return its own class here
    *
-   * @returns {object}
+   * @param {Number} chainId
+   * @param {Number} shardNo
    */
-  get subClass() {
-    return Shard;
+  static generateShardNoStr(chainId, shardNo) {
+    return `${chainId}${Shard.shardNoStrDelimitter()}${shardNo}`;
+  }
+
+  /**
+   *
+   * @param {String} shardNoStr
+   */
+  static splitShardNoStr(shardNoStr) {
+    let buffer = shardNoStr.split(Shard.shardNoStrDelimitter());
+    return {
+      chainId: buffer[0],
+      shardNumber: buffer[1]
+    };
+  }
+
+  /**
+   *
+   */
+  static shardNoStrDelimitter() {
+    return '|';
   }
 }
 
