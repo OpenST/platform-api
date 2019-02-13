@@ -22,6 +22,7 @@ class SessionListBase extends ServiceBase {
   /**
    * @param params
    * @param {String}   params.user_id - uuid
+   * @param {Integer} params.client_id
    * @param {Integer} [params.token_id]
    */
   constructor(params) {
@@ -30,6 +31,7 @@ class SessionListBase extends ServiceBase {
     const oThis = this;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
+    oThis.clientId = params.client_id;
 
     oThis.addresses = [];
     oThis.nextPagePayload = null;
