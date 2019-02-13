@@ -112,38 +112,35 @@ And add it to tables using following script.
 
 ## ST Prime Stake and Mint in Zero Gas
 
-#### NOTE: Make sure to make `auxChainGasPrice` value to `0x0` in `/lib/globalConstant/contract.js` before starting ST Prime 
-Stake and Mint on zero-gas.
-
 //TODO: change amountToStake to amountToStakeInWei
 ```bash
-> source set_env_vars.sh
-> node
+    source set_env_vars.sh
+    export SA_DEFAULT_AUX_GAS_PRICE='0x0'
+    node
 
-  beneficiary -> masterInternalFunderKind
-  facilitator -> masterInternalFunderKind
-  stakerAddress -> masterInternalFunderKind
+        beneficiary -> masterInternalFunderKind
+        facilitator -> masterInternalFunderKind
+        stakerAddress -> masterInternalFunderKind
   
-   params = {
-          stepKind: 'stPrimeStakeAndMintInit',
-          taskStatus: 'taskReadyToStart',
-          clientId: 0,
-          chainId: 1000,
-          topic: 'workflow.stPrimeStakeAndMint',
-          requestParams: {
-            stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
-            originChainId: 1000, 
-            auxChainId: 2000, 
-            facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
-            amountToStake: '100000000000000000001', 
-            beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
-          }
-      }
-   stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
-   stPrimeRouter = new stPrimeRouterK(params)
+        params = {
+                stepKind: 'stPrimeStakeAndMintInit',
+                taskStatus: 'taskReadyToStart',
+                clientId: 0,
+                chainId: 1000,
+                topic: 'workflow.stPrimeStakeAndMint',
+                requestParams: {
+                    stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    originChainId: 1000, 
+                    auxChainId: 2000, 
+                    facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    amountToStake: '100000000000000000001', 
+                    beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
+                  }
+            }
+        stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
+        stPrimeRouter = new stPrimeRouterK(params)
    
-   stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
-   
+        stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```
 * [HELP ONLY TO KNOW HOW TO START THE STUCK WORKFLOW]
 ```js
@@ -160,10 +157,13 @@ Stake and Mint on zero-gas.
 
 * Stop geth running at zero gas price & Start AUX GETH (With Non Zero Gas Price) with this script.
 ```bash
-  sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
+    sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-#### Revert the auxChainGasPrice value in file lib/globalConstant/contract.js back to the previous value.
+* Reset the SA_DEFAULT_AUX_GAS_PRICE env var to non zero value.
+```bash
+    source set_env_vars.sh
+```
 
 ## Run Aggregator
 ```bash

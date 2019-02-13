@@ -172,7 +172,7 @@ class TokenMintDetails {
     const oThis = this;
 
     let averageGasUsedForMintBN = new BigNumber(oThis.totalGasForMint),
-      gasPriceBN = new BigNumber(coreConstants.MAX_VALUE_GAS_PRICE),
+      gasPriceBN = new BigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
       minimumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN),
       bufferAmount = minimumEthRequired.div(2);
 

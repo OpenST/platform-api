@@ -81,8 +81,9 @@
     },
     "constants": {
       "originChainId": "<origin chain id>",
-      "originDdbTablePrefix": "de_mn_",
-      "auxDdbTablePrefix": "de_ma_"
+      "originDdbTablePrefix": "de_s_o_",
+      "auxDdbTablePrefix": "de_s_a_",
+      "subEnvDdbTablePrefix": "de_s_"
     },
     "originDynamodb": {
       "endpoint": "http://<dynamo endpoint>",
