@@ -22,6 +22,7 @@ class SessionListBase extends ServiceBase {
   /**
    * @param params
    * @param {String}   params.user_id - uuid
+   * @param {Integer} params.client_id
    * @param {Integer} [params.token_id]
    */
   constructor(params) {
@@ -30,6 +31,7 @@ class SessionListBase extends ServiceBase {
     const oThis = this;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
+    oThis.clientId = params.client_id;
 
     oThis.addresses = [];
     oThis.nextPagePayload = null;
@@ -91,10 +93,10 @@ class SessionListBase extends ServiceBase {
     const oThis = this,
       finalResponse = {},
       BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
-      blockTimeDetailsCache = new BlockTimeDetailsCache({}),
-      blockGenerationTimeInSecs = oThis.ic().configStrategy.auxGeth.blockGenerationTime;
+      blockTimeDetailsCache = new BlockTimeDetailsCache({});
 
-    let blockDetails = await blockTimeDetailsCache.fetch();
+    let blockDetails = await blockTimeDetailsCache.fetch(),
+      blockGenerationTimeInSecs = blockDetails.data.blockGenerationTime;
 
     for (let address in response.data) {
       let sessionData = response.data[address];
@@ -103,7 +105,7 @@ class SessionListBase extends ServiceBase {
         blockDifferenceBn = new BigNumber(blockDifference),
         blockGenerationTimeInSecsBn = new BigNumber(blockGenerationTimeInSecs),
         timeDifferenceInSecsBn = blockDifferenceBn.mul(blockGenerationTimeInSecsBn),
-        blockTimestampBn = new BigNumber(blockDetails.data.timestamp),
+        blockTimestampBn = new BigNumber(blockDetails.data.createdTimestamp),
         approxTime = blockTimestampBn.add(timeDifferenceInSecsBn);
 
       sessionData['expirationTimestamp'] = approxTime.toString(10);

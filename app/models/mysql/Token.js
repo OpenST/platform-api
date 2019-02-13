@@ -9,6 +9,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token');
 
 // Declare variables.
@@ -98,7 +99,8 @@ class Token extends ModelBase {
       conversionFactor: dbRow.conversion_factor,
       decimal: dbRow.decimal,
       status: dbRow.status,
-      createdAt: dbRow.created_at
+      createdAt: dbRow.created_at,
+      updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
   }
 

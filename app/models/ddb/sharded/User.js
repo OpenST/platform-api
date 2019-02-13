@@ -24,7 +24,6 @@ class User extends Base {
    * Constructor for user model.
    *
    * @param {Object} params
-   * @param {Number} params.chainId: chainId
    * @param {Number} params.consistentRead: (1,0)
    * @param {Number} params.shardNumber
    *
@@ -95,7 +94,7 @@ class User extends Base {
    * @returns {String}
    */
   tableNameTemplate() {
-    return 'users_{{shardNumber}}';
+    return '{{chainId}}_users_{{shardNumber}}';
   }
 
   /**
@@ -263,23 +262,11 @@ class User extends Base {
       });
     }
 
-    updateQueryResponse = updateQueryResponse.data.Attributes;
+    updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
-    let finalResponse = oThis._formatRowFromDynamo(updateQueryResponse);
+    let finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse);
 
     return Promise.resolve(responseHelper.successWithData(finalResponse));
-  }
-
-  _formatRowFromDynamo(dbRow) {
-    const oThis = this;
-    let formattedDbRow = super._formatRowFromDynamo(dbRow);
-    formattedDbRow = User.sanitizeParamsToDisplay(formattedDbRow);
-    return formattedDbRow;
-  }
-
-  static sanitizeParamsToDisplay(params) {
-    params['status'] = tokenUserConstants.statuses[params['status']];
-    return params;
   }
 
   /**

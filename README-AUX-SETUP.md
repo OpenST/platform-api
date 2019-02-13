@@ -19,7 +19,7 @@
 * Create all SAAS Owned DDB Tables
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardCount 2 --deviceShardCount 2 --sessionShardCount 2
+    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2,3 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2,3,4
 ```
     * Mandatory parameters: auxChainId
     * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
@@ -78,7 +78,11 @@ And add it to tables using following script.
   node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
-* Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
+* Update price points.
+```bash
+   source set_env_vars.sh
+   node executables/UpdatePricePoints.js --cronProcessId 13
+```
    
 ## Run block-scanner crons
 
