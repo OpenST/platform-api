@@ -312,7 +312,7 @@ class Device extends Base {
       });
     }
 
-    updateQueryResponse = updateQueryResponse.data.Attributes;
+    updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
     let finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse);
 
