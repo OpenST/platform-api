@@ -9,11 +9,11 @@ const program = require('commander');
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
-  TransferStPrime = require(rootPrefix + '/lib/transfer/StPrime'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
@@ -216,7 +216,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
     oThis.canExit = false;
 
     if (oThis.transferDetails.length > 0) {
-      const transferStPrime = new TransferStPrime({
+      const transferStPrime = new TransferStPrimeBatch({
         auxChainId: auxChainId,
         transferDetails: oThis.transferDetails
       });
@@ -296,8 +296,8 @@ class FundBySealerAuxChainSpecific extends CronBase {
 
       if (basicHelper.convertToWei(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
         oThis.transferDetails.push({
-          from: sealerAddress,
-          to: oThis.masterInternalFunderAddress,
+          fromAddress: sealerAddress,
+          toAddress: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
             .convertToWei(sealerAddressBalance)
             .minus(basicHelper.convertToWei(1))
