@@ -50,9 +50,9 @@ class OpenStJsVerifierHelper {
   async getContractObj(contractName, contractAddress) {
     const oThis = this;
 
-    let abiOfOrganization = await oThis._getABI(contractName);
+    let abiForContract = await oThis._getABI(contractName);
 
-    return new oThis.web3Instance.eth.Contract(abiOfOrganization, contractAddress);
+    return new oThis.web3Instance.eth.Contract(abiForContract, contractAddress);
   }
 
   /**
@@ -92,7 +92,7 @@ class OpenStJsVerifierHelper {
   async _getABI(contractName) {
     const oThis = this;
 
-    return await new OpenStJs.AbiBinProvider().getABI(contractName);
+    return new OpenStJs.AbiBinProvider().getABI(contractName);
   }
 
   /**
@@ -105,7 +105,7 @@ class OpenStJsVerifierHelper {
   async _getBIN(contractName) {
     const oThis = this;
 
-    return await new OpenStJsVerifierHelper.AbiBinProviderHelper().getBIN(contractName);
+    return new OpenStJs.AbiBinProvider().getBIN(contractName);
   }
 
   /**
