@@ -172,12 +172,12 @@ function addCronProcessEntries() {
         
       promiseArray.push(p9);
       
-    // Create entry for fundByChainOwnerAuxChainSpecificChainAddresses.
-      let p10 =  (function fundByChainOwnerAuxChainSpecificChainAddresses() {
+    // Create entry for fundByMasterInternalFunderAuxChainSpecificChainAddresses.
+      let p10 =  (function fundByMasterInternalFunderAuxChainSpecificChainAddresses() {
         let cronParams = '{"originChainId": 1000, "auxChainIds": [2000]}',
            insertParams = {
              id: 10,
-             kind: 'fundByChainOwnerAuxChainSpecificChainAddresses',
+             kind: 'fundByMasterInternalFunderAuxChainSpecificChainAddresses',
              ip_address: '127.0.0.1',
              chain_id: null,
              params: cronParams,
