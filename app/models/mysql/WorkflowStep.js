@@ -74,6 +74,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '47': workflowStepConstants.verifyAddPriceOracleInPricerRule,
     '48': workflowStepConstants.setAcceptedMarginInPricerRule,
     '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
+
     '52': workflowStepConstants.deployProxyFactory,
     '53': workflowStepConstants.saveProxyFactory,
     '54': workflowStepConstants.initializeCompanyTokenHolderInDb,
@@ -135,7 +136,10 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '183': workflowStepConstants.addUserInWalletFactory,
     '184': workflowStepConstants.fetchRegisteredUserEvent,
     '185': workflowStepConstants.activateUser,
-    '186': workflowStepConstants.rollbackUserSetup
+    '186': workflowStepConstants.rollbackUserSetup,
+
+    '189': workflowStepConstants.fundTokenUserOpsWorker,
+    '190': workflowStepConstants.verifyFundTokenUserOpsWorker
   },
   invertedKinds = util.invert(kinds);
 

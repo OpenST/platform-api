@@ -39,7 +39,11 @@ const steps = {
   [workflowStepConstants.fundExTxWorkers]: {
     kind: workflowStepConstants.fundExTxWorkers,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.fundAuxAdminAddress, workflowStepConstants.fundAuxWorkerAddress]
+    onSuccess: [
+      workflowStepConstants.fundAuxAdminAddress,
+      workflowStepConstants.fundAuxWorkerAddress,
+      workflowStepConstants.fundTokenUserOpsWorker
+    ]
   },
   [workflowStepConstants.fundAuxAdminAddress]: {
     kind: workflowStepConstants.fundAuxAdminAddress,
@@ -63,9 +67,24 @@ const steps = {
     readDataFrom: [workflowStepConstants.fundAuxWorkerAddress],
     onSuccess: [workflowStepConstants.deployOriginTokenOrganization, workflowStepConstants.deployAuxTokenOrganization]
   },
+  [workflowStepConstants.fundTokenUserOpsWorker]: {
+    kind: workflowStepConstants.fundTokenUserOpsWorker,
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.verifyFundTokenUserOpsWorker]
+  },
+  [workflowStepConstants.verifyFundTokenUserOpsWorker]: {
+    kind: workflowStepConstants.verifyFundTokenUserOpsWorker,
+    onFailure: workflowStepConstants.markFailure,
+    readDataFrom: [workflowStepConstants.fundTokenUserOpsWorker],
+    onSuccess: [workflowStepConstants.deployOriginTokenOrganization, workflowStepConstants.deployAuxTokenOrganization]
+  },
   [workflowStepConstants.deployOriginTokenOrganization]: {
     kind: workflowStepConstants.deployOriginTokenOrganization,
-    prerequisites: [workflowStepConstants.verifyFundAuxAdminAddress, workflowStepConstants.verifyFundAuxWorkerAddress],
+    prerequisites: [
+      workflowStepConstants.verifyFundAuxAdminAddress,
+      workflowStepConstants.verifyFundAuxWorkerAddress,
+      workflowStepConstants.verifyFundTokenUserOpsWorker
+    ],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.saveOriginTokenOrganization]
   },
@@ -89,7 +108,11 @@ const steps = {
   },
   [workflowStepConstants.deployAuxTokenOrganization]: {
     kind: workflowStepConstants.deployAuxTokenOrganization,
-    prerequisites: [workflowStepConstants.verifyFundAuxAdminAddress, workflowStepConstants.verifyFundAuxWorkerAddress],
+    prerequisites: [
+      workflowStepConstants.verifyFundAuxAdminAddress,
+      workflowStepConstants.verifyFundAuxWorkerAddress,
+      workflowStepConstants.verifyFundTokenUserOpsWorker
+    ],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.saveAuxTokenOrganization]
   },

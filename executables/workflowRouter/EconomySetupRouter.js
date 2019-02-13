@@ -181,6 +181,21 @@ class EconomySetupRouter extends WorkflowRouterBase {
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
+      case workflowStepConstants.fundTokenUserOpsWorker:
+        logger.step('*** Funding Token User Ops Worker');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.tokenUserOpsWorkerKind;
+
+        return new FundStPrimeToTokenAddress(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundTokenUserOpsWorker:
+        logger.step('*** Verifying if Funding Token User Ops Worker was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundTokenUserOpsWorker),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
       case workflowStepConstants.deployOriginTokenOrganization:
         logger.step('*** Deploy Origin Token Organization');
 
