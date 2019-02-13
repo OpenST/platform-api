@@ -136,8 +136,17 @@ class SubscriberBase extends CronBase {
               prefetch: subData.prefetchCount
             },
             function(params) {
-              // Promise is required to be returned to manually ack messages in RMQ
-              return oThis.subscriptionData[topicName]['promiseQueueManager'].createPromise(params);
+              let messageParams = JSON.parse(params);
+              return oThis
+                ._sequentialExecutor(messageParams)
+                .then(function(response) {
+                  messageParams.sequentialExecutorResponse = response.data;
+
+                  return oThis.subscriptionData[topicName]['promiseQueueManager'].createPromise(messageParams);
+                })
+                .catch(function(error) {
+                  logger.error('Error in promise creation', error);
+                });
             },
             function(consumerTag) {
               oThis.subscriptionData[topicName]['consumerTag'] = consumerTag;
@@ -165,12 +174,6 @@ class SubscriberBase extends CronBase {
   _promiseExecutor(onResolve, onReject, messageParams) {
     const oThis = this;
 
-    try {
-      messageParams = JSON.parse(messageParams);
-    } catch (err) {
-      logger.error('Error in JSON parse ', err);
-      return onResolve();
-    }
     oThis._incrementUnAck(messageParams);
 
     oThis

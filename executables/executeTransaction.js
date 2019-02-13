@@ -12,6 +12,7 @@ const rootPrefix = '..',
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/initProcess'),
+  SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -55,6 +56,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     oThis.initProcessResp = {};
     oThis.exTxTopicName = null;
     oThis.cMsgTopicName = null;
+    oThis.auxChainId = null;
   }
 
   /**
@@ -215,6 +217,17 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
   }
 
   /**
+   *
+   * @private
+   */
+  _sequentialExecutor(messageParams) {
+    const oThis = this;
+    let msgParams = messageParams.message.payload;
+
+    return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId).queueAndFetchNonce();
+  }
+
+  /**
    * Process message
    *
    * @param {Object} messageParams
@@ -237,10 +250,10 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     console.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
-      logger.info('Message specific perform called.......\n');
+      logger.info('Message specific perform called called called called called called called.......\n');
       //message specific perform called.
     } else if (kind == kwcConstant.commandMsg) {
-      logger.info('Command specific perform called.......\n');
+      logger.info('Command specific perform called called called called called called called called.......\n');
       let commandMessageParams = {
         chainId: oThis.auxChainId,
         commandMessage: msgParams
