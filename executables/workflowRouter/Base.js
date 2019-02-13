@@ -14,7 +14,7 @@ const rootPrefix = '../..',
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  sharedRabbitMqProvider = require(rootPrefix + '/lib/providers/sharedNotification'),
+  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   WorkflowStatusCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowStatus'),
   WorkflowByClientCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowByClient'),
@@ -601,7 +601,7 @@ class WorkflowRouterBase {
       }
     };
 
-    let openSTNotification = await sharedRabbitMqProvider.getInstance({
+    let openSTNotification = await rabbitMqProvider.getInstance({
         connectionWaitSeconds: connectionTimeoutConst.crons,
         switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
       }),
