@@ -214,7 +214,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployOriginTokenOrganization),
           kind: tokenAddressConstants.originOrganizationContract,
-          chainId: oThis.requestParams.originChainId
+          chainId: oThis.requestParams.originChainId,
+          chainKind: coreConstants.originChainKind
         }).perform();
 
       case workflowStepConstants.saveAuxTokenOrganization:
@@ -224,7 +225,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployAuxTokenOrganization),
           kind: tokenAddressConstants.auxOrganizationContract,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.saveOriginBrandedToken:
@@ -234,7 +236,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployOriginBrandedToken),
           kind: tokenAddressConstants.brandedTokenContract,
-          chainId: oThis.requestParams.originChainId
+          chainId: oThis.requestParams.originChainId,
+          chainKind: coreConstants.originChainKind
         }).perform();
 
       case workflowStepConstants.saveUtilityBrandedToken:
@@ -244,7 +247,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUtilityBrandedToken),
           kind: tokenAddressConstants.utilityBrandedTokenContract,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.saveTokenGateway:
@@ -266,7 +270,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenCoGateway),
           kind: tokenAddressConstants.tokenCoGatewayContract,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.deployOriginBrandedToken:
@@ -407,7 +412,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenRules),
           kind: tokenAddressConstants.tokenRulesContractKind,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.deployTokenHolderMasterCopy:
@@ -426,7 +432,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenHolderMasterCopy),
           kind: tokenAddressConstants.tokenHolderMasterCopyContractKind,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.deployUserWalletFactory:
@@ -445,7 +452,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUserWalletFactory),
           kind: tokenAddressConstants.userWalletFactoryContractKind,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.deployGnosisSafeMultiSigMasterCopy:
@@ -467,7 +475,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployGnosisSafeMultiSigMasterCopy),
           kind: tokenAddressConstants.gnosisSafeMultiSigMasterCopyContractKind,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.deployPricerRule:
@@ -579,7 +588,8 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployProxyFactory),
           kind: tokenAddressConstants.proxyFactoryContractKind,
-          chainId: oThis.requestParams.auxChainId
+          chainId: oThis.requestParams.auxChainId,
+          chainKind: coreConstants.auxChainKind
         }).perform();
 
       case workflowStepConstants.initializeCompanyTokenHolderInDb:

@@ -45,6 +45,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   },
   invertedStatuses = util.invert(statuses);
 
+const deployedChainKinds = {
+    '1': coreConstants.originChainKind,
+    '2': coreConstants.auxChainKind
+  },
+  invertedDeployedChainKinds = util.invert(deployedChainKinds);
+
 /**
  * Class for token address model
  *
@@ -78,6 +84,14 @@ class TokenAddress extends ModelBase {
 
   get invertedStatuses() {
     return invertedStatuses;
+  }
+
+  get deployedChainKinds() {
+    return deployedChainKinds;
+  }
+
+  get invertedDeployedChainKinds() {
+    return invertedDeployedChainKinds;
   }
 
   /**
@@ -168,13 +182,38 @@ class TokenAddress extends ModelBase {
         token_id: params.tokenId,
         kind: params.kind,
         address: params.address.toLowerCase(),
-        known_address_id: params.knownAddressId
+        known_address_id: params.knownAddressId,
+        deployed_chain_id: params.deployedChainId,
+        deployed_chain_kind: params.deployedChainKind
       })
       .fire();
 
     await TokenAddress.flushCache(params.tokenId);
 
     return responseHelper.successWithData(insertRsp);
+  }
+
+  /**
+   * Get token id from address and chain id
+   *
+   * @param params
+   *
+   * @return {*|void}
+   */
+  async getTokenIdByAddress(params) {
+    const oThis = this;
+
+    let response = await oThis
+      .select('token_id, kind')
+      .where([
+        'address = ? AND deployed_chain_id = ? AND status = ?',
+        params.address,
+        invertedKinds[params.chainId],
+        invertedStatuses[tokenAddressConstants.activeStatus]
+      ])
+      .fire();
+
+    return responseHelper.successWithData(response[0]);
   }
 
   /***
