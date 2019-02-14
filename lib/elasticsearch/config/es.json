@@ -1,0 +1,11 @@
+{
+  "ddbTablePrefix": "",
+  "chainId": 123,
+  "es": {
+    "host":"localhost:9200",
+    "region":"localhost",
+    "apiKey":"elastic",
+    "apiSecret":"changeme",
+    "apiVersion":"6.2"
+  }
+}
