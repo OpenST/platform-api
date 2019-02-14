@@ -23,6 +23,7 @@ require(rootPrefix + '/app/services/device/getList/ByUserId');
 require(rootPrefix + '/app/services/device/getList/ByWalletAddress');
 
 require(rootPrefix + '/app/services/deviceManager/Get');
+require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 
 require(rootPrefix + '/app/services/session/list/ByAddress');
 require(rootPrefix + '/app/services/session/list/ByUserId');
@@ -197,6 +198,39 @@ router.post('/:user_id/activate-user/', function(req, res, next) {
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'CreateTokenHolder', 'r_v_u_7', null, dataFormatterFunc));
+});
+
+/*Authorize Device*/
+router.post('/:user_id/devices/authorize/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postAuthorizeDevice;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    serviceResponse.data = {
+      result_type: resultType.user,
+      [resultType.user]: userFormattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, '', 'r_v_u_8', null, null)); //Todo: Add data formatter
+});
+
+router.post('/:user_id/devices/revoke/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postRevokeDevice;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    serviceResponse.data = {
+      result_type: resultType.user,
+      [resultType.user]: userFormattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, '', 'r_v_u_8', null, null)); //Todo: Add data formatter
 });
 
 // /* Get token holders */

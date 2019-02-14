@@ -7,7 +7,7 @@
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -16,29 +16,27 @@ const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
   AddUserInWalletFactory = require(rootPrefix + '/lib/setup/user/AddUserInUserWalletFactory'),
-  userSetupStepsConfig = require(rootPrefix + '/executables/auxWorkflowRouter/userSetupConfig'),
-  FetchUserRegisteredEvent = require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails');
+  authorizeDeviceStepsConfig = require(rootPrefix +
+    '/executables/auxWorkflowRouter/multisigOperation/authorizeDeviceConfig');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/user/ActivateUser');
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
-require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Address');
 
 /**
  * Class for User Setup router.
  *
  * @class
  */
-class UserSetupRouter extends AuxWorkflowRouterBase {
+class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
   /**
    * Constructor for User Setup router.
    *
    * @constructor
    */
   constructor(params) {
-    params['workflowKind'] = workflowConstants.setupUserKind; // Assign workflowKind.
-
+    params['workflowKind'] = workflowConstants.authorizeDeviceKind; // Assign workflowKind.
     super(params);
   }
 
@@ -50,7 +48,7 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
   _fetchCurrentStepConfig() {
     const oThis = this;
 
-    oThis.currentStepConfig = userSetupStepsConfig[oThis.stepKind];
+    oThis.currentStepConfig = authorizeDeviceStepsConfig[oThis.stepKind];
   }
 
   /**
@@ -67,64 +65,49 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
       ic = new InstanceComposer(configStrategy);
 
     switch (oThis.stepKind) {
-      case workflowStepConstants.userSetupInit:
+      case workflowStepConstants.authorizeDeviceInit:
+        logger.step('**********', workflowStepConstants.authorizeDeviceInit);
         return oThis.insertInitStep();
 
       // Add Session addresses
-      case workflowStepConstants.addSessionAddresses:
-        let AddSessionAddressKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
-          addSessionAddrObj = new AddSessionAddressKlass(oThis.requestParams);
+      case workflowStepConstants.authorizeDevicePerformTransaction:
+        logger.step('**********', workflowStepConstants.authorizeDevicePerformTransaction);
+        require(rootPrefix + '/lib/device/Authorize');
+        oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
+        let AuthorizeDevicePerformTransaction = ic.getShadowedClassFor(
+            coreConstants.icNameSpace,
+            'AuthorizeDevicePerformTransaction'
+          ),
+          authorizeDevicePerformTransactionObj = new AuthorizeDevicePerformTransaction(oThis.requestParams);
 
-        return addSessionAddrObj.perform();
+        return authorizeDevicePerformTransactionObj.perform();
 
       // Add user in User wallet factory.
-      case workflowStepConstants.addUserInWalletFactory:
-        return new AddUserInWalletFactory(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
-
-      // Fetch user registered event.
-      case workflowStepConstants.fetchRegisteredUserEvent:
-        return new FetchUserRegisteredEvent(oThis.requestParams).perform();
-
-      // Set internal actor for tokenHolder In UBT.
-      case workflowStepConstants.setInternalActorForTokenHolderInUBT:
-        oThis.requestParams['address'] = oThis.requestParams.tokenHolderAddress;
-        oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
-        const SetInternalActorForTokenHolderInUBT = ic.getShadowedClassFor(
+      case workflowStepConstants.authorizeDeviceVerifyTransaction:
+        logger.step('**********', workflowStepConstants.authorizeDeviceVerifyTransaction);
+        require(rootPrefix + '/lib/device/VerifyAuthorize');
+        let VerifyAuthorizeDeviceTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
-            'SetInternalActorForUBT'
+            'VerifyAuthorizeTransaction'
           ),
-          setInternalActorForTokenHolderInUBTObj = new SetInternalActorForTokenHolderInUBT(oThis.requestParams);
+          verifyAuthorizeDeviceTransactionObj = new VerifyAuthorizeDeviceTransaction(oThis.requestParams);
 
-        return setInternalActorForTokenHolderInUBTObj.perform();
-
-      // Update Contract addresses in user and activate it.
-      case workflowStepConstants.activateUser:
-        let ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
-          activateUserObj = new ActivateUserKlass(oThis.requestParams);
-
-        return activateUserObj.perform();
-
-      // Rollback user and device and sessions
-      case workflowStepConstants.rollbackUserSetup:
-        let RollbackKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RollbackUserActivation'),
-          rollbackObj = new RollbackKlass(oThis.requestParams);
-
-        return rollbackObj.perform();
+        return verifyAuthorizeDeviceTransactionObj.perform();
 
       case workflowStepConstants.markSuccess:
-        logger.step('*** Mark User SetUp As Success.');
+        logger.step('*** Mark Authorize Device As Success.');
 
         return await oThis.handleSuccess();
 
       case workflowStepConstants.markFailure:
-        logger.step('*** Mark User SetUp As Failed');
+        logger.step('*** Mark Authorize Device As Failed');
 
         return await oThis.handleFailure();
 
       default:
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'e_awr_usr_1',
+            internal_error_identifier: 'e_awr_mo_adr_1',
             api_error_identifier: 'something_went_wrong',
             debug_options: { workflowId: oThis.workflowId }
           })
@@ -140,7 +123,7 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
    * @return {*}
    */
   getNextStepConfigs(nextStep) {
-    return userSetupStepsConfig[nextStep];
+    return authorizeDeviceStepsConfig[nextStep];
   }
 
   /**
@@ -157,4 +140,4 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
   }
 }
 
-module.exports = UserSetupRouter;
+module.exports = AuthorizeDeviceRouter;

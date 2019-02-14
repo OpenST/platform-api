@@ -223,6 +223,99 @@ const v2Signature = {
     ]
   },
 
+  [apiName.postAuthorizeDevice]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'data_defination',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.postRevokeDevice]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      }
+    ]
+  },
+
   [apiName.getPricePoints]: {
     mandatory: [
       {

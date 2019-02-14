@@ -136,6 +136,10 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
       case workflowTopicConstant.userSetup:
         const UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
         return new UserSetupRouter(msgParams).perform();
+      case workflowTopicConstant.authorizeDevice:
+        const AuthorizeDeviceRouter = require(rootPrefix +
+          '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter');
+        return new AuthorizeDeviceRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
