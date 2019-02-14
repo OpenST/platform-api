@@ -22,6 +22,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '6': tokenAddressConstants.auxFunderAddressKind,
     '7': tokenAddressConstants.whiteListedAddressKind,
     '8': tokenAddressConstants.txWorkerAddressKind,
+    '9': tokenAddressConstants.tokenUserOpsWorkerKind,
 
     //Contract Kinds
     '51': tokenAddressConstants.originOrganizationContract,

@@ -3,8 +3,7 @@
 const OpenStJs = require('@openstfoundation/openst.js');
 
 const rootPrefix = '../..',
-  RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule'),
-  ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
+  RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),
   TokenRuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRule');
 
 class OpenStJsVerifierHelper {
@@ -50,9 +49,9 @@ class OpenStJsVerifierHelper {
   async getContractObj(contractName, contractAddress) {
     const oThis = this;
 
-    let abiOfOrganization = await oThis._getABI(contractName);
+    let abiForContract = await oThis._getABI(contractName);
 
-    return new oThis.web3Instance.eth.Contract(abiOfOrganization, contractAddress);
+    return new oThis.web3Instance.eth.Contract(abiForContract, contractAddress);
   }
 
   /**
@@ -62,17 +61,10 @@ class OpenStJsVerifierHelper {
    * @return {Promise<*>}
    */
   async getPricerRuleAddr(tokenId) {
-    const oThis = this;
+    const oThis = this,
+      fetchPricerRuleRsp = await RuleModel.getPricerRuleDetails();
 
-    // Fetch from cache
-    let ruleCache = new RuleCache({ tokenId: 0, name: ruleConstants.pricerRuleName }),
-      ruleCacheRsp = await ruleCache.fetch();
-
-    if (ruleCacheRsp.isFailure() || !ruleCacheRsp.data) {
-      return Promise.reject(ruleCacheRsp);
-    }
-
-    let tokenRuleCache = new TokenRuleCache({ tokenId: tokenId, ruleId: ruleCacheRsp.data.id }),
+    let tokenRuleCache = new TokenRuleCache({ tokenId: tokenId, ruleId: fetchPricerRuleRsp.data.id }),
       tokenRuleCacheRsp = await tokenRuleCache.fetch();
 
     if (tokenRuleCacheRsp.isFailure() || !tokenRuleCacheRsp.data) {
@@ -92,7 +84,7 @@ class OpenStJsVerifierHelper {
   async _getABI(contractName) {
     const oThis = this;
 
-    return await new OpenStJs.AbiBinProvider().getABI(contractName);
+    return new OpenStJs.AbiBinProvider().getABI(contractName);
   }
 
   /**
@@ -105,7 +97,7 @@ class OpenStJsVerifierHelper {
   async _getBIN(contractName) {
     const oThis = this;
 
-    return await new OpenStJsVerifierHelper.AbiBinProviderHelper().getBIN(contractName);
+    return new OpenStJs.AbiBinProvider().getBIN(contractName);
   }
 
   /**

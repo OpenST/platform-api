@@ -45,7 +45,6 @@ require(rootPrefix + '/lib/setup/economy/brandedToken/DeployBT');
 require(rootPrefix + '/lib/setup/economy/brandedToken/DeployUBT');
 require(rootPrefix + '/lib/setup/economy/SetCoGatewayInUtilityBT');
 require(rootPrefix + '/lib/setup/economy/DeployTokenOrganization');
-require(rootPrefix + '/lib/setup/economy/SetInternalActorForOwnerInUBT');
 require(rootPrefix + '/lib/setup/economy/AssignShardsForClient');
 require(rootPrefix + '/lib/setup/economy/DeployTokenRules');
 require(rootPrefix + '/lib/setup/economy/DeployTokenHolderMaster');
@@ -60,6 +59,8 @@ require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker');
 require(rootPrefix + '/lib/setup/economy/InitCompanyTokenHolder');
 require(rootPrefix + '/lib/setup/economy/AddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/PostAddCompanyWallet');
+require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Owner');
+require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/TokenRule');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForCompanyTokenHolderInUBT');
 
 /**
@@ -178,6 +179,21 @@ class EconomySetupRouter extends WorkflowRouterBase {
 
         return new VerifyTransactionStatus({
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundAuxWorkerAddress),
+          chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.fundTokenUserOpsWorker:
+        logger.step('*** Funding Token User Ops Worker');
+
+        oThis.requestParams.addressKind = tokenAddressConstants.tokenUserOpsWorkerKind;
+
+        return new FundStPrimeToTokenAddress(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifyFundTokenUserOpsWorker:
+        logger.step('*** Verifying if Funding Token User Ops Worker was done');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.fundTokenUserOpsWorker),
           chainId: oThis.requestParams.auxChainId
         }).perform();
 
@@ -488,6 +504,23 @@ class EconomySetupRouter extends WorkflowRouterBase {
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployPricerRule),
           auxChainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.setInternalActorForTRInUBT:
+        logger.step('*** Set Internal Actor For TR');
+
+        let SetInternalActorForTRInUBT = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'SetInternalActorForTRInUBT'
+        );
+        return new SetInternalActorForTRInUBT(oThis.requestParams).perform();
+
+      case workflowStepConstants.verifySetInternalActorForTRInUBT:
+        logger.step('*** Verify internal actor was set for TR');
+
+        return new VerifyTransactionStatus({
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.setInternalActorForTRInUBT),
+          chainId: oThis.requestParams.auxChainId
         }).perform();
 
       case workflowStepConstants.addPriceOracleInPricerRule:

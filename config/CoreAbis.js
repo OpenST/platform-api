@@ -49,6 +49,22 @@ class CoreAbis {
   static get GnosisSafe() {
     return new OpenStJs.AbiBinProvider().getABI('GnosisSafe');
   }
+
+  static get ProxyFactory() {
+    return new OpenStJs.AbiBinProvider().getABI('ProxyFactory');
+  }
+
+  static get UserWalletFactory() {
+    return new OpenStJs.AbiBinProvider().getABI('UserWalletFactory');
+  }
+
+  static get TokenRules() {
+    return new OpenStJs.AbiBinProvider().getABI('TokenRules');
+  }
+
+  static get TokenHolder() {
+    return new OpenStJs.AbiBinProvider().getABI('TokenHolder');
+  }
 }
 
 module.exports = CoreAbis;

@@ -461,6 +461,8 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifyFundAuxAdminAddress:
       case workflowStepConstants.fundAuxWorkerAddress:
       case workflowStepConstants.verifyFundAuxWorkerAddress:
+      case workflowStepConstants.fundTokenUserOpsWorker:
+      case workflowStepConstants.verifyFundTokenUserOpsWorker:
       case workflowStepConstants.deployAuxTokenOrganization:
       case workflowStepConstants.saveAuxTokenOrganization:
       case workflowStepConstants.deployUtilityBrandedToken:
@@ -503,6 +505,8 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifyCreateCompanyWallet:
       case workflowStepConstants.setInternalActorForCompanyTHInUBT:
       case workflowStepConstants.verifySetInternalActorForCompanyTHInUBT:
+      case workflowStepConstants.setInternalActorForTRInUBT:
+      case workflowStepConstants.verifySetInternalActorForTRInUBT:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 
