@@ -113,15 +113,15 @@ class StartMint {
         auxChainId: oThis._configStrategyObject.auxChainId,
         originChainId: oThis._configStrategyObject.originChainId,
         stakerAddress: oThis.stakerAddress,
-        tokenId: oThis.tokenId
+        tokenId: oThis.tokenId,
+        sourceChainId: oThis._configStrategyObject.originChainId,
+        destinationChainId: oThis._configStrategyObject.auxChainId
       },
       stakeAndMintParams = {
         stepKind: workflowStepConstants.btStakeAndMintInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.originChainId,
-        sourceChainId: oThis._configStrategyObject.originChainId,
-        destinationChainId: oThis._configStrategyObject.auxChainId,
         topic: workflowTopicConstant.btStakeAndMint,
         requestParams: requestParams,
         feResponseData: { fe_ost_to_stake: oThis.feOstToStake, fe_bt_to_mint: oThis.feBtToMint }

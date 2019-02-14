@@ -129,14 +129,14 @@ And add it to tables using following script.
                 chainId: 1000,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc', 
+                    stakerAddress: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
                     sourceChainId: 1000,
                     destinationChainId: 2000,
-                    facilitator: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc', 
+                    facilitator: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     amountToStake: '100000000000000000001', 
-                    beneficiary: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc',
+                    beneficiary: '0xd83f7162dca396cab4d25155dadf3ca8f623c943',
                     firstTimeMint: false //[optional]
                 }
         }
