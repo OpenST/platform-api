@@ -50,6 +50,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
 
     const oThis = this;
 
+    oThis.kindToAddressMap = {};
     oThis.canExit = true;
   }
 
@@ -309,13 +310,13 @@ class FundBySealerAuxChainSpecific extends CronBase {
       logger.debug('sealerAddress-----', sealerAddress);
       logger.debug('sealerAddressBalance-----', sealerAddressBalance);
 
-      if (basicHelper.convertToWei(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
+      if (basicHelper.convertToBigNumber(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
         oThis.transferDetails.push({
           fromAddress: sealerAddress,
           toAddress: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
-            .convertToWei(sealerAddressBalance)
-            .minus(basicHelper.convertToWei(1))
+            .convertToBigNumber(sealerAddressBalance)
+            .minus(basicHelper.convertToWei(0.5))
             .toString(10)
         });
       }

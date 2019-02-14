@@ -175,7 +175,7 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
         logger.error('** Address not found for addressKind: ', addressKind, ' on aux chain Id: ', auxChainId);
         continue;
       }
-      if (addressKind == [chainAddressConstants.auxPriceOracleContractWorkerKind]) {
+      if (chainAddressConstants.nonUniqueKinds.includes(addressKind)) {
         address = chainAddressesRsp.data[addressKind][0].address;
       } else {
         address = chainAddressesRsp.data[addressKind].address;

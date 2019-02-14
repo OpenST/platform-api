@@ -25,7 +25,7 @@ class ApiAuthentication {
         route: '/users/:user_id/'
       },
       [apiName.getUserDevices]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/devices/'
       },
       [apiName.getUserDevice]: {
@@ -33,11 +33,11 @@ class ApiAuthentication {
         route: '/users/:user_id/devices/:device_address/'
       },
       [apiName.getUserDeviceManager]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/device-managers/'
       },
       [apiName.getUserSessions]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/sessions/'
       },
       [apiName.getPricePoints]: {
