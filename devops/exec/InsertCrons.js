@@ -27,41 +27,41 @@ class InsertCrons {
 
     switch (cronKindName) {
       // Sub-env specific.
-      case [cronProcessConstants.workflowWorker]:
+      case cronProcessConstants.workflowWorker:
         return oThis.insertWorkflowWorkerEntry(cronParams);
-      case [cronProcessConstants.emailNotifier]:
+      case cronProcessConstants.emailNotifier:
         return oThis.insertEmailNotifierEntry(cronParams);
-      case [cronProcessConstants.updateRealtimeGasPrice]:
+      case cronProcessConstants.updateRealtimeGasPrice:
         return oThis.insertUpdateRealtimeGasPriceEntry(cronParams);
 
       // Origin chain specific.
-      case [cronProcessConstants.blockParser]:
+      case cronProcessConstants.blockParser:
         return oThis.insertBlockParserEntry(cronParams);
-      case [cronProcessConstants.transactionParser]:
+      case cronProcessConstants.transactionParser:
         return oThis.insertTransactionParserEntry(cronParams);
-      case [cronProcessConstants.blockFinalizer]:
+      case cronProcessConstants.blockFinalizer:
         return oThis.insertBlockFinalizerEntry(cronParams);
-      case [cronProcessConstants.fundByMasterInternalFunderOriginChainSpecific]:
+      case cronProcessConstants.fundByMasterInternalFunderOriginChainSpecific:
         return oThis.insertFundByMasterInternalFunderOriginChainSpecificEntry(cronParams);
 
       // Aux chain specific.
-      case [cronProcessConstants.economyAggregator]:
+      case cronProcessConstants.economyAggregator:
         return oThis.insertEconomyAggregatorEntry(cronParams);
-      case [cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses]:
+      case cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses:
         return oThis.insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry(cronParams);
-      case [cronProcessConstants.fundBySealerAuxChainSpecific]:
+      case cronProcessConstants.fundBySealerAuxChainSpecific:
         return oThis.insertFundBySealerAuxChainSpecificEntry(cronParams);
-      case [cronProcessConstants.fundByTokenAuxFunderAuxChainSpecific]:
+      case cronProcessConstants.fundByTokenAuxFunderAuxChainSpecific:
         return oThis.insertFundByTokenAuxFunderAuxChainSpecificEntry(cronParams);
-      case [cronProcessConstants.updatePriceOraclePricePoints]:
+      case cronProcessConstants.updatePriceOraclePricePoints:
         return oThis.insertUpdatePriceOraclePricePointsEntry(cronParams);
-      case [cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses]:
+      case cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses:
         return oThis.insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry(cronParams);
-      case [cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses]:
+      case cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses:
         return oThis.insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry(cronParams);
-      case [cronProcessConstants.executeTransaction]:
+      case cronProcessConstants.executeTransaction:
         return oThis.insertExecuteTransactionEntry(cronParams);
-      case [cronProcessConstants.auxWorkflowWorker]:
+      case cronProcessConstants.auxWorkflowWorker:
         return oThis.insertAuxWorkflowWorkerTwoEntry(cronParams);
 
       default:
@@ -86,7 +86,7 @@ class InsertCrons {
       chainId: cronParams.chainId,
       sequenceNumber: cronParams.sequenceNumber
     });
-    return workflowWorker.perform().then(console.log);
+    return workflowWorker.perform();
   }
 
   /**
@@ -102,7 +102,7 @@ class InsertCrons {
     const emailNotifier = new EmailNotifier({
       chainId: cronParams.chainId
     });
-    return emailNotifier.perform().then(console.log);
+    return emailNotifier.perform();
   }
 
   /**
@@ -118,7 +118,7 @@ class InsertCrons {
     const updateRealtimeGasPrice = new UpdateRealtimeGasPrice({
       chainId: cronParams.chainId
     });
-    return updateRealtimeGasPrice.perform().then(console.log);
+    return updateRealtimeGasPrice.perform();
   }
 
   //--------------------------Origin chain specific-------------------
@@ -137,7 +137,7 @@ class InsertCrons {
       chainId: cronParams.chainId,
       intentionalBlockDelay: cronParams.intentionalBlockDelay
     });
-    return blockParser.perform().then(console.log);
+    return blockParser.perform();
   }
 
   /**
@@ -155,7 +155,7 @@ class InsertCrons {
       prefetchCount: cronParams.prefetchCount,
       sequenceNumber: cronParams.sequenceNumber
     });
-    return transactionParser.perform().then(console.log);
+    return transactionParser.perform();
   }
 
   /**
@@ -172,7 +172,7 @@ class InsertCrons {
       chainId: cronParams.chainId,
       blockDelay: cronParams.blockDelay
     });
-    return blockFinalizer.perform().then(console.log);
+    return blockFinalizer.perform();
   }
 
   /**
@@ -189,7 +189,7 @@ class InsertCrons {
     const fundByMasterInternalFunderOriginChainSpecific = new FundByMasterInternalFunderOriginChainSpecific({
       originChainId: cronParams.originChainId
     });
-    return fundByMasterInternalFunderOriginChainSpecific.perform().then(console.log);
+    return fundByMasterInternalFunderOriginChainSpecific.perform();
   }
 
   //--------------------------Aux chain specific-------------------
@@ -208,7 +208,7 @@ class InsertCrons {
       chainId: cronParams.chainId,
       prefetchCount: cronParams.prefetchCount
     });
-    return economyAggregator.perform().then(console.log);
+    return economyAggregator.perform();
   }
 
   /**
@@ -228,7 +228,7 @@ class InsertCrons {
         auxChainId: cronParams.auxChainId
       }
     );
-    return fundByMasterInternalFunderAuxChainSpecificChainAddresses.perform().then(console.log);
+    return fundByMasterInternalFunderAuxChainSpecificChainAddresses.perform();
   }
 
   /**
@@ -245,7 +245,7 @@ class InsertCrons {
       originChainId: cronParams.originChainId,
       auxChainId: cronParams.auxChainId
     });
-    return fundBySealerAuxChainSpecific.perform().then(console.log);
+    return fundBySealerAuxChainSpecific.perform();
   }
 
   /**
@@ -263,7 +263,7 @@ class InsertCrons {
       originChainId: cronParams.originChainId,
       auxChainId: cronParams.auxChainId
     });
-    return fundByTokenAuxFunderAuxChainSpecific.perform().then(console.log);
+    return fundByTokenAuxFunderAuxChainSpecific.perform();
   }
 
   /**
@@ -279,7 +279,7 @@ class InsertCrons {
     const updatePriceOraclePricePoints = new UpdatePriceOraclePricePoints({
       auxChainId: cronParams.auxChainId
     });
-    return updatePriceOraclePricePoints.perform().then(console.log);
+    return updatePriceOraclePricePoints.perform();
   }
 
   /**
@@ -299,7 +299,7 @@ class InsertCrons {
         auxChainId: cronParams.auxChainId
       }
     );
-    return fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses.perform().then(console.log);
+    return fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses.perform();
   }
 
   /**
@@ -319,7 +319,7 @@ class InsertCrons {
         auxChainId: cronParams.auxChainId
       }
     );
-    return fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses.perform().then(console.log);
+    return fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses.perform();
   }
 
   /**
@@ -338,7 +338,7 @@ class InsertCrons {
       sequenceNumber: cronParams.sequenceNumber,
       queueTopicSuffix: cronParams.queueTopicSuffix
     });
-    return executeTransaction.perform().then(console.log);
+    return executeTransaction.perform();
   }
 
   /**
@@ -356,6 +356,8 @@ class InsertCrons {
       auxChainId: cronParams.auxChainId,
       sequenceNumber: cronParams.sequenceNumber
     });
-    return auxWorkflowWorker.perform().then(console.log);
+    return auxWorkflowWorker.perform();
   }
 }
+
+module.exports = InsertCrons;
