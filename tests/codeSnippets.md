@@ -72,9 +72,9 @@ a.perform().then(console.log)
 ```node
 
 params = {
-  currentStepId: 631,
-  workflowId: 35,
-  stepKind: 'setInternalActorForOwnerInUBT',
+  currentStepId: 126,
+  workflowId: 5,
+  stepKind: 'activateTokenGateway',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
   topic: 'workflow.economySetup'

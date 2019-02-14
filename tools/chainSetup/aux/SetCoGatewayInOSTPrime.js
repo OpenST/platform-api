@@ -5,7 +5,7 @@
  * @module tools/chainSetup/aux/SetCoGatewayInOSTPrime
  */
 const rootPrefix = '../../..',
-  MosaicTbd = require('@openstfoundation/mosaic-tbd'),
+  MosaicJs = require('@openstfoundation/mosaic.js'),
   OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -208,7 +208,7 @@ class SetCoGatewayInOSTPrime {
   }
 
   static get STPrimeSetupHelper() {
-    return MosaicTbd.ChainSetup.OSTPrimeHelper;
+    return MosaicJs.ChainSetup.OSTPrimeHelper;
   }
 }
 
