@@ -1,0 +1,16 @@
+{
+  "name": "saasApiElasticSearch",
+  "version": "1.0.0",
+  "description": "elasticsearch lamda module",
+  "main": "index.js",
+  "author": "",
+  "private": true,
+  "license": "ISC",
+  "dependencies": {
+    "@openstfoundation/openst-base": "0.9.3-beta.15",
+    "aws-sdk": "2.373.0",
+    "elasticsearch": "15.0.0",
+    "http-aws-es": "6.0.0",
+    "bignumber.js": "4.1.0"
+  }
+}
