@@ -130,6 +130,29 @@ router.get('/:user_id/devices', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, serviceName, 'r_v_u_4', null, dataFormatterFunc));
 });
 
+/* Get User device By device Address */
+router.get('/:user_id/devices/:device_address', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserDevice;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.addresses = [req.params.device_address];
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let devices = serviceResponse.data[resultType.devices],
+      formattedRsp = {};
+
+    if (devices.length > 0) {
+      formattedRsp = new DeviceFormatter(devices[0]).perform();
+    }
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data || {}
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceListByWalletAddress', 'r_v_u_8', null, dataFormatterFunc));
+});
+
 /* Get sessions by userId */
 router.get('/:user_id/sessions', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSessions;

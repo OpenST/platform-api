@@ -123,8 +123,8 @@ b.perform().then(console.log);
 
 chainOwner = '0xc75d1d02fcab92625f92bc573600753075695b96';
 auxChainId = 2000;
-a = require('./lib/transfer/StPrime')
-b = new a({auxChainId: auxChainId, transferDetails: [{from: chainOwner,to: '0xcdc463aa7b937fe477f59d9421658dc7ebb097ea', amountInWei:'989999600000000000000'}]})
+a = require('./lib/fund/stPrime/BatchTransfer')
+b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0xcdc463aa7b937fe477f59d9421658dc7ebb097ea', amountInWei:'989999600000000000000'}]})
 b.perform().then(console.log)
 
 
