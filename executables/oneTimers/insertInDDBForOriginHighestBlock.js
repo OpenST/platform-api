@@ -174,10 +174,10 @@ const insertInDDBForOriginHighestBlock = new InsertInDDBForOriginHighestBlock();
 insertInDDBForOriginHighestBlock
   .perform()
   .then(function(r) {
-    console.log(r);
+    logger.log(r);
     process.exit(0);
   })
   .catch(function(e) {
-    console.log(e);
+    logger.log(e);
     process.exit(1);
   });
