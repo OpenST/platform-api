@@ -72,12 +72,6 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0as..' --amount 10
 ```
 
-* Create entry in DDB table for highest block on origin chain.
-```bash
-    source set_env_vars.sh
-    node executables/oneTimers/insertInDDBForOriginHighestBlock.js
-```
-
 * Generate origin address and fund them
 ```bash
     source set_env_vars.sh
@@ -144,6 +138,13 @@ Granter address gets ETH and OST in this step.
 > node
     InsertPricerAbiKlass = require('./lib/setup/InsertPricerAbiIntoRulesTable.js');
     new InsertPricerAbiKlass().perform().then(console.log).catch(console.log)
+```
+
+
+### Create entry in DDB table for highest block on origin chain.
+```bash
+    source set_env_vars.sh
+    node executables/oneTimers/insertInDDBForOriginHighestBlock.js
 ```
 
 ### Run block-scanner crons and factory

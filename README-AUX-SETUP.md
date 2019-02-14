@@ -83,12 +83,12 @@ And add it to tables using following script.
    node tools/localSetup/auxChainSpecificCronSeeder.js
 ```
    
-## Run block-scanner crons
+## Run block-scanner crons and aggregator
 
-* Start Aux Workflow router factory
+* Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/auxWorkflowRouter/factory.js --cronProcessId 20
+  node executables/blockScanner/Aggregator.js --cronProcessId 4
 ```
 
 * Run Auxiliary Transaction Parser
@@ -207,6 +207,13 @@ And add it to tables using following script.
 ```bash
   source set_env_vars.sh
   node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 14
+```
+
+### Start Crons
+* Start Aux Workflow router factory
+```bash
+  source set_env_vars.sh
+  node executables/auxWorkflowRouter/factory.js --cronProcessId 18
 ```
 
 ###### ALWAYS AT THE END
