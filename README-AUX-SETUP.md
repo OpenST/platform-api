@@ -115,12 +115,12 @@ And add it to tables using following script.
 ```bash
     source set_env_vars.sh
     export SA_DEFAULT_AUX_GAS_PRICE='0x0'
-    node
-
-        beneficiary -> masterInternalFunderKind
-        facilitator -> masterInternalFunderKind
-        stakerAddress -> masterInternalFunderKind
-  
+    > node
+        // beneficiary -> masterInternalFunderKind
+        // facilitator -> masterInternalFunderKind
+        // stakerAddress -> masterInternalFunderKind
+        // firstTimeMint -> set this to 'true' if you are minting st prime for the first time [optional]
+        
         params = {
                 stepKind: 'stPrimeStakeAndMintInit',
                 taskStatus: 'taskReadyToStart',
@@ -128,14 +128,15 @@ And add it to tables using following script.
                 chainId: 1000,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    stakerAddress: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
-                    facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    facilitator: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc', 
                     amountToStake: '100000000000000000001', 
-                    beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
-                  }
-            }
+                    beneficiary: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc',
+                    firstTimeMint: false //[optional]
+                }
+        }
         stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
         stPrimeRouter = new stPrimeRouterK(params)
    
