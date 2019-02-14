@@ -107,13 +107,10 @@ class BtMintRouter extends WorkflowRouterBase {
         return new FetchStakeIntentMessage(oThis.requestParams).perform();
 
       case workflowStepConstants.commitStateRoot:
-        let params = { fromOriginToAux: 1 };
         if (oThis.isRetrialAttempt) {
-          Object.assign(params, { auxChainId: oThis.requestParams.auxChainId });
-        } else {
-          Object.assign(params, oThis.requestParams);
+          Object.assign(oThis.requestParams, { isRetrialAttempt: oThis.isRetrialAttempt });
         }
-        return new CommitStateRoot(params).perform(oThis._currentStepPayloadForPendingTrx());
+        return new CommitStateRoot(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       // Update status in state root commit history
       case workflowStepConstants.updateCommittedStateRootInfo:

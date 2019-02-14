@@ -132,6 +132,8 @@ And add it to tables using following script.
                     stakerAddress: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
+                    sourceChainId: 1000,
+                    destinationChainId: 2000,
                     facilitator: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc', 
                     amountToStake: '100000000000000000001', 
                     beneficiary: '0x081675c33031f1e438d2e4a1fa9771c79f980cbc',

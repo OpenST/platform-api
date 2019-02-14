@@ -83,7 +83,6 @@ class StPrimeMintRouter extends WorkflowRouterBase {
         return new SimpleTokenStake(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       case workflowStepConstants.commitStateRoot:
-        Object.assign(oThis.requestParams, { fromOriginToAux: 1 });
         return new CommitStateRoot(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
       // Update status in state root commit history
