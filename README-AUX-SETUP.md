@@ -19,7 +19,7 @@
 * Create all SAAS Owned DDB Tables
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2,3 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2,3,4
+    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2
 ```
     * Mandatory parameters: auxChainId
     * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount

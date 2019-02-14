@@ -505,6 +505,8 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifyCreateCompanyWallet:
       case workflowStepConstants.setInternalActorForCompanyTHInUBT:
       case workflowStepConstants.verifySetInternalActorForCompanyTHInUBT:
+      case workflowStepConstants.setInternalActorForTRInUBT:
+      case workflowStepConstants.verifySetInternalActorForTRInUBT:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 

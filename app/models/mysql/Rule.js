@@ -97,6 +97,25 @@ class Rule extends ModelBase {
     });
   }
 
+  /**
+   *
+   * Fetch Pricer Rule Details
+   *
+   * @return {Promise<result>}
+   */
+  static async getPricerRuleDetails() {
+    let RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule');
+
+    let ruleCache = new RuleCache({ tokenId: 0, name: ruleConstants.pricerRuleName }),
+      ruleCacheRsp = await ruleCache.fetch();
+
+    if (ruleCacheRsp.isFailure() || !ruleCacheRsp.data) {
+      return Promise.reject(ruleCacheRsp);
+    }
+
+    return ruleCacheRsp;
+  }
+
   /***
    * Flush cache
    *
