@@ -58,6 +58,11 @@ const stPrimeFundingPerChainConfig = {
     oneGWeiMinOSTPrimeAmount: '0.00840',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
+  },
+  [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
+    oneGWeiMinOSTPrimeAmount: '0.00008',
+    fundForFlows: flowsForTransferBalance,
+    fundIfLessThanFlows: flowsForMinimumBalance
   }
 };
 
@@ -165,11 +170,16 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
 
     // Populate Address in fund config
     for (let addressKind in perChainFundingConfig) {
+      let address = null;
       if (!chainAddressesRsp.data[addressKind]) {
         logger.error('** Address not found for addressKind: ', addressKind, ' on aux chain Id: ', auxChainId);
         continue;
       }
-      let address = chainAddressesRsp.data[addressKind].address;
+      if (addressKind == [chainAddressConstants.auxPriceOracleContractWorkerKind]) {
+        address = chainAddressesRsp.data[addressKind][0].address;
+      } else {
+        address = chainAddressesRsp.data[addressKind].address;
+      }
       perChainFundingConfig[addressKind].address = address;
       oThis.addressesToKindMap[address] = addressKind;
     }
