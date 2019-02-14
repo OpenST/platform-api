@@ -13,7 +13,8 @@ const rootPrefix = '..',
   ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/initProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
-  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor');
+  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -222,9 +223,14 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
    */
   _sequentialExecutor(messageParams) {
     const oThis = this;
-    let msgParams = messageParams.message.payload;
+    let msgParams = messageParams.message.payload,
+      kind = messageParams.message.kind;
 
-    return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId).queueAndFetchNonce();
+    if (kind == kwcConstant.executeTx) {
+      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId).queueAndFetchNonce();
+    } else {
+      return Promise.resolve(responseHelper.successWithData({}));
+    }
   }
 
   /**
