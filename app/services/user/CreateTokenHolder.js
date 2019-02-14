@@ -85,15 +85,7 @@ class CreateTokenHolder extends ServiceBase {
 
     return Promise.resolve(
       responseHelper.successWithData({
-        [resultType.user]: {
-          userId: 'test123',
-          tokenId: 'test123',
-          tokenHolderAddress: 'test123',
-          multisigAddress: 'test123',
-          kind: '1',
-          updatedTimestamp: 'test123',
-          status: '2'
-        }
+        [resultType.user]: oThis.userStatusUpdateResponse.data
       })
     );
   }
@@ -133,14 +125,14 @@ class CreateTokenHolder extends ServiceBase {
       });
 
     logger.log('Updating user status from created to activating.');
-    let userStatusUpdateResponse = await userModel.updateStatusFromInitialToFinal(
+    oThis.userStatusUpdateResponse = await userModel.updateStatusFromInitialToFinal(
       oThis.tokenId,
       oThis.userId,
       tokenUserConstants.createdStatus,
       tokenUserConstants.activatingStatus
     );
 
-    if (userStatusUpdateResponse.isFailure()) {
+    if (oThis.userStatusUpdateResponse.isFailure()) {
       logger.error('Could not update user status from created to activating.');
       return Promise.reject(
         responseHelper.error({
@@ -152,7 +144,7 @@ class CreateTokenHolder extends ServiceBase {
     }
 
     logger.log('User status updated to activating.');
-    oThis.deviceShardNumber = userStatusUpdateResponse.data.deviceShardNumber;
+    oThis.deviceShardNumber = oThis.userStatusUpdateResponse.data.deviceShardNumber;
   }
 
   /**
