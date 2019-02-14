@@ -104,6 +104,24 @@ class TokenAddress extends ModelBase {
   }
 
   /**
+   * Get token address details by token_id and kind
+   *
+   * @param params
+   *
+   * @return {*|void}
+   */
+  async getTokenAddressById(params) {
+    const oThis = this;
+
+    let response = await oThis
+      .select('*')
+      .where({ id: params.tokenAddressId })
+      .fire();
+
+    return responseHelper.successWithData(response[0]);
+  }
+
+  /**
    * fetch addresses
    *
    * @param {object} params - external passed parameters

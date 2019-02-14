@@ -10,7 +10,7 @@ const rootPrefix = '../../../..',
   TransferEth = require(rootPrefix + '/lib/transfer/Eth'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   GetEthBalance = require(rootPrefix + '/lib/getBalance/Eth'),
-  TransferStPrime = require(rootPrefix + '/lib/transfer/StPrime'),
+  TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
@@ -198,7 +198,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
   async _transferStPrime(auxChainId, transferDetails) {
     const oThis = this;
 
-    const transferStPrime = new TransferStPrime({
+    const transferStPrime = new TransferStPrimeBatch({
       auxChainId: auxChainId,
       transferDetails: transferDetails
     });

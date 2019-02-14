@@ -13,12 +13,12 @@ const rootPrefix = '../../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  TransferStPrime = require(rootPrefix + '/lib/transfer/StPrime'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
+  TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
@@ -220,7 +220,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     oThis.canExit = false;
 
     if (oThis.transferDetails.length > 0) {
-      const transferStPrime = new TransferStPrime({
+      const transferStPrime = new TransferStPrimeBatch({
         auxChainId: auxChainId,
         transferDetails: oThis.transferDetails
       });
@@ -350,8 +350,8 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       // Check for refund eligibility.
       if (tokenAuxAdminCurrentBalance.lt(tokenAuxAdminMinimumBalance.mul(flowsForMinimumBalance))) {
         let params = {
-          from: tokenAuxFunderAddress,
-          to: tokenAuxAdminAddress,
+          fromAddress: tokenAuxFunderAddress,
+          toAddress: tokenAuxAdminAddress,
           amountInWei: basicHelper.convertToWei(tokenAuxAdminMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
@@ -359,8 +359,8 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
 
       if (tokenAuxWorkerCurrentBalance.lt(tokenAuxWorkerMinimumBalance.mul(flowsForMinimumBalance))) {
         let params = {
-          from: tokenAuxFunderAddress,
-          to: tokenAuxWorkerCurrentBalance,
+          fromAddress: tokenAuxFunderAddress,
+          toAddress: tokenAuxWorkerCurrentBalance,
           amountInWei: basicHelper.convertToWei(tokenAuxWorkerMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);

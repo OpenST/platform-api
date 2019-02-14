@@ -3,8 +3,7 @@
 const OpenStJs = require('@openstfoundation/openst.js');
 
 const rootPrefix = '../..',
-  RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule'),
-  ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
+  RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),
   TokenRuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRule');
 
 class OpenStJsVerifierHelper {
@@ -62,17 +61,10 @@ class OpenStJsVerifierHelper {
    * @return {Promise<*>}
    */
   async getPricerRuleAddr(tokenId) {
-    const oThis = this;
+    const oThis = this,
+      fetchPricerRuleRsp = await RuleModel.getPricerRuleDetails();
 
-    // Fetch from cache
-    let ruleCache = new RuleCache({ tokenId: 0, name: ruleConstants.pricerRuleName }),
-      ruleCacheRsp = await ruleCache.fetch();
-
-    if (ruleCacheRsp.isFailure() || !ruleCacheRsp.data) {
-      return Promise.reject(ruleCacheRsp);
-    }
-
-    let tokenRuleCache = new TokenRuleCache({ tokenId: tokenId, ruleId: ruleCacheRsp.data.id }),
+    let tokenRuleCache = new TokenRuleCache({ tokenId: tokenId, ruleId: fetchPricerRuleRsp.data.id }),
       tokenRuleCacheRsp = await tokenRuleCache.fetch();
 
     if (tokenRuleCacheRsp.isFailure() || !tokenRuleCacheRsp.data) {

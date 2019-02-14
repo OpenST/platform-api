@@ -295,8 +295,8 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       if (addressCurrentBalance.lt(addressMinimumBalanceRequiredForGivenFlows)) {
         let amountToBeTransferred = addressMinimumBalance.mul(fundingAddressDetails.fundForFlows).toString(10),
           transferParams = {
-            from: oThis.masterInternalFunderAddress,
-            to: address,
+            fromAddress: oThis.masterInternalFunderAddress,
+            toAddress: address,
             amountInWei: amountToBeTransferred
           };
         logger.log('Funds transferred are: ', amountToBeTransferred);

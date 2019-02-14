@@ -139,7 +139,9 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '186': workflowStepConstants.rollbackUserSetup,
 
     '189': workflowStepConstants.fundTokenUserOpsWorker,
-    '190': workflowStepConstants.verifyFundTokenUserOpsWorker
+    '190': workflowStepConstants.verifyFundTokenUserOpsWorker,
+    '191': workflowStepConstants.setInternalActorForTRInUBT,
+    '192': workflowStepConstants.verifySetInternalActorForTRInUBT
   },
   invertedKinds = util.invert(kinds);
 
