@@ -29,7 +29,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '15': cronProcessesConstants.fundByChainOwnerAuxChainSpecificTokenFunderAddresses,
     '16': cronProcessesConstants.fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses,
     '17': cronProcessesConstants.executeTransaction,
-    '18': cronProcessesConstants.auxWorkflowWorker
+    '18': cronProcessesConstants.auxWorkflowWorker,
+    '19': cronProcessesConstants.fundByTokenAuxFunderToExTxWorkers
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
