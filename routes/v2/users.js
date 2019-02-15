@@ -207,10 +207,10 @@ router.post('/:user_id/devices/authorize/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
-      result_type: resultType.user,
-      [resultType.user]: userFormattedRsp.data
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
     };
   };
 

@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- *  Authorize device
+ *  Authorize device multi sig operation
  *
  * @module app/services/device/multisigOperation/AuthorizeDevice
  */
@@ -13,8 +13,8 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
   AuthorizeDeviceRouter = require(rootPrefix +
@@ -33,44 +33,61 @@ class AuthorizeDevice extends Base {
   }
 
   /**
+   * perform operation
    *
-   *
-   * @returns {Promise<void>}
+   * @returns {Promise<any>}
    * @private
    */
   async _performOperation() {
     const oThis = this;
 
-    //Perform all the custom checks related to authorize device
-    await oThis._fetchAndCheckDeviceStatus();
+    await oThis._checkDeviceStatus();
 
     await oThis._updateDeviceStatus();
 
     await oThis._startWorkflow();
+
+    let response = await oThis._prepareResponseEntity();
+
+    return Promise.resolve(response);
   }
 
   /**
-   * Fetches the device details present in the database.
+   * Check the status of device
    *
-   *
-   * @returns {Promise<void>}
+   * @returns {Promise<any>}
    * @private
    */
-  async _fetchAndCheckDeviceStatus() {
-    await super._fetchAndCheckDeviceStatus(deviceConstants.registeredStatus);
+  async _checkDeviceStatus() {
+    logger.debug('****Checking device status as registered');
+    await super._checkDeviceStatus(deviceConstants.registeredStatus);
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
+  /**
+   * updates the status of device
+   *
+   * @returns {Promise<any>}
+   * @private
+   */
   async _updateDeviceStatus() {
+    logger.debug('****Updating the device status as authorizing');
     await super._updateDeviceStatus(deviceConstants.authorisingStatus);
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
+  /**
+   * Starts the workflow to submit authorize device transaction
+   *
+   * @returns {Promise}
+   * @private
+   */
   async _startWorkflow() {
     const oThis = this;
 
+    logger.debug('****Starting the authorize workflow ');
     let requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
@@ -102,6 +119,24 @@ class AuthorizeDevice extends Base {
     const authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
 
     return authorizeDeviceObj.perform();
+  }
+
+  /**
+   * Prepares the response for Authorize Device service.
+   *
+   * @returns {Promise<any>}
+   * @private
+   */
+  async _prepareResponseEntity() {
+    const oThis = this;
+
+    logger.debug('****Preparing authorize device service response');
+    let deviceDetailsAfterUpdateRsp = await super._fetchDeviceDetails(),
+      response = {};
+
+    response[resultType.device] = deviceDetailsAfterUpdateRsp.data;
+
+    return Promise.resolve(responseHelper.successWithData(response));
   }
 }
 

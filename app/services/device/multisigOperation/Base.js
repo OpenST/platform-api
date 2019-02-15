@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- *  Fetch device details by userId and wallet addresses.
+ *  Base for device related multi sig operations
  *
  * @module app/services/device/getList/Base
  */
@@ -14,8 +14,7 @@ const rootPrefix = '../../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  basicHelper = require(rootPrefix + '/helpers/basic');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
@@ -43,9 +42,14 @@ class MultisigOpertationBaseKlass extends ServiceBase {
 
     await oThis._performCommonPreChecks();
 
-    await oThis._performOperation();
+    return oThis._performOperation();
   }
 
+  /**
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _sanitizeParams() {
     const oThis = this;
 
@@ -91,10 +95,10 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   /**
    * Fetch the device data and checks if the device status is same as given parameter
    *
-   * @param {string} deviceStatus: device status to perform check for
-   * @returns {Promise<ResponseHelper>}
+   *
+   * @returns {Promise<>}
    */
-  async _fetchAndCheckDeviceStatus(deviceStatus) {
+  async _fetchDeviceDetails() {
     const oThis = this;
 
     let paramsForDeviceDetailsCache = {
@@ -102,8 +106,6 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       walletAddresses: [oThis.deviceAddress],
       tokenId: oThis.tokenId
     };
-
-    console.log('parameters for details cache=======', paramsForDeviceDetailsCache);
 
     let DeviceDetailsKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
       deviceDetailsObj = new DeviceDetailsKlass(paramsForDeviceDetailsCache),
@@ -116,8 +118,6 @@ class MultisigOpertationBaseKlass extends ServiceBase {
 
     let deviceDetails = deviceDetailsRsp.data[oThis.deviceAddress];
 
-    console.log('==deviceDetailsRsp==', deviceDetailsRsp);
-
     if (basicHelper.isEmptyObject(deviceDetails)) {
       return Promise.reject(
         responseHelper.error({
@@ -128,17 +128,24 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       );
     }
 
+    return Promise.resolve(responseHelper.successWithData(deviceDetails));
+  }
+
+  async _checkDeviceStatus(deviceStatus) {
+    const oThis = this;
+
+    let deviceDetailsRsp = await oThis._fetchDeviceDetails(),
+      deviceDetails = deviceDetailsRsp.data;
+
     if (deviceDetails.status !== deviceStatus) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_dm_mo_ad_1',
           api_error_identifier: 'something_went_wrong',
-          debug_options: {}
+          debug_options: { deviceStatus: deviceDetails.status }
         })
       );
     }
-
-    return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**
@@ -162,13 +169,11 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       updateDeviceStatusObj = new UpdateDeviceStatusKlass(paramsToUpdateDeviceStatus),
       updateDeviceStatusRsp = await updateDeviceStatusObj.perform();
 
-    console.log('===updateDeviceStatusRsp===', updateDeviceStatusRsp);
-
     if (updateDeviceStatusRsp.isFailure()) {
       return Promise.reject(updateDeviceStatusRsp);
     }
 
-    return Promise.resolve(responseHelper.successWithData);
+    return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**
