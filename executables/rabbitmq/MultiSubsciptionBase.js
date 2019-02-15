@@ -99,6 +99,25 @@ class MultiSubsciptionBase extends CronBase {
   }
 
   /**
+   * Start the actual functionality of the cron.
+   *
+   * @returns {Promise<void>}
+   *
+   * @private
+   */
+  async _start() {
+    const oThis = this;
+
+    await oThis._beforeSubscribe();
+
+    oThis._prepareSubscriptionData();
+
+    await oThis._startSubscription();
+
+    return true;
+  }
+
+  /**
    * Start subscription
    *
    * @param subscriptionTopic
@@ -106,7 +125,7 @@ class MultiSubsciptionBase extends CronBase {
    *
    * @private
    */
-  async _startSubscription(subscriptionTopic) {
+  async _startSubscriptionFor(subscriptionTopic) {
     const oThis = this;
 
     // TODO: chain specific rabbit provider.
@@ -351,6 +370,33 @@ class MultiSubsciptionBase extends CronBase {
    * @private
    */
   _decrementUnAck(messageParams) {
+    throw 'sub class to implement.';
+  }
+
+  /**
+   * Before subscribe
+   *
+   * @private
+   */
+  _beforeSubscribe() {
+    throw 'sub class to implement.';
+  }
+
+  /**
+   * Prepare subscription data
+   *
+   * @private
+   */
+  _prepareSubscriptionData() {
+    throw 'sub class to implement.';
+  }
+
+  /**
+   * Start subscription
+   *
+   * @private
+   */
+  _startSubscription() {
     throw 'sub class to implement.';
   }
 }
