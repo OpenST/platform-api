@@ -62,6 +62,7 @@ require(rootPrefix + '/lib/setup/economy/PostAddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Owner');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/TokenRule');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForCompanyTokenHolderInUBT');
+require(rootPrefix + '/lib/setup/economy/PostUBTDeploy');
 
 /**
  * Class for economy setup router.
@@ -243,13 +244,23 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.saveUtilityBrandedToken:
         logger.step('*** Saving Utility Branded Token Address In DB');
 
-        return new InsertAddressIntoTokenAddress({
+        let saveUbtResponse = new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUtilityBrandedToken),
           kind: tokenAddressConstants.utilityBrandedTokenContract,
           chainId: oThis.requestParams.auxChainId,
           chainKind: coreConstants.auxChainKind
         }).perform();
+
+        let PostUBTDeploy = ic.getShadowedClassFor(coreConstants.icNameSpace, 'PostUBTDeploy'),
+          postUBTDeploy = new PostUBTDeploy({
+            tokenId: oThis.requestParams.tokenId,
+            chainId: oThis.requestParams.auxChainId
+          });
+
+        await postUBTDeploy.perform();
+
+        return saveUbtResponse;
 
       case workflowStepConstants.saveTokenGateway:
         logger.step('*** Saving Token Gateway Address In DB');
