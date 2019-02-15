@@ -88,7 +88,7 @@ And add it to tables using following script.
 * Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Aggregator.js --cronProcessId 4
+  node executables/blockScanner/Aggregator.js --cronProcessId 11
 ```
 
 * Run Auxiliary Transaction Parser
@@ -114,7 +114,6 @@ And add it to tables using following script.
 //TODO: change amountToStake to amountToStakeInWei
 ```bash
     source set_env_vars.sh
-    export SA_DEFAULT_AUX_GAS_PRICE='0x0'
     > node
         // beneficiary -> masterInternalFunderKind
         // facilitator -> masterInternalFunderKind
@@ -162,17 +161,6 @@ And add it to tables using following script.
     sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-* Reset the SA_DEFAULT_AUX_GAS_PRICE env var to non zero value.
-```bash
-    source set_env_vars.sh
-```
-
-* Update price points.
-```bash
-   source set_env_vars.sh
-   node executables/UpdatePricePoints.js --cronProcessId 15
-```
-
 ## Run Aggregator
 ```bash
   source set_env_vars.sh
@@ -211,11 +199,17 @@ And add it to tables using following script.
   node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 14
 ```
 
+### Update price points.
+```bash
+   source set_env_vars.sh
+   node executables/UpdatePricePoints.js --cronProcessId 15
+```
+
 ### Start Crons
 * Start Aux Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/auxWorkflowRouter/factory.js --cronProcessId 18
+  node executables/auxWorkflowRouter/factory.js --cronProcessId 20
 ```
 
 ###### ALWAYS AT THE END
