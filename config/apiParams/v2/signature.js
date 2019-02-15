@@ -64,6 +64,10 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
+        parameter: 'device_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
         parameter: 'session_addresses',
         validatorMethod: 'validateEthAddressArray'
       },
