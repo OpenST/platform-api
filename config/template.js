@@ -21,6 +21,7 @@ configTemplate['rootLevelEntities'][configStrategyConstants.auxConstants] = 'aux
 configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = 'elasticSearchEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = 'rabbitmqEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.globalRabbitmq] = 'globalRabbitmqEntity';
+configTemplate['rootLevelEntities'][configStrategyConstants.originRabbitmq] = 'originRabbitmqEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.constants] = 'constantsEntity';
 
 configTemplate['entitiesMap'] = {
@@ -225,6 +226,18 @@ configTemplate['entitiesMap'] = {
       clusterNodes: 'clusterNodesEntity'
     }
   },
+  originRabbitmqEntity: {
+    entityType: 'object',
+    entitiesPresent: {
+      username: 'usernameEntity',
+      password: 'passwordEntity',
+      host: 'hostEntity',
+      port: 'portEntity',
+      heartbeats: 'heartbeatsEntity',
+      clusterNodes: 'clusterNodesEntity'
+    }
+  },
+
   usernameEntity: {
     entityType: 'string'
   },

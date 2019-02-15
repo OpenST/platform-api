@@ -10,7 +10,8 @@ const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   cronProcessHandlerObject = new cronProcessHandler();
@@ -106,10 +107,10 @@ class MultiSubsciptionBase extends CronBase {
     const oThis = this;
 
     // TODO: chain specific rabbit provider.
-    const openStNotification = await rabbitMqProvider.getInstance({
+    const openStNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.auxRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
-      chainId: oThis.auxChainId
+      auxChainId: oThis.auxChainId
     });
 
     let subData = oThis.subscriptionTopicToDataMap[topicName];

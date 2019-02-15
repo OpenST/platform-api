@@ -196,7 +196,8 @@ class ConfigStrategyModel extends ModelBase {
       configStrategyHash[kinds[strategyKind]].secretKey = decryptedJsonObj.esSecretKey;
     } else if (
       kinds[strategyKind] == configStrategyConstants.rabbitmq ||
-      kinds[strategyKind] == configStrategyConstants.globalRabbitmq
+      kinds[strategyKind] == configStrategyConstants.globalRabbitmq ||
+      kinds[strategyKind] == configStrategyConstants.originRabbitmq
     ) {
       configStrategyHash[kinds[strategyKind]].password = decryptedJsonObj.rmqPassword;
     }
@@ -445,7 +446,8 @@ class ConfigStrategyModel extends ModelBase {
       encryptedKeysFound = true;
     } else if (
       strategyKindName == configStrategyConstants.rabbitmq ||
-      strategyKindName == configStrategyConstants.globalRabbitmq
+      strategyKindName == configStrategyConstants.globalRabbitmq ||
+      strategyKindName == configStrategyConstants.originRabbitmq
     ) {
       let rmqPassword = hashNotToEncrypt[strategyKindName].password;
 

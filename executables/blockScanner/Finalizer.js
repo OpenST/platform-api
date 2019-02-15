@@ -15,7 +15,8 @@ const rootPrefix = '../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
-  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -159,7 +160,7 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.openSTNotification = await rabbitMqProvider.getInstance({
+    oThis.openSTNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });
