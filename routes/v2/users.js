@@ -23,12 +23,13 @@ require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/getList/ByUserId');
 require(rootPrefix + '/app/services/device/getList/ByWalletAddress');
+require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 
 require(rootPrefix + '/app/services/deviceManager/Get');
-require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 
 require(rootPrefix + '/app/services/session/list/ByAddress');
 require(rootPrefix + '/app/services/session/list/ByUserId');
+require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 
 /* Create user*/
 router.post('/', function(req, res, next) {
@@ -287,23 +288,23 @@ router.post('/:user_id/devices/authorize/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, '', 'r_v_u_8', null, null)); //Todo: Add data formatter
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v_u_8', null, dataFormatterFunc));
 });
 
-router.post('/:user_id/devices/revoke/', function(req, res, next) {
-  req.decodedParams.apiName = apiName.postRevokeDevice;
+router.post('/:user_id/sessions/authorize/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postAuthorizeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.sessions]).perform();
     serviceResponse.data = {
-      result_type: resultType.user,
-      [resultType.user]: userFormattedRsp.data
+      result_type: resultType.sessions,
+      [resultType.sessions]: sessionsFormattedRsp.data
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, '', 'r_v_u_8', null, null)); //Todo: Add data formatter
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v_u_10', null, dataFormatterFunc));
 });
 
 // /* Get token holders */

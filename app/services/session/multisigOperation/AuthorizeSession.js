@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- *  Authorize device multi sig operation
+ *  Authorize session multi sig operation
  *
- * @module app/services/device/multisigOperation/AuthorizeDevice
+ * @module app/services/session/multisigOperation/AuthorizeSession.js
  */
 
 const OSTBase = require('@openstfoundation/openst-base'),
@@ -16,20 +16,22 @@ const rootPrefix = '../../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  AuthorizeDeviceRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter'),
+  Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
+  AuthorizeSessionRouter = require(rootPrefix +
+    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeSessionRouter'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-require(rootPrefix + '/lib/device/updateStatus');
+require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 
-class AuthorizeDevice extends Base {
+class AuthorizeSession extends Base {
   constructor(params) {
     super(params);
+    const oThis = this;
+    oThis.spendingLimit = params.raw_calldata['parameters'][1];
+    oThis.expirationHeight = params.raw_calldata['parameters'][2];
   }
 
   /**
@@ -41,9 +43,7 @@ class AuthorizeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    await oThis._checkDeviceStatus();
-
-    await oThis._updateDeviceStatus();
+    await oThis._addEntryInSessionsTable();
 
     await oThis._startWorkflow();
 
@@ -53,27 +53,25 @@ class AuthorizeDevice extends Base {
   }
 
   /**
-   * Check the status of device
+   * Adds an entry in sessions table
    *
    * @returns {Promise<any>}
    * @private
    */
-  async _checkDeviceStatus() {
-    logger.debug('****Checking device status as registered');
-    await super._checkDeviceStatus(deviceConstants.registeredStatus);
+  async _addEntryInSessionsTable() {
+    const oThis = this;
+    logger.debug('****Creating entry in sessions table');
 
-    return Promise.resolve(responseHelper.successWithData({}));
-  }
-
-  /**
-   * updates the status of device
-   *
-   * @returns {Promise<any>}
-   * @private
-   */
-  async _updateDeviceStatus() {
-    logger.debug('****Updating the device status as authorizing');
-    await super._updateDeviceStatus(deviceConstants.authorisingStatus);
+    let paramsForAddSessions = {
+      tokenId: oThis.tokenId,
+      userId: oThis.userId,
+      sessionAddresses: [oThis.sessionKey],
+      sessionExpiration: oThis.expirationHeight,
+      sessionSpendingLimit: oThis.spendingLimit
+    };
+    let AddSessionsAddressKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
+      addSessionsAddressObj = new AddSessionsAddressKlass(paramsForAddSessions),
+      addSessionsAddressRsp = await addSessionsAddressObj.perform();
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
@@ -87,12 +85,12 @@ class AuthorizeDevice extends Base {
   async _startWorkflow() {
     const oThis = this;
 
-    logger.debug('****Starting the authorize workflow ');
+    logger.debug('****Starting the authorize session workflow ');
     let requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
-        deviceAddress: oThis.deviceAddress,
+        sessionKey: oThis.sessionKey,
         to: oThis.params.to,
         value: oThis.params.value,
         calldata: oThis.params.calldata,
@@ -106,20 +104,21 @@ class AuthorizeDevice extends Base {
         signature: oThis.params.signature,
         signer: oThis.params.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
-        devicesShardNumber: oThis.devicesShardNumber
+        sessionShardNumber: oThis.sessionShardNumber,
+        multisigProxyAddress: oThis.multisigProxyAddress
       },
-      authorizeDeviceInitParams = {
-        stepKind: workflowStepConstants.authorizeDeviceInit,
+      authorizeSessionInitParams = {
+        stepKind: workflowStepConstants.authorizeSessionInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.auxChainId,
-        topic: workflowTopicConstants.authorizeDevice,
+        topic: workflowTopicConstants.authorizeSession,
         requestParams: requestParams
       };
 
-    let authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
+    let authorizeSessionObj = new AuthorizeSessionRouter(authorizeSessionInitParams);
 
-    return authorizeDeviceObj.perform();
+    return authorizeSessionObj.perform();
   }
 
   /**
@@ -130,15 +129,14 @@ class AuthorizeDevice extends Base {
    */
   async _prepareResponseEntity() {
     const oThis = this;
-
-    logger.debug('****Preparing authorize device service response');
-    let deviceDetailsAfterUpdateRsp = await super._fetchDeviceDetails(),
+    logger.debug('****Preparing authorize session service response');
+    let sessionDetailsAfterUpdateRsp = await super._fetchSessionDetails(),
       response = {};
 
-    response[resultType.device] = deviceDetailsAfterUpdateRsp.data;
+    response[resultType.session] = sessionDetailsAfterUpdateRsp.data;
 
     return Promise.resolve(responseHelper.successWithData(response));
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AuthorizeDevice, coreConstants.icNameSpace, 'AuthorizeDevice');
+InstanceComposer.registerAsShadowableClass(AuthorizeSession, coreConstants.icNameSpace, 'AuthorizeSession');

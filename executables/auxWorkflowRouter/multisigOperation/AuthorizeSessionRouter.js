@@ -16,8 +16,8 @@ const rootPrefix = '../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
   AddUserInWalletFactory = require(rootPrefix + '/lib/setup/user/AddUserInUserWalletFactory'),
-  authorizeDeviceStepsConfig = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/authorizeDeviceConfig');
+  authorizeSessionStepsConfig = require(rootPrefix +
+    '/executables/auxWorkflowRouter/multisigOperation/authorizeSessionConfig');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/user/ActivateUser');
@@ -29,14 +29,14 @@ require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
  *
  * @class
  */
-class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
+class AuthorizeSessionRouter extends AuxWorkflowRouterBase {
   /**
    * Constructor for User Setup router.
    *
    * @constructor
    */
   constructor(params) {
-    params['workflowKind'] = workflowConstants.authorizeDeviceKind; // Assign workflowKind.
+    params['workflowKind'] = workflowConstants.authorizeSessionKind; // Assign workflowKind.
     super(params);
   }
 
@@ -48,7 +48,7 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
   _fetchCurrentStepConfig() {
     const oThis = this;
 
-    oThis.currentStepConfig = authorizeDeviceStepsConfig[oThis.stepKind];
+    oThis.currentStepConfig = authorizeSessionStepsConfig[oThis.stepKind];
   }
 
   /**
@@ -65,42 +65,44 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
       ic = new InstanceComposer(configStrategy);
 
     switch (oThis.stepKind) {
-      case workflowStepConstants.authorizeDeviceInit:
-        logger.step('**********', workflowStepConstants.authorizeDeviceInit);
+      case workflowStepConstants.authorizeSessionInit:
+        logger.step('**********', workflowStepConstants.authorizeSessionInit);
         return oThis.insertInitStep();
 
       // Add Session addresses
-      case workflowStepConstants.authorizeDevicePerformTransaction:
-        logger.step('**********', workflowStepConstants.authorizeDevicePerformTransaction);
-        require(rootPrefix + '/lib/device/Authorize');
+      case workflowStepConstants.authorizeSessionPerformTransaction:
+        logger.step('**********', workflowStepConstants.authorizeSessionPerformTransaction);
+        require(rootPrefix + '/lib/session/Authorize');
         oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
-        let AuthorizeDevicePerformTransaction = ic.getShadowedClassFor(
+        let AuthorizeSessionPerformTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
-            'AuthorizeDevicePerformTransaction'
+            'AuthorizeSessionPerformTransaction'
           ),
-          authorizeDevicePerformTransactionObj = new AuthorizeDevicePerformTransaction(oThis.requestParams);
+          authorizeSessionPerformTransactionObj = new AuthorizeSessionPerformTransaction(oThis.requestParams);
 
-        return authorizeDevicePerformTransactionObj.perform();
+        return authorizeSessionPerformTransactionObj.perform();
 
       // Add user in User wallet factory.
-      case workflowStepConstants.authorizeDeviceVerifyTransaction:
-        logger.step('**********', workflowStepConstants.authorizeDeviceVerifyTransaction);
-        require(rootPrefix + '/lib/device/VerifyAuthorize');
-        let VerifyAuthorizeDeviceTransaction = ic.getShadowedClassFor(
+      case workflowStepConstants.authorizeSessionVerifyTransaction:
+        logger.step('**********', workflowStepConstants.authorizeSessionVerifyTransaction);
+        require(rootPrefix + '/lib/session/VerifyAuthorize');
+        let VerifyAuthorizeSessionTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
-            'VerifyAuthorizeDeviceTransaction'
+            'VerifyAuthorizeSessionTransaction'
           ),
-          verifyAuthorizeDeviceTransactionObj = new VerifyAuthorizeDeviceTransaction(oThis.requestParams);
+          verifyAuthorizeSessionTransactionObj = new VerifyAuthorizeSessionTransaction(oThis.requestParams);
 
-        return verifyAuthorizeDeviceTransactionObj.perform();
+        return verifyAuthorizeSessionTransactionObj.perform();
+      case workflowStepConstants.rollbackAuthorizeSessionTransaction:
+        logger.step('**********', workflowStepConstants.rollbackAuthorizeSessionTransaction);
+        require(rootPrefix + '/lib/session/RollBackAuthorizeSession');
+        let RollbackAuthorizeSessionTransaction = ic.getShadowedClassFor(
+            coreConstants.icNameSpace,
+            'RollbackAuthorizeSession'
+          ),
+          rollbackAuthorizeSessionTransactionObj = new RollbackAuthorizeSessionTransaction(oThis.requestParams);
 
-      case workflowStepConstants.rollbackAuthorizeDeviceTransaction:
-        logger.step('**********', workflowStepConstants.rollbackAuthorizeDeviceTransaction);
-        require(rootPrefix + '/lib/device/RollbackAuthorizeDevice');
-        let RollbackAuthorizeTransaction = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RollbackAuthorizeDevice'),
-          rollbackAuthorizeTransactionObj = new RollbackAuthorizeTransaction(oThis.requestParams);
-
-        return rollbackAuthorizeTransactionObj.perform();
+        return rollbackAuthorizeSessionTransactionObj.perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark Authorize Device As Success.');
@@ -115,7 +117,7 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
       default:
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'e_awr_mo_adr_1',
+            internal_error_identifier: 'e_awr_mo_asr_1',
             api_error_identifier: 'something_went_wrong',
             debug_options: { workflowId: oThis.workflowId }
           })
@@ -131,7 +133,7 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
    * @return {*}
    */
   getNextStepConfigs(nextStep) {
-    return authorizeDeviceStepsConfig[nextStep];
+    return authorizeSessionStepsConfig[nextStep];
   }
 
   /**
@@ -148,4 +150,4 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
   }
 }
 
-module.exports = AuthorizeDeviceRouter;
+module.exports = AuthorizeSessionRouter;

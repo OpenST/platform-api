@@ -18,10 +18,10 @@ const rootPrefix = '../../../..',
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/device/updateStatus');
 
-class MultisigOpertationBaseKlass extends ServiceBase {
+class MultisigSessionsOpertationBaseKlass extends ServiceBase {
   constructor(params) {
     super(params);
     const oThis = this;
@@ -29,10 +29,9 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     oThis.tokenId = params.token_id;
     oThis.userData = params.user_data;
     oThis.userId = params.user_data.userId;
-    oThis.devicesShardNumber = params.user_data.deviceShardNumber;
-
-    oThis.deviceAddress = params.raw_calldata['parameters'][0]; //Todo: Fetch proper address. Clarification needed
-
+    oThis.sessionKey = params.raw_calldata['parameters'][0];
+    oThis.sessionShardNumber = params.user_data.sessionShardNumber;
+    oThis.multisigProxyAddress = params.user_data.multisigAddress;
     oThis.tokenUserDetails = null;
   }
 
@@ -54,7 +53,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   async _sanitizeParams() {
     const oThis = this;
 
-    oThis.deviceAddress = basicHelper.sanitizeAddress(oThis.deviceAddress);
+    oThis.sessionKey = basicHelper.sanitizeAddress(oThis.sessionKey);
   }
 
   /**
@@ -69,7 +68,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   async _performCommonPreChecks() {
     const oThis = this;
 
-    let tokenUserDetails = await oThis._getUserDetailsFromDdb();
+    let tokenUserDetails = await oThis._getUserDetailsFromDdb(); //Todo: remove this cache hit. As user data is directly present in api parameters.
 
     //Check if user is activated
     if (
@@ -81,7 +80,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       logger.error('Token user is not set properly');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_1',
+          internal_error_identifier: 'a_s_s_mo_b_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: ''
         })
@@ -99,82 +98,37 @@ class MultisigOpertationBaseKlass extends ServiceBase {
    *
    * @returns {Promise<>}
    */
-  async _fetchDeviceDetails() {
+  async _fetchSessionDetails() {
     const oThis = this;
 
-    let paramsForDeviceDetailsCache = {
+    let paramsForSessionsDetailsCache = {
       userId: oThis.userId,
-      walletAddresses: [oThis.deviceAddress],
+      addresses: [oThis.sessionKey],
       tokenId: oThis.tokenId
     };
 
-    let DeviceDetailsKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailsObj = new DeviceDetailsKlass(paramsForDeviceDetailsCache),
-      deviceDetailsRsp = await deviceDetailsObj.fetch();
+    let SessionDetailsKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
+      sessionDetailsObj = new SessionDetailsKlass(paramsForSessionsDetailsCache),
+      sessionDetailsRsp = await sessionDetailsObj.fetch();
 
-    if (deviceDetailsRsp.isFailure()) {
-      logger.error('No data found for the provided wallet address');
-      return Promise.reject(deviceDetailsRsp);
+    if (sessionDetailsRsp.isFailure()) {
+      logger.error('No data found for the provided sessionkey');
+      return Promise.reject(sessionDetailsRsp);
     }
 
-    let deviceDetails = deviceDetailsRsp.data[oThis.deviceAddress];
+    let sessionDetails = sessionDetailsRsp.data[oThis.sessionKey];
 
-    if (basicHelper.isEmptyObject(deviceDetails)) {
+    if (basicHelper.isEmptyObject(sessionDetails)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_ad_2',
+          internal_error_identifier: 'a_s_s_mo_b_2',
           api_error_identifier: 'resource_not_found',
           debug_options: {}
         })
       );
     }
 
-    return Promise.resolve(responseHelper.successWithData(deviceDetails));
-  }
-
-  async _checkDeviceStatus(deviceStatus) {
-    const oThis = this;
-
-    let deviceDetailsRsp = await oThis._fetchDeviceDetails(),
-      deviceDetails = deviceDetailsRsp.data;
-
-    if (deviceDetails.status !== deviceStatus) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_ad_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { deviceStatus: deviceDetails.status }
-        })
-      );
-    }
-  }
-
-  /**
-   * This function updates the device status of the respective record in devices table.
-   *
-   * @param {String}deviceStatus: Update the record with given device status
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _updateDeviceStatus(deviceStatus) {
-    const oThis = this;
-
-    let paramsToUpdateDeviceStatus = {
-      chainId: oThis._configStrategyObject.auxChainId,
-      userId: oThis.userId,
-      status: deviceStatus,
-      shardNumber: oThis.tokenUserDetails.deviceShardNumber,
-      walletAddress: oThis.deviceAddress
-    };
-    let UpdateDeviceStatusKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UpdateDeviceStatus'),
-      updateDeviceStatusObj = new UpdateDeviceStatusKlass(paramsToUpdateDeviceStatus),
-      updateDeviceStatusRsp = await updateDeviceStatusObj.perform();
-
-    if (updateDeviceStatusRsp.isFailure()) {
-      return Promise.reject(updateDeviceStatusRsp);
-    }
-
-    return Promise.resolve(responseHelper.successWithData({}));
+    return Promise.resolve(responseHelper.successWithData(sessionDetails));
   }
 
   /**
@@ -243,4 +197,4 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   }
 }
 
-module.exports = MultisigOpertationBaseKlass;
+module.exports = MultisigSessionsOpertationBaseKlass;
