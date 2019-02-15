@@ -185,7 +185,7 @@ class SubscriberBase extends CronBase {
       .catch(function(error) {
         oThis._decrementUnAck(messageParams);
         logger.error(
-          'e_bs_w_5',
+          'e_r_csb_w_1',
           'Error in process message from rmq. unAckCount ->',
           oThis._getUnAck(messageParams),
           'Error: ',
