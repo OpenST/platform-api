@@ -360,7 +360,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       if (tokenAuxWorkerCurrentBalance.lt(tokenAuxWorkerMinimumBalance.mul(flowsForMinimumBalance))) {
         let params = {
           fromAddress: tokenAuxFunderAddress,
-          toAddress: tokenAuxWorkerCurrentBalance,
+          toAddress: tokenAuxWorkerAddress,
           amountInWei: basicHelper.convertToWei(tokenAuxWorkerMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
