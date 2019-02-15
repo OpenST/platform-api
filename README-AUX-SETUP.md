@@ -84,12 +84,12 @@ And add it to tables using following script.
    node executables/UpdatePricePoints.js --cronProcessId 13
 ```
    
-## Run block-scanner crons
+## Run block-scanner crons and aggregator
 
-* Start Aux Workflow router factory
+* Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/auxWorkflowRouter/factory.js --cronProcessId 18
+  node executables/blockScanner/Aggregator.js --cronProcessId 4
 ```
 
 * Run Auxiliary Transaction Parser
@@ -165,12 +165,6 @@ And add it to tables using following script.
     source set_env_vars.sh
 ```
 
-## Run Aggregator
-```bash
-  source set_env_vars.sh
-  node executables/blockScanner/Aggregator.js --cronProcessId 4
-```
-
 ### Funding crons
 
 * Fund by sealer aux chain specific
@@ -201,6 +195,13 @@ And add it to tables using following script.
 ```bash
   source set_env_vars.sh
   node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 12
+```
+
+### Start Crons
+* Start Aux Workflow router factory
+```bash
+  source set_env_vars.sh
+  node executables/auxWorkflowRouter/factory.js --cronProcessId 18
 ```
 
 ###### ALWAYS AT THE END

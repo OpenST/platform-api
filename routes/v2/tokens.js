@@ -16,7 +16,7 @@ router.get('/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const tokensFormatterRsp = await new TokenFormatter(serviceResponse.data).perform();
+    const tokensFormatterRsp = await new TokenFormatter(serviceResponse.data[resultType.token]).perform();
 
     serviceResponse.data = {
       result_type: resultType.token,

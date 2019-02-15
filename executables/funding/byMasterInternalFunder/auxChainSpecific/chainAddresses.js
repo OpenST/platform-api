@@ -58,6 +58,11 @@ const stPrimeFundingPerChainConfig = {
     oneGWeiMinOSTPrimeAmount: '0.00840',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
+  },
+  [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
+    oneGWeiMinOSTPrimeAmount: '0.00008',
+    fundForFlows: flowsForTransferBalance,
+    fundIfLessThanFlows: flowsForMinimumBalance
   }
 };
 
@@ -66,7 +71,7 @@ const stPrimeFundingPerChainConfig = {
  *
  * @class
  */
-class FundByChainOwnerAuxChainSpecificChainAddresses extends AuxChainSpecificFundingCronBase {
+class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainSpecificFundingCronBase {
   /**
    * Constructor to fund stPrime.
    *
@@ -88,7 +93,7 @@ class FundByChainOwnerAuxChainSpecificChainAddresses extends AuxChainSpecificFun
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundByChainOwnerAuxChainSpecificChainAddresses;
+    return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses;
   }
 
   /**
@@ -165,11 +170,16 @@ class FundByChainOwnerAuxChainSpecificChainAddresses extends AuxChainSpecificFun
 
     // Populate Address in fund config
     for (let addressKind in perChainFundingConfig) {
+      let address = null;
       if (!chainAddressesRsp.data[addressKind]) {
         logger.error('** Address not found for addressKind: ', addressKind, ' on aux chain Id: ', auxChainId);
         continue;
       }
-      let address = chainAddressesRsp.data[addressKind].address;
+      if (chainAddressConstants.nonUniqueKinds.includes(addressKind)) {
+        address = chainAddressesRsp.data[addressKind][0].address;
+      } else {
+        address = chainAddressesRsp.data[addressKind].address;
+      }
       perChainFundingConfig[addressKind].address = address;
       oThis.addressesToKindMap[address] = addressKind;
     }
@@ -277,7 +287,7 @@ class FundByChainOwnerAuxChainSpecificChainAddresses extends AuxChainSpecificFun
 
 logger.log('Starting cron to fund StPrime to chain addresses by chainOwner.');
 
-new FundByChainOwnerAuxChainSpecificChainAddresses({ cronProcessId: +program.cronProcessId })
+new fundByMasterInternalFunderAuxChainSpecificChainAddresses({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
     process.emit('SIGINT');

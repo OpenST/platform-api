@@ -7,6 +7,7 @@
  * Usage : node executables/createEncryptionSalt
  */
 const rootPrefix = '..',
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt'),
@@ -27,7 +28,7 @@ const InsertSaltID = {
         })
         .fire();
 
-      console.log('Encryption Salt ID: ', insertedRec.insertId);
+      logger.log('Encryption Salt ID: ', insertedRec.insertId);
       process.exit(0);
     });
   }

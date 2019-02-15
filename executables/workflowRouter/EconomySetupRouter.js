@@ -129,7 +129,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
 
       case workflowStepConstants.fundExTxWorkers:
         logger.step('******* Fund execute transaction workers.');
-        console.log('oThis.requestParams.auxChainId ======', oThis.requestParams.auxChainId);
+        logger.log('oThis.requestParams.auxChainId ======', oThis.requestParams.auxChainId);
         let FundExTxWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundExTxWorker'),
           fundExTxWorkerObj = new FundExTxWorker({
             tokenId: oThis.requestParams.tokenId,
