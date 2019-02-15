@@ -193,6 +193,32 @@ router.get('/:user_id/sessions', function(req, res, next) {
   return Promise.resolve(routeHelper.perform(req, res, next, serviceName, 'r_v_u_7', null, dataFormatterFunc));
 });
 
+/* Get User session By session Address */
+router.get('/:user_id/sessions/:session_address', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserSession;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.addresses = [req.params.session_address];
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let sessions = serviceResponse.data[resultType.sessions],
+      formattedRsp = {};
+
+    for (let address in sessions) {
+      const buffer = sessions[address];
+      if (CommonValidators.validateObject(buffer)) {
+        formattedRsp = new SessionFormatter(sessions[address]).perform();
+      }
+    }
+    serviceResponse.data = {
+      result_type: resultType.session,
+      [resultType.session]: formattedRsp.data || {}
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'SessionListByAddress', 'r_v_u_9', null, dataFormatterFunc));
+});
+
 /* Get user device managers*/
 router.get('/:user_id/device-managers/', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDeviceManager;
