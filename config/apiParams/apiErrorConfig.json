@@ -162,7 +162,7 @@
   "token_not_setup": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
+    "message": "Token not setup."
   },
   "missing_client_id": {
     "http_code": "400",
