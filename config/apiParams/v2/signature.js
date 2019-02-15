@@ -91,7 +91,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'chain_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateChainId'
       },
       {
         parameter: 'client_id',

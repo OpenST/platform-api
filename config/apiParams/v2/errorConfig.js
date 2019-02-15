@@ -208,6 +208,11 @@ const v2ErrorConfig = {
     parameter: 'client_id',
     code: 'invalid',
     message: 'Token not setup'
+  },
+  invalid_chain_id: {
+    parameter: 'chain_id',
+    code: 'invalid',
+    message: 'Invalid chain id'
   }
 };
 

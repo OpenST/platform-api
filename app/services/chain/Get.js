@@ -13,10 +13,11 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig');
 
 // Following require(s) for registering into instance composer.
-require(rootPrefix + '/lib/cacheManagement/chain/BlockTimeDetails');
+require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 
 /**
  * Class to get chain details.
@@ -37,7 +38,7 @@ class Get extends ServiceBase {
 
     const oThis = this;
 
-    oThis.chainId = params.chain_id;
+    oThis.chainId = Number(params.chain_id);
   }
 
   /**
@@ -70,8 +71,33 @@ class Get extends ServiceBase {
    */
   async _fetchChain() {
     const oThis = this,
-      BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
-      blockTimeDetailsCacheObj = new BlockTimeDetailsCache({});
+      chainConfigMap = await chainConfigProvider.getFor([oThis.chainId]),
+      chainConfig = chainConfigMap[oThis.chainId];
+
+    let isOriginChainId = false;
+
+    // Check if chainId is originChainId or not.
+    if (oThis.chainId === chainConfig.originGeth.chainId) {
+      isOriginChainId = true;
+    }
+    // If chainId is not originChainId, check if it is auxChainId or not. We are not specifically checking the
+    // auxChainId value because if chainConfig has the 'auxGeth' property, the chainId will obviously be the same.
+    if (!isOriginChainId && !chainConfig.hasOwnProperty('auxGeth')) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_c_g_3',
+          api_error_identifier: 'invalid_chain_id',
+          debug_options: {}
+        })
+      );
+    }
+
+    const instanceComposer = new InstanceComposer(chainConfig),
+      BlockTimeDetailsCache = instanceComposer.getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
+      blockTimeDetailsCacheObj = new BlockTimeDetailsCache({
+        chainId: oThis.chainId,
+        isOriginChainId: isOriginChainId
+      });
 
     let blockDetails = await blockTimeDetailsCacheObj.fetch(),
       blockNumberInCache = blockDetails.data.block,
@@ -93,6 +119,4 @@ class Get extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(Get, coreConstants.icNameSpace, 'GetChain');
-
-module.exports = {};
+module.exports = Get;

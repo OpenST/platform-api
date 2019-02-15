@@ -88,8 +88,9 @@ class RoutesHelper {
     let Service;
 
     if (req.decodedParams.clientConfigStrategyRequired) {
-      let configStrategy = await oThis._fetchConfigStrategyByClientId(req.serviceParams['client_id']);
-      let instanceComposer = new InstanceComposer(configStrategy);
+      const configStrategy = await oThis._fetchConfigStrategyByClientId(req.serviceParams['client_id']),
+        instanceComposer = new InstanceComposer(configStrategy);
+
       Service = instanceComposer.getShadowedClassFor(coreConstants.icNameSpace, serviceGetter);
     } else {
       Service = require(rootPrefix + serviceGetter);
@@ -102,7 +103,9 @@ class RoutesHelper {
    * Fetch config strategy by client id
    *
    * @param clientId
+   *
    * @return {Promise<*>}
+   *
    * @private
    */
   static async _fetchConfigStrategyByClientId(clientId) {
