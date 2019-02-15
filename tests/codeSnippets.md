@@ -26,11 +26,18 @@ ic = new InstanceComposer(config)
 
 require('./lib/executeTransactionManagement/AssociateWorker');
 AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
-asso = new AssociateWorker({tokenId:1012, cronProcessIds: [16]});
+asso = new AssociateWorker({tokenId:1009, cronProcessIds: [21]});
 asso.perform().then(console.log);
 
 ```
 
+###De-associate worker.
+```js
+require('./lib/executeTransactionManagement/DeAssociateWorker');
+DeAssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeAssociateWorker');
+d = new DeAssociateWorker({tokenId:1009, cronProcessIds: [19]});
+d.perform().then(console.log);
+```
 
 ### Fetch Client Config Strategy:
 
