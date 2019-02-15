@@ -5,8 +5,8 @@
  */
 
 const rootPrefix = '../..',
-  InsertCrons = require(rootPrefix + '/devops/exec/InsertCrons'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons'),
   cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
