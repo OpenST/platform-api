@@ -56,7 +56,6 @@ require(rootPrefix + '/lib/setup/economy/RegisterPricerRule');
 require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 require(rootPrefix + '/lib/setup/economy/SetAcceptedMarginInPricerRule');
 require(rootPrefix + '/lib/setup/economy/DeployProxyFactory');
-require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker');
 require(rootPrefix + '/lib/setup/economy/InitCompanyTokenHolder');
 require(rootPrefix + '/lib/setup/economy/AddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/PostAddCompanyWallet');
