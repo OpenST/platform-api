@@ -14,12 +14,12 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -147,6 +147,7 @@ class Finalizer extends PublisherBase {
     oThis.BlockScannerFinalizer = blockScannerObj.block.Finalize;
     oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
     oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
+    oThis.PendingTransactionCache = blockScannerObj.cache.PendingTransaction;
 
     logger.step('Services initialised.');
   }
@@ -321,22 +322,31 @@ class Finalizer extends PublisherBase {
           batchedTransactionHashes
         ),
         pendingTransactionsMap = pendingTransactionRsp.data,
-        batchGetParams = [];
+        transactionUuids = [];
 
       for (let txHash in pendingTransactionsMap) {
         let txData = pendingTransactionsMap[txHash];
-        batchGetParams.push(txData);
+        transactionUuids.push(txData.transactionUuid);
       }
-      if (batchGetParams.length <= 0) {
+      if (transactionUuids.length <= 0) {
         continue;
       }
-      let ptxResp = await pendingTransactionModel.getPendingTransactionData(batchGetParams);
+
+      let pendingTransactionCache = new oThis.PendingTransactionCache({
+        chainId: oThis.chainId,
+        transactionUuids: transactionUuids
+      });
+
+      let ptxResp = await pendingTransactionCache.fetch();
+
       if (ptxResp.isFailure()) {
         continue;
       }
+
       let pendingTransactionData = ptxResp.data;
-      for (let txHash in pendingTransactionData) {
-        let ptd = pendingTransactionData[txHash];
+
+      for (let txUuid in pendingTransactionData) {
+        let ptd = pendingTransactionData[txUuid];
         oThis.dataToDelete.push(ptd);
 
         if (ptd.hasOwnProperty('afterReceipt')) {
