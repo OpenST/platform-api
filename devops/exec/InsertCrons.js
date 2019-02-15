@@ -65,6 +65,8 @@ class InsertCrons {
         return oThis.insertExecuteTransactionEntry(cronParams);
       case cronProcessConstants.auxWorkflowWorker:
         return oThis.insertAuxWorkflowWorkerTwoEntry(cronParams);
+      case cronProcessConstants.fundByTokenAuxFunderToExTxWorkers:
+        return oThis.insertFundByTokenAuxFunderToExTxWorkersEntry(cronParams);
 
       default:
         throw new Error(`Un-recognized cron kind name: ${cronKindName}`);
@@ -359,6 +361,24 @@ class InsertCrons {
       sequenceNumber: cronParams.sequenceNumber
     });
     return auxWorkflowWorker.perform();
+  }
+
+  /**
+   * Insert fundByTokenAuxFunderToExTxWorkers cron entry.
+   *
+   * @param {Object} cronParams
+   *
+   * @return {Promise<*>}
+   */
+  async insertFundByTokenAuxFunderToExTxWorkersEntry(cronParams) {
+    const FundByTokenAuxFunderToExTxWorkers = require(rootPrefix +
+      '/lib/cronProcess/fundByTokenAuxFunder/ToExTxWorkers');
+    logger.log('Creating fundByTokenAuxFunderToExTxWorkers');
+    const fundByTokenAuxFunderToExTxWorkers = new FundByTokenAuxFunderToExTxWorkers({
+      originChainId: cronParams.originChainId,
+      auxChainId: cronParams.auxChainId
+    });
+    return fundByTokenAuxFunderToExTxWorkers.perform();
   }
 }
 

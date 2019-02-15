@@ -98,7 +98,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
     // We are converting auxChainId into an array because the cron is only associated with one auxChainId. However,
     // in the code, auxChainIds is used. We are creating an array here so as to not refactor the code right now.
     // TODO: Refactor code to work only on one auxChainId.
-    oThis.auxChainIds = [auxChainId];
+    oThis.auxChainIds = [oThis.auxChainId];
   }
 
   /**

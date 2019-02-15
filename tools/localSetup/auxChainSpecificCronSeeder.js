@@ -36,6 +36,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertExecuteTransactionOneEntry();
     await oThis.insertExecuteTransactionTwoEntry();
     await oThis.insertAuxWorkflowWorkerTwoEntry();
+    await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
   }
 
   /**
@@ -245,6 +246,22 @@ class AuxChainSpecificCronSeeder {
         prefetchCount: 5,
         auxChainId: 2000,
         sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert fundByTokenAuxFunderToExTxWorkers cron entry.
+   *
+   * @return {Promise<*>}
+   */
+  async insertFundByTokenAuxFunderToExTxWorkersEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundByTokenAuxFunderToExTxWorkers, {
+        originChainId: 1000,
+        auxChainId: 2000
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
