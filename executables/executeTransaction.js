@@ -14,7 +14,9 @@ const rootPrefix = '..',
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -53,7 +55,7 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
     super(params);
 
     const oThis = this;
-    oThis.subscriptionTopicToDataMap = {};
+
     oThis.initProcessResp = {};
     oThis.exTxTopicName = null;
     oThis.cMsgTopicName = null;
@@ -105,24 +107,21 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
     let exTxQueueName = kwcConstant.exTxQueueName(oThis.auxChainId, queueTopicSuffix),
       cMsgQueueName = kwcConstant.commandMessageQueueName(oThis.auxChainId, queueTopicSuffix);
 
-    oThis.subscriptionTopicToDataMap[oThis.exTxTopicName] = {
-      topicName: oThis.exTxTopicName,
-      queueName: exTxQueueName,
-      promiseQueueManager: null,
-      unAckCount: 0,
+    oThis.subscriptionTopicToDataMap[oThis.exTxTopicName] = new RabbitmqSubscription({
+      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      topic: oThis.exTxTopicName,
+      queue: exTxQueueName,
       prefetchCount: oThis.prefetchCount,
-      subscribed: 0
-    };
-    oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName] = {
-      topicName: oThis.cMsgTopicName,
-      queueName: cMsgQueueName,
-      promiseQueueManager: null,
-      unAckCount: 0,
-      prefetchCount: 1,
-      subscribed: 0
-    };
+      auxChainId: oThis.auxChainId
+    });
 
-    return oThis.subscriptionTopicToDataMap;
+    oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName] = new RabbitmqSubscription({
+      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      topic: oThis.cMsgTopicName,
+      queue: cMsgQueueName,
+      prefetchCount: 1,
+      auxChainId: oThis.auxChainId
+    });
   }
 
   /**
@@ -193,9 +192,9 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
       kind = msgParams.kind;
 
     if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount++;
+      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].incrementUnAckCount();
     } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount++;
+      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].incrementUnAckCount();
     }
     return true;
   }
@@ -214,9 +213,9 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
       kind = msgParams.kind;
 
     if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount--;
+      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].decrementUnAckCount();
     } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount--;
+      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].decrementUnAckCount();
     }
     return true;
   }
