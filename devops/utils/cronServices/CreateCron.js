@@ -1,10 +1,10 @@
-'use strict';
+const fs = require('fs');
 
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  AddCronProcessService = require(rootPrefix + '/lib/addCronProcess'),
-  fs = require('fs');
+  InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons'),
+  AddCronProcessService = require(rootPrefix + '/lib/addCronProcess');
 
 /**
  * Class for inserting cron entries into saas db
@@ -15,8 +15,8 @@ class CreateCron {
   /**
    * Constructor
    *
-   * @param {String} inputJsonFile - Input JSON file path
-   * @param {String} outputJsonFile -  Output JSON file path
+   * @param {String} inputJsonFile: Input JSON file path
+   * @param {String} outputJsonFile:  Output JSON file path
    *
    * @constructor
    */
@@ -36,40 +36,34 @@ class CreateCron {
   perform() {
     const oThis = this;
 
-    return oThis._asyncPerform().catch(function(error) {
+    return oThis._asyncPerform().catch((error) => {
       if (responseHelper.isCustomResult(error)) {
         return error;
-      } else {
-        logger.error('devops/utils/InsertCron.js::perform::catch', error);
-        return oThis._getRespError('do_u_cs_ic_p1');
       }
+      logger.error('devops/utils/InsertCron.js::perform::catch', error);
+      return oThis._getRespError('do_u_cs_ic_p1');
     });
   }
 
   /**
-   *
-   * async perform
+   * Async perform
    *
    * @return {Promise<result>}
-   *
    */
   async _asyncPerform() {
     const oThis = this;
 
-    for (let i = 0; i < oThis.jsonData.length; i++) {
-      let cron = oThis.jsonData[i],
-        dbParams = cron['db_params'];
+    for (let i = 0; i < oThis.jsonData.length; i += 1) {
+      const cron = oThis.jsonData[i],
+        dbParams = cron.db_params;
 
-      // Iterate over next when cron process entry already present
-      if (cron['identifier']) {
-        continue;
-      }
+      if (!cron.identifier) {
+        // Add cron process entry in DB
+        const result = await new InsertCrons().perform(dbParams.kind, dbParams.cron_params);
 
-      // Add cron process entry in DB
-      let result = await oThis.addCronProcess(dbParams);
-
-      if (result['insertId'] > 0) {
-        cron['identifier'] = result['insertId'];
+        if (result > 0) {
+          cron.identifier = result;
+        }
       }
     }
 
@@ -92,20 +86,6 @@ class CreateCron {
       api_error_identifier: 'something_went_wrong',
       debug_options: {}
     });
-  }
-
-  /**
-   *
-   * Add cron process
-   *
-   * @param {Object} dbParams - Create parameters
-   *
-   * @returns {Promise<void>}
-   *
-   */
-  async addCronProcess(dbParams) {
-    let serviceObj = new AddCronProcessService(dbParams);
-    return serviceObj.perform();
   }
 }
 

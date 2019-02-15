@@ -38,12 +38,27 @@ class ByTokenAuxFunderBase extends CronBase {
     if (!oThis.originChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_spe_1',
+          internal_error_identifier: 'e_f_btaf_b_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { originChainId: oThis.originChainId }
         })
       );
     }
+
+    if (!oThis.auxChainId) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_f_btaf_b_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { auxChainId: oThis.auxChainId }
+        })
+      );
+    }
+
+    // We are converting auxChainId into an array because the cron is only associated with one auxChainId. However,
+    // in the code, auxChainIds is used. We are creating an array here so as to not refactor the code right now.
+    // TODO: Refactor code to work only on one auxChainId.
+    oThis.auxChainIds = [oThis.auxChainId];
   }
 
   /**

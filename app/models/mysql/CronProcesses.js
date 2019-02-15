@@ -6,6 +6,7 @@
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
@@ -18,19 +19,17 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '4': cronProcessesConstants.economyAggregator,
     '5': cronProcessesConstants.workflowWorker,
     '6': cronProcessesConstants.updateRealtimeGasPrice,
-    '7': cronProcessesConstants.fundEth,
-    '8': cronProcessesConstants.fundStPrime,
-    '9': cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific,
-    '10': cronProcessesConstants.fundByChainOwnerAuxChainSpecificChainAddresses,
-    '11': cronProcessesConstants.fundBySealerAuxChainSpecific,
-    '12': cronProcessesConstants.fundByTokenAuxFunderAuxChainSpecific,
-    '13': cronProcessesConstants.updatePriceOraclePricePoints,
-    '14': cronProcessesConstants.emailNotifier,
-    '15': cronProcessesConstants.fundByChainOwnerAuxChainSpecificTokenFunderAddresses,
-    '16': cronProcessesConstants.fundByChainOwnerAuxChainSpecificInterChainFacilitatorAddresses,
-    '17': cronProcessesConstants.executeTransaction,
-    '18': cronProcessesConstants.auxWorkflowWorker,
-    '19': cronProcessesConstants.fundByTokenAuxFunderToExTxWorkers
+    '7': cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific,
+    '8': cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses,
+    '9': cronProcessesConstants.fundBySealerAuxChainSpecific,
+    '10': cronProcessesConstants.fundByTokenAuxFunderAuxChainSpecific,
+    '11': cronProcessesConstants.updatePriceOraclePricePoints,
+    '12': cronProcessesConstants.emailNotifier,
+    '13': cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses,
+    '14': cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses,
+    '15': cronProcessesConstants.executeTransaction,
+    '16': cronProcessesConstants.auxWorkflowWorker,
+    '17': cronProcessesConstants.fundByTokenAuxFunderToExTxWorkers
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
@@ -155,8 +154,10 @@ class CronProcessesModel extends ModelBaseKlass {
     params.newStatus = oThis.invertedStatuses[params.newStatus];
     params.kind = oThis.invertedKinds[params.kind];
 
+    const machineHostname = basicHelper.fetchHostnameOfMachine();
+
     return oThis
-      .update({ last_started_at: params.newLastStartTime, status: params.newStatus })
+      .update({ last_started_at: params.newLastStartTime, status: params.newStatus, ip_address: machineHostname })
       .where({ id: params.id })
       .fire();
   }

@@ -107,7 +107,7 @@ class SubscriberBase extends CronBase {
         name: oThis._processNamePrefix + '_promise_queue_manager',
         timeoutInMilliSecs: oThis.timeoutInMilliSecs,
         maxZombieCount: Math.round(oThis.prefetchCount * 0.25),
-        onMaxZombieCountReached: oThis.onMaxZombieCountReached
+        onMaxZombieCountReached: oThis._onMaxZombieCountReached
       }
     );
 
@@ -218,7 +218,7 @@ class SubscriberBase extends CronBase {
     return 1;
   }
 
-  onMaxZombieCountReached() {
+  _onMaxZombieCountReached() {
     logger.warn('e_r_sb_1', 'maxZombieCount reached. Triggering SIGTERM.');
     // Trigger gracefully shutdown of process.
     process.kill(process.pid, 'SIGTERM');

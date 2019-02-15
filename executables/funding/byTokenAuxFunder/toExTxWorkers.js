@@ -1,10 +1,7 @@
-'use strict';
-
 /**
  * Cron to fund stPrime by tokenAuxFunder.
  *
  * @module executables/funding/byTokenAuxFunder/toExTxWorkers
- *
  */
 
 const program = require('commander');
@@ -21,7 +18,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 1');
+  logger.log('    node executables/funding/byTokenAuxFunder/toExTxWorkers --cronProcessId 21');
   logger.log('');
   logger.log('');
 });
