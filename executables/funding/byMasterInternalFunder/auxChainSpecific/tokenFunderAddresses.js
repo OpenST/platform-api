@@ -28,7 +28,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 15'
+    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 16'
   );
   logger.log('');
   logger.log('');
@@ -161,13 +161,19 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       return perTokenFundingConfig;
     }
 
-    let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds);
+    let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds),
+      tokenFunderAddressesLength = tokenFunderAddresses.length;
 
-    if (tokenFunderAddresses.length === 0) {
+    if (tokenFunderAddressesLength === 0) {
       return perTokenFundingConfig;
     }
-
-    perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses = tokenFunderAddresses;
+    for (let index = 0; index < tokenFunderAddressesLength; index += 1) {
+      perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses =
+        perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses || [];
+      perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses.push(
+        tokenFunderAddresses[index].address
+      );
+    }
 
     return perTokenFundingConfig;
   }
