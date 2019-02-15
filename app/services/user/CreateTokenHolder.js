@@ -139,7 +139,7 @@ class CreateTokenHolder extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_cth_2',
-          api_error_identifier: 'something_went_wrong',
+          api_error_identifier: 'invalid_user_status',
           debug_options: {}
         })
       );
@@ -176,7 +176,7 @@ class CreateTokenHolder extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_cth_3',
-          api_error_identifier: 'something_went_wrong',
+          api_error_identifier: 'invalid_device_status',
           debug_options: {}
         })
       );
@@ -270,7 +270,7 @@ class CreateTokenHolder extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_cth_6',
-          api_error_identifier: 'something_went_wrong',
+          api_error_identifier: 'user_status_rollback_failed',
           debug_options: {}
         })
       );

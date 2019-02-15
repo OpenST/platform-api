@@ -448,6 +448,21 @@
     "http_code": "409",
     "code": "ALREADY_EXISTS",
     "message": "Device address is invalid."
+  },
+  "invalid_user_status": {
+    "http_code": "409",
+    "code": "ALREADY_EXISTS",
+    "message": "User status is not created."
+  },
+  "invalid_device_status": {
+    "http_code": "409",
+    "code": "ALREADY_EXISTS",
+    "message": "Device status is not registered."
+  },
+  "user_status_rollback_failed": {
+    "http_code": "409",
+    "code": "ALREADY_EXISTS",
+    "message": "Rolling back user status to created failed."
   }
 
 }
