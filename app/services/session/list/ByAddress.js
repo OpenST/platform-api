@@ -25,14 +25,14 @@ class SessionListByAddress extends SessionListBase {
    * @param params
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
-   * @param {String} params.address - comma separated list of session addresses
+   * @param {String} params.addresses - Array of session address.
    * @param {Integer} [params.token_id]
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
-    oThis.sessionAddresses = basicHelper.commaSeperatedStrToArray(params.address);
+    oThis.sessionAddresses = params.addresses;
   }
 
   /**

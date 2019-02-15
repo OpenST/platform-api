@@ -13,8 +13,8 @@
  *
  * @module executables/updateRealtimeGasPrice
  */
-const dynamicGasPriceProvider = require('@ostdotcom/ost-dynamic-gas-price'),
-  BigNumber = require('bignumber.js');
+const BigNumber = require('bignumber.js'),
+  dynamicGasPriceProvider = require('@ostdotcom/ost-dynamic-gas-price');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),

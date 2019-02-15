@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xb50...'; // master internal funder address
+let address = '0xb7b3b8f86cff8dc95d3a2364834bd0e45138a792'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -75,7 +75,7 @@ NOTE: Copy the ETH funder private key for later use.
 * Generate origin address and fund them
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
+    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 1000
 ```
 
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
@@ -122,7 +122,15 @@ Granter address gets ETH and OST in this step.
     node tools/verifiers/originChainSetup.js
 ```
 
-* Seed the [cron_process](https://github.com/OpenSTFoundation/saas-api/blob/master/cronProcessSeed.md) table.
+* Seed the cron processes which are unique in a sub-environment using this script.
+```bash
+   node tools/localSetup/subEnvSpecificCronSeeder.js
+```
+
+* Seed the cron processes which are associated to origin chain using this script.
+```bash
+   node tools/localSetup/originChainSpecificCronSeeder.js
+```
 
 ### Insert Pricer ABI into rules table
 ``` bash
@@ -144,19 +152,19 @@ Granter address gets ETH and OST in this step.
 * Start Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/workflowRouter/factory.js --cronProcessId 5
+  node executables/workflowRouter/factory.js --cronProcessId 1
 ```
 
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/TransactionParser.js --cronProcessId 8
+  node executables/blockScanner/TransactionParser.js --cronProcessId 5
 ```
 
 * Run Origin Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 7
+  node executables/blockScanner/BlockParser.js --cronProcessId 4
 ```
 
 * Run Origin Finalizer
@@ -169,5 +177,5 @@ Granter address gets ETH and OST in this step.
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 9
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7
 ```

@@ -20,6 +20,7 @@ const rootPrefix = '../..',
   WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  FundExTxWorker = require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker'),
   FundStPrimeToTokenAddress = require(rootPrefix + '/lib/setup/economy/FundStPrimeToTokenAddress'),
   generateTokenAddresses = require(rootPrefix + '/lib/setup/economy/GenerateKnownAddresses'),
   economySetupConfig = require(rootPrefix + '/executables/workflowRouter/economySetupConfig'),
@@ -63,6 +64,7 @@ require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Owner');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/TokenRule');
 require(rootPrefix + '/lib/setup/economy/SetInternalActorForCompanyTokenHolderInUBT');
 require(rootPrefix + '/lib/setup/economy/PostUBTDeploy');
+require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Address');
 
 /**
  * Class for economy setup router.
@@ -130,11 +132,10 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.fundExTxWorkers:
         logger.step('******* Fund execute transaction workers.');
         logger.log('oThis.requestParams.auxChainId ======', oThis.requestParams.auxChainId);
-        let FundExTxWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'FundExTxWorker'),
-          fundExTxWorkerObj = new FundExTxWorker({
-            tokenId: oThis.requestParams.tokenId,
-            chainId: oThis.requestParams.auxChainId
-          });
+        let fundExTxWorkerObj = new FundExTxWorker({
+          tokenId: oThis.requestParams.tokenId,
+          chainId: oThis.requestParams.auxChainId
+        });
 
         return await fundExTxWorkerObj.perform();
 

@@ -78,10 +78,9 @@ And add it to tables using following script.
   node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
-* Update price points.
+* Seed the cron processes which are associated to the aux chain using this script.
 ```bash
-   source set_env_vars.sh
-   node executables/UpdatePricePoints.js --cronProcessId 13
+   node tools/localSetup/auxChainSpecificCronSeeder.js
 ```
    
 ## Run block-scanner crons and aggregator
@@ -89,25 +88,25 @@ And add it to tables using following script.
 * Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Aggregator.js --cronProcessId 4
+  node executables/blockScanner/Aggregator.js --cronProcessId 11
 ```
 
 * Run Auxiliary Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/TransactionParser.js --cronProcessId 2
+  node executables/blockScanner/TransactionParser.js --cronProcessId 9
 ```
 
 * Run Auxiliary Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 1
+  node executables/blockScanner/BlockParser.js --cronProcessId 8
 ```
 
 * Run Auxiliary Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Finalizer.js --cronProcessId 3
+  node executables/blockScanner/Finalizer.js --cronProcessId 10
 ```
 
 ## ST Prime Stake and Mint in Zero Gas
@@ -115,13 +114,12 @@ And add it to tables using following script.
 //TODO: change amountToStake to amountToStakeInWei
 ```bash
     source set_env_vars.sh
-    export SA_DEFAULT_AUX_GAS_PRICE='0x0'
-    node
-
-        beneficiary -> masterInternalFunderKind
-        facilitator -> masterInternalFunderKind
-        stakerAddress -> masterInternalFunderKind
-  
+    > node
+        // beneficiary -> masterInternalFunderKind
+        // facilitator -> masterInternalFunderKind
+        // stakerAddress -> masterInternalFunderKind
+        // firstTimeMint -> set this to 'true' if you are minting st prime for the first time [optional]
+        
         params = {
                 stepKind: 'stPrimeStakeAndMintInit',
                 taskStatus: 'taskReadyToStart',
@@ -129,14 +127,17 @@ And add it to tables using following script.
                 chainId: 1000,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    stakerAddress: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
-                    facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    sourceChainId: 1000,
+                    destinationChainId: 2000,
+                    facilitator: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     amountToStake: '100000000000000000001', 
-                    beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
-                  }
-            }
+                    beneficiary: '0xd83f7162dca396cab4d25155dadf3ca8f623c943',
+                    firstTimeMint: false //[optional]
+                }
+        }
         stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
         stPrimeRouter = new stPrimeRouterK(params)
    
@@ -160,9 +161,10 @@ And add it to tables using following script.
     sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
-* Reset the SA_DEFAULT_AUX_GAS_PRICE env var to non zero value.
+## Run Aggregator
 ```bash
-    source set_env_vars.sh
+  source set_env_vars.sh
+  node executables/blockScanner/Aggregator.js --cronProcessId 11
 ```
 
 ### Funding crons
@@ -170,38 +172,44 @@ And add it to tables using following script.
 * Fund by sealer aux chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 11
+  node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 13
 ```
 
-* Fund by chain owner aux chain specific chain addresses
+* Fund by master internal funder aux chain specific chain addresses
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 10
+  node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 12
 ```
 
-* Fund by chain owner aux chain specific token funder addresses
+* Fund by master internal funder aux chain specific token funder addresses
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 15
+  node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 16
 ```
 
-* Fund by chain owner aux chain specific inter chain facilitator addresses on origin chain.
+* Fund by master internal funder aux chain specific inter chain facilitator addresses on origin chain.
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 16
+  node executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 17
 ```
 
 * Fund by token aux funder aux chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 12
+  node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 14
+```
+
+### Update price points.
+```bash
+   source set_env_vars.sh
+   node executables/UpdatePricePoints.js --cronProcessId 15
 ```
 
 ### Start Crons
 * Start Aux Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/auxWorkflowRouter/factory.js --cronProcessId 18
+  node executables/auxWorkflowRouter/factory.js --cronProcessId 20
 ```
 
 ###### ALWAYS AT THE END
