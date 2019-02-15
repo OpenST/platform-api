@@ -461,6 +461,8 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifyFundAuxAdminAddress:
       case workflowStepConstants.fundAuxWorkerAddress:
       case workflowStepConstants.verifyFundAuxWorkerAddress:
+      case workflowStepConstants.fundTokenUserOpsWorker:
+      case workflowStepConstants.verifyFundTokenUserOpsWorker:
       case workflowStepConstants.deployAuxTokenOrganization:
       case workflowStepConstants.saveAuxTokenOrganization:
       case workflowStepConstants.deployUtilityBrandedToken:
@@ -503,14 +505,14 @@ class WorkflowRouterBase {
       case workflowStepConstants.verifyCreateCompanyWallet:
       case workflowStepConstants.setInternalActorForCompanyTHInUBT:
       case workflowStepConstants.verifySetInternalActorForCompanyTHInUBT:
+      case workflowStepConstants.setInternalActorForTRInUBT:
+      case workflowStepConstants.verifySetInternalActorForTRInUBT:
         oThis.chainId = oThis.requestParams.auxChainId;
         break;
 
       case workflowStepConstants.commitStateRoot:
       case workflowStepConstants.updateCommittedStateRootInfo:
-        oThis.chainId = oThis.requestParams.fromOriginToAux
-          ? oThis.requestParams.auxChainId
-          : oThis.requestParams.originChainId;
+        oThis.chainId = oThis.requestParams.destinationChainId;
         break;
     }
     // We are assigning oThis.chainId to requestParams because requestParams should contain the chainId that the

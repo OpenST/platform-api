@@ -29,7 +29,7 @@ class ByWalletAddress extends GetListBase {
    * @param params
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
-   * @param {String} params.oThis.addresses - Array of wallet addresses
+   * @param {String} params.addresses - Array of wallet addresses
    * @param {Integer} [params.token_id]
    */
   constructor(params) {

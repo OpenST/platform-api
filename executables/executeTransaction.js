@@ -253,7 +253,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
-    console.log('_processMessage-------------------------.......\n', messageParams);
+    logger.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
       logger.info('Message specific perform called called called called called called called.......\n');

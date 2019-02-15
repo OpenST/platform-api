@@ -19,7 +19,7 @@
 * Create all SAAS Owned DDB Tables
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2,3 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2,3,4
+    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2
 ```
     * Mandatory parameters: auxChainId
     * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
@@ -116,12 +116,12 @@ And add it to tables using following script.
 ```bash
     source set_env_vars.sh
     export SA_DEFAULT_AUX_GAS_PRICE='0x0'
-    node
-
-        beneficiary -> masterInternalFunderKind
-        facilitator -> masterInternalFunderKind
-        stakerAddress -> masterInternalFunderKind
-  
+    > node
+        // beneficiary -> masterInternalFunderKind
+        // facilitator -> masterInternalFunderKind
+        // stakerAddress -> masterInternalFunderKind
+        // firstTimeMint -> set this to 'true' if you are minting st prime for the first time [optional]
+        
         params = {
                 stepKind: 'stPrimeStakeAndMintInit',
                 taskStatus: 'taskReadyToStart',
@@ -129,14 +129,17 @@ And add it to tables using following script.
                 chainId: 1000,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    stakerAddress: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
-                    facilitator: '0xaf744125930c0ffa3f343761e187c0e222dbf048', 
+                    sourceChainId: 1000,
+                    destinationChainId: 2000,
+                    facilitator: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     amountToStake: '100000000000000000001', 
-                    beneficiary: '0xaf744125930c0ffa3f343761e187c0e222dbf048'
-                  }
-            }
+                    beneficiary: '0xd83f7162dca396cab4d25155dadf3ca8f623c943',
+                    firstTimeMint: false //[optional]
+                }
+        }
         stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
         stPrimeRouter = new stPrimeRouterK(params)
    

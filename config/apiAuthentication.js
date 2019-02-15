@@ -24,9 +24,13 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/'
       },
-      [apiName.getUserDevice]: {
+      [apiName.getUserDevices]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/devices/'
+      },
+      [apiName.getUserDevice]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/:device_address/'
       },
       [apiName.getUserDeviceManager]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
@@ -47,6 +51,10 @@ class ApiAuthentication {
       [apiName.getTokenHolder]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/token-holders/'
+      },
+      [apiName.getUserSalt]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/salts/'
       }
     };
     return getRequestConfig;
