@@ -80,8 +80,7 @@ class AuxChainSpecificCronSeeder {
   async insertBlockFinalizerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.blockFinalizer, {
-        chainId: 2000,
-        blockDelay: 6
+        chainId: 2000
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
