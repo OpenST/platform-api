@@ -61,7 +61,7 @@ require(rootPrefix + '/lib/setup/economy/AddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/PostAddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Owner');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/TokenRule');
-require(rootPrefix + '/lib/setup/economy/SetInternalActorForCompanyTokenHolderInUBT');
+require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Address');
 
 /**
  * Class for economy setup router.
@@ -615,10 +615,10 @@ class EconomySetupRouter extends WorkflowRouterBase {
 
       case workflowStepConstants.setInternalActorForCompanyTHInUBT:
         logger.step('*** Set Internal Actor For Company Token Holder ');
-
+        oThis.requestParams['address'] = oThis.requestParams.tokenCompanyTokenHolderAddress;
         let SetInternalActorForCompanyTokenHolderInUBT = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
-          'SetInternalActorForCompanyTokenHolderInUBT'
+          'SetInternalActorForUBT'
         );
         return new SetInternalActorForCompanyTokenHolderInUBT(oThis.requestParams).perform();
 
