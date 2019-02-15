@@ -270,7 +270,7 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
     } else if (kind == kwcConstant.commandMsg) {
       logger.info('Command specific perform called called called called called called called called.......\n');
       let commandMessageParams = {
-        chainId: oThis.auxChainId,
+        auxChainId: oThis.auxChainId,
         commandMessage: msgParams
       };
       let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
