@@ -13,6 +13,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -63,9 +64,11 @@ class TokenDetail extends ServiceBase {
 
     return Promise.resolve(
       responseHelper.successWithData({
-        tokenDetails: oThis.token,
-        tokenAddresses: oThis.tokenAddresses,
-        economyDetails: oThis.economyDetails
+        [resultType.token]: {
+          tokenDetails: oThis.token,
+          tokenAddresses: oThis.tokenAddresses,
+          economyDetails: oThis.economyDetails
+        }
       })
     );
   }

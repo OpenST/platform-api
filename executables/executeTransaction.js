@@ -11,7 +11,7 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
-  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/initProcess'),
+  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
@@ -253,7 +253,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
-    console.log('_processMessage-------------------------.......\n', messageParams);
+    logger.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
       logger.info('Message specific perform called called called called called called called.......\n');

@@ -157,6 +157,7 @@ class Device extends Base {
    * @param {String} params.deviceName
    * @param {Number} params.status
    * @param {Number} params.updatedTimestamp
+   *
    * @returns {*|promise<result>}
    */
   async create(params) {
