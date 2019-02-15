@@ -31,10 +31,6 @@ class SubscriberBase extends CronBase {
    */
   constructor(params) {
     super(params);
-
-    const oThis = this;
-
-    oThis.unAckCount = 0;
   }
 
   /**
@@ -80,10 +76,10 @@ class SubscriberBase extends CronBase {
     const oThis = this;
 
     // trying to ensure that there is only one _PromiseQueueManager;
-    if (oThis.subscriptionData[topicName]['promiseQueueManager'])
-      return oThis.subscriptionData[topicName]['promiseQueueManager'];
+    if (oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'])
+      return oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'];
 
-    oThis.subscriptionData[topicName]['promiseQueueManager'] = new OSTBase.OSTPromise.QueueManager(
+    oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'] = new OSTBase.OSTPromise.QueueManager(
       function(...args) {
         // Promise executor should be a static method by itself. We declared an unnamed function
         // which was a static method, and promiseExecutor was passed in the same scope as that
@@ -98,7 +94,7 @@ class SubscriberBase extends CronBase {
       }
     );
 
-    return oThis.subscriptionData[topicName]['promiseQueueManager'];
+    return oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'];
   }
 
   /**
@@ -116,11 +112,11 @@ class SubscriberBase extends CronBase {
       chainId: oThis.auxChainId
     });
 
-    let subData = oThis.subscriptionData[topicName];
+    let subData = oThis.subscriptionTopicToDataMap[topicName];
 
     // below condition is to save from multiple subscriptions by command messages.
-    if (oThis.subscriptionData[topicName]['subscribed'] == 0) {
-      oThis.subscriptionData[topicName]['subscribed'] = 1;
+    if (oThis.subscriptionTopicToDataMap[topicName]['subscribed'] == 0) {
+      oThis.subscriptionTopicToDataMap[topicName]['subscribed'] = 1;
 
       oThis.promiseQueueManager(topicName);
 
@@ -142,14 +138,16 @@ class SubscriberBase extends CronBase {
                 .then(function(response) {
                   messageParams.sequentialExecutorResponse = response.data;
 
-                  return oThis.subscriptionData[topicName]['promiseQueueManager'].createPromise(messageParams);
+                  return oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'].createPromise(
+                    messageParams
+                  );
                 })
                 .catch(function(error) {
                   logger.error('Error in promise creation', error);
                 });
             },
             function(consumerTag) {
-              oThis.subscriptionData[topicName]['consumerTag'] = consumerTag;
+              oThis.subscriptionTopicToDataMap[topicName]['consumerTag'] = consumerTag;
             }
           )
           .catch(function(error) {
@@ -210,8 +208,8 @@ class SubscriberBase extends CronBase {
   _pendingTasksDone() {
     const oThis = this;
 
-    for (let topicName in oThis.subscriptionData) {
-      let subData = oThis.subscriptionData[topicName];
+    for (let topicName in oThis.subscriptionTopicToDataMap) {
+      let subData = oThis.subscriptionTopicToDataMap[topicName];
 
       if (!subData['promiseQueueManager']) {
         continue;
@@ -235,7 +233,7 @@ class SubscriberBase extends CronBase {
     const oThis = this;
 
     let handle = function() {
-      for (let topicName in oThis.subscriptionData) {
+      for (let topicName in oThis.subscriptionTopicToDataMap) {
         oThis.stopPickingUpNewTasks(topicName);
       }
 
@@ -263,10 +261,10 @@ class SubscriberBase extends CronBase {
   stopPickingUpNewTasks(topicName) {
     const oThis = this;
 
-    oThis.subscriptionData[topicName]['subscribed'] = 0;
-    if (oThis.subscriptionData[topicName].consumerTag) {
-      logger.info(':: :: Cancelling consumption on tag=====', oThis.subscriptionData[topicName].consumerTag);
-      process.emit('CANCEL_CONSUME', oThis.subscriptionData[topicName].consumerTag);
+    oThis.subscriptionTopicToDataMap[topicName]['subscribed'] = 0;
+    if (oThis.subscriptionTopicToDataMap[topicName].consumerTag) {
+      logger.info(':: :: Cancelling consumption on tag=====', oThis.subscriptionTopicToDataMap[topicName].consumerTag);
+      process.emit('CANCEL_CONSUME', oThis.subscriptionTopicToDataMap[topicName].consumerTag);
     }
   }
 
