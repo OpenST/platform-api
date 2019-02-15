@@ -21,6 +21,16 @@ InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
 ```
+### Associate Worker
+```js
+
+require('./lib/executeTransactionManagement/AssociateWorker');
+AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
+asso = new AssociateWorker({tokenId:1012, cronProcessIds: [16]});
+asso.perform().then(console.log);
+
+```
+
 
 ### Fetch Client Config Strategy:
 
@@ -91,13 +101,6 @@ abiDecoder.addABI(testABI);
 testData = "0x5cf12c78000000000000000000000000000000000000000000000000000000000000003ee696e5400a7d294c1e309b39217fb605c6cdcaa3c520bc498e679bfb93b58d26"
 decodedData = abiDecoder.decodeMethod(testData)
 
-```
-### Associate Worker
-```js
-require('./lib/executeTransactionManagement/AssociateWorker.js');
-AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
-asso = new AssociateWorker({tokenId:1009, cronProcessId: [22]});
-asso.perform().then(console.log);
 ```
 
 ### Check and transfer ETH & STPrime.
