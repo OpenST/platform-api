@@ -29,13 +29,13 @@ class ByWalletAddress extends GetListBase {
    * @param params
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
-   * @param {String} params.address - comma separated list of wallet addresses
+   * @param {String} params.addresses - Array of wallet addresses
    * @param {Integer} [params.token_id]
    */
   constructor(params) {
     super(params);
     const oThis = this;
-    oThis.addressString = params.address;
+    oThis.addresses = params.addresses;
   }
 
   /**
@@ -49,31 +49,29 @@ class ByWalletAddress extends GetListBase {
 
     super._sanitizeParams();
 
-    let addresses = basicHelper.commaSeperatedStrToArray(oThis.addressString);
-
-    if (addresses.length > pagination.maxDeviceListPageSize) {
+    if (oThis.addresses.length > pagination.maxDeviceListPageSize) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_d_gl_bwa_1',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_filter_address'],
-          debug_options: { address: oThis.addressString }
+          debug_options: { addresses: oThis.addresses }
         })
       );
     }
 
-    for (let index = 0; index < addresses.length; index++) {
-      if (!CommonValidator.validateEthAddress(addresses[index])) {
+    for (let index = 0; index < oThis.addresses.length; index++) {
+      if (!CommonValidator.validateEthAddress(oThis.addresses[index])) {
         return Promise.reject(
           responseHelper.paramValidationError({
             internal_error_identifier: 'a_s_d_gl_bwa_2',
             api_error_identifier: 'invalid_api_params',
             params_error_identifiers: ['invalid_filter_address'],
-            debug_options: { address: addresses[index] }
+            debug_options: { address: oThis.addresses[index] }
           })
         );
       } else {
-        oThis.walletAddresses.push(addresses[index].toLowerCase());
+        oThis.walletAddresses.push(oThis.addresses[index].toLowerCase());
       }
     }
   }
