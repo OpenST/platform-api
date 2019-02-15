@@ -295,7 +295,7 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
       commandProcessorResponse.data.shouldStopTxQueConsume &&
       commandProcessorResponse.data.shouldStopTxQueConsume === 1
     ) {
-      oThis.stopPickingUpNewTasks(oThis.exTxTopicName);
+      oThis._stopPickingUpNewTasks(oThis.exTxTopicName);
     }
     return true;
   }
