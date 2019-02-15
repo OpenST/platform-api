@@ -39,6 +39,20 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.getUserSalt]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.activateUser]: {
     mandatory: [
       {
@@ -56,6 +70,10 @@ const v2Signature = {
       {
         parameter: 'session_addresses',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'recovery_owner_address',
+        validatorMethod: 'validateEthAddress'
       },
       {
         parameter: 'expiration_height',
@@ -142,7 +160,7 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.getUserDevice]: {
+  [apiName.getUserDevices]: {
     mandatory: [
       {
         parameter: 'client_id',
@@ -155,8 +173,8 @@ const v2Signature = {
     ],
     optional: [
       {
-        parameter: 'address',
-        validatorMethod: 'validateString'
+        parameter: 'addresses',
+        validatorMethod: 'validateEthAddressArray'
       },
       {
         parameter: 'token_id',
@@ -173,6 +191,27 @@ const v2Signature = {
     ]
   },
 
+  [apiName.getUserDevice]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'addresses',
+        validatorMethod: 'validateEthAddressArray'
+      }
+      // In this API, we are using the same service as getDevices for a user. Hence, we are
+      // converting the device_address into an array. The parameter passed into getDevices
+      // is an array of addresses called 'addresses'.
+    ],
+    optional: []
+  },
+
   [apiName.getUserSessions]: {
     mandatory: [
       {
@@ -186,8 +225,8 @@ const v2Signature = {
     ],
     optional: [
       {
-        parameter: 'address',
-        validatorMethod: 'validateString'
+        parameter: 'addresses',
+        validatorMethod: 'validateEthAddressArray'
       },
       {
         parameter: 'token_id',
@@ -202,6 +241,27 @@ const v2Signature = {
         validatorMethod: 'validatePaginationIdentifier'
       }
     ]
+  },
+
+  [apiName.getUserSession]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'addresses',
+        validatorMethod: 'validateEthAddressArray'
+      }
+      // In this API, we are using the same service as getSessions for a user. Hence, we are
+      // converting the device_address into an array. The parameter passed into getSessions
+      // is an array of addresses called 'addresses'.
+    ],
+    optional: []
   },
 
   [apiName.getUserDeviceManager]: {

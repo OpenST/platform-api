@@ -9,7 +9,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  MosaicJs = require('@openstfoundation/mosaic.js');
 
 /**
  *
@@ -87,7 +87,7 @@ class ActivateGateway extends Base {
   }
 
   static get GatewayHelper() {
-    return MosaicTbd.ChainSetup.GatewayHelper;
+    return MosaicJs.ChainSetup.GatewayHelper;
   }
 }
 

@@ -70,7 +70,7 @@ class CronBase {
     const oThis = this;
 
     let handle = function() {
-      oThis.stopPickingUpNewTasks();
+      oThis._stopPickingUpNewTasks();
 
       if (oThis._pendingTasksDone()) {
         logger.info(':: No pending tasks. Changing the status ');
@@ -93,7 +93,7 @@ class CronBase {
   /**
    * Stops consumption upon invocation
    */
-  stopPickingUpNewTasks() {
+  _stopPickingUpNewTasks() {
     const oThis = this;
 
     oThis.stopPickingUpNewWork = true;

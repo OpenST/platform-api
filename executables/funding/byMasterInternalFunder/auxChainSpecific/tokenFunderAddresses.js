@@ -28,7 +28,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 15'
+    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 16'
   );
   logger.log('');
   logger.log('');
@@ -58,7 +58,7 @@ const stPrimeFundingPerTokenConfig = {
  *
  * @class
  */
-class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpecificFundingCronBase {
+class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends AuxChainSpecificFundingCronBase {
   /**
    * Constructor to fund StPrime by chain owner to token funder addresses.
    *
@@ -80,7 +80,7 @@ class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpeci
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundByChainOwnerAuxChainSpecificTokenFunderAddresses;
+    return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses;
   }
 
   /**
@@ -161,13 +161,19 @@ class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpeci
       return perTokenFundingConfig;
     }
 
-    let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds);
+    let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds),
+      tokenFunderAddressesLength = tokenFunderAddresses.length;
 
-    if (tokenFunderAddresses.length === 0) {
+    if (tokenFunderAddressesLength === 0) {
       return perTokenFundingConfig;
     }
-
-    perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses = tokenFunderAddresses;
+    for (let index = 0; index < tokenFunderAddressesLength; index += 1) {
+      perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses =
+        perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses || [];
+      perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses.push(
+        tokenFunderAddresses[index].address
+      );
+    }
 
     return perTokenFundingConfig;
   }
@@ -320,7 +326,7 @@ class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpeci
 
 logger.log('Starting cron to fund StPrime by chainOwner to token funder addresses.');
 
-new FundByChainOwnerAuxChainSpecificTokenFunderAddresses({ cronProcessId: +program.cronProcessId })
+new fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
     process.emit('SIGINT');

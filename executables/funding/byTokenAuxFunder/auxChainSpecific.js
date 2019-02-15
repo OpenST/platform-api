@@ -10,18 +10,14 @@ const program = require('commander');
 
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  CronBase = require(rootPrefix + '/executables/CronBase'),
-  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
-  ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -43,7 +39,6 @@ if (!program.cronProcessId) {
 const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
   flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE);
 
-// TODO: Add executeTxWorkersKind.
 // Config for addresses which need to be funded.
 const fundingConfig = {
   [tokenAddressConstants.auxAdminAddressKind]: '0.00005',
@@ -55,7 +50,7 @@ const fundingConfig = {
  *
  * @class
  */
-class FundByChainOwnerAuxChainSpecific extends CronBase {
+class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
   /**
    * Constructor to fund stPrime and eth by chain owner.
    *
@@ -81,106 +76,21 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
   }
 
   /**
-   * Validate and sanitize
-   *
-   * @return {Promise<never>}
-   *
-   * @private
-   */
-  async _validateAndSanitize() {
-    const oThis = this;
-
-    if (!oThis.originChainId) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_f_bco_spe_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { originChainId: oThis.originChainId }
-        })
-      );
-    }
-  }
-
-  /**
-   * Pending tasks done
-   *
-   * @return {Boolean}
-   *
-   * @private
-   */
-  _pendingTasksDone() {
-    const oThis = this;
-
-    return oThis.canExit;
-  }
-
-  /**
-   * Start the cron.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _start() {
-    const oThis = this;
-
-    logger.step('Fetching all chainIds.');
-    await oThis._fetchChainIds();
-
-    logger.step('Transferring StPrime to auxChainId addresses.');
-    await oThis._transferStPrimeToAll();
-
-    logger.step('Cron completed.');
-  }
-
-  /**
-   * Fetch all chainIds.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _fetchChainIds() {
-    const oThis = this;
-
-    if (!oThis.auxChainIds || oThis.auxChainIds.length === 0) {
-      oThis.chainIds = await chainConfigProvider.allChainIds();
-      oThis.auxChainIds = oThis.chainIds.filter((chainId) => chainId !== oThis.originChainId);
-    }
-  }
-
-  /**
-   * Transfer StPrime on all auxChainIds.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _transferStPrimeToAll() {
-    const oThis = this;
-
-    // Loop over all auxChainIds.
-    for (let index = 0; index < oThis.auxChainIds.length; index++) {
-      await oThis._transferStPrimeOnChain(oThis.auxChainIds[index]);
-    }
-  }
-
-  /**
    * Transfer StPrime to addresses on specific auxChainId.
    *
    * @param {Number} auxChainId
-   *
+   * @param {Array} tokenIds
    * @return {Promise<void>}
    *
    * @private
    */
-  async _transferStPrimeOnChain(auxChainId) {
+  async _startTransfer(tokenIds, auxChainId) {
     const oThis = this;
 
     logger.step('Fetching addresses on auxChainId: ' + auxChainId);
 
     // Fetch chainAddresses.
-    const chainAddresses = await oThis._fetchAddressesForChain(auxChainId);
+    const chainAddresses = await oThis._fetchAddressesForChain(tokenIds, auxChainId);
 
     if (chainAddresses.length === 0) {
       return;
@@ -207,7 +117,8 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
     if (oThis.transferDetails.length > 0) {
       const transferStPrime = new TransferStPrimeBatch({
         auxChainId: auxChainId,
-        transferDetails: oThis.transferDetails
+        transferDetails: oThis.transferDetails,
+        handleSigint: 1
       });
 
       await transferStPrime.perform();
@@ -219,44 +130,15 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
    * Fetch all the required addresses for the specific chainId.
    *
    * @param {Number} auxChainId
+   * @param {Array} tokenIds
    *
    * @return {Promise<Array>}
    *
    * @private
    */
-  async _fetchAddressesForChain(auxChainId) {
+  async _fetchAddressesForChain(tokenIds, auxChainId) {
     const oThis = this,
       chainAddresses = [];
-
-    // Step 1: Fetch all clientIds associated to auxChainIds.
-    let chainClientIds = await new ClientConfigGroup()
-      .select('client_id')
-      .where(['chain_id = (?)', auxChainId])
-      .fire();
-
-    let clientIds = [];
-    for (let index = 0; index < chainClientIds.length; index++) {
-      let clientId = chainClientIds[index].client_id;
-
-      clientIds.push(clientId);
-    }
-
-    if (clientIds.length === 0) {
-      return chainAddresses;
-    }
-
-    // Step 2: Fetch all tokenIds associated to clientIds.
-    let clientTokenIds = await new TokenModel()
-      .select('id')
-      .where(['client_id IN (?)', clientIds])
-      .fire();
-
-    let tokenIds = [];
-    for (let index = 0; index < clientTokenIds.length; index++) {
-      let tokenId = clientTokenIds[index].id;
-
-      tokenIds.push(tokenId);
-    }
 
     if (tokenIds.length === 0) {
       return chainAddresses;
@@ -293,7 +175,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       chainAddresses.push(address);
     }
 
-    // Convert an array to a set and then convert it back to an array.
+    // Convert an array to a set and then convert it back to an array, to remove duplicate elements.
     oThis.tokenIds = [...new Set(oThis.tokenIds)];
 
     return chainAddresses;
@@ -345,7 +227,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
       if (tokenAuxWorkerCurrentBalance.lt(tokenAuxWorkerMinimumBalance.mul(flowsForMinimumBalance))) {
         let params = {
           fromAddress: tokenAuxFunderAddress,
-          toAddress: tokenAuxWorkerCurrentBalance,
+          toAddress: tokenAuxWorkerAddress,
           amountInWei: basicHelper.convertToWei(tokenAuxWorkerMinimumBalance.mul(flowsForTransferBalance)).toString(10)
         };
         oThis.transferDetails.push(params);
@@ -354,7 +236,7 @@ class FundByChainOwnerAuxChainSpecific extends CronBase {
   }
 }
 
-logger.log('Starting cron to fund eth by chainOwner.');
+logger.log('Starting cron to fund St Prime by tokenAuxFunder.');
 
 new FundByChainOwnerAuxChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()

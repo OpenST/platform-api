@@ -10,7 +10,7 @@ const rootPrefix = '../../..',
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  MosaicJs = require('@openstfoundation/mosaic.js');
 
 /**
  *
@@ -111,7 +111,7 @@ class DeployCoGateway extends Base {
   }
 
   static get CoGatewayHelper() {
-    return MosaicTbd.ChainSetup.CoGatewayHelper;
+    return MosaicJs.ChainSetup.CoGatewayHelper;
   }
 }
 

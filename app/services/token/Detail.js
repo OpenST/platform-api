@@ -13,10 +13,14 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
+
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
  * Class for token details.
@@ -42,6 +46,7 @@ class TokenDetail extends ServiceBase {
     oThis.tokenAddresses = null;
     oThis.economyContractAddress = null;
     oThis.economyDetails = null;
+    oThis.companyTokenHolderAddresses = [];
   }
 
   /**
@@ -63,9 +68,12 @@ class TokenDetail extends ServiceBase {
 
     return Promise.resolve(
       responseHelper.successWithData({
-        tokenDetails: oThis.token,
-        tokenAddresses: oThis.tokenAddresses,
-        economyDetails: oThis.economyDetails
+        [resultType.token]: {
+          tokenDetails: oThis.token,
+          tokenAddresses: oThis.tokenAddresses,
+          economyDetails: oThis.economyDetails,
+          companyTokenHolderAddresses: oThis.companyTokenHolderAddresses
+        }
       })
     );
   }
@@ -121,6 +129,8 @@ class TokenDetail extends ServiceBase {
     }
 
     await oThis._getEconomyDetailsFromDdb();
+
+    await oThis._setCompanyTokenHolderAddress();
   }
 
   /**
@@ -155,6 +165,39 @@ class TokenDetail extends ServiceBase {
           debug_options: {}
         })
       );
+    }
+  }
+
+  /**
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _setCompanyTokenHolderAddress() {
+    const oThis = this;
+
+    let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
+
+    if (
+      tokenCompanyUserCacheRsp.isFailure() ||
+      !tokenCompanyUserCacheRsp.data ||
+      !tokenCompanyUserCacheRsp.data['userUuids']
+    ) {
+      return Promise.resolve();
+    }
+
+    let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUSerDetailsCache({
+        tokenId: oThis.tokenId,
+        userIds: tokenCompanyUserCacheRsp.data['userUuids']
+      }),
+      cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
+
+    let usersData = cacheFetchRsp.data;
+
+    for (let uuid in usersData) {
+      let userData = usersData[uuid];
+      oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
     }
   }
 }

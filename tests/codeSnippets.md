@@ -21,6 +21,23 @@ InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
 ```
+### Associate Worker
+```js
+
+require('./lib/executeTransactionManagement/AssociateWorker');
+AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
+asso = new AssociateWorker({tokenId:1009, cronProcessIds: [21]});
+asso.perform().then(console.log);
+
+```
+
+###De-associate worker.
+```js
+require('./lib/executeTransactionManagement/DeAssociateWorker');
+DeAssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'DeAssociateWorker');
+d = new DeAssociateWorker({tokenId:1009, cronProcessIds: [19]});
+d.perform().then(console.log);
+```
 
 ### Fetch Client Config Strategy:
 
@@ -72,9 +89,9 @@ a.perform().then(console.log)
 ```node
 
 params = {
-  currentStepId: 631,
-  workflowId: 35,
-  stepKind: 'setInternalActorForOwnerInUBT',
+  currentStepId: 126,
+  workflowId: 5,
+  stepKind: 'activateTokenGateway',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
   topic: 'workflow.economySetup'
