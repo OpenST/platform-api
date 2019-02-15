@@ -111,7 +111,6 @@ class Create extends ServiceBase {
       kind: oThis.kind,
       deviceShardNumber: oThis.shardNumbersMap[shardConst.deviceEntityKind],
       sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
-      // recoveryAddressShardNumber: oThis.shardNumbersMap[shardConst.recoveryAddressEntityKind],
       status: tokenUserConstants.createdStatus,
       updatedTimestamp: timeInSecs
     };

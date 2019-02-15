@@ -58,7 +58,7 @@ const stPrimeFundingPerTokenConfig = {
  *
  * @class
  */
-class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpecificFundingCronBase {
+class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends AuxChainSpecificFundingCronBase {
   /**
    * Constructor to fund StPrime by chain owner to token funder addresses.
    *
@@ -80,7 +80,7 @@ class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpeci
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.fundByChainOwnerAuxChainSpecificTokenFunderAddresses;
+    return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses;
   }
 
   /**
@@ -320,7 +320,7 @@ class FundByChainOwnerAuxChainSpecificTokenFunderAddresses extends AuxChainSpeci
 
 logger.log('Starting cron to fund StPrime by chainOwner to token funder addresses.');
 
-new FundByChainOwnerAuxChainSpecificTokenFunderAddresses({ cronProcessId: +program.cronProcessId })
+new fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
     process.emit('SIGINT');
