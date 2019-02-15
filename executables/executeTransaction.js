@@ -53,7 +53,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     super(params);
 
     const oThis = this;
-    oThis.subscriptionData = {};
+    oThis.subscriptionTopicToDataMap = {};
     oThis.initProcessResp = {};
     oThis.exTxTopicName = null;
     oThis.cMsgTopicName = null;
@@ -100,7 +100,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     let exTxQueueName = kwcConstant.exTxQueueName(oThis.auxChainId, queueTopicSuffix),
       cMsgQueueName = kwcConstant.commandMessageQueueName(oThis.auxChainId, queueTopicSuffix);
 
-    oThis.subscriptionData[oThis.exTxTopicName] = {
+    oThis.subscriptionTopicToDataMap[oThis.exTxTopicName] = {
       topicName: oThis.exTxTopicName,
       queueName: exTxQueueName,
       promiseQueueManager: null,
@@ -108,7 +108,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       prefetchCount: oThis.prefetchCount,
       subscribed: 0
     };
-    oThis.subscriptionData[oThis.cMsgTopicName] = {
+    oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName] = {
       topicName: oThis.cMsgTopicName,
       queueName: cMsgQueueName,
       promiseQueueManager: null,
@@ -117,7 +117,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       subscribed: 0
     };
 
-    return oThis.subscriptionData;
+    return oThis.subscriptionTopicToDataMap;
   }
 
   /**
@@ -168,9 +168,9 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       kind = msgParams.kind;
 
     if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionData[oThis.exTxTopicName].unAckCount++;
+      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount++;
     } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionData[oThis.cMsgTopicName].unAckCount++;
+      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount++;
     }
     return true;
   }
@@ -189,9 +189,9 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       kind = msgParams.kind;
 
     if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionData[oThis.exTxTopicName].unAckCount--;
+      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount--;
     } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionData[oThis.cMsgTopicName].unAckCount--;
+      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount--;
     }
     return true;
   }
@@ -210,9 +210,9 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       kind = msgParams.kind;
 
     if (kind == kwcConstant.executeTx) {
-      return oThis.subscriptionData[oThis.exTxTopicName].unAckCount;
+      return oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount;
     } else if (kind == kwcConstant.commandMsg) {
-      return oThis.subscriptionData[oThis.cMsgTopicName].unAckCount;
+      return oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount;
     }
     return 0;
   }
