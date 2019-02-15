@@ -35,14 +35,16 @@ class InsertCrons {
         return oThis.insertUpdateRealtimeGasPriceEntry(cronParams);
 
       // Origin chain specific.
+      case cronProcessConstants.fundByMasterInternalFunderOriginChainSpecific:
+        return oThis.insertFundByMasterInternalFunderOriginChainSpecificEntry(cronParams);
+
+      // Common for origin and aux chains.
       case cronProcessConstants.blockParser:
         return oThis.insertBlockParserEntry(cronParams);
       case cronProcessConstants.transactionParser:
         return oThis.insertTransactionParserEntry(cronParams);
       case cronProcessConstants.blockFinalizer:
         return oThis.insertBlockFinalizerEntry(cronParams);
-      case cronProcessConstants.fundByMasterInternalFunderOriginChainSpecific:
-        return oThis.insertFundByMasterInternalFunderOriginChainSpecificEntry(cronParams);
 
       // Aux chain specific.
       case cronProcessConstants.economyAggregator:

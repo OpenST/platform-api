@@ -5,12 +5,9 @@
  */
 
 const rootPrefix = '../..',
+  InsertCrons = require(rootPrefix + '/devops/exec/InsertCrons'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  BlockParser = require(rootPrefix + '/lib/cronProcess/BlockParser'),
-  BlockFinalizer = require(rootPrefix + '/lib/cronProcess/BlockFinalizer'),
-  TransactionParser = require(rootPrefix + '/lib/cronProcess/TransactionParser'),
-  FundByMasterInternalFunderOriginChainSpecific = require(rootPrefix +
-    '/lib/cronProcess/fundByMasterInternalFunder/OriginChainSpecific');
+  cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
  * Class to seed origin chain specific cron seeder.
@@ -38,12 +35,14 @@ class OriginChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertBlockParserEntry() {
-    logger.log('Creating blockParser');
-    const blockParser = new BlockParser({
-      chainId: 1000,
-      intentionalBlockDelay: 0
-    });
-    return blockParser.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.blockParser, {
+        chainId: 1000,
+        intentionalBlockDelay: 0
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -52,13 +51,15 @@ class OriginChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertTransactionParserEntry() {
-    logger.log('Creating transactionParser');
-    const transactionParser = new TransactionParser({
-      chainId: 1000,
-      prefetchCount: 5,
-      sequenceNumber: 1
-    });
-    return transactionParser.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.transactionParser, {
+        chainId: 1000,
+        prefetchCount: 5,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -67,12 +68,14 @@ class OriginChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertBlockFinalizerEntry() {
-    logger.log('Creating blockFinalizer');
-    const blockFinalizer = new BlockFinalizer({
-      chainId: 1000,
-      blockDelay: 24
-    });
-    return blockFinalizer.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.blockFinalizer, {
+        chainId: 1000,
+        blockDelay: 24
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -81,11 +84,13 @@ class OriginChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertFundByMasterInternalFunderOriginChainSpecificEntry() {
-    logger.log('Creating fundByMasterInternalFunderOriginChainSpecific');
-    const fundByMasterInternalFunderOriginChainSpecific = new FundByMasterInternalFunderOriginChainSpecific({
-      originChainId: 1000
-    });
-    return fundByMasterInternalFunderOriginChainSpecific.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundByMasterInternalFunderOriginChainSpecific, {
+        originChainId: 1000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 }
 

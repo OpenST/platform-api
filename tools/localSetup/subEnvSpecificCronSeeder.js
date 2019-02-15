@@ -5,10 +5,9 @@
  */
 
 const rootPrefix = '../..',
+  InsertCrons = require(rootPrefix + '/devops/exec/InsertCrons'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  EmailNotifier = require(rootPrefix + '/lib/cronProcess/EmailNotifier'),
-  WorkflowWorker = require(rootPrefix + '/lib/cronProcess/WorkflowWorker'),
-  UpdateRealtimeGasPrice = require(rootPrefix + '/lib/cronProcess/UpdateRealtimeGasPrice');
+  cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
  * Class to seed sub environment specific cron seeder.
@@ -35,13 +34,15 @@ class SubEnvSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertWorkflowWorkerEntry() {
-    logger.log('Creating workflowWorker');
-    const workflowWorker = new WorkflowWorker({
-      prefetchCount: 5,
-      chainId: 0,
-      sequenceNumber: 1
-    });
-    return workflowWorker.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.workflowWorker, {
+        prefetchCount: 5,
+        chainId: 0,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -50,11 +51,13 @@ class SubEnvSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertEmailNotifierEntry() {
-    logger.log('Creating emailNotifier');
-    const emailNotifier = new EmailNotifier({
-      chainId: 0
-    });
-    return emailNotifier.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.emailNotifier, {
+        chainId: 0
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -63,11 +66,13 @@ class SubEnvSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertUpdateRealtimeGasPriceEntry() {
-    logger.log('Creating updateRealtimeGasPrice');
-    const updateRealtimeGasPrice = new UpdateRealtimeGasPrice({
-      chainId: 0
-    });
-    return updateRealtimeGasPrice.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.updateRealtimeGasPrice, {
+        chainId: 0
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 }
 

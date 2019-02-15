@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xb50...'; // master internal funder address
+let address = '0xb7b3b8f86cff8dc95d3a2364834bd0e45138a792'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -75,7 +75,7 @@ NOTE: Copy the ETH funder private key for later use.
 * Generate origin address and fund them
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
+    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 1000
 ```
 
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)

@@ -5,22 +5,9 @@
  */
 
 const rootPrefix = '../..',
+  InsertCrons = require(rootPrefix + '/devops/exec/InsertCrons'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  BlockParser = require(rootPrefix + '/lib/cronProcess/BlockParser'),
-  BlockFinalizer = require(rootPrefix + '/lib/cronProcess/BlockFinalizer'),
-  TransactionParser = require(rootPrefix + '/lib/cronProcess/TransactionParser'),
-  EconomyAggregator = require(rootPrefix + '/lib/cronProcess/EconomyAggregator'),
-  AuxWorkflowWorker = require(rootPrefix + '/lib/cronProcess/AuxWorkflowWorker'),
-  ExecuteTransaction = require(rootPrefix + '/lib/cronProcess/ExecuteTransaction'),
-  FundBySealerAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/fundBySealer/AuxChainSpecific'),
-  UpdatePriceOraclePricePoints = require(rootPrefix + '/lib/cronProcess/UpdatePriceOraclePricePoints'),
-  FundByTokenAuxFunderAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/fundByTokenAuxFunder/AuxChainSpecific'),
-  FundByMasterInternalFunderAuxChainSpecificChainAddresses = require(rootPrefix +
-    '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/ChainAddresses'),
-  FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses = require(rootPrefix +
-    '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/TokenFunderAddresses'),
-  FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses = require(rootPrefix +
-    '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/InterChainFacilitatorAddresses');
+  cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
  * Class to seed aux chain specific cron seeder.
@@ -57,12 +44,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertBlockParserEntry() {
-    logger.log('Creating blockParser');
-    const blockParser = new BlockParser({
-      chainId: 2000,
-      intentionalBlockDelay: 0
-    });
-    return blockParser.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.blockParser, {
+        chainId: 2000,
+        intentionalBlockDelay: 0
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -71,13 +60,15 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertTransactionParserEntry() {
-    logger.log('Creating transactionParser');
-    const transactionParser = new TransactionParser({
-      chainId: 2000,
-      prefetchCount: 5,
-      sequenceNumber: 1
-    });
-    return transactionParser.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.transactionParser, {
+        chainId: 2000,
+        prefetchCount: 5,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -86,12 +77,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertBlockFinalizerEntry() {
-    logger.log('Creating blockFinalizer');
-    const blockFinalizer = new BlockFinalizer({
-      chainId: 2000,
-      blockDelay: 6
-    });
-    return blockFinalizer.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.blockFinalizer, {
+        chainId: 2000,
+        blockDelay: 6
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -100,12 +93,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertEconomyAggregatorEntry() {
-    logger.log('Creating economyAggregator');
-    const economyAggregator = new EconomyAggregator({
-      chainId: 2000,
-      prefetchCount: 1
-    });
-    return economyAggregator.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.economyAggregator, {
+        chainId: 2000,
+        prefetchCount: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -114,14 +109,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry() {
-    logger.log('Creating fundByMasterInternalFunderAuxChainSpecificChainAddresses');
-    const fundByMasterInternalFunderAuxChainSpecificChainAddresses = new FundByMasterInternalFunderAuxChainSpecificChainAddresses(
-      {
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses, {
         originChainId: 1000,
         auxChainId: 2000
-      }
-    );
-    return fundByMasterInternalFunderAuxChainSpecificChainAddresses.perform().then(console.log);
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -130,12 +125,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertFundBySealerAuxChainSpecificEntry() {
-    logger.log('Creating fundBySealerAuxChainSpecific');
-    const fundBySealerAuxChainSpecific = new FundBySealerAuxChainSpecific({
-      originChainId: 1000,
-      auxChainId: 2000
-    });
-    return fundBySealerAuxChainSpecific.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundBySealerAuxChainSpecific, {
+        originChainId: 1000,
+        auxChainId: 2000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -144,12 +141,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertFundByTokenAuxFunderAuxChainSpecificEntry() {
-    logger.log('Creating fundByTokenAuxFunderAuxChainSpecific');
-    const fundByTokenAuxFunderAuxChainSpecific = new FundByTokenAuxFunderAuxChainSpecific({
-      originChainId: 1000,
-      auxChainId: 2000
-    });
-    return fundByTokenAuxFunderAuxChainSpecific.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundByTokenAuxFunderAuxChainSpecific, {
+        originChainId: 1000,
+        auxChainId: 2000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -158,11 +157,13 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertUpdatePriceOraclePricePointsEntry() {
-    logger.log('Creating updatePriceOraclePricePoints');
-    const updatePriceOraclePricePoints = new UpdatePriceOraclePricePoints({
-      auxChainId: 2000
-    });
-    return updatePriceOraclePricePoints.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.updatePriceOraclePricePoints, {
+        auxChainId: 2000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -171,14 +172,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry() {
-    logger.log('Creating fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses');
-    const fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses = new FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses(
-      {
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses, {
         originChainId: 1000,
         auxChainId: 2000
-      }
-    );
-    return fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses.perform().then(console.log);
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -187,14 +188,14 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry() {
-    logger.log('Creating fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses');
-    const fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses = new FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses(
-      {
+    return new InsertCrons()
+      .perform(cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses, {
         originChainId: 1000,
         auxChainId: 2000
-      }
-    );
-    return fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses.perform().then(console.log);
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -203,14 +204,16 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertExecuteTransactionOneEntry() {
-    logger.log('Creating executeTransaction one.');
-    const executeTransaction = new ExecuteTransaction({
-      prefetchCount: 5,
-      auxChainId: 2000,
-      sequenceNumber: 1,
-      queueTopicSuffix: 'one'
-    });
-    return executeTransaction.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.executeTransaction, {
+        prefetchCount: 5,
+        auxChainId: 2000,
+        sequenceNumber: 1,
+        queueTopicSuffix: 'one'
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -219,14 +222,16 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertExecuteTransactionTwoEntry() {
-    logger.log('Creating executeTransaction two.');
-    const executeTransaction = new ExecuteTransaction({
-      prefetchCount: 5,
-      auxChainId: 2000,
-      sequenceNumber: 2,
-      queueTopicSuffix: 'two'
-    });
-    return executeTransaction.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.executeTransaction, {
+        prefetchCount: 5,
+        auxChainId: 2000,
+        sequenceNumber: 2,
+        queueTopicSuffix: 'two'
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 
   /**
@@ -235,13 +240,15 @@ class AuxChainSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertAuxWorkflowWorkerTwoEntry() {
-    logger.log('Creating auxWorkflowWorker.');
-    const auxWorkflowWorker = new AuxWorkflowWorker({
-      prefetchCount: 5,
-      auxChainId: 2000,
-      sequenceNumber: 1
-    });
-    return auxWorkflowWorker.perform().then(console.log);
+    return new InsertCrons()
+      .perform(cronProcessConstants.auxWorkflowWorker, {
+        prefetchCount: 5,
+        auxChainId: 2000,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 }
 
