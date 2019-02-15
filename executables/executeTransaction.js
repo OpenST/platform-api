@@ -11,9 +11,10 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
-  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/initProcess'),
+  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
-  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor');
+  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -222,9 +223,14 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
    */
   _sequentialExecutor(messageParams) {
     const oThis = this;
-    let msgParams = messageParams.message.payload;
+    let msgParams = messageParams.message.payload,
+      kind = messageParams.message.kind;
 
-    return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId).queueAndFetchNonce();
+    if (kind == kwcConstant.executeTx) {
+      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId).queueAndFetchNonce();
+    } else {
+      return Promise.resolve(responseHelper.successWithData({}));
+    }
   }
 
   /**
@@ -247,7 +253,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
-    console.log('_processMessage-------------------------.......\n', messageParams);
+    logger.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
       logger.info('Message specific perform called called called called called called called.......\n');

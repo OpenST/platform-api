@@ -229,7 +229,7 @@ class UpdatePricePoints {
     logger.debug('Price Point in Wei for contract:' + amountInWei);
 
     oThis.auxGasPrice = contractConstants.auxChainGasPrice;
-    oThis.gas = '500000'; //TODO: Update gas @shlok = Current value = 64585
+    oThis.gas = contractConstants.updatePricePointsGas;
 
     // Get transaction object.
     let txResponse = new PriceOracleHelper(oThis.web3Instance).setPriceTx(
