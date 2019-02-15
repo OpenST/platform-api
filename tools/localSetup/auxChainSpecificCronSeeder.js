@@ -12,15 +12,15 @@ const rootPrefix = '../..',
   EconomyAggregator = require(rootPrefix + '/lib/cronProcess/EconomyAggregator'),
   AuxWorkflowWorker = require(rootPrefix + '/lib/cronProcess/AuxWorkflowWorker'),
   ExecuteTransaction = require(rootPrefix + '/lib/cronProcess/ExecuteTransaction'),
-  FundBySealerAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/FundBySealerAuxChainSpecific'),
+  FundBySealerAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/fundBySealer/AuxChainSpecific'),
   UpdatePriceOraclePricePoints = require(rootPrefix + '/lib/cronProcess/UpdatePriceOraclePricePoints'),
-  FundByTokenAuxFunderAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/FundByTokenAuxFunderAuxChainSpecific'),
+  FundByTokenAuxFunderAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/fundByTokenAuxFunder/AuxChainSpecific'),
   FundByMasterInternalFunderAuxChainSpecificChainAddresses = require(rootPrefix +
-    '/lib/cronProcess/FundByMasterInternalFunderAuxChainSpecificChainAddresses'),
+    '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/ChainAddresses'),
   FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses = require(rootPrefix +
-    '/lib/cronProcess/FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses'),
+    '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/TokenFunderAddresses'),
   FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses = require(rootPrefix +
-    '/lib/cronProcess/FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses');
+    '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/InterChainFacilitatorAddresses');
 
 /**
  * Class to seed aux chain specific cron seeder.

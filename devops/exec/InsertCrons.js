@@ -184,7 +184,7 @@ class InsertCrons {
    */
   async insertFundByMasterInternalFunderOriginChainSpecificEntry(cronParams) {
     const FundByMasterInternalFunderOriginChainSpecific = require(rootPrefix +
-      '/lib/cronProcess/FundByMasterInternalFunderOriginChainSpecific');
+      '/lib/cronProcess/fundByMasterInternalFunder/OriginChainSpecific');
     logger.log('Creating fundByMasterInternalFunderOriginChainSpecific');
     const fundByMasterInternalFunderOriginChainSpecific = new FundByMasterInternalFunderOriginChainSpecific({
       originChainId: cronParams.originChainId
@@ -220,7 +220,7 @@ class InsertCrons {
    */
   async insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry(cronParams) {
     const FundByMasterInternalFunderAuxChainSpecificChainAddresses = require(rootPrefix +
-      '/lib/cronProcess/FundByMasterInternalFunderAuxChainSpecificChainAddresses');
+      '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/ChainAddresses');
     logger.log('Creating fundByMasterInternalFunderAuxChainSpecificChainAddresses');
     const fundByMasterInternalFunderAuxChainSpecificChainAddresses = new FundByMasterInternalFunderAuxChainSpecificChainAddresses(
       {
@@ -239,7 +239,7 @@ class InsertCrons {
    * @return {Promise<*>}
    */
   async insertFundBySealerAuxChainSpecificEntry(cronParams) {
-    const FundBySealerAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/FundBySealerAuxChainSpecific');
+    const FundBySealerAuxChainSpecific = require(rootPrefix + '/lib/cronProcess/fundBySealer/AuxChainSpecific');
     logger.log('Creating fundBySealerAuxChainSpecific');
     const fundBySealerAuxChainSpecific = new FundBySealerAuxChainSpecific({
       originChainId: cronParams.originChainId,
@@ -257,7 +257,7 @@ class InsertCrons {
    */
   async insertFundByTokenAuxFunderAuxChainSpecificEntry(cronParams) {
     const FundByTokenAuxFunderAuxChainSpecific = require(rootPrefix +
-      '/lib/cronProcess/FundByTokenAuxFunderAuxChainSpecific');
+      '/lib/cronProcess/fundByTokenAuxFunder/AuxChainSpecific');
     logger.log('Creating fundByTokenAuxFunderAuxChainSpecific');
     const fundByTokenAuxFunderAuxChainSpecific = new FundByTokenAuxFunderAuxChainSpecific({
       originChainId: cronParams.originChainId,
@@ -291,7 +291,7 @@ class InsertCrons {
    */
   async insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry(cronParams) {
     const FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses = require(rootPrefix +
-      '/lib/cronProcess/FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses');
+      '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/TokenFunderAddresses');
     logger.log('Creating fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses');
     const fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses = new FundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses(
       {
@@ -311,7 +311,7 @@ class InsertCrons {
    */
   async insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry(cronParams) {
     const FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses = require(rootPrefix +
-      '/lib/cronProcess/FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses');
+      '/lib/cronProcess/fundByMasterInternalFunder/auxChainSpecific/InterChainFacilitatorAddresses');
     logger.log('Creating fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses');
     const fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses = new FundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses(
       {

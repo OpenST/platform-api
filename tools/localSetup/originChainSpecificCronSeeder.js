@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   BlockFinalizer = require(rootPrefix + '/lib/cronProcess/BlockFinalizer'),
   TransactionParser = require(rootPrefix + '/lib/cronProcess/TransactionParser'),
   FundByMasterInternalFunderOriginChainSpecific = require(rootPrefix +
-    '/lib/cronProcess/FundByMasterInternalFunderOriginChainSpecific');
+    '/lib/cronProcess/fundByMasterInternalFunder/OriginChainSpecific');
 
 /**
  * Class to seed origin chain specific cron seeder.
