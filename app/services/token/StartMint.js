@@ -113,7 +113,9 @@ class StartMint {
         auxChainId: oThis._configStrategyObject.auxChainId,
         originChainId: oThis._configStrategyObject.originChainId,
         stakerAddress: oThis.stakerAddress,
-        tokenId: oThis.tokenId
+        tokenId: oThis.tokenId,
+        sourceChainId: oThis._configStrategyObject.originChainId,
+        destinationChainId: oThis._configStrategyObject.auxChainId
       },
       stakeAndMintParams = {
         stepKind: workflowStepConstants.btStakeAndMintInit,

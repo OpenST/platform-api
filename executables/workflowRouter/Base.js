@@ -512,9 +512,7 @@ class WorkflowRouterBase {
 
       case workflowStepConstants.commitStateRoot:
       case workflowStepConstants.updateCommittedStateRootInfo:
-        oThis.chainId = oThis.requestParams.fromOriginToAux
-          ? oThis.requestParams.auxChainId
-          : oThis.requestParams.originChainId;
+        oThis.chainId = oThis.requestParams.destinationChainId;
         break;
     }
     // We are assigning oThis.chainId to requestParams because requestParams should contain the chainId that the
