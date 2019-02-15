@@ -92,6 +92,13 @@ testData = "0x5cf12c780000000000000000000000000000000000000000000000000000000000
 decodedData = abiDecoder.decodeMethod(testData)
 
 ```
+### Associate Worker
+```js
+require('./lib/executeTransactionManagement/AssociateWorker.js');
+AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
+asso = new AssociateWorker({tokenId:1009, cronProcessId: [22]});
+asso.perform().then(console.log);
+```
 
 ### Check and transfer ETH & STPrime.
 

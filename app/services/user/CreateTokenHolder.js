@@ -38,6 +38,7 @@ class CreateTokenHolder extends ServiceBase {
    * @param {String} params.user_id: user Id
    * @param {Number} params.client_id: client Id
    * @param {Number} params.device_address: device address
+   * @param {Number} params.recovery_owner_address: Recovery owner address
    * @param {Array} params.session_addresses: session address
    * @param {String/Number} params.expiration_height: expiration height
    * @param {String/Number} params.spending_limit: spending limit
@@ -52,6 +53,7 @@ class CreateTokenHolder extends ServiceBase {
     oThis.userId = params.user_id;
     oThis.clientId = params.client_id;
     oThis.deviceAddress = params.device_address;
+    oThis.recoveryOwnerAddress = params.recovery_owner_address;
     oThis.sessionAddresses = params.session_addresses;
     oThis.expirationHeight = params.expiration_height;
     oThis.spendingLimit = params.spending_limit;
@@ -215,6 +217,7 @@ class CreateTokenHolder extends ServiceBase {
         tokenId: oThis.tokenId,
         userId: oThis.userId,
         deviceAddress: oThis.deviceAddress,
+        recoveryOwnerAddress: oThis.recoveryOwnerAddress,
         sessionAddresses: oThis.sessionAddresses,
         sessionSpendingLimit: oThis.spendingLimit,
         sessionExpiration: oThis.expirationHeight

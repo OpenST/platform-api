@@ -2,7 +2,7 @@
 /**
  * Class for subscriber base.
  *
- * @module executables/rabbitmq/SubscriberBase
+ * @module executables/rabbitmq/MultiSubsciptionBase
  */
 const OSTBase = require('@openstfoundation/openst-base');
 
@@ -20,7 +20,7 @@ const rootPrefix = '../..',
  *
  * @class
  */
-class SubscriberBase extends CronBase {
+class MultiSubsciptionBase extends CronBase {
   /**
    * Constructor for subscriber base
    *
@@ -68,18 +68,19 @@ class SubscriberBase extends CronBase {
   }
 
   /**
-   * Promise queue manager
+   * Get promise queue manager for subscription topic
    *
-   * @returns {OSTBase.OSTPromise.QueueManager}
+   * @param subscriptionTopic {string}
+   * @return {*}
    */
-  promiseQueueManager(topicName) {
+  promiseQueueManager(subscriptionTopic) {
     const oThis = this;
 
     // trying to ensure that there is only one _PromiseQueueManager;
-    if (oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'])
-      return oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'];
+    if (oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'])
+      return oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'];
 
-    oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'] = new OSTBase.OSTPromise.QueueManager(
+    oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'] = new OSTBase.OSTPromise.QueueManager(
       function(...args) {
         // Promise executor should be a static method by itself. We declared an unnamed function
         // which was a static method, and promiseExecutor was passed in the same scope as that
@@ -90,19 +91,41 @@ class SubscriberBase extends CronBase {
         name: oThis._processNamePrefix + '_promise_queue_manager',
         timeoutInMilliSecs: oThis.timeoutInMilliSecs,
         maxZombieCount: Math.round(oThis.prefetchCount * 0.25),
-        onMaxZombieCountReached: oThis.onMaxZombieCountReached
+        onMaxZombieCountReached: oThis._onMaxZombieCountReached
       }
     );
 
-    return oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'];
+    return oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'];
   }
 
   /**
-   * Start subscription.
+   * Start the actual functionality of the cron.
    *
    * @returns {Promise<void>}
+   *
+   * @private
    */
-  async _startSubscription(topicName) {
+  async _start() {
+    const oThis = this;
+
+    await oThis._beforeSubscribe();
+
+    oThis._prepareSubscriptionData();
+
+    await oThis._startSubscription();
+
+    return true;
+  }
+
+  /**
+   * Start subscription
+   *
+   * @param subscriptionTopic
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _startSubscriptionFor(subscriptionTopic) {
     const oThis = this;
 
     // TODO: chain specific rabbit provider.
@@ -112,13 +135,13 @@ class SubscriberBase extends CronBase {
       chainId: oThis.auxChainId
     });
 
-    let subData = oThis.subscriptionTopicToDataMap[topicName];
+    let subData = oThis.subscriptionTopicToDataMap[subscriptionTopic];
 
     // below condition is to save from multiple subscriptions by command messages.
-    if (oThis.subscriptionTopicToDataMap[topicName]['subscribed'] == 0) {
-      oThis.subscriptionTopicToDataMap[topicName]['subscribed'] = 1;
+    if (oThis.subscriptionTopicToDataMap[subscriptionTopic]['subscribed'] == 0) {
+      oThis.subscriptionTopicToDataMap[subscriptionTopic]['subscribed'] = 1;
 
-      oThis.promiseQueueManager(topicName);
+      oThis.promiseQueueManager(subscriptionTopic);
 
       if (subData['consumerTag']) {
         process.emit('RESUME_CONSUME', subData['consumerTag']);
@@ -138,7 +161,7 @@ class SubscriberBase extends CronBase {
                 .then(function(response) {
                   messageParams.sequentialExecutorResponse = response.data;
 
-                  return oThis.subscriptionTopicToDataMap[topicName]['promiseQueueManager'].createPromise(
+                  return oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'].createPromise(
                     messageParams
                   );
                 })
@@ -147,7 +170,7 @@ class SubscriberBase extends CronBase {
                 });
             },
             function(consumerTag) {
-              oThis.subscriptionTopicToDataMap[topicName]['consumerTag'] = consumerTag;
+              oThis.subscriptionTopicToDataMap[subscriptionTopic]['consumerTag'] = consumerTag;
             }
           )
           .catch(function(error) {
@@ -195,6 +218,12 @@ class SubscriberBase extends CronBase {
       });
   }
 
+  /**
+   * ost rmp error
+   *
+   * @param err
+   * @private
+   */
   _ostRmqError(err) {
     logger.info('ostRmqError occurred.', err);
     process.emit('SIGINT');
@@ -234,7 +263,7 @@ class SubscriberBase extends CronBase {
 
     let handle = function() {
       for (let topicName in oThis.subscriptionTopicToDataMap) {
-        oThis.stopPickingUpNewTasks(topicName);
+        oThis._stopPickingUpNewTasks(topicName);
       }
 
       if (oThis._pendingTasksDone()) {
@@ -258,7 +287,7 @@ class SubscriberBase extends CronBase {
   /**
    * Stops consumption upon invocation
    */
-  stopPickingUpNewTasks(topicName) {
+  _stopPickingUpNewTasks(topicName) {
     const oThis = this;
 
     oThis.subscriptionTopicToDataMap[topicName]['subscribed'] = 0;
@@ -268,39 +297,108 @@ class SubscriberBase extends CronBase {
     }
   }
 
+  /**
+   * Timeout in milli seconds
+   *
+   * @return {number}
+   */
   get timeoutInMilliSecs() {
     return 3 * 60 * 1000; // By default the time out is 3 minutes
   }
 
+  /**
+   * Ack required
+   *
+   * @return {number}
+   */
   get ackRequired() {
     return 1;
   }
 
-  onMaxZombieCountReached() {
+  /**
+   * On max zombie count reached
+   *
+   * @private
+   */
+  _onMaxZombieCountReached() {
     logger.warn('e_r_sb_1', 'maxZombieCount reached. Triggering SIGTERM.');
     // Trigger gracefully shutdown of process.
     process.kill(process.pid, 'SIGTERM');
   }
 
+  /**
+   * Process name prefix
+   *
+   * @private
+   */
   get _processNamePrefix() {
     throw 'sub class to implement.';
   }
 
+  /**
+   * Specific validations
+   *
+   * @private
+   */
   _specificValidations() {
     throw 'sub class to implement.';
   }
 
+  /**
+   * Process message
+   *
+   * @private
+   */
   _processMessage() {
     throw 'sub class to implement.';
   }
 
-  _incrementUnAck() {
+  /**
+   * Increment Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _incrementUnAck(messageParams) {
     throw 'sub class to implement.';
   }
 
-  _decrementUnAck() {
+  /**
+   * Decrement Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    throw 'sub class to implement.';
+  }
+
+  /**
+   * Before subscribe
+   *
+   * @private
+   */
+  _beforeSubscribe() {
+    throw 'sub class to implement.';
+  }
+
+  /**
+   * Prepare subscription data
+   *
+   * @private
+   */
+  _prepareSubscriptionData() {
+    throw 'sub class to implement.';
+  }
+
+  /**
+   * Start subscription
+   *
+   * @private
+   */
+  _startSubscription() {
     throw 'sub class to implement.';
   }
 }
 
-module.exports = SubscriberBase;
+module.exports = MultiSubsciptionBase;

@@ -10,7 +10,7 @@ const rootPrefix = '..',
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  ChainSubscriberBase = require(rootPrefix + '/executables/rabbitmq/ChainSubscriberBase'),
+  MultiSubsciptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubsciptionBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
@@ -38,7 +38,7 @@ if (!cronProcessId) {
  *
  * @class
  */
-class ExecuteTransactionProcess extends ChainSubscriberBase {
+class ExecuteTransactionProcess extends MultiSubsciptionBase {
   /**
    * Constructor for Execute Transaction Process.
    *
@@ -61,26 +61,31 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
   }
 
   /**
-   * Start the actual functionality of the cron.
+   * Before subscribe
    *
-   * @returns {Promise<void>}
-   *
+   * @return {Promise<void>}
    * @private
    */
-  async _start() {
+  async _beforeSubscribe() {
     const oThis = this;
 
     // Query to get queue_topic suffix & chainId
     oThis.initProcessResp = await new InitProcessKlass({ processId: cronProcessId }).perform();
+  }
 
-    oThis._prepareData();
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
 
     if (oThis.initProcessResp.shouldStartTxQueConsume == 1) {
-      await oThis._startSubscription(oThis.exTxTopicName);
+      await oThis._startSubscriptionFor(oThis.exTxTopicName);
     }
-    await oThis._startSubscription(oThis.cMsgTopicName);
-
-    return true;
+    await oThis._startSubscriptionFor(oThis.cMsgTopicName);
   }
 
   /**
@@ -89,7 +94,7 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
    * @returns {{}}
    * @private
    */
-  _prepareData() {
+  _prepareSubscriptionData() {
     const oThis = this,
       queueTopicSuffix = oThis.initProcessResp.processDetails.queueTopicSuffix;
 
@@ -289,13 +294,13 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       commandProcessorResponse.data.shouldStartTxQueConsume &&
       commandProcessorResponse.data.shouldStartTxQueConsume === 1
     ) {
-      await oThis._startSubscription(oThis.exTxTopicName);
+      await oThis._startSubscriptionFor(oThis.exTxTopicName);
     } else if (
       commandProcessorResponse &&
       commandProcessorResponse.data.shouldStopTxQueConsume &&
       commandProcessorResponse.data.shouldStopTxQueConsume === 1
     ) {
-      oThis.stopPickingUpNewTasks(oThis.exTxTopicName);
+      oThis._stopPickingUpNewTasks(oThis.exTxTopicName);
     }
     return true;
   }
