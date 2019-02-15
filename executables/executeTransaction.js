@@ -121,6 +121,26 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
   }
 
   /**
+   *
+   * @private
+   */
+  async _sequentialExecutor(messageParams) {
+    const oThis = this;
+    let msgParams = messageParams.message.payload,
+      kind = messageParams.message.kind;
+
+    if (kind == kwcConstant.executeTx) {
+      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId)
+        .queueAndFetchNonce()
+        .catch(function(err) {
+          console.log('---------err---', err);
+        });
+    } else {
+      return Promise.resolve(responseHelper.successWithData({}));
+    }
+  }
+
+  /**
    * Process name prefix
    *
    * @returns {String}
@@ -215,22 +235,6 @@ class ExecuteTransactionProcess extends ChainSubscriberBase {
       return oThis.subscriptionData[oThis.cMsgTopicName].unAckCount;
     }
     return 0;
-  }
-
-  /**
-   *
-   * @private
-   */
-  _sequentialExecutor(messageParams) {
-    const oThis = this;
-    let msgParams = messageParams.message.payload,
-      kind = messageParams.message.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId).queueAndFetchNonce();
-    } else {
-      return Promise.resolve(responseHelper.successWithData({}));
-    }
   }
 
   /**
