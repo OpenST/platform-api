@@ -3,8 +3,7 @@ const fs = require('fs');
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons'),
-  AddCronProcessService = require(rootPrefix + '/lib/addCronProcess');
+  InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons');
 
 /**
  * Class for inserting cron entries into saas db
