@@ -4,23 +4,23 @@ const rootPrefix = '../../..',
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
 const v2ErrorConfig = {
-  invalid_signature_kind: {
-    parameter: 'signature_kind',
+  invalid_api_signature_kind: {
+    parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `List of supported signature kinds (${apiSignature.hmacKind}, ${apiSignature.personalSignKind})`
+    message: `List of supported api signature kinds (${apiSignature.hmacKind}, ${apiSignature.personalSignKind})`
   },
-  unsupported_signature_kind: {
-    parameter: 'signature_kind',
+  unsupported_api_signature_kind: {
+    parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `This signature kind is not supported for this endpoint.`
+    message: `This api signature kind is not supported for this endpoint.`
   },
-  invalid_request_timestamp: {
-    parameter: 'request_timestamp',
+  invalid_api_request_timestamp: {
+    parameter: 'api_request_timestamp',
     code: 'invalid',
     message: `Timestamp should be an integer of 10 digits`
   },
-  expired_request_timestamp: {
-    parameter: 'request_timestamp',
+  expired_api_request_timestamp: {
+    parameter: 'api_request_timestamp',
     code: 'invalid',
     message: `Request has expired, please sign again and send`
   },
@@ -35,14 +35,14 @@ const v2ErrorConfig = {
     message: `API Key has expired. Please contact support to create a fresh pair`
   },
   invalid_api_signature: {
-    parameter: 'signature',
+    parameter: 'api_signature',
     code: 'invalid',
-    message: `Invalid signature`
+    message: `Invalid api signature`
   },
   missing_api_signature: {
-    parameter: 'signature',
+    parameter: 'api_signature',
     code: 'missing',
-    message: `missing signature`
+    message: `missing api signature`
   },
   invalid_user_id: {
     parameter: 'user_id',
@@ -158,16 +158,6 @@ const v2ErrorConfig = {
     parameter: 'id',
     code: 'invalid',
     message: 'Invalid id'
-  },
-  invalid_wallet_address: {
-    parameter: 'wallet_address',
-    code: 'invalid',
-    message: 'Invalid wallet_address'
-  },
-  missing_wallet_address: {
-    parameter: 'wallet_address',
-    code: 'missing',
-    message: 'missing wallet_address'
   },
   invalid_personal_sign_address: {
     parameter: 'personal_sign_address',
