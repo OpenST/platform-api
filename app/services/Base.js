@@ -10,7 +10,8 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token');
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
@@ -94,6 +95,36 @@ class ServicesBaseKlass {
 
     oThis.token = response.data;
     oThis.tokenId = oThis.token.id;
+  }
+
+  /**
+   * Fetch client config strategy
+   *
+   * @param clientId
+   *
+   * @returns {Promise<*>}
+   *
+   * @private
+   */
+  async _fetchClientConfigStrategy(clientId) {
+    // Fetch client config group.
+    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
+      fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
+
+    if (fetchCacheRsp.isFailure()) {
+      logger.error(
+        'ClientId has no config group assigned to it. This means that client has not been deployed successfully.'
+      );
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_b_2',
+          api_error_identifier: 'token_not_setup',
+          debug_options: {}
+        })
+      );
+    }
+
+    return fetchCacheRsp;
   }
 
   /**

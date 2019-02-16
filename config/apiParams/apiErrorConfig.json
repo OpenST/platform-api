@@ -449,20 +449,15 @@
     "code": "ALREADY_EXISTS",
     "message": "Device address is invalid."
   },
-  "invalid_user_status": {
-    "http_code": "409",
-    "code": "ALREADY_EXISTS",
-    "message": "User status is not created."
+  "user_activation_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "User activation failed"
   },
-  "invalid_device_status": {
-    "http_code": "409",
-    "code": "ALREADY_EXISTS",
-    "message": "Device status is not registered."
-  },
-  "user_status_rollback_failed": {
-    "http_code": "409",
-    "code": "ALREADY_EXISTS",
-    "message": "Rolling back user status to created failed."
+  "action_not_performed_contact_support": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Action could not be performed. Please contact support."
   },
   "invalid_chain_id": {
     "http_code": "400",

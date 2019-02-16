@@ -91,11 +91,11 @@ const v2Signature = {
       },
       {
         parameter: 'expiration_height',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'spending_limit',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroWeiValue'
       }
     ],
     optional: []

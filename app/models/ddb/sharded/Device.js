@@ -102,7 +102,7 @@ class Device extends Base {
 
     keyObj[shortNameForUserId] = { [oThis.shortNameToDataType[shortNameForUserId]]: params['userId'] };
     keyObj[shortNameForWalletAddress] = {
-      [oThis.shortNameToDataType[shortNameForWalletAddress]]: params['walletAddress']
+      [oThis.shortNameToDataType[shortNameForWalletAddress]]: params['walletAddress'].toLowerCase()
     };
 
     return keyObj;
@@ -280,10 +280,7 @@ class Device extends Base {
 
     const updateQuery = {
       TableName: oThis.tableName(),
-      Key: {
-        uid: { [dataTypeForUserId]: userId },
-        wa: { [dataTypeForWalletAddress]: walletAddress }
-      },
+      Key: oThis._keyObj({ userId: userId, walletAddress: walletAddress }),
       ConditionExpression:
         'attribute_exists(' +
         shortNameForUserId +

@@ -74,20 +74,40 @@ const v2ErrorConfig = {
     code: 'missing',
     message: `missing kind`
   },
+  missing_session_addresses: {
+    parameter: 'session_addresses',
+    code: 'missing',
+    message: 'missing session_addresses'
+  },
   invalid_session_addresses: {
     parameter: 'session_addresses',
     code: 'invalid',
     message: `Invalid session_addresses`
   },
-  invalid_session_address: {
-    parameter: 'session_address',
+  missing_recovery_owner_address: {
+    parameter: 'recovery_owner_address',
+    code: 'missing',
+    message: 'missing recovery_owner_address'
+  },
+  invalid_recovery_owner_address: {
+    parameter: 'recovery_owner_address',
     code: 'invalid',
-    message: `Invalid session_address`
+    message: `Invalid recovery_owner_address`
   },
   invalid_expiration_height: {
     parameter: 'expiration_height',
     code: 'invalid',
     message: `Invalid expiration_height`
+  },
+  missing_expiration_height: {
+    parameter: 'expiration_height',
+    code: 'missing',
+    message: 'Missing expiration_height'
+  },
+  missing_spending_limit: {
+    parameter: 'spending_limit',
+    code: 'missing',
+    message: 'Missing spending_limit'
   },
   invalid_spending_limit: {
     parameter: 'spending_limit',
@@ -243,6 +263,16 @@ const v2ErrorConfig = {
     parameter: 'chain_id',
     code: 'missing',
     message: 'Missing chain id'
+  },
+  user_activation_failed_invalid_user: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: 'Either user does not exists or not allowed to be activated.'
+  },
+  user_activation_failed_invalid_device: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message: 'Either device not registered or not allowed to be authorized.'
   }
 };
 
