@@ -9,8 +9,6 @@ const rootPrefix = '../../../..',
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidator = require(rootPrefix + '/lib/validators/Common'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
@@ -61,18 +59,7 @@ class ByWalletAddress extends GetListBase {
     }
 
     for (let index = 0; index < oThis.addresses.length; index++) {
-      if (!CommonValidator.validateEthAddress(oThis.addresses[index])) {
-        return Promise.reject(
-          responseHelper.paramValidationError({
-            internal_error_identifier: 'a_s_d_gl_bwa_2',
-            api_error_identifier: 'invalid_api_params',
-            params_error_identifiers: ['invalid_filter_address'],
-            debug_options: { address: oThis.addresses[index] }
-          })
-        );
-      } else {
-        oThis.walletAddresses.push(oThis.addresses[index].toLowerCase());
-      }
+      oThis.walletAddresses.push(oThis.addresses[index].toLowerCase());
     }
   }
 

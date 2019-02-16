@@ -57,16 +57,6 @@ class ListByUserId extends GetListBase {
 
     if (oThis.paginationIdentifier) {
       oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
-      if (!CommonValidators.validateDdbNextPagePayload(oThis.paginationParams)) {
-        return Promise.reject(
-          responseHelper.paramValidationError({
-            internal_error_identifier: 's_d_gl_bui_1',
-            api_error_identifier: 'invalid_api_params',
-            params_error_identifiers: ['invalid_pagination_identifier'],
-            debug_options: {}
-          })
-        );
-      }
     }
   }
 

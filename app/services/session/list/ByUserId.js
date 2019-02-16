@@ -59,16 +59,6 @@ class SessionListByUserId extends SessionListBase {
 
     if (oThis.paginationIdentifier) {
       oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
-      if (!CommonValidators.validateDdbNextPagePayload(oThis.paginationParams)) {
-        return Promise.reject(
-          responseHelper.paramValidationError({
-            internal_error_identifier: 's_s_l_bui_1',
-            api_error_identifier: 'invalid_api_params',
-            params_error_identifiers: ['invalid_pagination_identifier'],
-            debug_options: {}
-          })
-        );
-      }
     }
 
     let limitVas = CommonValidators.validateAndSanitizeLimit(

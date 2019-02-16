@@ -204,10 +204,15 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address.'
   },
-  missing_address: {
-    parameter: 'address',
+  invalid_addresses: {
+    parameter: 'addresses',
+    code: 'invalid',
+    message: 'Invalid addresses.'
+  },
+  missing_addresses: {
+    parameter: 'addresses',
     code: 'missing',
-    message: 'missing address.'
+    message: 'Missing addresses.'
   },
   invalid_device_address: {
     parameter: 'device_address',

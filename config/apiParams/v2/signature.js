@@ -142,8 +142,8 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'pagination_identifier',
-        validatorMethod: 'validatePaginationIdentifier'
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
   },
@@ -200,7 +200,7 @@ const v2Signature = {
       },
       {
         parameter: pagination.paginationIdentifierKey,
-        validatorMethod: 'validatePaginationIdentifier'
+        validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
   },
@@ -257,7 +257,7 @@ const v2Signature = {
       },
       {
         parameter: pagination.paginationIdentifierKey,
-        validatorMethod: 'validatePaginationIdentifier'
+        validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
   },
