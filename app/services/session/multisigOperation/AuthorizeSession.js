@@ -19,7 +19,6 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   AuthorizeSessionRouter = require(rootPrefix +
     '/executables/auxWorkflowRouter/multisigOperation/AuthorizeSessionRouter'),
-  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -47,9 +46,7 @@ class AuthorizeSession extends Base {
 
     await oThis._startWorkflow();
 
-    let response = await oThis._prepareResponseEntity();
-
-    return Promise.resolve(response);
+    return oThis._prepareResponseEntity();
   }
 
   /**
@@ -70,10 +67,11 @@ class AuthorizeSession extends Base {
       sessionSpendingLimit: oThis.spendingLimit
     };
     let AddSessionsAddressKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
-      addSessionsAddressObj = new AddSessionsAddressKlass(paramsForAddSessions),
-      addSessionsAddressRsp = await addSessionsAddressObj.perform();
+      addSessionsAddressObj = new AddSessionsAddressKlass(paramsForAddSessions);
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    await addSessionsAddressObj.perform();
+
+    return responseHelper.successWithData({});
   }
 
   /**
@@ -135,7 +133,7 @@ class AuthorizeSession extends Base {
 
     response[resultType.session] = sessionDetailsAfterUpdateRsp.data;
 
-    return Promise.resolve(responseHelper.successWithData(response));
+    return responseHelper.successWithData(response);
   }
 }
 

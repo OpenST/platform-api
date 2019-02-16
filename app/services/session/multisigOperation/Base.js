@@ -192,7 +192,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     return oThis.configStrategyObj;
   }
 
-  async performOperation() {
+  async _performOperation() {
     throw 'sub-class to implement';
   }
 }

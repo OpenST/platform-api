@@ -15,17 +15,11 @@ const rootPrefix = '../../..',
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
-  AddUserInWalletFactory = require(rootPrefix + '/lib/setup/user/AddUserInUserWalletFactory'),
   authorizeDeviceStepsConfig = require(rootPrefix +
     '/executables/auxWorkflowRouter/multisigOperation/authorizeDeviceConfig');
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/setup/user/ActivateUser');
-require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
-require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
-
 /**
- * Class for User Setup router.
+ *
  *
  * @class
  */

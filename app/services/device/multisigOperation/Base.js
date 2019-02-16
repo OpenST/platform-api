@@ -69,6 +69,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   async _performCommonPreChecks() {
     const oThis = this;
 
+    // TODO - remove the cache hit
     let tokenUserDetails = await oThis._getUserDetailsFromDdb();
 
     //Check if user is activated
@@ -90,7 +91,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
 
     oThis.tokenUserDetails = tokenUserDetails;
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return responseHelper.successWithData({});
   }
 
   /**
@@ -129,7 +130,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       );
     }
 
-    return Promise.resolve(responseHelper.successWithData(deviceDetails));
+    return responseHelper.successWithData(deviceDetails);
   }
 
   async _checkDeviceStatus(deviceStatus) {
@@ -174,7 +175,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       return Promise.reject(updateDeviceStatusRsp);
     }
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return responseHelper.successWithData({});
   }
 
   /**
@@ -239,6 +240,10 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   }
 
   async performOperation() {
+    throw 'sub-class to implement';
+  }
+
+  _performOperation() {
     throw 'sub-class to implement';
   }
 }

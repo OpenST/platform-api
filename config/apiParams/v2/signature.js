@@ -298,10 +298,6 @@ const v2Signature = {
         validatorMethod: 'validateObject'
       },
       {
-        parameter: 'data_definition',
-        validatorMethod: 'validateString'
-      },
-      {
         parameter: 'to',
         validatorMethod: 'validateEthAddress'
       },
@@ -343,7 +339,7 @@ const v2Signature = {
       },
       {
         parameter: 'signature',
-        validatorMethod: 'validateEthAddress'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'signer',
@@ -364,10 +360,6 @@ const v2Signature = {
         validatorMethod: 'validateObject'
       },
       {
-        parameter: 'data_definition',
-        validatorMethod: 'validateString'
-      },
-      {
         parameter: 'to',
         validatorMethod: 'validateEthAddress'
       },
@@ -409,7 +401,7 @@ const v2Signature = {
       },
       {
         parameter: 'signature',
-        validatorMethod: 'validateEthAddress'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'signer',

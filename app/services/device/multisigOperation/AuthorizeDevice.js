@@ -54,9 +54,7 @@ class AuthorizeDevice extends Base {
 
     await oThis._startWorkflow();
 
-    let response = await oThis._prepareResponseEntity();
-
-    return Promise.resolve(response);
+    return oThis._prepareResponseEntity();
   }
 
   /**
@@ -113,12 +111,11 @@ class AuthorizeDevice extends Base {
     const oThis = this;
 
     logger.debug('****Preparing authorize device service response');
-    let deviceDetailsAfterUpdateRsp = await super._fetchDeviceDetails(),
-      response = {};
+    let deviceDetailsAfterUpdateRsp = await super._fetchDeviceDetails();
 
-    response[resultType.device] = deviceDetailsAfterUpdateRsp.data;
-
-    return Promise.resolve(responseHelper.successWithData(response));
+    return responseHelper.successWithData({
+      [resultType.device]: deviceDetailsAfterUpdateRsp.data
+    });
   }
 }
 
