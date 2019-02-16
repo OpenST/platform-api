@@ -12,8 +12,6 @@ const rootPrefix = '../../..',
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
-let invertedStatuses = null;
-
 class TransactionFinalizerTaskModel extends ModelBase {
   /**
    * Constructor for Currency Conversion Rate Model
@@ -43,7 +41,7 @@ class TransactionFinalizerTaskModel extends ModelBase {
       .insert({
         chain_id: chainId,
         block_number: blockNumber,
-        status: oThis.invertedStatuses[txFinalizerTaskConst.pendingStatus],
+        status: txFinalizerTaskConst.invertedStatuses[txFinalizerTaskConst.pendingStatus],
         transaction_hashes: JSON.stringify(transactionHashes)
       })
       .fire();
@@ -120,7 +118,7 @@ class TransactionFinalizerTaskModel extends ModelBase {
 
     return oThis
       .update({
-        status: oThis.invertedStatuses[txFinalizerTaskConst.failedStatus],
+        status: txFinalizerTaskConst.invertedStatuses[txFinalizerTaskConst.failedStatus],
         debug_params: JSON.stringify(debug_params)
       })
       .where({
