@@ -25,11 +25,13 @@ require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/getList/ByUserId');
 require(rootPrefix + '/app/services/device/getList/ByWalletAddress');
+require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 
 require(rootPrefix + '/app/services/deviceManager/Get');
 
 require(rootPrefix + '/app/services/session/list/ByAddress');
 require(rootPrefix + '/app/services/session/list/ByUserId');
+require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 
 /* Create user*/
 router.post('/', function(req, res, next) {
@@ -281,6 +283,39 @@ router.get('/:user_id/salts/', function(req, res, next) {
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetUserSalt', 'r_v2_u_11', null, dataFormatterFunc));
+});
+
+/*Authorize Device*/
+router.post('/:user_id/devices/authorize/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postAuthorizeDevice;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v_u_8', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/sessions/authorize/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postAuthorizeSession;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.sessions]).perform();
+    serviceResponse.data = {
+      result_type: resultType.sessions,
+      [resultType.sessions]: sessionsFormattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v_u_10', null, dataFormatterFunc));
 });
 
 module.exports = router;

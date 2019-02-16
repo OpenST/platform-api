@@ -89,7 +89,7 @@ class GetUsersList extends ServiceBase {
     }
     responseData.users = users;
 
-    return Promise.resolve(responseHelper.successWithData(responseData));
+    return responseHelper.successWithData(responseData);
   }
 
   /**

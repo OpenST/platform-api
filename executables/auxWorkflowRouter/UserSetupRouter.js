@@ -23,6 +23,7 @@ const rootPrefix = '../..',
 require(rootPrefix + '/lib/setup/user/ActivateUser');
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
+require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Address');
 
 /**
  * Class for User Setup router.
@@ -80,9 +81,21 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.addUserInWalletFactory:
         return new AddUserInWalletFactory(oThis.requestParams).perform(oThis._currentStepPayloadForPendingTrx());
 
-      // Add user in User wallet factory.
+      // Fetch user registered event.
       case workflowStepConstants.fetchRegisteredUserEvent:
         return new FetchUserRegisteredEvent(oThis.requestParams).perform();
+
+      // Set internal actor for tokenHolder In UBT.
+      case workflowStepConstants.setInternalActorForTokenHolderInUBT:
+        oThis.requestParams['address'] = oThis.requestParams.tokenHolderAddress;
+        oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
+        const SetInternalActorForTokenHolderInUBT = ic.getShadowedClassFor(
+            coreConstants.icNameSpace,
+            'SetInternalActorForUBT'
+          ),
+          setInternalActorForTokenHolderInUBTObj = new SetInternalActorForTokenHolderInUBT(oThis.requestParams);
+
+        return setInternalActorForTokenHolderInUBTObj.perform();
 
       // Update Contract addresses in user and activate it.
       case workflowStepConstants.activateUser:

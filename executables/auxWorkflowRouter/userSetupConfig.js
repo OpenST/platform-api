@@ -23,6 +23,12 @@ const steps = {
     kind: workflowStepConstants.fetchRegisteredUserEvent,
     onFailure: workflowStepConstants.rollbackUserSetup,
     readDataFrom: [workflowStepConstants.addUserInWalletFactory],
+    onSuccess: [workflowStepConstants.setInternalActorForTokenHolderInUBT]
+  },
+  [workflowStepConstants.setInternalActorForTokenHolderInUBT]: {
+    kind: workflowStepConstants.setInternalActorForTokenHolderInUBT,
+    onFailure: workflowStepConstants.rollbackUserSetup,
+    readDataFrom: [workflowStepConstants.fetchRegisteredUserEvent],
     onSuccess: [workflowStepConstants.activateUser]
   },
   [workflowStepConstants.activateUser]: {

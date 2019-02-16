@@ -139,7 +139,7 @@ class WorkflowRouterBase {
 
     await oThis._clearWorkflowStepsStatusCache(oThis.workflowId);
 
-    return Promise.resolve(responseHelper.successWithData({ workflow_id: oThis.workflowId }));
+    return responseHelper.successWithData({ workflow_id: oThis.workflowId });
   }
 
   /**
@@ -196,7 +196,7 @@ class WorkflowRouterBase {
   async _getWorkFlow() {
     const oThis = this;
 
-    if (!oThis.workflowId) return Promise.resolve();
+    if (!oThis.workflowId) return;
 
     let workflowCacheResponse = await new WorkflowCache({
       workflowId: oThis.workflowId
@@ -325,7 +325,7 @@ class WorkflowRouterBase {
   async _performStepIfReadyToStart() {
     const oThis = this;
 
-    if (oThis.taskStatus != workflowStepConstants.taskReadyToStart) return Promise.resolve();
+    if (oThis.taskStatus != workflowStepConstants.taskReadyToStart) return;
 
     if (oThis.currentStepId) {
       await new WorkflowStepsModel().markAsPending(oThis.currentStepId);
@@ -582,7 +582,7 @@ class WorkflowRouterBase {
     if (!insertRsp.isSuccess()) {
       return insertRsp;
     } else if (insertRsp.isSuccess() && !insertRsp.data.insertId) {
-      return Promise.resolve(responseHelper.successWithData({}));
+      return responseHelper.successWithData({});
     }
 
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
@@ -617,7 +617,7 @@ class WorkflowRouterBase {
       return Promise.reject({ err: "Couldn't publish next step in Rmq" });
     }
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return responseHelper.successWithData({});
   }
 
   async _insertWorkflowStep(nextStepKind, nextStepStatus) {
@@ -649,9 +649,9 @@ class WorkflowRouterBase {
         }
       });
     if (isDupEntry) {
-      return Promise.resolve(responseHelper.successWithData({}));
+      return responseHelper.successWithData({});
     }
-    return Promise.resolve(responseHelper.successWithData({ insertId: insertRsp.insertId }));
+    return responseHelper.successWithData({ insertId: insertRsp.insertId });
   }
 
   /**
@@ -688,19 +688,19 @@ class WorkflowRouterBase {
         .fire();
 
       if (prerequisitesRecords.length !== nextStepDetails.prerequisites.length) {
-        return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
+        return responseHelper.successWithData({ dependencyResolved: 0 });
       }
       for (let index = 0; index < prerequisitesRecords.length; index++) {
         if (
           prerequisitesRecords[index].status !=
           new WorkflowStepsModel().invertedStatuses[workflowStepConstants.processedStatus]
         ) {
-          return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 0 }));
+          return responseHelper.successWithData({ dependencyResolved: 0 });
         }
       }
     }
 
-    return Promise.resolve(responseHelper.successWithData({ dependencyResolved: 1 }));
+    return responseHelper.successWithData({ dependencyResolved: 1 });
   }
 
   /**
@@ -794,7 +794,7 @@ class WorkflowRouterBase {
     await oThis._clearWorkflowCache(oThis.workflowId);
     await oThis._clearWorkflowStatusCache(oThis.workflowId);
 
-    return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+    return responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone });
   }
 
   /**
@@ -906,7 +906,7 @@ class WorkflowRouterBase {
    * @return {Promise<void>}
    */
   async ensureOnCatch() {
-    return Promise.resolve();
+    return;
   }
 
   /**
@@ -933,9 +933,9 @@ class WorkflowRouterBase {
     if (+workflowsModelResp.affectedRows === 1) {
       logger.win('*** Workflow with id ', oThis.workflowId, 'completed successfully!');
       // Implicit string to int conversion.
-      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+      return responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone });
     } else {
-      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
+      return responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed });
     }
   }
 
@@ -965,9 +965,9 @@ class WorkflowRouterBase {
     if (+workflowsModelResp.affectedRows === 1) {
       logger.error('*** Workflow with id ', oThis.workflowId, 'failed!');
       // Implicit string to int conversion.
-      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone }));
+      return responseHelper.successWithData({ taskStatus: workflowStepConstants.taskDone });
     } else {
-      return Promise.resolve(responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed }));
+      return responseHelper.successWithData({ taskStatus: workflowStepConstants.taskFailed });
     }
   }
 
