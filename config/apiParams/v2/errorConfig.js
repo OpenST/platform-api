@@ -238,6 +238,11 @@ const v2ErrorConfig = {
     parameter: 'chain_id',
     code: 'invalid',
     message: 'Invalid chain id'
+  },
+  missing_chain_id: {
+    parameter: 'chain_id',
+    code: 'missing',
+    message: 'Missing chain id'
   }
 };
 

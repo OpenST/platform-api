@@ -294,6 +294,9 @@ class Session extends Base {
   _sanitizeRowForDynamo(dbRow) {
     dbRow['status'] = sessionConstants.invertedSessionStatuses[dbRow['status']];
     dbRow['address'] = basicHelper.sanitizeAddress(dbRow['address']);
+    if (!dbRow['updatedTimestamp']) {
+      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+    }
     return dbRow;
   }
 

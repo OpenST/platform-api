@@ -266,7 +266,16 @@ class User extends Base {
 
     updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
-    let finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse);
+    const finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse),
+      afterUpdateResponse = await User.afterUpdate(oThis.ic(), {
+        tokenId: tokenId,
+        userId: userId,
+        shardNumber: oThis.shardNumber
+      });
+
+    if (afterUpdateResponse.isFailure()) {
+      return afterUpdateResponse;
+    }
 
     return Promise.resolve(responseHelper.successWithData(finalResponse));
   }
@@ -312,6 +321,10 @@ class User extends Base {
       params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
     }
     params['status'] = tokenUserConstants.invertedStatuses[params['status']];
+
+    if (!params['updatedTimestamp']) {
+      params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+    }
     return params;
   }
 

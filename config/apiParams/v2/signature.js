@@ -9,7 +9,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -19,7 +19,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'kind',
@@ -29,7 +29,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
   },
@@ -38,7 +38,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -48,7 +48,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
   },
@@ -57,7 +57,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -71,7 +71,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -105,11 +105,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'chain_id',
-        validatorMethod: 'validateChainId'
-      },
-      {
-        parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -119,7 +115,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -133,7 +129,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: [
@@ -143,7 +139,7 @@ const v2Signature = {
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'pagination_identifier',
@@ -156,7 +152,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -186,7 +182,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -200,7 +196,7 @@ const v2Signature = {
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'limit',
@@ -217,7 +213,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -238,7 +234,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -252,7 +248,7 @@ const v2Signature = {
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'limit',
@@ -269,7 +265,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -290,7 +286,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -300,7 +296,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
   },
@@ -309,7 +305,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
