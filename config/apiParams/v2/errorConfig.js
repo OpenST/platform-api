@@ -208,6 +208,16 @@ const v2ErrorConfig = {
     parameter: 'client_id',
     code: 'invalid',
     message: 'Token not setup'
+  },
+  ids_more_than_allowed_limit: {
+    parameter: 'ids',
+    code: 'invalid',
+    message: 'Ids cannot be more than max page limit.'
+  },
+  invalid_chain_id: {
+    parameter: 'chain_id',
+    code: 'invalid',
+    message: 'Invalid chain id'
   }
 };
 

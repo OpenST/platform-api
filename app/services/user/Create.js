@@ -126,9 +126,19 @@ class Create extends ServiceBase {
     let User = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel'),
       user = new User({ shardNumber: shardNumbers.data[shardConst.userEntityKind] });
 
-    let insertRsp = user.insertUser(params);
+    let insertRsp = await user.insertUser(params);
 
-    return responseHelper.successWithData({ [resultType.user]: params });
+    if (insertRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_u_c_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    // NOTE: As base library change the params values, reverse sanitize the data
+    return responseHelper.successWithData({ [resultType.user]: user._sanitizeRowFromDynamo(params) });
   }
 
   /**

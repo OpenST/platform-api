@@ -71,14 +71,18 @@ router.get('/', function(req, res, next) {
 
   const dataFormatterFunc = async function(serviceResponse) {
     let users = serviceResponse.data[resultType.users],
-      formattedUsers = [];
+      formattedUsers = [],
+      nextPagePayload = serviceResponse.data.nextPagePayload;
 
     for (let index in users) {
       formattedUsers.push(new UserFormatter(users[index]).perform().data);
     }
 
-    serviceResponse.data['result_type'] = resultType.users;
-    serviceResponse.data[resultType.users] = formattedUsers;
+    serviceResponse.data = {
+      result_type: resultType.users,
+      [resultType.users]: formattedUsers,
+      nextPagePayload: nextPagePayload
+    };
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetUsersList', 'r_v_u_3', null, dataFormatterFunc));

@@ -463,6 +463,11 @@
     "http_code": "409",
     "code": "ALREADY_EXISTS",
     "message": "Rolling back user status to created failed."
+  },
+  "invalid_chain_id": {
+    "http_code": "400",
+    "code": "BAD_REQUEST",
+    "message": "Invalid chain id."
   }
 
 }

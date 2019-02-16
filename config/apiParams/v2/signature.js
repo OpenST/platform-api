@@ -91,7 +91,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'chain_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateChainId'
       },
       {
         parameter: 'client_id',
@@ -124,8 +124,12 @@ const v2Signature = {
     ],
     optional: [
       {
-        parameter: 'id',
-        validatorMethod: 'validateString'
+        parameter: 'ids',
+        validatorMethod: 'validateUuidV4Array'
+      },
+      {
+        parameter: 'pagination_identifier',
+        validatorMethod: 'validatePaginationIdentifier'
       }
     ]
   },

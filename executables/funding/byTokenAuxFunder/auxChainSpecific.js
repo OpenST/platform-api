@@ -25,7 +25,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 1');
+  logger.log('    node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 14');
   logger.log('');
   logger.log('');
 });
