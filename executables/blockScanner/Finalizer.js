@@ -146,8 +146,8 @@ class Finalizer extends PublisherBase {
     // Initialize BlockParser.
     oThis.BlockScannerFinalizer = blockScannerObj.block.Finalize;
     oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
-    oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
-    oThis.PendingTransactionCache = blockScannerObj.cache.PendingTransaction;
+    oThis.PendingTransactionByHashCache = blockScannerObj.cache.PendingTransactionByHashCache;
+    oThis.PendingTransactionByUuidCache = blockScannerObj.cache.PendingTransactionByUuidCache;
 
     logger.step('Services initialised.');
   }
@@ -300,10 +300,7 @@ class Finalizer extends PublisherBase {
    * @private
    */
   async _checkAfterReceiptTasksAndPublish(params) {
-    const oThis = this,
-      pendingTransactionModel = new oThis.PendingTransactionModel({
-        chainId: oThis.chainId
-      });
+    const oThis = this;
 
     let transactionHashes = params.processedTransactions;
 
@@ -313,14 +310,14 @@ class Finalizer extends PublisherBase {
     let promises = [];
     while (true) {
       let batchedTransactionHashes = transactionHashes.splice(0, 50);
-      if (batchedTransactionHashes.length <= 0) {
+      if (batchedTransactionHashes.length === 0) {
         break;
       }
 
-      let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-          oThis.chainId,
-          batchedTransactionHashes
-        ),
+      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
+          chainId: oThis.chainId,
+          transactionHashes: batchedTransactionHashes
+        }).fetch(),
         pendingTransactionsMap = pendingTransactionRsp.data,
         transactionUuids = [];
 
@@ -332,14 +329,14 @@ class Finalizer extends PublisherBase {
         continue;
       }
 
-      let pendingTransactionCache = new oThis.PendingTransactionCache({
+      let PendingTransactionByUuidCache = new oThis.PendingTransactionByUuidCache({
         chainId: oThis.chainId,
         transactionUuids: transactionUuids
       });
 
-      let ptxResp = await pendingTransactionCache.fetch();
+      let ptxResp = await PendingTransactionByUuidCache.fetch();
 
-      if (ptxResp.isFailure()) {
+      if (ptxResp.isFailure() || ptxResp.data.length === 0) {
         continue;
       }
 
@@ -347,6 +344,7 @@ class Finalizer extends PublisherBase {
 
       for (let txUuid in pendingTransactionData) {
         let ptd = pendingTransactionData[txUuid];
+
         oThis.dataToDelete.push(ptd);
 
         if (ptd.hasOwnProperty('afterReceipt')) {
