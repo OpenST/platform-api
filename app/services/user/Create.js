@@ -31,8 +31,8 @@ class Create extends ServiceBase {
    *
    * @param params
    * @param {Number} params.client_id - client Id
-   * @param {Number} [params.token_id] - token Id
    * @param {String} params.kind - Kind (Company/User)
+   * @param {Number} [params.token_id] - token Id
    */
   constructor(params) {
     super(params);
@@ -41,7 +41,7 @@ class Create extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-    oThis.kind = params.kind || tokenUserConstants.userKind;
+    oThis.kind = params.kind;
 
     oThis.shardNumbersMap = {};
     oThis.configStrategyObj = null;

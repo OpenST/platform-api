@@ -20,9 +20,18 @@ const v2Signature = {
       {
         parameter: 'client_id',
         validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'kind',
+        validatorMethod: 'validateUserKindString'
       }
     ],
-    optional: [{ parameter: 'kind', validatorMethod: 'validateUserKindString' }]
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      }
+    ]
   },
 
   [apiName.getUser]: {
@@ -36,7 +45,12 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      }
+    ]
   },
 
   [apiName.getUserSalt]: {
@@ -126,6 +140,10 @@ const v2Signature = {
       {
         parameter: 'ids',
         validatorMethod: 'validateUuidV4Array'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
       },
       {
         parameter: 'pagination_identifier',

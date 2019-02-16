@@ -10,6 +10,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -23,11 +24,11 @@ class GetUsersList extends ServiceBase {
   /**
    * @constructor
    *
-   * @param params
-   * @param params.client_id {Number} - client Id
-   * @param params.token_id {Number} - token Id
-   * @param {String} params.pagination_identifier - pagination identifier to fetch page
-   * @param {Integer} [params.limit] - number of results to be returned on this page
+   * @param {Object} params
+   * @param {Number} params.client_id - client Id
+   * @param {Number} [params.token_id] - token Id
+   * @param {Array} [params.ids] - filter by user uuids
+   * @param {String} [params.pagination_identifier] - pagination identifier to fetch page
    */
   constructor(params) {
     super(params);
@@ -36,9 +37,9 @@ class GetUsersList extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-    oThis.paginationIdentifier = params.pagination_identifier;
-    oThis.limit = params.limit || oThis._defaultPageSize();
     oThis.userIds = params.ids || [];
+    oThis.paginationIdentifier = params.pagination_identifier;
+    oThis.limit = oThis._defaultPageSize();
 
     oThis.userShard = null;
     oThis.paginationParams = null;
@@ -81,7 +82,9 @@ class GetUsersList extends ServiceBase {
       let usersData = cacheResponse.data;
       for (let index in oThis.userIds) {
         let uuid = oThis.userIds[index];
-        users.push(usersData[uuid]);
+        if (!basicHelper.isEmptyObject(usersData[uuid])) {
+          users.push(usersData[uuid]);
+        }
       }
     }
     responseData.users = users;

@@ -49,6 +49,31 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  missing_user_id: {
+    parameter: 'user_id',
+    code: 'missing',
+    message: `missing user_id`
+  },
+  invalid_ids: {
+    parameter: 'ids',
+    code: 'invalid',
+    message: 'Invalid ids'
+  },
+  missing_ids: {
+    parameter: 'ids',
+    code: 'missing',
+    message: 'missing ids'
+  },
+  invalid_kind: {
+    parameter: 'kind',
+    code: 'invalid',
+    message: `Invalid kind`
+  },
+  missing_kind: {
+    parameter: 'kind',
+    code: 'missing',
+    message: `missing kind`
+  },
   invalid_session_addresses: {
     parameter: 'session_addresses',
     code: 'invalid',
@@ -73,11 +98,6 @@ const v2ErrorConfig = {
     parameter: 'knownAddressIds',
     code: 'invalid',
     message: `Invalid knownAddressIds`
-  },
-  missing_user_id: {
-    parameter: 'user_id',
-    code: 'missing',
-    message: `missing user_id`
   },
   invalid_request_path: {
     parameter: 'request_path',
