@@ -267,7 +267,7 @@ class Session extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForAddress + ')';
 
-    return oThis.updateItem(Session.sanitizeParamsForInsert(updateParams), conditionalExpression);
+    return oThis.updateItem(updateParams, conditionalExpression);
   }
 
   /**
@@ -294,6 +294,9 @@ class Session extends Base {
   _sanitizeRowForDynamo(dbRow) {
     dbRow['status'] = sessionConstants.invertedSessionStatuses[dbRow['status']];
     dbRow['address'] = basicHelper.sanitizeAddress(dbRow['address']);
+    if (!dbRow['updatedTimestamp']) {
+      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+    }
     return dbRow;
   }
 

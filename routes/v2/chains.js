@@ -7,14 +7,11 @@ const rootPrefix = '../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ChainFormatter = require(rootPrefix + '/lib/formatter/entity/Chain');
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/app/services/chain/Get');
-
 /* Get chain details*/
 router.get('/:chain_id', function(req, res, next) {
   req.decodedParams.apiName = apiName.getChain;
   req.decodedParams.chain_id = req.params.chain_id;
-  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.clientConfigStrategyRequired = false;
 
   const dataFormatterFunc = async function(serviceResponse) {
     const chainFormattedRsp = new ChainFormatter(serviceResponse.data[resultType.chain]).perform();
@@ -24,7 +21,7 @@ router.get('/:chain_id', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetChain', 'r_v_c_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/chain/Get', 'r_v2_c_1', null, dataFormatterFunc));
 });
 
 module.exports = router;

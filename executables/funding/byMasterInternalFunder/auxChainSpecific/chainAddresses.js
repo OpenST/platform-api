@@ -55,7 +55,7 @@ const stPrimeFundingPerChainConfig = {
     fundIfLessThanFlows: flowsForMinimumBalance
   },
   [chainAddressConstants.auxDeployerKind]: {
-    oneGWeiMinOSTPrimeAmount: '0.00840',
+    oneGWeiMinOSTPrimeAmount: '0.02330',
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   },

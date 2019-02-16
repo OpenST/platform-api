@@ -11,7 +11,7 @@ const rootPrefix = '../../..',
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  MosaicJs = require('@openstfoundation/mosaic.js');
 
 /**
  *
@@ -111,7 +111,7 @@ class DeployGateway extends Base {
   }
 
   static get GatewayHelper() {
-    return MosaicTbd.ChainSetup.GatewayHelper;
+    return MosaicJs.ChainSetup.GatewayHelper;
   }
 
   /**

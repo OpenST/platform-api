@@ -59,13 +59,7 @@ class PricePointsGet extends ServiceBase {
       clientConfigGroupCacheRsp = await clientConfigGroupCacheObj.fetch();
 
     if (clientConfigGroupCacheRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_pp_g_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { clientId: oThis.clientId }
-        })
-      );
+      return Promise.reject(clientConfigGroupCacheRsp);
     }
 
     logger.debug('Client config group data: ', clientConfigGroupCacheRsp.data);

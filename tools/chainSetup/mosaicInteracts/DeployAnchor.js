@@ -5,7 +5,7 @@
  * @module /tools/chainSetup/mosaicInteracts/DeployAnchor
  */
 
-const MosaicTbd = require('@openstfoundation/mosaic-tbd');
+const MosaicJs = require('@openstfoundation/mosaic.js');
 
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -111,7 +111,7 @@ class DeployAnchor extends Base {
   }
 
   static get AnchorHelper() {
-    return MosaicTbd.ChainSetup.AnchorHelper;
+    return MosaicJs.ChainSetup.AnchorHelper;
   }
 }
 

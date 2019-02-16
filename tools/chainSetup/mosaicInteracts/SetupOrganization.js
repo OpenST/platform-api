@@ -10,7 +10,7 @@ const rootPrefix = '../../..',
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  MosaicJs = require('@openstfoundation/mosaic.js');
 
 /**
  *
@@ -95,7 +95,7 @@ class SetupOrganization extends Base {
   }
 
   static get OrganizationHelper() {
-    return MosaicTbd.ChainSetup.OrganizationHelper;
+    return MosaicJs.ChainSetup.OrganizationHelper;
   }
 }
 

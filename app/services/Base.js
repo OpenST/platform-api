@@ -29,7 +29,6 @@ class ServicesBaseKlass {
    */
   constructor(params) {
     const oThis = this;
-    oThis.params = params;
 
     oThis.tokenId = null;
     oThis.token = null;
