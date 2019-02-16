@@ -252,10 +252,6 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'limit',
-        validatorMethod: 'validateInteger'
-      },
-      {
         parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
@@ -273,14 +269,16 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'addresses',
-        validatorMethod: 'validateEthAddressArray'
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
       }
-      // In this API, we are using the same service as getSessions for a user. Hence, we are
-      // converting the device_address into an array. The parameter passed into getSessions
-      // is an array of addresses called 'addresses'.
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getUserDeviceManager]: {

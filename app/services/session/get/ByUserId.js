@@ -3,20 +3,19 @@
 /**
  *  Fetch session details by userId.
  *
- * @module app/services/session/list/ByUserId
+ * @module app/services/session/get/ByUserId
  */
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  SessionListBase = require(rootPrefix + '/app/services/session/list/Base');
+  SessionGetBase = require(rootPrefix + '/app/services/session/get/Base'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Session');
 require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
@@ -26,59 +25,52 @@ const OSTBase = require('@openstfoundation/openst-base'),
  *
  * @class SessionListByUserId
  */
-class SessionListByUserId extends SessionListBase {
+class SessionListByUserId extends SessionGetBase {
   /**
    * @param params
    * @param {Integer} params.client_id
-   * @param {String} params.user_id - uuid
+   * @param {String} params.user_id
+   * @param {Array} [params.addresses]
    * @param {Integer} [params.token_id]
-   * @param {Integer} [params.limit] - number of results to be returned on this page
-   * @param {String} params.pagination_identifier - pagination identifier to fetch page
+   * @param {String} [params.pagination_identifier] - pagination identifier to fetch page
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
 
-    oThis.limit = params.limit;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+    oThis.addresses = params.addresses;
+
+    oThis.limit = pagination.defaultSessionPageSize;
+
     oThis.paginationParams = null;
-    oThis.defaultSessionPageSize = pagination.defaultSessionPageSize;
+    oThis.nextPagePayload = null;
   }
 
   /**
-   * Validate and sanitize input parameters.
+   * Validate Specific params
    *
-   * @returns {*}
+   * @returns {Promise<never>}
    * @private
    */
-  _sanitizeParams() {
+  async _validateParams() {
     const oThis = this;
 
-    super._sanitizeParams();
-
-    if (oThis.paginationIdentifier) {
-      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
-    }
-
-    let limitVas = CommonValidators.validateAndSanitizeLimit(
-      oThis.limit,
-      oThis.defaultSessionPageSize,
-      pagination.maxSessionPageSize
-    );
-
-    if (!limitVas[0]) {
+    if (oThis.addresses && oThis.addresses.length > pagination.maxSessionPageSize) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 's_s_l_bui_2',
+          internal_error_identifier: 's_s_l_bui_1',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_pagination_limit'],
+          params_error_identifiers: ['addresses_more_than_allowed_limit'],
           debug_options: {}
         })
       );
     }
 
-    oThis.limit = limitVas[1];
+    if (oThis.paginationIdentifier) {
+      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
+    }
   }
 
   /**
@@ -89,9 +81,16 @@ class SessionListByUserId extends SessionListBase {
   async _setAddresses() {
     const oThis = this;
 
+    // If addresses are sent as filter and return from here
+    if (oThis.addresses) {
+      return Promise.resolve(responseHelper.successWithData());
+    }
+
+    // Else fetch addresses from relevant source
     let response;
 
-    if (oThis.paginationParams || oThis.limit !== oThis.defaultSessionPageSize) {
+    // Cache only first page
+    if (oThis.paginationParams) {
       response = await oThis._fetchFromDdb();
     } else {
       response = await oThis._fetchFromCache();
@@ -101,16 +100,39 @@ class SessionListByUserId extends SessionListBase {
     oThis.nextPagePayload = response.data['nextPagePayload'];
   }
 
+  /**
+   * Fetch sessions from cache.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchSessionFromCache() {
+    const oThis = this;
+
+    let response = await oThis._getUserSessionsDataFromCache(oThis.addresses);
+
+    let returnData = {
+      [resultType.sessions]: response.data
+    };
+
+    if (oThis.nextPagePayload) {
+      returnData[resultType.nextPagePayload] = oThis.nextPagePayload;
+    }
+
+    return returnData;
+  }
+
+  /**
+   * Fetch user sessions from DDB
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
   async _fetchFromDdb() {
     const oThis = this,
       SessionModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionModel');
 
-    let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
-      cacheFetchRsp = await tokenUserDetailsCacheObj.fetch(),
-      userData = cacheFetchRsp.data[oThis.userId];
-
-    let sessionObj = new SessionModel({ shardNumber: userData['sessionShardNumber'] });
+    let sessionObj = new SessionModel({ shardNumber: oThis.sessionShardNumber });
 
     let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
 
@@ -118,6 +140,7 @@ class SessionListByUserId extends SessionListBase {
   }
 
   /**
+   * fetch user sessions from cache
    *
    * @private
    */
@@ -129,7 +152,8 @@ class SessionListByUserId extends SessionListBase {
         .getShadowedClassFor(coreConstants.icNameSpace, 'SessionAddressesByUserIdCache'),
       sessionAddressesByUserId = new SessionAddressesByUserId({
         userId: oThis.userId,
-        tokenId: oThis.tokenId
+        tokenId: oThis.tokenId,
+        shardNumber: oThis.sessionShardNumber
       });
 
     return sessionAddressesByUserId.fetch();

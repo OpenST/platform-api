@@ -29,8 +29,8 @@ require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 
 require(rootPrefix + '/app/services/deviceManager/Get');
 
-require(rootPrefix + '/app/services/session/list/ByAddress');
-require(rootPrefix + '/app/services/session/list/ByUserId');
+require(rootPrefix + '/app/services/session/get/ByAddress');
+require(rootPrefix + '/app/services/session/get/ByUserId');
 require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 
 /* Create user*/
@@ -186,28 +186,22 @@ router.get('/:user_id/sessions', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let sessions = serviceResponse.data[resultType.sessions],
       formattedSessions = [],
-      buffer;
+      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data.nextPagePayload).perform().data;
 
     for (let address in sessions) {
-      buffer = sessions[address];
-      if (!CommonValidators.validateObject(buffer)) {
-        continue;
-      }
       formattedSessions.push(new SessionFormatter(sessions[address]).perform().data);
     }
 
-    serviceResponse.data['result_type'] = resultType.sessions;
-    serviceResponse.data[resultType.sessions] = formattedSessions;
+    serviceResponse.data = {
+      result_type: resultType.sessions,
+      [resultType.sessions]: formattedSessions,
+      [resultType.nextPagePayload]: nextPagePayload
+    };
   };
 
-  let serviceName;
-  if (req.decodedParams.address) {
-    serviceName = 'SessionListByAddress';
-  } else {
-    serviceName = 'SessionListByUserId';
-  }
-
-  return Promise.resolve(routeHelper.perform(req, res, next, serviceName, 'r_v2_u_7', null, dataFormatterFunc));
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'SessionListByUserId', 'r_v2_u_7', null, dataFormatterFunc)
+  );
 });
 
 /* Get User session By session Address */
@@ -215,25 +209,19 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSession;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
-  req.decodedParams.addresses = [req.params.session_address];
+  req.decodedParams.address = req.params.session_address;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let sessions = serviceResponse.data[resultType.sessions],
-      formattedRsp = {};
+    let session = serviceResponse.data[resultType.session],
+      formattedRsp = new SessionFormatter(session).perform();
 
-    for (let address in sessions) {
-      const buffer = sessions[address];
-      if (CommonValidators.validateObject(buffer)) {
-        formattedRsp = new SessionFormatter(sessions[address]).perform();
-      }
-    }
     serviceResponse.data = {
       result_type: resultType.session,
-      [resultType.session]: formattedRsp.data || {}
+      [resultType.session]: formattedRsp.data
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'SessionListByAddress', 'r_v2_u_8', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'SessionGetByAddress', 'r_v2_u_8', null, dataFormatterFunc));
 });
 
 /* Get user device managers*/

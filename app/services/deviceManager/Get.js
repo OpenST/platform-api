@@ -13,6 +13,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
@@ -51,24 +52,13 @@ class Get extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._sanitizeParams();
-
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
     }
 
-    await oThis._getUserDetailsFromDdb();
+    await oThis._getUserDetailsFromCache();
 
     return Promise.resolve(responseHelper.successWithData({ [resultType.deviceManager]: oThis.details }));
-  }
-
-  /**
-   *
-   * @private
-   */
-  _sanitizeParams() {
-    const oThis = this;
-    oThis.userId = oThis.userId.toLowerCase();
   }
 
   /**
@@ -76,7 +66,7 @@ class Get extends ServiceBase {
    *
    * @return {Promise<*|result>}
    */
-  async _getUserDetailsFromDdb() {
+  async _getUserDetailsFromCache() {
     const oThis = this;
 
     let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
@@ -96,9 +86,20 @@ class Get extends ServiceBase {
 
     if (!CommonValidators.validateObject(oThis.details)) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_g_1',
           api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
+          debug_options: {}
+        })
+      );
+    }
+
+    if (oThis.details.status != tokenUserConstants.activatedStatus) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_dm_g_2',
+          api_error_identifier: 'user_not_activated',
           debug_options: {}
         })
       );

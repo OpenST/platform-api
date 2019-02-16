@@ -54,6 +54,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `User not found`
   },
+  session_not_found: {
+    parameter: 'session_address',
+    code: 'invalid',
+    message: `User session not found`
+  },
   missing_user_id: {
     parameter: 'user_id',
     code: 'missing',
@@ -263,6 +268,11 @@ const v2ErrorConfig = {
     parameter: 'ids',
     code: 'invalid',
     message: 'Ids cannot be more than max page limit.'
+  },
+  addresses_more_than_allowed_limit: {
+    parameter: 'addresses',
+    code: 'invalid',
+    message: 'Addresses cannot be more than max page limit.'
   },
   invalid_chain_id: {
     parameter: 'chain_id',
