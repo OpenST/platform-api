@@ -25,7 +25,9 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '4': workflowConstants.btStakeAndMintKind,
     '5': workflowConstants.grantEthOstKind,
     '6': workflowConstants.setupUserKind,
-    '7': workflowConstants.testKind
+    '7': workflowConstants.testKind,
+    '8': workflowConstants.authorizeDeviceKind,
+    '9': workflowConstants.authorizeSessionKind
   },
   invertedStatuses = util.invert(statuses),
   invertedKinds = util.invert(kinds);

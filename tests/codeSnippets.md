@@ -89,14 +89,14 @@ a.perform().then(console.log)
 ```node
 
 params = {
-  currentStepId: 126,
-  workflowId: 5,
-  stepKind: 'activateTokenGateway',
+  currentStepId: 272,
+  workflowId: 46,
+  stepKind: 'authorizeDevicePerformTransaction',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
-  topic: 'workflow.economySetup'
+  topic: 'auxWorkflow.authorizeDevice'
 }
-economySetupRouterK = require('./executables/workflowRouter/EconomySetupRouter')
+economySetupRouterK = require('./executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter.js')
 economySetupRouter = new economySetupRouterK(params)
 economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
 

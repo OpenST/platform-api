@@ -156,7 +156,7 @@ class Aggregator extends SubscriberBase {
       logger.log('Aggregation done for block', blockNumber);
       logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
-      return Promise.resolve();
+      return;
     } else {
       // Aggregation was unsuccessful.
 
@@ -168,7 +168,7 @@ class Aggregator extends SubscriberBase {
         aggregatorResponse
       );
       // ACK RMQ.
-      return Promise.resolve();
+      return;
     }
   }
 }

@@ -104,13 +104,13 @@ class UpdateRealTimeGasPrice extends CronBase {
         originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
       }
       logger.info('Origin chain gas price cache is set to:', gasPriceToBeSubmittedHex);
-      return Promise.resolve(responseHelper.successWithData(gasPriceToBeSubmittedHex));
+      return responseHelper.successWithData(gasPriceToBeSubmittedHex);
     }
 
     logger.info('Origin chain gas price cache is not set');
     oThis.canExit = true;
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return responseHelper.successWithData({});
   }
 
   /**
