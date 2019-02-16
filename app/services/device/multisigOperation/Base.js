@@ -133,6 +133,13 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     return responseHelper.successWithData(deviceDetails);
   }
 
+  /**
+   * Checks if the device status is same as the passed parameter
+   *
+   * @param {String}deviceStatus
+   * @returns {Promise<never>}
+   * @private
+   */
   async _checkDeviceStatus(deviceStatus) {
     const oThis = this;
 
@@ -239,11 +246,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     return oThis.configStrategyObj;
   }
 
-  async performOperation() {
-    throw 'sub-class to implement';
-  }
-
-  _performOperation() {
+  async _performOperation() {
     throw 'sub-class to implement';
   }
 }
