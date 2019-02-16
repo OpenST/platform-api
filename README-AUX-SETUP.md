@@ -4,6 +4,7 @@
 
 * AUX Configs Seed
 ```bash
+    source set_env_vars.sh
     ./devops/exec/configStrategy.js --add-aux-configs
 
     # Note: For staging and production follow help
@@ -135,7 +136,7 @@ And add it to tables using following script.
                     facilitator: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
                     amountToStake: '100000000000000000001', 
                     beneficiary: '0xd83f7162dca396cab4d25155dadf3ca8f623c943',
-                    firstTimeMint: false //[optional]
+                    firstTimeMint: true //[optional]
                 }
         }
         stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')

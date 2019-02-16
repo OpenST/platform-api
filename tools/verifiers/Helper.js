@@ -1,6 +1,6 @@
 'use strict';
 
-const BrandedToken = require('@openstfoundation/brandedtoken.js');
+const MosaicJs = require('@openstfoundation/mosaic.js');
 
 const rootPrefix = '../..',
   CoreBins = require(rootPrefix + '/config/CoreBins'),
@@ -77,7 +77,7 @@ class VerifierHelper {
    * @constructor
    */
   static get AbiBinProviderHelper() {
-    return BrandedToken.AbiBinProvider;
+    return MosaicJs.AbiBinProvider;
   }
 
   /**

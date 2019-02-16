@@ -11,13 +11,13 @@
       "consistentBehavior": "1"
     },
     "globalRabbitmq": {
-      "username": "cluster_manager",
-      "password": "123456",
-      "host": "172.16.0.122",
+      "username": "guest",
+      "password": "guest",
+      "host": "127.0.0.1",
       "port": "5672",
       "heartbeats": "30",
       "clusterNodes": [
-        "172.16.0.110,172.16.0.122"
+        "127.0.0.1"
       ]
     },
     "originRabbitmq": {
