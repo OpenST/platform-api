@@ -19,7 +19,6 @@ const rootPrefix = '../../../..',
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
-require(rootPrefix + '/lib/device/UpdateStatus');
 
 class MultisigSessionsOpertationBaseKlass extends ServiceBase {
   constructor(params) {
@@ -32,7 +31,20 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.sessionKey = params.raw_calldata['parameters'][0];
     oThis.sessionShardNumber = params.user_data.sessionShardNumber;
     oThis.multisigProxyAddress = params.user_data.multisigAddress;
-    oThis.tokenUserDetails = null;
+    oThis.tokenHolderProxyAddress = params.user_data.tokenHolderAddress;
+
+    oThis.to = params.to;
+    oThis.value = params.value;
+    oThis.calldata = params.calldata;
+    oThis.rawCalldata = params.raw_calldata;
+    oThis.operation = params.operation;
+    oThis.safeTxGas = params.safe_tx_gas;
+    oThis.dataGas = params.data_gas;
+    oThis.gasPrice = params.gas_price;
+    oThis.gasToken = params.gas_token;
+    oThis.refundReceiver = params.refund_receiver;
+    oThis.signature = params.signature;
+    oThis.signer = params.signer;
   }
 
   async _asyncPerform() {
@@ -54,6 +66,9 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     const oThis = this;
 
     oThis.sessionKey = basicHelper.sanitizeAddress(oThis.sessionKey);
+    oThis.to = basicHelper.sanitizeAddress(oThis.to);
+    oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
+    oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
   }
 
   /**
@@ -68,7 +83,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
   async _performCommonPreChecks() {
     const oThis = this;
 
-    let tokenUserDetails = await oThis._getUserDetailsFromDdb(); //Todo: remove this cache hit. As user data is directly present in api parameters.
+    let tokenUserDetails = oThis.userData;
 
     //Check if user is activated
     if (
@@ -87,7 +102,16 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       );
     }
 
-    oThis.tokenUserDetails = tokenUserDetails;
+    if (tokenUserDetails.tokenHolderAddress !== oThis.to) {
+      logger.error('Tokenholder address mismatch');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_s_mo_b_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: ''
+        })
+      );
+    }
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
@@ -121,7 +145,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     if (basicHelper.isEmptyObject(sessionDetails)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_b_2',
+          internal_error_identifier: 'a_s_s_mo_b_3',
           api_error_identifier: 'resource_not_found',
           debug_options: {}
         })
@@ -157,7 +181,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     if (!CommonValidators.validateObject(tokenDetails)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_1',
+          internal_error_identifier: 'a_s_s_mo_b_4',
           api_error_identifier: 'resource_not_found',
           debug_options: {}
         })

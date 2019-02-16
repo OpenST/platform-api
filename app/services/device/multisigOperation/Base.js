@@ -20,6 +20,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
+require(rootPrefix + '/app/models/ddb/sharded/Device');
 
 class MultisigOpertationBaseKlass extends ServiceBase {
   constructor(params) {
@@ -29,11 +30,23 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     oThis.tokenId = params.token_id;
     oThis.userData = params.user_data;
     oThis.userId = params.user_data.userId;
-    oThis.devicesShardNumber = params.user_data.deviceShardNumber;
+    oThis.deviceShardNumber = params.user_data.deviceShardNumber;
 
-    oThis.deviceAddress = params.raw_calldata['parameters'][0]; //Todo: Fetch proper address. Clarification needed
+    oThis.deviceAddress = params.raw_calldata['parameters'][0];
 
-    oThis.tokenUserDetails = null;
+    oThis.to = params.to;
+    oThis.value = params.value;
+    oThis.calldata = params.calldata;
+    oThis.rawCalldata = params.raw_calldata;
+    oThis.operation = params.operation;
+    oThis.safeTxGas = params.safe_tx_gas;
+    oThis.dataGas = params.data_gas;
+    oThis.gasPrice = params.gas_price;
+    oThis.gasToken = params.gas_token;
+    oThis.refundReceiver = params.refund_receiver;
+    oThis.signature = params.signatures;
+    oThis.signer = params.signer;
+    oThis.multisigAddress = params.user_data.multisigAddress;
   }
 
   async _asyncPerform() {
@@ -55,6 +68,10 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     const oThis = this;
 
     oThis.deviceAddress = basicHelper.sanitizeAddress(oThis.deviceAddress);
+    oThis.to = basicHelper.sanitizeAddress(oThis.to);
+    oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
+    oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
+    oThis.multisigAddress = basicHelper.sanitizeAddress(oThis.multisigAddress);
   }
 
   /**
@@ -69,8 +86,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   async _performCommonPreChecks() {
     const oThis = this;
 
-    // TODO - remove the cache hit
-    let tokenUserDetails = await oThis._getUserDetailsFromDdb();
+    let tokenUserDetails = oThis.userData;
 
     //Check if user is activated
     if (
@@ -89,7 +105,16 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       );
     }
 
-    oThis.tokenUserDetails = tokenUserDetails;
+    if (oThis.multisigAddress !== oThis.to) {
+      logger.error('Multisig address mismatch');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_dm_mo_b_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: ''
+        })
+      );
+    }
 
     return responseHelper.successWithData({});
   }
@@ -123,7 +148,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     if (basicHelper.isEmptyObject(deviceDetails)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_ad_2',
+          internal_error_identifier: 'a_s_dm_mo_b_3',
           api_error_identifier: 'resource_not_found',
           debug_options: {}
         })
@@ -149,7 +174,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     if (deviceDetails.status !== deviceStatus) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_ad_1',
+          internal_error_identifier: 'a_s_dm_mo_b_4',
           api_error_identifier: 'something_went_wrong',
           debug_options: { deviceStatus: deviceDetails.status }
         })
@@ -160,18 +185,20 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   /**
    * This function updates the device status of the respective record in devices table.
    *
-   * @param {String}deviceStatus: Update the record with given device status
+   * @param {String}fromDeviceStatus:
+   * @param {String}toDeviceStatus: Update the record with given device status
    * @returns {Promise<*>}
    * @private
    */
-  async _updateDeviceStatus(deviceStatus) {
+  async _updateDeviceStatus(initialDeviceStatus, finalDeviceStatus) {
     const oThis = this;
 
     let paramsToUpdateDeviceStatus = {
       chainId: oThis._configStrategyObject.auxChainId,
       userId: oThis.userId,
-      status: deviceStatus,
-      shardNumber: oThis.tokenUserDetails.deviceShardNumber,
+      finalStatus: finalDeviceStatus,
+      initialStatus: initialDeviceStatus,
+      shardNumber: oThis.deviceShardNumber,
       walletAddress: oThis.deviceAddress
     };
     let UpdateDeviceStatusKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UpdateDeviceStatus'),
@@ -182,7 +209,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       return Promise.reject(updateDeviceStatusRsp);
     }
 
-    return responseHelper.successWithData({});
+    return updateDeviceStatusRsp;
   }
 
   /**

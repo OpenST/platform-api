@@ -6,12 +6,12 @@ const rootPrefix = '../../..',
 const steps = {
   [workflowStepConstants.authorizeSessionInit]: {
     kind: workflowStepConstants.authorizeSessionInit,
-    onFailure: workflowStepConstants.markFailure,
+    onFailure: workflowStepConstants.rollbackAuthorizeSessionTransaction,
     onSuccess: [workflowStepConstants.authorizeSessionPerformTransaction]
   },
   [workflowStepConstants.authorizeSessionPerformTransaction]: {
     kind: workflowStepConstants.authorizeSessionPerformTransaction,
-    onFailure: workflowStepConstants.markFailure,
+    onFailure: workflowStepConstants.rollbackAuthorizeSessionTransaction,
     onSuccess: [workflowStepConstants.authorizeSessionVerifyTransaction]
   },
   [workflowStepConstants.authorizeSessionVerifyTransaction]: {

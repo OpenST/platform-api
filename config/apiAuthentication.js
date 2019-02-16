@@ -76,6 +76,14 @@ class ApiAuthentication {
       [apiName.createUserDevice]: {
         supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/devices/'
+      },
+      [apiName.postAuthorizeDevice]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/authorize/'
+      },
+      [apiName.postAuthorizeSession]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/sessions/authorize/'
       }
     };
     return postRequestConfig;

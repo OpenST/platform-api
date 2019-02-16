@@ -46,15 +46,18 @@ class AuthorizeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    logger.debug('****Checking device status as registered');
-    await oThis._checkDeviceStatus(deviceConstants.registeredStatus);
+    //logger.debug('****Checking device status as registered');
+    //await oThis._checkDeviceStatus(deviceConstants.registeredStatus);
 
     logger.debug('****Updating the device status as authorizing');
-    await oThis._updateDeviceStatus(deviceConstants.authorisingStatus);
+    let updateResponse = await oThis._updateDeviceStatus(
+      deviceConstants.registeredStatus,
+      deviceConstants.authorisingStatus
+    );
 
     await oThis._startWorkflow();
 
-    return oThis._prepareResponseEntity();
+    return oThis._prepareResponseEntity(updateResponse);
   }
 
   /**
@@ -72,20 +75,21 @@ class AuthorizeDevice extends Base {
         tokenId: oThis.tokenId,
         userId: oThis.userId,
         deviceAddress: oThis.deviceAddress,
-        to: oThis.params.to,
-        value: oThis.params.value,
-        calldata: oThis.params.calldata,
-        rawCalldata: oThis.params.raw_calldata,
-        operation: oThis.params.operation,
-        safeTxGas: oThis.params.safe_tx_gas,
-        dataGas: oThis.params.data_gas,
-        gasPrice: oThis.params.gas_price,
-        gasToken: oThis.params.gas_token,
-        refundReceiver: oThis.params.refund_receiver,
-        signature: oThis.params.signature,
-        signer: oThis.params.signer,
+        to: oThis.to,
+        value: oThis.value,
+        calldata: oThis.calldata,
+        rawCalldata: oThis.rawCalldata,
+        operation: oThis.operation,
+        safeTxGas: oThis.safeTxGas,
+        dataGas: oThis.dataGas,
+        gasPrice: oThis.gasPrice,
+        gasToken: oThis.gasToken,
+        refundReceiver: oThis.refundReceiver,
+        signature: oThis.signature,
+        signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
-        devicesShardNumber: oThis.devicesShardNumber
+        deviceShardNumber: oThis.deviceShardNumber,
+        multisigAddress: oThis.multisigAddress
       },
       authorizeDeviceInitParams = {
         stepKind: workflowStepConstants.authorizeDeviceInit,
@@ -107,14 +111,13 @@ class AuthorizeDevice extends Base {
    * @returns {Promise<any>}
    * @private
    */
-  async _prepareResponseEntity() {
+  async _prepareResponseEntity(updateResponseData) {
     const oThis = this;
 
     logger.debug('****Preparing authorize device service response');
-    let deviceDetailsAfterUpdateRsp = await super._fetchDeviceDetails();
 
     return responseHelper.successWithData({
-      [resultType.device]: deviceDetailsAfterUpdateRsp.data
+      [resultType.device]: updateResponseData.data
     });
   }
 }

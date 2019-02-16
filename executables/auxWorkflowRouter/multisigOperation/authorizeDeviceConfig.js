@@ -6,12 +6,12 @@ const rootPrefix = '../../..',
 const steps = {
   [workflowStepConstants.authorizeDeviceInit]: {
     kind: workflowStepConstants.authorizeDeviceInit,
-    onFailure: workflowStepConstants.markFailure,
+    onFailure: workflowStepConstants.rollbackAuthorizeDeviceTransaction,
     onSuccess: [workflowStepConstants.authorizeDevicePerformTransaction]
   },
   [workflowStepConstants.authorizeDevicePerformTransaction]: {
     kind: workflowStepConstants.authorizeDevicePerformTransaction,
-    onFailure: workflowStepConstants.markFailure,
+    onFailure: workflowStepConstants.rollbackAuthorizeDeviceTransaction,
     onSuccess: [workflowStepConstants.authorizeDeviceVerifyTransaction]
   },
   [workflowStepConstants.authorizeDeviceVerifyTransaction]: {

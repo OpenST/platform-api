@@ -353,7 +353,7 @@ const v2Signature = {
         validatorMethod: 'validateEthAddress'
       },
       {
-        parameter: 'signature',
+        parameter: 'signatures',
         validatorMethod: 'validateString'
       },
       {
