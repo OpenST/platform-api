@@ -25,7 +25,7 @@ const rootPrefix = '../../../..',
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-require(rootPrefix + '/lib/device/updateStatus');
+require(rootPrefix + '/lib/device/NewUpdateStatus');
 
 class AuthorizeDevice extends Base {
   constructor(params) {
