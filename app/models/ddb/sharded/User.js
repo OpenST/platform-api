@@ -264,20 +264,12 @@ class User extends Base {
       });
     }
 
+    // Clear cache
+    await User.afterUpdate(oThis.ic(), { tokenId: tokenId, userId: userId, shardNumber: oThis.shardNumber });
+
     updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
-    const finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse),
-      afterUpdateResponse = await User.afterUpdate(oThis.ic(), {
-        tokenId: tokenId,
-        userId: userId,
-        shardNumber: oThis.shardNumber
-      });
-
-    if (afterUpdateResponse.isFailure()) {
-      return afterUpdateResponse;
-    }
-
-    return Promise.resolve(responseHelper.successWithData(finalResponse));
+    return Promise.resolve(responseHelper.successWithData(oThis._sanitizeRowFromDynamo(updateQueryResponse)));
   }
 
   /**

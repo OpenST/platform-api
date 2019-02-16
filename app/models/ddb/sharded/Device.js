@@ -315,16 +315,12 @@ class Device extends Base {
       });
     }
 
+    // Clear cache
+    await Device.afterUpdate(oThis.ic(), { userId: userId, walletAddress: walletAddress });
+
     updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
-    const finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse),
-      afterUpdateResponse = await Device.afterUpdate(oThis.ic(), { userId: userId, walletAddress: walletAddress });
-
-    if (afterUpdateResponse.isFailure()) {
-      return afterUpdateResponse;
-    }
-
-    return Promise.resolve(responseHelper.successWithData(finalResponse));
+    return Promise.resolve(responseHelper.successWithData(oThis._sanitizeRowFromDynamo(updateQueryResponse)));
   }
 
   /**
