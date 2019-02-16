@@ -70,8 +70,7 @@ class OriginChainSpecificCronSeeder {
   async insertBlockFinalizerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.blockFinalizer, {
-        chainId: 1000,
-        blockDelay: 24
+        chainId: 1000
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

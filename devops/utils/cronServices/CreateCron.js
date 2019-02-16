@@ -3,7 +3,7 @@ const fs = require('fs');
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  AddCronProcessService = require(rootPrefix + '/lib/addCronProcess');
+  InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons');
 
 /**
  * Class for inserting cron entries into saas db
@@ -58,10 +58,10 @@ class CreateCron {
 
       if (!cron.identifier) {
         // Add cron process entry in DB
-        const result = await oThis.addCronProcess(dbParams);
+        const result = await new InsertCrons().perform(dbParams.kind, dbParams.cron_params);
 
-        if (result.insertId > 0) {
-          cron.identifier = result.insertId;
+        if (result > 0) {
+          cron.identifier = result;
         }
       }
     }
@@ -85,20 +85,6 @@ class CreateCron {
       api_error_identifier: 'something_went_wrong',
       debug_options: {}
     });
-  }
-
-  /**
-   *
-   * Add cron process
-   *
-   * @param {Object} dbParams - Create parameters
-   *
-   * @returns {Promise<void>}
-   *
-   */
-  async addCronProcess(dbParams) {
-    const serviceObj = new AddCronProcessService(dbParams);
-    return serviceObj.perform();
   }
 }
 

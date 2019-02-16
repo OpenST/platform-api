@@ -17,6 +17,7 @@ const InstanceComposer = OSTBase.InstanceComposer;
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 class GetUsersList extends ServiceBase {
   /**
@@ -36,7 +37,8 @@ class GetUsersList extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
     oThis.paginationIdentifier = params.pagination_identifier;
-    oThis.limit = params.limit;
+    oThis.limit = params.limit || oThis._defaultPageSize();
+    oThis.userIds = params.ids || [];
 
     oThis.userShard = null;
     oThis.paginationParams = null;
@@ -50,6 +52,8 @@ class GetUsersList extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._validateParams();
+
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
     }
@@ -58,16 +62,49 @@ class GetUsersList extends ServiceBase {
 
     await oThis._fetchTokenUsersShards();
 
-    let response = await oThis._fetchUsersFromDdb();
+    let responseData = {};
+    if (oThis.userIds.length === 0) {
+      let response = await oThis._fetchUserIdsFromDdb();
 
-    if (response.isSuccess()) {
-      return Promise.resolve(responseHelper.successWithData(response.data));
-    } else {
+      // If user ids are found from Dynamo then fetch data from cache.
+      if (response.isSuccess() && response.data.users.length > 0) {
+        for (let i = 0; i < response.data.users.length; i++) {
+          oThis.userIds.push(response.data.users[i].userId);
+        }
+      }
+      responseData = response.data;
+    }
+
+    let cacheResponse = await oThis._fetchUsersFromCache(oThis.userIds);
+    let users = [];
+    if (cacheResponse.isSuccess()) {
+      let usersData = cacheResponse.data;
+      for (let index in oThis.userIds) {
+        let uuid = oThis.userIds[index];
+        users.push(usersData[uuid]);
+      }
+    }
+    responseData.users = users;
+
+    return Promise.resolve(responseHelper.successWithData(responseData));
+  }
+
+  /**
+   * Validate Specific params
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _validateParams() {
+    const oThis = this;
+
+    if (oThis.userIds && oThis.userIds.length > oThis._maxPageSize()) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_u_gl_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { error: response.error.toString() }
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['ids_more_than_allowed_limit'],
+          debug_options: {}
         })
       );
     }
@@ -98,7 +135,7 @@ class GetUsersList extends ServiceBase {
    * @return {Promise<void>}
    * @private
    */
-  async _fetchUsersFromDdb() {
+  async _fetchUserIdsFromDdb() {
     const oThis = this,
       UserModelKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel');
 
@@ -106,7 +143,7 @@ class GetUsersList extends ServiceBase {
 
     let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
 
-    return userModelObj.getUsers(oThis.tokenId, oThis.limit, lastEvaluatedKey);
+    return userModelObj.getUserIds(oThis.tokenId, oThis.limit, lastEvaluatedKey);
   }
 
   /**
@@ -123,6 +160,19 @@ class GetUsersList extends ServiceBase {
    */
   _maxPageSize() {
     return pagination.maxUserListPageSize;
+  }
+
+  /**
+   * Fetch user details.
+   *
+   * @return {Promise<string>}
+   */
+  async _fetchUsersFromCache(userIds) {
+    const oThis = this,
+      TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: userIds });
+
+    return tokenUserDetailsCacheObj.fetch();
   }
 }
 

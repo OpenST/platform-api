@@ -334,12 +334,12 @@ class User extends Base {
    * Get token users paginated data
    *
    * @param {Number} tokenId
-   * @param {Number} [limit] - optional
+   * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getUsers(tokenId, limit, lastEvaluatedKey) {
+  async getUserIds(tokenId, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId];
@@ -350,6 +350,7 @@ class User extends Base {
       ExpressionAttributeValues: {
         ':tid': { [dataTypeForTokenId]: tokenId.toString() }
       },
+      ProjectionExpression: oThis.shortNameFor('userId'),
       Limit: limit || pagination.defaultUserListPageSize
     };
     if (lastEvaluatedKey) {

@@ -504,6 +504,15 @@ class BasicHelperKlass {
   }
 
   /**
+   * Get current timestamp in seconds.
+   *
+   * @return {Number}
+   */
+  getCurrentTimestampInSeconds() {
+    return Math.floor(new Date().getTime() / 1000);
+  }
+
+  /**
    * Checks whether the object is empty or not.
    *
    * @param {Object} obj

@@ -162,7 +162,7 @@
   "token_not_setup": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
+    "message": "Token not setup."
   },
   "missing_client_id": {
     "http_code": "400",
@@ -448,6 +448,26 @@
     "http_code": "409",
     "code": "ALREADY_EXISTS",
     "message": "Device address is invalid."
+  },
+  "invalid_user_status": {
+    "http_code": "409",
+    "code": "ALREADY_EXISTS",
+    "message": "User status is not created."
+  },
+  "invalid_device_status": {
+    "http_code": "409",
+    "code": "ALREADY_EXISTS",
+    "message": "Device status is not registered."
+  },
+  "user_status_rollback_failed": {
+    "http_code": "409",
+    "code": "ALREADY_EXISTS",
+    "message": "Rolling back user status to created failed."
+  },
+  "invalid_chain_id": {
+    "http_code": "400",
+    "code": "BAD_REQUEST",
+    "message": "Invalid chain id."
   }
 
 }

@@ -11,7 +11,7 @@
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer,
-  MosaicTbd = require('@openstfoundation/mosaic-tbd');
+  MosaicJs = require('@openstfoundation/mosaic.js');
 
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -206,7 +206,7 @@ class GatewayComposer {
     const oThis = this;
 
     if (!oThis.mosaicStakeHelper) {
-      oThis.mosaicStakeHelper = new MosaicTbd.Helpers.StakeHelper();
+      oThis.mosaicStakeHelper = new MosaicJs.Helpers.StakeHelper();
     }
 
     return oThis.mosaicStakeHelper;

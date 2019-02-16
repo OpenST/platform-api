@@ -164,6 +164,16 @@ const v2ErrorConfig = {
     code: 'missing',
     message: 'missing address.'
   },
+  invalid_device_address: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message: 'Invalid device_address.'
+  },
+  missing_device_address: {
+    parameter: 'device_address',
+    code: 'missing',
+    message: 'missing device_address.'
+  },
   invalid_device_name: {
     parameter: 'device_name',
     code: 'invalid',
@@ -198,6 +208,16 @@ const v2ErrorConfig = {
     parameter: 'client_id',
     code: 'invalid',
     message: 'Token not setup'
+  },
+  ids_more_than_allowed_limit: {
+    parameter: 'ids',
+    code: 'invalid',
+    message: 'Ids cannot be more than max page limit.'
+  },
+  invalid_chain_id: {
+    parameter: 'chain_id',
+    code: 'invalid',
+    message: 'Invalid chain id'
   }
 };
 

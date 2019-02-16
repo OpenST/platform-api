@@ -14,7 +14,7 @@ const rootPrefix = '../../../..',
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
-require(rootPrefix + '/lib/cacheManagement/chain/BlockTimeDetails');
+require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 
 const BigNumber = require('bignumber.js');
 
@@ -92,8 +92,9 @@ class SessionListBase extends ServiceBase {
   async _addExpirationTime(response) {
     const oThis = this,
       finalResponse = {},
+      chainId = oThis.ic().configStrategy.auxGeth.chainId,
       BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
-      blockTimeDetailsCache = new BlockTimeDetailsCache({});
+      blockTimeDetailsCache = new BlockTimeDetailsCache({ chainId: chainId });
 
     let blockDetails = await blockTimeDetailsCache.fetch(),
       blockGenerationTimeInSecs = blockDetails.data.blockGenerationTime;
