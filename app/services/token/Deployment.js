@@ -85,7 +85,7 @@ class Deployment {
 
     let startGrantEthOstResponse = await oThis._grantEthOst();
 
-    return Promise.resolve(tokenDeploymentResponse);
+    return tokenDeploymentResponse;
   }
 
   /**
