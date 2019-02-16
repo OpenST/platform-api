@@ -19,7 +19,7 @@ const rootPrefix = '../../../..',
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
-require(rootPrefix + '/lib/device/NewUpdateStatus');
+require(rootPrefix + '/lib/device/UpdateStatus');
 
 class MultisigSessionsOpertationBaseKlass extends ServiceBase {
   constructor(params) {
