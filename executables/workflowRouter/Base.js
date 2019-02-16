@@ -606,7 +606,8 @@ class WorkflowRouterBase {
 
     let openSTNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
         connectionWaitSeconds: connectionTimeoutConst.crons,
-        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
+        auxChainId: oThis.requestParams.auxChainId
       }),
       setToRMQ = await openSTNotification.publishEvent.perform(messageParams);
 
