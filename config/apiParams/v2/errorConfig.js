@@ -49,10 +49,15 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  user_not_found: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `User not found`
+  },
   missing_user_id: {
     parameter: 'user_id',
     code: 'missing',
-    message: `missing user_id`
+    message: `Missing user_id`
   },
   invalid_ids: {
     parameter: 'ids',

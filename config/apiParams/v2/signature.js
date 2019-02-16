@@ -199,10 +199,6 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'limit',
-        validatorMethod: 'validateInteger'
-      },
-      {
         parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validatePaginationIdentifier'
       }
@@ -227,7 +223,12 @@ const v2Signature = {
       // converting the device_address into an array. The parameter passed into getDevices
       // is an array of addresses called 'addresses'.
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getUserSessions]: {

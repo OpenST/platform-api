@@ -10,7 +10,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   GetListBase = require(rootPrefix + '/app/services/device/getList/Base');
 
@@ -32,18 +32,16 @@ class ListByUserId extends GetListBase {
    * @param {Integer} params.client_id
    * @param {String} params.user_id - uuid
    * @param {Integer} [params.token_id]
-   * @param {Integer} [params.limit] - number of results to be returned on this page
-   * @param {String} params.pagination_identifier - pagination identifier to fetch page
+   * @param {String} [params.pagination_identifier] - pagination identifier to fetch page
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
 
-    oThis.limit = params.limit;
-    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+    oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
+
     oThis.paginationParams = null;
-    oThis.defaultDeviceListPageSize = pagination.defaultDeviceListPageSize;
   }
 
   /**
@@ -62,7 +60,7 @@ class ListByUserId extends GetListBase {
       if (!CommonValidators.validateDdbNextPagePayload(oThis.paginationParams)) {
         return Promise.reject(
           responseHelper.paramValidationError({
-            internal_error_identifier: 's_d_glb_uid_1',
+            internal_error_identifier: 's_d_gl_bui_1',
             api_error_identifier: 'invalid_api_params',
             params_error_identifiers: ['invalid_pagination_identifier'],
             debug_options: {}
@@ -70,25 +68,6 @@ class ListByUserId extends GetListBase {
         );
       }
     }
-
-    let limitVas = CommonValidators.validateAndSanitizeLimit(
-      oThis.limit,
-      oThis.defaultDeviceListPageSize,
-      pagination.maxDeviceListPageSize
-    );
-
-    if (!limitVas[0]) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 's_d_glb_uid_2',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_limit'],
-          debug_options: {}
-        })
-      );
-    }
-
-    oThis.limit = limitVas[1];
   }
 
   /**
@@ -99,7 +78,7 @@ class ListByUserId extends GetListBase {
 
     let response;
 
-    if (oThis.paginationParams || oThis.limit !== oThis.defaultDeviceListPageSize) {
+    if (oThis.paginationParams && oThis.paginationParams.lastEvaluatedKey) {
       response = await oThis._fetchFromDdb();
     } else {
       response = await oThis._fetchFromCache();
@@ -115,14 +94,24 @@ class ListByUserId extends GetListBase {
 
     let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
-      cacheFetchRsp = await tokenUserDetailsCacheObj.fetch(),
-      userData = cacheFetchRsp.data[oThis.userId];
+      cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
 
-    let deviceObj = new DeviceModel({ shardNumber: userData['deviceShardNumber'] });
+    if (!CommonValidators.validateObject(cacheFetchRsp.data[oThis.userId])) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_d_gl_bui_2',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
+          debug_options: {}
+        })
+      );
+    }
 
-    let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
+    const userData = cacheFetchRsp.data[oThis.userId],
+      deviceObj = new DeviceModel({ shardNumber: userData['deviceShardNumber'] }),
+      lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
 
-    return deviceObj.getWalletAddresses(oThis.userId, oThis.limit, lastEvaluatedKey);
+    return deviceObj.getWalletAddresses(oThis.userId, paginationConstants.defaultDeviceListPageSize, lastEvaluatedKey);
   }
 
   /**

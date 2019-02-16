@@ -86,7 +86,7 @@ router.get('/', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.users,
       [resultType.users]: formattedUsers,
-      next_page_payload: nextPagePayload
+      [resultType.nextPagePayload]: nextPagePayload
     };
   };
 
@@ -119,7 +119,8 @@ router.get('/:user_id/devices', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let devices = serviceResponse.data[resultType.devices],
       formattedDevices = [],
-      buffer;
+      buffer,
+      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data[resultType.nextPagePayload]).perform().data;
 
     for (let deviceUuid in devices) {
       buffer = devices[deviceUuid];
@@ -129,12 +130,15 @@ router.get('/:user_id/devices', function(req, res, next) {
       formattedDevices.push(new DeviceFormatter(devices[deviceUuid]).perform().data);
     }
 
-    serviceResponse.data['result_type'] = resultType.devices;
-    serviceResponse.data[resultType.devices] = formattedDevices;
+    serviceResponse.data = {
+      result_type: resultType.devices,
+      [resultType.devices]: formattedDevices,
+      [resultType.nextPagePayload]: nextPagePayload
+    };
   };
 
   let serviceName;
-  if (req.decodedParams.address) {
+  if (req.decodedParams.addresses) {
     serviceName = 'DeviceListByWalletAddress';
   } else {
     serviceName = 'DeviceListByUserId';

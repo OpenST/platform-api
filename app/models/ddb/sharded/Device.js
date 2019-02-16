@@ -171,11 +171,13 @@ class Device extends Base {
     let putItemResponse = await oThis.putItem(params, conditionalExpression);
 
     if (putItemResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
-      return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_d_1',
-        api_error_identifier: 'conditional_check_failed',
-        debug_options: { error: putItemResponse.toHash() }
-      });
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_d_s_d_1',
+          api_error_identifier: 'conditional_check_failed',
+          debug_options: { error: putItemResponse.toHash() }
+        })
+      );
     }
 
     return putItemResponse;
@@ -254,6 +256,9 @@ class Device extends Base {
     if (dbRow['personalSignAddress']) {
       dbRow['personalSignAddress'] = basicHelper.sanitizeAddress(dbRow['personalSignAddress']);
     }
+    if (!dbRow['updatedTimestamp']) {
+      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+    }
     return dbRow;
   }
 
@@ -312,7 +317,12 @@ class Device extends Base {
 
     updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
-    let finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse);
+    const finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse),
+      afterUpdateResponse = await Device.afterUpdate(oThis.ic(), { userId: userId, walletAddress: walletAddress });
+
+    if (afterUpdateResponse.isFailure()) {
+      return afterUpdateResponse;
+    }
 
     return Promise.resolve(responseHelper.successWithData(finalResponse));
   }
@@ -377,13 +387,11 @@ class Device extends Base {
       return Promise.reject(response);
     }
 
-    let row,
-      formattedRow,
-      walletAddresses = [];
+    let walletAddresses = [];
 
     for (let i = 0; i < response.data.Items.length; i++) {
-      row = response.data.Items[i];
-      formattedRow = oThis._formatRowFromDynamo(row);
+      let row = response.data.Items[i],
+        formattedRow = oThis._formatRowFromDynamo(row);
       walletAddresses.push(formattedRow.walletAddress);
     }
 

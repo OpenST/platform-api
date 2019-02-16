@@ -14,6 +14,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -97,30 +98,6 @@ class CreateDevice extends ServiceBase {
     oThis.walletAddress = oThis.walletAddress.toLowerCase();
   }
 
-  /***
-   *
-   * config strategy
-   *
-   * @return {object}
-   */
-  get _configStrategy() {
-    const oThis = this;
-    return oThis.ic().configStrategy;
-  }
-
-  /***
-   *
-   * object of config strategy klass
-   *
-   * @return {object}
-   */
-  get _configStrategyObject() {
-    const oThis = this;
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
-    return oThis.configStrategyObj;
-  }
-
   /**
    * This method creates entry into device table.
    *
@@ -132,7 +109,18 @@ class CreateDevice extends ServiceBase {
       tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
       cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
 
-    let userData = cacheFetchRsp.data[oThis.userId];
+    if (!CommonValidators.validateObject(cacheFetchRsp.data[oThis.userId])) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_d_c_2',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
+          debug_options: {}
+        })
+      );
+    }
+
+    const userData = cacheFetchRsp.data[oThis.userId];
 
     let Device = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel'),
       chainId = oThis._configStrategyObject.auxChainId,
@@ -152,6 +140,30 @@ class CreateDevice extends ServiceBase {
     logger.info('Entry created in device table with shardNumber ', userData['deviceShardNumber']);
 
     return responseHelper.successWithData({ [resultType.device]: params });
+  }
+
+  /***
+   *
+   * object of config strategy klass
+   *
+   * @return {object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+    return oThis.configStrategyObj;
+  }
+
+  /***
+   *
+   * config strategy
+   *
+   * @return {object}
+   */
+  get _configStrategy() {
+    const oThis = this;
+    return oThis.ic().configStrategy;
   }
 }
 

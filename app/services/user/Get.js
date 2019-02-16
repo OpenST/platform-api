@@ -63,7 +63,7 @@ class Get extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_g_1',
           api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['missing_user_id'],
+          params_error_identifiers: ['user_not_found'],
           debug_options: {}
         })
       );
