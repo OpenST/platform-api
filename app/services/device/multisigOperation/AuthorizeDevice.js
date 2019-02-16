@@ -28,6 +28,11 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 
 class AuthorizeDevice extends Base {
+  /**
+   * @constructor
+   *
+   * @param params
+   */
   constructor(params) {
     super(params);
   }
@@ -41,41 +46,17 @@ class AuthorizeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    await oThis._checkDeviceStatus();
+    logger.debug('****Checking device status as registered');
+    await oThis._checkDeviceStatus(deviceConstants.registeredStatus);
 
-    await oThis._updateDeviceStatus();
+    logger.debug('****Updating the device status as authorizing');
+    await oThis._updateDeviceStatus(deviceConstants.authorisingStatus);
 
     await oThis._startWorkflow();
 
     let response = await oThis._prepareResponseEntity();
 
     return Promise.resolve(response);
-  }
-
-  /**
-   * Check the status of device
-   *
-   * @returns {Promise<any>}
-   * @private
-   */
-  async _checkDeviceStatus() {
-    logger.debug('****Checking device status as registered');
-    await super._checkDeviceStatus(deviceConstants.registeredStatus);
-
-    return Promise.resolve(responseHelper.successWithData({}));
-  }
-
-  /**
-   * updates the status of device
-   *
-   * @returns {Promise<any>}
-   * @private
-   */
-  async _updateDeviceStatus() {
-    logger.debug('****Updating the device status as authorizing');
-    await super._updateDeviceStatus(deviceConstants.authorisingStatus);
-
-    return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**

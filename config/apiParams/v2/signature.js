@@ -298,7 +298,7 @@ const v2Signature = {
         validatorMethod: 'validateObject'
       },
       {
-        parameter: 'data_defination',
+        parameter: 'data_definition',
         validatorMethod: 'validateString'
       },
       {
@@ -364,7 +364,7 @@ const v2Signature = {
         validatorMethod: 'validateObject'
       },
       {
-        parameter: 'data_defination',
+        parameter: 'data_definition',
         validatorMethod: 'validateString'
       },
       {

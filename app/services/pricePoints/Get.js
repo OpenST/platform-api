@@ -42,7 +42,7 @@ class PricePointsGet extends ServiceBase {
     let pricePointsRsp = await oThis._fetchPricePointsData({ chainId: auxChainId }),
       pricePointsData = pricePointsRsp.data;
 
-    return Promise.resolve(responseHelper.successWithData(pricePointsData));
+    return responseHelper.successWithData(pricePointsData);
   }
 
   /**
@@ -66,7 +66,7 @@ class PricePointsGet extends ServiceBase {
 
     let auxChainId = clientConfigGroupCacheRsp.data[oThis.clientId].chainId;
 
-    return Promise.resolve(responseHelper.successWithData(auxChainId));
+    return responseHelper.successWithData(auxChainId);
   }
 
   /**
@@ -97,7 +97,7 @@ class PricePointsGet extends ServiceBase {
 
     logger.debug('Price points data: ', pricePointsResponse.data);
 
-    return Promise.resolve(responseHelper.successWithData(pricePointsResponse.data));
+    return responseHelper.successWithData(pricePointsResponse.data);
   }
 }
 

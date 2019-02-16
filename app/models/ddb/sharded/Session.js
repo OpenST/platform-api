@@ -242,7 +242,7 @@ class Session extends Base {
       };
     }
 
-    return Promise.resolve(responseHelper.successWithData(responseData));
+    return responseHelper.successWithData(responseData);
   }
 
   /**
