@@ -79,7 +79,7 @@ And add it to tables using following script.
   node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
-* Seed the cron processes which are associated to the aux chain using this script.
+* [Only Development] Seed the cron processes which are associated to the aux chain using this script.
 ```bash
    node tools/localSetup/auxChainSpecificCronSeeder.js
 ```
@@ -128,14 +128,14 @@ And add it to tables using following script.
                 chainId: 1000,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
+                    stakerAddress: '0xc8790ff9daef1bca224765c14b23233b1109d46a', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
                     sourceChainId: 1000,
                     destinationChainId: 2000,
-                    facilitator: '0xd83f7162dca396cab4d25155dadf3ca8f623c943', 
+                    facilitator: '0xc8790ff9daef1bca224765c14b23233b1109d46a', 
                     amountToStake: '100000000000000000001', 
-                    beneficiary: '0xd83f7162dca396cab4d25155dadf3ca8f623c943',
+                    beneficiary: '0xc8790ff9daef1bca224765c14b23233b1109d46a',
                     firstTimeMint: true //[optional]
                 }
         }
