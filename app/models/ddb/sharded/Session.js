@@ -267,7 +267,7 @@ class Session extends Base {
     let conditionalExpression =
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForAddress + ')';
 
-    return oThis.updateItem(Session.sanitizeParamsForInsert(updateParams), conditionalExpression);
+    return oThis.updateItem(updateParams, conditionalExpression);
   }
 
   /**
