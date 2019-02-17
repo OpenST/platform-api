@@ -17,13 +17,14 @@ const rootPrefix = '../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter'),
-  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 
 /**
  * Class for creating token holder for user.
@@ -37,11 +38,11 @@ class CreateTokenHolder extends ServiceBase {
    * @param params
    * @param {String} params.user_id: user Id
    * @param {Number} params.client_id: client Id
-   * @param {Number} params.device_address: device address
-   * @param {Number} params.recovery_owner_address: Recovery owner address
-   * @param {Array} params.session_addresses: session address
-   * @param {String/Number} params.expiration_height: expiration height
-   * @param {String/Number} params.spending_limit: spending limit
+   * @param {String} params.device_address: device address
+   * @param {String} params.recovery_owner_address: Recovery owner address
+   * @param {Array} params.session_addresses: session addresses
+   * @param {Number} params.expiration_height: expiration height
+   * @param {String} params.spending_limit: spending limit
    *
    * @constructor
    */
@@ -58,6 +59,7 @@ class CreateTokenHolder extends ServiceBase {
     oThis.expirationHeight = params.expiration_height;
     oThis.spendingLimit = params.spending_limit;
 
+    oThis.auxChainId = null;
     oThis.userShardNumber = null;
     oThis.deviceShardNumber = null;
   }
@@ -72,9 +74,14 @@ class CreateTokenHolder extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    let fetchCacheRsp = await oThis._fetchClientConfigStrategy(oThis.clientId);
+    oThis.auxChainId = fetchCacheRsp.data[oThis.clientId].chainId;
+
     await oThis._fetchTokenDetails();
 
     await oThis._fetchTokenUsersShards();
+
+    await oThis._getUserDeviceDataFromCache();
 
     await oThis._updateUserStatusToActivating();
 
@@ -113,6 +120,49 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
+   * Get user device details from Cache.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _getUserDeviceDataFromCache() {
+    const oThis = this;
+
+    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+      deviceDetailCache = new DeviceDetailCache({
+        userId: oThis.userId,
+        tokenId: oThis.tokenId,
+        walletAddresses: [oThis.deviceAddress.toLowerCase()]
+      }),
+      response = await deviceDetailCache.fetch();
+
+    if (response.isFailure()) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_1',
+          api_error_identifier: 'user_activation_failed',
+          params_error_identifiers: ['user_activation_failed_invalid_device'],
+          debug_options: {}
+        })
+      );
+    }
+
+    let deviceDetails = response.data[oThis.deviceAddress.toLowerCase()];
+    if (basicHelper.isEmptyObject(deviceDetails) || deviceDetails.status != deviceConstants.registeredStatus) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_2',
+          api_error_identifier: 'user_activation_failed',
+          params_error_identifiers: ['user_activation_failed_invalid_device'],
+          debug_options: {}
+        })
+      );
+    }
+
+    return response;
+  }
+
+  /**
    * Update user status from created to activating after performing certain validations.
    *
    * @return {Promise<void>}
@@ -137,9 +187,10 @@ class CreateTokenHolder extends ServiceBase {
     if (oThis.userStatusUpdateResponse.isFailure()) {
       logger.error('Could not update user status from created to activating.');
       return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_2',
-          api_error_identifier: 'invalid_user_status',
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_3',
+          api_error_identifier: 'user_activation_failed',
+          params_error_identifiers: ['user_activation_failed_invalid_user'],
           debug_options: {}
         })
       );
@@ -174,9 +225,10 @@ class CreateTokenHolder extends ServiceBase {
     if (deviceStatusUpdateResponse.isFailure() || !deviceStatusUpdateResponse.data.deviceUuid) {
       logger.error('Could not update device status from registered to authorising.');
       return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_3',
-          api_error_identifier: 'invalid_device_status',
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_4',
+          api_error_identifier: 'user_activation_failed',
+          params_error_identifiers: ['user_activation_failed_invalid_device'],
           debug_options: {}
         })
       );
@@ -195,25 +247,8 @@ class CreateTokenHolder extends ServiceBase {
   async _initUserSetupWorkflow() {
     const oThis = this;
 
-    // Fetch client config group.
-    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId }),
-      fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
-
-    if (fetchCacheRsp.isFailure()) {
-      logger.error(
-        'ClientId has no config group assigned to it. This means that client has not been deployed successfully.'
-      );
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-    const auxChainId = fetchCacheRsp.data[oThis.clientId].chainId,
-      requestParams = {
-        auxChainId: auxChainId,
+    const requestParams = {
+        auxChainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
         deviceAddress: oThis.deviceAddress,
@@ -226,14 +261,24 @@ class CreateTokenHolder extends ServiceBase {
         stepKind: workflowStepConstants.userSetupInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
-        chainId: auxChainId,
+        chainId: oThis.auxChainId,
         topic: workflowTopicConstants.userSetup,
         requestParams: requestParams
       };
 
     const userSetupObj = new UserSetupRouter(userSetupInitParams);
 
-    return userSetupObj.perform();
+    let response = await userSetupObj.perform();
+
+    if (response.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_cth_5',
+          api_error_identifier: 'action_not_performed_contact_support',
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
@@ -261,7 +306,7 @@ class CreateTokenHolder extends ServiceBase {
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
       logger.notify(
-        'a_s_u_cth_5',
+        'a_s_u_cth_6',
         'Could not rollback user status back to created. TokenId: ',
         oThis.tokenId,
         ' UserId: ',
@@ -270,7 +315,7 @@ class CreateTokenHolder extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_cth_6',
-          api_error_identifier: 'user_status_rollback_failed',
+          api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
       );

@@ -102,7 +102,7 @@ class Device extends Base {
 
     keyObj[shortNameForUserId] = { [oThis.shortNameToDataType[shortNameForUserId]]: params['userId'] };
     keyObj[shortNameForWalletAddress] = {
-      [oThis.shortNameToDataType[shortNameForWalletAddress]]: params['walletAddress']
+      [oThis.shortNameToDataType[shortNameForWalletAddress]]: params['walletAddress'].toLowerCase()
     };
 
     return keyObj;
@@ -171,11 +171,13 @@ class Device extends Base {
     let putItemResponse = await oThis.putItem(params, conditionalExpression);
 
     if (putItemResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
-      return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_d_1',
-        api_error_identifier: 'conditional_check_failed',
-        debug_options: { error: putItemResponse.toHash() }
-      });
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_d_s_d_1',
+          api_error_identifier: 'conditional_check_failed',
+          debug_options: { error: putItemResponse.toHash() }
+        })
+      );
     }
 
     return putItemResponse;
@@ -254,6 +256,9 @@ class Device extends Base {
     if (dbRow['personalSignAddress']) {
       dbRow['personalSignAddress'] = basicHelper.sanitizeAddress(dbRow['personalSignAddress']);
     }
+    if (!dbRow['updatedTimestamp']) {
+      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+    }
     return dbRow;
   }
 
@@ -280,10 +285,7 @@ class Device extends Base {
 
     const updateQuery = {
       TableName: oThis.tableName(),
-      Key: {
-        uid: { [dataTypeForUserId]: userId },
-        wa: { [dataTypeForWalletAddress]: walletAddress }
-      },
+      Key: oThis._keyObj({ userId: userId, walletAddress: walletAddress }),
       ConditionExpression:
         'attribute_exists(' +
         shortNameForUserId +
@@ -313,11 +315,12 @@ class Device extends Base {
       });
     }
 
+    // Clear cache
+    await Device.afterUpdate(oThis.ic(), { userId: userId, walletAddress: walletAddress });
+
     updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
 
-    let finalResponse = oThis._sanitizeRowFromDynamo(updateQueryResponse);
-
-    return Promise.resolve(responseHelper.successWithData(finalResponse));
+    return Promise.resolve(responseHelper.successWithData(oThis._sanitizeRowFromDynamo(updateQueryResponse)));
   }
 
   /**
@@ -380,13 +383,11 @@ class Device extends Base {
       return Promise.reject(response);
     }
 
-    let row,
-      formattedRow,
-      walletAddresses = [];
+    let walletAddresses = [];
 
     for (let i = 0; i < response.data.Items.length; i++) {
-      row = response.data.Items[i];
-      formattedRow = oThis._formatRowFromDynamo(row);
+      let row = response.data.Items[i],
+        formattedRow = oThis._formatRowFromDynamo(row);
       walletAddresses.push(formattedRow.walletAddress);
     }
 

@@ -21,7 +21,7 @@ router.get('/:chain_id', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/chain/Get', 'r_v_c_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/chain/Get', 'r_v2_c_1', null, dataFormatterFunc));
 });
 
 module.exports = router;

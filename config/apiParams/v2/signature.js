@@ -9,7 +9,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -19,31 +19,45 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'kind',
+        validatorMethod: 'validateUserKindString'
       }
     ],
-    optional: [{ parameter: 'kind', validatorMethod: 'validateUserKindString' }]
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getUser]: {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
         validatorMethod: 'validateUuidV4'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getUserSalt]: {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -57,7 +71,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -77,11 +91,11 @@ const v2Signature = {
       },
       {
         parameter: 'expiration_height',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'spending_limit',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroWeiValue'
       }
     ],
     optional: []
@@ -91,11 +105,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'chain_id',
-        validatorMethod: 'validateChainId'
-      },
-      {
-        parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -105,7 +115,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -119,7 +129,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: [
@@ -128,8 +138,12 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4Array'
       },
       {
-        parameter: 'pagination_identifier',
-        validatorMethod: 'validatePaginationIdentifier'
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
   },
@@ -138,7 +152,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -168,7 +182,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -182,15 +196,11 @@ const v2Signature = {
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
-      },
-      {
-        parameter: 'limit',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: pagination.paginationIdentifierKey,
-        validatorMethod: 'validatePaginationIdentifier'
+        validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
   },
@@ -199,7 +209,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -213,14 +223,19 @@ const v2Signature = {
       // converting the device_address into an array. The parameter passed into getDevices
       // is an array of addresses called 'addresses'.
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getUserSessions]: {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -234,15 +249,11 @@ const v2Signature = {
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
-      },
-      {
-        parameter: 'limit',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: pagination.paginationIdentifierKey,
-        validatorMethod: 'validatePaginationIdentifier'
+        validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
   },
@@ -251,28 +262,30 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'addresses',
-        validatorMethod: 'validateEthAddressArray'
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
       }
-      // In this API, we are using the same service as getSessions for a user. Hence, we are
-      // converting the device_address into an array. The parameter passed into getSessions
-      // is an array of addresses called 'addresses'.
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getUserDeviceManager]: {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_id',
@@ -282,16 +295,140 @@ const v2Signature = {
     optional: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
+  },
+
+  [apiName.postAuthorizeDevice]: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signatures',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.postAuthorizeSession]: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
   },
 
   [apiName.getPricePoints]: {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []

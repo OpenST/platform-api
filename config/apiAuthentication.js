@@ -40,6 +40,10 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/sessions/'
       },
+      [apiName.getUserSession]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/sessions/:session_address/'
+      },
       [apiName.getPricePoints]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/price-points/'
@@ -76,6 +80,14 @@ class ApiAuthentication {
       [apiName.createUserDevice]: {
         supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/devices/'
+      },
+      [apiName.postAuthorizeDevice]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/authorize/'
+      },
+      [apiName.postAuthorizeSession]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/sessions/authorize/'
       }
     };
     return postRequestConfig;

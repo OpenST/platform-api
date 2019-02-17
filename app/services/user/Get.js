@@ -27,8 +27,8 @@ class Get extends ServiceBase {
    *
    * @param params
    * @param {Number} params.client_id: client Id
-   * @param {Number} params.token_id: token Id
    * @param {String} params.user_id: user Id
+   * @param {Number} [params.token_id]: token Id
    *
    * @constructor
    */
@@ -60,9 +60,10 @@ class Get extends ServiceBase {
 
     if (!CommonValidators.validateObject(response.data[oThis.userId])) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_g_1',
           api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
           debug_options: {}
         })
       );

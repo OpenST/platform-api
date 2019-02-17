@@ -25,7 +25,6 @@ class GetUserSalt extends ServiceBase {
    *
    * @param params
    * @param {Number} params.client_id: client Id
-   * @param {Number} params.token_id: token Id
    * @param {String} params.user_id: user Id
    *
    * @constructor
@@ -37,7 +36,6 @@ class GetUserSalt extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
-    oThis.tokenId = params.token_id;
   }
 
   /**
@@ -54,7 +52,7 @@ class GetUserSalt extends ServiceBase {
 
     const responseData = {
       scryptSalt: scryptSalt,
-      updatedTimestamp: '1549983163'
+      updatedTimestamp: Math.floor(new Date() / 1000)
     };
 
     return Promise.resolve(responseHelper.successWithData({ [resultType.salt]: responseData }));

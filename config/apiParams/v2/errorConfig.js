@@ -4,23 +4,23 @@ const rootPrefix = '../../..',
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
 const v2ErrorConfig = {
-  invalid_signature_kind: {
-    parameter: 'signature_kind',
+  invalid_api_signature_kind: {
+    parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `List of supported signature kinds (${apiSignature.hmacKind}, ${apiSignature.personalSignKind})`
+    message: `List of supported api signature kinds (${apiSignature.hmacKind}, ${apiSignature.personalSignKind})`
   },
-  unsupported_signature_kind: {
-    parameter: 'signature_kind',
+  unsupported_api_signature_kind: {
+    parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `This signature kind is not supported for this endpoint.`
+    message: `This api signature kind is not supported for this endpoint.`
   },
-  invalid_request_timestamp: {
-    parameter: 'request_timestamp',
+  invalid_api_request_timestamp: {
+    parameter: 'api_request_timestamp',
     code: 'invalid',
     message: `Timestamp should be an integer of 10 digits`
   },
-  expired_request_timestamp: {
-    parameter: 'request_timestamp',
+  expired_api_request_timestamp: {
+    parameter: 'api_request_timestamp',
     code: 'invalid',
     message: `Request has expired, please sign again and send`
   },
@@ -35,34 +35,89 @@ const v2ErrorConfig = {
     message: `API Key has expired. Please contact support to create a fresh pair`
   },
   invalid_api_signature: {
-    parameter: 'signature',
+    parameter: 'api_signature',
     code: 'invalid',
-    message: `Invalid signature`
+    message: `Invalid api signature`
   },
   missing_api_signature: {
-    parameter: 'signature',
+    parameter: 'api_signature',
     code: 'missing',
-    message: `missing signature`
+    message: `missing api signature`
   },
   invalid_user_id: {
     parameter: 'user_id',
     code: 'invalid',
     message: `Invalid user_id`
   },
+  user_not_found: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `User not found`
+  },
+  session_not_found: {
+    parameter: 'session_address',
+    code: 'invalid',
+    message: `User session not found`
+  },
+  missing_user_id: {
+    parameter: 'user_id',
+    code: 'missing',
+    message: `Missing user_id`
+  },
+  invalid_ids: {
+    parameter: 'ids',
+    code: 'invalid',
+    message: 'Invalid ids'
+  },
+  missing_ids: {
+    parameter: 'ids',
+    code: 'missing',
+    message: 'missing ids'
+  },
+  invalid_kind: {
+    parameter: 'kind',
+    code: 'invalid',
+    message: `Invalid kind`
+  },
+  missing_kind: {
+    parameter: 'kind',
+    code: 'missing',
+    message: `missing kind`
+  },
+  missing_session_addresses: {
+    parameter: 'session_addresses',
+    code: 'missing',
+    message: 'missing session_addresses'
+  },
   invalid_session_addresses: {
     parameter: 'session_addresses',
     code: 'invalid',
     message: `Invalid session_addresses`
   },
-  invalid_session_address: {
-    parameter: 'session_address',
+  missing_recovery_owner_address: {
+    parameter: 'recovery_owner_address',
+    code: 'missing',
+    message: 'missing recovery_owner_address'
+  },
+  invalid_recovery_owner_address: {
+    parameter: 'recovery_owner_address',
     code: 'invalid',
-    message: `Invalid session_address`
+    message: `Invalid recovery_owner_address`
   },
   invalid_expiration_height: {
     parameter: 'expiration_height',
     code: 'invalid',
     message: `Invalid expiration_height`
+  },
+  missing_expiration_height: {
+    parameter: 'expiration_height',
+    code: 'missing',
+    message: 'Missing expiration_height'
+  },
+  missing_spending_limit: {
+    parameter: 'spending_limit',
+    code: 'missing',
+    message: 'Missing spending_limit'
   },
   invalid_spending_limit: {
     parameter: 'spending_limit',
@@ -73,11 +128,6 @@ const v2ErrorConfig = {
     parameter: 'knownAddressIds',
     code: 'invalid',
     message: `Invalid knownAddressIds`
-  },
-  missing_user_id: {
-    parameter: 'user_id',
-    code: 'missing',
-    message: `missing user_id`
   },
   invalid_request_path: {
     parameter: 'request_path',
@@ -108,16 +158,6 @@ const v2ErrorConfig = {
     parameter: 'id',
     code: 'invalid',
     message: 'Invalid id'
-  },
-  invalid_wallet_address: {
-    parameter: 'wallet_address',
-    code: 'invalid',
-    message: 'Invalid wallet_address'
-  },
-  missing_wallet_address: {
-    parameter: 'wallet_address',
-    code: 'missing',
-    message: 'missing wallet_address'
   },
   invalid_personal_sign_address: {
     parameter: 'personal_sign_address',
@@ -159,10 +199,15 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address.'
   },
-  missing_address: {
-    parameter: 'address',
+  invalid_addresses: {
+    parameter: 'addresses',
+    code: 'invalid',
+    message: 'Invalid addresses.'
+  },
+  missing_addresses: {
+    parameter: 'addresses',
     code: 'missing',
-    message: 'missing address.'
+    message: 'Missing addresses.'
   },
   invalid_device_address: {
     parameter: 'device_address',
@@ -214,10 +259,30 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Ids cannot be more than max page limit.'
   },
+  addresses_more_than_allowed_limit: {
+    parameter: 'addresses',
+    code: 'invalid',
+    message: 'Addresses cannot be more than max page limit.'
+  },
   invalid_chain_id: {
     parameter: 'chain_id',
     code: 'invalid',
     message: 'Invalid chain id'
+  },
+  missing_chain_id: {
+    parameter: 'chain_id',
+    code: 'missing',
+    message: 'Missing chain id'
+  },
+  user_activation_failed_invalid_user: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: 'Either user does not exists or not allowed to be activated.'
+  },
+  user_activation_failed_invalid_device: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message: 'Either device not registered or not allowed to be authorized.'
   }
 };
 

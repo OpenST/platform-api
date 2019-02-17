@@ -471,9 +471,9 @@ class Finalizer extends PublisherBase {
           intersectData.push(txHash);
         }
       }
-      return Promise.resolve(intersectData);
+      return intersectData;
     } else {
-      return Promise.resolve(blockTransactions);
+      return blockTransactions;
     }
   }
 }

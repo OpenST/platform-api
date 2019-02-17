@@ -84,9 +84,10 @@ class Get extends ServiceBase {
     // auxChainId value because if chainConfig has the 'auxGeth' property, the chainId will obviously be the same.
     if (!isOriginChainId && !chainConfig.hasOwnProperty('auxGeth')) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_c_g_3',
-          api_error_identifier: 'invalid_chain_id',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['invalid_chain_id'],
           debug_options: {}
         })
       );

@@ -24,7 +24,7 @@ router.get('/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_t_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_v2_t_1', null, dataFormatterFunc));
 });
 
 module.exports = router;
