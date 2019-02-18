@@ -17,7 +17,8 @@ const rootPrefix = '../..',
   AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
   AddUserInWalletFactory = require(rootPrefix + '/lib/setup/user/AddUserInUserWalletFactory'),
   userSetupStepsConfig = require(rootPrefix + '/executables/auxWorkflowRouter/userSetupConfig'),
-  FetchUserRegisteredEvent = require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails');
+  FetchUserRegisteredEvent = require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails'),
+  VerifyInternalActorInUBTTrx = require(rootPrefix + '/lib/setup/user/verifyInternalActorInUBTTrx');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/user/ActivateUser');
@@ -96,6 +97,10 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
           setInternalActorForTokenHolderInUBTObj = new SetInternalActorForTokenHolderInUBT(oThis.requestParams);
 
         return setInternalActorForTokenHolderInUBTObj.perform();
+
+      // Verify internal actor for tokenHolder in UBT transaction.
+      case workflowStepConstants.verifyInternalActorTransactionInUBT:
+        return new VerifyInternalActorInUBTTrx(oThis.requestParams).perform();
 
       // Update Contract addresses in user and activate it.
       case workflowStepConstants.activateUser:
