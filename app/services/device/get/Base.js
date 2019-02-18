@@ -3,24 +3,30 @@
 /**
  *  Fetch device details by userId and wallet addresses.
  *
- * @module app/services/device/getList/Base
+ * @module app/services/device/get/Base
  */
 
 const rootPrefix = '../../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-
-class GetListBase extends ServiceBase {
+/**
+ * Class for get devices base.
+ *
+ * @class
+ */
+class Base extends ServiceBase {
   /**
-   * @param params
+   * Constructor for get devices base.
+   *
+   * @param {Object} params
    * @param {Integer} params.client_id
-   * @param {String} params.user_id - uuid
+   * @param {String} params.user_id: uuid
    * @param {Integer} [params.token_id]
+   *
+   * @augments ServiceBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -50,15 +56,7 @@ class GetListBase extends ServiceBase {
 
     await oThis._setWalletAddresses();
 
-    let response = await oThis._getUserDeviceDataFromCache();
-
-    let returnData = {
-      [resultType.devices]: response.data
-    };
-
-    if (oThis.nextPagePayload) {
-      returnData[resultType.nextPagePayload] = oThis.nextPagePayload;
-    }
+    const returnData = await oThis._getUserDeviceDataFromCache();
 
     return responseHelper.successWithData(returnData);
   }
@@ -67,14 +65,18 @@ class GetListBase extends ServiceBase {
    * Validate and sanitize input parameters.
    *
    * @returns {*}
+   *
    * @private
    */
   _sanitizeParams() {
     const oThis = this;
+
     oThis.userId = oThis.userId.toLowerCase();
   }
 
   /**
+   * Set wallet addresses.
+   *
    * @private
    */
   _setWalletAddresses() {
@@ -82,27 +84,13 @@ class GetListBase extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Get user device data from cache.
    *
    * @returns {Promise<*|result>}
    */
   async _getUserDeviceDataFromCache() {
-    const oThis = this;
-
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailCache = new DeviceDetailCache({
-        userId: oThis.userId,
-        tokenId: oThis.tokenId,
-        walletAddresses: oThis.walletAddresses
-      }),
-      response = await deviceDetailCache.fetch();
-
-    if (response.isFailure()) {
-      return Promise.reject(response);
-    }
-
-    return response;
+    throw new Error('sub class to implement.');
   }
 }
 
-module.exports = GetListBase;
+module.exports = Base;

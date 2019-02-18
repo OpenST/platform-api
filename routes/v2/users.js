@@ -23,8 +23,8 @@ require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 
 require(rootPrefix + '/app/services/device/Create');
-require(rootPrefix + '/app/services/device/getList/ByUserId');
-require(rootPrefix + '/app/services/device/getList/ByWalletAddress');
+require(rootPrefix + '/app/services/device/get/ByUserId');
+require(rootPrefix + '/app/services/device/get/ByWalletAddress');
 require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 
 require(rootPrefix + '/app/services/deviceManager/Get');
@@ -137,14 +137,7 @@ router.get('/:user_id/devices', function(req, res, next) {
     };
   };
 
-  let serviceName;
-  if (req.decodedParams.addresses) {
-    serviceName = 'DeviceListByWalletAddress';
-  } else {
-    serviceName = 'DeviceListByUserId';
-  }
-
-  Promise.resolve(routeHelper.perform(req, res, next, serviceName, 'r_v2_u_5', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceByUserId', 'r_v2_u_5', null, dataFormatterFunc));
 });
 
 /* Get User device By device Address */
@@ -152,29 +145,23 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
-  req.decodedParams.addresses = [req.params.device_address];
-  // In this API, we are using the same service as getDevices for a user. Hence, we are
-  // converting the device_address into an array.
+  req.decodedParams.address = req.params.device_address;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let devices = serviceResponse.data[resultType.devices],
+    let device = serviceResponse.data[resultType.device],
       formattedRsp = {};
 
-    for (let deviceUuid in devices) {
-      const buffer = devices[deviceUuid];
-      if (CommonValidators.validateObject(buffer)) {
-        formattedRsp = new DeviceFormatter(devices[deviceUuid]).perform();
-      }
+    if (CommonValidators.validateObject(device)) {
+      formattedRsp = new DeviceFormatter(device).perform();
     }
+
     serviceResponse.data = {
       result_type: resultType.device,
-      [resultType.device]: formattedRsp.data || {}
+      [resultType.device]: formattedRsp.data
     };
   };
 
-  Promise.resolve(
-    routeHelper.perform(req, res, next, 'DeviceListByWalletAddress', 'r_v2_u_6', null, dataFormatterFunc)
-  );
+  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceByWalletAddress', 'r_v2_u_6', null, dataFormatterFunc));
 });
 
 /* Get sessions by userId */

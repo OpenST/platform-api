@@ -90,7 +90,7 @@ class SessionListByUserId extends SessionGetBase {
     let response;
 
     // Cache only first page
-    if (oThis.paginationParams) {
+    if (oThis.paginationParams && oThis.paginationParams.lastEvaluatedKey) {
       response = await oThis._fetchFromDdb();
     } else {
       response = await oThis._fetchFromCache();

@@ -216,12 +216,9 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'addresses',
-        validatorMethod: 'validateEthAddressArray'
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
       }
-      // In this API, we are using the same service as getDevices for a user. Hence, we are
-      // converting the device_address into an array. The parameter passed into getDevices
-      // is an array of addresses called 'addresses'.
     ],
     optional: [
       {
