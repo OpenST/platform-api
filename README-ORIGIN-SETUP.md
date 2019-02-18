@@ -90,7 +90,7 @@ NOTE: Copy the 'Setup Simple Token response' from the script response above and 
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...'
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...' --stAmount 10000 --ethAmount 50
 ```
 
 * Save simple token admin and owner addresses in database.
