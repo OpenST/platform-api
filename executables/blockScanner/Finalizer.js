@@ -12,9 +12,9 @@
 const rootPrefix = '../..',
   program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -161,7 +161,7 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.openSTNotification = await rabbitMqProvider.getInstance({
+    oThis.openSTNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });

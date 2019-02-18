@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   cronProcessHandlerObject = new cronProcessHandler();
@@ -31,6 +31,10 @@ class MultiSubsciptionBase extends CronBase {
    */
   constructor(params) {
     super(params);
+
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap = {};
   }
 
   /**
@@ -76,11 +80,12 @@ class MultiSubsciptionBase extends CronBase {
   promiseQueueManager(subscriptionTopic) {
     const oThis = this;
 
-    // trying to ensure that there is only one _PromiseQueueManager;
-    if (oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'])
-      return oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'];
+    let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[subscriptionTopic];
 
-    oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'] = new OSTBase.OSTPromise.QueueManager(
+    // trying to ensure that there is only one _PromiseQueueManager;
+    if (rabbitmqSubscription.promiseQueueManager) return rabbitmqSubscription.promiseQueueManager;
+
+    let qm = new OSTBase.OSTPromise.QueueManager(
       function(...args) {
         // Promise executor should be a static method by itself. We declared an unnamed function
         // which was a static method, and promiseExecutor was passed in the same scope as that
@@ -95,7 +100,9 @@ class MultiSubsciptionBase extends CronBase {
       }
     );
 
-    return oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'];
+    rabbitmqSubscription.setPromiseQueueManager(qm);
+
+    return rabbitmqSubscription.promiseQueueManager;
   }
 
   /**
@@ -128,31 +135,30 @@ class MultiSubsciptionBase extends CronBase {
   async _startSubscriptionFor(subscriptionTopic) {
     const oThis = this;
 
-    // TODO: chain specific rabbit provider.
-    const openStNotification = await rabbitMqProvider.getInstance({
+    let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[subscriptionTopic];
+
+    const openStNotification = await rabbitmqProvider.getInstance(rabbitmqSubscription.rabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
-      chainId: oThis.auxChainId
+      auxChainId: rabbitmqSubscription.auxChainId
     });
 
-    let subData = oThis.subscriptionTopicToDataMap[subscriptionTopic];
-
     // below condition is to save from multiple subscriptions by command messages.
-    if (oThis.subscriptionTopicToDataMap[subscriptionTopic]['subscribed'] == 0) {
-      oThis.subscriptionTopicToDataMap[subscriptionTopic]['subscribed'] = 1;
+    if (!rabbitmqSubscription.isSubscribed()) {
+      rabbitmqSubscription.markAsSubscribed();
 
       oThis.promiseQueueManager(subscriptionTopic);
 
-      if (subData['consumerTag']) {
-        process.emit('RESUME_CONSUME', subData['consumerTag']);
+      if (rabbitmqSubscription.consumerTag) {
+        process.emit('RESUME_CONSUME', rabbitmqSubscription.consumerTag);
       } else {
         openStNotification.subscribeEvent
           .rabbit(
-            [subData.topicName],
+            [rabbitmqSubscription.topic],
             {
-              queue: subData.queueName,
+              queue: rabbitmqSubscription.queue,
               ackRequired: oThis.ackRequired,
-              prefetch: subData.prefetchCount
+              prefetch: rabbitmqSubscription.prefetchCount
             },
             function(params) {
               let messageParams = JSON.parse(params);
@@ -161,16 +167,14 @@ class MultiSubsciptionBase extends CronBase {
                 .then(function(response) {
                   messageParams.sequentialExecutorResponse = response.data;
 
-                  return oThis.subscriptionTopicToDataMap[subscriptionTopic]['promiseQueueManager'].createPromise(
-                    messageParams
-                  );
+                  return rabbitmqSubscription.promiseQueueManager.createPromise(messageParams);
                 })
                 .catch(function(error) {
                   logger.error('Error in promise creation', error);
                 });
             },
             function(consumerTag) {
-              oThis.subscriptionTopicToDataMap[subscriptionTopic]['consumerTag'] = consumerTag;
+              rabbitmqSubscription.setConsumerTag(consumerTag);
             }
           )
           .catch(function(error) {
@@ -237,21 +241,22 @@ class MultiSubsciptionBase extends CronBase {
   _pendingTasksDone() {
     const oThis = this;
 
-    for (let topicName in oThis.subscriptionTopicToDataMap) {
-      let subData = oThis.subscriptionTopicToDataMap[topicName];
+    for (let topic in oThis.subscriptionTopicToDataMap) {
+      let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[topic];
 
-      if (!subData['promiseQueueManager']) {
+      if (!rabbitmqSubscription.promiseQueueManager) {
         continue;
       }
 
-      if (subData.unAckCount !== subData['promiseQueueManager'].getPendingCount()) {
-        logger.error('ERROR :: unAckCount and pending counts are not in sync for', topicName);
+      if (rabbitmqSubscription.unAckCount !== rabbitmqSubscription.promiseQueueManager.getPendingCount()) {
+        logger.error('ERROR :: unAckCount and pending counts are not in sync for', topic);
       }
 
-      if (!(subData['promiseQueueManager'].getPendingCount() == 0 && subData['unAckCount'] == 0)) {
+      if (!(rabbitmqSubscription.promiseQueueManager.getPendingCount() == 0 && rabbitmqSubscription.unAckCount == 0)) {
         return false;
       }
     }
+
     return true;
   }
 
@@ -262,8 +267,8 @@ class MultiSubsciptionBase extends CronBase {
     const oThis = this;
 
     let handle = function() {
-      for (let topicName in oThis.subscriptionTopicToDataMap) {
-        oThis._stopPickingUpNewTasks(topicName);
+      for (let topic in oThis.subscriptionTopicToDataMap) {
+        oThis._stopPickingUpNewTasks(topic);
       }
 
       if (oThis._pendingTasksDone()) {
@@ -287,14 +292,12 @@ class MultiSubsciptionBase extends CronBase {
   /**
    * Stops consumption upon invocation
    */
-  _stopPickingUpNewTasks(topicName) {
+  _stopPickingUpNewTasks(topic) {
     const oThis = this;
 
-    oThis.subscriptionTopicToDataMap[topicName]['subscribed'] = 0;
-    if (oThis.subscriptionTopicToDataMap[topicName].consumerTag) {
-      logger.info(':: :: Cancelling consumption on tag=====', oThis.subscriptionTopicToDataMap[topicName].consumerTag);
-      process.emit('CANCEL_CONSUME', oThis.subscriptionTopicToDataMap[topicName].consumerTag);
-    }
+    let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[topic];
+
+    rabbitmqSubscription.stopConsumption();
   }
 
   /**

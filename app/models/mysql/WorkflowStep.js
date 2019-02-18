@@ -135,9 +135,10 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '182': workflowStepConstants.addSessionAddresses,
     '183': workflowStepConstants.addUserInWalletFactory,
     '184': workflowStepConstants.fetchRegisteredUserEvent,
-    '185': workflowStepConstants.activateUser,
-    '186': workflowStepConstants.rollbackUserSetup,
-    '187': workflowStepConstants.setInternalActorForTokenHolderInUBT,
+    '185': workflowStepConstants.setInternalActorForTokenHolderInUBT,
+    '186': workflowStepConstants.verifyInternalActorTransactionInUBT,
+    '187': workflowStepConstants.activateUser,
+    '188': workflowStepConstants.rollbackUserSetup,
 
     '189': workflowStepConstants.fundTokenUserOpsWorker,
     '190': workflowStepConstants.verifyFundTokenUserOpsWorker,
