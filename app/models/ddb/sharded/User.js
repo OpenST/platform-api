@@ -223,11 +223,14 @@ class User extends Base {
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForStatus = oThis.shortNameFor('status'),
+      shortNameForUpdatedTimestamp = oThis.shortNameFor('updatedTimestamp'),
       dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId],
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
+      dataTypeForUpdatedTimestamp = oThis.shortNameToDataType[shortNameForUpdatedTimestamp],
       initialStatusInt = tokenUserConstants.invertedStatuses[initialStatus],
-      finalStatusInt = tokenUserConstants.invertedStatuses[finalStatus];
+      finalStatusInt = tokenUserConstants.invertedStatuses[finalStatus],
+      updatedTimestamp = basicHelper.getCurrentTimestampInSeconds().toString();
 
     const updateQuery = {
       TableName: oThis.tableName(),
@@ -244,13 +247,15 @@ class User extends Base {
         ' AND #initialStatus = :initialStatus',
       ExpressionAttributeNames: {
         '#initialStatus': shortNameForStatus,
-        '#finalStatus': shortNameForStatus
+        '#finalStatus': shortNameForStatus,
+        '#updatedTimestamp': shortNameForUpdatedTimestamp
       },
       ExpressionAttributeValues: {
         ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
-        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
+        ':updatedTimestamp': { [dataTypeForUpdatedTimestamp]: updatedTimestamp }
       },
-      UpdateExpression: 'SET #finalStatus = :finalStatus',
+      UpdateExpression: 'SET #finalStatus = :finalStatus, #updatedTimestamp = :updatedTimestamp',
       ReturnValues: 'ALL_NEW'
     };
 
