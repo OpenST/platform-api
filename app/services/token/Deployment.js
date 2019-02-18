@@ -83,7 +83,7 @@ class Deployment {
       return Promise.reject(tokenDeploymentResponse);
     }
 
-    let startGrantEthOstResponse = await oThis._grantEthOst();
+    await oThis._grantEthOst();
 
     return tokenDeploymentResponse;
   }
@@ -93,6 +93,7 @@ class Deployment {
    * Validate request
    *
    * @return {Promise<void>}
+   *
    * @private
    */
   async _validateRequest() {
