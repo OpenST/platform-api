@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xb7b3b8f86cff8dc95d3a2364834bd0e45138a792'; // master internal funder address
+let address = '0xc8790ff9daef1bca224765c14b23233b1109d46a'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -122,12 +122,12 @@ Granter address gets ETH and OST in this step.
     node tools/verifiers/originChainSetup.js
 ```
 
-* Seed the cron processes which are unique in a sub-environment using this script.
+* [Only Development] Seed the cron processes which are unique in a sub-environment using this script.
 ```bash
    node tools/localSetup/subEnvSpecificCronSeeder.js
 ```
 
-* Seed the cron processes which are associated to origin chain using this script.
+* [Only Development] Seed the cron processes which are associated to origin chain using this script.
 ```bash
    node tools/localSetup/originChainSpecificCronSeeder.js
 ```
@@ -139,7 +139,6 @@ Granter address gets ETH and OST in this step.
     InsertPricerAbiKlass = require('./lib/setup/InsertPricerAbiIntoRulesTable.js');
     new InsertPricerAbiKlass().perform().then(console.log).catch(console.log)
 ```
-
 
 ### Create entry in DDB table for highest block on origin chain.
 ```bash
