@@ -2,7 +2,7 @@
 /**
  * Model to get client pre provisioning details.
  *
- * @module app/models/mysql/ClientPreProvisoning
+ * @module app/models/mysql/ClientPreProvisioning
  */
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
@@ -17,7 +17,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
  *
  * @class
  */
-class ClientPreProvisoning extends ModelBase {
+class ClientPreProvisioning extends ModelBase {
   /**
    * Constructor
    *
@@ -58,4 +58,4 @@ class ClientPreProvisoning extends ModelBase {
   }
 }
 
-module.exports = ClientPreProvisoning;
+module.exports = ClientPreProvisioning;

@@ -9,6 +9,8 @@ const rootPrefix = '../../..',
 program
   .option('--stOwnerPrivateKey <stOwnerPrivateKey>', 'ST Owner Private Key')
   .option('--ethOwnerPrivateKey <ethOwnerPrivateKey>', 'ETH Owner Private Key')
+  .option('--stAmount <stAmount>', 'ST Amount')
+  .option('--ethAmount <ethAmount>', 'ETH Amount')
   .parse(process.argv);
 
 program.on('--help', function() {
@@ -16,7 +18,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc'
+    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc --stAmount 2000 --ethAmount 50'
   );
   logger.log('');
   logger.log('');
@@ -32,7 +34,19 @@ if (!program.ethOwnerPrivateKey) {
   process.exit(1);
 }
 
-new FundGranterAddress(program.stOwnerPrivateKey, program.ethOwnerPrivateKey).perform().then(function(response) {
-  logger.log('response:', response);
-  process.exit(0);
-});
+if (!program.stAmount) {
+  program.help();
+  process.exit(1);
+}
+
+if (!program.ethAmount) {
+  program.help();
+  process.exit(1);
+}
+
+new FundGranterAddress(program.stOwnerPrivateKey, program.ethOwnerPrivateKey, program.stAmount, program.ethAmount)
+  .perform()
+  .then(function(response) {
+    logger.log('response:', response);
+    process.exit(0);
+  });

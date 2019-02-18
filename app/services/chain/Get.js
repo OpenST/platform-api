@@ -115,7 +115,8 @@ class Get extends ServiceBase {
     return responseHelper.successWithData({
       id: oThis.chainId,
       blockHeight: Math.floor(currentBlockNumber),
-      updatedTimestamp: currentTimestampInBigNumber.toString(10)
+      updatedTimestamp: currentTimestampInBigNumber.toString(10),
+      blockGenerationTime: blockGenerationTimeInBigNumber.toString(10)
     });
   }
 }
