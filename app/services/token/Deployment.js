@@ -11,10 +11,9 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  ClientPreProvisoning = require(rootPrefix + '/app/models/mysql/ClientPreProvisoning'),
   GrantEthOst = require(rootPrefix + '/app/services/token/GrantEthOst'),
-  ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -23,6 +22,7 @@ const rootPrefix = '../../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  ClientPreProvisioning = require(rootPrefix + '/app/models/mysql/ClientPreProvisioning'),
   EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
   ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
@@ -200,7 +200,7 @@ class Deployment {
 
     let returnData;
 
-    let clientPreProvisioningConfig = await new ClientPreProvisoning().getDetailsByClientId(oThis.clientId);
+    let clientPreProvisioningConfig = await new ClientPreProvisioning().getDetailsByClientId(oThis.clientId);
 
     if (clientPreProvisioningConfig.data.config && clientPreProvisioningConfig.data.config.config_group_id) {
       let configGroupsModel = new ConfigGroupsModel(),
