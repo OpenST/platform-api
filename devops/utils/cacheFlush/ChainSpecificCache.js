@@ -7,7 +7,7 @@ const chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig')
   ,coreConstants = require(rootPrefix + '/config/coreConstants')
   ,ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId')
   ,cacheManagementConst = require(rootPrefix + '/lib/globalConstant/cacheManagement')
-  ,FlushBase= require(rootPrefix + 'devops/utils/cacheFlush/Base.js')
+  ,FlushBase= require(rootPrefix + '/devops/utils/cacheFlush/Base.js')
 ;
 
 // Following require(s) for registering into instance composer
@@ -20,6 +20,22 @@ require(rootPrefix + '/lib/providers/clientSpecificCacheFactory');
  * @class
  */
 class ChainCacheFlush extends FlushBase{
+  /**
+   * Constructor
+   *
+   *
+   * @constructor
+   */
+  constructor() {
+    super();
+
+    const oThis = this;
+
+  }
+
+
+
+
   /**
    *
    *  _asyncPerform

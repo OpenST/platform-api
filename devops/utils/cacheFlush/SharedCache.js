@@ -3,7 +3,7 @@
 
 const rootPrefix = '../../..',
   cache = require(rootPrefix + '/lib/providers/sharedMemcached')
-  ,FlushBase= require(rootPrefix + 'devops/utils/cacheFlush/Base.js')
+  ,FlushBase= require(rootPrefix + '/devops/utils/cacheFlush/Base.js')
 
 ;
 
@@ -14,6 +14,18 @@ const rootPrefix = '../../..',
  * @class
  */
 class SharedCacheFlush extends FlushBase{
+  /**
+   * Constructor
+   *
+   *
+   * @constructor
+   */
+  constructor() {
+    super();
+
+    const oThis = this;
+
+  }
   /**
    *
    *  _asyncPerform

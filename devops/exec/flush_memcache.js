@@ -4,7 +4,7 @@
 const rootPrefix = '../..',
   command = require('commander')
   , FlushChainMemcache = require(rootPrefix + '/devops/utils/cacheFlush/ChainSpecificCache.js')
-  , FlushSharedMemcache=require(rootPrefix + '/devops/utils/cacheFlush/SharedCache.js')
+  , FlushSharedMemcache = require(rootPrefix + '/devops/utils/cacheFlush/SharedCache.js')
 ;
 
 command
@@ -20,7 +20,7 @@ const Main = async function() {
   let resp=[];
   if (command.flushSharedMemcache) {
     performerObj = new FlushSharedMemcache();
-     resp[0] =  performerObj.perform() ;
+     resp[0] =  await performerObj.perform() ;
   }
   if (command.flushChainMemcache) {
     performerObj = new FlushChainMemcache();
