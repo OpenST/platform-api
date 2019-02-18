@@ -4,9 +4,11 @@
  *
  * @module executables/workflowRouter/factory
  */
-const program = require('commander');
+const program = require('commander'),
+  OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '..',
+  InstanceComposer = OSTBase.InstanceComposer,
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -14,7 +16,11 @@ const rootPrefix = '..',
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
+
+require(rootPrefix + '/lib/transactions/ProcessRmqMessage');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -58,6 +64,7 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
     oThis.exTxTopicName = null;
     oThis.cMsgTopicName = null;
     oThis.auxChainId = null;
+    oThis.ic = null;
   }
 
   /**
@@ -71,6 +78,18 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
 
     // Query to get queue_topic suffix & chainId
     oThis.initProcessResp = await new InitProcessKlass({ processId: cronProcessId }).perform();
+
+    const strategyByChainHelperObj = new StrategyByChainHelper(oThis.auxChainId),
+      configStrategyResp = await strategyByChainHelperObj.getComplete();
+
+    if (configStrategyResp.isFailure()) {
+      logger.error('Could not fetch configStrategy. Exiting the process.');
+      process.emit('SIGINT');
+    }
+
+    const configStrategy = configStrategyResp.data;
+
+    oThis.ic = new InstanceComposer(configStrategy);
   }
 
   /**
@@ -258,7 +277,7 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
     const oThis = this;
 
     // Identify which file/function to initiate to execute task of specific kind.
-    // Query in workflow_steps to get details pf parent id in message params.
+
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
@@ -267,6 +286,37 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
     if (kind == kwcConstant.executeTx) {
       logger.info('Message specific perform called called called called called called called.......\n');
       //message specific perform called.
+
+      const payload = messageParams.message.payload;
+
+      let ProcessRmqExecuteTxMessage = oThis.ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'ProcessRmqExecuteTxMessage'
+        ),
+        processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
+          tokenAddressId: payload.tokenAddressId,
+          transactionUuid: payload.transaction_uuid,
+          sequentialExecutorResponse: payload.sequentialExecutorResponse
+        });
+
+      // Start transaction parser service.
+      const processMsgRsp = await processRmqExecuteTxMessage.perform();
+
+      if (processMsgRsp.isSuccess()) {
+        logger.debug('------unAckCount -> ', oThis.unAckCount);
+        // ACK RMQ.
+        return;
+      } else {
+        logger.error(
+          'e_et_1',
+          'Error in processRmqExecuteTxMessage. unAckCount ->',
+          oThis.unAckCount,
+          'processRmqExecuteTxMessage response: ',
+          processMsgRsp
+        );
+        // ACK RMQ.
+        return;
+      }
     } else if (kind == kwcConstant.commandMsg) {
       logger.info('Command specific perform called called called called called called called called.......\n');
       let commandMessageParams = {

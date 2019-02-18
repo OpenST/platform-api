@@ -69,6 +69,28 @@ class ConfigStrategyObject {
           shortName: 'ssa',
           dataType: 'S'
         }
+      },
+      pendingTransactions: {
+        unsettledDebits: {
+          shortName: 'ud',
+          dataType: 'S'
+        },
+        eip1077Signature: {
+          shortName: 'es',
+          dataType: 'S'
+        },
+        metaProperty: {
+          shortName: 'mp',
+          dataType: 'S'
+        },
+        ruleName: {
+          shortName: 'rn',
+          dataType: 'S'
+        },
+        transferExecutableData: {
+          shortName: 'ted',
+          dataType: 'S'
+        }
       }
     };
   }
