@@ -14,7 +14,8 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup');
+  ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
+  tokenConstants = require(rootPrefix + '/lib/globalConstant/token');
 
 class ByTokenAuxFunderBase extends CronBase {
   constructor(params) {
@@ -156,6 +157,7 @@ class ByTokenAuxFunderBase extends CronBase {
     let clientTokenIds = await new TokenModel()
       .select('id')
       .where(['client_id IN (?)', clientIds])
+      .where({ status: new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted] })
       .fire();
 
     for (let index = 0; index < clientTokenIds.length; index++) {
