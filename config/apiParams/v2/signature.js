@@ -303,6 +303,10 @@ const v2Signature = {
   [apiName.postAuthorizeDevice]: {
     mandatory: [
       {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
         parameter: 'token_id',
         validatorMethod: 'validateInteger'
       },
@@ -364,6 +368,10 @@ const v2Signature = {
 
   [apiName.postAuthorizeSession]: {
     mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
       {
         parameter: 'token_id',
         validatorMethod: 'validateInteger'
