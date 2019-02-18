@@ -13,7 +13,6 @@ const rootPrefix = '../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
-  SyncInView = require(rootPrefix + '/app/services/token/SyncInView'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
@@ -61,7 +60,6 @@ require(rootPrefix + '/lib/setup/economy/AddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/PostAddCompanyWallet');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Owner');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/TokenRule');
-require(rootPrefix + '/lib/setup/economy/SetInternalActorForCompanyTokenHolderInUBT');
 require(rootPrefix + '/lib/setup/economy/PostUBTDeploy');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Address');
 
@@ -244,7 +242,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.saveUtilityBrandedToken:
         logger.step('*** Saving Utility Branded Token Address In DB');
 
-        let saveUbtResponse = new InsertAddressIntoTokenAddress({
+        let saveUbtResponse = await new InsertAddressIntoTokenAddress({
           tokenId: oThis.requestParams.tokenId,
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployUtilityBrandedToken),
           kind: tokenAddressConstants.utilityBrandedTokenContract,
@@ -255,7 +253,7 @@ class EconomySetupRouter extends WorkflowRouterBase {
         let PostUBTDeploy = ic.getShadowedClassFor(coreConstants.icNameSpace, 'PostUBTDeploy'),
           postUBTDeploy = new PostUBTDeploy({
             tokenId: oThis.requestParams.tokenId,
-            chainId: oThis.requestParams.auxChainId
+            auxChainId: oThis.requestParams.auxChainId
           });
 
         await postUBTDeploy.perform();
@@ -637,9 +635,10 @@ class EconomySetupRouter extends WorkflowRouterBase {
       case workflowStepConstants.setInternalActorForCompanyTHInUBT:
         logger.step('*** Set Internal Actor For Company Token Holder ');
 
+        oThis.requestParams['address'] = oThis.requestParams.tokenCompanyTokenHolderAddress;
         let SetInternalActorForCompanyTokenHolderInUBT = ic.getShadowedClassFor(
           coreConstants.icNameSpace,
-          'SetInternalActorForCompanyTokenHolderInUBT'
+          'SetInternalActorForUBT'
         );
         return new SetInternalActorForCompanyTokenHolderInUBT(oThis.requestParams).perform();
 

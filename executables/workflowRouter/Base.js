@@ -38,6 +38,7 @@ class WorkflowRouterBase {
    * @param {String} params.workflowKind Kind of workflow
    * @param {String} params.taskStatus task is 'taskReadyToStart' or 'taskDone' or 'taskFailed' status.
    * @param {Object} params.taskResponseData when task is 'taskDone', send taskResponseData if required.
+   * @param {Object} params.debugParams
    * @param {Number} params.clientId
    * @param {Number} params.groupId
    * @param {Object} params.payload
@@ -57,6 +58,7 @@ class WorkflowRouterBase {
     oThis.stepKind = params.stepKind;
     oThis.taskStatus = params.taskStatus;
     oThis.taskResponseData = params.taskResponseData;
+    oThis.debugParams = params.debugParams;
 
     oThis.clientId = params.clientId;
     oThis.groupId = params.groupId;
@@ -346,6 +348,7 @@ class WorkflowRouterBase {
       oThis.taskStatus = response.data.taskStatus;
       oThis.taskResponseData = response.data.taskResponseData;
       oThis.transactionHash = response.data.transactionHash;
+      oThis.debugParams = response.data.debugParams;
       oThis.retryFromId = response.data.retryFromId;
       oThis.feResponseData = response.data.feResponseData;
     }
@@ -369,6 +372,10 @@ class WorkflowRouterBase {
 
     if (oThis.taskResponseData) {
       oThis.currentStepDataToBeUpdated.response_data = JSON.stringify(oThis.taskResponseData);
+    }
+
+    if (oThis.debugParams) {
+      oThis.currentStepDataToBeUpdated.debug_params = JSON.stringify(oThis.debugParams);
     }
 
     if (oThis.taskStatus == workflowStepConstants.taskDone) {
