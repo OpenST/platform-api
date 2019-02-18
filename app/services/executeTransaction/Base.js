@@ -20,7 +20,8 @@ const rootPrefix = '../../..',
   ProcessPricerRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/PricerRule'),
   ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
-  rabbitMqProvider = require(rootPrefix + '/lib/providers/notification'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
@@ -28,6 +29,7 @@ const rootPrefix = '../../..',
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
@@ -45,6 +47,10 @@ class ExecuteTxBase extends ServiceBase {
    *
    * @param {Object} params
    * @param {Object} params.token_id
+   * @param {Object} params.meta_property
+   * @param {String} params.executable_data - executable_data json string
+   * @param {Number} params.operation_type
+   * @param {Object} params.meta_property
    *
    * @constructor
    */
@@ -54,6 +60,9 @@ class ExecuteTxBase extends ServiceBase {
     const oThis = this;
 
     oThis.tokenId = params.token_id;
+    oThis.metaProperty = params.meta_property;
+    oThis.executableData = params.executable_data;
+    oThis.operationType = params.operation_type;
 
     oThis.tokenAddresses = null;
     oThis.tokenRuleAddress = null;
@@ -63,7 +72,6 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pessimisticDebitAmount = null;
     oThis.unsettledDebits = null;
     oThis.transactionUuid = null;
-    oThis.metaProperty = null;
     oThis.ruleName = null;
     oThis.configStrategyObj = null;
     oThis.rmqInstance = null;
@@ -71,6 +79,9 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pessimisticAmountDebitted = null;
     oThis.balanceShardNumber = null;
     oThis.tokenHolderAddress = null;
+    oThis.gas = null;
+    oThis.nonce = null;
+    oThis.gasPrice = null;
   }
 
   /**
@@ -103,13 +114,20 @@ class ExecuteTxBase extends ServiceBase {
 
   /**
    *
-   * @return {Promise<result>}
-   *
+   * @return {Promise<void>}
    * @private
    */
-  async _validateAndSanitize() {
+  async _initializeVars() {
     const oThis = this;
+
     oThis.toAddress = basicHelper.sanitizeAddress(oThis.executableData.to);
+    oThis.gasPrice = contractConstants.auxChainGasPrice;
+
+    await oThis._setRmqInstance();
+
+    await oThis._setWebInstance();
+
+    await oThis._setTokenHolderAddress();
   }
 
   /**
@@ -253,6 +271,7 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.pessimisticDebitAmount = response.data.pessimisticDebitAmount;
     oThis.transferExecutableData = response.data.transferExecutableData;
+    oThis.gas = response.data.gas;
   }
 
   /**
@@ -344,13 +363,21 @@ class ExecuteTxBase extends ServiceBase {
    *
    * @return {Promise<*>}
    */
-  async _createPendingTransaction(transactionData, eip1077Signature) {
-    const oThis = this;
+  async _createPendingTransaction() {
+    const oThis = this,
+      transactionData = {
+        from: oThis.sessionKeyAddress,
+        to: oThis.toAddress,
+        value: oThis.executableData.value,
+        gas: oThis.gas,
+        gasPrice: oThis.gasPrice,
+        nonce: oThis.nonce
+      };
 
     let insertRsp = await new CreatePendingTransaction(oThis.auxChainId).insertPendingTransaction({
       transactionData: transactionData,
       unsettledDebits: oThis.unsettledDebits,
-      eip1077Signature: eip1077Signature,
+      eip1077Signature: oThis.signatureData,
       metaProperty: oThis.metaProperty,
       ruleName: oThis.ruleName,
       transferExecutableData: oThis.transferExecutableData
@@ -401,10 +428,10 @@ class ExecuteTxBase extends ServiceBase {
 
   async _setRmqInstance() {
     const oThis = this;
-    oThis.rmqInstance = await rabbitMqProvider.getInstance({
+    oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstants.auxRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
-      chainId: oThis.auxChainId
+      auxChainId: oThis.auxChainId
     });
   }
 
@@ -451,6 +478,30 @@ class ExecuteTxBase extends ServiceBase {
   get auxChainId() {
     const oThis = this;
     return oThis._configStrategyObject.auxChainId;
+  }
+
+  async _setTokenHolderAddress() {
+    throw 'subclass to implement';
+  }
+
+  /**
+   *
+   * @private
+   */
+  async _setSessionAddress() {
+    throw 'subclass to implement';
+  }
+
+  /**
+   *
+   * @private
+   */
+  async _setNonce() {
+    throw 'subclass to implement';
+  }
+
+  async _setSignature() {
+    throw 'subclass to implement';
   }
 }
 

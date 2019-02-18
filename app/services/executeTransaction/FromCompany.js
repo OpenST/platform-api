@@ -39,7 +39,63 @@ class ExecuteTxFromCompany extends ExecuteTxBase {
   async _asyncPerform() {
     const oThis = this;
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    await oThis._validateAndSanitize();
+
+    await oThis._initializeVars();
+
+    await oThis._processExecutableData();
+
+    await oThis._setSessionAddress();
+
+    await oThis._setNonce();
+
+    await oThis._setSignature();
+
+    await oThis._performPessimisticDebit();
+
+    await oThis._createPendingTransaction();
+
+    await oThis._publishToRMQ();
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        transactionUuid: oThis.transactionUuid //TODO: To change after discussions
+      })
+    );
+  }
+
+  /**
+   *
+   * @private
+   */
+  async _validateAndSanitize() {
+    const oThis = this;
+  }
+
+  /**
+   *
+   * @private
+   */
+  _setTokenHolderAddress() {
+    const oThis = this;
+    oThis.tokenHolderAddress = oThis.userData.tokenHolderAddress;
+  }
+
+  /**
+   *
+   * @private
+   */
+  _setSessionAddress() {}
+
+  /**
+   *
+   * @private
+   */
+  _setNonce() {}
+
+  _setSignature() {
+    const oThis = this;
+    oThis.signatureData = {};
   }
 }
 
