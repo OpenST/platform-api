@@ -19,6 +19,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Timestamp should be an integer of 10 digits`
   },
+  missing_api_request_timestamp: {
+    parameter: 'api_request_timestamp',
+    code: 'missing',
+    message: `Missing api_request_timestamp`
+  },
   expired_api_request_timestamp: {
     parameter: 'api_request_timestamp',
     code: 'invalid',
@@ -28,6 +33,11 @@ const v2ErrorConfig = {
     parameter: 'api_key',
     code: 'invalid',
     message: `Invalid API Key (Case Sensitive)`
+  },
+  missing_api_key: {
+    parameter: 'api_key',
+    code: 'missing',
+    message: `Missing API Key`
   },
   expired_api_key: {
     parameter: 'api_key',
@@ -283,6 +293,11 @@ const v2ErrorConfig = {
     parameter: 'device_address',
     code: 'invalid',
     message: 'Either device not registered or not allowed to be authorized.'
+  },
+  unauthorized_to_access_other_user_information: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: 'Unauthorized to access other user details.'
   }
 };
 

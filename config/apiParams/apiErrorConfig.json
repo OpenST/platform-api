@@ -17,9 +17,9 @@
   "unauthorized_for_main_env": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "Not authorizrd to access main env."
+    "message": "Not authorized to access main env."
   },
-  "invalid_or_expired_token": {
+  "invalid_or_expired_jwt_token": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
     "message": "We could not authenticate the request. Please review your credentials and authentication method."
