@@ -78,7 +78,6 @@ class ExecuteTxFromCompany extends ExecuteTxBase {
    */
   _setTokenHolderAddress() {
     const oThis = this;
-    oThis.tokenHolderAddress = oThis.userData.tokenHolderAddress;
   }
 
   /**
@@ -95,7 +94,11 @@ class ExecuteTxFromCompany extends ExecuteTxBase {
 
   _setSignature() {
     const oThis = this;
-    oThis.signatureData = {};
+    oThis.signatureData = {
+      r: '',
+      s: '',
+      v: ''
+    };
   }
 }
 
