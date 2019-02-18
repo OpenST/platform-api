@@ -285,6 +285,11 @@ if (cluster.isMaster) {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
+  // Health checker
+  app.get('/health-checker', function(req, res, next) {
+    res.send('');
+  });
+
   /*
     The sanitizer() piece of code should always be before routes for jwt and after validateApiSignature for sdk.
     Docs: https://www.npmjs.com/package/express-sanitized
