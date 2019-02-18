@@ -3,6 +3,7 @@
 const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  balanceConstants = require(rootPrefix + '/lib/globalConstant/balance'),
   util = require(rootPrefix + '/lib/util'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -19,7 +20,6 @@ class Balance extends Base {
   /**
    *
    * @param {Object} params
-   * @param {Number} params.chainId: chainId
    * @param {Number} params.consistentRead: (1,0)
    * @param {Number} params.shardNumber
    *
@@ -36,16 +36,7 @@ class Balance extends Base {
    */
   get longToShortNamesMap() {
     const oThis = this;
-
-    return {
-      tokenHolderAddress: 'tha',
-      erc20Address: 'era',
-      blockChainSettledBalance: 'bsb',
-      blockChainUnsettleDebits: 'bud',
-      pessimisticSettledBalance: 'psb',
-      settledCreditBalance: 'scb',
-      unsettledCreditBalance: 'ucb'
-    };
+    return balanceConstants.longNameToShortNameMap;
   }
 
   /**
@@ -81,7 +72,7 @@ class Balance extends Base {
    * @returns {String}
    */
   tableNameTemplate() {
-    return 'balances_{{shardNumber}}';
+    return '{{chainId}}_balances_{{shardNumber}}';
   }
 
   /**
@@ -152,9 +143,9 @@ class Balance extends Base {
    * @params {Object} params - Parameters
    * @param {String} params.tokenHolderAddress - User address for which balance has to be settled
    * @param {String} params.erc20Address - Token address with which user is associated with
-   * @param {String<number>} params.blockChainSettledAmount - Amount to be settled on block chain. Give negative value to decrease, and positive to increase.
-   * @param {String<number>} params.blockChainUnSettledAmount - Amount to settle in current transaction. Give negative value to decrease, and positive to increase.
-   * @param {String<number>} params.settledCreditAmount - Amount to settle from credits. Give negative value to decrease, and positive to increase.
+   * @param {String<number>} params.blockChainSettledBalance - Amount to be settled on block chain. Give negative value to decrease, and positive to increase.
+   * @param {String<number>} params.blockChainUnsettleDebits - Amount to settle in current transaction. Give negative value to decrease, and positive to increase.
+   * @param {String<number>} params.creditSettledBalance - Amount to settle from credits. Give negative value to decrease, and positive to increase.
    * @param {String<number>} params.unSettledCreditAmount - Amount to settle from credits in current transaction. Give negative value to decrease, and positive to increase.
    *
    * @return {Promise<result>}
@@ -162,38 +153,36 @@ class Balance extends Base {
   async updateBalance(params) {
     const oThis = this;
 
-    let deltaBUD = params['blockChainUnSettledAmount'] || '0',
-      deltaBSB = params['blockChainSettledAmount'] || '0',
-      deltaUCB = params['unsettledCreditAmount'] || '0',
-      deltaSCB = params['settledCreditAmount'] || '0';
-
-    let sanitizedParams = oThis._sanitizeRowForDynamo(params);
+    let deltaBUD = params['blockChainUnsettleDebits'] || '0',
+      deltaBSB = params['blockChainSettledBalance'] || '0',
+      deltaCUD = params['creditUnSettledDebits'] || '0',
+      deltaCSB = params['creditSettledBalance'] || '0';
 
     // New column = old column + delta(delta can be negative value)
     const deltaPessimisticChainBalance = new BigNumber(deltaBSB).minus(new BigNumber(deltaBUD)),
-      deltaPessimisticCreditBalance = new BigNumber(deltaSCB).minus(new BigNumber(deltaUCB)),
+      deltaPessimisticCreditBalance = new BigNumber(deltaCSB).minus(new BigNumber(deltaCUD)),
       deltaPessimisticBalance = deltaPessimisticChainBalance.add(deltaPessimisticCreditBalance).toString(10),
-      totalUnsettledDebits = new BigNumber(deltaBUD).add(new BigNumber(deltaUCB));
+      totalUnsettledDebits = new BigNumber(deltaBUD).add(new BigNumber(deltaCUD));
 
     const balanceParams = {
       TableName: oThis.tableName(),
-      Key: oThis._keyObj(sanitizedParams),
+      Key: oThis._keyObj(params),
       UpdateExpression:
         'Add #blockChainUnsettledDebits :deltaBUD, #blockChainSettledBalance :deltaBSB ' +
         ', #pessimisticSettledBalance :deltaPessimisticBalance ' +
-        ', #unsettledCreditBalance :deltaUCB, #settledCreditBalance :deltaSCB',
+        ', #creditUnSettledDebits :deltaCUD, #creditSettledBalance :deltaCSB',
       ExpressionAttributeNames: {
         '#blockChainUnsettledDebits': oThis.shortNameFor('blockChainUnsettleDebits'),
         '#blockChainSettledBalance': oThis.shortNameFor('blockChainSettledBalance'),
         '#pessimisticSettledBalance': oThis.shortNameFor('pessimisticSettledBalance'),
-        '#unsettledCreditBalance': oThis.shortNameFor('unsettledCreditBalance'),
-        '#settledCreditBalance': oThis.shortNameFor('settledCreditBalance')
+        '#creditUnSettledDebits': oThis.shortNameFor('creditUnSettledDebits'),
+        '#creditSettledBalance': oThis.shortNameFor('creditSettledBalance')
       },
       ExpressionAttributeValues: {
         ':deltaBSB': { N: deltaBSB },
         ':deltaBUD': { N: deltaBUD },
-        ':deltaSCB': { N: deltaSCB },
-        ':deltaUCB': { N: deltaUCB },
+        ':deltaCSB': { N: deltaCSB },
+        ':deltaCUD': { N: deltaCUD },
         ':deltaPessimisticBalance': { N: deltaPessimisticBalance }
       },
       ReturnValues: 'NONE'
@@ -210,20 +199,14 @@ class Balance extends Base {
     const updateResponse = await oThis.ddbServiceObj.updateItem(balanceParams);
 
     if (updateResponse.isFailure()) {
-      logger.error(
-        `error update tokenHolderAddress : ${sanitizedParams['tokenHolderAddress']} contract_address : ${
-          sanitizedParams.erc20Address
-        }`,
-        updateResponse
-      );
       return Promise.reject(updateResponse);
     }
 
     let methodInstance = oThis.subClass['afterUpdate'];
-    let afterUpdateResponse = await methodInstance.apply(oThis.subClass, [oThis.ic(), sanitizedParams]);
+    let afterUpdateResponse = await methodInstance.apply(oThis.subClass, [oThis.ic(), params]);
 
     if (afterUpdateResponse.isFailure()) {
-      return afterUpdateResponse;
+      logger.error('balanceCacheFlushError: ', balanceParams, afterUpdateResponse.toHash());
     }
 
     return responseHelper.successWithData(updateResponse);
@@ -285,7 +268,7 @@ class Balance extends Base {
   static async afterUpdate(ic, params) {
     const oThis = this;
 
-    let BalanceCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
+    let BalanceCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
       balanceCache = new BalanceCache({
         tokenHolderAddresses: [params.tokenHolderAddress],
         erc20Address: params.erc20Address
