@@ -28,6 +28,7 @@ const rootPrefix = '../..',
   GenerateExTxWorker = require(rootPrefix + '/lib/executeTransactionManagement/GenerateExTxWorker'),
   InsertAddressIntoTokenAddress = require(rootPrefix + '/lib/setup/economy/InsertAddressIntoTokenAddress'),
   PostPricerRuleDeploy = require(rootPrefix + '/lib/setup/economy/PostPricerRuleDeploy'),
+  PostTokenRuleDeploy = require(rootPrefix + '/lib/setup/economy/PostTokenRuleDeploy'),
   PostRegisterPricerRule = require(rootPrefix + '/lib/setup/economy/PostRegisterPricerRule'),
   util = require(rootPrefix + '/lib/util');
 
@@ -406,6 +407,15 @@ class EconomySetupRouter extends WorkflowRouterBase {
           transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenRules),
           kind: tokenAddressConstants.tokenRulesContractKind,
           chainId: oThis.requestParams.auxChainId
+        }).perform();
+
+      case workflowStepConstants.postTokenRuleDeploy:
+        logger.step('*** Saving Token Rules Address in Token Rules table.');
+
+        return new PostTokenRuleDeploy({
+          tokenId: oThis.requestParams.tokenId,
+          transactionHash: oThis.getTransactionHashForKind(workflowStepConstants.deployTokenRules),
+          auxChainId: oThis.requestParams.auxChainId
         }).perform();
 
       case workflowStepConstants.deployTokenHolderMasterCopy:

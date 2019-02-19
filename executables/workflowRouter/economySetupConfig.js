@@ -228,10 +228,16 @@ const steps = {
   [workflowStepConstants.deployTokenRules]: {
     kind: workflowStepConstants.deployTokenRules,
     onFailure: workflowStepConstants.markFailure,
-    onSuccess: [workflowStepConstants.saveTokenRules]
+    onSuccess: [workflowStepConstants.saveTokenRules, workflowStepConstants.postTokenRuleDeploy]
   },
   [workflowStepConstants.saveTokenRules]: {
     kind: workflowStepConstants.saveTokenRules,
+    readDataFrom: [workflowStepConstants.deployTokenRules],
+    onFailure: workflowStepConstants.markFailure,
+    onSuccess: [workflowStepConstants.deployPricerRule]
+  },
+  [workflowStepConstants.postTokenRuleDeploy]: {
+    kind: workflowStepConstants.postTokenRuleDeploy,
     readDataFrom: [workflowStepConstants.deployTokenRules],
     onFailure: workflowStepConstants.markFailure,
     onSuccess: [workflowStepConstants.deployPricerRule]
