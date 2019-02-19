@@ -26,12 +26,14 @@ require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
 require(rootPrefix + '/app/services/device/get/ByWalletAddress');
 require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
+require(rootPrefix + '/app/services/device/multisigOperation/RevokeDevice');
 
 require(rootPrefix + '/app/services/deviceManager/Get');
 
 require(rootPrefix + '/app/services/session/get/ByAddress');
 require(rootPrefix + '/app/services/session/get/ByUserId');
 require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
+require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
 
 /* Create user*/
 router.post('/', function(req, res, next) {
