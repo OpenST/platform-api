@@ -21,6 +21,8 @@ const rootPrefix = '../..',
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  TransactionFinalizerDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -206,13 +208,22 @@ class Finalizer extends PublisherBase {
             await oThis.sleep(2000);
           } else {
             if (finalizerResponse.data.processedBlock) {
-              await oThis._checkAfterReceiptTasksAndPublish(finalizerResponse.data);
+              let processedTransactionHashes = finalizerResponse.data.processedTransactions,
+                processedBlockNumber = finalizerResponse.data.processedBlock;
 
-              await oThis._updateLastProcessedBlock(finalizerResponse.data.processedBlock);
+              if (processedTransactionHashes.length > 0) {
+                if (oThis.isOriginChain) {
+                  await oThis._checkAfterReceiptTasksAndPublish(processedTransactionHashes);
+                } else {
+                  await oThis._enqueueTransactionFinalizerTasks(processedBlockNumber, processedTransactionHashes);
+                }
+              }
 
-              logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
+              await oThis._updateLastProcessedBlock(processedBlockNumber);
 
-              await oThis._publishBlock(finalizerResponse.data.processedBlock);
+              logger.info('===== Processed block', processedBlockNumber, '=======');
+
+              await oThis._publishBlock(processedBlockNumber);
             }
             logger.log('===Waiting for 10 milli-secs');
             await oThis.sleep(10);
@@ -297,14 +308,11 @@ class Finalizer extends PublisherBase {
    * @return {Promise<void>}
    * @private
    */
-  async _checkAfterReceiptTasksAndPublish(params) {
-    const oThis = this;
+  async _checkAfterReceiptTasksAndPublish(transactionHashes) {
+    const oThis = this,
+      dataToDelete = [],
+      promises = [];
 
-    let transactionHashes = params.processedTransactions;
-
-    if (transactionHashes.length <= 0) return;
-
-    let promises = [];
     while (true) {
       let batchedTransactionHashes = transactionHashes.splice(0, 50);
       if (batchedTransactionHashes.length === 0) {
@@ -343,7 +351,7 @@ class Finalizer extends PublisherBase {
 
       for (let txUuid in pendingTransactionData) {
         let ptd = pendingTransactionData[txUuid];
-
+        dataToDelete.push(ptd);
         if (ptd.hasOwnProperty('afterReceipt')) {
           // Publish state root info for workflow to be able to proceed with other steps
           let publishPromise = new Promise(function(onResolve, onReject) {
@@ -362,7 +370,28 @@ class Finalizer extends PublisherBase {
       }
     }
 
-    return Promise.all(promises);
+    await Promise.all(promises);
+
+    if (dataToDelete.length === 0) {
+      await oThis._cleanupPendingTransactions(dataToDelete);
+    }
+  }
+
+  /**
+   *
+   * @param {Number} processedBlockNumber
+   * @param {Array} transactionHashes
+   * @return {Promise<void>}
+   * @private
+   */
+  async _enqueueTransactionFinalizerTasks(processedBlockNumber, transactionHashes) {
+    const oThis = this;
+
+    return new TransactionFinalizerDelegator({
+      auxChainId: oThis.chainId,
+      blockNumber: processedBlockNumber,
+      transactionHashes: transactionHashes
+    }).perform();
   }
 
   /**
@@ -457,6 +486,22 @@ class Finalizer extends PublisherBase {
       return intersectData;
     } else {
       return blockTransactions;
+    }
+  }
+
+  /**
+   * _cleanupPendingTransactions
+   *
+   * @return {Promise<void>}
+   */
+  async _cleanupPendingTransactions(dataToDelete) {
+    const oThis = this,
+      pendingTransactionModel = new oThis.PendingTransactionModel({
+        chainId: oThis.chainId
+      });
+
+    if (dataToDelete.length > 0) {
+      await pendingTransactionModel.batchDeleteItem(dataToDelete, coreConstants.batchDeleteRetryCount);
     }
   }
 }
