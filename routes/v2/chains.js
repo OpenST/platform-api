@@ -4,11 +4,12 @@ const express = require('express'),
 const rootPrefix = '../..',
   routeHelper = require(rootPrefix + '/routes/helper'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ChainFormatter = require(rootPrefix + '/lib/formatter/entity/Chain');
 
 /* Get chain details*/
-router.get('/:chain_id', function(req, res, next) {
+router.get('/:chain_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getChain;
   req.decodedParams.chain_id = req.params.chain_id;
   req.decodedParams.clientConfigStrategyRequired = false;

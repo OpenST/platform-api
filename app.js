@@ -9,7 +9,6 @@ const express = require('express'),
   cookieParser = require('cookie-parser'),
   bodyParser = require('body-parser'),
   helmet = require('helmet'),
-  sanitizer = require('express-sanitized'),
   customUrlParser = require('url'),
   cluster = require('cluster'),
   http = require('http');
@@ -26,7 +25,8 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   environmentInfo = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal);
+  errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 const requestSharedNameSpace = createNamespace('saasApiNameSpace'),
   systemServiceStatusesCache = new SystemServiceStatusesCacheKlass({});
@@ -53,21 +53,27 @@ const assignParams = function(req) {
     basicHelper.logDateFormat();
   logger.info(message);
 
+  req.decodedParams = getRequestParams(req);
+};
+
+const getRequestParams = function(req) {
   if (req.method == 'POST') {
-    req.decodedParams = req.body;
+    return req.body;
   } else if (req.method == 'GET') {
-    req.decodedParams = req.query;
+    return req.query;
   }
 };
 
 const validateApiSignature = function(req, res, next) {
-  assignParams(req);
+  let inputParams = getRequestParams(req);
 
   const handleParamValidationResult = function(result) {
     if (result.isSuccess()) {
+      // todo: make sure all sanitized values are only added here
       req.decodedParams['client_id'] = result.data['clientId'];
       req.decodedParams['token_id'] = result.data['tokenId'];
       req.decodedParams['user_data'] = result.data['userData'];
+      req.decodedParams['app_validated_api_name'] = result.data['appValidatedApiName'];
       next();
     } else {
       return result.renderResponse(res, errorConfig);
@@ -75,7 +81,7 @@ const validateApiSignature = function(req, res, next) {
   };
 
   return new ValidateApiSignature({
-    inputParams: req.decodedParams,
+    inputParams: inputParams,
     requestPath: customUrlParser.parse(req.originalUrl).pathname,
     requestMethod: req.method
   })
@@ -103,6 +109,7 @@ const decodeJwt = function(req, res, next) {
   // Set the decoded params in the re and call the next in control flow.
   const jwtOnResolve = function(reqParams) {
     req.decodedParams = reqParams.data;
+    req.decodedParams['app_validated_api_name'] = '';
     // Validation passed.
     return next();
   };
@@ -288,7 +295,7 @@ if (cluster.isMaster) {
 
   /*
     The sanitizer() piece of code should always be before routes for jwt and after validateApiSignature for sdk.
-    Docs: https://www.npmjs.com/package/express-sanitized
+    Docs: https://www.npmjs.com/package/sanitize-html
   */
 
   // Mark older routes as UNSUPPORTED_VERSION
@@ -302,7 +309,7 @@ if (cluster.isMaster) {
 
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
-    sanitizer(),
+    sanitizer.sanitizeBodyAndQuery,
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     decodeJwt,
@@ -315,7 +322,8 @@ if (cluster.isMaster) {
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     validateApiSignature,
-    sanitizer(),
+    sanitizer.sanitizeBodyAndQuery,
+    assignParams,
     appendV2Version,
     v2Routes
   );
