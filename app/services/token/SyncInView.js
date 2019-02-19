@@ -120,4 +120,4 @@ class SyncInView {
 
 InstanceComposer.registerAsShadowableClass(SyncInView, coreConstants.icNameSpace, 'SyncInView');
 
-module.exports = SyncInView;
+module.exports = {};

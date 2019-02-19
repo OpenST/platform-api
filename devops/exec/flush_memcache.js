@@ -20,11 +20,11 @@ const Main = async function() {
   let resp=[];
   if (command.flushSharedMemcache) {
     performerObj = new FlushSharedMemcache();
-     resp[0] =  await performerObj.perform() ;
+     resp.push(await performerObj.perform()) ;
   }
   if (command.flushChainMemcache) {
     performerObj = new FlushChainMemcache();
-    resp[1] =  await performerObj.perform() ;
+    resp.push(await performerObj.perform()) ;
 
   }
 
