@@ -87,6 +87,10 @@ class ConfigStrategyObject {
           shortName: 'rn',
           dataType: 'N'
         },
+        status: {
+          shortName: 's',
+          dataType: 'N'
+        },
         transferExecutableData: {
           shortName: 'ted',
           dataType: 'S'
