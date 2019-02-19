@@ -77,13 +77,16 @@ class ExecuteTxBase extends ServiceBase {
     oThis.configStrategyObj = null;
     oThis.rmqInstance = null;
     oThis.web3Instance = null;
-    oThis.pessimisticAmountDebitted = null;
     oThis.balanceShardNumber = null;
     oThis.tokenHolderAddress = null;
     oThis.gas = null;
     oThis.nonce = null;
     oThis.gasPrice = null;
     oThis.estimatedTransfers = null;
+
+    oThis.pessimisticAmountDebitted = null;
+    oThis.pendingTransactionInserted = null;
+    oThis.transactionMetaId = null;
   }
 
   /**
@@ -106,12 +109,31 @@ class ExecuteTxBase extends ServiceBase {
           debug_options: { error: err.toString() }
         });
       }
-      if (oThis.pessimisticAmountDebitted) {
-        logger.debug('something_went_wrong rolling back pessimitic debitted balances');
-        await oThis._rollBackPessimisticDebit();
-      }
+
+      await oThis._revertOperations();
+
       return customError;
     });
+  }
+
+  async _revertOperations() {
+    const oThis = this;
+
+    if (oThis.pessimisticAmountDebitted) {
+      logger.debug('something_went_wrong rolling back pessimitic debitted balances');
+      await oThis._rollBackPessimisticDebit().catch(async function(rollbackError) {
+        // TODO: Mark user balance as dirty
+        logger.error(`In catch block of _rollBackPessimisticDebit in file: ${__filename}`, rollbackError);
+      });
+    }
+
+    if (oThis.pendingTransactionInserted) {
+      // update pending transaction to mark failed.
+    }
+
+    if (oThis.transactionMetaId) {
+      await new TransactionMetaModel().markAsQueuedFailed(oThis.transactionUuid);
+    }
   }
 
   /**
@@ -345,14 +367,20 @@ class ExecuteTxBase extends ServiceBase {
     const oThis = this;
     oThis.transactionUuid = uuidv4();
 
-    await new TransactionMetaModel().insert({
-      transaction_uuid: oThis.transactionUuid,
-      associated_aux_chain_id: 1,
-      token_id: 2,
-      status: transactionMetaConst.queued,
-      kind: transactionMetaConst.ruleExecution,
-      next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queued)
-    });
+    let txMetaResp = await new TransactionMetaModel()
+      .insert({
+        transaction_uuid: oThis.transactionUuid,
+        associated_aux_chain_id: oThis.auxChainId,
+        token_id: oThis.tokenId,
+        status: transactionMetaConst.queued,
+        kind: transactionMetaConst.ruleExecution,
+        next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queued),
+        session_address: oThis.sessionKeyAddress,
+        session_nonce: oThis.nonce
+      })
+      .fire();
+
+    oThis.transactionMetaId = txMetaResp.insertId;
   }
 
   /**
@@ -404,6 +432,8 @@ class ExecuteTxBase extends ServiceBase {
 
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
+    } else {
+      oThis.pendingTransactionInserted = 1;
     }
   }
 

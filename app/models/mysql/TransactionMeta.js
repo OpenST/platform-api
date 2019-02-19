@@ -9,14 +9,6 @@ const rootPrefix = '../..',
 
 const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
-const kinds = {
-  '1': transactionMetaConst.tokenTransferTransactionType,
-  '2': transactionMetaConst.stpTransferTransactionType,
-  '3': transactionMetaConst.externalTokenTransferTransactionType
-};
-
-const invertedKinds = util.invert(kinds);
-
 class TransactionMetaModel extends ModelBase {
   constructor() {
     super({ dbName: dbName });
@@ -26,11 +18,11 @@ class TransactionMetaModel extends ModelBase {
   }
 
   get kinds() {
-    return kinds;
+    return transactionMetaConst.kinds;
   }
 
   get invertedKinds() {
-    return invertedKinds;
+    return transactionMetaConst.invertedKinds;
   }
 
   get statuses() {
@@ -99,6 +91,14 @@ class TransactionMetaModel extends ModelBase {
       .where({
         lock_id: params.lockId
       })
+      .fire();
+  }
+
+  markAsQueuedFailed(transactionUuid) {
+    const oThis = this;
+    return oThis
+      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailed]])
+      .where({ transaction_uuid: transactionUuid })
       .fire();
   }
 }
