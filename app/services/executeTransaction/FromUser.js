@@ -16,6 +16,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
@@ -97,6 +98,13 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    */
   async _validateAndSanitize() {
     const oThis = this;
+
+    if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
+      return oThis._validationError('s_et_fu_1', ['saas_inactive_user_id'], {
+        saasApiStatus: oThis.userData.saasApiStatus
+      });
+    }
+
     await oThis._validateAndSanitizeSessionKeyAddress();
   }
 
@@ -140,7 +148,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     if (oThis.pessimisticDebitAmount.gte(new BigNumber(oThis.sessionData.spendingLimit))) {
-      return oThis._validationError('s_et_fu_2', ['session_key_spending_limit_breached'], {
+      return oThis._validationError('s_et_fu_1', ['session_key_spending_limit_breached'], {
         spendingLimit: oThis.sessionData.spendingLimit.toString(10),
         pessimisticDebitAmount: oThis.pessimisticDebitAmount.toString(10)
       });

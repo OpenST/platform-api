@@ -59,6 +59,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  saas_inactive_user_id: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `user_id is suspended. Please contact support`
+  },
   user_not_found: {
     parameter: 'user_id',
     code: 'invalid',
