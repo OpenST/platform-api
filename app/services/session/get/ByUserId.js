@@ -158,6 +158,34 @@ class SessionListByUserId extends SessionGetBase {
 
     return sessionAddressesByUserId.fetch();
   }
+
+  /**
+   * Fetch session nonce
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _fetchSessionNonce(responseData) {
+    const oThis = this,
+      currentTimestamp = Math.floor(new Date() / 1000);
+
+    let promises = [];
+    for (let index in responseData.sessions) {
+      let sessionData = responseData.sessions[index];
+      // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
+      // If session is expired then avoid fetching from contract.
+      if (sessionData.expirationTimestamp > currentTimestamp) {
+        promises.push(oThis._fetchSessionTokenHolderNonce(sessionData.address));
+      }
+    }
+    await Promise.all(promises);
+    for (let index in responseData.sessions) {
+      let sessionData = responseData.sessions[index];
+      responseData.sessions[index].nonce = oThis.sessionNonce[sessionData.address];
+    }
+
+    return responseData;
+  }
 }
 
 InstanceComposer.registerAsShadowableClass(SessionListByUserId, coreConstants.icNameSpace, 'SessionListByUserId');
