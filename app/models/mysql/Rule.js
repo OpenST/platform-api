@@ -116,6 +116,25 @@ class Rule extends ModelBase {
     return ruleCacheRsp;
   }
 
+  /**
+   *
+   * Fetch Token Rule Details
+   *
+   * @return {Promise<result>}
+   */
+  static async getTokenRuleDetails() {
+    let RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule');
+
+    let ruleCache = new RuleCache({ tokenId: 0, name: ruleConstants.tokenRuleName }),
+      ruleCacheRsp = await ruleCache.fetch();
+
+    if (ruleCacheRsp.isFailure() || !ruleCacheRsp.data) {
+      return Promise.reject(ruleCacheRsp);
+    }
+
+    return ruleCacheRsp;
+  }
+
   /***
    * Flush cache
    *
