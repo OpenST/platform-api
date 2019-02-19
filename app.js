@@ -18,6 +18,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   v2Routes = require(rootPrefix + '/routes/v2/index'),
   internalRoutes = require(rootPrefix + '/routes/internal/index'),
+  elbHealthCheckerRoute = require(rootPrefix + '/routes/internal/elb_health_checker'),
   ValidateApiSignature = require(rootPrefix + '/lib/validateApiSignature/Factory'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   customMiddleware = require(rootPrefix + '/helpers/customMiddleware'),
@@ -285,11 +286,6 @@ if (cluster.isMaster) {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Health checker
-  app.get('/health-checker', function(req, res, next) {
-    res.send('');
-  });
-
   /*
     The sanitizer() piece of code should always be before routes for jwt and after validateApiSignature for sdk.
     Docs: https://www.npmjs.com/package/express-sanitized
@@ -302,7 +298,7 @@ if (cluster.isMaster) {
   app.use('/v1.1', handleDepricatedRoutes);
 
   // Following are the routes
-  app.use('/', internalRoutes);
+  app.use('/health-checker', elbHealthCheckerRoute);
 
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
