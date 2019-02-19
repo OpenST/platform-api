@@ -25,7 +25,6 @@ router.get('/', function(req, res, next) {
     if (req.headers['user-agent'] === 'ELB-HealthChecker/2.0') {
       return responseHelper.successWithData({}).renderResponse(res, errorConfig);
     } else {
-      return responseHelper.successWithData({}).renderResponse(res, errorConfig);
       return responseHelper
         .error({
           internal_error_identifier: 'r_i_r_1',
