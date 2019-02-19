@@ -2,7 +2,7 @@
 /**
  * Grant eth and ost router
  *
- * @module executables/workflowRouter/EconomySetupRouter
+ * @module executables/workflowRouter/GrantEthOstRouter
  */
 
 const rootPrefix = '../..',
