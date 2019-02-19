@@ -14,10 +14,12 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/lib/nonce/contract/MultiSig');
 
 /**
  * Class for manager details.
@@ -57,6 +59,8 @@ class Get extends ServiceBase {
     }
 
     await oThis._getUserDetailsFromCache();
+
+    await oThis._fetchContractNonce();
 
     return Promise.resolve(responseHelper.successWithData({ [resultType.deviceManager]: oThis.details }));
   }
@@ -106,10 +110,30 @@ class Get extends ServiceBase {
     }
   }
 
-  async _getContractData() {
+  /**
+   * Fetch nonce from contract
+   *
+   * @private
+   */
+  async _fetchContractNonce() {
     const oThis = this;
 
-    //add requirement and nonce to output from multisig contract
+    let MultiSigNonceKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'MultiSigNonce'),
+      auxChainId = oThis.ic().configStrategy.auxGeth.chainId,
+      params = { auxChainId: auxChainId, tokenId: oThis.tokenId, userId: oThis.userId };
+
+    await new MultiSigNonceKlass(params)
+      .perform()
+      .then(function(resp) {
+        if (resp.isSuccess()) {
+          oThis.details.nonce = resp.data.nonce;
+          // For now as Requirement is one, we have avoided call from contract to fetch requirement.
+          oThis.details.requirement = contractConstants.multiSigRequirement;
+        }
+      })
+      .catch(function(err) {
+        logger.error(err);
+      });
   }
 }
 

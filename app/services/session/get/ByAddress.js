@@ -82,6 +82,28 @@ class SessionGetByAddress extends SessionGetBase {
 
     return returnData;
   }
+
+  /**
+   * Fetch session nonce
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _fetchSessionNonce(responseData) {
+    const oThis = this;
+
+    let sessionData = responseData.session,
+      currentTimestamp = Math.floor(new Date() / 1000);
+
+    // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
+    // If session is expired then avoid fetching from contract.
+    if (sessionData.expirationTimestamp > currentTimestamp) {
+      await oThis._fetchSessionTokenHolderNonce(sessionData.address);
+    }
+    responseData.session.nonce = oThis.sessionNonce[sessionData.address];
+
+    return responseData;
+  }
 }
 
 InstanceComposer.registerAsShadowableClass(SessionGetByAddress, coreConstants.icNameSpace, 'SessionGetByAddress');
