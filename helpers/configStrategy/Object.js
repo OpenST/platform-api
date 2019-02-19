@@ -83,9 +83,9 @@ class ConfigStrategyObject {
           shortName: 'mp',
           dataType: 'S'
         },
-        ruleName: {
+        ruleId: {
           shortName: 'rn',
-          dataType: 'S'
+          dataType: 'N'
         },
         transferExecutableData: {
           shortName: 'ted',

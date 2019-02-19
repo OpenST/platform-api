@@ -72,7 +72,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pessimisticDebitAmount = null;
     oThis.unsettledDebits = null;
     oThis.transactionUuid = null;
-    oThis.ruleName = null;
+    oThis.ruleId = null;
     oThis.configStrategyObj = null;
     oThis.rmqInstance = null;
     oThis.web3Instance = null;
@@ -199,7 +199,9 @@ class ExecuteTxBase extends ServiceBase {
       return Promise.reject(fetchPricerRuleRsp);
     }
 
-    let tokenRuleCache = new TokenRuleCache({ tokenId: oThis.tokenId, ruleId: fetchPricerRuleRsp.data.id }),
+    oThis.ruleId = fetchPricerRuleRsp.data.id;
+
+    let tokenRuleCache = new TokenRuleCache({ tokenId: oThis.tokenId, ruleId: oThis.ruleId }),
       tokenRuleCacheRsp = await tokenRuleCache.fetch();
 
     if (tokenRuleCacheRsp.isFailure() || !tokenRuleCacheRsp.data) {
@@ -251,14 +253,12 @@ class ExecuteTxBase extends ServiceBase {
         contractAddress: oThis.tokenRuleAddress,
         web3Instance: oThis.web3Instance
       }).perform();
-      oThis.ruleName = ruleConstants.tokenRuleName;
     } else if (pricerRuleAddress === oThis.toAddress) {
       response = await new ProcessPricerRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.pricerRuleAddress,
         web3Instance: oThis.web3Instance
       }).perform();
-      oThis.ruleName = ruleConstants.pricerRuleName;
     } else {
       return oThis._validationError('s_et_b_4', ['invalid_executable_data'], {
         executableData: oThis.executableData
@@ -379,7 +379,7 @@ class ExecuteTxBase extends ServiceBase {
       unsettledDebits: oThis.unsettledDebits,
       eip1077Signature: oThis.signatureData,
       metaProperty: oThis.metaProperty,
-      ruleName: oThis.ruleName,
+      ruleId: oThis.ruleId,
       transferExecutableData: oThis.transferExecutableData
     });
 
