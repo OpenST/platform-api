@@ -41,12 +41,65 @@ class TransactionMetaModel extends ModelBase {
     return transactionMetaConst.invertedStatuses;
   }
 
-  get kinds() {
-    return transactionMetaConst.kinds;
+  /**
+   * Acquire lock on rows
+   *
+   * @param params
+   * @return {*|void}
+   */
+  acquireLock(params) {
+    const oThis = this,
+      currentTime = Date.now();
+
+    return oThis
+      .update({
+        lock_id: params.lockId,
+        status: transactionMetaConst.invertedStatuses[params.updateStatusTo]
+      })
+      .where([
+        'transaction_hash IN (?) AND status = ? AND next_action_at < ? AND retry_count < ?',
+        params.transactionHashes,
+        transactionMetaConst.invertedStatuses[params.selectWithStatus],
+        currentTime,
+        params.retryLimit
+      ])
+      .fire();
   }
 
-  get invertedKinds() {
-    return transactionMetaConst.invertedKinds;
+  /**
+   * Fetch transactions by lockId
+   *
+   * @param lock_id
+   * @return {*|void}
+   */
+  fetchByLockId(lock_id) {
+    const oThis = this;
+
+    return oThis
+      .select('transaction_hash')
+      .where({
+        lock_id: lock_id
+      })
+      .fire();
+  }
+
+  /**
+   * Release lock and mark status
+   *
+   * @return {*|void}
+   */
+  releaseLockAndMarkStatus(params) {
+    const oThis = this;
+
+    return oThis
+      .update({
+        lock_id: null,
+        status: transactionMetaConst.invertedStatuses[params.status]
+      })
+      .where({
+        lock_id: params.lockId
+      })
+      .fire();
   }
 }
 
