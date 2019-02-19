@@ -11,7 +11,7 @@
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@openstfoundation/mosaic.js": "https://github.com/OpenSTFoundation/mosaic.js.git#develop",
     "@openstfoundation/openst-base": "0.9.3-beta.15",
-    "@openstfoundation/openst-block-scanner": "0.0.1-beta.57",
+    "@openstfoundation/openst-block-scanner": "0.0.1-beta.60",
     "@openstfoundation/openst-cache": "1.0.6-beta.13",
     "@openstfoundation/openst-notification": "1.0.6-beta.10",
     "@openstfoundation/openst-storage": "1.0.2-beta.29",
