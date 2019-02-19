@@ -91,6 +91,16 @@ class ConfigStrategyObject {
           shortName: 'ted',
           dataType: 'S'
         }
+      },
+      transactions: {
+        metaProperty: {
+          shortName: 'mp',
+          dataType: 'S'
+        },
+        ruleId: {
+          shortName: 'rn',
+          dataType: 'N'
+        }
       }
     };
   }
