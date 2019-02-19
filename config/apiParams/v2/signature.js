@@ -363,7 +363,139 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.postRevokeDevice]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signatures',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.postAuthorizeSession]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateInteger'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.postRevokeSession]: {
     mandatory: [
       {
         parameter: 'client_id',

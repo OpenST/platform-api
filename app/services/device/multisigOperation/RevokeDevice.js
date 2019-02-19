@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- *  Authorize device multi sig operation
+ *  Revoke device multi sig operation
  *
- * @module app/services/device/multisigOperation/AuthorizeDevice
+ * @module app/services/device/multisigOperation/RevokeDevice
  */
 
 const OSTBase = require('@openstfoundation/openst-base'),
@@ -18,8 +18,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  AuthorizeDeviceRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter'),
+  RevokeDeviceRouter = require(rootPrefix + '/executables/auxWorkflowRouter/multisigOperation/RevokeDeviceRouter'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
@@ -28,7 +27,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 
-class AuthorizeDevice extends Base {
+class RevokeDevice extends Base {
   /**
    * @constructor
    *
@@ -37,7 +36,8 @@ class AuthorizeDevice extends Base {
   constructor(params) {
     super(params);
     const oThis = this;
-    oThis.deviceAddress = params.raw_calldata['parameters'][0];
+    oThis.previousDeviceAddress = params.raw_calldata['parameters'][0];
+    oThis.deviceAddressToRemove = params.raw_calldata['parameters'][1];
   }
 
   /**
@@ -51,11 +51,11 @@ class AuthorizeDevice extends Base {
 
     oThis._sanitizeSpecificParams();
 
-    logger.debug('****Updating the device status as authorizing');
+    logger.debug('****Updating the device status as revoking only if it was authorized');
     let updateResponse = await oThis._updateDeviceStatus(
-      oThis.deviceAddress,
-      deviceConstants.registeredStatus,
-      deviceConstants.authorisingStatus
+      oThis.deviceAddressToRemove,
+      deviceConstants.authorisedStatus,
+      deviceConstants.revokingStatus
     );
 
     await oThis._startWorkflow();
@@ -65,11 +65,12 @@ class AuthorizeDevice extends Base {
 
   _sanitizeSpecificParams() {
     const oThis = this;
-    oThis.deviceAddress = basicHelper.sanitizeAddress(oThis.deviceAddress);
+    oThis.previousDeviceAddress = basicHelper.sanitizeAddress(oThis.previousDeviceAddress);
+    oThis.deviceAddressToRemove = basicHelper.sanitizeAddress(oThis.deviceAddressToRemove);
   }
 
   /**
-   * Starts the workflow to submit authorize device transaction
+   * Starts the workflow to submit revoke device transaction
    *
    * @returns {Promise}
    * @private
@@ -77,12 +78,12 @@ class AuthorizeDevice extends Base {
   async _startWorkflow() {
     const oThis = this;
 
-    logger.debug('****Starting the authorize workflow ');
+    logger.debug('****Starting the revoke workflow ');
     let requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
-        deviceAddress: oThis.deviceAddress,
+        deviceAddressToRemove: oThis.deviceAddressToRemove,
         to: oThis.to,
         value: oThis.value,
         calldata: oThis.calldata,
@@ -99,35 +100,19 @@ class AuthorizeDevice extends Base {
         deviceShardNumber: oThis.deviceShardNumber,
         multisigAddress: oThis.multisigAddress
       },
-      authorizeDeviceInitParams = {
-        stepKind: workflowStepConstants.authorizeDeviceInit,
+      revokeDeviceInitParams = {
+        stepKind: workflowStepConstants.revokeDeviceInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.auxChainId,
-        topic: workflowTopicConstants.authorizeDevice,
+        topic: workflowTopicConstants.revokeDevice,
         requestParams: requestParams
       };
 
-    let authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
+    let revokeDeviceObj = new RevokeDeviceRouter(revokeDeviceInitParams);
 
-    return authorizeDeviceObj.perform();
-  }
-
-  /**
-   * Prepares the response for Authorize Device service.
-   *
-   * @returns {Promise<any>}
-   * @private
-   */
-  async _prepareResponseEntity(updateResponseData) {
-    const oThis = this;
-
-    logger.debug('****Preparing authorize device service response');
-
-    return responseHelper.successWithData({
-      [resultType.device]: updateResponseData.data
-    });
+    return revokeDeviceObj.perform();
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AuthorizeDevice, coreConstants.icNameSpace, 'AuthorizeDevice');
+InstanceComposer.registerAsShadowableClass(RevokeDevice, coreConstants.icNameSpace, 'RevokeDevice');

@@ -43,7 +43,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.gasPrice = params.gas_price;
     oThis.gasToken = params.gas_token;
     oThis.refundReceiver = params.refund_receiver;
-    oThis.signature = params.signature;
+    oThis.signature = params.signatures;
     oThis.signer = params.signer;
   }
 

@@ -278,9 +278,27 @@ router.post('/:user_id/devices/authorize/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v_u_8', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v_u_12', null, dataFormatterFunc));
 });
 
+/*Revoke Device*/
+router.post('/:user_id/devices/revoke/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postRevokeDevice;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeDevice', 'r_v_u_13', null, dataFormatterFunc));
+});
+
+/*Authorize Session*/
 router.post('/:user_id/sessions/authorize/', function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeSession;
   req.decodedParams.userId = req.params.user_id; // review params
@@ -294,7 +312,24 @@ router.post('/:user_id/sessions/authorize/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v_u_10', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v_u_14', null, dataFormatterFunc));
+});
+
+/*Revoke Session*/
+router.post('/:user_id/sessions/revoke/', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postRevokeSession;
+  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.sessions]).perform();
+    serviceResponse.data = {
+      result_type: resultType.sessions,
+      [resultType.sessions]: sessionsFormattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v_u_15', null, dataFormatterFunc));
 });
 
 module.exports = router;

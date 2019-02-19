@@ -85,9 +85,17 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/devices/authorize/'
       },
+      [apiName.postRevokeDevice]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/revoke/'
+      },
       [apiName.postAuthorizeSession]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/authorize/'
+      },
+      [apiName.postRevokeSession]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/sessions/revoke/'
       }
     };
     return postRequestConfig;

@@ -11,6 +11,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
@@ -31,8 +32,6 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     oThis.userData = params.user_data;
     oThis.userId = params.user_data.userId;
     oThis.deviceShardNumber = params.user_data.deviceShardNumber;
-
-    oThis.deviceAddress = params.raw_calldata['parameters'][0];
 
     oThis.to = params.to;
     oThis.value = params.value;
@@ -67,7 +66,6 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   async _sanitizeParams() {
     const oThis = this;
 
-    oThis.deviceAddress = basicHelper.sanitizeAddress(oThis.deviceAddress);
     oThis.to = basicHelper.sanitizeAddress(oThis.to);
     oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
     oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
@@ -120,69 +118,6 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   }
 
   /**
-   * Fetch the device data and checks if the device status is same as given parameter
-   *
-   *
-   * @returns {Promise<>}
-   */
-  async _fetchDeviceDetails() {
-    const oThis = this;
-
-    let paramsForDeviceDetailsCache = {
-      userId: oThis.userId,
-      walletAddresses: [oThis.deviceAddress],
-      tokenId: oThis.tokenId
-    };
-
-    let DeviceDetailsKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailsObj = new DeviceDetailsKlass(paramsForDeviceDetailsCache),
-      deviceDetailsRsp = await deviceDetailsObj.fetch();
-
-    if (deviceDetailsRsp.isFailure()) {
-      logger.error('No data found for the provided wallet address');
-      return Promise.reject(deviceDetailsRsp);
-    }
-
-    let deviceDetails = deviceDetailsRsp.data[oThis.deviceAddress];
-
-    if (basicHelper.isEmptyObject(deviceDetails)) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_3',
-          api_error_identifier: 'resource_not_found',
-          debug_options: {}
-        })
-      );
-    }
-
-    return responseHelper.successWithData(deviceDetails);
-  }
-
-  /**
-   * Checks if the device status is same as the passed parameter
-   *
-   * @param {String}deviceStatus
-   * @returns {Promise<never>}
-   * @private
-   */
-  async _checkDeviceStatus(deviceStatus) {
-    const oThis = this;
-
-    let deviceDetailsRsp = await oThis._fetchDeviceDetails(),
-      deviceDetails = deviceDetailsRsp.data;
-
-    if (deviceDetails.status !== deviceStatus) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { deviceStatus: deviceDetails.status }
-        })
-      );
-    }
-  }
-
-  /**
    * This function updates the device status of the respective record in devices table.
    *
    * @param {String}fromDeviceStatus:
@@ -190,7 +125,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
    * @returns {Promise<*>}
    * @private
    */
-  async _updateDeviceStatus(initialDeviceStatus, finalDeviceStatus) {
+  async _updateDeviceStatus(deviceAddress, initialDeviceStatus, finalDeviceStatus) {
     const oThis = this;
 
     let paramsToUpdateDeviceStatus = {
@@ -199,7 +134,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       finalStatus: finalDeviceStatus,
       initialStatus: initialDeviceStatus,
       shardNumber: oThis.deviceShardNumber,
-      walletAddress: oThis.deviceAddress
+      walletAddress: deviceAddress
     };
     let UpdateDeviceStatusKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UpdateDeviceStatus'),
       updateDeviceStatusObj = new UpdateDeviceStatusKlass(paramsToUpdateDeviceStatus),
@@ -210,6 +145,22 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     }
 
     return updateDeviceStatusRsp;
+  }
+
+  /**
+   * Prepares the response for Device multisig operation service.
+   *
+   * @returns {Promise<any>}
+   * @private
+   */
+  async _prepareResponseEntity(updateResponseData) {
+    const oThis = this;
+
+    logger.debug('****Preparing authorize device service response');
+
+    return responseHelper.successWithData({
+      [resultType.device]: updateResponseData.data
+    });
   }
 
   /**
