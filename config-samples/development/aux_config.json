@@ -56,14 +56,12 @@
       }
     },
     "rabbitmq": {
-      "username": "cluster_manager",
-      "password": "123456",
-      "host": "172.16.0.110",
-      "port": "5672",
-      "heartbeats": "30",
-      "clusterNodes": [
-        "172.16.0.110","172.16.0.231"
-      ]
+      "username":"guest",
+      "password":"guest",
+      "host":"127.0.0.1",
+      "port":"5672",
+      "heartbeats":"30",
+      "clusterNodes":["127.0.0.1"]
     }
   }
 }
