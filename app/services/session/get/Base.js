@@ -202,11 +202,9 @@ class SessionGetBase extends ServiceBase {
       };
 
     return new Promise(function(onResolve, onReject) {
-      console.log('Fetching nonce');
       new TokenHolderNonceKlass(params)
         .perform()
         .then(function(resp) {
-          console.log('Fetching nonce Done: ', resp);
           if (resp.isSuccess()) {
             oThis.sessionNonce[sessionAddress] = resp.data.nonce;
           }
