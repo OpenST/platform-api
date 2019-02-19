@@ -29,6 +29,8 @@ const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
@@ -339,6 +341,20 @@ class ExecuteTxBase extends ServiceBase {
     oThis.unsettledDebits = [buffer];
   }
 
+  async _createTransactionMeta() {
+    const oThis = this;
+    oThis.transactionUuid = uuidv4();
+
+    await new TransactionMetaModel().insert({
+      transaction_uuid: oThis.transactionUuid,
+      associated_aux_chain_id: 1,
+      token_id: 2,
+      status: transactionMetaConst.queued,
+      kind: transactionMetaConst.ruleExecution,
+      next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queued)
+    });
+  }
+
   /**
    *
    *
@@ -382,14 +398,13 @@ class ExecuteTxBase extends ServiceBase {
       metaProperty: oThis.metaProperty,
       ruleId: oThis.ruleId,
       transferExecutableData: oThis.transferExecutableData,
-      transfers: oThis.estimatedTransfers
+      transfers: oThis.estimatedTransfers,
+      transactionUuid: oThis.transactionUuid
     });
 
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
     }
-
-    oThis.transactionUuid = insertRsp.data.insertData.transactionUuid;
   }
 
   /**
