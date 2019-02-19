@@ -18,7 +18,9 @@ const rootPrefix = '../..',
   BalanceSettlerLib = require(rootPrefix + '/lib/transactions/finalize/BalanceSettler'),
   TransactionFinalizerTask = require(rootPrefix + '/app/models/mysql/TransactionFinalizerTask'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase');
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  MultiSubsciptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubsciptionBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -36,7 +38,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-class BalanceSettler extends SubscriberBase {
+class BalanceSettler extends MultiSubsciptionBase {
   /**
    *
    * @param params {object} - params object
@@ -123,6 +125,26 @@ class BalanceSettler extends SubscriberBase {
     }
 
     logger.step('Initialization done.');
+  }
+
+  /**
+   * Prepare subscription data.
+   *
+   * @returns {{}}
+   * @private
+   */
+  _prepareSubscriptionData() {
+    const oThis = this;
+
+    oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe] = new RabbitmqSubscription({
+      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      topic: oThis._topicsToSubscribe,
+      queue: oThis._queueName,
+      prefetchCount: oThis.prefetchCount,
+      auxChainId: oThis.auxChainId
+    });
   }
 
   /**
