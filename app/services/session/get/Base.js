@@ -16,6 +16,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
 const BigNumber = require('bignumber.js');
 
@@ -35,6 +36,7 @@ class SessionGetBase extends ServiceBase {
     oThis.clientId = params.client_id;
 
     oThis.sessionShardNumber = null;
+    oThis.sessionNonce = {};
   }
 
   /**
@@ -57,7 +59,9 @@ class SessionGetBase extends ServiceBase {
 
     let response = await oThis._fetchSessionFromCache();
 
-    return responseHelper.successWithData(response);
+    let finalResponse = await oThis._fetchSessionNonce(response);
+
+    return responseHelper.successWithData(finalResponse);
   }
 
   /**
@@ -78,6 +82,13 @@ class SessionGetBase extends ServiceBase {
    * @private
    */
   _fetchSessionFromCache() {
+    throw 'sub class to implement';
+  }
+
+  /**
+   * @private
+   */
+  _fetchSessionNonce() {
     throw 'sub class to implement';
   }
 
@@ -171,6 +182,41 @@ class SessionGetBase extends ServiceBase {
     }
 
     return responseHelper.successWithData(finalResponse);
+  }
+
+  /**
+   * Fetch nonce from contract
+   *
+   * @private
+   */
+  _fetchSessionTokenHolderNonce(sessionAddress) {
+    const oThis = this;
+
+    let TokenHolderNonceKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenHolderNonce'),
+      auxChainId = oThis.ic().configStrategy.auxGeth.chainId,
+      params = {
+        auxChainId: auxChainId,
+        tokenId: oThis.tokenId,
+        userId: oThis.userId,
+        sessionAddress: sessionAddress
+      };
+
+    return new Promise(function(onResolve, onReject) {
+      console.log('Fetching nonce');
+      new TokenHolderNonceKlass(params)
+        .perform()
+        .then(function(resp) {
+          console.log('Fetching nonce Done: ', resp);
+          if (resp.isSuccess()) {
+            oThis.sessionNonce[sessionAddress] = resp.data.nonce;
+          }
+          onResolve();
+        })
+        .catch(function(err) {
+          logger.error(err);
+          onResolve();
+        });
+    });
   }
 }
 
