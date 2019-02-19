@@ -19,7 +19,6 @@ const rootPrefix = '../../..',
     '/lib/executeTransactionManagement/processExecutableData/TokenRule'),
   ProcessPricerRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/PricerRule'),
-  ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
@@ -82,6 +81,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.gas = null;
     oThis.nonce = null;
     oThis.gasPrice = null;
+    oThis.estimatedTransfers = null;
   }
 
   /**
@@ -251,13 +251,15 @@ class ExecuteTxBase extends ServiceBase {
       response = await new ProcessTokenRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.tokenRuleAddress,
-        web3Instance: oThis.web3Instance
+        web3Instance: oThis.web3Instance,
+        tokenHolderAddress: oThis.tokenHolderAddress
       }).perform();
     } else if (pricerRuleAddress === oThis.toAddress) {
       response = await new ProcessPricerRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.pricerRuleAddress,
-        web3Instance: oThis.web3Instance
+        web3Instance: oThis.web3Instance,
+        tokenHolderAddress: oThis.tokenHolderAddress
       }).perform();
     } else {
       return oThis._validationError('s_et_b_4', ['invalid_executable_data'], {
@@ -271,6 +273,7 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.pessimisticDebitAmount = response.data.pessimisticDebitAmount;
     oThis.transferExecutableData = response.data.transferExecutableData;
+    oThis.estimatedTransfers = response.data.estimatedTransfers;
     oThis.gas = response.data.gas;
   }
 
@@ -364,23 +367,22 @@ class ExecuteTxBase extends ServiceBase {
    * @return {Promise<*>}
    */
   async _createPendingTransaction() {
-    const oThis = this,
-      transactionData = {
-        from: oThis.sessionKeyAddress,
+    const oThis = this;
+
+    let insertRsp = await new CreatePendingTransaction(oThis.auxChainId).insertPendingTransaction({
+      transactionData: {
         to: oThis.toAddress,
         value: oThis.executableData.value,
         gas: oThis.gas,
         gasPrice: oThis.gasPrice,
         nonce: oThis.nonce
-      };
-
-    let insertRsp = await new CreatePendingTransaction(oThis.auxChainId).insertPendingTransaction({
-      transactionData: transactionData,
+      },
       unsettledDebits: oThis.unsettledDebits,
       eip1077Signature: oThis.signatureData,
       metaProperty: oThis.metaProperty,
       ruleId: oThis.ruleId,
-      transferExecutableData: oThis.transferExecutableData
+      transferExecutableData: oThis.transferExecutableData,
+      transfers: oThis.estimatedTransfers
     });
 
     if (insertRsp.isFailure()) {

@@ -84,15 +84,19 @@ class ConfigStrategyObject {
           dataType: 'S'
         },
         ruleId: {
-          shortName: 'rn',
+          shortName: 'rid',
           dataType: 'N'
         },
         status: {
-          shortName: 's',
+          shortName: 'sts',
           dataType: 'N'
         },
         transferExecutableData: {
           shortName: 'ted',
+          dataType: 'S'
+        },
+        transfers: {
+          shortName: 'trs',
           dataType: 'S'
         }
       },
@@ -102,7 +106,7 @@ class ConfigStrategyObject {
           dataType: 'S'
         },
         ruleId: {
-          shortName: 'rn',
+          shortName: 'rid',
           dataType: 'N'
         }
       }
