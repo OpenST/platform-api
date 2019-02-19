@@ -1,50 +1,43 @@
+#!/usr/bin/env node
 'use strict';
-const rootPrefix = '../..';
-const chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+
+const rootPrefix = '../..',
   command = require('commander'),
-  shell = require('shelljs');
+  FlushChainMemcache = require(rootPrefix + '/devops/utils/cacheFlush/ChainSpecificCache.js'),
+  FlushSharedMemcache = require(rootPrefix + '/devops/utils/cacheFlush/SharedCache.js');
 
 command
   .version('0.1.0')
   .usage('[options]')
-  .option('-s, --sub-env <required>', 'Sub environment')
-  .option('-e, --env <required>', 'Environment ')
+  .option('-f, --flush-shared-memcache ', 'flush shared memcache ')
+  .option('-s, --flush-chain-memcache ', 'flush chain memcache ')
   .parse(process.argv);
-const handleError = function() {
-  command.outputHelp();
-  throw 'Required parameters are missing!';
-};
 
-var Flush_Cache = async function() {
-  const oThis = this;
-
-  let originChainId = 3;
-  if (command.env === 'production' && command.subEnv === 'main') {
-    originChainId = 1;
+const Main = async function() {
+  let performerObj = null;
+  let resp = [];
+  if (command.flushSharedMemcache) {
+    performerObj = new FlushSharedMemcache();
+    resp.push(await performerObj.perform());
   }
-  let chainIds = await chainConfigProvider.allChainIds();
-  let auxChainIds = chainIds.filter((chainId) => chainId !== originChainId);
-  // Flush memcache one by one for all the chains
-  for (let i = 0; i < auxChainIds.length; i++) {
-    if (shell.exec(`node ./executables/flush/chainMemcached.js  ${auxChainIds[i]}`).code !== 0) {
-      console.log('chain memcache flush failed for chainID::::', auxChainIds[i]);
-      process.exit(1);
+  if (command.flushChainMemcache) {
+    performerObj = new FlushChainMemcache();
+    resp.push(await performerObj.perform());
+  }
+
+  for (let i = 0; i < resp.length; i++) {
+    if (!resp[i].success) {
+      throw resp[i];
     }
   }
-
-  //Flush shared memcache
-
-  if (shell.exec('node ./executables/flush/sharedMemcached.js').code !== 0) {
-    console.log('shared memcache flush failed');
-    process.exit(1);
-  }
 };
 
-Flush_Cache()
+Main()
   .then(function() {
+    console.error('flushed Cache  ');
     process.exit(0);
   })
   .catch(function(err) {
-    console.log(err);
+    console.error('error in flushing memcache ::error: ', err);
     process.exit(1);
   });
