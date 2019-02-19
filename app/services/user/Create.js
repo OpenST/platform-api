@@ -16,6 +16,8 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
+  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 const uuidV4 = require('uuid/v4'),
@@ -24,6 +26,7 @@ const uuidV4 = require('uuid/v4'),
 require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/User');
+require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 
 class Create extends ServiceBase {
   /**
@@ -44,6 +47,7 @@ class Create extends ServiceBase {
     oThis.kind = params.kind;
 
     oThis.shardNumbersMap = {};
+    oThis.userSaltEncrypted = null;
     oThis.configStrategyObj = null;
   }
 
@@ -62,6 +66,8 @@ class Create extends ServiceBase {
     oThis.userId = uuidV4();
 
     await oThis._allocateShards();
+
+    await oThis._generateUserSalt();
 
     return oThis.createUser();
   }
@@ -92,6 +98,26 @@ class Create extends ServiceBase {
   }
 
   /**
+   * Generate salt for user
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _generateUserSalt() {
+    const oThis = this;
+
+    let UserSaltEncryptorKeyCache = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserSaltEncryptorKeyCache'),
+      encryptionSaltResp = await new UserSaltEncryptorKeyCache({ tokenId: oThis.tokenId }).fetchDecryptedData();
+
+    let encryptionSalt = encryptionSaltResp.data.encryption_salt_d,
+      userSalt = localCipher.generateRandomSalt();
+
+    oThis.userSaltEncrypted = await new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).encrypt(userSalt);
+  }
+
+  /**
    * createUser - Creates new user
    *
    * @return {Promise<string>}
@@ -109,6 +135,7 @@ class Create extends ServiceBase {
       tokenId: oThis.tokenId,
       userId: oThis.userId,
       kind: oThis.kind,
+      salt: oThis.userSaltEncrypted,
       deviceShardNumber: oThis.shardNumbersMap[shardConst.deviceEntityKind],
       sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
       status: tokenUserConstants.createdStatus,
