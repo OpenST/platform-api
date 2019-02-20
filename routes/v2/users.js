@@ -289,8 +289,8 @@ router.post('/:user_id/sessions/authorize/', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
-      result_type: resultType.sessions,
-      [resultType.sessions]: sessionsFormattedRsp.data
+      result_type: resultType.session,
+      [resultType.session]: sessionsFormattedRsp.data
     };
   };
 
