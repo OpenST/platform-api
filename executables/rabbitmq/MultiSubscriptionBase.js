@@ -2,7 +2,7 @@
 /**
  * Class for subscriber base.
  *
- * @module executables/rabbitmq/MultiSubsciptionBase
+ * @module executables/rabbitmq/MultiSubscriptionBase
  */
 const OSTBase = require('@openstfoundation/openst-base');
 
@@ -20,7 +20,7 @@ const rootPrefix = '../..',
  *
  * @class
  */
-class MultiSubsciptionBase extends CronBase {
+class MultiSubscriptionBase extends CronBase {
   /**
    * Constructor for subscriber base
    *
@@ -404,4 +404,4 @@ class MultiSubsciptionBase extends CronBase {
   }
 }
 
-module.exports = MultiSubsciptionBase;
+module.exports = MultiSubscriptionBase;
