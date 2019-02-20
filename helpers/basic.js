@@ -573,6 +573,10 @@ class BasicHelperKlass {
     return Math.floor(new Date(dateStr).getTime() / 1000);
   }
 
+  timestampInSeconds() {
+    return Math.floor(new Date() / 1000);
+  }
+
   generateRsvFromSignature(signature) {
     return {
       r: signature.slice(0, 66),

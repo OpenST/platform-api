@@ -293,7 +293,8 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
         processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
           tokenAddressId: payload.tokenAddressId,
           transactionUuid: payload.transaction_uuid,
-          sequentialExecutorResponse: payload.sequentialExecutorResponse
+          sequentialExecutorResponse: messageParams.sequentialExecutorResponse,
+          transactionMetaId: payload.transactionMetaId
         });
 
       // Start transaction parser service.
