@@ -11,6 +11,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -26,12 +27,89 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/app/models/ddb/sharded/Session.js');
 
+/**
+ * Class to revoke session multi sig operation
+ *
+ * @class RevokeSession
+ */
 class RevokeSession extends Base {
+  /**
+   *
+   * @param {Object} params
+   * @param {Object} params.raw_calldata -
+   * @param {String} params.raw_calldata.method - possible value revokeSession
+   * @param {Array} params.raw_calldata.parameters -
+   * @param {String} params.raw_calldata.parameters[0] - session address to be revoked
+   *
+   * @constructor
+   */
   constructor(params) {
     super(params);
     const oThis = this;
-    oThis.spendingLimit = params.raw_calldata['parameters'][1];
-    oThis.expirationHeight = params.raw_calldata['parameters'][2];
+
+    oThis.rawCalldata = params.raw_calldata;
+    oThis.sessionKey = null;
+  }
+
+  /**
+   * Sanitize service specific params
+   *
+   * @private
+   */
+  _sanitizeSpecificParams() {
+    const oThis = this;
+
+    let rawCallDataMethod = oThis.rawCalldata.method;
+    if (rawCallDataMethod !== 'revokeSession') {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_rs_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_method'],
+          debug_options: {}
+        })
+      );
+    }
+
+    let rawCallDataParameters = oThis.rawCalldata.parameters;
+    if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_rs_2',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.sessionKey = basicHelper.sanitizeAddress(rawCallDataParameters[0]);
+  }
+
+  /**
+   * Performs specific pre checks
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _performSpecificPreChecks() {
+    const oThis = this;
+
+    let sessionDetailsRsp = await super._fetchSessionDetails(oThis.sessionKey),
+      sesseionDetails = sessionDetailsRsp.data[oThis.sessionKey];
+
+    if (!sesseionDetails || sesseionDetails.status !== sessionConstants.authorizedStatus) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_rs_3',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['unauthorized_session_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    return responseHelper.successWithData({});
   }
 
   /**
@@ -60,7 +138,7 @@ class RevokeSession extends Base {
     const oThis = this;
     logger.debug('****Updating entry in sessions table');
 
-    let SessionModel = ic.getShadowedClassFor('saas::SaasNamespace', 'SessionModel'),
+    let SessionModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SessionModel'),
       sessionModelObj = new SessionModel({ shardNumber: oThis.sessionShardNumber }),
       updateResponse = await sessionModelObj.updateStatusFromInitialToFinal(
         oThis.userId,
@@ -70,11 +148,10 @@ class RevokeSession extends Base {
       );
 
     if (updateResponse.isFailure()) {
-      logger.error('Session address status is not authorized. Thus conditional check failed');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_rs_1',
-          api_error_identifier: 'something_went_wrong',
+          internal_error_identifier: 'a_s_s_mo_rs_4',
+          api_error_identifier: 'could_not_proceed',
           debug_options: {}
         })
       );
@@ -136,9 +213,10 @@ class RevokeSession extends Base {
    */
   async _prepareResponseEntity(updateResponse) {
     const oThis = this;
-    logger.debug('****Preparing revoke session service response');
-    let response = {};
 
+    logger.debug('****Preparing revoke session service response');
+
+    let response = {};
     response[resultType.session] = updateResponse.data;
 
     return responseHelper.successWithData(response);

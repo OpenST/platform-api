@@ -214,7 +214,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
 });
 
 /* Get user device managers*/
-router.get('/:user_id/device-managers/', function(req, res, next) {
+router.get('/:user_id/device-managers', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDeviceManager;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -233,7 +233,7 @@ router.get('/:user_id/device-managers/', function(req, res, next) {
 });
 
 /* Create token holders */
-router.post('/:user_id/activate-user/', function(req, res, next) {
+router.post('/:user_id/activate-user', function(req, res, next) {
   req.decodedParams.apiName = apiName.activateUser;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -250,7 +250,7 @@ router.post('/:user_id/activate-user/', function(req, res, next) {
 });
 
 /* Get user salt*/
-router.get('/:user_id/salts/', function(req, res, next) {
+router.get('/:user_id/salts', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSalt;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -267,7 +267,7 @@ router.get('/:user_id/salts/', function(req, res, next) {
 });
 
 /*Authorize Device*/
-router.post('/:user_id/devices/authorize/', function(req, res, next) {
+router.post('/:user_id/devices/authorize', function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -280,11 +280,11 @@ router.post('/:user_id/devices/authorize/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v_u_12', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v2_u_12', null, dataFormatterFunc));
 });
 
 /*Revoke Device*/
-router.post('/:user_id/devices/revoke/', function(req, res, next) {
+router.post('/:user_id/devices/revoke', function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -297,11 +297,11 @@ router.post('/:user_id/devices/revoke/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeDevice', 'r_v_u_13', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeDevice', 'r_v2_u_13', null, dataFormatterFunc));
 });
 
 /*Authorize Session*/
-router.post('/:user_id/sessions/authorize/', function(req, res, next) {
+router.post('/:user_id/sessions/authorize', function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -314,11 +314,11 @@ router.post('/:user_id/sessions/authorize/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v_u_14', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v2_u_14', null, dataFormatterFunc));
 });
 
 /*Revoke Session*/
-router.post('/:user_id/sessions/revoke/', function(req, res, next) {
+router.post('/:user_id/sessions/revoke', function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -331,7 +331,7 @@ router.post('/:user_id/sessions/revoke/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v_u_15', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v2_u_15', null, dataFormatterFunc));
 });
 
 module.exports = router;

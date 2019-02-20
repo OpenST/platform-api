@@ -9,7 +9,6 @@
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
@@ -75,6 +74,11 @@ class Base extends ServiceBase {
     oThis.userId = oThis.userId.toLowerCase();
   }
 
+  /**
+   * fetch linked device addresses for specified user id
+   * @returns {Promise<*>}
+   * @private
+   */
   async _fetchLinkedDeviceAddressMap() {
     const oThis = this;
 
@@ -87,7 +91,7 @@ class Base extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_d_g_b_1',
-          api_error_identifier: 'something_went_wrong',
+          api_error_identifier: 'cache_issue',
           debug_options: {}
         })
       );

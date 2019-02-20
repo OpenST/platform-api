@@ -189,16 +189,12 @@ class ListByUserId extends GetListBase {
       linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
 
     for (let deviceUuid in finalResponse) {
-      let buffer = finalResponse[deviceUuid];
-      if (!CommonValidators.validateObject(buffer)) {
+      let device = finalResponse[deviceUuid];
+      if (!CommonValidators.validateObject(device)) {
         continue;
       }
-      let deviceAddress = buffer['walletAddress'];
-      if (linkedAddressesMap[deviceAddress.toLowerCase()]) {
-        finalResponse[deviceUuid]['linkedAddress'] = linkedAddressesMap[deviceAddress.toLowerCase()];
-      } else {
-        finalResponse[deviceUuid]['linkedAddress'] = null;
-      }
+      let deviceAddress = device.walletAddress;
+      finalResponse[deviceUuid].linkedAddress = linkedAddressesMap[deviceAddress];
     }
 
     const returnData = {

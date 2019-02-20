@@ -90,7 +90,7 @@ class ByWalletAddress extends GetDeviceBase {
       return Promise.reject(response);
     }
 
-    if (!CommonValidators.validateObject(response.data[oThis.address.toLowerCase()])) {
+    if (!CommonValidators.validateObject(response.data[oThis.address])) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_d_g_bwa_1',
@@ -101,15 +101,11 @@ class ByWalletAddress extends GetDeviceBase {
       );
     }
 
-    let finalResponse = response.data[oThis.address.toLowerCase()],
+    let finalResponse = response.data[oThis.address],
       linkedAddressMap = await oThis._fetchLinkedDeviceAddressMap();
 
-    let linkedAddress = null;
-    if (linkedAddressMap[oThis.address.toLowerCase()]) {
-      linkedAddress = linkedAddressMap[oThis.address.toLowerCase()];
-    }
+    finalResponse.linkedAddress = linkedAddressMap[oThis.address];
 
-    finalResponse['linkedAddress'] = linkedAddress;
     return {
       [resultType.device]: finalResponse
     };

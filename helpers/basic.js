@@ -319,16 +319,21 @@ class BasicHelperKlass {
    * Fetch Error Config
    *
    * @param {String} apiVersion
+   * @param {Object} dynamicErrorConfig
    *
    * @return {Object}
    */
-  fetchErrorConfig(apiVersion) {
+  fetchErrorConfig(apiVersion, dynamicErrorConfig) {
     let paramErrorConfig;
 
     if (apiVersion === apiVersions.v2) {
-      paramErrorConfig = v2ParamErrorConfig;
+      paramErrorConfig = dynamicErrorConfig
+        ? Object.assign(dynamicErrorConfig, v2ParamErrorConfig)
+        : v2ParamErrorConfig;
     } else if (apiVersion === apiVersions.internal) {
-      paramErrorConfig = internalParamErrorConfig;
+      paramErrorConfig = dynamicErrorConfig
+        ? Object.assign(dynamicErrorConfig, internalParamErrorConfig)
+        : internalParamErrorConfig;
     } else if (apiVersion === apiVersions.general) {
       paramErrorConfig = {};
     } else {

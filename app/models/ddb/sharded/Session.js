@@ -285,8 +285,6 @@ class Session extends Base {
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForAddress = oThis.shortNameFor('address'),
       shortNameForStatus = oThis.shortNameFor('status'),
-      dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId],
-      dataTypeForAddress = oThis.shortNameToDataType[shortNameForAddress],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
       initialStatusInt = sessionConstants.invertedSessionStatuses[initialStatus],
       finalStatusInt = sessionConstants.invertedSessionStatuses[finalStatus];
@@ -317,7 +315,7 @@ class Session extends Base {
 
     if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_s_2',
+        internal_error_identifier: 'a_m_d_s_s_1',
         api_error_identifier: 'conditional_check_failed',
         debug_options: { error: updateQueryResponse.toHash() }
       });

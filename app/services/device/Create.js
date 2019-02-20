@@ -63,7 +63,7 @@ class CreateDevice extends ServiceBase {
       if (responseHelper.isCustomResult(err)) {
         return err;
       } else {
-        logger.error(' In catch block of lib/device/Create.js');
+        logger.error(' In catch block of app/services/device/Create.js');
 
         return responseHelper.error({
           internal_error_identifier: 'a_s_d_c_1',
@@ -141,37 +141,7 @@ class CreateDevice extends ServiceBase {
 
     logger.info('Entry created in device table with shardNumber ', userData['deviceShardNumber']);
 
-    let linkedAddress = null;
-    if (userData.status === userConstants.activatedStatus && userData.kind === userConstants.userKind) {
-      linkedAddress = oThis._fetchLinkedDeviceAddress(oThis.walletAddress.toLowerCase());
-    }
-
-    params['linkedAddress'] = linkedAddress;
-
     return responseHelper.successWithData({ [resultType.device]: params });
-  }
-
-  async _fetchLinkedDeviceAddress(address) {
-    const oThis = this;
-
-    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
-      previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
-      previousOwnersMapRsp = await previousOwnersMapObj.fetch();
-
-    console.log('=====previousOwnersMapRsp', previousOwnersMapRsp);
-
-    if (previousOwnersMapRsp.isFailure()) {
-      logger.error('Error in fetching linked addresses');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_d_c_3',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-
-    return previousOwnersMapRsp.data[address];
   }
 
   /***

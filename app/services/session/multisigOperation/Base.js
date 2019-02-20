@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- *  Base for device related multi sig operations
+ *  Base for session related multi sig operations
  *
- * @module app/services/device/getList/Base
+ * @module app/services/session/multisigOperation/Base
  */
 
 const rootPrefix = '../../../..',
@@ -13,14 +13,42 @@ const rootPrefix = '../../../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 
+/**
+ * Class for session related multi sig operations
+ *
+ * @class MultisigOpertationBaseKlass
+ */
 class MultisigSessionsOpertationBaseKlass extends ServiceBase {
+  /**
+   *
+   * @param {Object} params
+   * @param {Number} params.client_id
+   * @param {Number} params.token_id
+   * @param {Object} params.user_data
+   *
+   * @param {String} params.to - Destination address of Safe transaction, multisig proxy address
+   * @param {String/Number} params.value - Ether value of Safe transaction, eth value in wei
+   * @param {String} params.calldata - Data payload of Safe transaction
+   * @param {Number} params.operation - Operation type of Safe transaction
+   * @param {String/Number} params.safe_tx_gas - Gas that should be used for the Safe transaction
+   * @param {String/Number} params.data_gas - Gas costs for data used to trigger the safe transaction and to pay the payment transfer
+   * @param {String/Number} params.gas_price - Gas price that should be used for the payment calculation
+   * @param {String} params.gas_token - Token address (or 0 if ETH) that is used for the payment
+   * @param {String} params.refund_receiver - Address of receiver of gas payment (or 0 if tx.origin)
+   * @param {String} params.signatures - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {String} params.signer - authorized device address who signed this transaction
+   *
+   * @constructor
+   */
   constructor(params) {
     super(params);
     const oThis = this;
@@ -28,7 +56,6 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.tokenId = params.token_id;
     oThis.userData = params.user_data;
     oThis.userId = params.user_data.userId;
-    oThis.sessionKey = params.raw_calldata['parameters'][0];
     oThis.sessionShardNumber = params.user_data.sessionShardNumber;
     oThis.multisigProxyAddress = params.user_data.multisigAddress;
     oThis.tokenHolderProxyAddress = params.user_data.tokenHolderAddress;
@@ -36,7 +63,6 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.to = params.to;
     oThis.value = params.value;
     oThis.calldata = params.calldata;
-    oThis.rawCalldata = params.raw_calldata;
     oThis.operation = params.operation;
     oThis.safeTxGas = params.safe_tx_gas;
     oThis.dataGas = params.data_gas;
@@ -45,8 +71,16 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.refundReceiver = params.refund_receiver;
     oThis.signature = params.signatures;
     oThis.signer = params.signer;
+
+    oThis.configStrategyObj = null;
   }
 
+  /**
+   * async perform
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _asyncPerform() {
     const oThis = this;
 
@@ -65,10 +99,18 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
   async _sanitizeParams() {
     const oThis = this;
 
-    oThis.sessionKey = basicHelper.sanitizeAddress(oThis.sessionKey);
     oThis.to = basicHelper.sanitizeAddress(oThis.to);
-    oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
+    oThis.value = basicHelper.formatWeiToString(oThis.value);
+    oThis.operation = Number(oThis.operation);
+    oThis.safeTxGas = Number(oThis.safeTxGas);
+    oThis.dataGas = Number(oThis.dataGas);
+    oThis.gasPrice = basicHelper.formatWeiToString(oThis.gasPrice);
+    oThis.gasToken = basicHelper.sanitizeAddress(oThis.gasToken);
     oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
+    oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
+
+    // Sanitize action specific params
+    oThis._sanitizeSpecificParams();
   }
 
   /**
@@ -94,41 +136,105 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     ) {
       logger.error('Token user is not set properly');
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_s_mo_b_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: ''
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['unauthorized_user_id'],
+          debug_options: {}
         })
       );
     }
 
     if (tokenUserDetails.tokenHolderAddress !== oThis.to) {
-      logger.error('Tokenholder address mismatch');
+      logger.error('Token holder address mismatch');
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_s_mo_b_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: ''
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_to'],
+          debug_options: {}
         })
       );
     }
+
+    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.signer]);
+
+    let signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
+
+    if (
+      basicHelper.isEmptyObject(signerAddressDetails) ||
+      signerAddressDetails.status !== deviceConstants.authorisedStatus
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_b_3',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['unauthorized_signer'],
+          debug_options: {}
+        })
+      );
+    }
+
+    // Perform action specific pre checks
+    await oThis._performSpecificPreChecks();
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**
-   * Fetch the device data and checks if the device status is same as given parameter
+   * Return specific device details
    *
+   * @param deviceAddresses
    *
-   * @returns {Promise<>}
+   * @returns {Promise<*>}
+   *
+   * @private
    */
-  async _fetchSessionDetails() {
+  async _fetchDeviceDetails(deviceAddresses) {
+    const oThis = this;
+
+    let paramsForDeviceDetailsCache = {
+      userId: oThis.userId,
+      walletAddresses: deviceAddresses,
+      tokenId: oThis.tokenId
+    };
+
+    let DeviceDetailsKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+      deviceDetailsObj = new DeviceDetailsKlass(paramsForDeviceDetailsCache),
+      deviceDetailsRsp = await deviceDetailsObj.fetch();
+
+    if (deviceDetailsRsp.isFailure()) {
+      logger.error('No data found for the provided wallet address');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_s_mo_b_4',
+          api_error_identifier: 'cache_issue',
+          debug_options: ''
+        })
+      );
+    }
+
+    return deviceDetailsRsp;
+  }
+
+  /**
+   * Fetch specified session address details
+   *
+   * @param sessionAddress
+   *
+   * @returns {Promise<*>}
+   *
+   * @private
+   */
+  async _fetchSessionDetails(sessionAddress) {
     const oThis = this;
 
     let paramsForSessionsDetailsCache = {
       userId: oThis.userId,
-      addresses: [oThis.sessionKey],
-      tokenId: oThis.tokenId
+      addresses: [sessionAddress],
+      tokenId: oThis.tokenId,
+      shardNumber: oThis.sessionShardNumber,
+      consistentRead: 1 //NOTE: As this session was created just a while ago it is important for consistent read here.
     };
 
     let SessionDetailsKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
@@ -136,69 +242,17 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       sessionDetailsRsp = await sessionDetailsObj.fetch();
 
     if (sessionDetailsRsp.isFailure()) {
-      logger.error('No data found for the provided sessionkey');
-      return Promise.reject(sessionDetailsRsp);
-    }
-
-    let sessionDetails = sessionDetailsRsp.data[oThis.sessionKey];
-
-    if (basicHelper.isEmptyObject(sessionDetails)) {
+      logger.error('No data found for the provided sessionAddress');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_b_3',
-          api_error_identifier: 'resource_not_found',
-          debug_options: {}
+          internal_error_identifier: 'a_s_s_mo_b_5',
+          api_error_identifier: 'cache_issue',
+          debug_options: ''
         })
       );
     }
 
-    return Promise.resolve(responseHelper.successWithData(sessionDetails));
-  }
-
-  /**
-   * Get user device managers details for given token id.
-   *
-   * @return {Promise<*|result>}
-   */
-  async _getUserDetailsFromDdb() {
-    const oThis = this;
-
-    let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
-
-    let tokenUserDetailsCache = new TokenUserDetailsCache({
-        tokenId: oThis.tokenId,
-        userIds: [oThis.userId]
-      }),
-      tokenUserDetailsCacheRsp = await tokenUserDetailsCache.fetch();
-
-    if (tokenUserDetailsCacheRsp.isFailure()) {
-      logger.error('token user details were not fetched.');
-      Promise.reject(tokenUserDetailsCacheRsp);
-    }
-
-    let tokenDetails = tokenUserDetailsCacheRsp.data[oThis.userId];
-
-    if (!CommonValidators.validateObject(tokenDetails)) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_b_4',
-          api_error_identifier: 'resource_not_found',
-          debug_options: {}
-        })
-      );
-    }
-
-    return Promise.resolve(tokenDetails);
-  }
-
-  /***
-   * Config strategy
-   *
-   * @return {Object}
-   */
-  get _configStrategy() {
-    const oThis = this;
-    return oThis.ic().configStrategy;
+    return sessionDetailsRsp;
   }
 
   /**
@@ -214,6 +268,24 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
 
     return oThis.configStrategyObj;
+  }
+
+  /***
+   * Config strategy
+   *
+   * @return {Object}
+   */
+  get _configStrategy() {
+    const oThis = this;
+    return oThis.ic().configStrategy;
+  }
+
+  _sanitizeSpecificParams() {
+    throw 'sub-class to implement';
+  }
+
+  async _performSpecificPreChecks() {
+    throw 'sub-class to implement';
   }
 
   async _performOperation() {
