@@ -39,7 +39,7 @@ class TransactionMetaModel extends ModelBase {
    * @param params
    * @return {*|void}
    */
-  acquireLock(params) {
+  acquireLockWithTxHashes(params) {
     const oThis = this,
       currentTime = Date.now();
 
