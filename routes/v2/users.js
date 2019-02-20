@@ -307,7 +307,7 @@ router.post('/:user_id/sessions/authorize/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.sessions]).perform();
+    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
       result_type: resultType.sessions,
       [resultType.sessions]: sessionsFormattedRsp.data
