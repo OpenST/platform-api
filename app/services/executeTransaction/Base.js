@@ -14,7 +14,7 @@ const rootPrefix = '../../..',
   RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   entityConst = require(rootPrefix + '/lib/globalConstant/shard'),
-  CreatePendingTransaction = require(rootPrefix + '/lib/transactions/CreatePendingTransaction'),
+  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   ProcessTokenRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/TokenRule'),
   ProcessPricerRuleExecutableData = require(rootPrefix +
@@ -413,7 +413,7 @@ class ExecuteTxBase extends ServiceBase {
   async _createPendingTransaction() {
     const oThis = this;
 
-    let insertRsp = await new CreatePendingTransaction(oThis.auxChainId).insertPendingTransaction({
+    let insertRsp = await new PendingTransactionCrud(oThis.auxChainId).create({
       transactionData: {
         to: oThis.toAddress,
         value: oThis.executableData.value,
