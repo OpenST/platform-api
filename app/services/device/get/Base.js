@@ -8,8 +8,12 @@
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
+require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 /**
  * Class for get devices base.
  *
@@ -35,9 +39,6 @@ class Base extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
-
-    oThis.walletAddresses = [];
-    oThis.nextPagePayload = null;
   }
 
   /**
@@ -72,6 +73,27 @@ class Base extends ServiceBase {
     const oThis = this;
 
     oThis.userId = oThis.userId.toLowerCase();
+  }
+
+  async _fetchLinkedDeviceAddressMap() {
+    const oThis = this;
+
+    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+      previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
+      previousOwnersMapRsp = await previousOwnersMapObj.fetch();
+
+    if (previousOwnersMapRsp.isFailure()) {
+      logger.error('Error in fetching linked addresses');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_d_g_b_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    return previousOwnersMapRsp.data;
   }
 
   /**

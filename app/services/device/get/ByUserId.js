@@ -9,6 +9,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  userConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
@@ -54,6 +55,8 @@ class ListByUserId extends GetListBase {
     oThis.addresses = params.addresses || [];
 
     oThis.paginationParams = null;
+    oThis.nextPagePayload = null;
+    oThis.walletAddresses = [];
   }
 
   /**
@@ -182,8 +185,24 @@ class ListByUserId extends GetListBase {
       return Promise.reject(response);
     }
 
+    let finalResponse = response.data,
+      linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
+
+    for (let deviceUuid in finalResponse) {
+      let buffer = finalResponse[deviceUuid];
+      if (!CommonValidators.validateObject(buffer)) {
+        continue;
+      }
+      let deviceAddress = buffer['walletAddress'];
+      if (linkedAddressesMap[deviceAddress.toLowerCase()]) {
+        finalResponse[deviceUuid]['linkedAddress'] = linkedAddressesMap[deviceAddress.toLowerCase()];
+      } else {
+        finalResponse[deviceUuid]['linkedAddress'] = null;
+      }
+    }
+
     const returnData = {
-      [resultType.devices]: response.data
+      [resultType.devices]: finalResponse
     };
 
     if (oThis.nextPagePayload) {

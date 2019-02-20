@@ -40,6 +40,8 @@ class ByWalletAddress extends GetDeviceBase {
     const oThis = this;
 
     oThis.address = params.address;
+
+    oThis.walletAddresses = [];
   }
 
   /**
@@ -99,8 +101,17 @@ class ByWalletAddress extends GetDeviceBase {
       );
     }
 
+    let finalResponse = response.data[oThis.address.toLowerCase()],
+      linkedAddressMap = await oThis._fetchLinkedDeviceAddressMap();
+
+    let linkedAddress = null;
+    if (linkedAddressMap[oThis.address.toLowerCase()]) {
+      linkedAddress = linkedAddressMap[oThis.address.toLowerCase()];
+    }
+
+    finalResponse['linkedAddress'] = linkedAddress;
     return {
-      [resultType.device]: response.data[oThis.address.toLowerCase()]
+      [resultType.device]: finalResponse
     };
   }
 }
