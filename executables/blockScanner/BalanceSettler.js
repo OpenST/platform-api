@@ -20,7 +20,7 @@ const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-  MultiSubsciptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubsciptionBase');
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -38,7 +38,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-class BalanceSettler extends MultiSubsciptionBase {
+class BalanceSettler extends MultiSubscriptionBase {
   /**
    *
    * @param params {object} - params object

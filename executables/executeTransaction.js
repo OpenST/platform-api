@@ -12,7 +12,7 @@ const rootPrefix = '..',
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  MultiSubsciptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubsciptionBase'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
@@ -46,7 +46,7 @@ if (!cronProcessId) {
  *
  * @class
  */
-class ExecuteTransactionProcess extends MultiSubsciptionBase {
+class ExecuteTransactionProcess extends MultiSubscriptionBase {
   /**
    * Constructor for Execute Transaction Process.
    *
