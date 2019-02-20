@@ -351,13 +351,13 @@ class ExecuteTxBase extends ServiceBase {
   async _createTransactionMeta() {
     const oThis = this;
 
-    await new TransactionMetaModel()
+    let createRsp = await new TransactionMetaModel()
       .insert({
         transaction_uuid: oThis.transactionUuid,
         associated_aux_chain_id: oThis.auxChainId,
         token_id: oThis.tokenId,
-        status: transactionMetaConst.queuedStatus,
-        kind: transactionMetaConst.ruleExecution,
+        status: transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
+        kind: transactionMetaConst.invertedKinds[transactionMetaConst.ruleExecution],
         next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queuedStatus),
         session_address: oThis.sessionKeyAddress,
         session_nonce: oThis.sessionKeyNonce

@@ -49,7 +49,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     oThis.userData = params.user_data;
-    oThis.nonce = params.nonce;
+    oThis.sessionKeyNonce = params.nonce;
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
