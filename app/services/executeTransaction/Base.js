@@ -456,7 +456,7 @@ class ExecuteTxBase extends ServiceBase {
     let setToRMQ = await oThis.rmqInstance.publishEvent.perform(messageParams);
 
     if (setToRMQ.isFailure()) {
-      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.queuedFailed;
+      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.queuedFailedStatus;
       return Promise.reject(setToRMQ);
     }
 
