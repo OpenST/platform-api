@@ -98,6 +98,18 @@ class ConfigStrategyObject {
         transfers: {
           shortName: 'trs',
           dataType: 'S'
+        },
+        ruleAddress: {
+          shortName: 'ra',
+          dataType: 'S'
+        },
+        sessionKeyNonce: {
+          shortName: 'skn',
+          dataType: 'S'
+        },
+        tokenId: {
+          shortName: 'ti',
+          dataType: 'N'
         }
       },
       transactions: {

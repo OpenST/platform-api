@@ -81,24 +81,62 @@ class TransactionMetaModel extends ModelBase {
    * @return {*|void}
    */
   releaseLockAndMarkStatus(params) {
-    const oThis = this;
-
-    return oThis
-      .update({
+    const oThis = this,
+      whereClause = {},
+      dataToUpdate = {
         lock_id: null,
         status: transactionMetaConst.invertedStatuses[params.status]
-      })
-      .where({
-        lock_id: params.lockId
-      })
+      };
+
+    if (params.lockId) {
+      whereClause.lock_id = params.lockId;
+    } else if (params.id) {
+      whereClause.id = params.id;
+    } else {
+      throw 'no param for where clause';
+    }
+
+    if (params.transactionHash) {
+      dataToUpdate.transaction_hash = params.transactionHash;
+    }
+
+    if (params.debugParams) {
+      dataToUpdate.debug_params = JSON.stringify(params.debugParams);
+    }
+
+    return oThis
+      .update(dataToUpdate)
+      .where(whereClause)
       .fire();
   }
 
-  markAsQueuedFailed(transactionUuid) {
+  markAsQueuedFailedByTxUuid(transactionUuid) {
     const oThis = this;
     return oThis
-      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailed]])
+      .update([
+        'lock_id = null, status=?',
+        transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]
+      ])
       .where({ transaction_uuid: transactionUuid })
+      .fire();
+  }
+
+  markAsRollbackNeededById(id) {
+    const oThis = this;
+    return oThis
+      .update([
+        'lock_id = null, status=?',
+        transactionMetaConst.invertedStatuses[transactionMetaConst.rollbackNeededStatus]
+      ])
+      .where({ id: id })
+      .fire();
+  }
+
+  markAsGethDownById(id) {
+    const oThis = this;
+    return oThis
+      .update(['lock_id = null, status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus]])
+      .where({ id: id })
       .fire();
   }
 }

@@ -572,6 +572,18 @@ class BasicHelperKlass {
   dateToSecondsTimestamp(dateStr) {
     return Math.floor(new Date(dateStr).getTime() / 1000);
   }
+
+  timestampInSeconds() {
+    return Math.floor(new Date() / 1000);
+  }
+
+  generateRsvFromSignature(signature) {
+    return {
+      r: signature.slice(0, 66),
+      s: `0x${signature.slice(66, 130)}`,
+      v: `0x${signature.slice(130, 132)}`
+    };
+  }
 }
 
 module.exports = new BasicHelperKlass();

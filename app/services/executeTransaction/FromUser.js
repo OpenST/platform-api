@@ -17,6 +17,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
@@ -48,7 +49,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     oThis.userData = params.user_data;
-    oThis.nonce = params.nonce;
+    oThis.sessionKeyNonce = params.nonce;
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
@@ -79,9 +80,11 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
     await oThis._verifySessionSpendingLimit();
 
-    await oThis._performPessimisticDebit();
+    await oThis._createTransactionMeta();
 
     await oThis._createPendingTransaction();
+
+    await oThis._performPessimisticDebit();
 
     await oThis._publishToRMQ();
 
@@ -135,9 +138,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
   _setSignature() {
     const oThis = this;
-    oThis.signatureData = {
-      signature: oThis.signature
-    };
+    oThis.signatureData = basicHelper.generateRsvFromSignature(oThis.signature);
   }
 
   /**
