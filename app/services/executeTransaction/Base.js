@@ -459,7 +459,8 @@ class ExecuteTxBase extends ServiceBase {
         kind: kwcConstant.executeTx,
         payload: {
           tokenAddressId: publishDetails.tokenAddressId,
-          transaction_uuid: oThis.transactionUuid
+          transaction_uuid: oThis.transactionUuid,
+          transactionMetaId: oThis.transactionMetaId
         }
       }
     };
