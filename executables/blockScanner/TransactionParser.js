@@ -282,6 +282,7 @@ class TransactionParser extends SubscriberBase {
           'Transaction parsing response: ',
           transactionParserResponse
         );
+
         // ACK RMQ.
         return Promise.resolve();
       }

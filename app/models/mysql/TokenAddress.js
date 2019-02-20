@@ -204,16 +204,22 @@ class TokenAddress extends ModelBase {
     const oThis = this;
 
     let response = await oThis
-      .select('token_id, kind')
+      .select('token_id, kind, address')
       .where([
-        'address = ? AND deployed_chain_id = ? AND status = ?',
-        params.address,
+        'address IN (?) AND deployed_chain_id = ? AND status = ?',
+        params.addresses,
         invertedKinds[params.chainId],
         invertedStatuses[tokenAddressConstants.activeStatus]
       ])
       .fire();
 
-    return responseHelper.successWithData(response[0]);
+    let result = {};
+    for (let i = 0; i < response.length; i++) {
+      let data = response[i];
+      result[data.address] = data;
+    }
+
+    return responseHelper.successWithData(result);
   }
 
   /***

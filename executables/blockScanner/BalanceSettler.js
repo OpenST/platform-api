@@ -2,24 +2,25 @@
 /**
  * Class for settling the balance of user
  *
- * Usage: node executables/transaction/finalize/BalanceSettler.js --cronProcessId <cronProcessId>
+ * Usage: node executables/transaction/finalizer/BalanceSettler.js --cronProcessId <cronProcessId>
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/transaction/finalize/BalanceSettler
+ * @module executables/transaction/finalizer/BalanceSettler
  */
 
 const rootPrefix = '../..',
   program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  BalanceSettlerLib = require(rootPrefix + '/lib/transactions/finalize/BalanceSettler'),
-  TransactionFinalizerTask = require(rootPrefix + '/app/models/mysql/TransactionFinalizerTask'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -37,6 +38,11 @@ if (!program.cronProcessId) {
   program.help();
   process.exit(1);
 }
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
+require(rootPrefix + '/lib/transactions/finalizer/BalanceSettler');
 
 class BalanceSettler extends MultiSubscriptionBase {
   /**
@@ -69,7 +75,7 @@ class BalanceSettler extends MultiSubscriptionBase {
   get _topicsToSubscribe() {
     const oThis = this;
 
-    return ['transaction_finalizer_' + oThis.chainId];
+    return ['transaction_finalizer_' + oThis.auxChainId];
   }
 
   /**
@@ -81,7 +87,7 @@ class BalanceSettler extends MultiSubscriptionBase {
   get _queueName() {
     const oThis = this;
 
-    return 'transaction_finalizer_' + oThis.chainId;
+    return 'transaction_finalizer_' + oThis.auxChainId;
   }
 
   /**
@@ -92,12 +98,12 @@ class BalanceSettler extends MultiSubscriptionBase {
   _specificValidations() {
     const oThis = this;
 
-    if (!oThis.chainId) {
+    if (!oThis.auxChainId) {
       logger.error('Chain ID is un-available in cron params in the database.');
       process.emit('SIGINT');
     }
 
-    if (oThis.chainId < 0) {
+    if (oThis.auxChainId < 0) {
       logger.error('Chain ID is invalid.');
       process.emit('SIGINT');
     }
@@ -114,15 +120,19 @@ class BalanceSettler extends MultiSubscriptionBase {
    * @private
    */
   async _beforeSubscribe() {
-    // Fetch config strategy by chainId.
     const oThis = this,
-      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+      strategyByChainHelperObj = new StrategyByChainHelper(oThis.auxChainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
+
+    // Query to get queue_topic suffix & chainId
+    oThis.initProcessResp = await new InitProcessKlass({ processId: program.cronProcessId }).perform();
 
     if (configStrategyResp.isFailure() || !CommonValidators.validateObject(configStrategyResp.data)) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
     }
+
+    oThis.config = configStrategyResp.data;
 
     logger.step('Initialization done.');
   }
@@ -133,14 +143,15 @@ class BalanceSettler extends MultiSubscriptionBase {
    * @returns {{}}
    * @private
    */
+
   _prepareSubscriptionData() {
     const oThis = this;
 
     oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
 
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe] = new RabbitmqSubscription({
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription({
       rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
-      topic: oThis._topicsToSubscribe,
+      topic: oThis._topicsToSubscribe[0],
       queue: oThis._queueName,
       prefetchCount: oThis.prefetchCount,
       auxChainId: oThis.auxChainId
@@ -163,26 +174,13 @@ class BalanceSettler extends MultiSubscriptionBase {
     // Fetch params from payload.
     const taskId = payload.taskId;
 
-    let transactionFinalizerTask = new TransactionFinalizerTask();
-
-    let pendingTasks = await transactionFinalizerTask.fetchTask(taskId);
-
-    if (pendingTasks.length <= 0 || !pendingTasks[0].transaction_hashes) {
-      logger.error(
-        'e_bs_bs_1',
-        'Task not found for balance settler. unAckCount ->',
-        oThis.unAckCount,
-        'Could not fetch details for pending task: ',
-        taskId
-      );
-      // ACK RMQ.
-      return Promise.resolve();
-    }
+    let ic = new InstanceComposer(oThis.config),
+      BalanceSettlerLib = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceSettler');
 
     let balanceSettler = new BalanceSettlerLib({
-      auxChainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
       taskId: taskId,
-      transactionHashes: JSON.parse(pendingTasks[0].transaction_hashes)
+      cronProcessId: oThis.cronProcessId
     });
 
     let balanceSettlerResponse = await balanceSettler.perform();
@@ -203,6 +201,69 @@ class BalanceSettler extends MultiSubscriptionBase {
       // ACK RMQ.
       return Promise.resolve();
     }
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
+  }
+
+  /**
+   * Increment Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _incrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Decrement Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Get Unack count.
+   *
+   * @param messageParams
+   * @returns {number}
+   * @private
+   */
+  _getUnAck(messageParams) {
+    const oThis = this;
+
+    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
+  }
+
+  /**
+   * Sequential executor
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _sequentialExecutor(messageParams) {
+    return responseHelper.successWithData({});
   }
 }
 
