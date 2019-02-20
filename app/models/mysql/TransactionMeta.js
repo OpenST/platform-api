@@ -1,6 +1,6 @@
 'use strict';
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   //LockableBaseKlass = require(rootPrefix + '/app/models/lockable_base'),

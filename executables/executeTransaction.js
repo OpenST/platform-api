@@ -153,7 +153,9 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
       kind = messageParams.message.kind;
 
     if (kind == kwcConstant.executeTx) {
-      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId)
+      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId, {
+        transactionMetaId: msgParams.transactionMetaId
+      })
         .queueAndFetchNonce()
         .catch(function(err) {
           console.log('---------err---', err);
