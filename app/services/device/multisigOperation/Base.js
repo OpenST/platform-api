@@ -22,6 +22,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 require(rootPrefix + '/app/models/ddb/sharded/Device');
+require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 class MultisigOpertationBaseKlass extends ServiceBase {
   constructor(params) {
@@ -147,20 +148,25 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     return updateDeviceStatusRsp;
   }
 
-  /**
-   * Prepares the response for Device multisig operation service.
-   *
-   * @returns {Promise<any>}
-   * @private
-   */
-  async _prepareResponseEntity(updateResponseData) {
+  async _fetchLinkedDeviceAddress(address) {
     const oThis = this;
 
-    logger.debug('****Preparing authorize device service response');
+    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+      previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
+      previousOwnersMapRsp = await previousOwnersMapObj.fetch();
 
-    return responseHelper.successWithData({
-      [resultType.device]: updateResponseData.data
-    });
+    if (previousOwnersMapRsp.isFailure()) {
+      logger.error('Error in fetching linked addresses');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_dm_mo_b_3',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    return previousOwnersMapRsp.data[address];
   }
 
   /**
@@ -189,7 +195,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     if (!CommonValidators.validateObject(tokenDetails)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_1',
+          internal_error_identifier: 'a_s_dm_mo_b_4',
           api_error_identifier: 'resource_not_found',
           debug_options: {}
         })

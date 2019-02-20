@@ -113,6 +113,26 @@ class RevokeDevice extends Base {
 
     return revokeDeviceObj.perform();
   }
+
+  /**
+   * Prepares the response for Device multisig operation service.
+   *
+   * @returns {Promise<any>}
+   * @private
+   */
+  async _prepareResponseEntity(updateResponseData) {
+    const oThis = this;
+
+    logger.debug('****Preparing revoke device service response');
+    let responseHash = updateResponseData.data,
+      linkedAddress = oThis._fetchLinkedDeviceAddress(oThis.deviceAddressToRemove);
+
+    responseHash['linkedAddress'] = linkedAddress;
+
+    return responseHelper.successWithData({
+      [resultType.device]: responseHash
+    });
+  }
 }
 
 InstanceComposer.registerAsShadowableClass(RevokeDevice, coreConstants.icNameSpace, 'RevokeDevice');

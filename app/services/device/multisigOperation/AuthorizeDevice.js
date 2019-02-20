@@ -123,9 +123,13 @@ class AuthorizeDevice extends Base {
     const oThis = this;
 
     logger.debug('****Preparing authorize device service response');
+    let responseHash = updateResponseData.data,
+      linkedAddress = oThis._fetchLinkedDeviceAddress(oThis.deviceAddress);
+
+    responseHash['linkedAddress'] = linkedAddress;
 
     return responseHelper.successWithData({
-      [resultType.device]: updateResponseData.data
+      [resultType.device]: responseHash
     });
   }
 }
