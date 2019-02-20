@@ -132,7 +132,7 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     if (oThis.transactionMetaId) {
-      await new TransactionMetaModel().markAsQueuedFailed(oThis.transactionUuid);
+      await new TransactionMetaModel().markAsQueuedFailedByTxUuid(oThis.transactionUuid);
     }
   }
 
@@ -372,9 +372,9 @@ class ExecuteTxBase extends ServiceBase {
         transaction_uuid: oThis.transactionUuid,
         associated_aux_chain_id: oThis.auxChainId,
         token_id: oThis.tokenId,
-        status: transactionMetaConst.queued,
+        status: transactionMetaConst.queuedStatus,
         kind: transactionMetaConst.ruleExecution,
-        next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queued),
+        next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queuedStatus),
         session_address: oThis.sessionKeyAddress,
         session_nonce: oThis.nonce
       })

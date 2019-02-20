@@ -94,11 +94,33 @@ class TransactionMetaModel extends ModelBase {
       .fire();
   }
 
-  markAsQueuedFailed(transactionUuid) {
+  markAsQueuedFailedByTxUuid(transactionUuid) {
     const oThis = this;
     return oThis
-      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailed]])
+      .update([
+        'lock_id = null, status=?',
+        transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]
+      ])
       .where({ transaction_uuid: transactionUuid })
+      .fire();
+  }
+
+  markAsRollbackNeededById(id) {
+    const oThis = this;
+    return oThis
+      .update([
+        'lock_id = null, status=?',
+        transactionMetaConst.invertedStatuses[transactionMetaConst.rollbackNeededStatus]
+      ])
+      .where({ id: id })
+      .fire();
+  }
+
+  markAsGethDownById(id) {
+    const oThis = this;
+    return oThis
+      .update(['lock_id = null, status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus]])
+      .where({ id: id })
       .fire();
   }
 }

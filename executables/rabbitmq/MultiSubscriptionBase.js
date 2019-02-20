@@ -161,16 +161,35 @@ class MultiSubscriptionBase extends CronBase {
               prefetch: rabbitmqSubscription.prefetchCount
             },
             function(params) {
-              let messageParams = JSON.parse(params);
+              let messageParams = {};
+              try {
+                messageParams = JSON.parse(params);
+              } catch (err) {
+                logger.error('--------Parsing failed--------------params-----', JSON.stringify(params));
+                return Promise.resolve({});
+              }
+
               return oThis
                 ._sequentialExecutor(messageParams)
-                .then(function(response) {
-                  messageParams.sequentialExecutorResponse = response.data;
+                .then(
+                  function(response) {
+                    messageParams.sequentialExecutorResponse = response.data;
+                    console.log('----------------------sequentialExecutorResponse-----', JSON.stringify(response));
 
-                  return rabbitmqSubscription.promiseQueueManager.createPromise(messageParams);
-                })
+                    if (response.isFailure()) {
+                      return Promise.resolve({});
+                    }
+
+                    return rabbitmqSubscription.promiseQueueManager.createPromise(messageParams);
+                  },
+                  function(err) {
+                    logger.error('---------------------reject err------', JSON.stringify(err));
+                    return Promise.resolve({});
+                  }
+                )
                 .catch(function(error) {
-                  logger.error('Error in promise creation', error);
+                  logger.error('Error in execute transaction', error);
+                  return Promise.resolve({});
                 });
             },
             function(consumerTag) {
