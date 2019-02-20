@@ -81,16 +81,32 @@ class TransactionMetaModel extends ModelBase {
    * @return {*|void}
    */
   releaseLockAndMarkStatus(params) {
-    const oThis = this;
-
-    return oThis
-      .update({
+    const oThis = this,
+      whereClause = {},
+      dataToUpdate = {
         lock_id: null,
         status: transactionMetaConst.invertedStatuses[params.status]
-      })
-      .where({
-        lock_id: params.lockId
-      })
+      };
+
+    if (params.lockId) {
+      whereClause.lock_id = params.lockId;
+    } else if (params.id) {
+      whereClause.id = params.id;
+    } else {
+      throw 'no param for where clause';
+    }
+
+    if (params.transactionHash) {
+      dataToUpdate.transaction_hash = params.transactionHash;
+    }
+
+    if (params.debugParams) {
+      dataToUpdate.debug_params = JSON.stringify(params.debugParams);
+    }
+
+    return oThis
+      .update(dataToUpdate)
+      .where(whereClause)
       .fire();
   }
 
