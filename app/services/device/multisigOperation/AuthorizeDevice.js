@@ -129,7 +129,10 @@ class AuthorizeDevice extends Base {
       );
     }
 
-    if (basicHelper.isEmptyObject(deviceAddressDetails) || deviceAddressDetails !== deviceConstants.registeredStatus) {
+    if (
+      basicHelper.isEmptyObject(deviceAddressDetails) ||
+      deviceAddressDetails.status !== deviceConstants.registeredStatus
+    ) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_mo_ad_5',

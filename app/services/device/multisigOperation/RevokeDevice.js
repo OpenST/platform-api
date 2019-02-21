@@ -118,7 +118,7 @@ class RevokeDevice extends Base {
 
     let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddressToRemove, oThis.signer]);
 
-    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddress],
+    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddressToRemove],
       signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
 
     if (
@@ -135,7 +135,10 @@ class RevokeDevice extends Base {
       );
     }
 
-    if (basicHelper.isEmptyObject(deviceAddressDetails) || deviceAddressDetails !== deviceConstants.authorisedStatus) {
+    if (
+      basicHelper.isEmptyObject(deviceAddressDetails) ||
+      deviceAddressDetails.status !== deviceConstants.authorisedStatus
+    ) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_mo_rd_5',
