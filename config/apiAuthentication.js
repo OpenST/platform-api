@@ -59,6 +59,10 @@ class ApiAuthentication {
       [apiName.getUserSalt]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/salts/'
+      },
+      [apiName.getTransaction]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/transactions/:transaction_id/'
       }
     };
     return getRequestConfig;
@@ -88,6 +92,10 @@ class ApiAuthentication {
       [apiName.postAuthorizeSession]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/authorize/'
+      },
+      [apiName.postTransaction]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/transactions/'
       }
     };
     return postRequestConfig;
