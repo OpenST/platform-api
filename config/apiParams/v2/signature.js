@@ -471,6 +471,16 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.getUserTransactions]: {
+    mandatory: [
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuid'
+      }
+    ],
+    optional: []
   }
 };
 

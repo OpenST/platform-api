@@ -338,4 +338,18 @@ router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
 });
 
+router.get('/:user_id/transactions', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserTransactions;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    //TODO as discussed
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetUserTransaction', 'r_v_u_13', null, dataFormatterFunc)
+  );
+});
+
 module.exports = router;
