@@ -9,7 +9,7 @@
   "dependencies": {
     "@openstfoundation/brandedtoken.js": "https://github.com/akshayraje/brandedtoken.js.git#develop",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
-    "@openstfoundation/mosaic.js": "https://github.com/OpenSTFoundation/mosaic.js.git#develop",
+    "@openstfoundation/mosaic.js": "0.10.0-beta.3",
     "@openstfoundation/openst-base": "0.9.3-beta.15",
     "@openstfoundation/openst-block-scanner": "0.0.1-beta.58",
     "@openstfoundation/openst-cache": "1.0.6-beta.13",
