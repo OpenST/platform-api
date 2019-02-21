@@ -113,7 +113,7 @@ class TransactionMetaModel extends ModelBase {
   markAsQueuedFailed(transactionUuid) {
     const oThis = this;
     return oThis
-      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailed]])
+      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]])
       .where({ transaction_uuid: transactionUuid })
       .fire();
   }

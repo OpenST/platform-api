@@ -110,6 +110,18 @@ class ConfigStrategyObject {
         tokenId: {
           shortName: 'ti',
           dataType: 'N'
+        },
+        blockNumber: {
+          shortName: 'bn',
+          dataType: 'N'
+        },
+        blockTimestamp: {
+          shortName: 'bts',
+          dataType: 'N'
+        },
+        erc20Address: {
+          shortName: 'ea',
+          dataType: 'S'
         }
       },
       transactions: {

@@ -29,7 +29,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/transaction/finalize/BalanceSettler.js --cronProcessId 1');
+  logger.log('    node executables/transaction/finalize/BalanceSettler.js --cronProcessId 22');
   logger.log('');
   logger.log('');
 });
@@ -124,15 +124,12 @@ class BalanceSettler extends MultiSubscriptionBase {
       strategyByChainHelperObj = new StrategyByChainHelper(oThis.auxChainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
-    // Query to get queue_topic suffix & chainId
-    oThis.initProcessResp = await new InitProcessKlass({ processId: program.cronProcessId }).perform();
-
     if (configStrategyResp.isFailure() || !CommonValidators.validateObject(configStrategyResp.data)) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
     }
 
-    oThis.config = configStrategyResp.data;
+    oThis.ic = new InstanceComposer(configStrategyResp.data);
 
     logger.step('Initialization done.');
   }
@@ -146,8 +143,6 @@ class BalanceSettler extends MultiSubscriptionBase {
 
   _prepareSubscriptionData() {
     const oThis = this;
-
-    oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription({
       rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
@@ -174,8 +169,7 @@ class BalanceSettler extends MultiSubscriptionBase {
     // Fetch params from payload.
     const taskId = payload.taskId;
 
-    let ic = new InstanceComposer(oThis.config),
-      BalanceSettlerLib = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceSettler');
+    let BalanceSettlerLib = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceSettler');
 
     let balanceSettler = new BalanceSettlerLib({
       auxChainId: oThis.auxChainId,

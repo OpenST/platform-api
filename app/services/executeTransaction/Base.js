@@ -69,6 +69,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.operationType = params.operation_type;
 
     oThis.tokenAddresses = null;
+    oThis.erc20Address = null;
     oThis.tokenRuleAddress = null;
     oThis.pricerRuleAddress = null;
     oThis.pricerRuleData = null;
@@ -134,6 +135,9 @@ class ExecuteTxBase extends ServiceBase {
     await oThis._setRmqInstance();
 
     await oThis._setWebInstance();
+
+    let tokenAddresses = await oThis._tokenAddresses();
+    oThis.erc20Address = tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
 
     await oThis._setTokenHolderAddress();
   }
@@ -412,6 +416,7 @@ class ExecuteTxBase extends ServiceBase {
       transfers: oThis.estimatedTransfers,
       transactionUuid: oThis.transactionUuid,
       ruleAddress: oThis.toAddress,
+      erc20Address: oThis.erc20Address,
       sessionKeyNonce: oThis.sessionKeyNonce,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId

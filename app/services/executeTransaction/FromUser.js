@@ -82,9 +82,9 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
     await oThis._createTransactionMeta();
 
-    await oThis._createPendingTransaction();
-
     await oThis._performPessimisticDebit();
+
+    await oThis._createPendingTransaction();
 
     await oThis._publishToRMQ();
 
