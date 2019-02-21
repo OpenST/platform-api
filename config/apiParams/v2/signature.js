@@ -356,8 +356,8 @@ const v2Signature = {
         validatorMethod: 'validateHexString'
       },
       {
-        parameter: 'signer',
-        validatorMethod: 'validateEthAddress'
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
       }
     ],
     optional: []
@@ -422,8 +422,8 @@ const v2Signature = {
         validatorMethod: 'validateHexString'
       },
       {
-        parameter: 'signer',
-        validatorMethod: 'validateEthAddress'
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
       }
     ],
     optional: []
@@ -488,8 +488,8 @@ const v2Signature = {
         validatorMethod: 'validateHexString'
       },
       {
-        parameter: 'signer',
-        validatorMethod: 'validateEthAddress'
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
       }
     ],
     optional: []
@@ -554,8 +554,8 @@ const v2Signature = {
         validatorMethod: 'validateHexString'
       },
       {
-        parameter: 'signer',
-        validatorMethod: 'validateEthAddress'
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
       }
     ],
     optional: []

@@ -45,7 +45,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
    * @param {String} params.gas_token - Token address (or 0 if ETH) that is used for the payment
    * @param {String} params.refund_receiver - Address of receiver of gas payment (or 0 if tx.origin)
    * @param {String} params.signatures - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer - authorized device address who signed this transaction
+   * @param {Array} params.signers - array of authorized device addresses who signed this transaction
    *
    * @constructor
    */
@@ -69,9 +69,10 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.gasPrice = params.gas_price;
     oThis.gasToken = params.gas_token;
     oThis.refundReceiver = params.refund_receiver;
-    oThis.signature = params.signatures;
-    oThis.signer = params.signer;
+    oThis.signatures = params.signatures;
+    oThis.signers = params.signers;
 
+    oThis.signer = null;
     oThis.configStrategyObj = null;
   }
 
@@ -107,7 +108,19 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.gasPrice = basicHelper.formatWeiToString(oThis.gasPrice);
     oThis.gasToken = basicHelper.sanitizeAddress(oThis.gasToken);
     oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
-    oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
+
+    if (!CommonValidators.validateEthAddress(oThis.signers[0])) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_b_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_signer_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.signer = basicHelper.sanitizeAddress(oThis.signers[0]);
 
     // Sanitize action specific params
     oThis._sanitizeSpecificParams();
@@ -137,7 +150,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       logger.error('Token user is not set properly');
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_b_1',
+          internal_error_identifier: 'a_s_s_mo_b_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_user_id'],
           debug_options: {}
@@ -149,7 +162,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       logger.error('Token holder address mismatch');
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_b_2',
+          internal_error_identifier: 'a_s_s_mo_b_3',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_to'],
           debug_options: {}
@@ -167,7 +180,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_b_3',
+          internal_error_identifier: 'a_s_s_mo_b_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_signer'],
           debug_options: {}
@@ -207,7 +220,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       logger.error('No data found for the provided wallet address');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_b_4',
+          internal_error_identifier: 'a_s_s_mo_b_5',
           api_error_identifier: 'cache_issue',
           debug_options: ''
         })
@@ -245,7 +258,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       logger.error('No data found for the provided sessionAddress');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_b_5',
+          internal_error_identifier: 'a_s_s_mo_b_6',
           api_error_identifier: 'cache_issue',
           debug_options: ''
         })

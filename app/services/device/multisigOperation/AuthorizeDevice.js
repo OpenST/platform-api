@@ -189,7 +189,7 @@ class AuthorizeDevice extends Base {
         gasPrice: oThis.gasPrice,
         gasToken: oThis.gasToken,
         refundReceiver: oThis.refundReceiver,
-        signature: oThis.signature,
+        signatures: oThis.signatures,
         signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         deviceShardNumber: oThis.deviceShardNumber,
