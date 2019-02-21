@@ -12,6 +12,7 @@ const rootPrefix = '../..',
   SessionFormatter = require(rootPrefix + '/lib/formatter/entity/Session'),
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
 
 // Following require(s) for registering into instance composer
@@ -21,6 +22,8 @@ require(rootPrefix + '/app/services/user/GetList');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
 require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
+require(rootPrefix + '/app/services/user/ExecuteTransaction');
+require(rootPrefix + '/app/services/user/GetTransaction');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
@@ -287,14 +290,52 @@ router.post('/:user_id/sessions/authorize/', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.sessions]).perform();
+    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
-      result_type: resultType.sessions,
-      [resultType.sessions]: sessionsFormattedRsp.data
+      result_type: resultType.session,
+      [resultType.session]: sessionsFormattedRsp.data
     };
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v_u_10', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/transactions', function(req, res, next) {
+  req.decodedParams.apiName = apiName.postTransaction;
+  req.decodedParams.userId = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const transactionFormattedRsp = new TransactionFormatter(serviceResponse.data[resultType.transaction]).perform();
+    serviceResponse.data = {
+      result_type: resultType.transaction,
+      [resultType.transaction]: transactionFormattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'ExecuteTransaction', 'r_v_u_11', null, dataFormatterFunc)
+  );
+});
+
+/* Get transaction by id */
+router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getTransaction;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.transaction_id = req.params.transaction_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let transaction = serviceResponse.data[resultType.transaction],
+      formattedRsp = new TransactionFormatter(transaction).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.transaction,
+      [resultType.transaction]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
 });
 
 module.exports = router;
