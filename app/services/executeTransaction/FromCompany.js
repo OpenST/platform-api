@@ -273,6 +273,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const tokenHolderHelper = new TokenHolderHelper(oThis.web3Instance, oThis.tokenHolderAddress);
 
     const transactionObject = {
+      // TODO - move the toChecksumAddress sanitizations to inside of interaction layers
       from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
       to: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenRuleAddress), // TR contract address
       data: oThis.transferExecutableData,
@@ -286,6 +287,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       sessionKeyObject = oThis.web3Instance.eth.accounts.wallet.add(sessionKeyAddrPK);
 
     // sign EIP1077 tx
+    // TODO - ethereum js tx support for EIP1077
     const vrs = sessionKeyObject.signEIP1077Transaction(transactionObject);
 
     oThis.signatureData = {
