@@ -358,6 +358,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -424,6 +428,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -490,6 +498,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -556,6 +568,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -571,7 +587,7 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.getRules]: {
+  [apiName.postTransaction]: {
     mandatory: [
       {
         parameter: 'client_id',
@@ -579,6 +595,35 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.getTransaction]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'transaction_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getRules]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   }
 };
 

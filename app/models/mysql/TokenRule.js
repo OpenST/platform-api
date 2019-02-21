@@ -182,9 +182,12 @@ class TokenRule extends ModelBase {
    *
    * @returns {Promise<*>}
    */
-  static flushCache(tokenId, ruleId) {
+  static async flushCache(tokenId, ruleId) {
     let Cache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRule');
-    return new Cache({ tokenId: tokenId, ruleId: ruleId }).clear();
+    await new Cache({ tokenId: tokenId, ruleId: ruleId }).clear();
+
+    let tokenRuleDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
+    await new tokenRuleDetailCache({ tokenId: tokenId }).clear();
   }
 }
 

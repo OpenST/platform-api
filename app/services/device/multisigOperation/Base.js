@@ -6,15 +6,21 @@
  * @module app/services/device/multisigOperation/Base
  */
 
+const OpenStJs = require('@openstfoundation/openst.js'),
+  GnosisSafeHelper = OpenStJs.Helpers.GnosisSafe;
+
 const rootPrefix = '../../../..',
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  ECRecover = require(rootPrefix + '/app/services/verifySigner/ECRecover'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  basicHelper = require(rootPrefix + '/helpers/basic');
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
@@ -47,6 +53,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
    * @param {String} params.refund_receiver - Address of receiver of gas payment (or 0 if tx.origin)
    * @param {String} params.signatures - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
    * @param {Array} params.signers - array of authorized device addresses who signed this transaction
+   * @param {String/Number} params.nonce - multisig contract nonce
    *
    * @constructor
    */
@@ -58,6 +65,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     oThis.userData = params.user_data;
     oThis.userId = params.user_data.userId;
     oThis.deviceShardNumber = params.user_data.deviceShardNumber;
+    oThis.multisigAddress = params.user_data.multisigAddress;
 
     oThis.to = params.to;
     oThis.value = params.value;
@@ -70,10 +78,11 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     oThis.refundReceiver = params.refund_receiver;
     oThis.signatures = params.signatures;
     oThis.signers = params.signers;
-    oThis.multisigAddress = params.user_data.multisigAddress;
+    oThis.nonce = params.nonce;
 
     oThis.signer = null;
     oThis.configStrategyObj = null;
+    oThis.web3InstanceObj = null;
   }
 
   /**
@@ -108,8 +117,9 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     oThis.gasPrice = basicHelper.formatWeiToString(oThis.gasPrice);
     oThis.gasToken = basicHelper.sanitizeAddress(oThis.gasToken);
     oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
+    oThis.nonce = Number(oThis.nonce);
 
-    if (!CommonValidators.validateEthAddress(oThis.signers[0])) {
+    if (oThis.signers.length !== 1 || !CommonValidators.validateEthAddress(oThis.signers[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_mo_b_1',
@@ -170,11 +180,54 @@ class MultisigOpertationBaseKlass extends ServiceBase {
         })
       );
     }
+    //Validates if the signatures provided is valid.
+    //await oThis._validateSignature();
 
     // Perform action specific pre checks
     await oThis._performSpecificPreChecks();
 
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Validate signature
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _validateSignature() {
+    const oThis = this;
+
+    let gnosisSafeProxyInstance = new GnosisSafeHelper(oThis.multisigAddress, oThis._web3Instance),
+      safeTxData = gnosisSafeProxyInstance.getSafeTxData(
+        oThis.multisigAddress,
+        oThis.value,
+        oThis.calldata,
+        oThis.operation,
+        oThis.safeTxGas,
+        oThis.dataGas,
+        oThis.gasPrice,
+        oThis.gasToken,
+        oThis.refundReceiver,
+        oThis.nonce
+      );
+
+    let verifySignRsp = await new ECRecover({
+      signer: oThis.signer,
+      personal_sign: oThis.signatures,
+      message_to_sign: safeTxData
+    }).perform();
+
+    if (verifySignRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_b_4',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_signatures'],
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
@@ -204,7 +257,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       logger.error('No data found for the provided wallet address');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_4',
+          internal_error_identifier: 'a_s_dm_mo_b_5',
           api_error_identifier: 'cache_issue',
           debug_options: ''
         })
@@ -244,7 +297,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     if (updateDeviceStatusRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_b_5',
+          internal_error_identifier: 'a_s_dm_mo_b_6',
           api_error_identifier: 'could_not_proceed',
           debug_options: {}
         })
@@ -252,6 +305,22 @@ class MultisigOpertationBaseKlass extends ServiceBase {
     }
 
     return updateDeviceStatusRsp;
+  }
+
+  /**
+   * Get web3instance to interact with chain
+   *
+   * @return {Object}
+   */
+  get _web3Instance() {
+    const oThis = this;
+
+    if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
+
+    let chainEndPoint = oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite);
+    oThis.web3InstanceObj = web3Provider.getInstance(chainEndPoint).web3WsProvider;
+
+    return oThis.web3InstanceObj;
   }
 
   /**

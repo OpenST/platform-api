@@ -46,6 +46,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
    * @param {String} params.refund_receiver - Address of receiver of gas payment (or 0 if tx.origin)
    * @param {String} params.signatures - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
    * @param {Array} params.signers - array of authorized device addresses who signed this transaction
+   * @param {String/Number} params.nonce - multisig contract nonce
    *
    * @constructor
    */
@@ -71,6 +72,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.refundReceiver = params.refund_receiver;
     oThis.signatures = params.signatures;
     oThis.signers = params.signers;
+    oThis.nonce = params.nonce;
 
     oThis.signer = null;
     oThis.configStrategyObj = null;
@@ -108,8 +110,9 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.gasPrice = basicHelper.formatWeiToString(oThis.gasPrice);
     oThis.gasToken = basicHelper.sanitizeAddress(oThis.gasToken);
     oThis.refundReceiver = basicHelper.sanitizeAddress(oThis.refundReceiver);
+    oThis.nonce = Number(oThis.nonce);
 
-    if (!CommonValidators.validateEthAddress(oThis.signers[0])) {
+    if (oThis.signers.length !== 1 || !CommonValidators.validateEthAddress(oThis.signers[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_s_mo_b_1',
