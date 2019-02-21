@@ -30,7 +30,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/executeTransaction.js --cronProcessId 15');
+  logger.log('    node executables/executeTransaction.js --cronProcessId 18');
   logger.log('');
   logger.log('');
 });
