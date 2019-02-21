@@ -99,6 +99,7 @@ class Token extends ModelBase {
       conversionFactor: dbRow.conversion_factor,
       decimal: dbRow.decimal,
       status: dbRow.status,
+      delayed_recovery_interval: dbRow.delayed_recovery_interval,
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
