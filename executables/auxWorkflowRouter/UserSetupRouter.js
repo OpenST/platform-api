@@ -4,6 +4,7 @@
  *
  * @module executables/auxWorkflowRouter/UserSetupRouter
  */
+
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -17,13 +18,13 @@ const rootPrefix = '../..',
   AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
   AddUserInWalletFactory = require(rootPrefix + '/lib/setup/user/AddUserInUserWalletFactory'),
   userSetupStepsConfig = require(rootPrefix + '/executables/auxWorkflowRouter/userSetupConfig'),
-  FetchUserRegisteredEvent = require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails'),
   VerifyInternalActorInUBTTrx = require(rootPrefix + '/lib/setup/user/verifyInternalActorInUBTTrx');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/setup/user/ActivateUser');
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 require(rootPrefix + '/lib/setup/user/RollbackUserActivation');
+require(rootPrefix + '/lib/setup/user/FetchRegisteredUserDetails');
 require(rootPrefix + '/lib/setup/economy/setInternalActorInUBT/Address');
 
 /**
@@ -73,7 +74,7 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
 
       // Add Session addresses
       case workflowStepConstants.addSessionAddresses:
-        let AddSessionAddressKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
+        const AddSessionAddressKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
           addSessionAddrObj = new AddSessionAddressKlass(oThis.requestParams);
 
         return addSessionAddrObj.perform();
@@ -84,6 +85,10 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
 
       // Fetch user registered event.
       case workflowStepConstants.fetchRegisteredUserEvent:
+        const FetchUserRegisteredEvent = ic.getShadowedClassFor(
+          coreConstants.icNameSpace,
+          'FetchRegisteredUserDetails'
+        );
         return new FetchUserRegisteredEvent(oThis.requestParams).perform();
 
       // Set internal actor for tokenHolder In UBT.
@@ -104,14 +109,14 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
 
       // Update Contract addresses in user and activate it.
       case workflowStepConstants.activateUser:
-        let ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
+        const ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
           activateUserObj = new ActivateUserKlass(oThis.requestParams);
 
         return activateUserObj.perform();
 
       // Rollback user and device and sessions
       case workflowStepConstants.rollbackUserSetup:
-        let RollbackKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RollbackUserActivation'),
+        const RollbackKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RollbackUserActivation'),
           rollbackObj = new RollbackKlass(oThis.requestParams);
 
         return rollbackObj.perform();
@@ -156,9 +161,9 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
   async getConfigStrategy() {
     const oThis = this;
 
-    let rsp = await chainConfigProvider.getFor([oThis.chainId]);
+    const response = await chainConfigProvider.getFor([oThis.chainId]);
 
-    return rsp[oThis.chainId];
+    return response[oThis.chainId];
   }
 }
 

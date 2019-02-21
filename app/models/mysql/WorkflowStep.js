@@ -110,6 +110,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '84': workflowStepConstants.checkProgressStakeStatus,
     '85': workflowStepConstants.checkProgressMintStatus,
 
+    '131': workflowStepConstants.deployDelayedRecoveryModuleMasterCopy,
+    '132': workflowStepConstants.saveDelayedRecoveryModuleMasterCopy,
+    '133': workflowStepConstants.deployCreateAndAddModules,
+    '134': workflowStepConstants.saveCreateAndAddModules,
+
     '101': workflowStepConstants.markSuccess,
     '102': workflowStepConstants.markFailure,
 
