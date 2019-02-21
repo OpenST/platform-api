@@ -5,6 +5,8 @@ const abiDecoder = require('abi-decoder'),
   mosaicTbdAbiBinProvider = new MosaicJs.AbiBinProvider(),
   BrandedToken = require('@openstfoundation/brandedtoken.js'),
   brandedTokenAbiBinProvider = new BrandedToken.AbiBinProvider(),
+  OpenStJs = require('@openstfoundation/openst.js'),
+  openStJsAbiBinProvider = new OpenStJs.AbiBinProvider(),
   web3 = require('web3');
 
 const EIP20GatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20Gateway'),
@@ -12,7 +14,11 @@ const EIP20GatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20Gateway'),
   AnchorAbi = mosaicTbdAbiBinProvider.getABI('Anchor'),
   GatewayComposerAbi = brandedTokenAbiBinProvider.getABI('GatewayComposer'),
   BrandedTokenAbi = brandedTokenAbiBinProvider.getABI('BrandedToken'),
-  UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken');
+  UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken'),
+  DelayedRecoveryModuleAbi = openStJsAbiBinProvider.getABI('DelayedRecoveryModule'),
+  UserWalletFactoryAbi = openStJsAbiBinProvider.getABI('UserWalletFactory'),
+  ProxyFactoryAbi = openStJsAbiBinProvider.getABI('ProxyFactory'),
+  GnosisSafeAbi = openStJsAbiBinProvider.getABI('GnosisSafe');
 
 abiDecoder.addABI(EIP20GatewayAbi);
 abiDecoder.addABI(EIP20CoGatewayAbi);
@@ -21,6 +27,11 @@ abiDecoder.addABI(AnchorAbi);
 abiDecoder.addABI(GatewayComposerAbi);
 abiDecoder.addABI(BrandedTokenAbi);
 abiDecoder.addABI(UtilityBrandedTokenAbi);
+
+abiDecoder.addABI(DelayedRecoveryModuleAbi);
+abiDecoder.addABI(UserWalletFactoryAbi);
+abiDecoder.addABI(ProxyFactoryAbi);
+abiDecoder.addABI(GnosisSafeAbi);
 
 class GetTxData {
   constructor(params) {
@@ -58,12 +69,12 @@ module.exports = GetTxData;
 
 txD = require('./tests/getTxData')
 txO = new txD({
-  txHash: '0x76a1c0ce738bc61993e7cd49791290afe668f83acde5bff70389eb0f6b60f51f',
-  web3ProviderUrl: 'ws://127.0.0.1:8546'
+  txHash: '0xb39eb764c39b84d9550940ab7406fe97ef0499fa82c246463331641eb769bd7f',
+  web3ProviderUrl: 'ws://127.0.0.1:9546'
 })
 
 txO.getDecodedInputParams().then(console.log)
-txO.getDecodedEvents().then(console.log)
+txO.getDecodedEvents().then(function(q){r=q})
 
 */
 

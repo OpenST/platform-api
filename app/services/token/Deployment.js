@@ -5,8 +5,8 @@
  * @module app/services/token/Deployment
  */
 const rootPrefix = '../../..',
-  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
