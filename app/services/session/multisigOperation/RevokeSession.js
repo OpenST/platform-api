@@ -1,48 +1,46 @@
 'use strict';
 
 /**
- *  Authorize device multi sig operation
+ *  Revoke session multi sig operation
  *
- * @module app/services/device/multisigOperation/AuthorizeDevice
+ * @module app/services/session/multisigOperation/RevokeSession
  */
 
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  AuthorizeDeviceRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter'),
-  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
+  RevokeSessionRouter = require(rootPrefix + '/executables/auxWorkflowRouter/multisigOperation/RevokeSessionRouter'),
+  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-require(rootPrefix + '/lib/device/UpdateStatus');
+require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
+require(rootPrefix + '/app/models/ddb/sharded/Session.js');
 
 /**
- * Class to authorize device multi sig operation
+ * Class to revoke session multi sig operation
  *
- * @class AuthorizeDevice
+ * @class RevokeSession
  */
-class AuthorizeDevice extends Base {
+class RevokeSession extends Base {
   /**
    *
    * @param {Object} params
    * @param {Object} params.raw_calldata -
-   * @param {String} params.raw_calldata.method - possible value addOwnerWithThreshold
+   * @param {String} params.raw_calldata.method - possible value revokeSession
    * @param {Array} params.raw_calldata.parameters -
-   * @param {String} params.raw_calldata.parameters[0] - new device address
-   * @param {String/Number} params.raw_calldata.parameters[1] - requirement/threshold
+   * @param {String} params.raw_calldata.parameters[0] - session address to be revoked
    *
    * @constructor
    */
@@ -51,8 +49,7 @@ class AuthorizeDevice extends Base {
     const oThis = this;
 
     oThis.rawCalldata = params.raw_calldata;
-
-    oThis.deviceAddress = null;
+    oThis.sessionKey = null;
   }
 
   /**
@@ -64,10 +61,10 @@ class AuthorizeDevice extends Base {
     const oThis = this;
 
     let rawCallDataMethod = oThis.rawCalldata.method;
-    if (rawCallDataMethod !== 'addOwnerWithThreshold') {
+    if (rawCallDataMethod !== 'revokeSession') {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_1',
+          internal_error_identifier: 'a_s_s_mo_rs_1',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_method'],
           debug_options: {}
@@ -79,7 +76,7 @@ class AuthorizeDevice extends Base {
     if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_2',
+          internal_error_identifier: 'a_s_s_mo_rs_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
           debug_options: {}
@@ -87,18 +84,7 @@ class AuthorizeDevice extends Base {
       );
     }
 
-    if (Number(rawCallDataParameters[1]) !== 1) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_3',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_raw_calldata_parameter_threshold'],
-          debug_options: {}
-        })
-      );
-    }
-
-    oThis.deviceAddress = basicHelper.sanitizeAddress(rawCallDataParameters[0]);
+    oThis.sessionKey = basicHelper.sanitizeAddress(rawCallDataParameters[0]);
   }
 
   /**
@@ -110,34 +96,15 @@ class AuthorizeDevice extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
-    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddress, oThis.signer]);
+    let sessionDetailsRsp = await super._fetchSessionDetails(oThis.sessionKey),
+      sesseionDetails = sessionDetailsRsp.data[oThis.sessionKey];
 
-    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddress],
-      signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
-
-    if (
-      basicHelper.isEmptyObject(signerAddressDetails) ||
-      signerAddressDetails.status !== deviceConstants.authorisedStatus
-    ) {
+    if (!sesseionDetails || sesseionDetails.status !== sessionConstants.authorizedStatus) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_4',
+          internal_error_identifier: 'a_s_s_mo_rs_3',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['unauthorized_signer'],
-          debug_options: {}
-        })
-      );
-    }
-
-    if (
-      basicHelper.isEmptyObject(deviceAddressDetails) ||
-      deviceAddressDetails.status !== deviceConstants.registeredStatus
-    ) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_5',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['unauthorized_device_address'],
+          params_error_identifiers: ['unauthorized_session_address'],
           debug_options: {}
         })
       );
@@ -155,15 +122,43 @@ class AuthorizeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    let updateResponse = await oThis._updateDeviceStatus(
-      oThis.deviceAddress,
-      deviceConstants.registeredStatus,
-      deviceConstants.authorisingStatus
-    );
+    let updateResponse = await oThis._updateEntryInSessionsTable();
 
     await oThis._startWorkflow();
 
     return oThis._prepareResponseEntity(updateResponse);
+  }
+
+  /**
+   * updates entry in sessions table
+   *
+   * @returns {Promise<any>}
+   * @private
+   */
+  async _updateEntryInSessionsTable() {
+    const oThis = this;
+    logger.debug('****Updating entry in sessions table');
+
+    let SessionModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SessionModel'),
+      sessionModelObj = new SessionModel({ shardNumber: oThis.sessionShardNumber }),
+      updateResponse = await sessionModelObj.updateStatusFromInitialToFinal(
+        oThis.userId,
+        oThis.sessionKey,
+        sessionConstants.authorizedStatus,
+        sessionConstants.revokingStatus
+      );
+
+    if (updateResponse.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_s_mo_rs_4',
+          api_error_identifier: 'could_not_proceed',
+          debug_options: {}
+        })
+      );
+    }
+
+    return updateResponse;
   }
 
   /**
@@ -175,13 +170,12 @@ class AuthorizeDevice extends Base {
   async _startWorkflow() {
     const oThis = this;
 
-    logger.debug('****Starting the authorize workflow ');
-
+    logger.debug('****Starting the revoke session workflow ');
     let requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
-        deviceAddress: oThis.deviceAddress,
+        sessionKey: oThis.sessionKey,
         to: oThis.to,
         value: oThis.value,
         calldata: oThis.calldata,
@@ -195,21 +189,21 @@ class AuthorizeDevice extends Base {
         signatures: oThis.signatures,
         signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
-        deviceShardNumber: oThis.deviceShardNumber,
-        multisigAddress: oThis.multisigAddress
+        sessionShardNumber: oThis.sessionShardNumber,
+        multisigAddress: oThis.multisigProxyAddress
       },
-      authorizeDeviceInitParams = {
-        stepKind: workflowStepConstants.authorizeDeviceInit,
+      revokeSessionInitParams = {
+        stepKind: workflowStepConstants.revokeSessionInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.auxChainId,
-        topic: workflowTopicConstants.authorizeDevice,
+        topic: workflowTopicConstants.revokeSession,
         requestParams: requestParams
       };
 
-    let authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
+    let revokeSessionObj = new RevokeSessionRouter(revokeSessionInitParams);
 
-    return authorizeDeviceObj.perform();
+    return revokeSessionObj.perform();
   }
 
   /**
@@ -218,19 +212,16 @@ class AuthorizeDevice extends Base {
    * @returns {Promise<any>}
    * @private
    */
-  async _prepareResponseEntity(updateResponseData) {
+  async _prepareResponseEntity(updateResponse) {
     const oThis = this;
 
-    logger.debug('****Preparing authorize device service response');
+    logger.debug('****Preparing revoke session service response');
 
-    let responseHash = updateResponseData.data;
+    let response = {};
+    response[resultType.session] = updateResponse.data;
 
-    responseHash.linkedAddress = null;
-
-    return responseHelper.successWithData({
-      [resultType.device]: responseHash
-    });
+    return responseHelper.successWithData(response);
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AuthorizeDevice, coreConstants.icNameSpace, 'AuthorizeDevice');
+InstanceComposer.registerAsShadowableClass(RevokeSession, coreConstants.icNameSpace, 'RevokeSession');

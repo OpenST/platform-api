@@ -93,11 +93,12 @@ class SessionGetByAddress extends SessionGetBase {
     const oThis = this;
 
     let sessionData = responseData.session,
-      currentTimestamp = Math.floor(new Date() / 1000);
+      currentTimestamp = Math.floor(new Date() / 1000),
+      approxExpirationTimestamp = sessionData.expirationTimestamp || 0;
 
     // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
     // If session is expired then avoid fetching from contract.
-    if (sessionData.expirationTimestamp > currentTimestamp) {
+    if (Number(approxExpirationTimestamp) > currentTimestamp) {
       await oThis._fetchSessionTokenHolderNonce(sessionData.address);
     }
     responseData.session.nonce = oThis.sessionNonce[sessionData.address];

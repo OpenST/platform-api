@@ -301,11 +301,11 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_data',
@@ -317,11 +317,11 @@ const v2Signature = {
       },
       {
         parameter: 'value',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateZeroWeiValue'
       },
       {
         parameter: 'calldata',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateHexString'
       },
       {
         parameter: 'raw_calldata',
@@ -329,35 +329,101 @@ const v2Signature = {
       },
       {
         parameter: 'operation',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroInteger'
       },
       {
         parameter: 'safe_tx_gas',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroInteger'
       },
       {
         parameter: 'data_gas',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroInteger'
       },
       {
         parameter: 'gas_price',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroWeiValue'
       },
       {
         parameter: 'gas_token',
-        validatorMethod: 'validateEthAddress'
+        validatorMethod: 'validateZeroEthAddress'
       },
       {
         parameter: 'refund_receiver',
-        validatorMethod: 'validateEthAddress'
+        validatorMethod: 'validateZeroEthAddress'
       },
       {
         parameter: 'signatures',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateHexString'
       },
       {
-        parameter: 'signer',
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.postRevokeDevice]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
         validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateZeroWeiValue'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateZeroWeiValue'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'signatures',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
       }
     ],
     optional: []
@@ -367,11 +433,11 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'user_data',
@@ -383,11 +449,11 @@ const v2Signature = {
       },
       {
         parameter: 'value',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateZeroWeiValue'
       },
       {
         parameter: 'calldata',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateHexString'
       },
       {
         parameter: 'raw_calldata',
@@ -395,35 +461,101 @@ const v2Signature = {
       },
       {
         parameter: 'operation',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroInteger'
       },
       {
         parameter: 'safe_tx_gas',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroInteger'
       },
       {
         parameter: 'data_gas',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroInteger'
       },
       {
         parameter: 'gas_price',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateZeroWeiValue'
       },
       {
         parameter: 'gas_token',
-        validatorMethod: 'validateEthAddress'
+        validatorMethod: 'validateZeroEthAddress'
       },
       {
         parameter: 'refund_receiver',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'signatures',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.postRevokeSession]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
         validatorMethod: 'validateEthAddress'
       },
       {
-        parameter: 'signature',
-        validatorMethod: 'validateString'
+        parameter: 'value',
+        validatorMethod: 'validateZeroWeiValue'
       },
       {
-        parameter: 'signer',
-        validatorMethod: 'validateEthAddress'
+        parameter: 'calldata',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateZeroWeiValue'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'signatures',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
       }
     ],
     optional: []

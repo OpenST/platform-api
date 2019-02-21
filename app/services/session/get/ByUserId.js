@@ -171,10 +171,12 @@ class SessionListByUserId extends SessionGetBase {
 
     let promises = [];
     for (let index in responseData.sessions) {
-      let sessionData = responseData.sessions[index];
+      let sessionData = responseData.sessions[index],
+        approxExpirationTimestamp = sessionData.expirationTimestamp || 0;
+
       // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
       // If session is expired then avoid fetching from contract.
-      if (sessionData.expirationTimestamp > currentTimestamp) {
+      if (Number(approxExpirationTimestamp) > currentTimestamp) {
         promises.push(oThis._fetchSessionTokenHolderNonce(sessionData.address));
       }
     }
