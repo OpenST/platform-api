@@ -167,9 +167,9 @@ class TransactionMetaModel extends ModelBase {
     const oThis = this;
 
     let statuses = [
-      transactionMetaConst.invertedStatuses[transactionMetaConst.mined],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.minedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.finalizationInProcess],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.finalized]
+      transactionMetaConst.invertedStatuses[transactionMetaConst.finalizedStatus]
     ];
 
     return oThis
