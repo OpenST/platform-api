@@ -67,6 +67,10 @@ class ApiAuthentication {
       [apiName.getTransaction]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/:transaction_id/'
+      },
+      [apiName.getUserTransactions]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/transactions'
       }
     };
     return getRequestConfig;

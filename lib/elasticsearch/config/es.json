@@ -1,7 +1,7 @@
 {
   "ddbTablePrefix": "",
   "chainId": 123,
-  "es": {
+  "elasticSearch": {
     "host":"localhost:9200",
     "region":"localhost",
     "apiKey":"elastic",
