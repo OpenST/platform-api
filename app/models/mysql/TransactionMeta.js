@@ -123,7 +123,7 @@ class TransactionMetaModel extends ModelBase {
     return oThis
       .update([
         'lock_id = null, status=?',
-        transactionMetaConst.invertedStatuses[transactionMetaConst.rollbackNeededStatus]
+        transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus]
       ])
       .where({ id: id })
       .fire();

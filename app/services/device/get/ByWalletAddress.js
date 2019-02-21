@@ -40,6 +40,8 @@ class ByWalletAddress extends GetDeviceBase {
     const oThis = this;
 
     oThis.address = params.address;
+
+    oThis.walletAddresses = [];
   }
 
   /**
@@ -88,7 +90,7 @@ class ByWalletAddress extends GetDeviceBase {
       return Promise.reject(response);
     }
 
-    if (!CommonValidators.validateObject(response.data[oThis.address.toLowerCase()])) {
+    if (!CommonValidators.validateObject(response.data[oThis.address])) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_d_g_bwa_1',
@@ -99,8 +101,13 @@ class ByWalletAddress extends GetDeviceBase {
       );
     }
 
+    let finalResponse = response.data[oThis.address],
+      linkedAddressMap = await oThis._fetchLinkedDeviceAddressMap();
+
+    finalResponse.linkedAddress = linkedAddressMap[oThis.address];
+
     return {
-      [resultType.device]: response.data[oThis.address.toLowerCase()]
+      [resultType.device]: finalResponse
     };
   }
 }

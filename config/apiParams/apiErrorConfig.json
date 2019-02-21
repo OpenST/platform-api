@@ -9,11 +9,6 @@
     "code": "UNAUTHORIZED",
     "message": "We could not authenticate the request. Please review your credentials and authentication method."
   },
-  "unauthorized_for_other_client": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
   "unauthorized_for_main_env": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
@@ -43,11 +38,6 @@
     "http_code": "410",
     "code": "UNSUPPORTED_VERSION",
     "message": "Unsupported version of the API is being requested upon."
-  },
-  "data_not_found": {
-    "http_code": "404",
-    "code": "NOT_FOUND",
-    "message": "The requested resource could not be located."
   },
   "something_went_wrong": {
     "http_code": "500",
@@ -84,62 +74,7 @@
     "code": "INSUFFICIENT_GAS",
     "message": "The account executing the transaction or transfer does not have sufficient gas(stPrime)."
   },
-  "invalid_airdrop_status": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "key_encryption_failed": {
-    "http_code": "500",
-    "code": "INTERNAL_SERVER_ERROR",
-    "message": "Something went wrong."
-  },
-  "token_contract_not_deployed": {
-    "http_code": "500",
-    "code": "INTERNAL_SERVER_ERROR",
-    "message": "Something went wrong."
-  },
-  "unsupported_balance_type": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "error_getting_balance": {
-    "http_code": "500",
-    "code": "INTERNAL_SERVER_ERROR",
-    "message": "Something went wrong."
-  },
-  "client_airdrop_not_found": {
-    "http_code": "404",
-    "code": "NOT_FOUND",
-    "message": "The requested resource could not be located."
-  },
-  "client_branded_token_not_found": {
-    "http_code": "404",
-    "code": "NOT_FOUND",
-    "message": "The requested resource could not be located."
-  },
-  "reserveAddressUuid_not_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "no_users_found_for_airdrop_list": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "invalid_airdrop_uuids":{
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
   "invalid_branded_token": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "duplicate_record": {
     "http_code": "400",
     "code": "BAD_REQUEST",
     "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
@@ -149,50 +84,10 @@
     "code": "BAD_REQUEST",
     "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
   },
-  "criticalChainInteractionLog_not_found": {
-    "http_code": "404",
-    "code": "NOT_FOUND",
-    "message": "The requested resource could not be located."
-  },
-  "invalid_List_type_to_airdrop": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
   "token_not_setup": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Token not setup."
-  },
-  "missing_client_id": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "missing_client_transaction_id": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "missing_approve_transaction_hash": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "missing_request_stake_transaction_hash": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "airdrop_requests_in_process": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "no_users_found_for_this_list_type": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
   },
   "address_invalid": {
     "http_code": "400",
@@ -214,21 +109,6 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The request was good, but nevertheless could not be processed."
   },
-  "invalid_transaction_type": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "no_users_found_for_client": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "no_actions_found_for_client": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
   "invalid_api_name": {
     "http_code": "400",
     "code": "BAD_REQUEST",
@@ -244,47 +124,12 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The request was good, but nevertheless could not be processed."
   },
-  "blank_uuids": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
   "blank_addresses": {
     "http_code": "400",
     "code": "BAD_REQUEST",
     "message": "blank addresses"
   },
   "no_data_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "workers_contract_not_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "workers_addresses_mandatory": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "branded_token_contract_not_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "airdrop_contract_not_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "airdrop_holder_address_not_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "proposeBrandedToken_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The request was good, but nevertheless could not be processed."
@@ -298,51 +143,6 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The token deployment has failed."
-  },
-  "registration_status_not_found": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "setAcceptedMargin_failed": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "setPriceOracle_failed": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "getPriceOracle_failed": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "could_not_set_worker": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "approve_failed": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "stake_and_mint_processor_error": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "receipt_failed_after_maximum_retries": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
-  },
-  "st_prime_transfer_failed": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "The request was good, but nevertheless could not be processed."
   },
   "unable_to_get_transaction_count": {
     "http_code": "422",
@@ -364,21 +164,6 @@
     "code": "BAD_REQUEST",
     "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
   },
-  "transaction_log_invalid": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
-  },
-  "ddb_insert_failed": {
-    "http_code": "500",
-    "code": "SOMETHING_WENT_WRONG",
-    "message": "Something went wrong"
-  },
-  "db_insert_failed": {
-    "http_code": "500",
-    "code": "SOMETHING_WENT_WRONG",
-    "message": "Something went wrong"
-  },
   "ddb_batch_write_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
@@ -393,26 +178,6 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "DDB Batch DELETE failed for some or all entries."
-  },
-  "invalid_balance": {
-    "http_code": "422",
-    "code": "UNPROCESSABLE_ENTITY",
-    "message": "Invalid balance was obtained."
-  },
-  "grant_prohibited": {
-    "http_code": "403",
-    "code": "GRANT_FORBIDDEN",
-    "message": "This API Endpoint is prohibited on Mainnet environment."
-  },
-  "transfer_prohibited": {
-    "http_code": "403",
-    "code": "TRANSFER_FORBIDDEN",
-    "message": "This API Endpoint is not enabled for the Mainnet environment. Please utilize the Testnet Environment to test the contract deployment functionality on the Utility chain."
-  },
-  "random_transaction_prohibited": {
-    "http_code": "403",
-    "code": "REQUEST_FORBIDDEN",
-    "message": "Cannot simulate random transaction for main env."
   },
   "route_prohibited_in_main": {
     "http_code": "403",
@@ -444,11 +209,6 @@
     "code": "ALREADY_EXISTS",
     "message": "Duplicate entity already exists."
   },
-  "invalid_device_address": {
-    "http_code": "409",
-    "code": "ALREADY_EXISTS",
-    "message": "Device address is invalid."
-  },
   "user_activation_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
@@ -458,11 +218,6 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Action could not be performed. Please contact support."
-  },
-  "invalid_chain_id": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "Invalid chain id."
   },
   "user_not_activated": {
     "http_code": "422",

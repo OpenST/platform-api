@@ -10,6 +10,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   ServiceBase = require(rootPrefix + '/app/services/Base');
 
 // Following require(s) for registering into instance composer
@@ -170,13 +171,16 @@ class SessionGetBase extends ServiceBase {
         continue;
       }
 
-      let sessionExpirationHeight = Number(sessionData.expirationHeight);
+      // Only send approx expiry when authorized
+      if (sessionData.status === sessionConstants.authorizedStatus) {
+        let sessionExpirationHeight = Number(sessionData.expirationHeight);
 
-      let blockDifference = sessionExpirationHeight - lastKnownBlockNumber,
-        timeDifferenceInSecs = blockDifference * blockGenerationTimeInSecs,
-        approxTimeInSecs = lastKnownBlockCreatedTimeInSecs + timeDifferenceInSecs;
+        let blockDifference = sessionExpirationHeight - lastKnownBlockNumber,
+          timeDifferenceInSecs = blockDifference * blockGenerationTimeInSecs,
+          approxTimeInSecs = lastKnownBlockCreatedTimeInSecs + timeDifferenceInSecs;
 
-      sessionData['expirationTimestamp'] = approxTimeInSecs;
+        sessionData.expirationTimestamp = approxTimeInSecs;
+      }
 
       finalResponse[address] = sessionData;
     }

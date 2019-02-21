@@ -36,7 +36,7 @@ class TransferStPrime {
 
     await oThis._setWeb3Instance();
 
-    await oThis._executeTx();
+    return oThis._executeTx();
   }
 
   /**
@@ -79,22 +79,18 @@ class TransferStPrime {
       txOptions: txOptions
     };
 
-    let txresp = await new SubmitTransaction(params)
-      .perform()
-      .then(function(txResponse) {
-        logger.info('===Success Transaction for ', txOptions, '\n------ response ---', txResponse);
-      })
-      .catch(function(err) {
-        logger.info('===Failed Transaction for ', txOptions, '\n------ response ---', err);
-      });
+    let txresp = await new SubmitTransaction(params).perform().catch(function(err) {
+      logger.info('===Failed Transaction for ', txOptions, '\n------ response ---', err);
+      return err;
+    });
 
-    console.log(txresp);
+    console.log('txresp------------', txresp.internalErrorCode);
 
     return txresp;
   }
 }
 
 new TransferStPrime().perform().then(function(resp) {
-  console.log('Lo bhai Jawab aa gaya...... Band karo ab..');
+  console.log('Lo bhai Jawab aa gaya...... Band karo ab..', resp);
   process.exit(0);
 });
