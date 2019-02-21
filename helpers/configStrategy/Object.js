@@ -45,6 +45,11 @@ class ConfigStrategyObject {
     return oThis.configStrategy[configStrategyConstants.auxGeth].client;
   }
 
+  get elasticSearchConfig() {
+    const oThis = this;
+    return oThis.configStrategy[configStrategyConstants.elasticSearch];
+  }
+
   extraStorageColumnsForDdb(chainId) {
     const oThis = this;
     if (oThis.auxChainId == chainId) {

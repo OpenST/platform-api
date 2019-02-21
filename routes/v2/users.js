@@ -24,6 +24,7 @@ require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/user/ExecuteTransaction');
 require(rootPrefix + '/app/services/transaction/GetTransaction');
+require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');

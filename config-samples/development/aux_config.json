@@ -64,7 +64,11 @@
       "clusterNodes":["127.0.0.1"]
     },
     "elasticSearch": {
-
+      "host":"localhost:9200",
+      "region":"localhost",
+      "apiKey":"elastic",
+      "apiSecret":"changeme",
+      "apiVersion":"6.2"
     }
   }
 }

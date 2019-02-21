@@ -214,6 +214,16 @@ const v2ErrorConfig = {
     parameter: 'signatures',
     code: 'invalid',
     message: 'Invalid signature provided'
+  },
+  missing_transaction_id: {
+    parameter: 'transaction_id',
+    code: 'missing',
+    message: `Missing transaction_id`
+  },
+  missing_token_holder_address: {
+    parameter: 'tokenHolderAddress',
+    code: 'missing',
+    message: 'missing token holder address'
   }
 };
 
