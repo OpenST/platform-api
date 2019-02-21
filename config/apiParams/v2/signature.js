@@ -470,7 +470,12 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   }
 };
 
