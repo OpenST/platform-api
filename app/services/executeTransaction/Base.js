@@ -446,7 +446,11 @@ class ExecuteTxBase extends ServiceBase {
         ephemeralAddress: oThis.sessionKeyAddress
       });
 
-    let publishDetails = await exTxGetPublishDetails.perform();
+    let publishDetails = await exTxGetPublishDetails.perform().catch(async function(error) {
+      logger.error(`In catch block of exTxGetPublishDetails in file: ${__filename}`, error);
+      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
+      return Promise.reject(error);
+    });
 
     let messageParams = {
       topics: [publishDetails.topicName],
@@ -497,7 +501,7 @@ class ExecuteTxBase extends ServiceBase {
       await new TransactionMetaModel()
         .update({
           status: transactionMetaConst.invertedStatuses[oThis.failureStatusToUpdateInTxMeta],
-          debug_params: [customError.toString()]
+          debug_params: JSON.stringify(customError.toHash())
         })
         .where({ id: oThis.transactionMetaId })
         .fire();
