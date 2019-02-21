@@ -21,6 +21,14 @@ class CoreConstants {
     return 'aux';
   }
 
+  get originChainKindName() {
+    return 'Origin';
+  }
+
+  get auxChainKindName() {
+    return 'Auxiliary';
+  }
+
   get SAAS_ONLY_SHARED_CACHE_ENGINE() {
     return process.env.SA_ONLY_SHARED_CACHE_ENGINE;
   }
