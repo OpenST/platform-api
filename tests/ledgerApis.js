@@ -14,7 +14,6 @@ require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 let configStrategyResp = null;
 getStrategyByChainHelperObj()
   .then(function(res) {
-    console.log('======res=====', res);
     configStrategyResp = res;
     const configStrategy = configStrategyResp.data;
     const ic = new InstanceComposer(configStrategy),
@@ -41,7 +40,7 @@ getStrategyByChainHelperObj()
 
     console.log('======START=====');
     console.log('getServiceConfig', userTransaction.getServiceConfig());
-    console.log('getElasticSearchQuery', userTransaction.getElasticSearchQuery(userId));
+    console.log('getElasticSearchQuery', JSON.stringify(userTransaction.getElasticSearchQuery(userId)));
     console.log('======END=====');
   })
   .catch(function(reason) {
