@@ -9,6 +9,7 @@
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
   TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
@@ -55,9 +56,7 @@ class GetRule extends ServiceBase {
     for (let eachTokenRule in tokenRulesData) {
       let ruleTokenIdNameString = '',
         tokenRule = tokenRulesData[eachTokenRule];
-
-      ruleTokenIdNameString = tokenRule.rule_token_id + '_' + tokenRule.rule_name;
-
+      ruleTokenIdNameString = ruleConstants.getKey(tokenRule.rule_token_id, tokenRule.rule_name);
       tokenIdNamesArray.push(ruleTokenIdNameString);
     }
 
