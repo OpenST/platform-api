@@ -5,8 +5,7 @@
  * @module executables/auxWorkflowRouter/Base
  */
 const rootPrefix = '../..',
-  WorkflowRouterBase = require(rootPrefix + '/executables/workflowRouter/Base'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
+  WorkflowRouterBase = require(rootPrefix + '/lib/workflow/RouterBase');
 
 /**
  * Class for Aux workflow router base.
