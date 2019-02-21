@@ -362,13 +362,39 @@ class ModelBaseKlass {
   }
 
   /**
+   * Attributes to fetch from Dynamo
+   *
+   * @param {Array} attributes
+   * @returns {string}
+   * @private
+   */
+  _attributesProjection(attributes) {
+    const oThis = this;
+
+    if (!attributes) {
+      return '';
+    }
+
+    // Fetch short names from columns and send as projection expression
+    let attributesShortNames = [],
+      shortNamesMap = oThis.longToShortNamesMap;
+    for (let index in attributes) {
+      let attr = attributes[index];
+      attributesShortNames.push(shortNamesMap[attr]);
+    }
+
+    return attributesShortNames.join(',');
+  }
+
+  /**
    * batchGetItem
    *
    * @param keyObjArray
    * @param resultsMapKey - key for mapping the result objects
+   * @param selectAttributes - Array of attribute keys to be fetched.
    * @return {Promise<void>}
    */
-  async batchGetItem(keyObjArray, resultsMapKey) {
+  async batchGetItem(keyObjArray, resultsMapKey, selectAttributes) {
     const oThis = this;
 
     let batchGetParams = { RequestItems: {} };
@@ -376,6 +402,11 @@ class ModelBaseKlass {
       Keys: keyObjArray,
       ConsistentRead: oThis.consistentRead
     };
+
+    let projectionExpression = oThis._attributesProjection(selectAttributes);
+    if (projectionExpression.length > 0) {
+      batchGetParams.RequestItems[oThis.tableName()].ProjectionExpression = projectionExpression;
+    }
 
     let batchGetRsp = await oThis.ddbServiceObj.batchGetItem(batchGetParams);
 

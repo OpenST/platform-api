@@ -51,7 +51,6 @@ class User extends Base {
       recoveryOwnerAddress: 'ra',
       deviceShardNumber: 'dsn',
       sessionShardNumber: 'ssn',
-      recoveryAddressShardNumber: 'rasn',
       saasApiStatus: 'sas',
       status: 'sts',
       updatedTimestamp: 'uts'
@@ -85,7 +84,6 @@ class User extends Base {
       ra: 'S',
       dsn: 'N',
       ssn: 'N',
-      rasn: 'N',
       sas: 'N',
       sts: 'N',
       uts: 'N'
@@ -176,7 +174,20 @@ class User extends Base {
   async getUsersByIds(params) {
     const oThis = this;
 
-    let keyObjArray = [];
+    let keyObjArray = [],
+      selectColumns = [
+        'tokenId',
+        'userId',
+        'kind',
+        'tokenHolderAddress',
+        'multisigAddress',
+        'recoveryOwnerAddress',
+        'deviceShardNumber',
+        'sessionShardNumber',
+        'saasApiStatus',
+        'status',
+        'updatedTimestamp'
+      ];
 
     for (let i = 0; i < params.userIds.length; i++) {
       keyObjArray.push(
@@ -187,7 +198,32 @@ class User extends Base {
       );
     }
 
-    return oThis.batchGetItem(keyObjArray, 'userId');
+    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
+  }
+
+  /**
+   * Get User salt from users table.
+   *
+   * @param tokenId
+   * @param userIds
+   * @returns {Promise<void>}
+   */
+  getUsersSalt(tokenId, userIds) {
+    const oThis = this;
+
+    let keyObjArray = [],
+      selectColumns = ['tokenId', 'userId', 'salt', 'updatedTimestamp'];
+
+    for (let i = 0; i < userIds.length; i++) {
+      keyObjArray.push(
+        oThis._keyObj({
+          tokenId: tokenId,
+          userId: userIds[i]
+        })
+      );
+    }
+
+    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
   }
 
   /**
