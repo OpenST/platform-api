@@ -489,7 +489,7 @@ class ExecuteTxBase extends ServiceBase {
       await new TransactionMetaModel()
         .update({
           status: transactionMetaConst.invertedStatuses[oThis.failureStatusToUpdateInTxMeta],
-          debug_options: [customError.toString()]
+          debug_params: [customError.toString()]
         })
         .where({ id: oThis.transactionMetaId })
         .fire();
