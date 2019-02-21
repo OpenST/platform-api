@@ -118,26 +118,6 @@ class TransactionMetaModel extends ModelBase {
       .fire();
   }
 
-  /**
-   * Mark transaction failed
-   * @param id
-   * @param status
-   * @param debug_params
-   * @return {*|void}
-   */
-  markFailed(id, failStatus, debug_params) {
-    const oThis = this;
-
-    return oThis
-      .update({
-        lock_id: null,
-        status: transactionMetaConst.invertedStatuses[failStatus],
-        debug_params: debug_params
-      })
-      .where({ id: id })
-      .fire();
-  }
-
   markAsRollbackNeededById(id) {
     const oThis = this;
     return oThis
@@ -154,6 +134,49 @@ class TransactionMetaModel extends ModelBase {
     return oThis
       .update(['lock_id = null, status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus]])
       .where({ id: id })
+      .fire();
+  }
+
+  /**
+   * Mark transaction failed
+   * @param id
+   * @param failStatus
+   * @param debug_params
+   * @return {*|void}
+   */
+  markFailed(id, failStatus, debug_params) {
+    const oThis = this;
+
+    return oThis
+      .update({
+        lock_id: null,
+        status: transactionMetaConst.invertedStatuses[failStatus],
+        debug_params: debug_params
+      })
+      .where({ id: id })
+      .fire();
+  }
+
+  /**
+   * This function return the highest nonce for sessionAddress from Tx Meta table
+   *
+   * @param sessionAddress
+   * @return {void|*}
+   */
+  getSessionNonce(sessionAddress) {
+    const oThis = this;
+
+    let statuses = [
+      transactionMetaConst.invertedStatuses[transactionMetaConst.mined],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.finalizationInProcess],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.finalized]
+    ];
+
+    return oThis
+      .select('session_nonce')
+      .where(['session_address = ? AND status IN (?)', sessionAddress, statuses])
+      .order_by('session_nonce DESC')
+      .limit(1)
       .fire();
   }
 }
