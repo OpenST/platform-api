@@ -132,24 +132,24 @@ class WorkflowRouterFactory extends SubscriberBase {
 
     switch (msgParams.topic) {
       case workflowTopicConstant.test:
-        const testProcessRouter = require(rootPrefix + '/executables/workflowRouter/TestProcessRouter');
+        const testProcessRouter = require(rootPrefix + '/lib/workflow/test/Router');
         return new testProcessRouter(msgParams).perform();
       case workflowTopicConstant.stateRootSync:
-        const stateRootSyncRouter = require(rootPrefix + '/executables/workflowRouter/StateRootSyncRouter');
+        const stateRootSyncRouter = require(rootPrefix + '/lib/workflow/stateRootSync/Router');
         return new stateRootSyncRouter(msgParams).perform();
       case workflowTopicConstant.economySetup:
         const EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router');
         return new EconomySetupRouter(msgParams).perform();
       case workflowTopicConstant.stPrimeStakeAndMint:
-        const stPrimeRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/StPrimeRouter');
+        const stPrimeRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/stPrime/Router');
         return new stPrimeRouter(msgParams).perform();
 
       case workflowTopicConstant.btStakeAndMint:
-        const BtMintRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/BrandedTokenRouter');
-        return new BtMintRouter(msgParams).perform();
+        const BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router');
+        return new BtStakeAndMintRouter(msgParams).perform();
 
       case workflowTopicConstant.grantEthOst:
-        const GrantEthOstRouter = require(rootPrefix + '/executables/workflowRouter/GrantEthOstRouter');
+        const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
         return new GrantEthOstRouter(msgParams).perform();
 
       default:
