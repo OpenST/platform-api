@@ -139,7 +139,7 @@ And add it to tables using following script.
                     firstTimeMint: true //[optional]
                 }
         }
-        stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
+        stPrimeRouterK = require('./lib/workflow/stakeAndMint/stPrime/Router')
         stPrimeRouter = new stPrimeRouterK(params)
    
         stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})

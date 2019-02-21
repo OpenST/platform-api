@@ -40,6 +40,8 @@ class TokenRule extends ModelBase {
    * @param {String} params.tokenId
    * @param {String} params.ruleId
    * @param {String} params.address
+   * @param {String} params.ruleName
+   * @param {String} params.ruleTokenId
    * @param {String} params.status
    *
    * @returns {*}
@@ -54,6 +56,8 @@ class TokenRule extends ModelBase {
         token_id: params.tokenId,
         rule_id: params.ruleId,
         address: params.address.toLowerCase(),
+        rule_token_id: params.ruleTokenId,
+        rule_name: params.ruleName,
         status: tokenRuleConstants.invertedStatuses[params.status]
       })
       .fire();
@@ -112,6 +116,29 @@ class TokenRule extends ModelBase {
         address: dbRow.address,
         status: dbRow.status
       };
+    }
+
+    return responseHelper.successWithData(responseData);
+  }
+
+  /**
+   *
+   * @param tokenId
+   * @return {Promise<*|result>}
+   */
+  async getDetailsByTokenId(tokenId) {
+    const oThis = this;
+
+    let details = await oThis
+      .select('*')
+      .where(['token_id = ?', tokenId])
+      .fire();
+
+    let responseData = {};
+
+    for (let index = 0; index < details.length; index++) {
+      let dbRow = details[index];
+      responseData[dbRow.rule_name] = dbRow;
     }
 
     return responseHelper.successWithData(responseData);
