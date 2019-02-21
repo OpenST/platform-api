@@ -60,6 +60,10 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/salts/'
       },
+      [apiName.getRules]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/rules/'
+      },
       [apiName.getTransaction]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/:transaction_id/'

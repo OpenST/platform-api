@@ -9,7 +9,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../..',
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
-  BrandedTokenRouter = require(rootPrefix + '/executables/workflowRouter/stakeAndMint/BrandedTokenRouter'),
+  BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -127,7 +127,7 @@ class StartMint {
         feResponseData: { fe_ost_to_stake: oThis.feOstToStake, fe_bt_to_mint: oThis.feBtToMint }
       };
 
-    let brandedTokenRouterObj = new BrandedTokenRouter(stakeAndMintParams);
+    let brandedTokenRouterObj = new BtStakeAndMintRouter(stakeAndMintParams);
 
     return brandedTokenRouterObj.perform();
   }
