@@ -1,27 +1,26 @@
 'use strict';
-
-/*
+/**
  * This service helps in adding Token User in our System
  *
  * Note:- if token id is provided in parameter,
  */
 
-const rootPrefix = '../../..',
-  ServiceBase = require(rootPrefix + '/app/services/Base'),
+const uuidV4 = require('uuid/v4'),
   OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
+const rootPrefix = '../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   shardConst = require(rootPrefix + '/lib/globalConstant/shard'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
-  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
-
-const uuidV4 = require('uuid/v4'),
-  InstanceComposer = OSTBase.InstanceComposer;
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor');
 
 require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');

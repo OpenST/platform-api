@@ -123,6 +123,7 @@ class CreateTokenHolder extends ServiceBase {
    * Get user device details from Cache.
    *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _getUserDeviceDataFromCache() {
@@ -255,7 +256,8 @@ class CreateTokenHolder extends ServiceBase {
         recoveryOwnerAddress: oThis.recoveryOwnerAddress,
         sessionAddresses: oThis.sessionAddresses,
         sessionSpendingLimit: oThis.spendingLimit,
-        sessionExpiration: oThis.expirationHeight
+        sessionExpiration: oThis.expirationHeight,
+        delayedRecoveryInterval: oThis.delayedRecoveryInterval
       },
       userSetupInitParams = {
         stepKind: workflowStepConstants.userSetupInit,

@@ -5,13 +5,14 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
@@ -48,7 +49,8 @@ class User extends Base {
       salt: 'ss',
       tokenHolderAddress: 'tha',
       multisigAddress: 'ma',
-      recoveryOwnerAddress: 'ra',
+      recoveryOwnerAddress: 'roa',
+      recoveryAddress: 'ra',
       deviceShardNumber: 'dsn',
       sessionShardNumber: 'ssn',
       saasApiStatus: 'sas',
@@ -81,6 +83,7 @@ class User extends Base {
       ss: 'S',
       tha: 'S',
       ma: 'S',
+      roa: 'S',
       ra: 'S',
       dsn: 'N',
       ssn: 'N',
