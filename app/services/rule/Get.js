@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- *  Fetch device details by userId and wallet addresses.
+ *  Fetch rules.
  *
  * @module app/services/rule/Get
  */
@@ -23,7 +23,7 @@ class GetRule extends ServiceBase {
    * Constructor for get devices base.
    *
    * @param {Object} params
-   * @param {Integer} params.clientId
+   * @param {Integer} params.client_id
    *
    * @augments ServiceBase
    *
@@ -35,7 +35,6 @@ class GetRule extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.tokenId = null;
   }
-  //TODO: Validate if token_id actually exists.
 
   /**
    * Async performer
