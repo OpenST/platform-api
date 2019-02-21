@@ -19,11 +19,6 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Timestamp should be an integer of 10 digits`
   },
-  missing_api_request_timestamp: {
-    parameter: 'api_request_timestamp',
-    code: 'missing',
-    message: `Missing api_request_timestamp`
-  },
   expired_api_request_timestamp: {
     parameter: 'api_request_timestamp',
     code: 'invalid',
@@ -34,11 +29,6 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid API Key (Case Sensitive)`
   },
-  missing_api_key: {
-    parameter: 'api_key',
-    code: 'missing',
-    message: `Missing API Key`
-  },
   expired_api_key: {
     parameter: 'api_key',
     code: 'invalid',
@@ -47,12 +37,7 @@ const v2ErrorConfig = {
   invalid_api_signature: {
     parameter: 'api_signature',
     code: 'invalid',
-    message: `Invalid api signature`
-  },
-  missing_api_signature: {
-    parameter: 'api_signature',
-    code: 'missing',
-    message: `missing api signature`
+    message: `Invalid api_signature`
   },
   invalid_user_id: {
     parameter: 'user_id',
@@ -74,65 +59,15 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `User session not found`
   },
-  missing_user_id: {
-    parameter: 'user_id',
-    code: 'missing',
-    message: `Missing user_id`
-  },
-  invalid_ids: {
-    parameter: 'ids',
-    code: 'invalid',
-    message: 'Invalid ids'
-  },
-  missing_ids: {
-    parameter: 'ids',
-    code: 'missing',
-    message: 'missing ids'
-  },
-  invalid_kind: {
-    parameter: 'kind',
-    code: 'invalid',
-    message: `Invalid kind`
-  },
-  missing_kind: {
-    parameter: 'kind',
-    code: 'missing',
-    message: `missing kind`
-  },
-  missing_session_addresses: {
-    parameter: 'session_addresses',
-    code: 'missing',
-    message: 'missing session_addresses'
-  },
   invalid_session_addresses: {
     parameter: 'session_addresses',
     code: 'invalid',
     message: `Invalid session_addresses`
   },
-  missing_recovery_owner_address: {
-    parameter: 'recovery_owner_address',
-    code: 'missing',
-    message: 'missing recovery_owner_address'
-  },
-  invalid_recovery_owner_address: {
-    parameter: 'recovery_owner_address',
-    code: 'invalid',
-    message: `Invalid recovery_owner_address`
-  },
   invalid_expiration_height: {
     parameter: 'expiration_height',
     code: 'invalid',
     message: `Invalid expiration_height`
-  },
-  missing_expiration_height: {
-    parameter: 'expiration_height',
-    code: 'missing',
-    message: 'Missing expiration_height'
-  },
-  missing_spending_limit: {
-    parameter: 'spending_limit',
-    code: 'missing',
-    message: 'Missing spending_limit'
   },
   invalid_spending_limit: {
     parameter: 'spending_limit',
@@ -149,125 +84,25 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid request path`
   },
-  invalid_client_id: {
-    parameter: 'client_id',
-    code: 'invalid',
-    message: 'Invalid client id'
-  },
-  missing_client_id: {
-    parameter: 'client_id',
-    code: 'missing',
-    message: 'missing client id'
-  },
   invalid_token_id: {
     parameter: 'token_id',
     code: 'invalid',
     message: 'Invalid token id'
-  },
-  missing_token_id: {
-    parameter: 'token_id',
-    code: 'missing',
-    message: 'missing token id'
-  },
-  invalid_id: {
-    parameter: 'id',
-    code: 'invalid',
-    message: 'Invalid id'
-  },
-  invalid_personal_sign_address: {
-    parameter: 'personal_sign_address',
-    code: 'invalid',
-    message: 'Invalid personal_sign_address'
-  },
-  missing_personal_sign_address: {
-    parameter: 'personal_sign_address',
-    code: 'missing',
-    message: 'missing personal_sign_address'
-  },
-  invalid_api_signer_address: {
-    parameter: 'api_signer_address',
-    code: 'invalid',
-    message: 'Invalid api_signer_address'
-  },
-  missing_api_signer_address: {
-    parameter: 'api_signer_address',
-    code: 'missing',
-    message: 'missing api_signer_address'
   },
   invalid_signer_address: {
     parameter: 'signer',
     code: 'invalid',
     message: 'Invalid address'
   },
-  missing_signer_address: {
-    parameter: 'signer',
-    code: 'missing',
-    message: 'missing address'
-  },
   invalid_filter_address: {
     parameter: 'address',
     code: 'invalid',
     message: 'Invalid address. Max comma seperated 25 addresses allowed'
   },
-  invalid_address: {
-    parameter: 'address',
-    code: 'invalid',
-    message: 'Invalid address.'
-  },
-  invalid_addresses: {
-    parameter: 'addresses',
-    code: 'invalid',
-    message: 'Invalid addresses.'
-  },
-  missing_addresses: {
-    parameter: 'addresses',
-    code: 'missing',
-    message: 'Missing addresses.'
-  },
   invalid_device_address: {
     parameter: 'device_address',
     code: 'invalid',
     message: 'Invalid device_address.'
-  },
-  missing_device_address: {
-    parameter: 'device_address',
-    code: 'missing',
-    message: 'missing device_address.'
-  },
-  invalid_device_name: {
-    parameter: 'device_name',
-    code: 'invalid',
-    message: 'Invalid device_name.'
-  },
-  missing_device_name: {
-    parameter: 'device_name',
-    code: 'missing',
-    message: 'missing device_name.'
-  },
-  invalid_device_uuid: {
-    parameter: 'device_uuid',
-    code: 'invalid',
-    message: 'Invalid device_uuid'
-  },
-  missing_device_uuid: {
-    parameter: 'device_uuid',
-    code: 'missing',
-    message: 'missing device_uuid'
-  },
-  invalid_limit: {
-    parameter: 'limit',
-    code: 'invalid',
-    message: 'Invalid limit'
-  },
-  invalid_pagination_identifier: {
-    parameter: 'pagination_identifier',
-    code: 'invalid',
-    message: 'Invalid pagination_identifier'
-  },
-  token_not_setup: {
-    parameter: 'client_id',
-    code: 'invalid',
-    message: 'Token not setup'
   },
   ids_more_than_allowed_limit: {
     parameter: 'ids',
@@ -283,11 +118,6 @@ const v2ErrorConfig = {
     parameter: 'chain_id',
     code: 'invalid',
     message: 'Invalid chain id'
-  },
-  missing_chain_id: {
-    parameter: 'chain_id',
-    code: 'missing',
-    message: 'Missing chain id'
   },
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
@@ -324,6 +154,66 @@ const v2ErrorConfig = {
     parameter: 'user_id',
     code: 'invalid',
     message: 'Unauthorized to access other user details.'
+  },
+  invalid_raw_calldata_method: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid method in raw_calldata'
+  },
+  invalid_raw_calldata_parameter_address: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid address in raw_calldata parameters'
+  },
+  invalid_raw_calldata_parameter_threshold: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid threshold in raw_calldata parameters'
+  },
+  invalid_raw_calldata_parameter_spending_limit: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid spending limit in raw_calldata parameters'
+  },
+  invalid_raw_calldata_parameter_expiration_height: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid expiration height in raw_calldata parameters'
+  },
+  unauthorized_signer: {
+    parameter: 'signer',
+    code: 'invalid',
+    message: 'Signer address is not valid to perform this action.'
+  },
+  unauthorized_device_address: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Mentioned action cannot be performed on device address in raw_calldata.'
+  },
+  unauthorized_session_address: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Mentioned action cannot be performed on session address in raw_calldata.'
+  },
+  unauthorized_user_id: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: 'User is not valid to perform this action.'
+  },
+  invalid_to: {
+    parameter: 'to',
+    code: 'invalid',
+    message: 'Invalid to address'
+  },
+  invalid_user_to_fetch_linked_address: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: 'Invalid user to fetch linked address for device address'
+  },
+  invalid_signatures: {
+    parameter: 'signatures',
+    code: 'invalid',
+    message: 'Invalid signature provided'
   }
 };
 

@@ -271,6 +271,65 @@ class Session extends Base {
   }
 
   /**
+   * Update status of session from initial status to final status.
+   *
+   * @param {String} userId
+   * @param {String} sessionAddress
+   * @param {String} initialStatus
+   * @param {String} finalStatus
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatusFromInitialToFinal(userId, sessionAddress, initialStatus, finalStatus) {
+    const oThis = this,
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForAddress = oThis.shortNameFor('address'),
+      shortNameForStatus = oThis.shortNameFor('status'),
+      dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
+      initialStatusInt = sessionConstants.invertedSessionStatuses[initialStatus],
+      finalStatusInt = sessionConstants.invertedSessionStatuses[finalStatus];
+
+    const updateQuery = {
+      TableName: oThis.tableName(),
+      Key: oThis._keyObj({ userId: userId, address: sessionAddress }),
+      ConditionExpression:
+        'attribute_exists(' +
+        shortNameForUserId +
+        ') AND attribute_exists(' +
+        shortNameForAddress +
+        ')' +
+        ' AND #initialStatus = :initialStatus',
+      ExpressionAttributeNames: {
+        '#initialStatus': shortNameForStatus,
+        '#finalStatus': shortNameForStatus
+      },
+      ExpressionAttributeValues: {
+        ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
+      },
+      UpdateExpression: 'SET #finalStatus = :finalStatus',
+      ReturnValues: 'ALL_NEW'
+    };
+
+    let updateQueryResponse = await oThis.ddbServiceObj.updateItem(updateQuery);
+
+    if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
+      return responseHelper.error({
+        internal_error_identifier: 'a_m_d_s_s_1',
+        api_error_identifier: 'conditional_check_failed',
+        debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    // Clear cache
+    await Session.afterUpdate(oThis.ic(), { userId: userId, address: sessionAddress });
+
+    updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
+
+    return Promise.resolve(responseHelper.successWithData(oThis._sanitizeRowFromDynamo(updateQueryResponse)));
+  }
+
+  /**
    *
    * method to perform extra formatting
    *

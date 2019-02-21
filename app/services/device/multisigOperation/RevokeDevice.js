@@ -1,9 +1,9 @@
 'use strict';
 
 /**
- *  Authorize device multi sig operation
+ *  Revoke device multi sig operation
  *
- * @module app/services/device/multisigOperation/AuthorizeDevice
+ * @module app/services/device/multisigOperation/RevokeDevice
  */
 
 const OSTBase = require('@openstfoundation/openst-base'),
@@ -12,15 +12,14 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  AuthorizeDeviceRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter'),
+  RevokeDeviceRouter = require(rootPrefix + '/executables/auxWorkflowRouter/multisigOperation/RevokeDeviceRouter'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
@@ -30,19 +29,20 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 
 /**
- * Class to authorize device multi sig operation
+ * Class to revoke device multi sig operation
  *
- * @class AuthorizeDevice
+ * @class RevokeDevice
  */
-class AuthorizeDevice extends Base {
+class RevokeDevice extends Base {
   /**
    *
    * @param {Object} params
    * @param {Object} params.raw_calldata -
-   * @param {String} params.raw_calldata.method - possible value addOwnerWithThreshold
+   * @param {String} params.raw_calldata.method - possible value removeOwner
    * @param {Array} params.raw_calldata.parameters -
-   * @param {String} params.raw_calldata.parameters[0] - new device address
-   * @param {String/Number} params.raw_calldata.parameters[1] - requirement/threshold
+   * @param {String} params.raw_calldata.parameters[0] - previous device address (linked address)
+   * @param {String} params.raw_calldata.parameters[1] - old device address
+   * @param {String/Number} params.raw_calldata.parameters[2] - requirement/threshold
    *
    * @constructor
    */
@@ -52,22 +52,24 @@ class AuthorizeDevice extends Base {
 
     oThis.rawCalldata = params.raw_calldata;
 
-    oThis.deviceAddress = null;
+    oThis.previousDeviceAddress = null;
+    oThis.deviceAddressToRemove = null;
   }
 
   /**
-   * Sanitize service specific params
+   * Sanitize action specific params
    *
+   * @returns {Promise<never>}
    * @private
    */
   _sanitizeSpecificParams() {
     const oThis = this;
 
     let rawCallDataMethod = oThis.rawCalldata.method;
-    if (rawCallDataMethod !== 'addOwnerWithThreshold') {
+    if (rawCallDataMethod != 'removeOwner') {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_1',
+          internal_error_identifier: 'a_s_dm_mo_rd_1',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_method'],
           debug_options: {}
@@ -76,10 +78,14 @@ class AuthorizeDevice extends Base {
     }
 
     let rawCallDataParameters = oThis.rawCalldata.parameters;
-    if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
+    if (
+      !(rawCallDataParameters instanceof Array) ||
+      !CommonValidators.validateEthAddress(rawCallDataParameters[0]) ||
+      !CommonValidators.validateEthAddress(rawCallDataParameters[1])
+    ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_2',
+          internal_error_identifier: 'a_s_dm_mo_rd_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
           debug_options: {}
@@ -87,22 +93,22 @@ class AuthorizeDevice extends Base {
       );
     }
 
-    if (Number(rawCallDataParameters[1]) !== 1) {
+    if (Number(rawCallDataParameters[2]) !== 1) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_3',
+          internal_error_identifier: 'a_s_dm_mo_rd_3',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_threshold'],
           debug_options: {}
         })
       );
     }
-
-    oThis.deviceAddress = basicHelper.sanitizeAddress(rawCallDataParameters[0]);
+    oThis.previousDeviceAddress = basicHelper.sanitizeAddress(rawCallDataParameters[0]);
+    oThis.deviceAddressToRemove = basicHelper.sanitizeAddress(rawCallDataParameters[1]);
   }
 
   /**
-   * Performs specific pre checks
+   * Performs action specific pre checks
    *
    * @returns {Promise<void>}
    * @private
@@ -110,9 +116,9 @@ class AuthorizeDevice extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
-    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddress, oThis.signer]);
+    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddressToRemove, oThis.signer]);
 
-    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddress],
+    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddressToRemove],
       signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
 
     if (
@@ -121,7 +127,7 @@ class AuthorizeDevice extends Base {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_4',
+          internal_error_identifier: 'a_s_dm_mo_rd_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_signer'],
           debug_options: {}
@@ -131,11 +137,24 @@ class AuthorizeDevice extends Base {
 
     if (
       basicHelper.isEmptyObject(deviceAddressDetails) ||
-      deviceAddressDetails.status !== deviceConstants.registeredStatus
+      deviceAddressDetails.status !== deviceConstants.authorisedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_5',
+          internal_error_identifier: 'a_s_dm_mo_rd_5',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['unauthorized_device_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    let previousDeviceAddress = await oThis._fetchLinkedDeviceAddress();
+
+    if (previousDeviceAddress !== oThis.previousDeviceAddress) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_rd_6',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_device_address'],
           debug_options: {}
@@ -144,6 +163,33 @@ class AuthorizeDevice extends Base {
     }
 
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Fetch linked address of given device address
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchLinkedDeviceAddress() {
+    const oThis = this;
+
+    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+      previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
+      previousOwnersMapRsp = await previousOwnersMapObj.fetch();
+
+    if (previousOwnersMapRsp.isFailure()) {
+      logger.error('Error in fetching linked addresses');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_dm_mo_rd_7',
+          api_error_identifier: 'cache_issue',
+          debug_options: {}
+        })
+      );
+    }
+
+    return previousOwnersMapRsp.data[oThis.deviceAddressToRemove];
   }
 
   /**
@@ -156,9 +202,9 @@ class AuthorizeDevice extends Base {
     const oThis = this;
 
     let updateResponse = await oThis._updateDeviceStatus(
-      oThis.deviceAddress,
-      deviceConstants.registeredStatus,
-      deviceConstants.authorisingStatus
+      oThis.deviceAddressToRemove,
+      deviceConstants.authorisedStatus,
+      deviceConstants.revokingStatus
     );
 
     await oThis._startWorkflow();
@@ -167,7 +213,7 @@ class AuthorizeDevice extends Base {
   }
 
   /**
-   * Starts the workflow to submit authorize device transaction
+   * Starts the workflow to submit revoke device transaction
    *
    * @returns {Promise}
    * @private
@@ -175,13 +221,13 @@ class AuthorizeDevice extends Base {
   async _startWorkflow() {
     const oThis = this;
 
-    logger.debug('****Starting the authorize workflow ');
+    logger.debug('****Starting the revoke workflow');
 
     let requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
-        deviceAddress: oThis.deviceAddress,
+        deviceAddressToRemove: oThis.deviceAddressToRemove,
         to: oThis.to,
         value: oThis.value,
         calldata: oThis.calldata,
@@ -198,22 +244,22 @@ class AuthorizeDevice extends Base {
         deviceShardNumber: oThis.deviceShardNumber,
         multisigAddress: oThis.multisigAddress
       },
-      authorizeDeviceInitParams = {
-        stepKind: workflowStepConstants.authorizeDeviceInit,
+      revokeDeviceInitParams = {
+        stepKind: workflowStepConstants.revokeDeviceInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.auxChainId,
-        topic: workflowTopicConstants.authorizeDevice,
+        topic: workflowTopicConstants.revokeDevice,
         requestParams: requestParams
       };
 
-    let authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
+    let revokeDeviceObj = new RevokeDeviceRouter(revokeDeviceInitParams);
 
-    return authorizeDeviceObj.perform();
+    return revokeDeviceObj.perform();
   }
 
   /**
-   * Prepares the response for Authorize Device service.
+   * Prepares the response for Device multisig operation service.
    *
    * @returns {Promise<any>}
    * @private
@@ -221,11 +267,11 @@ class AuthorizeDevice extends Base {
   async _prepareResponseEntity(updateResponseData) {
     const oThis = this;
 
-    logger.debug('****Preparing authorize device service response');
+    logger.debug('****Preparing revoke device service response');
 
     let responseHash = updateResponseData.data;
 
-    responseHash.linkedAddress = null;
+    responseHash.linkedAddress = oThis.previousDeviceAddress;
 
     return responseHelper.successWithData({
       [resultType.device]: responseHash
@@ -233,4 +279,4 @@ class AuthorizeDevice extends Base {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(AuthorizeDevice, coreConstants.icNameSpace, 'AuthorizeDevice');
+InstanceComposer.registerAsShadowableClass(RevokeDevice, coreConstants.icNameSpace, 'RevokeDevice');
