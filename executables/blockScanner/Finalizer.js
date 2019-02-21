@@ -322,23 +322,6 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   *
-   * @param {Number} processedBlockNumber
-   * @param {Array} transactionHashes
-   * @return {Promise<void>}
-   * @private
-   */
-  async _enqueueTransactionFinalizerTasks(processedBlockNumber, transactionHashes) {
-    const oThis = this;
-
-    return new TransactionFinalizerDelegator({
-      auxChainId: oThis.chainId,
-      blockNumber: processedBlockNumber,
-      transactionHashes: transactionHashes
-    }).perform();
-  }
-
-  /**
    * _publishAfterReceiptInfo
    *
    * @param publishParams - Params to publish message
