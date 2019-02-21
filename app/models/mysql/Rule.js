@@ -104,16 +104,20 @@ class Rule extends ModelBase {
    * @return {Promise<result>}
    */
   static async getPricerRuleDetails() {
-    let RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule');
+    let RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
+      tokenId = 0,
+      name = ruleConstants.pricerRuleName,
+      ruleTokenIdNames = ruleConstants.getKey(tokenId, name);
 
-    let ruleCache = new RuleCache({ tokenId: 0, name: ruleConstants.pricerRuleName }),
+    let ruleCache = new RuleCache({ ruleTokenIdNames: [ruleTokenIdNames] }),
       ruleCacheRsp = await ruleCache.fetch();
 
     if (ruleCacheRsp.isFailure() || !ruleCacheRsp.data) {
       return Promise.reject(ruleCacheRsp);
     }
 
-    return ruleCacheRsp;
+    let ruleCacheRspData = ruleCacheRsp.data[ruleTokenIdNames];
+    return responseHelper.successWithData(ruleCacheRspData);
   }
 
   /**
@@ -123,16 +127,20 @@ class Rule extends ModelBase {
    * @return {Promise<result>}
    */
   static async getTokenRuleDetails() {
-    let RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule');
+    let RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
+      tokenId = 0,
+      name = ruleConstants.tokenRuleName,
+      ruleTokenIdNames = ruleConstants.getKey(tokenId, name);
 
-    let ruleCache = new RuleCache({ tokenId: 0, name: ruleConstants.tokenRuleName }),
+    let ruleCache = new RuleCache({ ruleTokenIdNames: [ruleTokenIdNames] }),
       ruleCacheRsp = await ruleCache.fetch();
 
     if (ruleCacheRsp.isFailure() || !ruleCacheRsp.data) {
       return Promise.reject(ruleCacheRsp);
     }
 
-    return ruleCacheRsp;
+    let ruleCacheRspData = ruleCacheRsp.data[ruleTokenIdNames];
+    return responseHelper.successWithData(ruleCacheRspData);
   }
 
   /***
@@ -144,8 +152,9 @@ class Rule extends ModelBase {
    * @returns {Promise<*>}
    */
   static flushCache(tokenId, name) {
-    let Cache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Rule');
-    return new Cache({ tokenId: tokenId, name: name }).clear();
+    let Cache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
+      ruleTokenIdNames = ruleConstants.getKey(tokenId, name);
+    return new Cache({ ruleTokenIdNames: [ruleTokenIdNames] }).clear();
   }
 }
 

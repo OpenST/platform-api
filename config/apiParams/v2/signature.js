@@ -437,6 +437,16 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.getRules]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
   }
 };
 
