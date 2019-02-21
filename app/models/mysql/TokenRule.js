@@ -137,8 +137,18 @@ class TokenRule extends ModelBase {
     let responseData = {};
 
     for (let index = 0; index < details.length; index++) {
-      let dbRow = details[index];
-      responseData[dbRow.rule_name] = dbRow;
+      let dbRow = details[index],
+        response = {
+          id: dbRow.id,
+          tokenId: dbRow.token_id,
+          ruleTokenId: dbRow.rule_token_id,
+          ruleName: dbRow.rule_name,
+          ruleId: dbRow.rule_id,
+          address: dbRow.address,
+          status: dbRow.status,
+          updatedAt: dbRow.updated_at
+        };
+      responseData[dbRow.rule_name] = response;
     }
 
     return responseHelper.successWithData(responseData);

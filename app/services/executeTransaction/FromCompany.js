@@ -35,48 +35,28 @@ require(rootPrefix + '/lib/cacheManagement/chain/UserTransactionCount');
  */
 class ExecuteCompanyToUserTx extends ExecuteTxBase {
   /**
-   * Constructor
+   * Constructor for company to user tx class
+   *
+   * @param {Object} params
+   * @param {Object} params.client_id - client id
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
     oThis.clientId = params.client_id;
   }
 
   /**
-   * asyncPerform
    *
-   * @return {Promise<any>}
+   * @private
    */
-  // TODO - move async perform to Base?
-  async _asyncPerform() {
+  async _validateAndSanitize() {
     const oThis = this;
 
-    await oThis._initializeVars();
-
-    await oThis._processExecutableData();
-
-    await oThis._setSessionAddress();
-
-    await oThis._setNonce();
-
-    await oThis._setSignature();
-
-    await oThis._performPessimisticDebit();
-
-    await oThis._createTransactionMeta();
-
-    await oThis._createPendingTransaction();
-
-    await oThis._publishToRMQ();
-
-    return Promise.resolve(
-      responseHelper.successWithData({
-        transactionUuid: oThis.transactionUuid //TODO: To change after discussions
-      })
-    );
+    // TODO - add necessary validations
   }
 
   /**
@@ -282,6 +262,14 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       messageHash: vrs.messageHash,
       signature: vrs.signature
     };
+  }
+
+  /**
+   *
+   * @private
+   */
+  _verifySessionSpendingLimit() {
+    // do nothing as passed as session spending limit is checked in _setSessionAddress function
   }
 
   /**

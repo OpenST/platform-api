@@ -5,6 +5,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   //LockableBaseKlass = require(rootPrefix + '/app/models/lockable_base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
 const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -163,21 +164,28 @@ class TransactionMetaModel extends ModelBase {
    * @param sessionAddress
    * @return {void|*}
    */
-  getSessionNonce(sessionAddress) {
+  async getSessionNonce(sessionAddress) {
     const oThis = this;
 
     let statuses = [
+      transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.minedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.finalizationInProcess],
       transactionMetaConst.invertedStatuses[transactionMetaConst.finalizedStatus]
     ];
 
-    return oThis
-      .select('session_nonce')
+    let queryRsp = await oThis
+      .select('session_address, session_nonce')
       .where(['session_address = ? AND status IN (?)', sessionAddress, statuses])
       .order_by('session_nonce DESC')
       .limit(1)
       .fire();
+
+    return responseHelper.successWithData({
+      address: queryRsp[0].session_address,
+      nonce: queryRsp[0].session_nonce
+    });
   }
 }
 
