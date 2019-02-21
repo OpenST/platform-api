@@ -19,7 +19,6 @@ const rootPrefix = '../../..',
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base'),
-  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail');
 
@@ -27,7 +26,7 @@ const rootPrefix = '../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
-require(rootPrefix + '/lib/cacheManagement/chain/SelectSessionForCompanyToUserTx');
+require(rootPrefix + '/lib/cacheManagement/chain/UserTransactionCount');
 
 /**
  * Class
@@ -127,8 +126,6 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       }
     }
 
-    // TODO - what if none of users has proper status?
-
     if (companyTokenHolderAddresses.length === 0) {
       return Promise.reject(
         responseHelper.error({
@@ -220,7 +217,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
 
     // then, sequentially select one session key using index from cache
     oThis.sessionKeyAddress = await oThis._selectSessionKey(allowedSessionKeys);
-    console.log('sessionKeyAddress-----', oThis.sessionKeyAddress);
+    logger.debug('sessionKeyAddress-----', oThis.sessionKeyAddress);
   }
 
   /**
@@ -230,14 +227,6 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    */
   async _setNonce() {
     const oThis = this;
-
-    // get nonce from tx meta table
-    let txMetaSessionNonce = 0,
-      queryRsp = await new TransactionMetaModel().getSessionNonce(oThis.sessionKeyAddress);
-
-    if (queryRsp && queryRsp['session_nonce']) {
-      txMetaSessionNonce = queryRsp['session_nonce'];
-    }
 
     // get nonce from session nonce manager
     let nonceGetForSessionResp = await new NonceGetForSession({
@@ -252,14 +241,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       return Promise.reject(nonceGetForSessionResp);
     }
 
-    let txMetaSessionNonceBN = new BigNumber(txMetaSessionNonce),
-      sessionNonce = nonceGetForSessionResp.data.nonce;
-
-    logger.debug('===========sessionNonce==========', sessionNonce, typeof sessionNonce);
-    logger.debug('===========txMetaSessionNonceBN==========', txMetaSessionNonceBN, typeof txMetaSessionNonceBN);
-
-    // Final nonce will be max of nonce from Tx Meta table and session nonce manager
-    oThis.sessionKeyNonce = BigNumber.max(txMetaSessionNonceBN, sessionNonce).toNumber();
+    oThis.sessionKeyNonce = nonceGetForSessionResp.data.nonce;
   }
 
   /**
@@ -282,6 +264,8 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix(),
       value: oThis.executableData.value
     };
+
+    logger.debug('========signEIP1077Transaction===transactionObject==========', transactionObject);
 
     // fetch Private Key of session address
     let sessionKeyAddrPK = await oThis._fetchPrivateKey(oThis.sessionKeyAddress),
@@ -306,8 +290,6 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    * @returns {Promise<*|result>}
    */
   async _getUserSessionsDataFromCache() {
-    // TODO - dont pass addresses
-
     const oThis = this;
 
     let SessionsByAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
@@ -342,21 +324,20 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   async _selectSessionKey(sessionKeys) {
     const oThis = this;
 
-    let SelectSessionForCompanyToUserTx = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'SelectSessionForCompanyToUserTx'),
-      selectSessionForCompanyToUserTx = new SelectSessionForCompanyToUserTx({
+    let indexFromCache = 0,
+      UserTransactionCount = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserTransactionCount'),
+      userTransactionCount = new UserTransactionCount({
         tokenId: oThis.tokenId
       }),
-      selectSessionForCompanyToUserTxCacheRsp = await selectSessionForCompanyToUserTx.fetch();
+      userTransactionCountTxCacheRsp = await userTransactionCount.fetch();
 
-    if (selectSessionForCompanyToUserTxCacheRsp.isFailure() || !selectSessionForCompanyToUserTxCacheRsp.data) {
-      return Promise.reject(selectSessionForCompanyToUserTxCacheRsp);
+    if (userTransactionCountTxCacheRsp.isSuccess() && userTransactionCountTxCacheRsp.data) {
+      indexFromCache = userTransactionCountTxCacheRsp.data;
     }
 
-    let indexToSelect = selectSessionForCompanyToUserTxCacheRsp.data % sessionKeys.length;
+    let indexToSelect = indexFromCache % sessionKeys.length;
 
-    console.log('indexToSelect------', indexToSelect);
+    logger.debug('indexToSelect------', indexToSelect);
 
     return sessionKeys[indexToSelect].toLowerCase();
   }

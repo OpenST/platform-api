@@ -34,7 +34,8 @@ const rootPrefix = '../../..',
   TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
   pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/Balance');
@@ -254,6 +255,8 @@ class ExecuteTxBase extends ServiceBase {
    */
   async _processExecutableData() {
     const oThis = this;
+
+    //TODO - use one cache to fetch token rule addr
 
     let response,
       tokenRuleAddress = await oThis._tokenRuleAddress(),
