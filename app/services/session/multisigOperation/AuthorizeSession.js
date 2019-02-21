@@ -14,6 +14,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  ChainDetails = require(rootPrefix + '/app/services/chain/Get'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -122,6 +123,28 @@ class AuthorizeSession extends Base {
    * @private
    */
   async _performSpecificPreChecks() {
+    const oThis = this;
+
+    let chainDetailsObj = new ChainDetails({ chain_id: oThis._configStrategyObject.auxChainId }),
+      chainDetailsRsp = await chainDetailsObj.perform();
+
+    if (chainDetailsRsp.isFailure()) {
+      return Promise.reject(chainDetailsRsp);
+    }
+
+    let blockHeight = chainDetailsRsp.data.chain.blockHeight;
+
+    if (oThis.expirationHeight < blockHeight + coreConstants.BUFFER_BLOCK_HEIGHT) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_as_5',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_parameter_expiration_height'],
+          debug_options: {}
+        })
+      );
+    }
+
     return responseHelper.successWithData({});
   }
 

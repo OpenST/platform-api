@@ -264,6 +264,10 @@ class CoreConstants {
     return 1000;
   }
 
+  get BUFFER_BLOCK_HEIGHT() {
+    return 100;
+  }
+
   /**
    * Batch delete retry count
    *

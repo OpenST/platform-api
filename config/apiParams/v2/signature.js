@@ -358,6 +358,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -424,6 +428,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -490,6 +498,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
@@ -556,6 +568,10 @@ const v2Signature = {
       {
         parameter: 'signers',
         validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
     optional: []
