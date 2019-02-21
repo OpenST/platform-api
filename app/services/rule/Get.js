@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- *  Fetch rules.
+ *  Fetch token rules.
  *
  * @module app/services/rule/Get
  */
@@ -15,9 +15,9 @@ const rootPrefix = '../../..',
   TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
 
 /**
- * Class for get rules.
+ * Class to fetch token rules.
  *
- * @class
+ * @class GetRule
  */
 class GetRule extends ServiceBase {
   /**
@@ -25,6 +25,7 @@ class GetRule extends ServiceBase {
    *
    * @param {Object} params
    * @param {Integer} params.client_id
+   * @param {Integer} [params.token_id]
    *
    * @augments ServiceBase
    *
@@ -32,9 +33,11 @@ class GetRule extends ServiceBase {
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
+
     oThis.clientId = params.client_id;
-    oThis.tokenId = null;
+    oThis.tokenId = params.token_id;
   }
 
   /**

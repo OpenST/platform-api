@@ -72,7 +72,11 @@ class Get extends ServiceBase {
   async _fetchChain() {
     const oThis = this,
       chainConfigMap = await chainConfigProvider.getFor([oThis.chainId]),
-      chainConfig = chainConfigMap[oThis.chainId];
+      chainConfig = chainConfigMap[oThis.chainId],
+      chainType =
+        oThis.chainId === chainConfig.originGeth.chainId
+          ? coreConstants.originChainKindName
+          : coreConstants.auxChainKindName;
 
     let isOriginChainId = false;
 
@@ -114,6 +118,7 @@ class Get extends ServiceBase {
 
     return responseHelper.successWithData({
       id: oThis.chainId,
+      type: chainType,
       blockHeight: Math.floor(currentBlockNumber),
       updatedTimestamp: currentTimestampInBigNumber.toString(10),
       blockGenerationTime: blockGenerationTimeInBigNumber.toString(10)

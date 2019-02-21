@@ -183,6 +183,11 @@ const v2ErrorConfig = {
     parameter: 'user_id',
     code: 'invalid',
     message: 'Invalid user to fetch linked address for device address'
+  },
+  invalid_signatures: {
+    parameter: 'signatures',
+    code: 'invalid',
+    message: 'Invalid signature provided'
   }
 };
 
