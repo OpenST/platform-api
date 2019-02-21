@@ -21,8 +21,8 @@ const rootPrefix = '../..',
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  TransactionFinalizerDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  TxFinalizeDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
+  PostTxFinalizeSteps = require(rootPrefix + '/lib/transactions/PostTransactionFinalizeSteps'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -213,9 +213,27 @@ class Finalizer extends PublisherBase {
 
               if (processedTransactionHashes.length > 0) {
                 if (oThis.isOriginChain) {
-                  await oThis._checkAfterReceiptTasksAndPublish(processedTransactionHashes);
+                  let postTxFinalizeSteps = new PostTxFinalizeSteps({
+                    chainId: oThis.chainId,
+                    blockNumber: processedBlockNumber,
+                    transactionHashes: processedTransactionHashes
+                  });
+
+                  await postTxFinalizeSteps.perform();
                 } else {
-                  await oThis._enqueueTransactionFinalizerTasks(processedBlockNumber, processedTransactionHashes);
+                  let txFinalizeDelegator = new TxFinalizeDelegator({
+                    auxChainId: oThis.chainId,
+                    blockNumber: processedBlockNumber,
+                    transactionHashes: processedTransactionHashes
+                  });
+
+                  let txFinalizeDelegatorRsp = await txFinalizeDelegator.perform();
+
+                  if (txFinalizeDelegatorRsp.isFailure()) {
+                    // TODO: what to do if failed?
+                  }
+
+                  logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
                 }
               }
 
@@ -225,6 +243,7 @@ class Finalizer extends PublisherBase {
 
               await oThis._publishBlock(processedBlockNumber);
             }
+
             logger.log('===Waiting for 10 milli-secs');
             await oThis.sleep(10);
           }
@@ -300,81 +319,6 @@ class Finalizer extends PublisherBase {
       return Promise.reject({ err: "Couldn't publish block number" + blockNumber });
     }
     logger.log('====published block', blockNumber);
-  }
-
-  /**
-   * _checkAfterReceiptTasksAndPublish
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _checkAfterReceiptTasksAndPublish(transactionHashes) {
-    const oThis = this,
-      dataToDelete = [],
-      promises = [];
-
-    while (true) {
-      let batchedTransactionHashes = transactionHashes.splice(0, 50);
-      if (batchedTransactionHashes.length === 0) {
-        break;
-      }
-
-      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
-          chainId: oThis.chainId,
-          transactionHashes: batchedTransactionHashes
-        }).fetch(),
-        pendingTransactionsMap = pendingTransactionRsp.data,
-        transactionUuids = [];
-
-      for (let txHash in pendingTransactionsMap) {
-        let txData = pendingTransactionsMap[txHash];
-        if (txData && txData.transactionUuid) {
-          transactionUuids.push(txData.transactionUuid);
-        }
-      }
-      if (transactionUuids.length <= 0) {
-        continue;
-      }
-
-      let PendingTransactionByUuidCache = new oThis.PendingTransactionByUuidCache({
-        chainId: oThis.chainId,
-        transactionUuids: transactionUuids
-      });
-
-      let ptxResp = await PendingTransactionByUuidCache.fetch();
-
-      if (ptxResp.isFailure() || ptxResp.data.length === 0) {
-        continue;
-      }
-
-      let pendingTransactionData = ptxResp.data;
-
-      for (let txUuid in pendingTransactionData) {
-        let ptd = pendingTransactionData[txUuid];
-        dataToDelete.push(ptd);
-        if (ptd.hasOwnProperty('afterReceipt')) {
-          // Publish state root info for workflow to be able to proceed with other steps
-          let publishPromise = new Promise(function(onResolve, onReject) {
-            oThis
-              ._publishAfterReceiptInfo(ptd.afterReceipt)
-              .then(function(resp) {
-                onResolve();
-              })
-              .catch(function(err) {
-                logger.error('Could not publish transaction after receipt: ', err);
-                onResolve();
-              });
-          });
-          promises.push(publishPromise);
-        }
-      }
-    }
-
-    await Promise.all(promises);
-
-    if (dataToDelete.length === 0) {
-      await oThis._cleanupPendingTransactions(dataToDelete);
-    }
   }
 
   /**
@@ -486,22 +430,6 @@ class Finalizer extends PublisherBase {
       return intersectData;
     } else {
       return blockTransactions;
-    }
-  }
-
-  /**
-   * _cleanupPendingTransactions
-   *
-   * @return {Promise<void>}
-   */
-  async _cleanupPendingTransactions(dataToDelete) {
-    const oThis = this,
-      pendingTransactionModel = new oThis.PendingTransactionModel({
-        chainId: oThis.chainId
-      });
-
-    if (dataToDelete.length > 0) {
-      await pendingTransactionModel.batchDeleteItem(dataToDelete, coreConstants.batchDeleteRetryCount);
     }
   }
 }

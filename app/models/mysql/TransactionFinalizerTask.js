@@ -1,16 +1,22 @@
 'use strict';
-
 /**
  * Model for transaction finalizer tasks
  *
  * @module app/models/mysql/TransactionFinalizerTask
  */
 const rootPrefix = '../../..',
+  util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   txFinalizerTaskConst = require(rootPrefix + '/lib/globalConstant/transactionFinalizerTask'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
-const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
+  statuses = {
+    1: txFinalizerTaskConst.pendingStatus,
+    2: txFinalizerTaskConst.failedStatus
+  };
+
+let invertedStatuses = null;
 
 class TransactionFinalizerTaskModel extends ModelBase {
   /**
@@ -24,6 +30,29 @@ class TransactionFinalizerTaskModel extends ModelBase {
     const oThis = this;
 
     oThis.tableName = 'transaction_finalizer_tasks';
+  }
+
+  /**
+   * Task statuses
+   *
+   * @return
+   */
+  get statuses() {
+    return statuses;
+  }
+
+  /**
+   * Inverted task statuses
+   *
+   * @return {*}
+   */
+  get invertedStatuses() {
+    if (invertedStatuses) {
+      return invertedStatuses;
+    }
+
+    invertedStatuses = util.invert(statuses);
+    return invertedStatuses;
   }
 
   /**

@@ -68,7 +68,7 @@ class TransactionMetaModel extends ModelBase {
     const oThis = this;
 
     return oThis
-      .select('transaction_hash')
+      .select('id, transaction_hash')
       .where({
         lock_id: lock_id
       })
@@ -110,14 +110,31 @@ class TransactionMetaModel extends ModelBase {
       .fire();
   }
 
-  markAsQueuedFailedByTxUuid(transactionUuid) {
+  markAsQueuedFailed(transactionUuid) {
     const oThis = this;
     return oThis
-      .update([
-        'lock_id = null, status=?',
-        transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]
-      ])
+      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailed]])
       .where({ transaction_uuid: transactionUuid })
+      .fire();
+  }
+
+  /**
+   * Mark transaction failed
+   * @param id
+   * @param status
+   * @param debug_params
+   * @return {*|void}
+   */
+  markFailed(id, failStatus, debug_params) {
+    const oThis = this;
+
+    return oThis
+      .update({
+        lock_id: null,
+        status: transactionMetaConst.invertedStatuses[failStatus],
+        debug_params: debug_params
+      })
+      .where({ id: id })
       .fire();
   }
 
