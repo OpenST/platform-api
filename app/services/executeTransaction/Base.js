@@ -6,6 +6,8 @@
  * @module app/services/executeTransaction/Base
  */
 
+const uuidv4 = require('uuid/v4');
+
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -14,12 +16,11 @@ const rootPrefix = '../../..',
   RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   entityConst = require(rootPrefix + '/lib/globalConstant/shard'),
-  CreatePendingTransaction = require(rootPrefix + '/lib/transactions/CreatePendingTransaction'),
+  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   ProcessTokenRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/TokenRule'),
   ProcessPricerRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/PricerRule'),
-  ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
@@ -30,6 +31,9 @@ const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
@@ -65,6 +69,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.operationType = params.operation_type;
 
     oThis.tokenAddresses = null;
+    oThis.erc20Address = null;
     oThis.tokenRuleAddress = null;
     oThis.pricerRuleAddress = null;
     oThis.pricerRuleData = null;
@@ -72,16 +77,20 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pessimisticDebitAmount = null;
     oThis.unsettledDebits = null;
     oThis.transactionUuid = null;
-    oThis.ruleName = null;
+    oThis.ruleId = null;
     oThis.configStrategyObj = null;
     oThis.rmqInstance = null;
     oThis.web3Instance = null;
-    oThis.pessimisticAmountDebitted = null;
     oThis.balanceShardNumber = null;
     oThis.tokenHolderAddress = null;
     oThis.gas = null;
-    oThis.nonce = null;
+    oThis.sessionKeyNonce = null;
     oThis.gasPrice = null;
+    oThis.estimatedTransfers = null;
+    oThis.failureStatusToUpdateInTxMeta = null;
+    oThis.pessimisticAmountDebitted = null;
+    oThis.pendingTransactionInserted = null;
+    oThis.transactionMetaId = null;
   }
 
   /**
@@ -104,10 +113,9 @@ class ExecuteTxBase extends ServiceBase {
           debug_options: { error: err.toString() }
         });
       }
-      if (oThis.pessimisticAmountDebitted) {
-        logger.debug('something_went_wrong rolling back pessimitic debitted balances');
-        await oThis._rollBackPessimisticDebit();
-      }
+
+      await oThis._revertOperations(customError);
+
       return customError;
     });
   }
@@ -122,10 +130,14 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.toAddress = basicHelper.sanitizeAddress(oThis.executableData.to);
     oThis.gasPrice = contractConstants.auxChainGasPrice;
+    oThis.transactionUuid = uuidv4();
 
     await oThis._setRmqInstance();
 
     await oThis._setWebInstance();
+
+    let tokenAddresses = await oThis._tokenAddresses();
+    oThis.erc20Address = tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
 
     await oThis._setTokenHolderAddress();
   }
@@ -199,7 +211,9 @@ class ExecuteTxBase extends ServiceBase {
       return Promise.reject(fetchPricerRuleRsp);
     }
 
-    let tokenRuleCache = new TokenRuleCache({ tokenId: oThis.tokenId, ruleId: fetchPricerRuleRsp.data.id }),
+    oThis.ruleId = fetchPricerRuleRsp.data.id;
+
+    let tokenRuleCache = new TokenRuleCache({ tokenId: oThis.tokenId, ruleId: oThis.ruleId }),
       tokenRuleCacheRsp = await tokenRuleCache.fetch();
 
     if (tokenRuleCacheRsp.isFailure() || !tokenRuleCacheRsp.data) {
@@ -249,16 +263,16 @@ class ExecuteTxBase extends ServiceBase {
       response = await new ProcessTokenRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.tokenRuleAddress,
-        web3Instance: oThis.web3Instance
+        web3Instance: oThis.web3Instance,
+        tokenHolderAddress: oThis.tokenHolderAddress
       }).perform();
-      oThis.ruleName = ruleConstants.tokenRuleName;
     } else if (pricerRuleAddress === oThis.toAddress) {
       response = await new ProcessPricerRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.pricerRuleAddress,
-        web3Instance: oThis.web3Instance
+        web3Instance: oThis.web3Instance,
+        tokenHolderAddress: oThis.tokenHolderAddress
       }).perform();
-      oThis.ruleName = ruleConstants.pricerRuleName;
     } else {
       return oThis._validationError('s_et_b_4', ['invalid_executable_data'], {
         executableData: oThis.executableData
@@ -271,6 +285,7 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.pessimisticDebitAmount = response.data.pessimisticDebitAmount;
     oThis.transferExecutableData = response.data.transferExecutableData;
+    oThis.estimatedTransfers = response.data.estimatedTransfers;
     oThis.gas = response.data.gas;
   }
 
@@ -328,12 +343,32 @@ class ExecuteTxBase extends ServiceBase {
     });
 
     if (updateBalanceRsp.isFailure()) {
+      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
       return Promise.reject(updateBalanceRsp);
     }
 
     oThis.pessimisticAmountDebitted = true;
 
     oThis.unsettledDebits = [buffer];
+  }
+
+  async _createTransactionMeta() {
+    const oThis = this;
+
+    let createRsp = await new TransactionMetaModel()
+      .insert({
+        transaction_uuid: oThis.transactionUuid,
+        associated_aux_chain_id: oThis.auxChainId,
+        token_id: oThis.tokenId,
+        status: transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
+        kind: transactionMetaConst.invertedKinds[transactionMetaConst.ruleExecution],
+        next_action_at: transactionMetaConst.getNextActionAtFor(transactionMetaConst.queuedStatus),
+        session_address: oThis.sessionKeyAddress,
+        session_nonce: oThis.sessionKeyNonce
+      })
+      .fire();
+
+    oThis.transactionMetaId = createRsp.insertId;
   }
 
   /**
@@ -364,30 +399,35 @@ class ExecuteTxBase extends ServiceBase {
    * @return {Promise<*>}
    */
   async _createPendingTransaction() {
-    const oThis = this,
-      transactionData = {
-        from: oThis.sessionKeyAddress,
-        to: oThis.toAddress,
+    const oThis = this;
+
+    let insertRsp = await new PendingTransactionCrud(oThis.auxChainId).create({
+      transactionData: {
+        to: oThis.tokenHolderAddress,
         value: oThis.executableData.value,
         gas: oThis.gas,
-        gasPrice: oThis.gasPrice,
-        nonce: oThis.nonce
-      };
-
-    let insertRsp = await new CreatePendingTransaction(oThis.auxChainId).insertPendingTransaction({
-      transactionData: transactionData,
+        gasPrice: oThis.gasPrice
+      },
       unsettledDebits: oThis.unsettledDebits,
       eip1077Signature: oThis.signatureData,
       metaProperty: oThis.metaProperty,
-      ruleName: oThis.ruleName,
-      transferExecutableData: oThis.transferExecutableData
+      ruleId: oThis.ruleId,
+      transferExecutableData: oThis.transferExecutableData,
+      transfers: oThis.estimatedTransfers,
+      transactionUuid: oThis.transactionUuid,
+      ruleAddress: oThis.toAddress,
+      erc20Address: oThis.erc20Address,
+      sessionKeyNonce: oThis.sessionKeyNonce,
+      status: pendingTransactionConstants.createdStatus,
+      tokenId: oThis.tokenId
     });
 
     if (insertRsp.isFailure()) {
+      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
       return Promise.reject(insertRsp);
+    } else {
+      oThis.pendingTransactionInserted = 1;
     }
-
-    oThis.transactionUuid = insertRsp.data.insertData.transactionUuid;
   }
 
   /**
@@ -412,7 +452,8 @@ class ExecuteTxBase extends ServiceBase {
         kind: kwcConstant.executeTx,
         payload: {
           tokenAddressId: publishDetails.tokenAddressId,
-          transaction_uuid: oThis.transactionUuid
+          transaction_uuid: oThis.transactionUuid,
+          transactionMetaId: oThis.transactionMetaId
         }
       }
     };
@@ -420,10 +461,44 @@ class ExecuteTxBase extends ServiceBase {
     let setToRMQ = await oThis.rmqInstance.publishEvent.perform(messageParams);
 
     if (setToRMQ.isFailure()) {
+      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.queuedFailedStatus;
       return Promise.reject(setToRMQ);
     }
 
     return setToRMQ;
+  }
+
+  async _revertOperations(customError) {
+    const oThis = this;
+
+    if (oThis.pessimisticAmountDebitted) {
+      logger.debug('something_went_wrong rolling back pessimitic debitted balances');
+      await oThis._rollBackPessimisticDebit().catch(async function(rollbackError) {
+        // TODO: Mark user balance as dirty
+        logger.error(`In catch block of _rollBackPessimisticDebit in file: ${__filename}`, rollbackError);
+      });
+    }
+
+    if (oThis.pendingTransactionInserted) {
+      new PendingTransactionCrud(oThis.chainId)
+        .update({
+          transactionUuid: oThis.transactionUuid,
+          status: pendingTransactionConstants.failedStatus
+        })
+        .catch(async function(updatePendingTxError) {
+          // Do nothing
+        });
+    }
+
+    if (oThis.transactionMetaId) {
+      await new TransactionMetaModel()
+        .update({
+          status: transactionMetaConst.invertedStatuses[oThis.failureStatusToUpdateInTxMeta],
+          debug_params: [customError.toString()]
+        })
+        .where({ id: oThis.transactionMetaId })
+        .fire();
+    }
   }
 
   async _setRmqInstance() {

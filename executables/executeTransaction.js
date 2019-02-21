@@ -12,7 +12,7 @@ const rootPrefix = '..',
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  MultiSubsciptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubsciptionBase'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
@@ -30,7 +30,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/executeTransaction.js --cronProcessId 15');
+  logger.log('    node executables/executeTransaction.js --cronProcessId 18');
   logger.log('');
   logger.log('');
 });
@@ -46,7 +46,7 @@ if (!cronProcessId) {
  *
  * @class
  */
-class ExecuteTransactionProcess extends MultiSubsciptionBase {
+class ExecuteTransactionProcess extends MultiSubscriptionBase {
   /**
    * Constructor for Execute Transaction Process.
    *
@@ -153,11 +153,9 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
       kind = messageParams.message.kind;
 
     if (kind == kwcConstant.executeTx) {
-      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId)
-        .queueAndFetchNonce()
-        .catch(function(err) {
-          console.log('---------err---', err);
-        });
+      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId, {
+        transactionMetaId: msgParams.transactionMetaId
+      }).queueAndFetchNonce();
     } else {
       return Promise.resolve(responseHelper.successWithData({}));
     }
@@ -295,7 +293,8 @@ class ExecuteTransactionProcess extends MultiSubsciptionBase {
         processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
           tokenAddressId: payload.tokenAddressId,
           transactionUuid: payload.transaction_uuid,
-          sequentialExecutorResponse: payload.sequentialExecutorResponse
+          sequentialExecutorResponse: messageParams.sequentialExecutorResponse,
+          transactionMetaId: payload.transactionMetaId
         });
 
       // Start transaction parser service.

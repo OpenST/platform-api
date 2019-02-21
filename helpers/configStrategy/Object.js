@@ -83,13 +83,55 @@ class ConfigStrategyObject {
           shortName: 'mp',
           dataType: 'S'
         },
-        ruleName: {
-          shortName: 'rn',
-          dataType: 'S'
+        ruleId: {
+          shortName: 'rid',
+          dataType: 'N'
+        },
+        status: {
+          shortName: 'sts',
+          dataType: 'N'
         },
         transferExecutableData: {
           shortName: 'ted',
           dataType: 'S'
+        },
+        transfers: {
+          shortName: 'trs',
+          dataType: 'S'
+        },
+        ruleAddress: {
+          shortName: 'ra',
+          dataType: 'S'
+        },
+        sessionKeyNonce: {
+          shortName: 'skn',
+          dataType: 'S'
+        },
+        tokenId: {
+          shortName: 'ti',
+          dataType: 'N'
+        },
+        blockNumber: {
+          shortName: 'bn',
+          dataType: 'N'
+        },
+        blockTimestamp: {
+          shortName: 'bts',
+          dataType: 'N'
+        },
+        erc20Address: {
+          shortName: 'ea',
+          dataType: 'S'
+        }
+      },
+      transactions: {
+        metaProperty: {
+          shortName: 'mp',
+          dataType: 'S'
+        },
+        ruleId: {
+          shortName: 'rid',
+          dataType: 'N'
         }
       }
     };
@@ -105,6 +147,8 @@ class ConfigStrategyObject {
     const oThis = this;
     return oThis.configStrategy[configStrategyConstants.constants].subEnvDdbTablePrefix;
   }
+
+  get esConfig() {}
 
   originChainWsProviders(intent) {
     const oThis = this;

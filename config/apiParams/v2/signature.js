@@ -1,8 +1,8 @@
 'use strict';
 
 const rootPrefix = '../../..',
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  apiName = require(rootPrefix + '/lib/globalConstant/apiName');
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
 
 const v2Signature = {
   [apiName.getToken]: {
@@ -142,7 +142,7 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: pagination.paginationIdentifierKey,
+        parameter: paginationConstants.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -199,7 +199,7 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: pagination.paginationIdentifierKey,
+        parameter: paginationConstants.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -249,7 +249,7 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: pagination.paginationIdentifierKey,
+        parameter: paginationConstants.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -434,6 +434,50 @@ const v2Signature = {
       {
         parameter: 'client_id',
         validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.postTransaction]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getTransaction]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'transaction_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getRules]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getUserTransactions]: {
+    mandatory: [
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuid'
       }
     ],
     optional: []

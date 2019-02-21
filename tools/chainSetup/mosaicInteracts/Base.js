@@ -5,7 +5,7 @@
  * @module /tools/chainSetup/mosaicInteracts/Base
  */
 const rootPrefix = '../../..',
-  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  NonceGetForTransaction = require(rootPrefix + '/lib/nonce/get/ForTransaction'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -131,7 +131,7 @@ class Base {
   async _fetchNonce() {
     const oThis = this;
 
-    return new NonceManager({
+    return new NonceGetForTransaction({
       address: oThis.signerAddress,
       chainId: oThis.chainId
     }).getNonce();

@@ -20,7 +20,7 @@
 * Create all SAAS Owned DDB Tables
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2
+    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2 --balanceShardNoStr 1,2
 ```
     * Mandatory parameters: auxChainId
     * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
@@ -139,7 +139,7 @@ And add it to tables using following script.
                     firstTimeMint: true //[optional]
                 }
         }
-        stPrimeRouterK = require('./executables/workflowRouter/stakeAndMint/StPrimeRouter')
+        stPrimeRouterK = require('./lib/workflow/stakeAndMint/stPrime/Router')
         stPrimeRouter = new stPrimeRouterK(params)
    
         stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})

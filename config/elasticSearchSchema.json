@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "index": {
+      "sort.field": "created_at",
+      "sort.order": "desc",
+      "number_of_replicas" : 2
+    }
+  },
+  "mappings": {
+    "_doc": {
+      "_doc": {
+        "properties": {
+          "id" : {
+            "type" : "keyword"
+          },
+          "created_at": {
+            "type": "integer"
+          },
+          "token_id": {
+            "type": "integer"
+          },
+          "transaction_hash": {
+            "type": "text"
+          },
+          "status": {
+            "type": "byte"
+          },
+          "meta": {
+            "type": "text",
+            "analyzer": "whitespace"
+          },
+          "user_addresses_status": {
+            "type": "text",
+            "analyzer": "whitespace"
+          }
+        }
+      }
+    }
+  }
+}

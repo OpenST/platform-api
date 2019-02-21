@@ -74,6 +74,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '47': workflowStepConstants.verifyAddPriceOracleInPricerRule,
     '48': workflowStepConstants.setAcceptedMarginInPricerRule,
     '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
+    '59': workflowStepConstants.postTokenRuleDeploy,
 
     '52': workflowStepConstants.deployProxyFactory,
     '53': workflowStepConstants.saveProxyFactory,

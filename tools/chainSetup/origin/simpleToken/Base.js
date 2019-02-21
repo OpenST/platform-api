@@ -15,7 +15,7 @@ const rootPrefix = '../../../..',
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
-  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  NonceGetForTransaction = require(rootPrefix + '/lib/nonce/get/ForTransaction'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
@@ -145,7 +145,7 @@ class SetupSimpleTokenBase {
   async fetchNonce(address) {
     const oThis = this;
 
-    return new NonceManager({
+    return new NonceGetForTransaction({
       address: address,
       chainId: oThis.configStrategyObject.originChainId
     }).getNonce();
