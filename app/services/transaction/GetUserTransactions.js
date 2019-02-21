@@ -183,13 +183,14 @@ class GetUserTransactions extends ServiceBase {
       queryFieldKey = metaQueryString ? 'fields' : 'default_field';
 
     let queryObject = oThis.getQueryObject(),
+      queryBody = queryObject['query']['query_string'],
       esQueryVals = [addressQueryString],
       esQuery;
 
     if (queryFieldKey == 'fields') {
-      queryObject[queryFieldKey] = [ESConstants.userAddressesOutKey, ESConstants.metaOutKey];
+      queryBody[queryFieldKey] = [ESConstants.userAddressesOutKey, ESConstants.metaOutKey];
     } else {
-      queryObject[queryFieldKey] = ESConstants.userAddressesOutKey;
+      queryBody[queryFieldKey] = ESConstants.userAddressesOutKey;
     }
 
     if (statusQueryString) {
@@ -202,9 +203,11 @@ class GetUserTransactions extends ServiceBase {
 
     esQuery = oThis.getAndQuery(esQueryVals);
 
-    logger.debug('ES query for getting user transaction', tokenHolderAddress, esQuery);
+    queryBody['query'] = esQuery;
 
-    return esQuery;
+    logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
+
+    return queryObject;
   }
 
   /***
