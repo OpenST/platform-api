@@ -2,7 +2,7 @@
 /**
  * This service helps in fetching transaction for a user
  *
- * @module app/services/user/GetTransaction
+ * @module app/services/transaction/GetTransaction
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
