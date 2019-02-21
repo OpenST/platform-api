@@ -11,6 +11,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
