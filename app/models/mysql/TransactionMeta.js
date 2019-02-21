@@ -101,6 +101,14 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.transaction_hash = params.transactionHash;
     }
 
+    if (params.senderAddress) {
+      dataToUpdate.sender_address = params.senderAddress;
+    }
+
+    if (params.senderNonce) {
+      dataToUpdate.sender_nonce = params.senderNonce;
+    }
+
     if (params.debugParams) {
       dataToUpdate.debug_params = JSON.stringify(params.debugParams);
     }
@@ -175,16 +183,20 @@ class TransactionMetaModel extends ModelBase {
       transactionMetaConst.invertedStatuses[transactionMetaConst.finalizedStatus]
     ];
 
-    let queryRsp = await oThis
+    let dbRows = await oThis
       .select('session_address, session_nonce')
       .where(['session_address = ? AND status IN (?)', sessionAddress, statuses])
       .order_by('session_nonce DESC')
       .limit(1)
       .fire();
 
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
     return responseHelper.successWithData({
-      address: queryRsp[0].session_address,
-      nonce: queryRsp[0].session_nonce
+      address: dbRows[0].session_address,
+      nonce: dbRows[0].session_nonce
     });
   }
 }
