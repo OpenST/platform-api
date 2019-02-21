@@ -23,7 +23,7 @@ const rootPrefix = '../../..',
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   ClientPreProvisioning = require(rootPrefix + '/app/models/mysql/ClientPreProvisioning'),
-  EconomySetupRouter = require(rootPrefix + '/executables/workflowRouter/EconomySetupRouter'),
+  EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
   ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
 
