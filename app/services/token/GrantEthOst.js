@@ -12,7 +12,7 @@ const rootPrefix = '../../..',
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  GrantEthOstRouter = require(rootPrefix + '/executables/workflowRouter/GrantEthOstRouter');
+  GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
 
 /**
  * Class for granting eth and ost.

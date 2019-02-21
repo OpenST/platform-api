@@ -569,6 +569,45 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.postTransaction]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getTransaction]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'transaction_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getRules]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   }
 };
 
