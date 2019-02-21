@@ -51,6 +51,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    *
    * @return {Promise<any>}
    */
+  // TODO - move async perform to Base?
   async _asyncPerform() {
     const oThis = this;
 
