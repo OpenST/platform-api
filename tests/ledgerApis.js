@@ -17,8 +17,6 @@ async function getStrategyByChainHelperObj() {
   await strategyByChainHelperObj.getComplete();
 }
 
-console.log('InstanceComposer', InstanceComposer);
-
 require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 
 const coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -46,9 +44,9 @@ let userTransaction = new GetUserTransactions({
   ]
 });
 
+console.log('======START=====');
 console.log('getServiceConfig', userTransaction.getServiceConfig());
 console.log('getElasticSearchQuery', userTransaction.getElasticSearchQuery(userId));
-
 console.log('======END=====');
 
 module.exports = {};
