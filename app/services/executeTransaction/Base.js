@@ -188,15 +188,9 @@ class ExecuteTxBase extends ServiceBase {
   async _processExecutableData() {
     const oThis = this;
 
-    //TODO - use one cache to fetch token rule addr
-
     await oThis._getRulesDetails();
 
     let response;
-
-    console.log('oThis.toAddress---------', oThis.toAddress);
-    console.log('oThis.tokenRuleAddress-----', oThis.tokenRuleAddress);
-    console.log('oThis.pricerRuleAddress-----', oThis.pricerRuleAddress);
 
     if (oThis.tokenRuleAddress === oThis.toAddress) {
       response = await new ProcessTokenRuleExecutableData({

@@ -269,7 +269,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    * @private
    */
   _verifySessionSpendingLimit() {
-    // do nothing as passed as session spending limit is checked in _setSessionAddress function
+    // do nothing as session spending limit is checked in _setSessionAddress function
   }
 
   /**
