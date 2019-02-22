@@ -99,12 +99,12 @@ class AuthorizeSessionRouter extends AuxWorkflowRouterBase {
         return rollbackAuthorizeSessionTransactionObj.perform();
 
       case workflowStepConstants.markSuccess:
-        logger.step('*** Mark Authorize Device As Success.');
+        logger.step('*** Mark Authorize Session As Success.');
 
         return await oThis.handleSuccess();
 
       case workflowStepConstants.markFailure:
-        logger.step('*** Mark Authorize Device As Failed');
+        logger.step('*** Mark Authorize Session As Failed');
 
         return await oThis.handleFailure();
 

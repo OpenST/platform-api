@@ -43,6 +43,8 @@ class SessionGetByAddress extends SessionGetBase {
    */
   async _validateParams() {
     // nothing to validate
+    const oThis = this;
+    oThis.address = oThis.address.toLowerCase();
   }
 
   /**
