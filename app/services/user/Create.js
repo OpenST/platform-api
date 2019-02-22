@@ -13,28 +13,27 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  shardConst = require(rootPrefix + '/lib/globalConstant/shard'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
+  shardConstants = require(rootPrefix + '/lib/globalConstant/shard'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor');
 
+require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/lib/cacheManagement/shared/AvailableShard');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
-require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 
 class Create extends ServiceBase {
   /**
-   * @constructor
+   * @param {Object} params
+   * @param {Number} params.client_id: client Id
+   * @param {String} params.kind: Kind (Company/User)
+   * @param {Number} [params.token_id]: token Id
    *
-   * @param params
-   * @param {Number} params.client_id - client Id
-   * @param {String} params.kind - Kind (Company/User)
-   * @param {Number} [params.token_id] - token Id
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -72,7 +71,7 @@ class Create extends ServiceBase {
   }
 
   /**
-   * _allocateShards - allocate shards
+   * Allocate shards
    *
    * @private
    */
@@ -86,20 +85,26 @@ class Create extends ServiceBase {
       allAvailableShards = response.data,
       availableShardsForChain = allAvailableShards[oThis._configStrategyObject.auxChainId];
 
-    let r1 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstant.deviceEntityKind].length - 1),
-      r2 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstant.sessionEntityKind].length - 1);
-    // let r3 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstant.recoveryAddressEntityKind].length - 1);
+    let r1 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstants.deviceEntityKind].length - 1),
+      r2 = basicHelper.getRandomNumber(0, availableShardsForChain[shardConstants.sessionEntityKind].length - 1),
+      r3 = basicHelper.getRandomNumber(
+        0,
+        availableShardsForChain[shardConstants.recoveryOwnerAddressEntityKind].length - 1
+      );
 
-    oThis.shardNumbersMap[shardConstant.deviceEntityKind] = availableShardsForChain[shardConstant.deviceEntityKind][r1];
-    oThis.shardNumbersMap[shardConstant.sessionEntityKind] =
-      availableShardsForChain[shardConstant.sessionEntityKind][r2];
-    // oThis.shardNumbersMap[shardConstant.recoveryAddressEntityKind] = availableShards[shardConstant.recoveryAddressEntityKind][r3];
+    oThis.shardNumbersMap[shardConstants.deviceEntityKind] =
+      availableShardsForChain[shardConstants.deviceEntityKind][r1];
+    oThis.shardNumbersMap[shardConstants.sessionEntityKind] =
+      availableShardsForChain[shardConstants.sessionEntityKind][r2];
+    oThis.shardNumbersMap[shardConstants.recoveryOwnerAddressEntityKind] =
+      availableShardsForChain[shardConstants.recoveryOwnerAddressEntityKind][r3];
   }
 
   /**
    * Generate salt for user
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _generateUserSalt() {
@@ -135,8 +140,9 @@ class Create extends ServiceBase {
       userId: oThis.userId,
       kind: oThis.kind,
       salt: oThis.userSaltEncrypted,
-      deviceShardNumber: oThis.shardNumbersMap[shardConst.deviceEntityKind],
-      sessionShardNumber: oThis.shardNumbersMap[shardConst.sessionEntityKind],
+      deviceShardNumber: oThis.shardNumbersMap[shardConstants.deviceEntityKind],
+      sessionShardNumber: oThis.shardNumbersMap[shardConstants.sessionEntityKind],
+      recoveryOwnerShardNumber: oThis.shardNumbersMap[shardConstants.recoveryOwnerAddressEntityKind],
       status: tokenUserConstants.createdStatus,
       updatedTimestamp: timeInSecs
     };
@@ -150,7 +156,7 @@ class Create extends ServiceBase {
     }
 
     let User = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel'),
-      user = new User({ shardNumber: shardNumbers.data[shardConst.userEntityKind] });
+      user = new User({ shardNumber: shardNumbers.data[shardConstants.userEntityKind] });
 
     let insertRsp = await user.insertUser(params);
 
