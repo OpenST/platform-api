@@ -179,7 +179,7 @@ class GatewayComposer {
     if (
       tokenUserDetailsCacheRsp.isFailure() ||
       !tokenUserDetailsCacheRsp.data ||
-      !!tokenUserDetailsCacheRsp.data[tokenHolderUuid]
+      !tokenUserDetailsCacheRsp.data[tokenHolderUuid]
     ) {
       return Promise.reject(tokenUserDetailsCacheRsp);
     }

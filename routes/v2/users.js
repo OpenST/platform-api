@@ -13,6 +13,7 @@ const rootPrefix = '../..',
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
+  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
 
 // Following require(s) for registering into instance composer
@@ -339,8 +340,15 @@ router.post('/:user_id/sessions/revoke', function(req, res, next) {
 });
 
 router.post('/:user_id/transactions', function(req, res, next) {
-  req.decodedParams.apiName = apiName.postTransaction;
-  req.decodedParams.userId = req.params.user_id;
+  let klassGetterName;
+  if (req.decodedParams['api_signature_kind'] === apiSignature.hmacKind) {
+    req.decodedParams.apiName = apiName.executeTransactionFromCompany;
+    klassGetterName = 'ExecuteCompanyToUserTx';
+  } else if (req.decodedParams['api_signature_kind'] === apiSignature.personalSignKind) {
+    req.decodedParams.apiName = apiName.executeTransactionFromUser;
+    klassGetterName = 'ExecuteTxFromUser';
+  }
+
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -351,16 +359,13 @@ router.post('/:user_id/transactions', function(req, res, next) {
     };
   };
 
-  return Promise.resolve(
-    routeHelper.perform(req, res, next, 'ExecuteTransaction', 'r_v_u_11', null, dataFormatterFunc)
-  );
+  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v_u_11', null, dataFormatterFunc));
 });
 
 /* Get transaction by id */
 router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   req.decodedParams.apiName = apiName.getTransaction;
   req.decodedParams.clientConfigStrategyRequired = true;
-  req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.transaction_id = req.params.transaction_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
