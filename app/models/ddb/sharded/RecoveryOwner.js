@@ -13,7 +13,6 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner');
 
 /**
@@ -156,7 +155,7 @@ class RecoveryOwner extends Base {
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForAddress = oThis.shortNameFor('address');
 
-    let conditionalExpression =
+    const conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForAddress + ')';
 
     return oThis.putItem(params, conditionalExpression);
@@ -175,7 +174,7 @@ class RecoveryOwner extends Base {
     const oThis = this;
 
     const keyObjArray = [];
-    for (let index = 0; index < params['addresses'].length; index++) {
+    for (let index = 0; index < params['recoveryOwnerAddresses'].length; index++) {
       keyObjArray.push(
         oThis._keyObj({
           userId: params.userId,
@@ -324,7 +323,7 @@ class RecoveryOwner extends Base {
     let RecoveryOwnerDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwnerDetailCache'),
       recoveryOwnerDetailCache = new RecoveryOwnerDetailCache({
         userId: params.userId,
-        recoveryOwnerAddresses: [params.recoveryOwnerAddresses]
+        recoveryOwnerAddresses: [params.address]
       });
 
     await recoveryOwnerDetailCache.clear();
