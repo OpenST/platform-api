@@ -230,7 +230,9 @@ class RecoveryOwner extends Base {
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForAddress = oThis.shortNameFor('address'),
       shortNameForStatus = oThis.shortNameFor('status'),
+      shortNameForTimestamp = oThis.shortNameFor('updatedTimestamp'),
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
+      dataTypeForTimestamp = oThis.shortNameToDataType[shortNameForTimestamp],
       initialStatusInt = recoveryOwnerConstants.invertedRecoveryOwnerStatuses[initialStatus],
       finalStatusInt = recoveryOwnerConstants.invertedRecoveryOwnerStatuses[finalStatus];
 
@@ -246,13 +248,15 @@ class RecoveryOwner extends Base {
         ' AND #initialStatus = :initialStatus',
       ExpressionAttributeNames: {
         '#initialStatus': shortNameForStatus,
-        '#finalStatus': shortNameForStatus
+        '#finalStatus': shortNameForStatus,
+        '#updatedTimestamp': shortNameForTimestamp
       },
       ExpressionAttributeValues: {
         ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
-        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
+        ':updatedTimestamp': { [dataTypeForTimestamp]: basicHelper.getCurrentTimestampInSeconds().toString() }
       },
-      UpdateExpression: 'SET #finalStatus = :finalStatus',
+      UpdateExpression: 'SET #finalStatus = :finalStatus, #updatedTimestamp = :updatedTimestamp',
       ReturnValues: 'ALL_NEW'
     };
 
