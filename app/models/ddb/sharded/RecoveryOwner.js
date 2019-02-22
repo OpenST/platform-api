@@ -312,7 +312,7 @@ class RecoveryOwner extends Base {
     dbRow['address'] = basicHelper.sanitizeAddress(dbRow['address']);
 
     if (!dbRow['updatedTimestamp']) {
-      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds().toString();
     }
 
     return dbRow;
