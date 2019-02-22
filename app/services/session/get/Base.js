@@ -8,6 +8,7 @@
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   ServiceBase = require(rootPrefix + '/app/services/Base');
@@ -213,11 +214,11 @@ class SessionGetBase extends ServiceBase {
       };
 
     return new Promise(function(onResolve, onReject) {
-      console.log('Fetching nonce');
+      logger.debug('Fetching nonce session token holder nonce. SessionAddress:', sessionAddress);
       new TokenHolderNonceKlass(params)
         .perform()
         .then(function(resp) {
-          console.log('Fetching nonce Done: ', resp);
+          logger.debug('Fetching nonce Done: ', resp);
           if (resp.isSuccess()) {
             oThis.sessionNonce[sessionAddress] = resp.data.nonce;
           }
