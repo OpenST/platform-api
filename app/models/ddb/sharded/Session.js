@@ -375,17 +375,17 @@ class Session extends Base {
 
     await sessionsByAddressCache.clear();
 
-    require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
-    let SessionAddressesByUserIdCache = ic.getShadowedClassFor(
+    require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
+    let UserSessionAddressCache = ic.getShadowedClassFor(
         coreConstants.icNameSpace,
-        'SessionAddressesByUserIdCache'
+        'UserSessionAddressCache'
       ),
-      sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
+      userSessionAddressCache = new UserSessionAddressCache({
         userId: params.userId,
         limit: pagination.defaultSessionPageSize
       });
 
-    await sessionAddressesByUserIdCache.clear();
+    await userSessionAddressCache.clear();
 
     logger.info('Session caches cleared.');
     return responseHelper.successWithData({});

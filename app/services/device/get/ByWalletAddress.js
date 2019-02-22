@@ -13,7 +13,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  GetDeviceBase = require(rootPrefix + '/app/services/device/get/Base');
+  GetDeviceListBase = require(rootPrefix + '/app/services/device/get/Base');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
@@ -21,9 +21,9 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 /**
  * Class to get devices data by userId and wallet address.
  *
- * @class ByWalletAddress
+ * @class GetDeviceByAddress
  */
-class ByWalletAddress extends GetDeviceBase {
+class GetDeviceByAddress extends GetDeviceListBase {
   /**
    * Constructor to get devices data by userId and wallet address.
    *
@@ -50,9 +50,6 @@ class ByWalletAddress extends GetDeviceBase {
    */
   async _validateAndSanitizeParams() {
     const oThis = this;
-
-    await super._validateAndSanitizeParams();
-
     oThis.address = basicHelper.sanitizeAddress(oThis.address);
   }
 
@@ -61,7 +58,7 @@ class ByWalletAddress extends GetDeviceBase {
    *
    * @private
    */
-  _setWalletAddresses() {
+  async _setWalletAddresses() {
     const oThis = this;
 
     oThis.walletAddresses = [oThis.address];
@@ -109,6 +106,6 @@ class ByWalletAddress extends GetDeviceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ByWalletAddress, coreConstants.icNameSpace, 'DeviceByWalletAddress');
+InstanceComposer.registerAsShadowableClass(GetDeviceByAddress, coreConstants.icNameSpace, 'GetDeviceByAddress');
 
 module.exports = {};

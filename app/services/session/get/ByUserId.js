@@ -10,7 +10,6 @@ const OSTBase = require('@openstfoundation/openst-base'),
 
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   SessionGetBase = require(rootPrefix + '/app/services/session/get/Base'),
@@ -18,7 +17,7 @@ const rootPrefix = '../../../..',
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Session');
-require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
+require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
 
 /**
  * Class to list sessions by userId.
@@ -139,17 +138,17 @@ class SessionListByUserId extends SessionGetBase {
   async _fetchFromCache() {
     const oThis = this;
 
-    let SessionAddressesByUserId = oThis
+    let UserSessionAddressCache = oThis
         .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'SessionAddressesByUserIdCache'),
-      sessionAddressesByUserId = new SessionAddressesByUserId({
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserSessionAddressCache'),
+      userSessionAddressCache = new UserSessionAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
         shardNumber: oThis.sessionShardNumber,
         limit: oThis._currentPageLimit()
       });
 
-    return sessionAddressesByUserId.fetch();
+    return userSessionAddressCache.fetch();
   }
 
   /**

@@ -18,7 +18,7 @@ require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
  *
  * @class
  */
-class Base extends ServiceBase {
+class GetDeviceListBase extends ServiceBase {
   /**
    * Constructor for get devices base.
    *
@@ -56,20 +56,7 @@ class Base extends ServiceBase {
 
     await oThis._setWalletAddresses();
 
-    const returnData = await oThis._getUserDeviceDataFromCache();
-
-    return responseHelper.successWithData(returnData);
-  }
-
-  /**
-   * Validate and sanitize input parameters.
-   *
-   * @returns {*}
-   *
-   * @private
-   */
-  async _validateAndSanitizeParams() {
-    const oThis = this;
+    return responseHelper.successWithData(await oThis._getUserDeviceDataFromCache());
   }
 
   /**
@@ -103,8 +90,8 @@ class Base extends ServiceBase {
    *
    * @private
    */
-  _setWalletAddresses() {
-    throw 'sub class to implement and set oThis.walletAddresses';
+  async _setWalletAddresses() {
+    throw 'sub-class to implement and set oThis.walletAddresses';
   }
 
   /**
@@ -113,8 +100,18 @@ class Base extends ServiceBase {
    * @returns {Promise<*|result>}
    */
   async _getUserDeviceDataFromCache() {
-    throw new Error('sub class to implement.');
+    throw 'sub-class to implement';
+  }
+
+  /**
+   * Validate and samitnize params
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateAndSanitizeParams() {
+    throw 'sub-class to implement';
   }
 }
 
-module.exports = Base;
+module.exports = GetDeviceListBase;

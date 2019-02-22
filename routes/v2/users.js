@@ -144,7 +144,7 @@ router.get('/:user_id/devices', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceByUserId', 'r_v2_u_5', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'UserDeviceList', 'r_v2_u_5', null, dataFormatterFunc));
 });
 
 /* Get User device By device Address */
@@ -168,7 +168,7 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceByWalletAddress', 'r_v2_u_6', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceByAddress', 'r_v2_u_6', null, dataFormatterFunc));
 });
 
 /* Get sessions by userId */

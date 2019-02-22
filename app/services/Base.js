@@ -137,9 +137,7 @@ class ServicesBaseKlass {
   _parsePaginationParams(paginationIdentifier) {
     const oThis = this;
 
-    let parsedPaginationParams = basicHelper.decryptPageIdentifier(paginationIdentifier);
-
-    return parsedPaginationParams;
+    return basicHelper.decryptPageIdentifier(paginationIdentifier);
   }
 
   /**
