@@ -8,6 +8,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -16,13 +17,14 @@ const rootPrefix = '../../..',
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/app/models/ddb/sharded/Device');
+require(rootPrefix + '/app/models/ddb/sharded/RecoveryOwner');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 
@@ -62,6 +64,7 @@ class CreateTokenHolder extends ServiceBase {
     oThis.auxChainId = null;
     oThis.userShardNumber = null;
     oThis.deviceShardNumber = null;
+    oThis.recoveryOwnerShardNumber = null;
   }
 
   /**
@@ -74,7 +77,9 @@ class CreateTokenHolder extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    let fetchCacheRsp = await oThis._fetchClientConfigStrategy(oThis.clientId);
+    oThis._sanitize();
+
+    const fetchCacheRsp = await oThis._fetchClientConfigStrategy(oThis.clientId);
     oThis.auxChainId = fetchCacheRsp.data[oThis.clientId].chainId;
 
     await oThis._fetchTokenDetails();
@@ -90,6 +95,12 @@ class CreateTokenHolder extends ServiceBase {
       return Promise.reject(error);
     });
 
+    await oThis._authorizingRecoveryOwnerAddress().catch(async function(error) {
+      await oThis._rollbackDeviceStatusToRegistered();
+      await oThis._rollbackUserStatusToCreated();
+      return Promise.reject(error);
+    });
+
     await oThis._initUserSetupWorkflow();
 
     return Promise.resolve(
@@ -97,6 +108,25 @@ class CreateTokenHolder extends ServiceBase {
         [resultType.user]: oThis.userStatusUpdateResponse.data
       })
     );
+  }
+
+  /**
+   * Sanitize input parameters.
+   *
+   * @private
+   */
+  _sanitize() {
+    const oThis = this;
+
+    oThis.deviceAddress = oThis.deviceAddress.toLowerCase();
+    oThis.recoveryOwnerAddress = oThis.recoveryOwnerAddress.toLowerCase();
+
+    const sanitizedSessionAddresses = [];
+    for (let index = 0; index < oThis.sessionAddresses.length; index++) {
+      sanitizedSessionAddresses.push(oThis.sessionAddresses[index].toLowerCase());
+    }
+
+    oThis.sessionAddresses = sanitizedSessionAddresses;
   }
 
   /**
@@ -109,12 +139,12 @@ class CreateTokenHolder extends ServiceBase {
   async _fetchTokenUsersShards() {
     const oThis = this;
 
-    let TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
-    let tokenShardNumbersCache = new TokenShardNumbersCache({
-      tokenId: oThis.tokenId
-    });
+    const TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
+      tokenShardNumbersCache = new TokenShardNumbersCache({
+        tokenId: oThis.tokenId
+      });
 
-    let response = await tokenShardNumbersCache.fetch();
+    const response = await tokenShardNumbersCache.fetch();
 
     oThis.userShardNumber = response.data.user;
   }
@@ -129,7 +159,7 @@ class CreateTokenHolder extends ServiceBase {
   async _getUserDeviceDataFromCache() {
     const oThis = this;
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+    const DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
       deviceDetailCache = new DeviceDetailCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
@@ -148,8 +178,8 @@ class CreateTokenHolder extends ServiceBase {
       );
     }
 
-    let deviceDetails = response.data[oThis.deviceAddress.toLowerCase()];
-    if (basicHelper.isEmptyObject(deviceDetails) || deviceDetails.status != deviceConstants.registeredStatus) {
+    const deviceDetails = response.data[oThis.deviceAddress.toLowerCase()];
+    if (basicHelper.isEmptyObject(deviceDetails) || deviceDetails.status !== deviceConstants.registeredStatus) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_cth_2',
@@ -199,6 +229,7 @@ class CreateTokenHolder extends ServiceBase {
 
     logger.log('User status updated to activating.');
     oThis.deviceShardNumber = oThis.userStatusUpdateResponse.data.deviceShardNumber;
+    oThis.recoveryOwnerShardNumber = oThis.userStatusUpdateResponse.data.recoveryOwnerShardNumber;
   }
 
   /**
@@ -235,7 +266,43 @@ class CreateTokenHolder extends ServiceBase {
       );
     }
 
-    logger.log('Device status is registered.');
+    logger.log('Device status is authorizing.');
+  }
+
+  /**
+   * Create an entry in recovery owner address shard with status as AUTHORIZING.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _authorizingRecoveryOwnerAddress() {
+    const oThis = this,
+      RecoveryOwnerModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwner'),
+      recoveryOwnerModel = new RecoveryOwnerModel({
+        shardNumber: oThis.recoveryOwnerShardNumber
+      });
+
+    logger.log('Authorizing recovery owner address.');
+    const recoveryOwnerCreationResponse = await recoveryOwnerModel.createRecoveryOwner({
+      userId: oThis.userId,
+      address: oThis.recoveryOwnerAddress,
+      status: recoveryOwnerConstants.authorizingStatus
+    });
+
+    if (recoveryOwnerCreationResponse.isFailure()) {
+      logger.error('Could not create recovery owner address with status authorizing.');
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_5',
+          api_error_identifier: 'user_activation_failed',
+          params_error_identifiers: ['user_activation_failed_invalid_recovery_owner_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    logger.log('Recovery owner address is authorizing.');
   }
 
   /**
@@ -275,7 +342,7 @@ class CreateTokenHolder extends ServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_5',
+          internal_error_identifier: 'a_s_u_cth_6',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
@@ -308,7 +375,7 @@ class CreateTokenHolder extends ServiceBase {
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
       logger.notify(
-        'a_s_u_cth_6',
+        'a_s_u_cth_7',
         'Could not rollback user status back to created. TokenId: ',
         oThis.tokenId,
         ' UserId: ',
@@ -316,7 +383,50 @@ class CreateTokenHolder extends ServiceBase {
       );
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_6',
+          internal_error_identifier: 'a_s_u_cth_7',
+          api_error_identifier: 'action_not_performed_contact_support',
+          debug_options: {}
+        })
+      );
+    }
+  }
+
+  /**
+   * Rollback device status back to registered.
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _rollbackDeviceStatusToRegistered() {
+    const oThis = this,
+      DeviceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel'),
+      deviceModel = new DeviceModel({
+        shardNumber: oThis.deviceShardNumber
+      });
+
+    logger.log('Faced an error while deploying token holder for user. Updating device status back to registered.');
+
+    const deviceStatusRollbackResponse = await deviceModel.updateStatus({
+      walletAddress: oThis.deviceAddress,
+      userId: oThis.userId,
+      status: deviceConstants.registeredStatus
+    });
+
+    if (deviceStatusRollbackResponse.isFailure()) {
+      logger.error('Could not rollback device status back to registered. ');
+      logger.notify(
+        'a_s_u_cth_8',
+        'Could not rollback device status back to registered. TokenId: ',
+        oThis.tokenId,
+        ' UserId: ',
+        oThis.userId,
+        ' Device address: ',
+        oThis.deviceAddress
+      );
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_cth_8',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
