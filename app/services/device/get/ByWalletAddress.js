@@ -54,8 +54,6 @@ class ByWalletAddress extends GetDeviceBase {
   _sanitizeParams() {
     const oThis = this;
 
-    super._sanitizeParams();
-
     oThis.address = oThis.address.toLowerCase();
   }
 

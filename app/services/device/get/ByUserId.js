@@ -69,8 +69,6 @@ class ListByUserId extends GetListBase {
   _sanitizeParams() {
     const oThis = this;
 
-    super._sanitizeParams();
-
     if (oThis.paginationIdentifier) {
       oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
     }

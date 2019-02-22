@@ -69,9 +69,7 @@ class Base extends ServiceBase {
    * @private
    */
   _sanitizeParams() {
-    const oThis = this;
-
-    oThis.userId = oThis.userId.toLowerCase();
+    throw new Error('Sub-class to implement.');
   }
 
   /**
