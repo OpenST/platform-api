@@ -14,11 +14,9 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../..',
   ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  basicHelper = require(rootPrefix + '/helpers/basic');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 
