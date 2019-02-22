@@ -5,7 +5,8 @@
  * @module executables/setup/aux/saasDdb
  */
 const program = require('commander'),
-  OSTBase = require('@openstfoundation/openst-base');
+  OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -15,8 +16,6 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
 require(rootPrefix + '/lib/shardManagement/Create');
 
 program
@@ -24,6 +23,10 @@ program
   .option('--userShardNoStr [userShardNoStr]', 'Comma seperated numbers for which user shards has be created')
   .option('--deviceShardNoStr [deviceShardNoStr]', 'Comma seperated numbers for which device shards has be created')
   .option('--sessionShardNoStr [sessionShardNoStr]', 'Comma seperated numbers for which session shards has be created')
+  .option(
+    '--recoveryOwnerAddressShardNoStr [sessionShardNoStr]',
+    'Comma seperated numbers for which recovery owner shards has be created'
+  )
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -31,7 +34,7 @@ program.on('--help', () => {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2,3 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2'
+    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2 --recoveryOwnerAddressShardNoStr 1,2'
   );
   logger.log('');
   logger.log('');
@@ -50,6 +53,7 @@ class CreateInitialAuxDdbTablesForSaas {
    * @param {Array} params.userShardNos - array of numbers using which shards are to be created
    * @param {Array} params.deviceShardNos - array of numbers using which shards are to be created
    * @param {Array} params.sessionShardNos - array of numbers using which shards are to be created
+   * @param {Array} params.recoveryOwnerAddressShardNos - array of numbers using which shards are to be created
    *
    * @constructor
    */
@@ -59,6 +63,7 @@ class CreateInitialAuxDdbTablesForSaas {
     oThis.userShardNos = params.userShardNos;
     oThis.deviceShardNos = params.deviceShardNos;
     oThis.sessionShardNos = params.sessionShardNos;
+    oThis.recoveryOwnerAddressShardNos = params.recoveryOwnerAddressShardNos;
   }
 
   /**
@@ -110,6 +115,12 @@ class CreateInitialAuxDdbTablesForSaas {
         entityKind: shardConstant.sessionEntityKind,
         shardNumbers: oThis.sessionShardNos,
         isAvailableForAllocation: true
+      }),
+      recoveryOwnerAddressShardObject = new CreateShard({
+        chainId: oThis.auxChainId,
+        entityKind: shardConstant.recoveryOwnerAddressEntityKind,
+        shardNumbers: oThis.recoveryOwnerAddressShardNos,
+        isAvailableForAllocation: true
       });
 
     // Create User table(s)
@@ -120,6 +131,9 @@ class CreateInitialAuxDdbTablesForSaas {
 
     // Create Session table(s)
     await sessionShardObject.perform();
+
+    // Create Recovery Owner Address table(s)
+    await recoveryOwnerAddressShardObject.perform();
   }
 }
 
@@ -133,7 +147,12 @@ const validateAndSanitize = function() {
     process.exit(1);
   }
 
-  if (!program.userShardNoStr || !program.deviceShardNoStr || !program.sessionShardNoStr) {
+  if (
+    !program.userShardNoStr ||
+    !program.deviceShardNoStr ||
+    !program.sessionShardNoStr ||
+    !program.recoveryOwnerAddressShardNoStr
+  ) {
     logger.error('Mandatory shard no str in params missing');
     program.help();
     process.exit(1);
@@ -142,6 +161,7 @@ const validateAndSanitize = function() {
   program.userShardNos = basicHelper.commaSeperatedStrToArray(program.userShardNoStr);
   program.deviceShardNos = basicHelper.commaSeperatedStrToArray(program.deviceShardNoStr);
   program.sessionShardNos = basicHelper.commaSeperatedStrToArray(program.sessionShardNoStr);
+  program.recoveryOwnerAddressShardNos = basicHelper.commaSeperatedStrToArray(program.recoveryOwnerAddressShardNoStr);
 };
 
 validateAndSanitize();
