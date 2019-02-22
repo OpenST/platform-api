@@ -24,7 +24,7 @@ class Base extends ServiceBase {
    *
    * @param {Object} params
    * @param {Integer} params.client_id
-   * @param {String} params.user_id: uuid
+   * @param {String} params.user_id
    * @param {Integer} [params.token_id]
    *
    * @augments ServiceBase
@@ -48,7 +48,7 @@ class Base extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._sanitizeParams();
+    await oThis._validateAndSanitizeParams();
 
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
@@ -68,10 +68,8 @@ class Base extends ServiceBase {
    *
    * @private
    */
-  _sanitizeParams() {
+  async _validateAndSanitizeParams() {
     const oThis = this;
-
-    oThis.userId = oThis.userId.toLowerCase();
   }
 
   /**

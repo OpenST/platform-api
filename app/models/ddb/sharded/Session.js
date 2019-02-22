@@ -191,7 +191,7 @@ class Session extends Base {
    * Get paginated data
    *
    * @param {Number} userId
-   * @param {Number} [limit] - optional
+   * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
@@ -208,7 +208,7 @@ class Session extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('address'),
-      Limit: limit || pagination.maxSessionPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -235,10 +235,11 @@ class Session extends Base {
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          limit: limit
+        }
       };
     }
 
@@ -380,7 +381,8 @@ class Session extends Base {
         'SessionAddressesByUserIdCache'
       ),
       sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
-        userId: params.userId
+        userId: params.userId,
+        limit: pagination.defaultSessionPageSize
       });
 
     await sessionAddressesByUserIdCache.clear();

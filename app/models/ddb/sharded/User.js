@@ -361,7 +361,7 @@ class User extends Base {
         ':tid': { [dataTypeForTokenId]: tokenId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('userId'),
-      Limit: limit || pagination.defaultUserListPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -388,10 +388,11 @@ class User extends Base {
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          limit: limit
+        }
       };
     }
 

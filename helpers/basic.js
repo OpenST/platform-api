@@ -544,11 +544,11 @@ class BasicHelperKlass {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  encryptNextPagePayload(object) {
+  encryptPageIdentifier(object) {
     return base64Helper.encode(JSON.stringify(object));
   }
 
-  decryptNextPagePayload(string) {
+  decryptPageIdentifier(string) {
     return JSON.parse(base64Helper.decode(string));
   }
 

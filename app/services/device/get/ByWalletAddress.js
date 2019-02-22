@@ -1,6 +1,6 @@
 'use strict';
 /**
- *  Fetch device details by userId and wallet addresses.
+ *  Fetch device details by userId and wallet address.
  *
  * @module app/services/device/get/ByWalletAddress
  */
@@ -8,6 +8,7 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
@@ -18,19 +19,15 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 
 /**
- * Class to get devices data by userId and wallet addresses.
+ * Class to get devices data by userId and wallet address.
  *
  * @class ByWalletAddress
  */
 class ByWalletAddress extends GetDeviceBase {
   /**
-   * Constructor to get devices data by userId and wallet addresses.
+   * Constructor to get devices data by userId and wallet address.
    *
-   * @param {Object} params
-   * @param {Integer} params.client_id
-   * @param {String} params.user_id: uuid
-   * @param {String} params.address: Wallet addresses
-   * @param {Integer} [params.token_id]
+   * @param {String} params.address: Wallet address
    *
    * @constructor
    */
@@ -51,12 +48,12 @@ class ByWalletAddress extends GetDeviceBase {
    *
    * @private
    */
-  _sanitizeParams() {
+  async _validateAndSanitizeParams() {
     const oThis = this;
 
-    super._sanitizeParams();
+    await super._validateAndSanitizeParams();
 
-    oThis.address = oThis.address.toLowerCase();
+    oThis.address = basicHelper.sanitizeAddress(oThis.address);
   }
 
   /**

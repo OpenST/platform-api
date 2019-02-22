@@ -8,10 +8,10 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   OSTBase = require('@openstfoundation/openst-base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -27,7 +27,8 @@ class GetUsersList extends ServiceBase {
    * @param {Object} params
    * @param {Number} params.client_id - client Id
    * @param {Number} [params.token_id] - token Id
-   * @param {Array} [params.ids] - filter by user uuids
+   * @param {Array} [params.ids] - filter by user uuids.
+   * @param {Array} [params.limit] - limit
    * @param {String} [params.pagination_identifier] - pagination identifier to fetch page
    */
   constructor(params) {
@@ -38,11 +39,15 @@ class GetUsersList extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
     oThis.userIds = params.ids || [];
-    oThis.paginationIdentifier = params.pagination_identifier;
-    oThis.limit = oThis._defaultPageSize();
+    oThis.limit = params.limit || oThis._defaultPageLimit();
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
     oThis.userShard = null;
-    oThis.paginationParams = null;
+    oThis.lastEvaluatedKey = null;
+
+    oThis.responseMetaData = {
+      [pagination.nextPagePayloadKey]: {}
+    };
   }
 
   /**
@@ -53,55 +58,38 @@ class GetUsersList extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateParams();
+    await oThis._validateAndSanitizeParams();
 
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
     }
 
-    await oThis._validatePaginationParams();
-
     await oThis._fetchTokenUsersShards();
 
-    let responseData = {};
-    if (oThis.userIds.length === 0) {
-      let response = await oThis._fetchUserIdsFromDdb();
+    await oThis._fetchUserIdsFromDdb();
 
-      // If user ids are found from Dynamo then fetch data from cache.
-      if (response.isSuccess() && response.data.users.length > 0) {
-        for (let i = 0; i < response.data.users.length; i++) {
-          oThis.userIds.push(response.data.users[i].userId);
-        }
-      }
-      responseData = response.data;
-    }
-
-    let cacheResponse = await oThis._fetchUsersFromCache(oThis.userIds);
-    let users = [];
-    if (cacheResponse.isSuccess()) {
-      let usersData = cacheResponse.data;
-      for (let index in oThis.userIds) {
-        let uuid = oThis.userIds[index];
-        if (!basicHelper.isEmptyObject(usersData[uuid])) {
-          users.push(usersData[uuid]);
-        }
-      }
-    }
-    responseData.users = users;
-
-    return responseHelper.successWithData(responseData);
+    return oThis._fetchUsersFromCache();
   }
 
   /**
-   * Validate Specific params
+   * Validate and sanitize specific params
    *
    * @returns {Promise<never>}
    * @private
    */
-  async _validateParams() {
+  async _validateAndSanitizeParams() {
     const oThis = this;
 
-    if (oThis.userIds && oThis.userIds.length > oThis._maxPageSize()) {
+    // Parameters in paginationIdentifier take higher precedence
+    if (oThis.paginationIdentifier) {
+      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+      oThis.userIds = [];
+      oThis.limit = parsedPaginationParams.limit; //override limit
+      oThis.lastEvaluatedKey = parsedPaginationParams.lastEvaluatedKey;
+    }
+
+    // Validate user ids length
+    if (oThis.userIds && oThis.userIds.length > oThis._maxPageLimit()) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_u_gl_1',
@@ -111,10 +99,15 @@ class GetUsersList extends ServiceBase {
         })
       );
     }
+
+    //Validate limit
+    return await oThis._validatePageSize();
   }
 
   /**
    * _fetchTokenUsersShards - fetch token user shards from cache
+   *
+   * Sets oThis.userShard
    *
    * @return {Promise<void>}
    * @private
@@ -135,34 +128,29 @@ class GetUsersList extends ServiceBase {
   /**
    * _fetchUsersFromDdb
    *
+   * Sets oThis.userIds
+   * Sets oThis.responseNextPagePayload
+   *
    * @return {Promise<void>}
    * @private
    */
   async _fetchUserIdsFromDdb() {
-    const oThis = this,
-      UserModelKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel');
+    const oThis = this;
 
-    let userModelObj = new UserModelKlass({ shardNumber: oThis.userShard });
+    if (!oThis.userIds || oThis.userIds.length === 0) {
+      const UserModelKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel');
 
-    let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
+      let userModelObj = new UserModelKlass({ shardNumber: oThis.userShard }),
+        response = await userModelObj.getUserIds(oThis.tokenId, oThis._currentPageLimit(), oThis.lastEvaluatedKey);
 
-    return userModelObj.getUserIds(oThis.tokenId, oThis.limit, lastEvaluatedKey);
-  }
-
-  /**
-   * _defaultPageSize
-   * @private
-   */
-  _defaultPageSize() {
-    return pagination.defaultUserListPageSize;
-  }
-
-  /**
-   * _maxPageSize
-   * @private
-   */
-  _maxPageSize() {
-    return pagination.maxUserListPageSize;
+      // If user ids are found from Dynamo then fetch data from cache.
+      if (response.isSuccess() && response.data.users.length > 0) {
+        for (let i = 0; i < response.data.users.length; i++) {
+          oThis.userIds.push(response.data.users[i].userId);
+        }
+        oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
+      }
+    }
   }
 
   /**
@@ -170,13 +158,68 @@ class GetUsersList extends ServiceBase {
    *
    * @return {Promise<string>}
    */
-  async _fetchUsersFromCache(userIds) {
+  async _fetchUsersFromCache() {
     const oThis = this,
       TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: userIds });
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: oThis.userIds });
 
-    return tokenUserDetailsCacheObj.fetch();
+    let cacheResponse = await tokenUserDetailsCacheObj.fetch();
+
+    let users = [];
+    if (cacheResponse.isSuccess()) {
+      let usersData = cacheResponse.data;
+      for (let index in oThis.userIds) {
+        let uuid = oThis.userIds[index];
+        if (!basicHelper.isEmptyObject(usersData[uuid])) {
+          users.push(usersData[uuid]);
+        }
+      }
+    }
+
+    return responseHelper.successWithData({
+      [resultType.users]: users,
+      [resultType.meta]: oThis.responseMetaData
+    });
   }
+
+  /**
+   * _defaultPageLimit
+   *
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultUserListPageSize;
+  }
+
+  /**
+   * _minPageLimit
+   *
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minUserListPageSize;
+  }
+
+  /**
+   * _maxPageLimit
+   *
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxUserListPageSize;
+  }
+
+  /**
+   * _currentPageLimit
+   *
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
+
+    return oThis.limit;
+  }
+
 }
 
 InstanceComposer.registerAsShadowableClass(GetUsersList, coreConstants.icNameSpace, 'GetUsersList');

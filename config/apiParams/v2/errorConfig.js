@@ -89,11 +89,6 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address'
   },
-  invalid_filter_address: {
-    parameter: 'address',
-    code: 'invalid',
-    message: 'Invalid address. Max comma seperated 25 addresses allowed'
-  },
   invalid_device_address: {
     parameter: 'device_address',
     code: 'invalid',
@@ -188,6 +183,11 @@ const v2ErrorConfig = {
     parameter: 'signatures',
     code: 'invalid',
     message: 'Invalid signature provided'
+  },
+  invalid_next_page_payload: {
+    parameter: 'next_page_payload',
+    code: 'invalid',
+    message: 'Invalid next page payload'
   }
 };
 

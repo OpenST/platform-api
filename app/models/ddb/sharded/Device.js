@@ -344,7 +344,8 @@ class Device extends Base {
     require(rootPrefix + '/lib/cacheManagement/chain/WalletAddressesByUserId');
     let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
       walletAddressesByUserId = new WalletAddressesByUserId({
-        userId: params.userId
+        userId: params.userId,
+        limit: pagination.defaultDeviceListPageSize
       });
 
     await walletAddressesByUserId.clear();
@@ -357,7 +358,7 @@ class Device extends Base {
    * Get paginated data
    *
    * @param {Number} userId
-   * @param {Number} [limit] - optional
+   * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
@@ -374,7 +375,7 @@ class Device extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('walletAddress'),
-      Limit: limit || pagination.maxDeviceListPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -399,10 +400,11 @@ class Device extends Base {
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          limit: limit
+        }
       };
     }
 

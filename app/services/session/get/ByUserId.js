@@ -1,10 +1,13 @@
 'use strict';
-
 /**
  *  Fetch session details by userId.
  *
  * @module app/services/session/get/ByUserId
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -17,9 +20,6 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/app/models/ddb/sharded/Session');
 require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
 
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 /**
  * Class to list sessions by userId.
  *
@@ -28,10 +28,8 @@ const OSTBase = require('@openstfoundation/openst-base'),
 class SessionListByUserId extends SessionGetBase {
   /**
    * @param params
-   * @param {Integer} params.client_id
-   * @param {String} params.user_id
    * @param {Array} [params.addresses]
-   * @param {Integer} [params.token_id]
+   * @param {Integer} [params.limit]
    * @param {String} [params.pagination_identifier] - pagination identifier to fetch page
    */
   constructor(params) {
@@ -39,25 +37,38 @@ class SessionListByUserId extends SessionGetBase {
 
     const oThis = this;
 
+    oThis.addresses = params.addresses || [];
+    oThis.limit = params.limit || oThis._defaultPageLimit();
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
-    oThis.addresses = params.addresses;
 
-    oThis.limit = pagination.defaultSessionPageSize;
-
-    oThis.paginationParams = null;
-    oThis.nextPagePayload = null;
+    oThis.sessionAddresses = [];
+    oThis.lastEvaluatedKey = null;
+    oThis.responseMetaData = {
+      [pagination.nextPagePayloadKey]: {}
+    };
   }
 
   /**
-   * Validate Specific params
+   * Validate and sanitize input parameters.
    *
-   * @returns {Promise<never>}
+   * @returns {*}
+   *
    * @private
    */
-  async _validateParams() {
+  async _validateAndSanitizeParams() {
     const oThis = this;
 
-    if (oThis.addresses && oThis.addresses.length > pagination.maxSessionPageSize) {
+    await super._validateAndSanitizeParams();
+
+    // Parameters in paginationIdentifier take higher precedence
+    if (oThis.paginationIdentifier) {
+      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+      oThis.addresses = [];
+      oThis.limit = parsedPaginationParams.limit; //override limit
+      oThis.lastEvaluatedKey = parsedPaginationParams.lastEvaluatedKey;
+    }
+
+    if (oThis.addresses && oThis.addresses.length > oThis._maxPageLimit()) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_s_l_bui_1',
@@ -68,58 +79,40 @@ class SessionListByUserId extends SessionGetBase {
       );
     }
 
-    if (oThis.paginationIdentifier) {
-      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
-    }
+    //Validate limit
+    return await oThis._validatePageSize();
   }
 
   /**
    * Set addresses for fetching session details
+   *
+   * Sets oThis.sessionAddresses
    *
    * @private
    */
   async _setAddresses() {
     const oThis = this;
 
-    // If addresses are sent as filter and return from here
-    if (oThis.addresses) {
-      return Promise.resolve(responseHelper.successWithData());
-    }
+    if (!oThis.addresses || oThis.addresses.length === 0) {
 
-    // Else fetch addresses from relevant source
-    let response;
+      // Else fetch addresses from relevant source
+      let response;
 
-    // Cache only first page
-    if (oThis.paginationParams && oThis.paginationParams.lastEvaluatedKey) {
-      response = await oThis._fetchFromDdb();
+      // Cache only first page
+      if (oThis.lastEvaluatedKey) {
+        response = await oThis._fetchFromDdb();
+      } else {
+        response = await oThis._fetchFromCache();
+      }
+
+      oThis.sessionAddresses = response.data.addresses;
+      oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
+
     } else {
-      response = await oThis._fetchFromCache();
+      for (let index = 0; index < oThis.addresses.length; index++) {
+        oThis.sessionAddresses.push(oThis.addresses[index].toLowerCase());
+      }
     }
-
-    oThis.addresses = response.data['addresses'];
-    oThis.nextPagePayload = response.data['nextPagePayload'];
-  }
-
-  /**
-   * Fetch sessions from cache.
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _fetchSessionFromCache() {
-    const oThis = this;
-
-    let response = await oThis._getUserSessionsDataFromCache(oThis.addresses);
-
-    let returnData = {
-      [resultType.sessions]: response.data
-    };
-
-    if (oThis.nextPagePayload) {
-      returnData[resultType.nextPagePayload] = oThis.nextPagePayload;
-    }
-
-    return returnData;
   }
 
   /**
@@ -134,9 +127,8 @@ class SessionListByUserId extends SessionGetBase {
 
     let sessionObj = new SessionModel({ shardNumber: oThis.sessionShardNumber });
 
-    let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
 
-    return sessionObj.getSessionsAddresses(oThis.userId, oThis.limit, lastEvaluatedKey);
+    return sessionObj.getSessionsAddresses(oThis.userId, oThis._currentPageLimit(), oThis.lastEvaluatedKey);
   }
 
   /**
@@ -153,10 +145,30 @@ class SessionListByUserId extends SessionGetBase {
       sessionAddressesByUserId = new SessionAddressesByUserId({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
-        shardNumber: oThis.sessionShardNumber
+        shardNumber: oThis.sessionShardNumber,
+        limit: oThis._currentPageLimit()
       });
 
     return sessionAddressesByUserId.fetch();
+  }
+
+  /**
+   * Fetch sessions from cache.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchSessionFromCache() {
+    const oThis = this;
+
+    let response = await oThis._getUserSessionsDataFromCache(oThis.sessionAddresses);
+
+    let returnData = {
+      [resultType.sessions]: response.data,
+      [resultType.meta]: oThis.responseMetaData
+    };
+
+    return returnData;
   }
 
   /**
@@ -187,6 +199,44 @@ class SessionListByUserId extends SessionGetBase {
     }
 
     return responseData;
+  }
+
+  /**
+   * _defaultPageLimit
+   *
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultSessionPageSize;
+  }
+
+  /**
+   * _minPageLimit
+   *
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minSessionPageSize;
+  }
+
+  /**
+   * _maxPageLimit
+   *
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxSessionPageSize;
+  }
+
+  /**
+   * _currentPageLimit
+   *
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
+
+    return oThis.limit;
   }
 }
 

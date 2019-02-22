@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  *  Fetch session details by userId and addresses.
  *
@@ -19,11 +18,15 @@ require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
-const BigNumber = require('bignumber.js');
-
+/**
+ * Class for get sessions base.
+ *
+ * @class
+ */
 class SessionGetBase extends ServiceBase {
   /**
-   * @param params
+   *
+   * @param {Object} params
    * @param {String}   params.user_id
    * @param {Integer} params.client_id
    * @param {Integer} [params.token_id]
@@ -48,7 +51,7 @@ class SessionGetBase extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateParams();
+    await oThis._validateAndSanitizeParams();
 
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
@@ -66,10 +69,14 @@ class SessionGetBase extends ServiceBase {
   }
 
   /**
+   * Validate and sanitize input parameters.
+   *
+   * @returns {*}
+   *
    * @private
    */
-  _validateParams() {
-    throw 'sub class to implement';
+  async _validateAndSanitizeParams() {
+    //Do nothing
   }
 
   /**

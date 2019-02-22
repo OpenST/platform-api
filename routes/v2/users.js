@@ -6,14 +6,16 @@ const rootPrefix = '../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  UserListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserList'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
+  DeviceListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/DeviceList'),
   SessionFormatter = require(rootPrefix + '/lib/formatter/entity/Session'),
+  SessionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/SessionList'),
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
-  TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
-  NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
+  TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -82,7 +84,7 @@ router.get('/', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let users = serviceResponse.data[resultType.users],
       formattedUsers = [],
-      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data.nextPagePayload).perform().data;
+      metaPayload = new UserListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let index in users) {
       formattedUsers.push(new UserFormatter(users[index]).perform().data);
@@ -91,7 +93,7 @@ router.get('/', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.users,
       [resultType.users]: formattedUsers,
-      [resultType.nextPagePayload]: nextPagePayload
+      [resultType.meta]: metaPayload
     };
   };
 
@@ -125,7 +127,7 @@ router.get('/:user_id/devices', function(req, res, next) {
     let devices = serviceResponse.data[resultType.devices],
       formattedDevices = [],
       buffer,
-      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data[resultType.nextPagePayload]).perform().data;
+      metaPayload = new DeviceListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let deviceUuid in devices) {
       buffer = devices[deviceUuid];
@@ -138,7 +140,7 @@ router.get('/:user_id/devices', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.devices,
       [resultType.devices]: formattedDevices,
-      [resultType.nextPagePayload]: nextPagePayload
+      [resultType.meta]: metaPayload
     };
   };
 
@@ -178,7 +180,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let sessions = serviceResponse.data[resultType.sessions],
       formattedSessions = [],
-      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data.nextPagePayload).perform().data;
+      metaPayload = new SessionListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let address in sessions) {
       formattedSessions.push(new SessionFormatter(sessions[address]).perform().data);
@@ -187,7 +189,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.sessions,
       [resultType.sessions]: formattedSessions,
-      [resultType.nextPagePayload]: nextPagePayload
+      [resultType.meta]: metaPayload
     };
   };
 

@@ -1,19 +1,19 @@
 'use strict';
-
 /**
  *  Fetch session details of specific session address.
  *
  * @module app/services/session/get/ByAddress
  */
+
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   SessionGetBase = require(rootPrefix + '/app/services/session/get/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
-
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
 
 /**
  * Class to get session details of specific session address
@@ -22,11 +22,8 @@ const OSTBase = require('@openstfoundation/openst-base'),
  */
 class SessionGetByAddress extends SessionGetBase {
   /**
-   * @param params
-   * @param {Integer} params.client_id
-   * @param {String} params.user_id
+   * @param {object} params
    * @param {String} params.address - Session address.
-   * @param {Integer} [params.token_id]
    */
   constructor(params) {
     super(params);
@@ -36,14 +33,16 @@ class SessionGetByAddress extends SessionGetBase {
   }
 
   /**
-   * Validate Specific params
+   * Validate and sanitize input parameters.
    *
-   * @returns {Promise<never>}
+   * @returns {*}
+   *
    * @private
    */
-  async _validateParams() {
-    // nothing to validate
+  async _validateAndSanitizeParams() {
     const oThis = this;
+    // nothing to validate
+    await super._validateAndSanitizeParams();
     oThis.address = oThis.address.toLowerCase();
   }
 

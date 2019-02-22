@@ -128,42 +128,61 @@ class ServicesBaseKlass {
   }
 
   /**
-   * _validatePaginationParams - Validate Pagination Params
+   * _parsePaginationParams - parse pagination identifier
    *
-   * @return {Promise<void>}
+   * @param paginationIdentifier
+   * @return {*}
    * @private
    */
-  async _validatePaginationParams() {
+  _parsePaginationParams(paginationIdentifier) {
     const oThis = this;
 
-    if (oThis.paginationIdentifier) {
-      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
-    }
+    let parsedPaginationParams = basicHelper.decryptPageIdentifier(paginationIdentifier);
 
-    let defaultPageSize = oThis._defaultPageSize(),
-      maxPageSize = oThis._maxPageSize();
+    return parsedPaginationParams;
+  }
 
-    let limitVas = CommonValidators.validateAndSanitizeLimit(oThis.limit, defaultPageSize, maxPageSize);
+  /**
+   * Validate limit
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _validatePageSize() {
+    const oThis = this;
+
+    let limitVas = CommonValidators.validateAndSanitizeLimit(
+      oThis._currentPageLimit(),
+      oThis._minPageLimit(),
+      oThis._maxPageLimit()
+    );
 
     if (!limitVas[0]) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_b_3',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_pagination_limit'],
+          params_error_identifiers: ['invalid_next_page_payload'],
           debug_options: {}
         })
       );
     }
-
-    oThis.limit = limitVas[1];
   }
 
-  _defaultPageSize() {
+  _currentPageLimit() {
     throw 'Sub-class to implement';
   }
 
-  _maxPageSize() {
+  _defaultPageLimit() {
+    throw 'Sub-class to implement';
+  }
+
+  _minPageLimit() {
+    throw 'Sub-class to implement';
+  }
+
+  _maxPageLimit() {
     throw 'Sub-class to implement';
   }
 }
