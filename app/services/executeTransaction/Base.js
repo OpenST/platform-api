@@ -91,6 +91,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pessimisticAmountDebitted = null;
     oThis.pendingTransactionInserted = null;
     oThis.transactionMetaId = null;
+    oThis.token = null;
   }
 
   /**
@@ -204,7 +205,9 @@ class ExecuteTxBase extends ServiceBase {
         executableData: oThis.executableData,
         contractAddress: oThis.pricerRuleAddress,
         web3Instance: oThis.web3Instance,
-        tokenHolderAddress: oThis.tokenHolderAddress
+        tokenHolderAddress: oThis.tokenHolderAddress,
+        auxChainId: oThis.auxChainId,
+        conversionFactor: oThis.token.conversionFactor
       }).perform();
     } else {
       return oThis._validationError('s_et_b_4', ['invalid_executable_data'], {
