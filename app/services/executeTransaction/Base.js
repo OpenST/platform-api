@@ -9,32 +9,32 @@
 const uuidv4 = require('uuid/v4');
 
 const rootPrefix = '../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   entityConst = require(rootPrefix + '/lib/globalConstant/shard'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   ProcessTokenRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/TokenRule'),
   ProcessPricerRuleExecutableData = require(rootPrefix +
     '/lib/executeTransactionManagement/processExecutableData/PricerRule'),
-  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
-  errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
-  TokenRuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRule'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
-  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
-  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
 
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/Balance');
@@ -91,6 +91,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pessimisticAmountDebitted = null;
     oThis.pendingTransactionInserted = null;
     oThis.transactionMetaId = null;
+    oThis.token = null;
   }
 
   /**
@@ -121,6 +122,44 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
+   * asyncPerform
+   *
+   * @return {Promise<any>}
+   */
+  async _asyncPerform() {
+    const oThis = this;
+
+    await oThis._validateAndSanitize();
+
+    await oThis._initializeVars();
+
+    await oThis._processExecutableData();
+
+    await oThis._setSessionAddress();
+
+    await oThis._setNonce();
+
+    await oThis._setSignature();
+
+    await oThis._verifySessionSpendingLimit();
+
+    await oThis._createTransactionMeta();
+
+    await oThis._performPessimisticDebit();
+
+    await oThis._createPendingTransaction();
+
+    await oThis._publishToRMQ();
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        transactionUuid: oThis.transactionUuid //TODO: To change after discussions
+      })
+    );
+  }
+
+  /**
+   * Initializes web3 and rmq instances and fetches token holder address
    *
    * @return {Promise<void>}
    * @private
@@ -143,135 +182,32 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   *
-   * @private
-   */
-  async _tokenAddresses() {
-    const oThis = this;
-
-    if (oThis.tokenAddresses) {
-      return oThis.tokenAddresses;
-    }
-
-    let getAddrRsp = await new TokenAddressCache({
-      tokenId: oThis.tokenId
-    }).fetch();
-
-    if (getAddrRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_b_1',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    oThis.tokenAddresses = getAddrRsp.data;
-
-    return oThis.tokenAddresses;
-  }
-
-  /**
-   *
-   * @return {Promise<string>}
-   * @private
-   */
-  async _tokenRuleAddress() {
-    const oThis = this;
-    if (oThis.tokenRuleAddress) {
-      return oThis.tokenRuleAddress;
-    }
-    let tokenAddresses = await oThis._tokenAddresses();
-    oThis.tokenRuleAddress = tokenAddresses[tokenAddressConstants.tokenRulesContractKind];
-    if (!oThis.tokenRuleAddress) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_b_7',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-    return oThis.tokenRuleAddress;
-  }
-
-  /**
-   *
-   * @private
-   */
-  async _pricerRuleData() {
-    const oThis = this;
-
-    if (oThis.pricerRuleData) {
-      return oThis.pricerRuleData;
-    }
-
-    let fetchPricerRuleRsp = await RuleModel.getPricerRuleDetails();
-
-    if (fetchPricerRuleRsp.isFailure()) {
-      return Promise.reject(fetchPricerRuleRsp);
-    }
-
-    oThis.ruleId = fetchPricerRuleRsp.data.id;
-
-    let tokenRuleCache = new TokenRuleCache({ tokenId: oThis.tokenId, ruleId: oThis.ruleId }),
-      tokenRuleCacheRsp = await tokenRuleCache.fetch();
-
-    if (tokenRuleCacheRsp.isFailure() || !tokenRuleCacheRsp.data) {
-      return Promise.reject(tokenRuleCacheRsp);
-    }
-
-    oThis.pricerRuleData = tokenRuleCacheRsp.data;
-
-    return oThis.pricerRuleData;
-  }
-
-  /**
-   *
-   * @return {Promise<string>}
-   * @private
-   */
-  async _pricerRuleAddress() {
-    const oThis = this;
-    if (oThis.pricerRuleAddress) {
-      return oThis.pricerRuleAddress;
-    }
-    let pricerRuleData = await oThis._pricerRuleData();
-    oThis.pricerRuleAddress = pricerRuleData.address;
-    if (!oThis.pricerRuleAddress) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_b_8',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-    return oThis.pricerRuleAddress;
-  }
-
-  /**
+   * Process executable data
    *
    * @private
    */
   async _processExecutableData() {
     const oThis = this;
 
-    let response,
-      tokenRuleAddress = await oThis._tokenRuleAddress(),
-      pricerRuleAddress = await oThis._pricerRuleAddress();
+    await oThis._getRulesDetails();
 
-    if (tokenRuleAddress === oThis.toAddress) {
+    let response;
+
+    if (oThis.tokenRuleAddress === oThis.toAddress) {
       response = await new ProcessTokenRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.tokenRuleAddress,
         web3Instance: oThis.web3Instance,
         tokenHolderAddress: oThis.tokenHolderAddress
       }).perform();
-    } else if (pricerRuleAddress === oThis.toAddress) {
+    } else if (oThis.pricerRuleAddress === oThis.toAddress) {
       response = await new ProcessPricerRuleExecutableData({
         executableData: oThis.executableData,
         contractAddress: oThis.pricerRuleAddress,
         web3Instance: oThis.web3Instance,
-        tokenHolderAddress: oThis.tokenHolderAddress
+        tokenHolderAddress: oThis.tokenHolderAddress,
+        auxChainId: oThis.auxChainId,
+        conversionFactor: oThis.token.conversionFactor
       }).perform();
     } else {
       return oThis._validationError('s_et_b_4', ['invalid_executable_data'], {
@@ -290,33 +226,7 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   *
-   * @private
-   */
-  async _setBalanceShardNumber() {
-    const oThis = this,
-      TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
-
-    let response = await new TokenShardNumbersCache({ tokenId: oThis.tokenId }).fetch();
-
-    let balanceShardNumber = response.data[entityConst.balanceEntityKind];
-
-    if (!balanceShardNumber) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_b_6',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            shards: response.data
-          }
-        })
-      );
-    }
-
-    oThis.balanceShardNumber = balanceShardNumber;
-  }
-
-  /**
+   * Perform Pessimistic Debit
    *
    * @private
    */
@@ -352,6 +262,40 @@ class ExecuteTxBase extends ServiceBase {
     oThis.unsettledDebits = [buffer];
   }
 
+  /**
+   * Get balance shard for token id
+   *
+   * @private
+   */
+  async _setBalanceShardNumber() {
+    const oThis = this,
+      TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
+
+    let response = await new TokenShardNumbersCache({ tokenId: oThis.tokenId }).fetch();
+
+    let balanceShardNumber = response.data[entityConst.balanceEntityKind];
+
+    if (!balanceShardNumber) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_et_b_6',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            shards: response.data
+          }
+        })
+      );
+    }
+
+    oThis.balanceShardNumber = balanceShardNumber;
+  }
+
+  /**
+   * create entry in tx meta table.
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _createTransactionMeta() {
     const oThis = this;
 
@@ -443,7 +387,11 @@ class ExecuteTxBase extends ServiceBase {
         ephemeralAddress: oThis.sessionKeyAddress
       });
 
-    let publishDetails = await exTxGetPublishDetails.perform();
+    let publishDetails = await exTxGetPublishDetails.perform().catch(async function(error) {
+      logger.error(`In catch block of exTxGetPublishDetails in file: ${__filename}`, error);
+      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
+      return Promise.reject(error);
+    });
 
     let messageParams = {
       topics: [publishDetails.topicName],
@@ -494,7 +442,7 @@ class ExecuteTxBase extends ServiceBase {
       await new TransactionMetaModel()
         .update({
           status: transactionMetaConst.invertedStatuses[oThis.failureStatusToUpdateInTxMeta],
-          debug_params: [customError.toString()]
+          debug_params: JSON.stringify(customError.toHash())
         })
         .where({ id: oThis.transactionMetaId })
         .fire();
@@ -513,6 +461,55 @@ class ExecuteTxBase extends ServiceBase {
   async _setWebInstance() {
     const oThis = this;
     oThis.web3Instance = await web3Provider.getInstance(oThis._configStrategyObject.auxChainWsProvider).web3WsProvider;
+  }
+
+  /**
+   * Get Token Rule Details from cache
+   *
+   * @return {Promise<never>}
+   * @private
+   */
+  async _getRulesDetails() {
+    const oThis = this;
+
+    let tokenRuleDetailsCacheRsp = await new TokenRuleDetailsByTokenId({ tokenId: oThis.tokenId }).fetch();
+
+    if (tokenRuleDetailsCacheRsp.isFailure() || !tokenRuleDetailsCacheRsp.data) {
+      return Promise.reject(tokenRuleDetailsCacheRsp);
+    }
+
+    oThis.tokenRuleAddress = tokenRuleDetailsCacheRsp.data[ruleConstants.tokenRuleName].address;
+    oThis.pricerRuleAddress = tokenRuleDetailsCacheRsp.data[ruleConstants.pricerRuleName].address;
+  }
+
+  /**
+   * Fetch token addresses from cache
+   *
+   * @private
+   */
+  async _tokenAddresses() {
+    const oThis = this;
+
+    if (oThis.tokenAddresses) {
+      return oThis.tokenAddresses;
+    }
+
+    let getAddrRsp = await new TokenAddressCache({
+      tokenId: oThis.tokenId
+    }).fetch();
+
+    if (getAddrRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_et_b_1',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.tokenAddresses = getAddrRsp.data;
+
+    return oThis.tokenAddresses;
   }
 
   /**
@@ -576,6 +573,14 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   async _setSignature() {
+    throw 'subclass to implement';
+  }
+
+  async _validateAndSanitize() {
+    throw 'subclass to implement';
+  }
+
+  async _verifySessionSpendingLimit() {
     throw 'subclass to implement';
   }
 }

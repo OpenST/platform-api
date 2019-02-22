@@ -23,6 +23,7 @@ const rootPrefix = '../../..',
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress'),
+  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 class GatewayComposer {
@@ -70,6 +71,8 @@ class GatewayComposer {
     await oThis.getGatewayComposerContractAddress();
 
     await oThis.getGatewayContractAddress();
+
+    await oThis.getBeneficiaryAddress();
 
     await oThis.getOriginChainGasPrice();
 
@@ -144,7 +147,45 @@ class GatewayComposer {
     }
 
     oThis.responseData['gateway_contract_address'] = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
-    oThis.responseData['stake_and_mint_beneficiary'] = tokenAddressesRsp.data[tokenAddressConstants.ownerAddressKind];
+  }
+
+  /**
+   * This function fetches gateway contract address from cache and sets in response data hash.
+   *
+   * @returns {Promise<>}
+   */
+  async getBeneficiaryAddress() {
+    const oThis = this;
+
+    let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
+
+    if (
+      tokenCompanyUserCacheRsp.isFailure() ||
+      !tokenCompanyUserCacheRsp.data ||
+      !tokenCompanyUserCacheRsp.data['userUuids'] ||
+      tokenCompanyUserCacheRsp.data['userUuids'].length === 0
+    ) {
+      return Promise.reject(tokenCompanyUserCacheRsp);
+    }
+
+    let tokenHolderUuid = tokenCompanyUserCacheRsp.data['userUuids'][0],
+      TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({
+        tokenId: oThis.tokenId,
+        userIds: [tokenHolderUuid]
+      }),
+      tokenUserDetailsCacheRsp = await tokenUserDetailsCacheObj.fetch();
+
+    if (
+      tokenUserDetailsCacheRsp.isFailure() ||
+      !tokenUserDetailsCacheRsp.data ||
+      !!tokenUserDetailsCacheRsp.data[tokenHolderUuid]
+    ) {
+      return Promise.reject(tokenUserDetailsCacheRsp);
+    }
+
+    oThis.responseData['stake_and_mint_beneficiary'] =
+      tokenUserDetailsCacheRsp.data[tokenHolderUuid]['tokenHolderAddress'];
   }
 
   /**

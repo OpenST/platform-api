@@ -53,46 +53,10 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
+    oThis.token = params.token;
 
     oThis.sessionData = null;
     oThis.toAddress = null;
-  }
-
-  /**
-   * asyncPerform
-   *
-   * @return {Promise<any>}
-   */
-  async _asyncPerform() {
-    const oThis = this;
-
-    await oThis._validateAndSanitize();
-
-    await oThis._initializeVars();
-
-    await oThis._processExecutableData();
-
-    await oThis._setSessionAddress();
-
-    await oThis._setNonce();
-
-    await oThis._setSignature();
-
-    await oThis._verifySessionSpendingLimit();
-
-    await oThis._createTransactionMeta();
-
-    await oThis._performPessimisticDebit();
-
-    await oThis._createPendingTransaction();
-
-    await oThis._publishToRMQ();
-
-    return Promise.resolve(
-      responseHelper.successWithData({
-        transactionUuid: oThis.transactionUuid //TODO: To change after discussions
-      })
-    );
   }
 
   /**
@@ -150,8 +114,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
     if (oThis.pessimisticDebitAmount.gte(new BigNumber(oThis.sessionData.spendingLimit))) {
       return oThis._validationError('s_et_fu_1', ['session_key_spending_limit_breached'], {
-        spendingLimit: oThis.sessionData.spendingLimit.toString(10),
-        pessimisticDebitAmount: oThis.pessimisticDebitAmount.toString(10)
+        spendingLimit: basicHelper.formatWeiToString(oThis.sessionData.spendingLimit),
+        pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
       });
     }
   }

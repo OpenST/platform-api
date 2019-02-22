@@ -5,6 +5,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   //LockableBaseKlass = require(rootPrefix + '/app/models/lockable_base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
 const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -100,6 +101,14 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.transaction_hash = params.transactionHash;
     }
 
+    if (params.senderAddress) {
+      dataToUpdate.sender_address = params.senderAddress;
+    }
+
+    if (params.senderNonce) {
+      dataToUpdate.sender_nonce = params.senderNonce;
+    }
+
     if (params.debugParams) {
       dataToUpdate.debug_params = JSON.stringify(params.debugParams);
     }
@@ -163,21 +172,32 @@ class TransactionMetaModel extends ModelBase {
    * @param sessionAddress
    * @return {void|*}
    */
-  getSessionNonce(sessionAddress) {
+  async getSessionNonce(sessionAddress) {
     const oThis = this;
 
     let statuses = [
+      transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.minedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.finalizationInProcess],
       transactionMetaConst.invertedStatuses[transactionMetaConst.finalizedStatus]
     ];
 
-    return oThis
-      .select('session_nonce')
+    let dbRows = await oThis
+      .select('session_address, session_nonce')
       .where(['session_address = ? AND status IN (?)', sessionAddress, statuses])
       .order_by('session_nonce DESC')
       .limit(1)
       .fire();
+
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
+    return responseHelper.successWithData({
+      address: dbRows[0].session_address,
+      nonce: dbRows[0].session_nonce
+    });
   }
 }
 
