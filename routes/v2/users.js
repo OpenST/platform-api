@@ -29,7 +29,7 @@ require(rootPrefix + '/app/services/user/GetTransaction');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
-require(rootPrefix + '/app/services/device/get/ByWalletAddress');
+require(rootPrefix + '/app/services/device/get/ByAddress');
 require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 require(rootPrefix + '/app/services/device/multisigOperation/RevokeDevice');
 
@@ -194,7 +194,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'SessionListByUserId', 'r_v2_u_7', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'UserSessionList', 'r_v2_u_7', null, dataFormatterFunc)
   );
 });
 
@@ -215,7 +215,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'SessionGetByAddress', 'r_v2_u_8', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetSessionByAddress', 'r_v2_u_8', null, dataFormatterFunc));
 });
 
 /* Get user device managers*/

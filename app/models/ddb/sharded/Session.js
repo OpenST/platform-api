@@ -191,12 +191,13 @@ class Session extends Base {
    * Get paginated data
    *
    * @param {Number} userId
+   * @param {Number} page  - page number
    * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getSessionsAddresses(userId, limit, lastEvaluatedKey) {
+  async getSessionsAddresses(userId, page, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForUserId = oThis.shortNameFor('userId'),
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId];
@@ -238,6 +239,7 @@ class Session extends Base {
       responseData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           lastEvaluatedKey: response.data.LastEvaluatedKey,
+          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query.
           limit: limit
         }
       };
@@ -381,8 +383,7 @@ class Session extends Base {
         'UserSessionAddressCache'
       ),
       userSessionAddressCache = new UserSessionAddressCache({
-        userId: params.userId,
-        limit: pagination.defaultSessionPageSize
+        userId: params.userId
       });
 
     await userSessionAddressCache.clear();

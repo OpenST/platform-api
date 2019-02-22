@@ -2,10 +2,9 @@
 /**
  *  Fetch device details by userId and wallet address.
  *
- * @module app/services/device/get/ByWalletAddress
+ * @module app/services/device/get/ByAddress
  */
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -13,17 +12,16 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  GetDeviceListBase = require(rootPrefix + '/app/services/device/get/Base');
+  GetDeviceBase = require(rootPrefix + '/app/services/device/get/Base');
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
+const InstanceComposer = OSTBase.InstanceComposer;
 
 /**
  * Class to get devices data by userId and wallet address.
  *
  * @class GetDeviceByAddress
  */
-class GetDeviceByAddress extends GetDeviceListBase {
+class GetDeviceByAddress extends GetDeviceBase {
   /**
    * Constructor to get devices data by userId and wallet address.
    *
@@ -37,8 +35,6 @@ class GetDeviceByAddress extends GetDeviceListBase {
     const oThis = this;
 
     oThis.address = params.address;
-
-    oThis.walletAddresses = [];
   }
 
   /**
@@ -65,29 +61,21 @@ class GetDeviceByAddress extends GetDeviceListBase {
   }
 
   /**
-   * Get user device data from cache.
+   * Format response
    *
-   * @returns {Promise<*|result>}
+   * @return {*}
+   *
+   * @private
    */
-  async _getUserDeviceDataFromCache() {
+  _formatApiResponse() {
     const oThis = this;
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailCache = new DeviceDetailCache({
-        userId: oThis.userId,
-        tokenId: oThis.tokenId,
-        walletAddresses: oThis.walletAddresses
-      }),
-      response = await deviceDetailCache.fetch();
+    let device = oThis.deviceDetails[0];
 
-    if (response.isFailure()) {
-      return Promise.reject(response);
-    }
-
-    if (!CommonValidators.validateObject(response.data[oThis.address])) {
+    if (!CommonValidators.validateObject(device)) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_d_g_bwa_1',
+          internal_error_identifier: 'a_s_d_g_ba_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['invalid_device_address'],
           debug_options: {}
@@ -95,14 +83,9 @@ class GetDeviceByAddress extends GetDeviceListBase {
       );
     }
 
-    let finalResponse = response.data[oThis.address],
-      linkedAddressMap = await oThis._fetchLinkedDeviceAddressMap();
-
-    finalResponse.linkedAddress = linkedAddressMap[oThis.address];
-
-    return {
-      [resultType.device]: finalResponse
-    };
+    return responseHelper.successWithData({
+      [resultType.device]: device
+    });
   }
 }
 

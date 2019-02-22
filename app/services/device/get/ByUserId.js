@@ -4,22 +4,19 @@
  *
  * @module app/services/device/get/ByUserId
  */
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  GetDeviceListBase = require(rootPrefix + '/app/services/device/get/Base'),
+  GetDeviceBase = require(rootPrefix + '/app/services/device/get/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination');
 
+const InstanceComposer = OSTBase.InstanceComposer;
+
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/app/models/ddb/sharded/Device');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/UserWalletAddress');
 
 /**
@@ -27,7 +24,7 @@ require(rootPrefix + '/lib/cacheManagement/chain/UserWalletAddress');
  *
  * @class UserDeviceList
  */
-class UserDeviceList extends GetDeviceListBase {
+class UserDeviceList extends GetDeviceBase {
   /**
    * Constructor to list devices by userId.
    *
@@ -36,7 +33,7 @@ class UserDeviceList extends GetDeviceListBase {
    * @param {Integer} [params.limit]
    * @param {String} [params.pagination_identifier]: pagination identifier to fetch page
    *
-   * @augments GetDeviceListBase
+   * @augments GetDeviceBase
    *
    * @constructor
    */
@@ -45,11 +42,9 @@ class UserDeviceList extends GetDeviceListBase {
 
     const oThis = this;
 
-    oThis.addresses = params.addresses || [];
+    oThis.addresses = params.addresses;
     oThis.limit = params.limit;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
-
-    oThis.walletAddresses = [];
 
     oThis.lastEvaluatedKey = null;
     oThis.page = null;
@@ -77,6 +72,7 @@ class UserDeviceList extends GetDeviceListBase {
       oThis.limit = parsedPaginationParams.limit; //override limit
       oThis.lastEvaluatedKey = parsedPaginationParams.lastEvaluatedKey;
     } else {
+      oThis.addresses = oThis.addresses || [];
       oThis.page = 1;
       oThis.limit = oThis.limit || oThis._defaultPageLimit();
       oThis.lastEvaluatedKey = null;
@@ -142,43 +138,19 @@ class UserDeviceList extends GetDeviceListBase {
   }
 
   /**
-   * Get user device data from cache.
+   * Format response
    *
-   * @returns {Promise<*|result>}
+   * @return {*}
+   *
+   * @private
    */
-  async _getUserDeviceDataFromCache() {
+  _formatApiResponse() {
     const oThis = this;
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailCache = new DeviceDetailCache({
-        userId: oThis.userId,
-        tokenId: oThis.tokenId,
-        walletAddresses: oThis.walletAddresses
-      }),
-      response = await deviceDetailCache.fetch();
-
-    if (response.isFailure()) {
-      return Promise.reject(response);
-    }
-
-    let finalResponse = response.data,
-      linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
-
-    for (let deviceUuid in finalResponse) {
-      let device = finalResponse[deviceUuid];
-      if (!CommonValidators.validateObject(device)) {
-        continue;
-      }
-      let deviceAddress = device.walletAddress;
-      finalResponse[deviceUuid].linkedAddress = linkedAddressesMap[deviceAddress];
-    }
-
-    const returnData = {
-      [resultType.devices]: finalResponse,
+    return responseHelper.successWithData({
+      [resultType.devices]: oThis.deviceDetails,
       [resultType.meta]: oThis.responseMetaData
-    };
-
-    return returnData;
+    });
   }
 
   /**
