@@ -53,6 +53,7 @@ class User extends Base {
       recoveryAddress: 'ra',
       deviceShardNumber: 'dsn',
       sessionShardNumber: 'ssn',
+      recoveryOwnerShardNumber: 'rosn',
       saasApiStatus: 'sas',
       status: 'sts',
       updatedTimestamp: 'uts'
@@ -87,6 +88,7 @@ class User extends Base {
       ra: 'S',
       dsn: 'N',
       ssn: 'N',
+      rosn: 'N',
       sas: 'N',
       sts: 'N',
       uts: 'N'
@@ -185,8 +187,10 @@ class User extends Base {
         'tokenHolderAddress',
         'multisigAddress',
         'recoveryOwnerAddress',
+        'recoveryAddress',
         'deviceShardNumber',
         'sessionShardNumber',
+        'recoveryOwnerShardNumber',
         'saasApiStatus',
         'status',
         'updatedTimestamp'
@@ -358,6 +362,12 @@ class User extends Base {
     if (params['multisigAddress']) {
       params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
     }
+    if (params['recoveryOwnerAddress']) {
+      params['recoveryOwnerAddress'] = basicHelper.sanitizeAddress(params['recoveryOwnerAddress']);
+    }
+    if (params['recoveryAddress']) {
+      params['recoveryAddress'] = basicHelper.sanitizeAddress(params['recoveryAddress']);
+    }
     params['status'] = tokenUserConstants.invertedStatuses[params['status']];
 
     if (!params['updatedTimestamp']) {
@@ -370,6 +380,8 @@ class User extends Base {
    * Method to perform extra formatting
    *
    * @param {Object} dbRow
+   * @param {Number} dbRow.status
+   * @param {Number} dbRow.kind
    *
    * @return {Object}
    *
@@ -378,6 +390,7 @@ class User extends Base {
   _sanitizeRowFromDynamo(dbRow) {
     dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
     dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
+
     return dbRow;
   }
 
