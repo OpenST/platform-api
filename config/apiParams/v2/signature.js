@@ -656,8 +656,8 @@ const v2Signature = {
   [apiName.getTransaction]: {
     mandatory: [
       {
-        parameter: 'client_id',
-        validatorMethod: 'validateNonZeroInteger'
+        parameter: 'user_id',
+        validatorMethod: 'validateUuid'
       },
       {
         parameter: 'transaction_id',
@@ -687,6 +687,10 @@ const v2Signature = {
       {
         parameter: 'user_id',
         validatorMethod: 'validateUuid'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []

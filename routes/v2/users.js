@@ -385,6 +385,7 @@ router.get('/:user_id/transactions', function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserTransactions;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.token_id = req.params.token_id;
   req.decodedParams.meta_property = req.params.meta_property;
   req.decodedParams.status = req.params.status;
 
