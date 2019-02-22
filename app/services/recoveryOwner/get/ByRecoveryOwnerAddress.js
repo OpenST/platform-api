@@ -1,5 +1,5 @@
 /**
- *  Fetch device details by userId and recovery owner address.
+ *  Fetch recovery owner details by userId and recovery owner address.
  *
  * @module app/services/recoveryOwner/get/ByRecoveryOwnerAddress
  */
@@ -16,9 +16,14 @@ const rootPrefix = '../../../..',
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/RecoveryOwnerDetail');
 
+/**
+ * Class to get recovery owner details by userId and recovery owner address.
+ *
+ * @class ByRecoveryOwnerAddress
+ */
 class ByRecoveryOwnerAddress extends ServiceBase {
   /**
-   * Constructor to get devices data by userId and wallet addresses.
+   * Constructor to recovery owner details by userId and recovery owner address.
    *
    * @param {Object} params
    * @param {Integer} params.client_id
