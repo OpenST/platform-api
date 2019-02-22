@@ -50,7 +50,9 @@ class ExecuteTxBase extends ServiceBase {
    * Constructor
    *
    * @param {Object} params
-   * @param {Object} params.token_id
+   * @param {Number} params.token_id
+   * @param {String} params.to
+   * @param {Object} params.raw_calldata - raw_calldata
    * @param {Object} params.meta_property
    * @param {String} params.executable_data - executable_data json string
    * @param {Number} params.operation_type
@@ -64,9 +66,9 @@ class ExecuteTxBase extends ServiceBase {
     const oThis = this;
 
     oThis.tokenId = params.token_id;
+    oThis.toAddress = params.to;
     oThis.metaProperty = params.meta_property;
-    oThis.executableData = params.executable_data;
-    oThis.operationType = params.operation_type;
+    oThis.rawCalldata = params.raw_calldata;
 
     oThis.tokenAddresses = null;
     oThis.erc20Address = null;
@@ -92,6 +94,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pendingTransactionInserted = null;
     oThis.transactionMetaId = null;
     oThis.token = null;
+    oThis.pendingTransactionData = null;
   }
 
   /**
@@ -151,11 +154,7 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._publishToRMQ();
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        transactionUuid: oThis.transactionUuid //TODO: To change after discussions
-      })
-    );
+    return Promise.resolve(responseHelper.successWithData(oThis.pendingTransactionData));
   }
 
   /**
@@ -167,7 +166,7 @@ class ExecuteTxBase extends ServiceBase {
   async _initializeVars() {
     const oThis = this;
 
-    oThis.toAddress = basicHelper.sanitizeAddress(oThis.executableData.to);
+    oThis.toAddress = basicHelper.sanitizeAddress(oThis.toAddress);
     oThis.gasPrice = contractConstants.auxChainGasPrice;
     oThis.transactionUuid = uuidv4();
 
@@ -195,23 +194,23 @@ class ExecuteTxBase extends ServiceBase {
 
     if (oThis.tokenRuleAddress === oThis.toAddress) {
       response = await new ProcessTokenRuleExecutableData({
-        executableData: oThis.executableData,
         contractAddress: oThis.tokenRuleAddress,
         web3Instance: oThis.web3Instance,
-        tokenHolderAddress: oThis.tokenHolderAddress
+        tokenHolderAddress: oThis.tokenHolderAddress,
+        rawCallData: oThis.rawCalldata
       }).perform();
     } else if (oThis.pricerRuleAddress === oThis.toAddress) {
       response = await new ProcessPricerRuleExecutableData({
-        executableData: oThis.executableData,
         contractAddress: oThis.pricerRuleAddress,
         web3Instance: oThis.web3Instance,
         tokenHolderAddress: oThis.tokenHolderAddress,
         auxChainId: oThis.auxChainId,
-        conversionFactor: oThis.token.conversionFactor
+        conversionFactor: oThis.token.conversionFactor,
+        rawCallData: oThis.rawCalldata
       }).perform();
     } else {
-      return oThis._validationError('s_et_b_4', ['invalid_executable_data'], {
-        executableData: oThis.executableData
+      return oThis._validationError('s_et_b_4', ['invalid_to'], {
+        toAddress: oThis.toAddress
       });
     }
 
@@ -348,7 +347,6 @@ class ExecuteTxBase extends ServiceBase {
     let insertRsp = await new PendingTransactionCrud(oThis.auxChainId).create({
       transactionData: {
         to: oThis.tokenHolderAddress,
-        value: oThis.executableData.value,
         gas: oThis.gas,
         gasPrice: oThis.gasPrice
       },
@@ -372,6 +370,8 @@ class ExecuteTxBase extends ServiceBase {
     } else {
       oThis.pendingTransactionInserted = 1;
     }
+
+    oThis.pendingTransactionData = insertRsp.data;
   }
 
   /**

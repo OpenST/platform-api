@@ -109,8 +109,12 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/revoke/'
       },
-      [apiName.postTransaction]: {
+      [apiName.executeTransactionFromUser]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/transactions/'
+      },
+      [apiName.executeTransactionFromCompany]: {
+        supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/transactions/'
       }
     };

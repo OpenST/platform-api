@@ -587,14 +587,70 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.postTransaction]: {
+  [apiName.executeTransactionFromUser]: {
     mandatory: [
       {
         parameter: 'client_id',
         validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'meta_property',
+        validatorMethod: 'validateMetaProperty'
+      }
+    ]
+  },
+
+  [apiName.executeTransactionFromCompany]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateObject'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'meta_property',
+        validatorMethod: 'validateMetaProperty'
+      }
+    ]
   },
 
   [apiName.getTransaction]: {

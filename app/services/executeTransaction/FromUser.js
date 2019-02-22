@@ -34,8 +34,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    * @param {Object} params
    * @param {Object} params.token_id
    * @param {Object} params.user_data - data of user who signed this tx
-   * @param {String} params.executable_data - executable_data json string
-   * @param {Number} params.operation_type
+   * @param {String} params.raw_calldata - raw_calldata
    * @param {Number} params.nonce
    * @param {Number} params.signature
    * @param {Number} params.signer
@@ -56,7 +55,6 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.token = params.token;
 
     oThis.sessionData = null;
-    oThis.toAddress = null;
   }
 
   /**
