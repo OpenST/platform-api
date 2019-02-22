@@ -39,6 +39,8 @@ require(rootPrefix + '/app/services/session/get/ByUserId');
 require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
 
+require(rootPrefix + '/app/services/recoveryOwner/get/ByRecoveryOwnerAddress');
+
 /* Create user*/
 router.post('/', function(req, res, next) {
   req.decodedParams.apiName = apiName.createUser;
