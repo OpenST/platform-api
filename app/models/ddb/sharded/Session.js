@@ -285,6 +285,8 @@ class Session extends Base {
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForAddress = oThis.shortNameFor('address'),
       shortNameForStatus = oThis.shortNameFor('status'),
+      shortNameForTimeStamp = oThis.shortNameFor('updatedTimestamp'),
+      dataTypeForTimeStamp = oThis.shortNameToDataType[shortNameForTimeStamp],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
       initialStatusInt = sessionConstants.invertedSessionStatuses[initialStatus],
       finalStatusInt = sessionConstants.invertedSessionStatuses[finalStatus];
@@ -301,13 +303,15 @@ class Session extends Base {
         ' AND #initialStatus = :initialStatus',
       ExpressionAttributeNames: {
         '#initialStatus': shortNameForStatus,
-        '#finalStatus': shortNameForStatus
+        '#finalStatus': shortNameForStatus,
+        '#updatedTimeStamp': shortNameForTimeStamp
       },
       ExpressionAttributeValues: {
         ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
-        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
+        ':updatedTimeStamp': { [dataTypeForTimeStamp]: basicHelper.getCurrentTimestampInSeconds().toString() }
       },
-      UpdateExpression: 'SET #finalStatus = :finalStatus',
+      UpdateExpression: 'SET #finalStatus = :finalStatus, #updatedTimeStamp = :updatedTimeStamp',
       ReturnValues: 'ALL_NEW'
     };
 
