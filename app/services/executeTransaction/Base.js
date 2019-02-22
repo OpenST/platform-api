@@ -246,6 +246,7 @@ class ExecuteTxBase extends ServiceBase {
 
     let updateBalanceRsp = await balanceObj.updateBalance(buffer).catch(function(updateBalanceResponse) {
       if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
+        oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
         return oThis._validationError('s_et_b_9', ['insufficient_funds']);
       }
       return updateBalanceResponse;
