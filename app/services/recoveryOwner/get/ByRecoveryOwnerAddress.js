@@ -9,13 +9,11 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/RecoveryOwnerDetail');
 
 class ByRecoveryOwnerAddress extends ServiceBase {
@@ -74,34 +72,6 @@ class ByRecoveryOwnerAddress extends ServiceBase {
   }
 
   /**
-   * Fetch linked device addresses for specified user id.
-   *
-   * @returns {Promise<*>}
-   *
-   * @private
-   */
-  async _fetchLinkedDeviceAddressMap() {
-    const oThis = this;
-
-    const PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
-      previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
-      previousOwnersMapRsp = await previousOwnersMapObj.fetch();
-
-    if (previousOwnersMapRsp.isFailure()) {
-      logger.error('Error in fetching linked addresses.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_ro_g_broa_1',
-          api_error_identifier: 'cache_issue',
-          debug_options: {}
-        })
-      );
-    }
-
-    return previousOwnersMapRsp.data;
-  }
-
-  /**
    * Get recovery owner data from cache.
    *
    * @returns {Promise<*|result>}
@@ -126,7 +96,7 @@ class ByRecoveryOwnerAddress extends ServiceBase {
     if (!CommonValidators.validateObject(response.data[oThis.recoveryOwnerAddress])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_ro_g_broa_2',
+          internal_error_identifier: 'a_s_ro_g_broa_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['invalid_recovery_owner_address'],
           debug_options: {}
@@ -134,13 +104,8 @@ class ByRecoveryOwnerAddress extends ServiceBase {
       );
     }
 
-    const finalResponse = response.data[oThis.recoveryOwnerAddress],
-      linkedAddressMap = await oThis._fetchLinkedDeviceAddressMap();
-
-    finalResponse.linkedAddress = linkedAddressMap[oThis.recoveryOwnerAddress];
-
     return {
-      [resultType.recoveryOwner]: finalResponse
+      [resultType.recoveryOwner]: response.data[oThis.recoveryOwnerAddress]
     };
   }
 }
