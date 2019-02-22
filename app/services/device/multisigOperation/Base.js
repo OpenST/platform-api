@@ -27,7 +27,6 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 require(rootPrefix + '/app/models/ddb/sharded/Device');
-require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
  * Class for device related multi sig operations

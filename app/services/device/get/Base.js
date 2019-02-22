@@ -75,14 +75,16 @@ class Base extends ServiceBase {
   }
 
   /**
-   * fetch linked device addresses for specified user id
+   * Fetch linked device addresses for specified user id.
+   *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _fetchLinkedDeviceAddressMap() {
     const oThis = this;
 
-    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+    const PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
       previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
       previousOwnersMapRsp = await previousOwnersMapObj.fetch();
 

@@ -4,26 +4,23 @@
  *
  * @module app/services/device/Create
  */
+const OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  userConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
-
-const InstanceComposer = OSTBase.InstanceComposer;
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
  * Class for CreateDevice
@@ -144,27 +141,29 @@ class CreateDevice extends ServiceBase {
     return responseHelper.successWithData({ [resultType.device]: params });
   }
 
-  /***
-   *
-   * object of config strategy klass
+  /**
+   * Object of config strategy klass
    *
    * @return {object}
    */
   get _configStrategyObject() {
     const oThis = this;
+
     if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+
     return oThis.configStrategyObj;
   }
 
-  /***
-   *
-   * config strategy
+  /**
+   * Config strategy
    *
    * @return {object}
    */
   get _configStrategy() {
     const oThis = this;
+
     return oThis.ic().configStrategy;
   }
 }
