@@ -12,6 +12,7 @@ const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner');
 
@@ -96,11 +97,11 @@ class RecoveryOwner extends Base {
     const oThis = this,
       keyObj = {};
 
-    let userIdShortName = oThis.shortNameFor('userId'),
+    const userIdShortName = oThis.shortNameFor('userId'),
       addressShortName = oThis.shortNameFor('address');
 
-    keyObj[userIdShortName] = { [oThis.shortNameToDataType[userIdShortName]]: params['userId'].toString() };
-    keyObj[addressShortName] = { [oThis.shortNameToDataType[addressShortName]]: params['address'].toString() };
+    keyObj[userIdShortName] = { [oThis.shortNameToDataType[userIdShortName]]: params['userId'] };
+    keyObj[addressShortName] = { [oThis.shortNameToDataType[addressShortName]]: params['address'].toLowerCase() };
 
     return keyObj;
   }
@@ -320,13 +321,15 @@ class RecoveryOwner extends Base {
    */
   static async afterUpdate(ic, params) {
     require(rootPrefix + '/lib/cacheManagement/chainMulti/RecoveryOwnerDetail');
-    let RecoveryOwnerDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwnerDetailCache'),
+    const RecoveryOwnerDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwnerDetailCache'),
       recoveryOwnerDetailCache = new RecoveryOwnerDetailCache({
         userId: params.userId,
         recoveryOwnerAddresses: [params.address]
       });
 
     await recoveryOwnerDetailCache.clear();
+
+    logger.info('Recovery owner cache cleared.');
 
     return responseHelper.successWithData({});
   }

@@ -349,7 +349,7 @@ class Device extends Base {
 
     await walletAddressesByUserId.clear();
 
-    logger.info('device cache cleared.');
+    logger.info('Device cache cleared.');
     return responseHelper.successWithData({});
   }
 
