@@ -7,12 +7,13 @@ const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
   SessionFormatter = require(rootPrefix + '/lib/formatter/entity/Session'),
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
-  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
+  DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner'),
   NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
 
 // Following require(s) for registering into instance composer
@@ -373,6 +374,28 @@ router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   };
 
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
+});
+
+/* Get recovery owner by address */
+router.get('/:user_id/recovery-owners/:recovery_owner_address', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getRecoveryOwner;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.recovery_owner_address = req.params.recovery_owner_address;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const recoveryOwner = serviceResponse.data[resultType.recoveryOwner],
+      formattedRsp = new RecoveryOwnerFormatter(recoveryOwner).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.recoveryOwner,
+      [resultType.recoveryOwner]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_13', null, dataFormatterFunc)
+  );
 });
 
 module.exports = router;

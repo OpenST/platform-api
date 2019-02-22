@@ -35,6 +35,7 @@ class Base extends ServiceBase {
     super(params);
 
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
@@ -106,7 +107,7 @@ class Base extends ServiceBase {
    * @private
    */
   _setWalletAddresses() {
-    throw 'sub class to implement and set oThis.walletAddresses';
+    throw new Error('sub class to implement and set oThis.walletAddresses');
   }
 
   /**

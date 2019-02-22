@@ -92,12 +92,17 @@ const v2ErrorConfig = {
   invalid_filter_address: {
     parameter: 'address',
     code: 'invalid',
-    message: 'Invalid address. Max comma seperated 25 addresses allowed'
+    message: 'Invalid address. Max comma separated 25 addresses allowed.'
   },
   invalid_device_address: {
     parameter: 'device_address',
     code: 'invalid',
     message: 'Invalid device_address.'
+  },
+  invalid_recovery_owner_address: {
+    parameter: 'recovery_owner_address',
+    code: 'invalid',
+    message: 'Invalid recovery_owner_address.'
   },
   ids_more_than_allowed_limit: {
     parameter: 'ids',
@@ -123,6 +128,11 @@ const v2ErrorConfig = {
     parameter: 'device_address',
     code: 'invalid',
     message: 'Either device not registered or not allowed to be authorized.'
+  },
+  user_activation_failed_invalid_recovery_owner_address: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message: 'Either recovery owner address already exists or is not allowed to be authorized.'
   },
   unauthorized_to_access_other_user_information: {
     parameter: 'user_id',

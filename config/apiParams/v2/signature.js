@@ -624,6 +624,29 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       }
     ]
+  },
+
+  [apiName.getRecoveryOwner]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'recovery_owner_address',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   }
 };
 

@@ -67,6 +67,10 @@ class ApiAuthentication {
       [apiName.getTransaction]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/:transaction_id/'
+      },
+      [apiName.getRecoveryOwner]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
       }
     };
     return getRequestConfig;
