@@ -39,8 +39,8 @@ class GetUserTransactions extends ServiceBase {
 
     const oThis = this;
 
-    oThis.user_id = params.user_id;
-    oThis.tokenId = params.tokenId;
+    oThis.userId = params.user_id;
+    oThis.tokenId = params.token_id;
     oThis.status = params.status;
     oThis.meta_property = params.meta_property;
   }
@@ -53,11 +53,9 @@ class GetUserTransactions extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateParams();
-
     let cacheResponse = await oThis._fetchUserFromCache(),
-      userData = cacheResponse.data[oThis.userId],
-      tokenHolderAddress = userData['tokenHolderAddress'];
+      userData = cacheResponse && cacheResponse.data[oThis.userId],
+      tokenHolderAddress = userData && userData['tokenHolderAddress'];
 
     await oThis._validateTokenHolderAddress(tokenHolderAddress);
 
@@ -66,6 +64,8 @@ class GetUserTransactions extends ServiceBase {
       esQuery = oThis.getElasticSearchQuery(tokenHolderAddress);
 
     let userTransactions = await service.search(esQuery);
+
+    logger.debug('userTransactions from Elastic search ', userTransactions);
 
     let responseData = userTransactions; // TODO get from Dynamo
 
@@ -80,30 +80,9 @@ class GetUserTransactions extends ServiceBase {
   async _fetchUserFromCache() {
     const oThis = this,
       TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.user_id] });
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] });
 
     return tokenUserDetailsCacheObj.fetch();
-  }
-
-  /**
-   * Validate Specific params
-   *
-   * @returns {Promise<never>}
-   * @private
-   */
-  async _validateParams() {
-    const oThis = this;
-
-    if (!oThis.user_id) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 's_t_gut_1',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['missing_user_id'],
-          debug_options: {}
-        })
-      );
-    }
   }
 
   /**
@@ -115,7 +94,7 @@ class GetUserTransactions extends ServiceBase {
   async _validateTokenHolderAddress(tokenHolderAddress) {
     const oThis = this;
 
-    if (!oThis.tokenHolderAddress) {
+    if (!tokenHolderAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_t_gut_2',
