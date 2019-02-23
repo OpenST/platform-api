@@ -241,8 +241,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       to: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenRuleAddress), // TR contract address
       data: oThis.transferExecutableData,
       nonce: oThis.sessionKeyNonce,
-      callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix(),
-      value: oThis.executableData.value
+      callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix()
     };
 
     logger.debug('========signEIP1077Transaction===transactionObject==========', transactionObject);
