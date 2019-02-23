@@ -1,10 +1,9 @@
 'use strict';
 /**
- *  Fetch session details of specific session address.
+ *  Fetch device details by userId and wallet address.
  *
- * @module app/services/session/get/ByAddress
+ * @module app/services/device/get/ByAddress
  */
-
 const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../../../..',
@@ -12,25 +11,29 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  GetSessionBase = require(rootPrefix + '/app/services/session/get/Base'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  GetDeviceBase = require(rootPrefix + '/app/services/device/get/Base');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
 /**
- * Class to get session details of specific session address
+ * Class to get devices data by userId and wallet address.
  *
- * @class GetSessionByAddress
+ * @class GetDeviceByAddress
  */
-class GetSessionByAddress extends GetSessionBase {
+class GetDeviceByAddress extends GetDeviceBase {
   /**
-   * @param {object} params
-   * @param {String} params.address - Session address.
+   * Constructor to get devices data by userId and wallet address.
+   *
+   * @param {String} params.address: Wallet address
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
+
     oThis.address = params.address;
   }
 
@@ -47,45 +50,45 @@ class GetSessionByAddress extends GetSessionBase {
   }
 
   /**
-   * Set addresses
-   *
-   * Sets oThis.sessionAddresses
+   * Set wallet addresses.
    *
    * @private
    */
-  async _setSessionAddresses() {
+  async _setWalletAddresses() {
     const oThis = this;
-    oThis.sessionAddresses = [oThis.address];
+
+    oThis.walletAddresses = [oThis.address];
   }
 
   /**
-   * Format API response
+   * Format response
    *
    * @return {*}
+   *
    * @private
    */
   _formatApiResponse() {
     const oThis = this;
 
-    let session = oThis.sessionDetails[0];
+    let device = oThis.deviceDetails[0];
 
-    if (!CommonValidators.validateObject(session)) {
+    if (!CommonValidators.validateObject(device)) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_g_ba_1',
+          internal_error_identifier: 'a_s_d_g_ba_1',
           api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['session_not_found'],
+          params_error_identifiers: ['invalid_device_address'],
           debug_options: {}
         })
       );
     }
 
     return responseHelper.successWithData({
-      [resultType.session]: session
+      [resultType.device]: device
     });
   }
 }
 
-InstanceComposer.registerAsShadowableClass(GetSessionByAddress, coreConstants.icNameSpace, 'GetSessionByAddress');
+InstanceComposer.registerAsShadowableClass(GetDeviceByAddress, coreConstants.icNameSpace, 'GetDeviceByAddress');
 
 module.exports = {};

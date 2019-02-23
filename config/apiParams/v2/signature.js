@@ -2,7 +2,7 @@
 
 const rootPrefix = '../../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
-  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination');
 
 const v2Signature = {
   [apiName.getToken]: {
@@ -142,7 +142,11 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: paginationConstants.paginationIdentifierKey,
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -199,7 +203,11 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: paginationConstants.paginationIdentifierKey,
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -249,7 +257,11 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: paginationConstants.paginationIdentifierKey,
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
