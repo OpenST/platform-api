@@ -161,7 +161,7 @@ class ServicesBaseKlass {
         responseHelper.paramValidationError({
           internal_error_identifier: 's_b_3',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_next_page_payload'],
+          params_error_identifiers: ['invalid_limit'],
           debug_options: {}
         })
       );

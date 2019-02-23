@@ -384,16 +384,16 @@ class User extends Base {
 
     let row,
       formattedRow,
-      users = [];
+      userIds = [];
 
     for (let i = 0; i < response.data.Items.length; i++) {
       row = response.data.Items[i];
       formattedRow = oThis._formatRowFromDynamo(row);
-      users.push(formattedRow);
+      userIds.push(formattedRow.userId);
     }
 
     let responseData = {
-      users: users
+      userIds: userIds
     };
 
     if (response.data.LastEvaluatedKey) {

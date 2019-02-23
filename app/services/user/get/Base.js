@@ -33,7 +33,6 @@ class GetUserBase extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
 
-    oThis.userIds = [];
     oThis.userDetails = [];
     oThis.userShard = null;
   }

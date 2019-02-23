@@ -229,6 +229,11 @@ const v2ErrorConfig = {
     parameter: 'next_page_payload',
     code: 'invalid',
     message: 'Invalid next page payload'
+  },
+  invalid_limit: {
+    parameter: 'limit',
+    code: 'invalid',
+    message: 'Invalid limit'
   }
 };
 

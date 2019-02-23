@@ -12,18 +12,21 @@ const rootPrefix = '../../../..',
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
+require(rootPrefix + '/lib/cacheManagement/chain/TokenUserId');
+
 class GetUserList extends GetUserBase {
   constructor(params) {
     super(params);
 
     const oThis = this;
 
-    oThis.userIds = params.ids || [];
+    oThis.ids = params.ids;
     oThis.limit = params.limit;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
     oThis.lastEvaluatedKey = null;
     oThis.page = null;
+    oThis.userIds = [];
 
     oThis.responseMetaData = {
       [pagination.nextPagePayloadKey]: {}
@@ -42,19 +45,19 @@ class GetUserList extends GetUserBase {
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      oThis.userIds = []; //user ids not allowed after first page
+      oThis.ids = []; //user ids not allowed after first page
       oThis.page = parsedPaginationParams.page; //override page
       oThis.limit = parsedPaginationParams.limit; //override limit
       oThis.lastEvaluatedKey = parsedPaginationParams.lastEvaluatedKey;
     } else {
-      oThis.userIds = oThis.userIds || [];
+      oThis.ids = oThis.ids || [];
       oThis.page = 1;
       oThis.limit = oThis.limit || pagination.defaultUserListPageSize;
       oThis.lastEvaluatedKey = null;
     }
 
     // Validate user ids length
-    if (oThis.userIds && oThis.userIds.length > pagination.maxUserListPageSize) {
+    if (oThis.ids && oThis.ids.length > pagination.maxUserListPageSize) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_u_gl_1',
@@ -79,13 +82,13 @@ class GetUserList extends GetUserBase {
   async _setUserIds() {
     const oThis = this;
 
-    if (!oThis.userIds || oThis.userIds.length === 0) {
+    if (!oThis.ids || oThis.ids.length === 0) {
       let response = await oThis._fetchFromCache();
       oThis.userIds = response.data.userIds;
       oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
     } else {
-      for (let index = 0; index < oThis.userIds.length; index++) {
-        oThis.userIds.push(basicHelper.sanitizeuuid(oThis.userIds[index]));
+      for (let index = 0; index < oThis.ids.length; index++) {
+        oThis.userIds.push(basicHelper.sanitizeuuid(oThis.ids[index]));
       }
     }
   }
