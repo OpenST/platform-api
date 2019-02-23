@@ -16,7 +16,7 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
  *
  * @class
  */
-class TxCronProcessDetails extends ModelBase {
+class TxCronProcessDetail extends ModelBase {
   /**
    * Constructor for token address model
    *
@@ -31,4 +31,4 @@ class TxCronProcessDetails extends ModelBase {
   }
 }
 
-module.exports = TxCronProcessDetails;
+module.exports = TxCronProcessDetail;
