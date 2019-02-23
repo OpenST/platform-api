@@ -57,7 +57,7 @@ class GetTransaction extends ServiceBase {
           gasPrice: '100000000000',
           gasUsed: '12345678',
           transactionFee: '213123213',
-          finalized: true,
+          blockConfirmation: 24,
           updatedTimestamp: '1550734448',
           blockTimestamp: '1550734434',
           transactionHash: '0xf5e68c17809717622485ea99b74fb3e5e54da2144c7cc15ea950b8f37366e76e',
