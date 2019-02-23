@@ -104,11 +104,18 @@ And add it to tables using following script.
   node executables/blockScanner/BlockParser.js --cronProcessId 8
 ```
 
-* Run Auxiliary Finalizer
+* Run Auxiliary Block Finalizer
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/Finalizer.js --cronProcessId 10
 ```
+
+* Run Auxiliary Transaction Finalizer
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/BalanceSettler.js --cronProcessId 22
+```
+
 
 ## ST Prime Stake and Mint in Zero Gas
 
