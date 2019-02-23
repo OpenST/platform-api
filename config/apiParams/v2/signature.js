@@ -619,7 +619,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'signature',
@@ -654,7 +654,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       }
     ],
     optional: [

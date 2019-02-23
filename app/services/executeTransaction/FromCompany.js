@@ -57,6 +57,8 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   async _validateAndSanitize() {
     const oThis = this;
 
+    oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+
     // TODO - add necessary validations
   }
 

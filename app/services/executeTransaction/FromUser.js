@@ -61,6 +61,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   async _validateAndSanitize() {
     const oThis = this;
 
+    oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+
     if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
       return oThis._validationError('s_et_fu_1', ['saas_inactive_user_id'], {
         saasApiStatus: oThis.userData.saasApiStatus

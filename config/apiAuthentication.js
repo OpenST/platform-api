@@ -114,7 +114,7 @@ class ApiAuthentication {
         route: '/users/:user_id/transactions/'
       },
       [apiName.executeTransactionFromCompany]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/'
       }
     };
