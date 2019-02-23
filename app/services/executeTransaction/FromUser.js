@@ -12,11 +12,11 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  basicHelper = require(rootPrefix + '/helpers/basic');
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 
@@ -30,13 +30,11 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    * Constructor
    *
    * @param {Object} params
-   * @param {Object} params.token_id
    * @param {Object} params.user_data - data of user who signed this tx
-   * @param {String} params.raw_calldata - raw_calldata
    * @param {Number} params.nonce
    * @param {Number} params.signature
    * @param {Number} params.signer
-   * @param {Object} params.meta_property
+   * @param {Object} params.token
    *
    * @constructor
    */
@@ -56,6 +54,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   }
 
   /**
+   * Validate and sanitize input params
    *
    * @private
    */
@@ -72,6 +71,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   }
 
   /**
+   * Set token holder address
    *
    * @private
    */
@@ -81,7 +81,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   }
 
   /**
-   *
+   * Set session key address
    * @private
    */
   _setSessionAddress() {
@@ -89,6 +89,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   }
 
   /**
+   * Set session key nonce
    *
    * @private
    */
@@ -96,12 +97,18 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     // do nothing as passed as params
   }
 
+  /**
+   * Set EIP1077 signature
+   *
+   * @private
+   */
   _setSignature() {
     const oThis = this;
     oThis.signatureData = basicHelper.generateRsvFromSignature(oThis.signature);
   }
 
   /**
+   * Verify session spending limit
    *
    * @private
    */
@@ -117,6 +124,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   }
 
   /**
+   * Validate and sanitize session key address
    *
    * @private
    */

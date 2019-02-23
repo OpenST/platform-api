@@ -15,9 +15,10 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  NonceGetForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  NonceGetForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base'),
   AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail');
@@ -139,13 +140,13 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
         tokenId: oThis.tokenId,
         shardNumber: oThis.sessionShardNumber
       }),
-      uuserSessionAddressCacheResp = await userSessionAddressCache.fetch();
+      userSessionAddressCacheResp = await userSessionAddressCache.fetch();
 
-    if (uuserSessionAddressCacheResp.isFailure() || !uuserSessionAddressCacheResp.data) {
-      return Promise.reject(uuserSessionAddressCacheResp);
+    if (userSessionAddressCacheResp.isFailure() || !userSessionAddressCacheResp.data) {
+      return Promise.reject(userSessionAddressCacheResp);
     }
 
-    if (uuserSessionAddressCacheResp.data['addresses'].length === 0) {
+    if (userSessionAddressCacheResp.data['addresses'].length === 0) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_et_fc_2',
@@ -158,7 +159,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       );
     }
 
-    oThis.sessionKeyAddresses = uuserSessionAddressCacheResp.data['addresses'];
+    oThis.sessionKeyAddresses = userSessionAddressCacheResp.data['addresses'];
 
     // fetch session addresses details
     let getUserSessionsCacheResponse = await oThis._getUserSessionsDataFromCache();
@@ -199,7 +200,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   }
 
   /**
-   * Function to set nonce value.
+   * Function to set session key nonce value.
    *
    * @private
    */
@@ -234,7 +235,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const tokenHolderHelper = new TokenHolderHelper(oThis.web3Instance, oThis.tokenHolderAddress);
 
     const transactionObject = {
-      // TODO - move the toChecksumAddress sanitizations to inside of interaction layers
+      // TODO - move the toChecksumAddress sanitizing inside interaction layers
       from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
       to: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenRuleAddress), // TR contract address
       data: oThis.transferExecutableData,
@@ -324,7 +325,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
 
     logger.debug('indexToSelect------', indexToSelect);
 
-    return sessionKeys[indexToSelect].toLowerCase();
+    return basicHelper.sanitizeAddress(sessionKeys[indexToSelect]);
   }
 
   /***

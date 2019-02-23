@@ -53,10 +53,7 @@ class ExecuteTxBase extends ServiceBase {
    * @param {Number} params.token_id
    * @param {String} params.to
    * @param {Object} params.raw_calldata - raw_calldata
-   * @param {Object} params.meta_property
-   * @param {String} params.executable_data - executable_data json string
-   * @param {Number} params.operation_type
-   * @param {Object} params.meta_property
+   * @param {Object} [params.meta_property]
    *
    * @constructor
    */
@@ -67,8 +64,8 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.tokenId = params.token_id;
     oThis.toAddress = params.to;
-    oThis.metaProperty = params.meta_property;
     oThis.rawCalldata = params.raw_calldata;
+    oThis.metaProperty = params.meta_property;
 
     oThis.tokenAddresses = null;
     oThis.erc20Address = null;
@@ -172,7 +169,7 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setRmqInstance();
 
-    await oThis._setWebInstance();
+    await oThis._setWeb3Instance();
 
     let tokenAddresses = await oThis._tokenAddresses();
     oThis.erc20Address = tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
@@ -218,10 +215,11 @@ class ExecuteTxBase extends ServiceBase {
       return Promise.reject(response);
     }
 
-    oThis.pessimisticDebitAmount = response.data.pessimisticDebitAmount;
-    oThis.transferExecutableData = response.data.transferExecutableData;
-    oThis.estimatedTransfers = response.data.estimatedTransfers;
-    oThis.gas = response.data.gas;
+    let responseData = response.data;
+    oThis.pessimisticDebitAmount = responseData.pessimisticDebitAmount;
+    oThis.transferExecutableData = responseData.transferExecutableData;
+    oThis.estimatedTransfers = responseData.estimatedTransfers;
+    oThis.gas = responseData.gas;
   }
 
   /**
@@ -237,9 +235,8 @@ class ExecuteTxBase extends ServiceBase {
     let BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
       balanceObj = new BalanceModel({ shardNumber: oThis.balanceShardNumber });
 
-    let tokenAddresses = await oThis._tokenAddresses();
     let buffer = {
-      erc20Address: tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
+      erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
       blockChainUnsettleDebits: oThis.pessimisticDebitAmount.toString(10)
     };
@@ -376,6 +373,7 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
+   * Publish to RMQ
    *
    * @return {Promise<void>}
    * @private
@@ -417,11 +415,18 @@ class ExecuteTxBase extends ServiceBase {
     return setToRMQ;
   }
 
+  /**
+   * Revert operations
+   *
+   * @param customError
+   * @return {Promise<void>}
+   * @private
+   */
   async _revertOperations(customError) {
     const oThis = this;
 
     if (oThis.pessimisticAmountDebitted) {
-      logger.debug('something_went_wrong rolling back pessimitic debitted balances');
+      logger.debug('something_went_wrong rolling back pessimistic debited balances');
       await oThis._rollBackPessimisticDebit().catch(async function(rollbackError) {
         // TODO: Mark user balance as dirty
         logger.error(`In catch block of _rollBackPessimisticDebit in file: ${__filename}`, rollbackError);
@@ -450,6 +455,12 @@ class ExecuteTxBase extends ServiceBase {
     }
   }
 
+  /**
+   * Create a RabbitMQ instance
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _setRmqInstance() {
     const oThis = this;
     oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstants.auxRabbitmqKind, {
@@ -459,7 +470,13 @@ class ExecuteTxBase extends ServiceBase {
     });
   }
 
-  async _setWebInstance() {
+  /**
+   * Create auxiliary web3 instance
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _setWeb3Instance() {
     const oThis = this;
     oThis.web3Instance = await web3Provider.getInstance(oThis._configStrategyObject.auxChainWsProvider).web3WsProvider;
   }
