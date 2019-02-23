@@ -25,7 +25,7 @@ const rootPrefix = '../../..',
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
-require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
+require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
 require(rootPrefix + '/lib/cacheManagement/chain/UserTransactionCount');
 
 /**
@@ -133,21 +133,19 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const oThis = this;
 
     // fetch session key addresses for given user id
-    let SessionAddressesByUserIdCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'SessionAddressesByUserIdCache'),
-      sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
+    let UserSessionAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserSessionAddressCache'),
+      userSessionAddressCache = new UserSessionAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
         shardNumber: oThis.sessionShardNumber
       }),
-      sessionAddressesByUserIdCacheRsp = await sessionAddressesByUserIdCache.fetch();
+      uuserSessionAddressCacheResp = await userSessionAddressCache.fetch();
 
-    if (sessionAddressesByUserIdCacheRsp.isFailure() || !sessionAddressesByUserIdCacheRsp.data) {
-      return Promise.reject(sessionAddressesByUserIdCacheRsp);
+    if (uuserSessionAddressCacheResp.isFailure() || !uuserSessionAddressCacheResp.data) {
+      return Promise.reject(uuserSessionAddressCacheResp);
     }
 
-    if (sessionAddressesByUserIdCacheRsp.data['addresses'].length === 0) {
+    if (uuserSessionAddressCacheResp.data['addresses'].length === 0) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_et_fc_2',
@@ -160,7 +158,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       );
     }
 
-    oThis.sessionKeyAddresses = sessionAddressesByUserIdCacheRsp.data['addresses'];
+    oThis.sessionKeyAddresses = uuserSessionAddressCacheResp.data['addresses'];
 
     // fetch session addresses details
     let getUserSessionsCacheResponse = await oThis._getUserSessionsDataFromCache();
