@@ -352,12 +352,13 @@ class User extends Base {
    * Get token users paginated data
    *
    * @param {Number} tokenId
+   * @param {Number} page  - page number
    * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getUserIds(tokenId, limit, lastEvaluatedKey) {
+  async getUserIds(tokenId, page, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId];
@@ -399,6 +400,7 @@ class User extends Base {
       responseData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           lastEvaluatedKey: response.data.LastEvaluatedKey,
+          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query
           limit: limit
         }
       };

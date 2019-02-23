@@ -7,7 +7,8 @@ const rootPrefix = '../../../..',
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  basicHelper = require(rootPrefix + '/helpers/basic');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -72,25 +73,40 @@ class GetUserList extends GetUserBase {
    * set user ids - by hitting pagination cache
    *
    * @return {Promise<void>}
+   *
    * @private
    */
   async _setUserIds() {
     const oThis = this;
 
     if (!oThis.userIds || oThis.userIds.length === 0) {
-      const UserModelKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel');
-
-      let userModelObj = new UserModelKlass({ shardNumber: oThis.userShard }),
-        response = await userModelObj.getUserIds(oThis.tokenId, oThis.limit, oThis.lastEvaluatedKey);
-
-      // If user ids are found from Dynamo then fetch data from cache.
-      if (response.isSuccess() && response.data.users.length > 0) {
-        for (let i = 0; i < response.data.users.length; i++) {
-          oThis.userIds.push(response.data.users[i].userId);
-        }
-        oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
+      let response = await oThis._fetchFromCache();
+      oThis.userIds = response.data.userIds;
+      oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
+    } else {
+      for (let index = 0; index < oThis.userIds.length; index++) {
+        oThis.userIds.push(basicHelper.sanitizeuuid(oThis.userIds[index]));
       }
     }
+  }
+
+  /**
+   * Fetch wallet addresses from cache.
+   *
+   * @private
+   */
+  async _fetchFromCache() {
+    const oThis = this;
+
+    let TokenUserIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserIdCache'),
+      tokenUserIdCache = new TokenUserIdCache({
+        tokenId: oThis.tokenId,
+        page: oThis.page,
+        limit: oThis._currentPageLimit(),
+        lastEvaluatedKey: oThis.lastEvaluatedKey
+      });
+
+    return tokenUserIdCache.fetch();
   }
 
   /**
