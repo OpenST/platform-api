@@ -138,6 +138,7 @@ class UserSessionList extends GetSessionBase {
    * @private
    */
   _formatApiResponse() {
+    const oThis = this;
     return responseHelper.successWithData({
       [resultType.sessions]: oThis.sessionDetails,
       [resultType.meta]: oThis.responseMetaData
