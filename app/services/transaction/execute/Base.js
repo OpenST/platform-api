@@ -10,6 +10,7 @@ const uuidv4 = require('uuid/v4');
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
@@ -151,7 +152,11 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._publishToRMQ();
 
-    return Promise.resolve(responseHelper.successWithData(oThis.pendingTransactionData));
+    return Promise.resolve(
+      responseHelper.successWithData({
+        [resultType.transaction]: oThis.pendingTransactionData
+      })
+    );
   }
 
   /**
