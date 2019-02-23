@@ -19,11 +19,29 @@ git checkout tags/v1.8.20
 make geth
 sudo cp ~/workspace/go-ethereum/build/bin/geth /usr/local/bin
 ```
+* [Only Development] Use docker to run required services
 
-* Start RabbitMQ
+Install docker if not already installed. Refer [this](https://docs.docker.com/docker-for-mac/install/).
+
+Start services:
 ```
-brew services start rabbitmq
+docker-compose up
 ```
+Above command will start below services
+
+|  Service  	|     Port    	|
+|:---------:	|:-----------:	|
+|   mysql   	|     3306    	|
+| memcached 	|    11211    	|
+|   redis   	|     6379    	|
+|  Rabbitmq 	| 15672, 5672 	|
+| Dynamo db 	|     8000    	|
+
+Stop services:
+```
+docker-compose down
+```
+
 
 * Install all the packages.
 ```
@@ -42,12 +60,6 @@ source set_env_vars.sh
 node  executables/flush/sharedMemcached.js
 ```
 
-## [Only Development] Start Dynamo DB
-```bash
-rm ~/dynamodb_local_latest/shared-local-instance.db
-
-java -Djava.library.path=~/dynamodb_local_latest/DynamoDBLocal_lib/ -jar ~/dynamodb_local_latest/DynamoDBLocal.jar -sharedDb -dbPath ~/dynamodb_local_latest/
-```
 
 ## ORIGIN CHAIN SETUP
 [README-ORIGIN-SETUP.md](README-ORIGIN-SETUP.md)
