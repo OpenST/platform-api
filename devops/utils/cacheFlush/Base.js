@@ -1,16 +1,13 @@
 'use strict';
 const rootPrefix = '../../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger')
-  ,responseHelper = require(rootPrefix + '/lib/formatter/response')
-
-;
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 /**
  * Class for Generating addresses for Origin and Auxiliary chains
  *
  * @class
  */
 class Base {
-
   /**
    * Constructor
    *
@@ -20,7 +17,6 @@ class Base {
    */
   constructor() {
     const oThis = this;
-
   }
 
   /**
@@ -33,7 +29,7 @@ class Base {
   perform() {
     const oThis = this;
 
-    return oThis._asyncPerform().catch(function (error) {
+    return oThis._asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {

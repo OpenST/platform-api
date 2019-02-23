@@ -317,6 +317,10 @@ class User extends Base {
     if (params['multisigAddress']) {
       params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
     }
+    if (params['saasApiStatus']) {
+      params['saasApiStatus'] = tokenUserConstants.invertedSaasApiStatuses[params['saasApiStatus']];
+    }
+
     params['status'] = tokenUserConstants.invertedStatuses[params['status']];
 
     if (!params['updatedTimestamp']) {
@@ -337,6 +341,10 @@ class User extends Base {
   _sanitizeRowFromDynamo(dbRow) {
     dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
     dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
+    if (dbRow.hasOwnProperty('saasApiStatus')) {
+      dbRow['saasApiStatus'] =
+        tokenUserConstants.saasApiStatuses[dbRow['saasApiStatus']] || tokenUserConstants.saasApiActiveStatus;
+    }
     return dbRow;
   }
 

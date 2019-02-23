@@ -44,6 +44,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  saas_inactive_user_id: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `user_id is suspended. Please contact support`
+  },
   user_not_found: {
     parameter: 'user_id',
     code: 'invalid',
@@ -124,6 +129,27 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Either device not registered or not allowed to be authorized.'
   },
+  invalid_executable_data: {
+    parameter: 'executable_data',
+    code: 'invalid',
+    message: 'invalid executable_data'
+  },
+  insufficient_funds: {
+    parameter: 'signer',
+    code: 'invalid',
+    message:
+      'The account executing the transaction or transfer does not have sufficient funds to complete the transaction or transfer.'
+  },
+  session_key_spending_limit_breached: {
+    parameter: 'signer',
+    code: 'invalid',
+    message: 'The session key being used is not authorised for this big amount.'
+  },
+  session_key_not_authorized: {
+    parameter: 'signer',
+    code: 'invalid',
+    message: 'The session key being used is not authorised'
+  },
   unauthorized_to_access_other_user_information: {
     parameter: 'user_id',
     code: 'invalid',
@@ -188,6 +214,16 @@ const v2ErrorConfig = {
     parameter: 'signatures',
     code: 'invalid',
     message: 'Invalid signature provided'
+  },
+  missing_transaction_id: {
+    parameter: 'transaction_id',
+    code: 'missing',
+    message: `Missing transaction_id`
+  },
+  missing_token_holder_address: {
+    parameter: 'tokenHolderAddress',
+    code: 'missing',
+    message: 'missing token holder address'
   }
 };
 

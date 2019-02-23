@@ -138,10 +138,10 @@ a = require('./lib/transfer/Eth');
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]});
 b.perform().then(console.log);
 
-chainOwner = '0xc75d1d02fcab92625f92bc573600753075695b96';
+chainOwner = '0xc635af2728eb39d95aa29bd46704a0dee0c5646f';
 auxChainId = 2000;
 a = require('./lib/fund/stPrime/BatchTransfer')
-b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0xcdc463aa7b937fe477f59d9421658dc7ebb097ea', amountInWei:'989999600000000000000'}]})
+b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0x34de04328e40be60f0bce5d23b6462418a7ac444', amountInWei:'100000000000000000000'}]})
 b.perform().then(console.log)
 
 

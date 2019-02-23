@@ -17,10 +17,17 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
+  TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
+  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
+
+const TX_BATCH_SIZE = 20;
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -222,12 +229,22 @@ class TransactionParser extends SubscriberBase {
           unprocessedItemsMap[unprocessedItems[index]] = 1;
         }
 
+        let txHashList = [];
+
         for (let txHash in transactionReceiptMap) {
           if (!unprocessedItemsMap[txHash] && transactionReceiptMap[txHash]) {
+            txHashList.push(txHash);
             processedReceipts[txHash] = transactionReceiptMap[txHash];
             tokenParserNeeded = true;
           }
         }
+
+        let promiseArray = [];
+
+        promiseArray.push(oThis._markMinedInTransactionMeta(txHashList));
+        promiseArray.push(oThis._markSuccessInPendingTransaction(txHashList, transactionReceiptMap));
+
+        await Promise.all(promiseArray);
 
         // Call token parser if it is needed.
         if (tokenParserNeeded) {
@@ -282,6 +299,7 @@ class TransactionParser extends SubscriberBase {
           'Transaction parsing response: ',
           transactionParserResponse
         );
+
         // ACK RMQ.
         return Promise.resolve();
       }
@@ -314,6 +332,76 @@ class TransactionParser extends SubscriberBase {
       blockVerified: blockVerified,
       rawBlock: rawBlock
     });
+  }
+
+  /**
+   * Mark transactions mined in transaction meta
+   *
+   * @param txHashes
+   * @return {Promise<void>}
+   * @private
+   */
+  async _markMinedInTransactionMeta(txHashes) {
+    const oThis = this;
+
+    await new TransactionMeta()
+      .update({
+        status: transactionMetaConst.invertedStatuses[transactionMetaConst.minedStatus],
+        updated_at: new Date()
+      })
+      .where(['transaction_hash IN (?)', txHashes])
+      .fire();
+  }
+
+  /**
+   * Mark success in pending transaction
+   *
+   * @param txHashes
+   * @param transactionReceiptMap
+   * @return {Promise<void>}
+   * @private
+   */
+  async _markSuccessInPendingTransaction(txHashes, transactionReceiptMap) {
+    const oThis = this;
+
+    let pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
+
+    let fetchPendingTxData = await new FetchPendingTxData(oThis.chainId, txHashes, false).perform();
+
+    if (fetchPendingTxData.isFailure()) {
+      return fetchPendingTxData;
+    }
+
+    fetchPendingTxData = fetchPendingTxData.data;
+
+    let promiseArray = [];
+
+    for (let pendingTxUuid in fetchPendingTxData) {
+      let pendingTxData = fetchPendingTxData[pendingTxUuid],
+        transactionReceipt = transactionReceiptMap[pendingTxData['transactionHash']];
+
+      let status = transactionReceipt.status & transactionReceipt.transactionInternalStatus;
+
+      let updateParams = {
+        chainId: oThis.chainId,
+        transactionUuid: pendingTxData.transactionUuid,
+        status: status ? pendingTransactionConstants.successStatus : pendingTransactionConstants.failedStatus,
+        blockNumber: transactionReceiptMap[pendingTxData.transactionHash].blockNumber,
+        blockTimestamp: transactionReceiptMap[pendingTxData.transactionHash].blockTimestamp
+      };
+
+      promiseArray.push(pendingTransactionObj.update(updateParams));
+
+      if (promiseArray.length == TX_BATCH_SIZE) {
+        await Promise.all(promiseArray);
+
+        promiseArray = [];
+      }
+    }
+
+    if (promiseArray.length > 0) {
+      await Promise.all(promiseArray);
+    }
   }
 }
 

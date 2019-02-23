@@ -2,10 +2,9 @@
 'use strict';
 
 const rootPrefix = '../..',
-  command = require('commander')
-  , FlushChainMemcache = require(rootPrefix + '/devops/utils/cacheFlush/ChainSpecificCache.js')
-  , FlushSharedMemcache = require(rootPrefix + '/devops/utils/cacheFlush/SharedCache.js')
-;
+  command = require('commander'),
+  FlushChainMemcache = require(rootPrefix + '/devops/utils/cacheFlush/ChainSpecificCache.js'),
+  FlushSharedMemcache = require(rootPrefix + '/devops/utils/cacheFlush/SharedCache.js');
 
 command
   .version('0.1.0')
@@ -14,28 +13,23 @@ command
   .option('-s, --flush-chain-memcache ', 'flush chain memcache ')
   .parse(process.argv);
 
-
 const Main = async function() {
   let performerObj = null;
-  let resp=[];
+  let resp = [];
   if (command.flushSharedMemcache) {
     performerObj = new FlushSharedMemcache();
-     resp.push(await performerObj.perform()) ;
+    resp.push(await performerObj.perform());
   }
   if (command.flushChainMemcache) {
     performerObj = new FlushChainMemcache();
-    resp.push(await performerObj.perform()) ;
-
+    resp.push(await performerObj.perform());
   }
 
-  for (let i=0;i<resp.length;i++)
-  {
-    if(!(resp[i].success))
-    {
+  for (let i = 0; i < resp.length; i++) {
+    if (!resp[i].success) {
       throw resp[i];
     }
   }
-
 };
 
 Main()

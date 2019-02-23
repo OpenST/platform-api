@@ -1,19 +1,15 @@
 'use strict';
 
-
 const rootPrefix = '../../..',
-  cache = require(rootPrefix + '/lib/providers/sharedMemcached')
-  ,FlushBase= require(rootPrefix + '/devops/utils/cacheFlush/Base.js')
-
-;
-
+  cache = require(rootPrefix + '/lib/providers/sharedMemcached'),
+  FlushBase = require(rootPrefix + '/devops/utils/cacheFlush/Base.js');
 
 /**
  * Class for Flushing shared cache
  *
  * @class
  */
-class SharedCacheFlush extends FlushBase{
+class SharedCacheFlush extends FlushBase {
   /**
    * Constructor
    *
@@ -24,7 +20,6 @@ class SharedCacheFlush extends FlushBase{
     super();
 
     const oThis = this;
-
   }
   /**
    *
@@ -36,14 +31,11 @@ class SharedCacheFlush extends FlushBase{
   async _asyncPerform() {
     const oThis = this;
     let cacheImplementer = cache.getInstance().cacheInstance;
-    console.log("Flushing shared memcache ::");
+    console.log('Flushing shared memcache ::');
 
     let response = await cacheImplementer.delAll();
     return response;
   }
-
-
 }
 
 module.exports = SharedCacheFlush;
-

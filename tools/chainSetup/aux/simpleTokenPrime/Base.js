@@ -13,7 +13,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  NonceGetForTransaction = require(rootPrefix + '/lib/nonce/get/ForTransaction'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ChainSetupLogModel = require(rootPrefix + '/app/models/mysql/ChainSetupLog'),
   AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'),
@@ -76,7 +76,7 @@ class SetupSTPrimeBase {
    */
   async _fetchNonce(address) {
     const oThis = this;
-    return new NonceManager({
+    return new NonceGetForTransaction({
       address: address,
       chainId: oThis._auxChainId
     }).getNonce();

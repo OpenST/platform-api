@@ -13,6 +13,7 @@ const rootPrefix = '../..',
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
+  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
 
 // Following require(s) for registering into instance composer
@@ -23,7 +24,8 @@ require(rootPrefix + '/app/services/user/CreateTokenHolder');
 require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/user/ExecuteTransaction');
-require(rootPrefix + '/app/services/user/GetTransaction');
+require(rootPrefix + '/app/services/transaction/GetTransaction');
+require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
@@ -338,8 +340,15 @@ router.post('/:user_id/sessions/revoke', function(req, res, next) {
 });
 
 router.post('/:user_id/transactions', function(req, res, next) {
-  req.decodedParams.apiName = apiName.postTransaction;
-  req.decodedParams.userId = req.params.user_id;
+  let klassGetterName;
+  if (req.decodedParams['api_signature_kind'] === apiSignature.hmacKind) {
+    req.decodedParams.apiName = apiName.executeTransactionFromCompany;
+    klassGetterName = 'ExecuteCompanyToUserTx';
+  } else if (req.decodedParams['api_signature_kind'] === apiSignature.personalSignKind) {
+    req.decodedParams.apiName = apiName.executeTransactionFromUser;
+    klassGetterName = 'ExecuteTxFromUser';
+  }
+
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -350,16 +359,13 @@ router.post('/:user_id/transactions', function(req, res, next) {
     };
   };
 
-  return Promise.resolve(
-    routeHelper.perform(req, res, next, 'ExecuteTransaction', 'r_v_u_11', null, dataFormatterFunc)
-  );
+  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v_u_11', null, dataFormatterFunc));
 });
 
 /* Get transaction by id */
 router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   req.decodedParams.apiName = apiName.getTransaction;
   req.decodedParams.clientConfigStrategyRequired = true;
-  req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.transaction_id = req.params.transaction_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -373,6 +379,23 @@ router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   };
 
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
+});
+
+router.get('/:user_id/transactions', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserTransactions;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.token_id = req.params.token_id;
+  req.decodedParams.meta_property = req.params.meta_property;
+  req.decodedParams.status = req.params.status;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    //TODO as discussed
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetUserTransaction', 'r_v_u_13', null, dataFormatterFunc)
+  );
 });
 
 module.exports = router;

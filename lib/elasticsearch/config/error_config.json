@@ -1,0 +1,44 @@
+{
+  "api_error_config" : {
+    "something_went_wrong": {
+      "http_code": "500",
+      "code": "INTERNAL_SERVER_ERROR",
+      "message": "Something went wrong."
+    },
+    "unhandled_catch_response": {
+      "http_code": "500",
+      "code": "INTERNAL_SERVER_ERROR",
+      "message": "Something went wrong."
+    },
+    "internal_server_error": {
+      "http_code": "500",
+      "code": "INTERNAL_SERVER_ERROR",
+      "message": "Something went wrong."
+    },
+    "invalid_params": {
+      "http_code": "400",
+      "code": "BAD_REQUEST",
+      "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
+    },
+    "invalid_elasticsearch_params": {
+      "http_code": "400",
+      "code": "BAD_REQUEST",
+      "message": "At least one parameter is invalid or missing."
+    },
+    "elasticsearch_api_error": {
+      "http_code": "500",
+      "code": "INTERNAL_SERVER_ERROR",
+      "message": "Something went wrong."
+    },
+    "elasticsearch_api_timeout": {
+      "http_code": "408",
+      "code": "REQUEST_TIMEOUT",
+      "message": "Request timed-out."
+    },
+    "no_operation_specified": {
+      "http_code": "400",
+      "code": "BAD_REQUEST",
+      "message": "Nothing to do."
+    }
+  }
+}

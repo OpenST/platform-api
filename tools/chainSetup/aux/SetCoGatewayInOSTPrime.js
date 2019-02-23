@@ -15,7 +15,7 @@ const rootPrefix = '../../..',
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  NonceManager = require(rootPrefix + '/lib/nonce/Manager'),
+  NonceGetForTransaction = require(rootPrefix + '/lib/nonce/get/ForTransaction'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   SignerWeb3Provider = require(rootPrefix + '/lib/providers/signerWeb3');
 
@@ -201,7 +201,7 @@ class SetCoGatewayInOSTPrime {
    */
   async _fetchNonce() {
     const oThis = this;
-    return new NonceManager({
+    return new NonceGetForTransaction({
       address: oThis.adminAddress,
       chainId: oThis.auxChainId
     }).getNonce();
