@@ -544,10 +544,22 @@ class BasicHelperKlass {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
+  /**
+   * Encypt page identifier
+   *
+   * @param object
+   * @return {*}
+   */
   encryptPageIdentifier(object) {
     return base64Helper.encode(JSON.stringify(object));
   }
 
+  /**
+   * Decrypt page identifier
+   *
+   * @param string
+   * @return {any}
+   */
   decryptPageIdentifier(string) {
     return JSON.parse(base64Helper.decode(string));
   }
@@ -564,8 +576,24 @@ class BasicHelperKlass {
     return conversionRateForContractBigNumber.toString();
   }
 
+  /**
+   * Sanitize address
+   *
+   * @param address
+   * @return {string | *}
+   */
   sanitizeAddress(address) {
     return address.toLowerCase();
+  }
+
+  /**
+   * Sanitize uuid
+   *
+   * @param uuid
+   * @return {string | *}
+   */
+  sanitizeuuid(uuid) {
+    return uuid.toLowerCase();
   }
 
   /**
@@ -578,10 +606,21 @@ class BasicHelperKlass {
     return Math.floor(new Date(dateStr).getTime() / 1000);
   }
 
+  /**
+   * Timestamp in seconds
+   *
+   * @return {number}
+   */
   timestampInSeconds() {
     return Math.floor(new Date() / 1000);
   }
 
+  /**
+   * Generate rsv from signature
+   *
+   * @param signature
+   * @return {{r: *, s: string, v: string}}
+   */
   generateRsvFromSignature(signature) {
     return {
       r: signature.slice(0, 66),
