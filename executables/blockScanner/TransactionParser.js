@@ -385,7 +385,7 @@ class TransactionParser extends SubscriberBase {
       let updateParams = {
         chainId: oThis.chainId,
         transactionUuid: pendingTxData.transactionUuid,
-        status: status ? pendingTransactionConstants.successStatus : pendingTransactionConstants.failedStatus,
+        status: status ? pendingTransactionConstants.minedStatus : pendingTransactionConstants.failedStatus,
         blockNumber: transactionReceiptMap[pendingTxData.transactionHash].blockNumber,
         blockTimestamp: transactionReceiptMap[pendingTxData.transactionHash].blockTimestamp
       };

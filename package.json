@@ -7,7 +7,7 @@
     "pre-commit": "lint-staged"
   },
   "dependencies": {
-    "@openstfoundation/brandedtoken.js": "https://github.com/akshayraje/brandedtoken.js.git#develop",
+    "@openstfoundation/brandedtoken.js": "0.10.0-alpha.1",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@openstfoundation/mosaic.js": "0.10.0-beta.3",
     "@openstfoundation/openst-base": "0.9.3-beta.15",
