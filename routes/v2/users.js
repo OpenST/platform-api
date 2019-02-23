@@ -20,8 +20,8 @@ const rootPrefix = '../..',
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
-require(rootPrefix + '/app/services/user/Get');
-require(rootPrefix + '/app/services/user/GetList');
+require(rootPrefix + '/app/services/user/get/ById');
+require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
 require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
@@ -99,7 +99,7 @@ router.get('/', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetUsersList', 'r_v2_u_3', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetUserList', 'r_v2_u_3', null, dataFormatterFunc));
 });
 
 /* Create device for user*/
