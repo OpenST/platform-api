@@ -345,7 +345,8 @@ class ExecuteTxBase extends ServiceBase {
    * @return {Promise<*>}
    */
   async _createPendingTransaction() {
-    const oThis = this;
+    const oThis = this,
+      currentTimestamp = basicHelper.getCurrentTimestampInSeconds();
 
     let insertRsp = await new PendingTransactionCrud(oThis.auxChainId).create({
       transactionData: {
@@ -364,7 +365,9 @@ class ExecuteTxBase extends ServiceBase {
       erc20Address: oThis.erc20Address,
       sessionKeyNonce: oThis.sessionKeyNonce,
       status: pendingTransactionConstants.createdStatus,
-      tokenId: oThis.tokenId
+      tokenId: oThis.tokenId,
+      createdTimestamp: currentTimestamp,
+      updatedTimeStamp: currentTimestamp
     });
 
     if (insertRsp.isFailure()) {
