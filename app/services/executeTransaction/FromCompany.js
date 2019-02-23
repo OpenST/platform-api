@@ -121,7 +121,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     // currently, we have only one company token holder
     oThis.userId = tokenCompanyUsers[0]; //token Company UserUuid
     oThis.tokenHolderAddress = companyTokenHolderAddresses[0];
-    oThis.sessionShardNumberForTH = sessionShards[0];
+    oThis.sessionShardNumber = sessionShards[0];
   }
 
   /**
@@ -139,7 +139,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
-        shardNumber: oThis.sessionShardNumberForTH
+        shardNumber: oThis.sessionShardNumber
       }),
       sessionAddressesByUserIdCacheRsp = await sessionAddressesByUserIdCache.fetch();
 
@@ -241,8 +241,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       to: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenRuleAddress), // TR contract address
       data: oThis.transferExecutableData,
       nonce: oThis.sessionKeyNonce,
-      callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix(),
-      value: oThis.executableData.value
+      callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix()
     };
 
     logger.debug('========signEIP1077Transaction===transactionObject==========', transactionObject);
