@@ -5,7 +5,7 @@
 let config = null;
 rootPrefix = '.'
 coreConstants = require(rootPrefix + '/config/coreConstants')
-chainId = 2000;
+chainId = 200;
 a = require('./helpers/configStrategy/ByChainId.js')
 b = new a(chainId);
 b.getComplete().then(function(r) {config = r.data});
@@ -26,23 +26,27 @@ ic = new InstanceComposer(config)
 
 require('./app/services/user/Create');
 CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateUser');
-asso = new CreateUser({client_id:10002});
+asso = new CreateUser({client_id:10087, token_id: 1063, kind: 'user'});
 asso.perform().then(console.log);
 
 require('./app/services/device/Create');
 CreateDevice = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateDevice');
-asso = new CreateDevice({client_id:10002, user_id: 'a5732939-caed-4d21-a5f4-3773806e983c', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', device_name: 'sdsdsds', device_uuid: 'dsdsdsds'});
+asso = new CreateDevice({client_id:10087, user_id: '053bbb8a-534a-44ef-8af1-cec9084be8f9', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', device_name: 'sdsdsds', device_uuid: 'dsdsdsds'});
 asso.perform().then(console.log);
 
 require('./app/services/user/CreateTokenHolder');
 CreateTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateTokenHolder');
-asso = new CreateTokenHolder({client_id:10002, user_id: 'a5732939-caed-4d21-a5f4-3773806e983c', device_address: '0x734d3f5e8e51c40dd5e166fda7b8329655d49ef6', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
+asso = new CreateTokenHolder({client_id:10087, user_id: '053bbb8a-534a-44ef-8af1-cec9084be8f9', device_address: '0x734d3f5e8e51c40dd5e166fda7b8329655d49ef6', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
 asso.perform().then(console.log);
 
 a = require('./lib/executeTransactionManagement/FundExTxWorker.js')
-b = new a({tokenId: 1002, chainId: 2000, exTxWorkerAddresses: ['0x1d6927f6dc4f5184e55a79bcb1fac663adb9f021']})
+b = new a({tokenId: 1063, chainId: 200, exTxWorkerAddresses: ['0x207f44087ccd5bdecdf8606c4ca3a2ffec74fe87']})
 b.perform().then(console.log)
 
+
+ForSession = require('./lib/nonce/get/ForSession');
+asso = new ForSession({tokenId: '1063', chainId:200, address: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027', userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9'});
+asso.getNonce().then(console.log);
 
 
 
@@ -76,8 +80,8 @@ submitTx.perform().then(console.log).catch(console.log)
 require('./lib/cacheManagement/chainMulti/TokenUserDetail.js')
 TokenUserDetailsCache = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenUserDetailsCache');
 submitTx = new TokenUserDetailsCache({
-  tokenId: '1002',
-  userIds: ['a5732939-caed-4d21-a5f4-3773806e983c']
+  tokenId: '1063',
+  userIds: ['053bbb8a-534a-44ef-8af1-cec9084be8f9']
 });
 submitTx.fetch().then(console.log).catch(console.log)
 
@@ -85,15 +89,15 @@ user to company
 
 
 user_data = {
-  userId: 'a5732939-caed-4d21-a5f4-3773806e983c',
-  status: 'ACTIVATED',
-  multisigAddress: '0x24865a3eb365e3a2531bf21218de7bb8b67174bc',
-  updatedTimestamp: '1550920383',
-  tokenHolderAddress: '0x1bc25adfbafd92e76857ca3b74fb387c66b25e4c',
-  deviceShardNumber: '2',
-  kind: 'user',
-  tokenId: '1002',
   recoveryOwnerAddress: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c',
+  updatedTimestamp: '1550931687',
+  status: 'ACTIVATED',
+  multisigAddress: '0x9acd27a2a7cec37b04b3d6ff4e1c7488343d9c9e',
+  tokenId: '1063',
+  userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9',
+  tokenHolderAddress: '0xd97f2ca4dff7b8e129d1e7d72ec1cf9ff9c0ae00',
+  deviceShardNumber: '1',
+  kind: 'user',
   sessionShardNumber: '1',
   recoveryAddressShardNumber: 0,
   saasApiStatus: 'active'
@@ -101,27 +105,27 @@ user_data = {
 
 params = {
   user_data: user_data,
-  nonce: 6,
-  signature: '0x961468dbd396e4a5d72809e401b24eb4d7ee8054d3d59aa4b3231fbd30129c3e6864a1a6346f8286a19a3f2cfbcb8eb7d327622248eef155c4c40ddab9697bbe1c',
-  signer: '0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027',
-  client_id: 10002,
-  token_id: 1002,
+  nonce: 4,
+  signature: '0x20b3c042818c5063b9510c98ed0f6d1c31160e5a1c3288d921aeb501c25bf5fd452f3b60b74838c458f9e1a6c335a5296f3486bf970676829e83ff379fa4e8361c',
+  signer: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027',
+  client_id: 10087,
+  token_id: 1063,
   meta_property: {
       "name":  "user_to_company" , //like, download
       "type":  "company_to_user", // user_to_user, company_to_user, user_to_company
       "details" : "company_to_user"
   },
-  to: "0x390877f70ce715913f5601f0b022a179af0bc662",
-  raw_calldata: {
-      method: 'directTransfer',
-      parameters: [
-          ['0xf69d0fd1390f669fa55ab5731d411f2ee8f24b74'],
-          ['1000']
-      ]
-  }
+  to: "0x3afb43da7d39c963278f338054d9fd92a609e04b",
+  raw_calldata: JSON.stringify({
+                                     method: 'directTransfers',
+                                     parameters: [
+                                         ['0x30fa423c14625bb0bac6852d7b68f9d326ac1242'],
+                                         ['100000']
+                                     ]
+                                 })
 }
 
-require('./app/services/transaction/execute/FromUser');
+require('./app/services/transaction/execute/FromUser.js');
 ExecuteTxFromUser = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteTxFromUser');
 submitTx = new ExecuteTxFromUser(params);
 submitTx.perform().then(console.log).catch(console.log)
@@ -130,11 +134,11 @@ submitTx.perform().then(console.log).catch(console.log)
 
 require('./app/models/ddb/sharded/Balance.js');
 BalanceModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel');
-asso = new BalanceModel({shardNumber:1, chainId: 2000});
+asso = new BalanceModel({shardNumber:2, chainId: 200});
 asso.updateBalance({
-  blockChainSettledBalance: '100000000',
-  erc20Address: '0xe2ab56c4bdc92945fd41e495d4fcdfad83cbb0f9',
-  tokenHolderAddress: '0x1bc25adfbafd92e76857ca3b74fb387c66b25e4c'
+  blockChainSettledBalance: '500000000000000000000',
+  erc20Address: '0xb00b57df128e9afbc6a2487544d1e847bf7d2039',
+  tokenHolderAddress: '0xd97f2ca4dff7b8e129d1e7d72ec1cf9ff9c0ae00'
 }).then(console.log);
 
 
