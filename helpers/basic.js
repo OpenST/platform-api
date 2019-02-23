@@ -14,7 +14,8 @@ const rootPrefix = '..',
   apiErrorConfig = require(rootPrefix + '/config/apiParams/apiErrorConfig'),
   v2ParamErrorConfig = require(rootPrefix + '/config/apiParams/v2/errorConfig'),
   base64Helper = require(rootPrefix + '/lib/base64Helper'),
-  internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig');
+  internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 class BasicHelperKlass {
   /**
@@ -576,6 +577,36 @@ class BasicHelperKlass {
    */
   dateToSecondsTimestamp(dateStr) {
     return Math.floor(new Date(dateStr).getTime() / 1000);
+  }
+
+  /**
+   * promisify JSON parse
+   *
+   * @return {Promise<void>}
+   */
+  async promisifyJsonParse(data) {
+    return JSON.parse(data || '');
+  }
+
+  /**
+   * sanitize raw call data
+   *
+   * @param rawCallData
+   * @return {Promise<void>}
+   */
+  async sanitizeRawCallData(rawCallData) {
+    const oThis = this;
+
+    return oThis.promisifyJsonParse(rawCallData).catch(function() {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'h_b_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    });
   }
 }
 

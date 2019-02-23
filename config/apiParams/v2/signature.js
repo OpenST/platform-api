@@ -325,7 +325,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -395,7 +395,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -465,7 +465,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -535,7 +535,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',

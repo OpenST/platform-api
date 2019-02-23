@@ -60,8 +60,10 @@ class AuthorizeDevice extends Base {
    *
    * @private
    */
-  _sanitizeSpecificParams() {
+  async _sanitizeSpecificParams() {
     const oThis = this;
+
+    oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
 
     let rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'addOwnerWithThreshold') {
