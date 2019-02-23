@@ -2,7 +2,7 @@
 /**
  * This service executes Company To User Transaction
  *
- * @module app/services/executeTransaction/FromCompany
+ * @module app/services/transaction/execute/FromCompany
  */
 
 const BigNumber = require('bignumber.js'),
@@ -11,7 +11,7 @@ const BigNumber = require('bignumber.js'),
   InstanceComposer = OSTBase.InstanceComposer,
   TokenHolderHelper = OpenStJs.Helpers.TokenHolder;
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -19,7 +19,7 @@ const rootPrefix = '../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   NonceGetForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
-  ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base'),
+  ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base'),
   AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail');
 

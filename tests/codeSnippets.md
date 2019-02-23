@@ -64,7 +64,7 @@ params = {
   }
 }
 
-require('./app/services/executeTransaction/FromCompany.js');
+require('./app/services/transaction/execute/FromCompany');
 
 ExecuteCompanyToUserTx = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteCompanyToUserTx');
 
@@ -121,7 +121,7 @@ params = {
   }
 }
 
-require('./app/services/executeTransaction/FromUser.js');
+require('./app/services/transaction/execute/FromUser');
 ExecuteTxFromUser = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteTxFromUser');
 submitTx = new ExecuteTxFromUser(params);
 submitTx.perform().then(console.log).catch(console.log)

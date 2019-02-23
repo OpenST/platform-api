@@ -3,12 +3,12 @@
 /**
  * Base Execute Tx service
  *
- * @module app/services/executeTransaction/Base
+ * @module app/services/transaction/execute/Base
  */
 
 const uuidv4 = require('uuid/v4');
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),

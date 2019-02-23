@@ -3,7 +3,7 @@
 /**
  * This service executes User Transaction
  *
- * @module app/services/executeTransaction/FromUser
+ * @module app/services/transaction/execute/FromUser
  */
 
 const BigNumber = require('bignumber.js');
@@ -11,12 +11,12 @@ const BigNumber = require('bignumber.js');
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  ExecuteTxBase = require(rootPrefix + '/app/services/executeTransaction/Base');
+  ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 
