@@ -18,8 +18,9 @@ class GetUserList extends GetUserBase {
     const oThis = this;
 
     oThis.userIds = params.ids || [];
-
+    oThis.limit = params.limit;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+
     oThis.lastEvaluatedKey = null;
     oThis.page = null;
 
@@ -105,6 +106,44 @@ class GetUserList extends GetUserBase {
       [resultType.users]: oThis.userDetails,
       [resultType.meta]: oThis.responseMetaData
     });
+  }
+
+  /**
+   * _defaultPageLimit
+   *
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultUserListPageSize;
+  }
+
+  /**
+   * _minPageLimit
+   *
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minUserListPageSize;
+  }
+
+  /**
+   * _maxPageLimit
+   *
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxUserListPageSize;
+  }
+
+  /**
+   * _currentPageLimit
+   *
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
+
+    return oThis.limit;
   }
 }
 
