@@ -16,8 +16,7 @@ const rootPrefix = '../..',
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
-  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
-  NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
+  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');

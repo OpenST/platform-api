@@ -380,7 +380,9 @@ class TransactionParser extends SubscriberBase {
       let pendingTxData = fetchPendingTxData[pendingTxUuid],
         transactionReceipt = transactionReceiptMap[pendingTxData['transactionHash']];
 
-      let status = transactionReceipt.status & transactionReceipt.transactionInternalStatus;
+      let transactionStatus = transactionReceipt.status == '0x0' || transactionReceipt.status == false ? false : true;
+
+      let status = transactionStatus && transactionReceipt.internalStatus;
 
       let updateParams = {
         chainId: oThis.chainId,
