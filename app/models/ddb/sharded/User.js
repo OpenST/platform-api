@@ -425,6 +425,14 @@ class User extends Base {
 
     await tokenUserDetailsCache.clear();
 
+    require(rootPrefix + '/lib/cacheManagement/chain/TokenUserId');
+    let TokenUserIdCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserIdCache'),
+      tokenUserIdCache = new TokenUserIdCache({
+        tokenId: params.tokenId
+      });
+
+    await tokenUserIdCache.clear();
+
     return responseHelper.successWithData({});
   }
 
