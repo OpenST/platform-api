@@ -151,7 +151,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '191': workflowStepConstants.setInternalActorForTRInUBT,
     '192': workflowStepConstants.verifySetInternalActorForTRInUBT,
 
-    '200': workflowStepConstants.authorizeDeviceInit,
+    '200': workflowStepConstants.initiateRecoveryInit,
     '201': workflowStepConstants.authorizeDevicePerformTransaction,
     '202': workflowStepConstants.authorizeDeviceVerifyTransaction,
     '203': workflowStepConstants.rollbackAuthorizeDeviceTransaction,
@@ -169,7 +169,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '218': workflowStepConstants.revokeSessionInit,
     '219': workflowStepConstants.revokeSessionPerformTransaction,
     '220': workflowStepConstants.revokeSessionVerifyTransaction,
-    '221': workflowStepConstants.rollbackRevokeSessionTransaction
+    '221': workflowStepConstants.rollbackRevokeSessionTransaction,
+
+    '300': workflowStepConstants.initiateRecoveryInit,
+    '301': workflowStepConstants.initiateRecoveryPerformTransaction,
+    '302': workflowStepConstants.initiateRecoveryVerifyTransaction,
+    '303': workflowStepConstants.rollbackInitiateRecoveryTransaction
   },
   invertedKinds = util.invert(kinds);
 

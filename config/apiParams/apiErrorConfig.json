@@ -223,6 +223,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "User not activated."
+  },
+  "recovery_already_in_progress": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery for this user is already in progress."
   }
-
 }

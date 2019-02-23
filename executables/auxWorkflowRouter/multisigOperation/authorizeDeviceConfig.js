@@ -4,8 +4,8 @@ const rootPrefix = '../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
 const steps = {
-  [workflowStepConstants.authorizeDeviceInit]: {
-    kind: workflowStepConstants.authorizeDeviceInit,
+  [workflowStepConstants.initiateRecoveryInit]: {
+    kind: workflowStepConstants.initiateRecoveryInit,
     onFailure: workflowStepConstants.rollbackAuthorizeDeviceTransaction,
     onSuccess: [workflowStepConstants.authorizeDevicePerformTransaction]
   },

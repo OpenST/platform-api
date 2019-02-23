@@ -1,6 +1,6 @@
 'use strict';
 /**
- * User Setup router
+ * Authorize device router.
  *
  * @module executables/auxWorkflowRouter/UserSetupRouter
  */
@@ -19,18 +19,19 @@ const rootPrefix = '../../..',
     '/executables/auxWorkflowRouter/multisigOperation/authorizeDeviceConfig');
 
 /**
+ * Class for authorize device router.
  *
- *
- * @class
+ * @class AuthorizeDeviceRouter
  */
 class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
   /**
-   * Constructor for User Setup router.
+   * Constructor for authorize device router.
    *
    * @constructor
    */
   constructor(params) {
     params['workflowKind'] = workflowConstants.authorizeDeviceKind; // Assign workflowKind.
+
     super(params);
   }
 
@@ -59,8 +60,8 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
       ic = new InstanceComposer(configStrategy);
 
     switch (oThis.stepKind) {
-      case workflowStepConstants.authorizeDeviceInit:
-        logger.step('**********', workflowStepConstants.authorizeDeviceInit);
+      case workflowStepConstants.initiateRecoveryInit:
+        logger.step('**********', workflowStepConstants.initiateRecoveryInit);
         return oThis.insertInitStep();
 
       // Add Session addresses
@@ -136,7 +137,7 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
   async getConfigStrategy() {
     const oThis = this;
 
-    let rsp = await chainConfigProvider.getFor([oThis.chainId]);
+    const rsp = await chainConfigProvider.getFor([oThis.chainId]);
 
     return rsp[oThis.chainId];
   }
