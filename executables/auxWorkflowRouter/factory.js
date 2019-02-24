@@ -152,6 +152,10 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
         const RevokeSessionRouter = require(rootPrefix +
           '/executables/auxWorkflowRouter/multisigOperation/RevokeSessionRouter');
         return new RevokeSessionRouter(msgParams).perform();
+      case workflowTopicConstant.initiateRecovery:
+        const InitiateRecoveryRouter = require(rootPrefix +
+          '/executables/auxWorkflowRouter/recoveryOperation/InitiateRecoveryRouter');
+        return new InitiateRecoveryRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
