@@ -70,12 +70,13 @@ class ApiAuthentication {
       },
       [apiName.getUserTransactions]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/transactions'
+        route: '/users/:user_id/transactions/'
       },
       [apiName.getUserBalance]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/balance'
+        route: '/users/:user_id/balance/'
       }
+      // Note: - Urls should end with a slash. Add config above this.
     };
     return getRequestConfig;
   }
@@ -121,6 +122,7 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/'
       }
+      // Note: - Urls should end with a slash. Add config above this.
     };
     return postRequestConfig;
   }
@@ -165,7 +167,7 @@ class ApiAuthentication {
         buffer.regExUrl = buffer.regExUrl.replace(dynamicVariables[i], '([^/]+)');
       }
 
-      buffer.regExUrl = new RegExp(buffer.regExUrl);
+      buffer.regExUrl = new RegExp(buffer.regExUrl, 'i');
 
       regexes[config['route']] = buffer;
     }

@@ -16,6 +16,7 @@ const rootPrefix = '../..',
   SessionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/SessionList'),
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
@@ -26,6 +27,7 @@ require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
 require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
+require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
 require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/GetTransaction');
@@ -45,7 +47,7 @@ require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession')
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
 
 /* Create user*/
-router.post('/', function(req, res, next) {
+router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createUser;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -53,7 +55,7 @@ router.post('/', function(req, res, next) {
   req.decodedParams.kind = tokenUserConstants.userKind;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
       [resultType.user]: userFormattedRsp.data
@@ -64,13 +66,13 @@ router.post('/', function(req, res, next) {
 });
 
 /* Get user*/
-router.get('/:user_id', function(req, res, next) {
+router.get('/:user_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUser;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
       [resultType.user]: userFormattedRsp.data
@@ -81,17 +83,17 @@ router.get('/:user_id', function(req, res, next) {
 });
 
 /* Get users*/
-router.get('/', function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserList;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
     let users = serviceResponse.data[resultType.users],
       formattedUsers = [],
-      metaPayload = new UserListMetaFormatter(serviceResponse.data).perform().data;
+      metaPayload = await new UserListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let index in users) {
-      formattedUsers.push(new UserFormatter(users[index]).perform().data);
+      formattedUsers.push(await new UserFormatter(users[index]).perform().data);
     }
 
     serviceResponse.data = {
@@ -105,13 +107,13 @@ router.get('/', function(req, res, next) {
 });
 
 /* Create device for user*/
-router.post('/:user_id/devices', function(req, res, next) {
+router.post('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = await new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
       [resultType.device]: formattedRsp.data
@@ -122,7 +124,7 @@ router.post('/:user_id/devices', function(req, res, next) {
 });
 
 /* Get devices by userId */
-router.get('/:user_id/devices', function(req, res, next) {
+router.get('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDevices;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -138,7 +140,7 @@ router.get('/:user_id/devices', function(req, res, next) {
       if (!CommonValidators.validateObject(buffer)) {
         continue;
       }
-      formattedDevices.push(new DeviceFormatter(devices[deviceUuid]).perform().data);
+      formattedDevices.push(await new DeviceFormatter(devices[deviceUuid]).perform().data);
     }
 
     serviceResponse.data = {
@@ -152,7 +154,7 @@ router.get('/:user_id/devices', function(req, res, next) {
 });
 
 /* Get User device By device Address */
-router.get('/:user_id/devices/:device_address', function(req, res, next) {
+router.get('/:user_id/devices/:device_address', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -163,7 +165,7 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
       formattedRsp = {};
 
     if (CommonValidators.validateObject(device)) {
-      formattedRsp = new DeviceFormatter(device).perform();
+      formattedRsp = await new DeviceFormatter(device).perform();
     }
 
     serviceResponse.data = {
@@ -176,7 +178,7 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
 });
 
 /* Get sessions by userId */
-router.get('/:user_id/sessions', function(req, res, next) {
+router.get('/:user_id/sessions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSessions;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -187,7 +189,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
       metaPayload = new SessionListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let address in sessions) {
-      formattedSessions.push(new SessionFormatter(sessions[address]).perform().data);
+      formattedSessions.push(await new SessionFormatter(sessions[address]).perform().data);
     }
 
     serviceResponse.data = {
@@ -201,7 +203,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
 });
 
 /* Get User session By session Address */
-router.get('/:user_id/sessions/:session_address', function(req, res, next) {
+router.get('/:user_id/sessions/:session_address', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSession;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -209,7 +211,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
 
   const dataFormatterFunc = async function(serviceResponse) {
     let session = serviceResponse.data[resultType.session],
-      formattedRsp = new SessionFormatter(session).perform();
+      formattedRsp = await new SessionFormatter(session).perform();
 
     serviceResponse.data = {
       result_type: resultType.session,
@@ -221,7 +223,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
 });
 
 /* Get user device managers*/
-router.get('/:user_id/device-managers', function(req, res, next) {
+router.get('/:user_id/device-managers', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDeviceManager;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -240,13 +242,13 @@ router.get('/:user_id/device-managers', function(req, res, next) {
 });
 
 /* Create token holders */
-router.post('/:user_id/activate-user', function(req, res, next) {
+router.post('/:user_id/activate-user', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.activateUser;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
       [resultType.user]: userFormattedRsp.data
@@ -257,7 +259,7 @@ router.post('/:user_id/activate-user', function(req, res, next) {
 });
 
 /* Get user salt*/
-router.get('/:user_id/salts', function(req, res, next) {
+router.get('/:user_id/salts', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSalt;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -274,13 +276,13 @@ router.get('/:user_id/salts', function(req, res, next) {
 });
 
 /*Authorize Device*/
-router.post('/:user_id/devices/authorize', function(req, res, next) {
+router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = await new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
       [resultType.device]: formattedRsp.data
@@ -291,13 +293,13 @@ router.post('/:user_id/devices/authorize', function(req, res, next) {
 });
 
 /*Revoke Device*/
-router.post('/:user_id/devices/revoke', function(req, res, next) {
+router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = await new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
       [resultType.device]: formattedRsp.data
@@ -308,13 +310,13 @@ router.post('/:user_id/devices/revoke', function(req, res, next) {
 });
 
 /*Authorize Session*/
-router.post('/:user_id/sessions/authorize', function(req, res, next) {
+router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
+    const sessionsFormattedRsp = await new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
       result_type: resultType.session,
       [resultType.session]: sessionsFormattedRsp.data
@@ -325,13 +327,13 @@ router.post('/:user_id/sessions/authorize', function(req, res, next) {
 });
 
 /*Revoke Session*/
-router.post('/:user_id/sessions/revoke', function(req, res, next) {
+router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
+    const sessionsFormattedRsp = await new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
       result_type: resultType.session,
       [resultType.session]: sessionsFormattedRsp.data
@@ -341,7 +343,7 @@ router.post('/:user_id/sessions/revoke', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v2_u_15', null, dataFormatterFunc));
 });
 
-router.post('/:user_id/transactions', function(req, res, next) {
+router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   let klassGetterName;
   if (req.decodedParams['api_signature_kind'] === apiSignature.hmacKind) {
     req.decodedParams.apiName = apiName.executeTransactionFromCompany;
@@ -350,11 +352,13 @@ router.post('/:user_id/transactions', function(req, res, next) {
     req.decodedParams.apiName = apiName.executeTransactionFromUser;
     klassGetterName = 'ExecuteTxFromUser';
   }
-
+  req.decodedParams.userId = req.params.user_id;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const transactionFormattedRsp = new TransactionFormatter(serviceResponse.data[resultType.transaction]).perform();
+    const transactionFormattedRsp = await new TransactionFormatter(
+      serviceResponse.data[resultType.transaction]
+    ).perform();
     serviceResponse.data = {
       result_type: resultType.transaction,
       [resultType.transaction]: transactionFormattedRsp.data
@@ -365,14 +369,15 @@ router.post('/:user_id/transactions', function(req, res, next) {
 });
 
 /* Get transaction by id */
-router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
+router.get('/:user_id/transactions/:transaction_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getTransaction;
-  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.transaction_id = req.params.transaction_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
     let transaction = serviceResponse.data[resultType.transaction],
-      formattedRsp = new TransactionFormatter(transaction).perform();
+      formattedRsp = await new TransactionFormatter(transaction).perform();
 
     serviceResponse.data = {
       result_type: resultType.transaction,
@@ -383,13 +388,13 @@ router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
 });
 
-router.get('/:user_id/transactions', function(req, res, next) {
+router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserTransactions;
-  req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.token_id = req.params.token_id;
   req.decodedParams.meta_property = req.params.meta_property;
   req.decodedParams.status = req.params.status;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
     //TODO as discussed
@@ -400,13 +405,14 @@ router.get('/:user_id/transactions', function(req, res, next) {
   );
 });
 
-router.get('/:user_id/balance', function(req, res, next) {
+router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserBalance;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const balanceFormattedRsp = new BalanceFormatter(serviceResponse.data[resultType.balance]).perform();
+    const balanceFormattedRsp = await new BalanceFormatter(serviceResponse.data[resultType.balance]).perform();
+
     serviceResponse.data = {
       result_type: resultType.balance,
       [resultType.balance]: balanceFormattedRsp.data

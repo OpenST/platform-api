@@ -3,12 +3,13 @@ const express = require('express'),
 
 const rootPrefix = '../..',
   routeHelper = require(rootPrefix + '/routes/helper'),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   RuleFormatter = require(rootPrefix + '/lib/formatter/entity/Rule');
 
 /* Get rules */
-router.get('/', function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRules;
   req.decodedParams.clientConfigStrategyRequired = false;
   const dataFormatterFunc = async function(serviceResponse) {

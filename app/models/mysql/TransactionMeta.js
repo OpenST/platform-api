@@ -83,19 +83,10 @@ class TransactionMetaModel extends ModelBase {
    */
   releaseLockAndMarkStatus(params) {
     const oThis = this,
-      whereClause = {},
       dataToUpdate = {
         lock_id: null,
         status: transactionMetaConst.invertedStatuses[params.status]
       };
-
-    if (params.lockId) {
-      whereClause.lock_id = params.lockId;
-    } else if (params.id) {
-      whereClause.id = params.id;
-    } else {
-      throw 'no param for where clause';
-    }
 
     if (params.transactionHash) {
       dataToUpdate.transaction_hash = params.transactionHash;
@@ -113,57 +104,27 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.debug_params = JSON.stringify(params.debugParams);
     }
 
-    return oThis
-      .update(dataToUpdate)
-      .where(whereClause)
-      .fire();
-  }
+    if (transactionMetaConst.nextActionAtDelta[params.status]) {
+      dataToUpdate.next_action_at = transactionMetaConst.getNextActionAtFor(params.status);
+    }
 
-  markAsQueuedFailed(transactionUuid) {
-    const oThis = this;
-    return oThis
-      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]])
-      .where({ transaction_uuid: transactionUuid })
-      .fire();
-  }
+    let queryObj = oThis.update(dataToUpdate);
 
-  markAsRollbackNeededById(id) {
-    const oThis = this;
-    return oThis
-      .update([
-        'lock_id = null, status=?',
-        transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus]
-      ])
-      .where({ id: id })
-      .fire();
-  }
+    if (params.lockId) {
+      queryObj = queryObj.where({ lock_id: params.lockId });
+    } else if (params.id) {
+      queryObj = queryObj.where({ id: params.id });
+    } else if (params.transactionHashes) {
+      queryObj = queryObj.where(['transaction_hash IN (?)', params.transactionHashes]);
+    } else if (params.ids) {
+      queryObj = queryObj.where(['id IN (?)', params.ids]);
+    } else if (params.transactionHash) {
+      queryObj = queryObj.where({ transactionHash: params.transactionHash });
+    } else {
+      throw 'no param for where clause';
+    }
 
-  markAsGethDownById(id) {
-    const oThis = this;
-    return oThis
-      .update(['lock_id = null, status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus]])
-      .where({ id: id })
-      .fire();
-  }
-
-  /**
-   * Mark transaction failed
-   * @param id
-   * @param failStatus
-   * @param debug_params
-   * @return {*|void}
-   */
-  markFailed(id, failStatus, debug_params) {
-    const oThis = this;
-
-    return oThis
-      .update({
-        lock_id: null,
-        status: transactionMetaConst.invertedStatuses[failStatus],
-        debug_params: debug_params
-      })
-      .where({ id: id })
-      .fire();
+    return queryObj.fire();
   }
 
   /**
