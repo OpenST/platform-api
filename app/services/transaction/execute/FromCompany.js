@@ -70,6 +70,9 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   async _setTokenHolderAddress() {
     const oThis = this;
 
+    // fetch token details for client id
+    await oThis._fetchTokenDetails();
+
     // fetch token's company users
     let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
 
@@ -239,7 +242,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const transactionObject = {
       // TODO - move the toChecksumAddress sanitizing inside interaction layers
       from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
-      to: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenRuleAddress), // TR contract address
+      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // rule contract address (TR / Pricer)
       data: oThis.transferExecutableData,
       nonce: oThis.sessionKeyNonce,
       callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix()
