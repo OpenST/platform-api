@@ -135,15 +135,15 @@ class ModelBaseKlass {
   async putItem(rowMap, conditionalExpression) {
     const oThis = this;
 
-    let sanitizedRowMap = oThis._sanitizeRowForDynamo(rowMap);
+    const sanitizedRowMap = oThis._sanitizeRowForDynamo(rowMap);
 
-    let formattedData = {
+    const formattedData = {
       Item: oThis._formatRowForDynamo(sanitizedRowMap),
       TableName: oThis.tableName(),
       ConditionExpression: conditionalExpression
     };
 
-    let putItemResponse = await oThis.ddbServiceObj.putItem(formattedData);
+    const putItemResponse = await oThis.ddbServiceObj.putItem(formattedData);
 
     if (putItemResponse.isFailure()) {
       logger.error('Could not create entry in table -', oThis.tableName());

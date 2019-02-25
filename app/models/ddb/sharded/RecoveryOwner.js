@@ -299,7 +299,7 @@ class RecoveryOwner extends Base {
    * Method to perform extra formatting.
    *
    * @param {Object} dbRow
-   * @param {Number} dbRow.status
+   * @param {String} dbRow.status
    * @param {String} dbRow.address
    * @param {Number} [dbRow.updatedTimestamp]
    *
