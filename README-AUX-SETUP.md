@@ -92,6 +92,12 @@ And add it to tables using following script.
   node executables/blockScanner/Aggregator.js --cronProcessId 11
 ```
 
+* Run Auxiliary Transaction Finalizer
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/BalanceSettler.js --cronProcessId 22
+```
+
 * Run Auxiliary Transaction Parser
 ```bash
   source set_env_vars.sh
@@ -108,12 +114,6 @@ And add it to tables using following script.
 ```bash
   source set_env_vars.sh
   node executables/blockScanner/Finalizer.js --cronProcessId 10
-```
-
-* Run Auxiliary Transaction Finalizer
-```bash
-  source set_env_vars.sh
-  node executables/blockScanner/BalanceSettler.js --cronProcessId 22
 ```
 
 
