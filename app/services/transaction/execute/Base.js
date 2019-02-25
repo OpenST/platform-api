@@ -176,10 +176,22 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    let tokenAddresses = await oThis._tokenAddresses();
-    oThis.erc20Address = tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
+    await oThis._setTokenDetails();
+
+    await oThis._setTokenAddresses();
+
+    oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
 
     await oThis._setTokenHolderAddress();
+  }
+
+  async _setTokenDetails() {
+    const oThis = this;
+
+    // fetch token details for client id
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
   }
 
   /**
@@ -328,9 +340,8 @@ class ExecuteTxBase extends ServiceBase {
     let BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
       balanceObj = new BalanceModel({ shardNumber: oThis.balanceShardNumber });
 
-    let tokenAddresses = await oThis._tokenAddresses();
     let buffer = {
-      erc20Address: tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
+      erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
       blockChainUnsettleDebits: oThis.pessimisticDebitAmount.mul(-1).toString(10)
     };
@@ -513,12 +524,8 @@ class ExecuteTxBase extends ServiceBase {
    *
    * @private
    */
-  async _tokenAddresses() {
+  async _setTokenAddresses() {
     const oThis = this;
-
-    if (oThis.tokenAddresses) {
-      return oThis.tokenAddresses;
-    }
 
     let getAddrRsp = await new TokenAddressCache({
       tokenId: oThis.tokenId
@@ -534,8 +541,6 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     oThis.tokenAddresses = getAddrRsp.data;
-
-    return oThis.tokenAddresses;
   }
 
   /**

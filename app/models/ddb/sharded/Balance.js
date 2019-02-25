@@ -209,7 +209,7 @@ class Balance extends Base {
       logger.error('balanceCacheFlushError: ', balanceParams, afterUpdateResponse.toHash());
     }
 
-    return responseHelper.successWithData(updateResponse);
+    return updateResponse;
   }
 
   /**
