@@ -669,7 +669,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'user_id',
-        validatorMethod: 'validateUuid'
+        validatorMethod: 'validateUuidV4'
       },
       {
         parameter: 'transaction_id',
@@ -698,7 +698,7 @@ const v2Signature = {
     mandatory: [
       {
         parameter: 'user_id',
-        validatorMethod: 'validateUuid'
+        validatorMethod: 'validateUuidV4'
       },
       {
         parameter: 'token_id',

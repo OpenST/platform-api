@@ -43,7 +43,7 @@ morgan.token('endDateTime', function getEndDateTime(req) {
   return basicHelper.logDateFormat();
 });
 
-const assignParams = function(req) {
+const startRequestLogLine = function(req, res, next) {
   let message =
     "Started '" +
     customUrlParser.parse(req.originalUrl).pathname +
@@ -53,22 +53,33 @@ const assignParams = function(req) {
     basicHelper.logDateFormat();
   logger.info(message);
 
-  req.decodedParams = getRequestParams(req);
+  next();
+};
+
+const assignParams = function(req, res, next) {
+  // IMPORTANT NOTE: Don't assign parameters before sanitization
+  //req.decodedParams = getRequestParams(req);
+  Object.assign(req.decodedParams, getRequestParams(req));
+
+  next();
 };
 
 const getRequestParams = function(req) {
+  // IMPORTANT NOTE: Don't assign parameters before sanitization
   if (req.method == 'POST') {
     return req.body;
   } else if (req.method == 'GET') {
     return req.query;
   }
 };
-
 const validateApiSignature = function(req, res, next) {
   let inputParams = getRequestParams(req);
 
   const handleParamValidationResult = function(result) {
     if (result.isSuccess()) {
+      if (!req.decodedParams) {
+        req.decodedParams = {};
+      }
       // NOTE: MAKE SURE ALL SANITIZED VALUES ARE ASSIGNED HERE
       req.decodedParams['client_id'] = result.data['clientId'];
       req.decodedParams['token_id'] = result.data['tokenId'];
@@ -92,15 +103,6 @@ const validateApiSignature = function(req, res, next) {
 
 // before action for verifying the jwt token and setting the decoded info in req obj
 const decodeJwt = function(req, res, next) {
-  let message =
-    "Started '" +
-    customUrlParser.parse(req.originalUrl).pathname +
-    "'  '" +
-    req.method +
-    "' at " +
-    basicHelper.logDateFormat();
-  logger.info(message);
-
   if (req.method == 'POST') {
     var token = req.body.token || '';
   } else if (req.method == 'GET') {
@@ -294,11 +296,6 @@ if (cluster.isMaster) {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
-  /*
-    The sanitizer() piece of code should always be before routes for jwt and after validateApiSignature for sdk.
-    Docs: https://www.npmjs.com/package/sanitize-html
-  */
-
   // Mark older routes as UNSUPPORTED_VERSION
   app.use('/transaction-types', handleDepricatedRoutes);
   app.use('/users', handleDepricatedRoutes);
@@ -308,8 +305,14 @@ if (cluster.isMaster) {
   // Following are the routes
   app.use('/health-checker', elbHealthCheckerRoute);
 
+  /*
+    The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
+    Docs: https://www.npmjs.com/package/sanitize-html
+  */
+
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
+    startRequestLogLine,
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     sanitizer.sanitizeBodyAndQuery,
@@ -320,6 +323,7 @@ if (cluster.isMaster) {
 
   app.use(
     '/' + environmentInfo.urlPrefix + '/v2',
+    startRequestLogLine,
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     validateApiSignature,

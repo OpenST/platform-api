@@ -76,6 +76,18 @@ class BasicHelperKlass {
   }
 
   /**
+   * Convert wei to proper string. Make sure it's a valid number
+   *
+   * @param {Number} amountInWei - amount in wei to be formatted
+   *
+   * @return {String}
+   */
+  formatWeiToString(amountInWei) {
+    const oThis = this;
+    return oThis.convertToBigNumber(amountInWei).toString(10);
+  }
+
+  /**
    * Convert number to big number. Make sure it's a valid number
    *
    * @param {Number} number - number to be formatted
@@ -137,6 +149,24 @@ class BasicHelperKlass {
       return false;
     }
     return /^0x[0-9a-fA-F]{64}$/.test(txHash);
+  }
+
+  /**
+   * Shuffle a array
+   *
+   * @param {Array} array
+   *
+   * @return {Array}
+   */
+  shuffleArray(array) {
+    for (let i = array.length - 1; i >= 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      let temp = array[i];
+      array[i] = array[j];
+      array[j] = temp;
+    }
+
+    return array;
   }
 
   /**

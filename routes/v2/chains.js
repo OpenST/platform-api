@@ -27,7 +27,7 @@ router.get('/:chain_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, 
 });
 
 /* Get price points*/
-router.get('/:chain_id/price-points', function(req, res, next) {
+router.get('/:chain_id/price-points', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getPricePoints;
   req.decodedParams.clientConfigStrategyRequired = false;
 

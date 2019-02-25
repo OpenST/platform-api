@@ -45,7 +45,7 @@ require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession')
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
 
 /* Create user*/
-router.post('/', function(req, res, next) {
+router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createUser;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -81,7 +81,7 @@ router.get('/:user_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, n
 });
 
 /* Get users*/
-router.get('/', function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserList;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -291,7 +291,7 @@ router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, f
 });
 
 /*Revoke Device*/
-router.post('/:user_id/devices/revoke', function(req, res, next) {
+router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -325,7 +325,7 @@ router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, 
 });
 
 /*Revoke Session*/
-router.post('/:user_id/sessions/revoke', function(req, res, next) {
+router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
