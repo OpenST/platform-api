@@ -251,7 +251,7 @@ class CreateTokenHolder extends ServiceBase {
       oThis.userId,
       oThis.deviceAddress,
       deviceConstants.registeredStatus,
-      deviceConstants.authorisingStatus
+      deviceConstants.authorizingStatus
     );
 
     if (deviceStatusUpdateResponse.isFailure() || !deviceStatusUpdateResponse.data.deviceUuid) {

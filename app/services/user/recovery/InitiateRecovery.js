@@ -1,30 +1,30 @@
 'use strict';
-
 /**
  * This service initiates recovery procedure for user.
  *
  * @module app/services/user/recovery/InitiateRecovery
  */
+
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
-  RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
-  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  InitRecoveryRouter = require(rootPrefix + '/executables/auxWorkflowRouter/recoveryOperation/InitiateRecoveryRouter'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
+  RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
+  InitRecoveryRouter = require(rootPrefix + '/executables/auxWorkflowRouter/recoveryOperation/InitiateRecoveryRouter');
 
 /**
  * Class to initiate recovery procedure for user
  *
- * @class
+ * @class InitiateRecovery
  */
 class InitiateRecovery extends UserRecoveryServiceBase {
   /**
@@ -105,7 +105,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     // Check if old device address is found or not and its status is authorized or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.oldDeviceAddress]) ||
-      devicesCacheResponse[oThis.oldDeviceAddress].status != deviceConstants.authorisedStatus
+      devicesCacheResponse[oThis.oldDeviceAddress].status != deviceConstants.authorizedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -146,7 +146,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     // New device from Registered to Authorizing
     let statusMap = {
       [oThis.oldDeviceAddress]: {
-        initial: deviceConstants.authorisedStatus,
+        initial: deviceConstants.authorizedStatus,
         final: deviceConstants.revokingStatus
       },
       [oThis.newDeviceAddress]: {

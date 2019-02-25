@@ -117,7 +117,7 @@ class AuthorizeDevice extends Base {
 
     if (
       basicHelper.isEmptyObject(signerAddressDetails) ||
-      signerAddressDetails.status !== deviceConstants.authorisedStatus
+      signerAddressDetails.status !== deviceConstants.authorizedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -158,7 +158,7 @@ class AuthorizeDevice extends Base {
     let updateResponse = await oThis._updateDeviceStatus(
       oThis.deviceAddress,
       deviceConstants.registeredStatus,
-      deviceConstants.authorisingStatus
+      deviceConstants.authorizingStatus
     );
 
     await oThis._startWorkflow();
