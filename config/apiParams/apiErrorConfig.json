@@ -224,6 +224,16 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "User not activated."
   },
+  "another_recovery_operation_in_process": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Another recovery operation is happening for User. Please try after sometime."
+  },
+  "initiate_recovery_is_pending": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "One Initiate Recovery request is already waiting for Admin approval."
+  },
   "recovery_already_in_progress": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",

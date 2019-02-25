@@ -86,7 +86,7 @@ class ApiAuthentication {
         route: '/users/'
       },
       [apiName.activateUser]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind],
         route: '/users/:user_id/activate-user/'
       },
       [apiName.createUserDevice]: {

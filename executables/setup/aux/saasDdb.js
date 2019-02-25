@@ -123,14 +123,14 @@ class CreateInitialAuxDdbTablesForSaas {
         isAvailableForAllocation: true
       });
 
-    // Create User table(s)
-    await userShardObject.perform();
-
-    // Create Device table(s)
-    await deviceShardObject.perform();
-
-    // Create Session table(s)
-    await sessionShardObject.perform();
+    // // Create User table(s)
+    // await userShardObject.perform();
+    //
+    // // Create Device table(s)
+    // await deviceShardObject.perform();
+    //
+    // // Create Session table(s)
+    // await sessionShardObject.perform();
 
     // Create Recovery Owner Address table(s)
     await recoveryOwnerAddressShardObject.perform();

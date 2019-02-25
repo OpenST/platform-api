@@ -198,6 +198,26 @@ const v2ErrorConfig = {
     parameter: 'signatures',
     code: 'invalid',
     message: 'Invalid signature provided'
+  },
+  old_device_address_not_authorized: {
+    parameter: 'old_device_address',
+    code: 'invalid',
+    message: 'Old device address is either invalid or not Authorized.'
+  },
+  new_device_address_not_registered: {
+    parameter: 'new_device_address',
+    code: 'invalid',
+    message: 'New device address is either invalid or not Registered.'
+  },
+  same_new_and_old_device_addresses: {
+    parameter: 'new_device_address',
+    code: 'invalid',
+    message: 'New device cannot be same as old.'
+  },
+  invalid_old_linked_address: {
+    parameter: 'old_linked_address',
+    code: 'invalid',
+    message: 'Invalid address'
   }
 };
 
