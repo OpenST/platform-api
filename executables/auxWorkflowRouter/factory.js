@@ -156,6 +156,10 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
         const InitiateRecoveryRouter = require(rootPrefix +
           '/executables/auxWorkflowRouter/recoveryOperation/InitiateRecoveryRouter');
         return new InitiateRecoveryRouter(msgParams).perform();
+      case workflowTopicConstant.abortRecoveryByOwner:
+        const AbortRecoveryByOwnerRouter = require(rootPrefix +
+          '/executables/auxWorkflowRouter/recoveryOperation/AbortRecoveryByOwnerRouter');
+        return new AbortRecoveryByOwnerRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
