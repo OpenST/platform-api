@@ -6,6 +6,7 @@ const rootPrefix = '../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  BalanceFormatter = require(rootPrefix + '/lib/formatter/entity/Balance'),
   UserListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserList'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
@@ -397,6 +398,22 @@ router.get('/:user_id/transactions', function(req, res, next) {
   return Promise.resolve(
     routeHelper.perform(req, res, next, 'GetUserTransaction', 'r_v_u_13', null, dataFormatterFunc)
   );
+});
+
+router.get('/:user_id/balance', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserBalance;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const balanceFormattedRsp = new BalanceFormatter(serviceResponse.data[resultType.balance]).perform();
+    serviceResponse.data = {
+      result_type: resultType.balance,
+      [resultType.balance]: balanceFormattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v_u_14', null, dataFormatterFunc));
 });
 
 module.exports = router;

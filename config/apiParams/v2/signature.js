@@ -706,6 +706,37 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.getUserBalance]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuid'
+      },
+      {
+        parameter: 'api_signature_kind',
+        validatorMethod: 'validateApiSignatureKind'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
+      }
+    ]
   }
 };
 
