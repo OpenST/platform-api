@@ -8,7 +8,6 @@ const program = require('commander'),
   OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '..',
-  InstanceComposer = OSTBase.InstanceComposer,
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -21,6 +20,8 @@ const rootPrefix = '..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/transactions/ProcessRmqMessage');
 
