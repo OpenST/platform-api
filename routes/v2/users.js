@@ -15,6 +15,7 @@ const rootPrefix = '../..',
   SessionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/SessionList'),
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList');
@@ -45,7 +46,7 @@ require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession')
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
 
 /* Create user*/
-router.post('/', function(req, res, next) {
+router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createUser;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -64,7 +65,7 @@ router.post('/', function(req, res, next) {
 });
 
 /* Get user*/
-router.get('/:user_id', function(req, res, next) {
+router.get('/:user_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUser;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -81,7 +82,7 @@ router.get('/:user_id', function(req, res, next) {
 });
 
 /* Get users*/
-router.get('/', function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserList;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -105,7 +106,7 @@ router.get('/', function(req, res, next) {
 });
 
 /* Create device for user*/
-router.post('/:user_id/devices', function(req, res, next) {
+router.post('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -122,7 +123,7 @@ router.post('/:user_id/devices', function(req, res, next) {
 });
 
 /* Get devices by userId */
-router.get('/:user_id/devices', function(req, res, next) {
+router.get('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDevices;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -152,7 +153,7 @@ router.get('/:user_id/devices', function(req, res, next) {
 });
 
 /* Get User device By device Address */
-router.get('/:user_id/devices/:device_address', function(req, res, next) {
+router.get('/:user_id/devices/:device_address', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -176,7 +177,7 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
 });
 
 /* Get sessions by userId */
-router.get('/:user_id/sessions', function(req, res, next) {
+router.get('/:user_id/sessions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSessions;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -201,7 +202,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
 });
 
 /* Get User session By session Address */
-router.get('/:user_id/sessions/:session_address', function(req, res, next) {
+router.get('/:user_id/sessions/:session_address', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSession;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -221,7 +222,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
 });
 
 /* Get user device managers*/
-router.get('/:user_id/device-managers', function(req, res, next) {
+router.get('/:user_id/device-managers', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserDeviceManager;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -240,7 +241,7 @@ router.get('/:user_id/device-managers', function(req, res, next) {
 });
 
 /* Create token holders */
-router.post('/:user_id/activate-user', function(req, res, next) {
+router.post('/:user_id/activate-user', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.activateUser;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -257,7 +258,7 @@ router.post('/:user_id/activate-user', function(req, res, next) {
 });
 
 /* Get user salt*/
-router.get('/:user_id/salts', function(req, res, next) {
+router.get('/:user_id/salts', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserSalt;
   req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -274,7 +275,7 @@ router.get('/:user_id/salts', function(req, res, next) {
 });
 
 /*Authorize Device*/
-router.post('/:user_id/devices/authorize', function(req, res, next) {
+router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -291,7 +292,7 @@ router.post('/:user_id/devices/authorize', function(req, res, next) {
 });
 
 /*Revoke Device*/
-router.post('/:user_id/devices/revoke', function(req, res, next) {
+router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeDevice;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -308,7 +309,7 @@ router.post('/:user_id/devices/revoke', function(req, res, next) {
 });
 
 /*Authorize Session*/
-router.post('/:user_id/sessions/authorize', function(req, res, next) {
+router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -325,7 +326,7 @@ router.post('/:user_id/sessions/authorize', function(req, res, next) {
 });
 
 /*Revoke Session*/
-router.post('/:user_id/sessions/revoke', function(req, res, next) {
+router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeSession;
   req.decodedParams.userId = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -341,7 +342,7 @@ router.post('/:user_id/sessions/revoke', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v2_u_15', null, dataFormatterFunc));
 });
 
-router.post('/:user_id/transactions', function(req, res, next) {
+router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   let klassGetterName;
   if (req.decodedParams['api_signature_kind'] === apiSignature.hmacKind) {
     req.decodedParams.apiName = apiName.executeTransactionFromCompany;
@@ -350,7 +351,7 @@ router.post('/:user_id/transactions', function(req, res, next) {
     req.decodedParams.apiName = apiName.executeTransactionFromUser;
     klassGetterName = 'ExecuteTxFromUser';
   }
-
+  req.decodedParams.userId = req.params.user_id;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -365,11 +366,11 @@ router.post('/:user_id/transactions', function(req, res, next) {
 });
 
 /* Get transaction by userId and transactionId */
-router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
+router.get('/:user_id/transactions/:transaction_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getTransaction;
-  req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.transaction_id = req.params.transaction_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
     let transaction = serviceResponse.data[resultType.transaction],
@@ -384,13 +385,13 @@ router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
 });
 
-router.get('/:user_id/transactions', function(req, res, next) {
+router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserTransactions;
-  req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.token_id = req.params.token_id;
   req.decodedParams.meta_property = req.params.meta_property;
   req.decodedParams.status = req.params.status;
+  req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
     let transactions = serviceResponse.data[resultType.transactions],

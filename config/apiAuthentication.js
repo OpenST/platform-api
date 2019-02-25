@@ -161,7 +161,7 @@ class ApiAuthentication {
         buffer.regExUrl = buffer.regExUrl.replace(dynamicVariables[i], '([^/]+)');
       }
 
-      buffer.regExUrl = new RegExp(buffer.regExUrl);
+      buffer.regExUrl = new RegExp(buffer.regExUrl, 'i');
 
       regexes[config['route']] = buffer;
     }
