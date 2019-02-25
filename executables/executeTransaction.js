@@ -296,31 +296,14 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
           'ProcessRmqExecuteTxMessage'
         ),
         processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
-          tokenAddressId: payload.tokenAddressId,
           transactionUuid: payload.transaction_uuid,
+          transactionMetaId: payload.transactionMetaId,
           fromAddress: messageParams.fromAddress,
-          fromAddressNonce: messageParams.fromAddressNonce,
-          transactionMetaId: payload.transactionMetaId
+          fromAddressNonce: messageParams.fromAddressNonce
         });
 
-      // Start transaction parser service.
-      const processMsgRsp = await processRmqExecuteTxMessage.perform();
-
-      if (processMsgRsp.isSuccess()) {
-        logger.debug('------unAckCount -> ', oThis.unAckCount);
-        // ACK RMQ.
-        return;
-      } else {
-        logger.error(
-          'e_et_1',
-          'Error in processRmqExecuteTxMessage. unAckCount ->',
-          oThis.unAckCount,
-          'processRmqExecuteTxMessage response: ',
-          processMsgRsp
-        );
-        // ACK RMQ.
-        return;
-      }
+      // Process Ex Tx Message
+      await processRmqExecuteTxMessage.perform();
     } else if (kind == kwcConstant.commandMsg) {
       logger.info('Command specific perform called called called called called called called called.......\n');
       let commandMessageParams = {
@@ -330,6 +313,7 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
       let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
       await oThis._commandResponseActions(commandProcessorResponse);
     }
+
     return true;
   }
 
