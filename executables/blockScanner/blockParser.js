@@ -3,12 +3,12 @@
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * Transaction parser processes.
  *
- * Usage: node executables/blockScanner/BlockParser.js cronProcessId
+ * Usage: node executables/blockScanner/blockParser.js cronProcessId
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/BlockParser
+ * @module executables/blockScanner/blockParser
  */
 const rootPrefix = '../..',
   program = require('commander'),
@@ -31,7 +31,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/blockScanner/BlockParser.js --cronProcessId 1');
+  logger.log('    node executables/blockScanner/blockParser.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });

@@ -2,12 +2,12 @@
 /**
  * This code acts as a aggregator for blocks which are finalized
  *
- * Usage: node executables/blockScanner/Aggregator.js --cronProcessId <cronProcessId>
+ * Usage: node executables/blockScanner/aggregator.js --cronProcessId <cronProcessId>
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/Aggregator
+ * @module executables/blockScanner/aggregator
  */
 
 const rootPrefix = '../..',
@@ -24,7 +24,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/blockScanner/Aggregator.js --cronProcessId 1');
+  logger.log('    node executables/blockScanner/aggregator.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });

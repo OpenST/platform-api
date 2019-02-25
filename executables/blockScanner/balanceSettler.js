@@ -2,12 +2,12 @@
 /**
  * Class for settling the balance of user
  *
- * Usage: node executables/blockScanner/BalanceSettler.js --cronProcessId <cronProcessId>
+ * Usage: node executables/blockScanner/balanceSettler.js --cronProcessId <cronProcessId>
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/BalanceSettler
+ * @module executables/blockScanner/balanceSettler
  */
 
 const rootPrefix = '../..',
@@ -29,7 +29,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/blockScanner/BalanceSettler.js --cronProcessId 22');
+  logger.log('    node executables/blockScanner/balanceSettler.js --cronProcessId 22');
   logger.log('');
   logger.log('');
 });

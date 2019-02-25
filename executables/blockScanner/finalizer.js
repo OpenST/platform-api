@@ -2,12 +2,12 @@
 /**
  * This code publishes blocks which are finalized so that aggregation can start
  *
- * Usage: node executables/blockScanner/Finalizer.js --cronProcessId <cronProcessId>
+ * Usage: node executables/blockScanner/finalizer.js --cronProcessId <cronProcessId>
  *
  * Command Line Parameters Description:
  * cronProcessId: used for ensuring that no other process with the same cronProcessId can run on a given machine.
  *
- * @module executables/blockScanner/Finalizer
+ * @module executables/blockScanner/finalizer
  */
 const rootPrefix = '../..',
   program = require('commander'),
@@ -31,7 +31,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/blockScanner/Finalizer.js --cronProcessId 1');
+  logger.log('    node executables/blockScanner/finalizer.js --cronProcessId 1');
   logger.log('');
   logger.log('');
 });
