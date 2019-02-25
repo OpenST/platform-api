@@ -113,56 +113,13 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.debug_params = JSON.stringify(params.debugParams);
     }
 
+    if (transactionMetaConst.nextActionAtDelta[params.status]) {
+      dataToUpdate.next_action_at = transactionMetaConst.getNextActionAtFor(params.status);
+    }
+
     return oThis
       .update(dataToUpdate)
       .where(whereClause)
-      .fire();
-  }
-
-  markAsQueuedFailed(transactionUuid) {
-    const oThis = this;
-    return oThis
-      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]])
-      .where({ transaction_uuid: transactionUuid })
-      .fire();
-  }
-
-  markAsRollbackNeededById(id) {
-    const oThis = this;
-    return oThis
-      .update([
-        'lock_id = null, status=?',
-        transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus]
-      ])
-      .where({ id: id })
-      .fire();
-  }
-
-  markAsGethDownById(id) {
-    const oThis = this;
-    return oThis
-      .update(['lock_id = null, status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus]])
-      .where({ id: id })
-      .fire();
-  }
-
-  /**
-   * Mark transaction failed
-   * @param id
-   * @param failStatus
-   * @param debug_params
-   * @return {*|void}
-   */
-  markFailed(id, failStatus, debug_params) {
-    const oThis = this;
-
-    return oThis
-      .update({
-        lock_id: null,
-        status: transactionMetaConst.invertedStatuses[failStatus],
-        debug_params: debug_params
-      })
-      .where({ id: id })
       .fire();
   }
 
