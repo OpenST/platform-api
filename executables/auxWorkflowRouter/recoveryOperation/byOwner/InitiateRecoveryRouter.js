@@ -1,13 +1,13 @@
 /**
- * Abort recovery by owner router.
+ * Initiate recovery router.
  *
- * @module executables/auxWorkflowRouter/recoveryOperation/AbortRecoveryByOwnerRouter
+ * @module executables/auxWorkflowRouter/recoveryOperation/byOwner/InitiateRecoveryRouter
  */
 
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -15,22 +15,22 @@ const rootPrefix = '../../..',
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   AuxWorkflowRouterBase = require(rootPrefix + '/executables/auxWorkflowRouter/Base'),
-  abortRecoveryByOwnerConfig = require(rootPrefix +
-    '/executables/auxWorkflowRouter/recoveryOperation/abortRecoveryByOwnerConfig');
+  initiateRecoveryConfig = require(rootPrefix +
+    '/executables/auxWorkflowRouter/recoveryOperation/byOwner/initiateRecoveryConfig');
 
 /**
- * Class for abort recovery by owner router.
+ * Class for initiate recovery router.
  *
- * @class AbortRecoveryByOwnerRouter
+ * @class InitiateRecoveryRouter
  */
-class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
+class InitiateRecoveryRouter extends AuxWorkflowRouterBase {
   /**
-   * Constructor for abort recovery by owner router.
+   * Constructor for initiate recovery router.
    *
    * @constructor
    */
   constructor(params) {
-    params['workflowKind'] = workflowConstants.abortRecoveryByOwnerKind; // Assign workflowKind.
+    params['workflowKind'] = workflowConstants.initiateRecoveryKind; // Assign workflowKind.
 
     super(params);
   }
@@ -43,7 +43,7 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
   _fetchCurrentStepConfig() {
     const oThis = this;
 
-    oThis.currentStepConfig = abortRecoveryByOwnerConfig[oThis.stepKind];
+    oThis.currentStepConfig = initiateRecoveryConfig[oThis.stepKind];
   }
 
   /**
@@ -60,41 +60,41 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
       ic = new InstanceComposer(configStrategy);
 
     switch (oThis.stepKind) {
-      case workflowStepConstants.abortRecoveryByOwnerInit:
-        logger.step('**********', workflowStepConstants.abortRecoveryByOwnerInit);
+      case workflowStepConstants.initiateRecoveryInit:
+        logger.step('**********', workflowStepConstants.initiateRecoveryInit);
 
         return oThis.insertInitStep();
 
-      // Perform transaction to abort recovery by owner.
-      case workflowStepConstants.abortRecoveryByOwnerPerformTransaction:
-        logger.step('**********', workflowStepConstants.abortRecoveryByOwnerPerformTransaction);
+      // Perform transaction to initiate recovery.
+      case workflowStepConstants.initiateRecoveryPerformTransaction:
+        logger.step('**********', workflowStepConstants.initiateRecoveryPerformTransaction);
 
-        require(rootPrefix + '/lib/deviceRecovery/byOwner/abortRecovery/PerformTransaction');
+        require(rootPrefix + '/lib/deviceRecovery/byOwner/initiateRecovery/PerformTransaction');
 
         oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
         oThis.requestParams.workflowId = oThis.workflowId;
 
-        const PerformAbortRecoveryByOwnerTransaction = ic.getShadowedClassFor(
+        const PerformInitiateRecoveryTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
-            'PerformAbortRecoveryByOwnerTransaction'
+            'PerformInitiateRecoveryTransaction'
           ),
-          performAbortRecoveryByOwnerTransactionObj = new PerformAbortRecoveryByOwnerTransaction(oThis.requestParams);
+          performInitiateRecoveryTransactionObj = new PerformInitiateRecoveryTransaction(oThis.requestParams);
 
-        return performAbortRecoveryByOwnerTransactionObj.perform();
+        return performInitiateRecoveryTransactionObj.perform();
 
-      // Verify abort recovery by owner transaction.
-      case workflowStepConstants.abortRecoveryByOwnerVerifyTransaction:
-        logger.step('**********', workflowStepConstants.abortRecoveryByOwnerVerifyTransaction);
+      // Verify initiate recovery transaction.
+      case workflowStepConstants.initiateRecoveryVerifyTransaction:
+        logger.step('**********', workflowStepConstants.initiateRecoveryVerifyTransaction);
 
-        require(rootPrefix + '/lib/deviceRecovery/byOwner/abortRecovery/VerifyTransaction');
+        require(rootPrefix + '/lib/deviceRecovery/byOwner/initiateRecovery/VerifyTransaction');
 
-        const VerifyAbortRecoveryTransaction = ic.getShadowedClassFor(
+        const VerifyInitiateRecoveryTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
-            'VerifyAbortRecoveryTransaction'
+            'VerifyInitiateRecoveryTransaction'
           ),
-          verifyAbortRecoveryTransactionObj = new VerifyAbortRecoveryTransaction(oThis.requestParams);
+          verifyInitiateRecoveryTransactionObj = new VerifyInitiateRecoveryTransaction(oThis.requestParams);
 
-        return verifyAbortRecoveryTransactionObj.perform();
+        return verifyInitiateRecoveryTransactionObj.perform();
 
       case workflowStepConstants.markSuccess:
         logger.step('*** Mark Initiate Recovery As Success.');
@@ -109,7 +109,7 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
       default:
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'e_awr_ro_arbor_1',
+            internal_error_identifier: 'e_awr_ro_irr_1',
             api_error_identifier: 'something_went_wrong',
             debug_options: { workflowId: oThis.workflowId }
           })
@@ -125,7 +125,7 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
    * @return {*}
    */
   getNextStepConfigs(nextStep) {
-    return abortRecoveryByOwnerConfig[nextStep];
+    return initiateRecoveryConfig[nextStep];
   }
 
   /**
@@ -142,4 +142,4 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
   }
 }
 
-module.exports = AbortRecoveryByOwnerRouter;
+module.exports = InitiateRecoveryRouter;

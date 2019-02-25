@@ -1,10 +1,10 @@
 /**
  * Config for initiate recovery.
  *
- * @module executables/auxWorkflowRouter/recoveryOperation/intiateRecoveryConfig
+ * @module executables/auxWorkflowRouter/recoveryOperation/byOwner/initiateRecoveryConfig
  */
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
 const steps = {

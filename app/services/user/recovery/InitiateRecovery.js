@@ -19,7 +19,8 @@ const rootPrefix = '../../../..',
   UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
   RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
-  InitRecoveryRouter = require(rootPrefix + '/executables/auxWorkflowRouter/recoveryOperation/InitiateRecoveryRouter');
+  InitRecoveryRouter = require(rootPrefix +
+    '/executables/auxWorkflowRouter/recoveryOperation/byOwner/InitiateRecoveryRouter');
 
 /**
  * Class to initiate recovery procedure for user

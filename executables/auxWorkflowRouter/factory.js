@@ -154,11 +154,11 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
         return new RevokeSessionRouter(msgParams).perform();
       case workflowTopicConstant.initiateRecovery:
         const InitiateRecoveryRouter = require(rootPrefix +
-          '/executables/auxWorkflowRouter/recoveryOperation/InitiateRecoveryRouter');
+          '/executables/auxWorkflowRouter/recoveryOperation/byOwner/InitiateRecoveryRouter');
         return new InitiateRecoveryRouter(msgParams).perform();
       case workflowTopicConstant.abortRecoveryByOwner:
         const AbortRecoveryByOwnerRouter = require(rootPrefix +
-          '/executables/auxWorkflowRouter/recoveryOperation/AbortRecoveryByOwnerRouter');
+          '/executables/auxWorkflowRouter/recoveryOperation/byOwner/AbortRecoveryRouter');
         return new AbortRecoveryByOwnerRouter(msgParams).perform();
 
       default:

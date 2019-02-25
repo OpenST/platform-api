@@ -1,10 +1,10 @@
 /**
  * Config for abort recovery by owner.
  *
- * @module executables/auxWorkflowRouter/recoveryOperation/abortRecoveryByOwnerConfig
+ * @module executables/auxWorkflowRouter/recoveryOperation/byOwner/abortRecoveryConfig
  */
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
 const steps = {
