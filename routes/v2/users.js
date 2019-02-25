@@ -16,7 +16,8 @@ const rootPrefix = '../..',
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
-  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
+  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
+  TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -363,10 +364,11 @@ router.post('/:user_id/transactions', function(req, res, next) {
   return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v_u_11', null, dataFormatterFunc));
 });
 
-/* Get transaction by id */
+/* Get transaction by userId and transactionId */
 router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
   req.decodedParams.apiName = apiName.getTransaction;
   req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.transaction_id = req.params.transaction_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -391,11 +393,23 @@ router.get('/:user_id/transactions', function(req, res, next) {
   req.decodedParams.status = req.params.status;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    //TODO as discussed
+    let transactions = serviceResponse.data[resultType.transactions],
+      formattedTransactions = [],
+      metaPayload = new TransactionListMetaFormatter(serviceResponse.data).perform().data;
+
+    for (let txUuid in transactions) {
+      formattedTransactions.push(new TransactionFormatter(transactions[txUuid]).perform().data);
+    }
+
+    serviceResponse.data = {
+      result_type: resultType.transactions,
+      [resultType.transactions]: formattedTransactions,
+      [resultType.meta]: metaPayload
+    };
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetUserTransaction', 'r_v_u_13', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetUserTransactions', 'r_v_u_13', null, dataFormatterFunc)
   );
 });
 

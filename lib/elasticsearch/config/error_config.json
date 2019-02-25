@@ -39,6 +39,11 @@
       "http_code": "400",
       "code": "BAD_REQUEST",
       "message": "Nothing to do."
+    },
+    "es_data_not_found":{
+      "http_code": "400",
+      "code": "BAD_REQUEST",
+      "message": "Data not found in es. Please try after sometime."
     }
   }
 }
