@@ -13,7 +13,7 @@ const rootPrefix = '..',
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
-  SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
+  SequentialManager = require(rootPrefix + '/lib/transactions/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -154,9 +154,9 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
       kind = messageParams.message.kind;
 
     if (kind == kwcConstant.executeTx) {
-      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId, {
+      return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId, {
         transactionMetaId: msgParams.transactionMetaId
-      }).queueAndFetchNonce();
+      }).perform();
     } else {
       return Promise.resolve(responseHelper.successWithData({}));
     }
