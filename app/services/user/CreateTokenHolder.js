@@ -179,7 +179,6 @@ class CreateTokenHolder extends ServiceBase {
     }
 
     const deviceDetails = response.data[oThis.deviceAddress.toLowerCase()];
-    console.log(deviceDetails);
     if (basicHelper.isEmptyObject(deviceDetails) || deviceDetails.status !== deviceConstants.registeredStatus) {
       return Promise.reject(
         responseHelper.paramValidationError({
