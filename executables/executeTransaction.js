@@ -47,7 +47,7 @@ if (!cronProcessId) {
  *
  * @class
  */
-class ExecuteTransactionProcess extends MultiSubscriptionBase {
+class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   /**
    * Constructor for Execute Transaction Process.
    *
@@ -145,7 +145,10 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
   }
 
   /**
+   * Sequential executor
    *
+   * @param messageParams
+   * @return {Promise<any>}
    * @private
    */
   async _sequentialExecutor(messageParams) {
@@ -279,6 +282,7 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
+    // TODO - move to debug logs.
     logger.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
@@ -294,7 +298,8 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
         processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
           tokenAddressId: payload.tokenAddressId,
           transactionUuid: payload.transaction_uuid,
-          sequentialExecutorResponse: messageParams.sequentialExecutorResponse,
+          fromAddress: messageParams.fromAddress,
+          fromAddressNonce: messageParams.fromAddressNonce,
           transactionMetaId: payload.transactionMetaId
         });
 
@@ -355,4 +360,4 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
   }
 }
 
-new ExecuteTransactionProcess({ cronProcessId: +program.cronProcessId }).perform();
+new ExecuteTransactionExecutable({ cronProcessId: +program.cronProcessId }).perform();
