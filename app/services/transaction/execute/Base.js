@@ -445,16 +445,11 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     if (oThis.transactionMetaId) {
-      if (!oThis.failureStatusToUpdateInTxMeta) {
-        oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
-      }
-      await new TransactionMetaModel()
-        .update({
-          status: transactionMetaConst.invertedStatuses[oThis.failureStatusToUpdateInTxMeta],
-          debug_params: JSON.stringify(customError.toHash())
-        })
-        .where({ id: oThis.transactionMetaId })
-        .fire();
+      await new TransactionMetaModel().releaseLockAndMarkStatus({
+        status: oThis.failureStatusToUpdateInTxMeta || transactionMetaConst.finalFailedStatus,
+        id: oThis.transactionMetaId,
+        debugParams: customError.toHash()
+      });
     }
   }
 

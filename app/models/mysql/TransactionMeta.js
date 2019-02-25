@@ -83,19 +83,10 @@ class TransactionMetaModel extends ModelBase {
    */
   releaseLockAndMarkStatus(params) {
     const oThis = this,
-      whereClause = {},
       dataToUpdate = {
         lock_id: null,
         status: transactionMetaConst.invertedStatuses[params.status]
       };
-
-    if (params.lockId) {
-      whereClause.lock_id = params.lockId;
-    } else if (params.id) {
-      whereClause.id = params.id;
-    } else {
-      throw 'no param for where clause';
-    }
 
     if (params.transactionHash) {
       dataToUpdate.transaction_hash = params.transactionHash;
@@ -117,10 +108,23 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.next_action_at = transactionMetaConst.getNextActionAtFor(params.status);
     }
 
-    return oThis
-      .update(dataToUpdate)
-      .where(whereClause)
-      .fire();
+    let queryObj = oThis.update(dataToUpdate);
+
+    if (params.lockId) {
+      queryObj = queryObj.where({ lock_id: params.lockId });
+    } else if (params.id) {
+      queryObj = queryObj.where({ id: params.id });
+    } else if (params.transactionHashes) {
+      queryObj = queryObj.where(['transaction_hash IN (?)', params.transactionHashes]);
+    } else if (params.ids) {
+      queryObj = queryObj.where(['id IN (?)', params.ids]);
+    } else if (params.transactionHash) {
+      queryObj = queryObj.where({ transactionHash: params.transactionHash });
+    } else {
+      throw 'no param for where clause';
+    }
+
+    return queryObj.fire();
   }
 
   /**
