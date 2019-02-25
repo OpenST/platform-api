@@ -230,7 +230,7 @@ class Finalizer extends PublisherBase {
                   let txFinalizeDelegatorRsp = await txFinalizeDelegator.perform();
 
                   if (txFinalizeDelegatorRsp.isFailure()) {
-                    // TODO: what to do if failed?
+                    return Promise.reject(txFinalizeDelegatorRsp);
                   }
 
                   logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');

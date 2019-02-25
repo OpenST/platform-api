@@ -26,6 +26,7 @@ require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
 require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
+require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
 require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/GetTransaction');
@@ -53,7 +54,7 @@ router.post('/', function(req, res, next) {
   req.decodedParams.kind = tokenUserConstants.userKind;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
       [resultType.user]: userFormattedRsp.data
@@ -70,7 +71,7 @@ router.get('/:user_id', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
       [resultType.user]: userFormattedRsp.data
@@ -88,10 +89,10 @@ router.get('/', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let users = serviceResponse.data[resultType.users],
       formattedUsers = [],
-      metaPayload = new UserListMetaFormatter(serviceResponse.data).perform().data;
+      metaPayload = await new UserListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let index in users) {
-      formattedUsers.push(new UserFormatter(users[index]).perform().data);
+      formattedUsers.push(await new UserFormatter(users[index]).perform().data);
     }
 
     serviceResponse.data = {
@@ -111,7 +112,7 @@ router.post('/:user_id/devices', function(req, res, next) {
   req.decodedParams.user_id = req.params.user_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = await new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
       [resultType.device]: formattedRsp.data
@@ -138,7 +139,7 @@ router.get('/:user_id/devices', function(req, res, next) {
       if (!CommonValidators.validateObject(buffer)) {
         continue;
       }
-      formattedDevices.push(new DeviceFormatter(devices[deviceUuid]).perform().data);
+      formattedDevices.push(await new DeviceFormatter(devices[deviceUuid]).perform().data);
     }
 
     serviceResponse.data = {
@@ -163,7 +164,7 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
       formattedRsp = {};
 
     if (CommonValidators.validateObject(device)) {
-      formattedRsp = new DeviceFormatter(device).perform();
+      formattedRsp = await new DeviceFormatter(device).perform();
     }
 
     serviceResponse.data = {
@@ -187,7 +188,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
       metaPayload = new SessionListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let address in sessions) {
-      formattedSessions.push(new SessionFormatter(sessions[address]).perform().data);
+      formattedSessions.push(await new SessionFormatter(sessions[address]).perform().data);
     }
 
     serviceResponse.data = {
@@ -209,7 +210,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
 
   const dataFormatterFunc = async function(serviceResponse) {
     let session = serviceResponse.data[resultType.session],
-      formattedRsp = new SessionFormatter(session).perform();
+      formattedRsp = await new SessionFormatter(session).perform();
 
     serviceResponse.data = {
       result_type: resultType.session,
@@ -246,7 +247,7 @@ router.post('/:user_id/activate-user', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
     serviceResponse.data = {
       result_type: resultType.user,
       [resultType.user]: userFormattedRsp.data
@@ -280,7 +281,7 @@ router.post('/:user_id/devices/authorize', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = await new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
       [resultType.device]: formattedRsp.data
@@ -297,7 +298,7 @@ router.post('/:user_id/devices/revoke', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const formattedRsp = await new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
     serviceResponse.data = {
       result_type: resultType.device,
       [resultType.device]: formattedRsp.data
@@ -314,7 +315,7 @@ router.post('/:user_id/sessions/authorize', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
+    const sessionsFormattedRsp = await new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
       result_type: resultType.session,
       [resultType.session]: sessionsFormattedRsp.data
@@ -331,7 +332,7 @@ router.post('/:user_id/sessions/revoke', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const sessionsFormattedRsp = new SessionFormatter(serviceResponse.data[resultType.session]).perform();
+    const sessionsFormattedRsp = await new SessionFormatter(serviceResponse.data[resultType.session]).perform();
     serviceResponse.data = {
       result_type: resultType.session,
       [resultType.session]: sessionsFormattedRsp.data
@@ -354,7 +355,9 @@ router.post('/:user_id/transactions', function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const transactionFormattedRsp = new TransactionFormatter(serviceResponse.data[resultType.transaction]).perform();
+    const transactionFormattedRsp = await new TransactionFormatter(
+      serviceResponse.data[resultType.transaction]
+    ).perform();
     serviceResponse.data = {
       result_type: resultType.transaction,
       [resultType.transaction]: transactionFormattedRsp.data
@@ -372,7 +375,7 @@ router.get('/:user_id/transactions/:transaction_id', function(req, res, next) {
 
   const dataFormatterFunc = async function(serviceResponse) {
     let transaction = serviceResponse.data[resultType.transaction],
-      formattedRsp = new TransactionFormatter(transaction).perform();
+      formattedRsp = await new TransactionFormatter(transaction).perform();
 
     serviceResponse.data = {
       result_type: resultType.transaction,
@@ -406,7 +409,8 @@ router.get('/:user_id/balance', function(req, res, next) {
   req.decodedParams.user_id = req.params.user_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const balanceFormattedRsp = new BalanceFormatter(serviceResponse.data[resultType.balance]).perform();
+    const balanceFormattedRsp = await new BalanceFormatter(serviceResponse.data[resultType.balance]).perform();
+
     serviceResponse.data = {
       result_type: resultType.balance,
       [resultType.balance]: balanceFormattedRsp.data

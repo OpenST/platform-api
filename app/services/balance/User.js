@@ -7,14 +7,16 @@
 
 const OSTBase = require('@openstfoundation/openst-base');
 
-const rootPrefix = '../../../..',
+const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   apiSignatureConstants = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
@@ -139,7 +141,7 @@ class GetUserBalance extends ServiceBase {
   async _validateAccess() {
     const oThis = this;
 
-    if (oThis.userData.status !== tokenAddressConstants.activatedStatus) {
+    if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_b_u_2',
@@ -150,7 +152,7 @@ class GetUserBalance extends ServiceBase {
     }
 
     if (
-      oThis.userData.kind === tokenAddressConstants.companyKind &&
+      oThis.userData.kind === tokenUserConstants.companyKind &&
       oThis.apiSignatureKind !== apiSignatureConstants.hmacKind
     ) {
       return Promise.reject(
@@ -202,7 +204,18 @@ class GetUserBalance extends ServiceBase {
       return Promise.reject(fetchBalanceRsp);
     }
 
-    oThis.balanceDetails = fetchBalanceRsp.data[oThis.userData.tokenHolderAddress];
+    if (basicHelper.isEmptyObject(fetchBalanceRsp.data[oThis.userData.tokenHolderAddress])) {
+      oThis.balanceDetails = {
+        userId: oThis.userId,
+        blockChainSettledBalance: '0',
+        blockChainUnsettleDebits: '0',
+        pessimisticSettledBalance: '0',
+        updatedTimestamp: basicHelper.getCurrentTimestampInSeconds()
+      };
+    } else {
+      oThis.balanceDetails = fetchBalanceRsp.data[oThis.userData.tokenHolderAddress];
+      oThis.balanceDetails['userId'] = oThis.userId;
+    }
   }
 
   /**
