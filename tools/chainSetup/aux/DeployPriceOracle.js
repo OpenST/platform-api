@@ -122,6 +122,8 @@ class DeployPriceOracle {
   async _deployPriceOracleContract() {
     const oThis = this;
 
+    logger.step('* Deploying Price Oracle contract.');
+
     // Prepare txOptions.
     let txOptions = {
       gasPrice: contractConstants.zeroGasPrice,
@@ -177,7 +179,7 @@ class DeployPriceOracle {
   async _setOpsAddress() {
     const oThis = this;
 
-    logger.step('Setting opsAddress in Price oracle contract.');
+    logger.step('* Setting opsAddress in Price oracle contract.');
 
     // Prepare txOptions.
     let txOptions = {
@@ -231,7 +233,7 @@ class DeployPriceOracle {
   async _setAdminAddress() {
     const oThis = this;
 
-    logger.step('Setting adminAddress in Price oracle contract.');
+    logger.step('* Setting adminAddress in Price oracle contract.');
 
     // Prepare txOptions.
     let txOptions = {

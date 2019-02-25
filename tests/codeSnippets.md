@@ -249,6 +249,10 @@ a = require('./lib/getBalance/Eth');
 b = new a({originChainId: originChainId, addresses: [chainOwner, originDeployer, facilitator]});
 b.perform().then(console.log);
 
+a = require('./lib/getBalance/Ost');
+b = new a({originChainId: originChainId, addresses: ['0x75c16730392e04218a5d14cdd405267c4d88973a']});
+b.perform().then(console.log);
+
 a = require('./lib/getBalance/StPrime');
 b = new a({auxChainId: auxChainId, addresses: [chainOwner, facilitator, auxAdmin]});
 b.perform().then(console.log);

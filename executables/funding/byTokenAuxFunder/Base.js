@@ -145,7 +145,8 @@ class ByTokenAuxFunderBase extends CronBase {
       .select('client_id')
       .where(['chain_id = (?)', auxChainId])
       .fire();
-    logger.debug('chainClientIds', chainClientIds);
+
+    logger.debug('On auxChainId', auxChainId, 'found chainClientIds', chainClientIds);
 
     for (let index = 0; index < chainClientIds.length; index++) {
       let clientId = chainClientIds[index].client_id;
@@ -153,18 +154,23 @@ class ByTokenAuxFunderBase extends CronBase {
       clientIds.push(clientId);
     }
 
-    // Step 2: Fetch all tokenIds associated to clientIds.
-    let clientTokenIds = await new TokenModel()
-      .select('id')
-      .where(['client_id IN (?)', clientIds])
-      .where({ status: new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted] })
-      .fire();
+    if (clientIds.length > 0) {
+      // Step 2: Fetch all tokenIds associated to clientIds.
+      let clientTokenIds = await new TokenModel()
+        .select('id')
+        .where(['client_id IN (?)', clientIds])
+        .where({ status: new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted] })
+        .fire();
 
-    for (let index = 0; index < clientTokenIds.length; index++) {
-      let tokenId = clientTokenIds[index].id;
+      for (let index = 0; index < clientTokenIds.length; index++) {
+        let tokenId = clientTokenIds[index].id;
 
-      tokenIds.push(tokenId);
+        tokenIds.push(tokenId);
+      }
+
+      logger.debug('On auxChainId', auxChainId, 'found tokenIds', tokenIds);
     }
+
     return tokenIds;
   }
 }

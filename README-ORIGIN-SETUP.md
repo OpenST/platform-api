@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xc8790ff9daef1bca224765c14b23233b1109d46a'; // master internal funder address
+let address = '0xc19f87b84723e14d438419c078123489a1952653'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -124,12 +124,14 @@ Granter address gets ETH and OST in this step.
 
 * [Only Development] Seed the cron processes which are unique in a sub-environment using this script.
 ```bash
-   node tools/localSetup/subEnvSpecificCronSeeder.js
+    source set_env_vars.sh
+    node tools/localSetup/subEnvSpecificCronSeeder.js
 ```
 
 * [Only Development] Seed the cron processes which are associated to origin chain using this script.
 ```bash
-   node tools/localSetup/originChainSpecificCronSeeder.js
+    source set_env_vars.sh
+    node tools/localSetup/originChainSpecificCronSeeder.js
 ```
 
 ### Insert Pricer ABI into rules table
@@ -176,5 +178,5 @@ Granter address gets ETH and OST in this step.
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7 //TODO-FUNDING: Wrong addresses funded here?
 ```

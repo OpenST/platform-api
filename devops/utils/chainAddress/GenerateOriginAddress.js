@@ -44,7 +44,6 @@ class GenerateOriginAddress extends ChainAddressBase {
 
     let addressKinds = [
       chainAddressConstants.originDeployerKind,
-      //chainAddressConstants.masterInternalFunderKind,
 
       chainAddressConstants.stOrgContractOwnerKind,
       chainAddressConstants.originAnchorOrgContractOwnerKind,
@@ -78,7 +77,7 @@ class GenerateOriginAddress extends ChainAddressBase {
       logger.log(
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
-      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], 0.0072);
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], 0.0072); //TODO-FUNDING:
     }
 
     return addressesResp;

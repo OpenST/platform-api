@@ -41,8 +41,8 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 
 // Config for addresses which need to be funded.
 const fundingConfig = {
-  [tokenAddressConstants.auxAdminAddressKind]: '0.00005',
-  [tokenAddressConstants.auxWorkerAddressKind]: '0.00005'
+  [tokenAddressConstants.auxAdminAddressKind]: '0.00005', //TODO-Funding
+  [tokenAddressConstants.auxWorkerAddressKind]: '0.00005' //TODO-Funding
 };
 
 /**

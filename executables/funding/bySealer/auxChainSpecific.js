@@ -311,12 +311,13 @@ class FundBySealerAuxChainSpecific extends CronBase {
       logger.debug('sealerAddressBalance-----', sealerAddressBalance);
 
       if (basicHelper.convertToBigNumber(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
+        //TODO-Funding
         oThis.transferDetails.push({
           fromAddress: sealerAddress,
           toAddress: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
-            .convertToBigNumber(sealerAddressBalance)
-            .minus(basicHelper.convertToWei(0.5))
+            .convertToBigNumber(sealerAddressBalance) //TODO-Funding
+            .minus(basicHelper.convertToWei(0.5)) //TODO-Funding
             .toString(10)
         });
       }
