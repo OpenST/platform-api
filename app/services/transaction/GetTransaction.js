@@ -10,8 +10,11 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
+  ESTransactionService = esServices.services.transactions;
 
 /**
  * Class to Get transaction
@@ -30,6 +33,7 @@ class GetTransaction extends ServiceBase {
     super(params);
 
     const oThis = this;
+    oThis.user_id = params.user_id;
     oThis.transaction_id = params.transaction_id;
   }
 
@@ -41,34 +45,113 @@ class GetTransaction extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    let status = null;
-    if (Date.now() % 9 == 0 || Date.now() % 6 == 0) {
-      status = 'SUCCESS';
-    }
+    await oThis._validateParams();
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        [resultType.transaction]: {
-          id: oThis.transaction_id,
-          from: '0x34de04328e40be60f0bce5d23b6462418a7ac444',
-          to: '0x34de04328e40be60f0bce5d23b6462418a7ac455',
-          nonce: '4',
-          value: '0x0',
-          gasPrice: '100000000000',
-          gasUsed: '12345678',
-          transactionFee: '213123213',
-          finalized: true,
-          updatedTimestamp: '1550734448',
-          blockTimestamp: '1550734434',
-          transactionHash: '0xf5e68c17809717622485ea99b74fb3e5e54da2144c7cc15ea950b8f37366e76e',
-          blockNumber: 1234,
-          ruleName: 'Kuchbhi',
-          transfers: [],
-          metaProperty: {},
-          status: status
+    const serviceConfig = oThis.getServiceConfig(),
+      service = new ESTransactionService(serviceConfig),
+      esQuery = oThis.getQueryObject();
+
+    let transactionDetails = await service.search(esQuery);
+
+    let responseData = transactionDetails; // TODO get from Dynamo
+
+    return responseHelper.successWithData(responseData);
+  }
+
+  /**
+   * getServiceConfig
+   *
+   * @return Object <Service config>
+   *
+   * Eg finalConfig = {
+   *             "chainId": 123, //Aux chainId
+   *             "elasticSearch": {
+   *               "host":"localhost:9200",
+   *               "region":"localhost",
+   *               "apiKey":"elastic",
+   *               "apiSecret":"changeme",
+   *               "apiVersion":"6.2"
+   *             }
+   *   }
+   **/
+
+  getServiceConfig() {
+    const oThis = this,
+      configStrategy = oThis._configStrategyObject,
+      chainId = configStrategy.auxChainId,
+      esConfig = configStrategy.elasticSearchConfig,
+      elasticSearchKey = configStrategyConstants.elasticSearch;
+
+    let finalConfig = {
+      chainId: chainId
+    };
+
+    finalConfig[elasticSearchKey] = esConfig;
+
+    return finalConfig;
+  }
+
+  /***
+   *getQueryObject
+   * @return {{query: {terms: {_id: *[]}}}}
+   */
+
+  getQueryObject() {
+    const oThis = this;
+    return {
+      query: {
+        terms: {
+          _id: [oThis.transaction_id]
         }
-      })
-    );
+      }
+    };
+  }
+
+  /**
+   * Validate Specific params
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _validateParams() {
+    const oThis = this;
+
+    if (!oThis.transaction_id) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 's_t_gut_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['missing_transaction_id'],
+          debug_options: {}
+        })
+      );
+    }
+  }
+
+  /***
+   * Config strategy
+   *
+   * @return {Object}
+   */
+  get _configStrategy() {
+    const oThis = this;
+
+    return oThis.ic().configStrategy;
+  }
+
+  /**
+   * Object of config strategy class
+   *
+   * @return {Object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+
+    return oThis.configStrategyObj;
   }
 }
 

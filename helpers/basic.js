@@ -14,7 +14,8 @@ const rootPrefix = '..',
   apiErrorConfig = require(rootPrefix + '/config/apiParams/apiErrorConfig'),
   v2ParamErrorConfig = require(rootPrefix + '/config/apiParams/v2/errorConfig'),
   base64Helper = require(rootPrefix + '/lib/base64Helper'),
-  internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig');
+  internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 class BasicHelperKlass {
   /**
@@ -142,16 +143,21 @@ class BasicHelperKlass {
    * Fetch Error Config
    *
    * @param {String} apiVersion
+   * @param {Object} dynamicErrorConfig
    *
    * @return {Object}
    */
-  fetchErrorConfig(apiVersion) {
+  fetchErrorConfig(apiVersion, dynamicErrorConfig) {
     let paramErrorConfig;
 
     if (apiVersion === apiVersions.v2) {
-      paramErrorConfig = v2ParamErrorConfig;
+      paramErrorConfig = dynamicErrorConfig
+        ? Object.assign(dynamicErrorConfig, v2ParamErrorConfig)
+        : v2ParamErrorConfig;
     } else if (apiVersion === apiVersions.internal) {
-      paramErrorConfig = internalParamErrorConfig;
+      paramErrorConfig = dynamicErrorConfig
+        ? Object.assign(dynamicErrorConfig, internalParamErrorConfig)
+        : internalParamErrorConfig;
     } else if (apiVersion === apiVersions.general) {
       paramErrorConfig = {};
     } else {
@@ -277,11 +283,23 @@ class BasicHelperKlass {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
-  encryptNextPagePayload(object) {
+  /**
+   * Encypt page identifier
+   *
+   * @param object
+   * @return {*}
+   */
+  encryptPageIdentifier(object) {
     return base64Helper.encode(JSON.stringify(object));
   }
 
-  decryptNextPagePayload(string) {
+  /**
+   * Decrypt page identifier
+   *
+   * @param string
+   * @return {any}
+   */
+  decryptPageIdentifier(string) {
     return JSON.parse(base64Helper.decode(string));
   }
 
@@ -297,8 +315,24 @@ class BasicHelperKlass {
     return conversionRateForContractBigNumber.toString();
   }
 
+  /**
+   * Sanitize address
+   *
+   * @param address
+   * @return {string | *}
+   */
   sanitizeAddress(address) {
     return address.toLowerCase();
+  }
+
+  /**
+   * Sanitize uuid
+   *
+   * @param uuid
+   * @return {string | *}
+   */
+  sanitizeuuid(uuid) {
+    return uuid.toLowerCase();
   }
 
   /**
@@ -311,10 +345,51 @@ class BasicHelperKlass {
     return Math.floor(new Date(dateStr).getTime() / 1000);
   }
 
+  /**
+   * promisify JSON parse
+   *
+   * @return {Promise<void>}
+   */
+  async promisifyJsonParse(data) {
+    return JSON.parse(data || '');
+  }
+
+  /**
+   * sanitize raw call data
+   *
+   * @param rawCallData
+   * @return {Promise<void>}
+   */
+  async sanitizeRawCallData(rawCallData) {
+    const oThis = this;
+
+    return oThis.promisifyJsonParse(rawCallData).catch(function() {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'h_b_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    });
+  }
+
+  /**
+   * Timestamp in seconds
+   *
+   * @return {number}
+   */
   timestampInSeconds() {
     return Math.floor(new Date() / 1000);
   }
 
+  /**
+   * Generate rsv from signature
+   *
+   * @param signature
+   * @return {{r: *, s: string, v: string}}
+   */
   generateRsvFromSignature(signature) {
     return {
       r: signature.slice(0, 66),

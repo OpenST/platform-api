@@ -154,7 +154,17 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '206': workflowStepConstants.authorizeSessionInit,
     '207': workflowStepConstants.authorizeSessionPerformTransaction,
     '208': workflowStepConstants.authorizeSessionVerifyTransaction,
-    '209': workflowStepConstants.rollbackAuthorizeSessionTransaction
+    '209': workflowStepConstants.rollbackAuthorizeSessionTransaction,
+
+    '212': workflowStepConstants.revokeDeviceInit,
+    '213': workflowStepConstants.revokeDevicePerformTransaction,
+    '214': workflowStepConstants.revokeDeviceVerifyTransaction,
+    '215': workflowStepConstants.rollbackRevokeDeviceTransaction,
+
+    '218': workflowStepConstants.revokeSessionInit,
+    '219': workflowStepConstants.revokeSessionPerformTransaction,
+    '220': workflowStepConstants.revokeSessionVerifyTransaction,
+    '221': workflowStepConstants.rollbackRevokeSessionTransaction
   },
   invertedKinds = util.invert(kinds);
 

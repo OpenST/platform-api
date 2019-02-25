@@ -10,15 +10,16 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  AuthorizeDeviceRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter'),
+  AuthorizeDeviceRouter = require(rootPrefix + '/lib/workflow/authorizeDevice/Router'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
@@ -27,14 +28,123 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 
+/**
+ * Class to authorize device multi sig operation
+ *
+ * @class AuthorizeDevice
+ */
 class AuthorizeDevice extends Base {
   /**
-   * @constructor
    *
-   * @param params
+   * @param {Object} params
+   * @param {Object} params.raw_calldata -
+   * @param {String} params.raw_calldata.method - possible value addOwnerWithThreshold
+   * @param {Array} params.raw_calldata.parameters -
+   * @param {String} params.raw_calldata.parameters[0] - new device address
+   * @param {String/Number} params.raw_calldata.parameters[1] - requirement/threshold
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
+    const oThis = this;
+
+    oThis.rawCalldata = params.raw_calldata;
+
+    oThis.deviceAddress = null;
+  }
+
+  /**
+   * Sanitize service specific params
+   *
+   * @private
+   */
+  async _sanitizeSpecificParams() {
+    const oThis = this;
+
+    oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+
+    let rawCallDataMethod = oThis.rawCalldata.method;
+    if (rawCallDataMethod !== 'addOwnerWithThreshold') {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_ad_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_method'],
+          debug_options: {}
+        })
+      );
+    }
+
+    let rawCallDataParameters = oThis.rawCalldata.parameters;
+    if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_ad_2',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    if (Number(rawCallDataParameters[1]) !== 1) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_ad_3',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_parameter_threshold'],
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.deviceAddress = basicHelper.sanitizeAddress(rawCallDataParameters[0]);
+  }
+
+  /**
+   * Performs specific pre checks
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _performSpecificPreChecks() {
+    const oThis = this;
+
+    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddress, oThis.signer]);
+
+    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddress],
+      signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
+
+    if (
+      basicHelper.isEmptyObject(signerAddressDetails) ||
+      signerAddressDetails.status !== deviceConstants.authorisedStatus
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_ad_4',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['unauthorized_signer'],
+          debug_options: {}
+        })
+      );
+    }
+
+    if (
+      basicHelper.isEmptyObject(deviceAddressDetails) ||
+      deviceAddressDetails.status !== deviceConstants.registeredStatus
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_ad_5',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['unauthorized_device_address'],
+          debug_options: {}
+        })
+      );
+    }
+
+    return responseHelper.successWithData({});
   }
 
   /**
@@ -46,11 +156,8 @@ class AuthorizeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    //logger.debug('****Checking device status as registered');
-    //await oThis._checkDeviceStatus(deviceConstants.registeredStatus);
-
-    logger.debug('****Updating the device status as authorizing');
     let updateResponse = await oThis._updateDeviceStatus(
+      oThis.deviceAddress,
       deviceConstants.registeredStatus,
       deviceConstants.authorisingStatus
     );
@@ -70,6 +177,7 @@ class AuthorizeDevice extends Base {
     const oThis = this;
 
     logger.debug('****Starting the authorize workflow ');
+
     let requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
@@ -85,7 +193,7 @@ class AuthorizeDevice extends Base {
         gasPrice: oThis.gasPrice,
         gasToken: oThis.gasToken,
         refundReceiver: oThis.refundReceiver,
-        signature: oThis.signature,
+        signatures: oThis.signatures,
         signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         deviceShardNumber: oThis.deviceShardNumber,
@@ -116,8 +224,12 @@ class AuthorizeDevice extends Base {
 
     logger.debug('****Preparing authorize device service response');
 
+    let responseHash = updateResponseData.data;
+
+    responseHash.linkedAddress = null;
+
     return responseHelper.successWithData({
-      [resultType.device]: updateResponseData.data
+      [resultType.device]: responseHash
     });
   }
 }

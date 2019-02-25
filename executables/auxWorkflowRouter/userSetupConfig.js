@@ -3,7 +3,7 @@
 const rootPrefix = '../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep');
 
-const steps = {
+const userSetupStepsConfig = {
   [workflowStepConstants.userSetupInit]: {
     kind: workflowStepConstants.userSetupInit,
     onFailure: '',
@@ -59,4 +59,4 @@ const steps = {
   }
 };
 
-module.exports = steps;
+module.exports = userSetupStepsConfig;

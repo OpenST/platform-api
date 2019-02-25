@@ -31,7 +31,7 @@ class Create extends ServiceBase {
    *
    * @param params
    * @param {Number} params.client_id - client Id
-   * @param {String} params.kind - Kind (Company/User)
+   * @param {String} params.kind - Kind (company/user)
    * @param {Number} [params.token_id] - token Id
    */
   constructor(params) {

@@ -69,11 +69,12 @@ const validateApiSignature = function(req, res, next) {
 
   const handleParamValidationResult = function(result) {
     if (result.isSuccess()) {
-      // todo: make sure all sanitized values are only added here
+      // NOTE: MAKE SURE ALL SANITIZED VALUES ARE ASSIGNED HERE
       req.decodedParams['client_id'] = result.data['clientId'];
       req.decodedParams['token_id'] = result.data['tokenId'];
       req.decodedParams['user_data'] = result.data['userData'];
       req.decodedParams['app_validated_api_name'] = result.data['appValidatedApiName'];
+      req.decodedParams['api_signature_kind'] = result.data['apiSignatureKind'];
       next();
     } else {
       return result.renderResponse(res, errorConfig);
@@ -309,9 +310,9 @@ if (cluster.isMaster) {
 
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
-    sanitizer.sanitizeBodyAndQuery,
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
+    sanitizer.sanitizeBodyAndQuery,
     decodeJwt,
     appendInternalVersion,
     internalRoutes

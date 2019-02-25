@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  userConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -22,6 +23,7 @@ const InstanceComposer = OSTBase.InstanceComposer;
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
  * Class for CreateDevice
@@ -61,7 +63,7 @@ class CreateDevice extends ServiceBase {
       if (responseHelper.isCustomResult(err)) {
         return err;
       } else {
-        logger.error(' In catch block of lib/device/Create.js');
+        logger.error(' In catch block of app/services/device/Create.js');
 
         return responseHelper.error({
           internal_error_identifier: 'a_s_d_c_1',

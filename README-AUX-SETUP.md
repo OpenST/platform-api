@@ -89,26 +89,33 @@ And add it to tables using following script.
 * Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Aggregator.js --cronProcessId 11
+  node executables/blockScanner/aggregator.js --cronProcessId 11
+```
+
+* Run Auxiliary Transaction Finalizer
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/balanceSettler.js --cronProcessId 22
 ```
 
 * Run Auxiliary Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/TransactionParser.js --cronProcessId 9
+  node executables/blockScanner/transactionParser.js --cronProcessId 9
 ```
 
 * Run Auxiliary Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 8
+  node executables/blockScanner/blockParser.js --cronProcessId 8
 ```
 
-* Run Auxiliary Finalizer
+* Run Auxiliary Block Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Finalizer.js --cronProcessId 10
+  node executables/blockScanner/finalizer.js --cronProcessId 10
 ```
+
 
 ## ST Prime Stake and Mint in Zero Gas
 
@@ -165,7 +172,7 @@ And add it to tables using following script.
 ## Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Aggregator.js --cronProcessId 11
+  node executables/blockScanner/aggregator.js --cronProcessId 11
 ```
 
 ### Funding crons
@@ -203,14 +210,14 @@ And add it to tables using following script.
 ### Update price points.
 ```bash
    source set_env_vars.sh
-   node executables/UpdatePricePoints.js --cronProcessId 15
+   node executables/updatePricePoints.js --cronProcessId 15
 ```
 
 ### Start Crons
 * Start Aux Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/auxWorkflowRouter/factory.js --cronProcessId 20
+  node executables/auxWorkflowFactory.js --cronProcessId 20
 ```
 
 ###### ALWAYS AT THE END

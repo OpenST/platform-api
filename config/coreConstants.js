@@ -21,6 +21,14 @@ class CoreConstants {
     return 'aux';
   }
 
+  get originChainKindName() {
+    return 'Origin';
+  }
+
+  get auxChainKindName() {
+    return 'Auxiliary';
+  }
+
   get SAAS_ONLY_SHARED_CACHE_ENGINE() {
     return process.env.SA_ONLY_SHARED_CACHE_ENGINE;
   }
@@ -262,6 +270,10 @@ class CoreConstants {
 
   get TOTAL_NO_OF_EXECUTE_TRANSACTION() {
     return 1000;
+  }
+
+  get BUFFER_BLOCK_HEIGHT() {
+    return 100;
   }
 
   /**

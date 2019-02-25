@@ -8,20 +8,27 @@
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
+
+// Following require(s) for registering into instance composer
+require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
+require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
  * Class for get devices base.
  *
  * @class
  */
-class Base extends ServiceBase {
+class GetDeviceBase extends ServiceBase {
   /**
    * Constructor for get devices base.
    *
    * @param {Object} params
    * @param {Integer} params.client_id
-   * @param {String} params.user_id: uuid
+   * @param {String} params.user_id
    * @param {Integer} [params.token_id]
    *
    * @augments ServiceBase
@@ -37,7 +44,7 @@ class Base extends ServiceBase {
     oThis.tokenId = params.token_id;
 
     oThis.walletAddresses = [];
-    oThis.nextPagePayload = null;
+    oThis.deviceDetails = [];
   }
 
   /**
@@ -48,7 +55,7 @@ class Base extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._sanitizeParams();
+    await oThis._validateAndSanitizeParams();
 
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
@@ -56,22 +63,98 @@ class Base extends ServiceBase {
 
     await oThis._setWalletAddresses();
 
-    const returnData = await oThis._getUserDeviceDataFromCache();
+    await oThis._fetchDevicesExtendedDetails();
 
-    return responseHelper.successWithData(returnData);
+    return oThis._formatApiResponse();
   }
 
   /**
-   * Validate and sanitize input parameters.
+   * Get user device extended details
    *
-   * @returns {*}
+   * @returns {Promise<*|result>}
+   */
+  async _fetchDevicesExtendedDetails() {
+    const oThis = this;
+
+    let response = await oThis._fetchDevicesFromCache(),
+      devices = response.data,
+      linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
+
+    for (let deviceUuid in devices) {
+      let device = devices[deviceUuid];
+      if (!CommonValidators.validateObject(device)) {
+        continue;
+      }
+      device.linkedAddress = linkedAddressesMap[device.walletAddress];
+      oThis.deviceDetails.push(device);
+    }
+  }
+
+  /**
+   * Get devices from cache
+   *
+   * @returns {Promise<*|result>}
+   */
+  async _fetchDevicesFromCache() {
+    const oThis = this;
+
+    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+      deviceDetailCache = new DeviceDetailCache({
+        userId: oThis.userId,
+        tokenId: oThis.tokenId,
+        walletAddresses: oThis.walletAddresses
+      }),
+      response = await deviceDetailCache.fetch();
+
+    if (response.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_d_g_b_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    return response;
+  }
+
+  /**
+   * fetch linked device addresses for specified user id
+   *
+   * @returns {Promise<*>}
    *
    * @private
    */
-  _sanitizeParams() {
+  async _fetchLinkedDeviceAddressMap() {
     const oThis = this;
 
-    oThis.userId = oThis.userId.toLowerCase();
+    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+      previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
+      previousOwnersMapRsp = await previousOwnersMapObj.fetch();
+
+    if (previousOwnersMapRsp.isFailure()) {
+      logger.error('Error in fetching linked addresses');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_d_g_b_2',
+          api_error_identifier: 'cache_issue',
+          debug_options: {}
+        })
+      );
+    }
+
+    return previousOwnersMapRsp.data;
+  }
+
+  /**
+   * Validate and samitnize params
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateAndSanitizeParams() {
+    throw 'sub-class to implement';
   }
 
   /**
@@ -79,18 +162,19 @@ class Base extends ServiceBase {
    *
    * @private
    */
-  _setWalletAddresses() {
-    throw 'sub class to implement and set oThis.walletAddresses';
+  async _setWalletAddresses() {
+    throw 'sub-class to implement and set oThis.walletAddresses';
   }
 
   /**
-   * Get user device data from cache.
+   * Format response
    *
-   * @returns {Promise<*|result>}
+   * @return {Promise<void>}
+   * @private
    */
-  async _getUserDeviceDataFromCache() {
-    throw new Error('sub class to implement.');
+  async _formatApiResponse() {
+    throw 'sub-class to implement';
   }
 }
 
-module.exports = Base;
+module.exports = GetDeviceBase;

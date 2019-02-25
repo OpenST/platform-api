@@ -191,12 +191,13 @@ class Session extends Base {
    * Get paginated data
    *
    * @param {Number} userId
-   * @param {Number} [limit] - optional
+   * @param {Number} page  - page number
+   * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getSessionsAddresses(userId, limit, lastEvaluatedKey) {
+  async getSessionsAddresses(userId, page, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForUserId = oThis.shortNameFor('userId'),
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId];
@@ -208,7 +209,7 @@ class Session extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('address'),
-      Limit: limit || pagination.maxSessionPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -235,10 +236,12 @@ class Session extends Base {
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query.
+          limit: limit
+        }
       };
     }
 
@@ -268,6 +271,69 @@ class Session extends Base {
       'attribute_exists(' + shortNameForUserId + ') AND attribute_exists(' + shortNameForAddress + ')';
 
     return oThis.updateItem(updateParams, conditionalExpression);
+  }
+
+  /**
+   * Update status of session from initial status to final status.
+   *
+   * @param {String} userId
+   * @param {String} sessionAddress
+   * @param {String} initialStatus
+   * @param {String} finalStatus
+   *
+   * @return {Promise<void>}
+   */
+  async updateStatusFromInitialToFinal(userId, sessionAddress, initialStatus, finalStatus) {
+    const oThis = this,
+      shortNameForUserId = oThis.shortNameFor('userId'),
+      shortNameForAddress = oThis.shortNameFor('address'),
+      shortNameForStatus = oThis.shortNameFor('status'),
+      shortNameForTimeStamp = oThis.shortNameFor('updatedTimestamp'),
+      dataTypeForTimeStamp = oThis.shortNameToDataType[shortNameForTimeStamp],
+      dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
+      initialStatusInt = sessionConstants.invertedSessionStatuses[initialStatus],
+      finalStatusInt = sessionConstants.invertedSessionStatuses[finalStatus];
+
+    const updateQuery = {
+      TableName: oThis.tableName(),
+      Key: oThis._keyObj({ userId: userId, address: sessionAddress }),
+      ConditionExpression:
+        'attribute_exists(' +
+        shortNameForUserId +
+        ') AND attribute_exists(' +
+        shortNameForAddress +
+        ')' +
+        ' AND #initialStatus = :initialStatus',
+      ExpressionAttributeNames: {
+        '#initialStatus': shortNameForStatus,
+        '#finalStatus': shortNameForStatus,
+        '#updatedTimeStamp': shortNameForTimeStamp
+      },
+      ExpressionAttributeValues: {
+        ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
+        ':updatedTimeStamp': { [dataTypeForTimeStamp]: basicHelper.getCurrentTimestampInSeconds().toString() }
+      },
+      UpdateExpression: 'SET #finalStatus = :finalStatus, #updatedTimeStamp = :updatedTimeStamp',
+      ReturnValues: 'ALL_NEW'
+    };
+
+    let updateQueryResponse = await oThis.ddbServiceObj.updateItem(updateQuery);
+
+    if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
+      return responseHelper.error({
+        internal_error_identifier: 'a_m_d_s_s_1',
+        api_error_identifier: 'conditional_check_failed',
+        debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    // Clear cache
+    await Session.afterUpdate(oThis.ic(), { userId: userId, address: sessionAddress });
+
+    updateQueryResponse = oThis._formatRowFromDynamo(updateQueryResponse.data.Attributes);
+
+    return Promise.resolve(responseHelper.successWithData(oThis._sanitizeRowFromDynamo(updateQueryResponse)));
   }
 
   /**
@@ -315,16 +381,13 @@ class Session extends Base {
 
     await sessionsByAddressCache.clear();
 
-    require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
-    let SessionAddressesByUserIdCache = ic.getShadowedClassFor(
-        coreConstants.icNameSpace,
-        'SessionAddressesByUserIdCache'
-      ),
-      sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
+    require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
+    let UserSessionAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'UserSessionAddressCache'),
+      userSessionAddressCache = new UserSessionAddressCache({
         userId: params.userId
       });
 
-    await sessionAddressesByUserIdCache.clear();
+    await userSessionAddressCache.clear();
 
     logger.info('Session caches cleared.');
     return responseHelper.successWithData({});
