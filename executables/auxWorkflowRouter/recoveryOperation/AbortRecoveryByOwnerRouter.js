@@ -69,7 +69,7 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.abortRecoveryByOwnerPerformTransaction:
         logger.step('**********', workflowStepConstants.abortRecoveryByOwnerPerformTransaction);
 
-        require(rootPrefix + '/lib/deviceRecovery/abortRecovery/PerformTransaction');
+        require(rootPrefix + '/lib/deviceRecovery/byOwner/abortRecovery/PerformTransaction');
 
         oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
         oThis.requestParams.workflowId = oThis.workflowId;
@@ -86,7 +86,7 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.abortRecoveryByOwnerVerifyTransaction:
         logger.step('**********', workflowStepConstants.abortRecoveryByOwnerVerifyTransaction);
 
-        require(rootPrefix + '/lib/deviceRecovery/abortRecovery/VerifyTransaction');
+        require(rootPrefix + '/lib/deviceRecovery/byOwner/abortRecovery/VerifyTransaction');
 
         const VerifyAbortRecoveryTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,

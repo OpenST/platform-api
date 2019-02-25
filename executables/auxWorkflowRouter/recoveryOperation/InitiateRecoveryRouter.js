@@ -69,7 +69,7 @@ class InitiateRecoveryRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.initiateRecoveryPerformTransaction:
         logger.step('**********', workflowStepConstants.initiateRecoveryPerformTransaction);
 
-        require(rootPrefix + '/lib/deviceRecovery/initiateRecovery/PerformTransaction');
+        require(rootPrefix + '/lib/deviceRecovery/byOwner/initiateRecovery/PerformTransaction');
 
         oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
         oThis.requestParams.workflowId = oThis.workflowId;
@@ -86,7 +86,7 @@ class InitiateRecoveryRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.initiateRecoveryVerifyTransaction:
         logger.step('**********', workflowStepConstants.initiateRecoveryVerifyTransaction);
 
-        require(rootPrefix + '/lib/deviceRecovery/initiateRecovery/VerifyTransaction');
+        require(rootPrefix + '/lib/deviceRecovery/byOwner/initiateRecovery/VerifyTransaction');
 
         const VerifyInitiateRecoveryTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
