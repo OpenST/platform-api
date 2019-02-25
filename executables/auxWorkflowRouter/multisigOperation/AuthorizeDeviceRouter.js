@@ -60,8 +60,8 @@ class AuthorizeDeviceRouter extends AuxWorkflowRouterBase {
       ic = new InstanceComposer(configStrategy);
 
     switch (oThis.stepKind) {
-      case workflowStepConstants.initiateRecoveryInit:
-        logger.step('**********', workflowStepConstants.initiateRecoveryInit);
+      case workflowStepConstants.authorizeDeviceInit:
+        logger.step('**********', workflowStepConstants.authorizeDeviceInit);
         return oThis.insertInitStep();
 
       // Add Session addresses

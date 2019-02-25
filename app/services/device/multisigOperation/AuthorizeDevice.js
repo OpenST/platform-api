@@ -199,7 +199,7 @@ class AuthorizeDevice extends Base {
         multisigAddress: oThis.multisigAddress
       },
       authorizeDeviceInitParams = {
-        stepKind: workflowStepConstants.initiateRecoveryInit,
+        stepKind: workflowStepConstants.authorizeDeviceInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis._configStrategyObject.auxChainId,
