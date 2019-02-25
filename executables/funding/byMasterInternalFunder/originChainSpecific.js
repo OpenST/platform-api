@@ -68,12 +68,12 @@ const ethFundingConfig = {
 // Alert Config
 const alertConfig = {
   [chainAddressConstants.masterInternalFunderKind]: {
-    minAmount: '0.6',
+    minAmount: '0.6', //TODO-FUNDING:
     alertIfLessThanFlows: flowsForMasterInternalFunderMinimumBalance,
     alertRequired: true
   },
   [chainAddressConstants.originGranterKind]: {
-    minAmount: '1',
+    minAmount: '1', //TODO-FUNDING:
     alertIfLessThanFlows: flowsForGranterMinimumBalance,
     alertRequired: coreConstants.subEnvironment !== environmentInfoConstants.subEnvironment.main
   }
