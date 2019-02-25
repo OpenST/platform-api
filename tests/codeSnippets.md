@@ -5,7 +5,7 @@
 let config = null;
 rootPrefix = '.'
 coreConstants = require(rootPrefix + '/config/coreConstants')
-chainId = 2000;
+chainId = 200;
 a = require('./helpers/configStrategy/ByChainId.js')
 b = new a(chainId);
 b.getComplete().then(function(r) {config = r.data});
@@ -24,10 +24,129 @@ ic = new InstanceComposer(config)
 ### Associate Worker
 ```js
 
+require('./app/services/user/Create');
+CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateUser');
+asso = new CreateUser({client_id:10087, token_id: 1063, kind: 'user'});
+asso.perform().then(console.log);
+
+require('./app/services/device/Create');
+CreateDevice = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateDevice');
+asso = new CreateDevice({client_id:10087, user_id: '053bbb8a-534a-44ef-8af1-cec9084be8f9', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', device_name: 'sdsdsds', device_uuid: 'dsdsdsds'});
+asso.perform().then(console.log);
+
+require('./app/services/user/CreateTokenHolder');
+CreateTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateTokenHolder');
+asso = new CreateTokenHolder({client_id:10087, user_id: '053bbb8a-534a-44ef-8af1-cec9084be8f9', device_address: '0x734d3f5e8e51c40dd5e166fda7b8329655d49ef6', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
+asso.perform().then(console.log);
+
+a = require('./lib/executeTransactionManagement/FundExTxWorker.js')
+b = new a({tokenId: 1063, chainId: 200, exTxWorkerAddresses: ['0x207f44087ccd5bdecdf8606c4ca3a2ffec74fe87']})
+b.perform().then(console.log)
+
+
+ForSession = require('./lib/nonce/get/ForSession');
+asso = new ForSession({tokenId: '1063', chainId:200, address: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027', userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9'});
+asso.getNonce().then(console.log);
+
+
+
+params = {
+  client_id: 10002,
+  token_id: 1002,
+  meta_property: {
+      "name":  "company_to_user" , //like, download
+      "type":  "company_to_user", // user_to_user, company_to_user, user_to_company
+      "details" : "company_to_user"
+  },
+  to: "0x390877f70ce715913f5601f0b022a179af0bc662",
+  raw_calldata: {
+      method: 'directTransfer',
+      parameters: [
+          ['0x1bc25adfbafd92e76857ca3b74fb387c66b25e4c'],
+          ['10']
+      ]
+  }
+}
+
+require('./app/services/transaction/execute/FromCompany');
+
+ExecuteCompanyToUserTx = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteCompanyToUserTx');
+
+submitTx = new ExecuteCompanyToUserTx(params);
+
+submitTx.perform().then(console.log).catch(console.log)
+
+
+require('./lib/cacheManagement/chainMulti/TokenUserDetail.js')
+TokenUserDetailsCache = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenUserDetailsCache');
+submitTx = new TokenUserDetailsCache({
+  tokenId: '1063',
+  userIds: ['053bbb8a-534a-44ef-8af1-cec9084be8f9']
+});
+submitTx.fetch().then(console.log).catch(console.log)
+
+user to company
+
+
+user_data = {
+  recoveryOwnerAddress: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c',
+  updatedTimestamp: '1550931687',
+  status: 'ACTIVATED',
+  multisigAddress: '0x9acd27a2a7cec37b04b3d6ff4e1c7488343d9c9e',
+  tokenId: '1063',
+  userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9',
+  tokenHolderAddress: '0xd97f2ca4dff7b8e129d1e7d72ec1cf9ff9c0ae00',
+  deviceShardNumber: '1',
+  kind: 'user',
+  sessionShardNumber: '1',
+  recoveryAddressShardNumber: 0,
+  saasApiStatus: 'active'
+}
+
+params = {
+  user_data: user_data,
+  nonce: 4,
+  signature: '0x20b3c042818c5063b9510c98ed0f6d1c31160e5a1c3288d921aeb501c25bf5fd452f3b60b74838c458f9e1a6c335a5296f3486bf970676829e83ff379fa4e8361c',
+  signer: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027',
+  client_id: 10087,
+  token_id: 1063,
+  meta_property: {
+      "name":  "user_to_company" , //like, download
+      "type":  "company_to_user", // user_to_user, company_to_user, user_to_company
+      "details" : "company_to_user"
+  },
+  to: "0x3afb43da7d39c963278f338054d9fd92a609e04b",
+  raw_calldata: JSON.stringify({
+                                     method: 'directTransfers',
+                                     parameters: [
+                                         ['0x30fa423c14625bb0bac6852d7b68f9d326ac1242'],
+                                         ['100000']
+                                     ]
+                                 })
+}
+
+require('./app/services/transaction/execute/FromUser.js');
+ExecuteTxFromUser = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteTxFromUser');
+submitTx = new ExecuteTxFromUser(params);
+submitTx.perform().then(console.log).catch(console.log)
+
+
+
+require('./app/models/ddb/sharded/Balance.js');
+BalanceModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel');
+asso = new BalanceModel({shardNumber:2, chainId: 200});
+asso.updateBalance({
+  blockChainSettledBalance: '500000000000000000000',
+  erc20Address: '0xb00b57df128e9afbc6a2487544d1e847bf7d2039',
+  tokenHolderAddress: '0xd97f2ca4dff7b8e129d1e7d72ec1cf9ff9c0ae00'
+}).then(console.log);
+
+
 require('./lib/executeTransactionManagement/AssociateWorker');
 AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
 asso = new AssociateWorker({tokenId:1009, cronProcessIds: [21]});
 asso.perform().then(console.log);
+
 
 ```
 
@@ -89,14 +208,14 @@ a.perform().then(console.log)
 ```node
 
 params = {
-  currentStepId: 272,
-  workflowId: 46,
-  stepKind: 'authorizeDevicePerformTransaction',
+  currentStepId: 82,
+  workflowId: 2,
+  stepKind: 'initializeCompanyTokenHolderInDb',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
-  topic: 'auxWorkflow.authorizeDevice'
+  topic: 'workflow.economySetup'
 }
-economySetupRouterK = require('./executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter.js')
+economySetupRouterK = require('./lib/workflow/economySetup/Router.js')
 economySetupRouter = new economySetupRouterK(params)
 economySetupRouter.perform().then(console.log).catch(function(err){console.log('--------------err--', err)})
 
@@ -138,10 +257,10 @@ a = require('./lib/transfer/Eth');
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]});
 b.perform().then(console.log);
 
-chainOwner = '0xc635af2728eb39d95aa29bd46704a0dee0c5646f';
+chainOwner = '0xdb3b6e4c9ce358b0ed2586bf36d2f3a0c21678b6';
 auxChainId = 2000;
 a = require('./lib/fund/stPrime/BatchTransfer')
-b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0x34de04328e40be60f0bce5d23b6462418a7ac444', amountInWei:'100000000000000000000'}]})
+b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0x1d6927f6dc4f5184e55a79bcb1fac663adb9f021', amountInWei:'10000000000000000000'}]})
 b.perform().then(console.log)
 
 

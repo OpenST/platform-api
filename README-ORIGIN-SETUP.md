@@ -151,25 +151,25 @@ Granter address gets ETH and OST in this step.
 * Start Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/workflowRouter/factory.js --cronProcessId 1
+  node executables/workflowFactory.js --cronProcessId 1
 ```
 
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/TransactionParser.js --cronProcessId 5
+  node executables/blockScanner/transactionParser.js --cronProcessId 5
 ```
 
 * Run Origin Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 4
+  node executables/blockScanner/blockParser.js --cronProcessId 4
 ```
 
 * Run Origin Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Finalizer.js --cronProcessId 6
+  node executables/blockScanner/finalizer.js --cronProcessId 6
 ```
 
 ### Funding crons

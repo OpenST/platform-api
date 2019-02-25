@@ -1,37 +1,36 @@
 'use strict';
-
 /**
  *  Fetch session details by userId.
  *
  * @module app/services/session/get/ByUserId
  */
+
+const OSTBase = require('@openstfoundation/openst-base');
+
 const rootPrefix = '../../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  SessionGetBase = require(rootPrefix + '/app/services/session/get/Base'),
+  GetSessionBase = require(rootPrefix + '/app/services/session/get/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Session');
-require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
-
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
 
 /**
  * Class to list sessions by userId.
  *
- * @class SessionListByUserId
+ * @class UserSessionList
  */
-class SessionListByUserId extends SessionGetBase {
+class UserSessionList extends GetSessionBase {
   /**
    * @param params
-   * @param {Integer} params.client_id
-   * @param {String} params.user_id
    * @param {Array} [params.addresses]
-   * @param {Integer} [params.token_id]
+   * @param {Integer} [params.limit]
    * @param {String} [params.pagination_identifier] - pagination identifier to fetch page
    */
   constructor(params) {
@@ -39,25 +38,43 @@ class SessionListByUserId extends SessionGetBase {
 
     const oThis = this;
 
-    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
     oThis.addresses = params.addresses;
+    oThis.limit = params.limit;
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
-    oThis.limit = pagination.defaultSessionPageSize;
+    oThis.lastEvaluatedKey = null;
+    oThis.page = null;
 
-    oThis.paginationParams = null;
-    oThis.nextPagePayload = null;
+    oThis.responseMetaData = {
+      [pagination.nextPagePayloadKey]: {}
+    };
   }
 
   /**
-   * Validate Specific params
+   * Validate and sanitize input parameters.
    *
-   * @returns {Promise<never>}
+   * @returns {*}
+   *
    * @private
    */
-  async _validateParams() {
+  async _validateAndSanitizeParams() {
     const oThis = this;
 
-    if (oThis.addresses && oThis.addresses.length > pagination.maxSessionPageSize) {
+    // Parameters in paginationIdentifier take higher precedence
+    if (oThis.paginationIdentifier) {
+      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+      oThis.addresses = []; //addresses not allowed after first page
+      oThis.page = parsedPaginationParams.page; //override page
+      oThis.limit = parsedPaginationParams.limit; //override limit
+      oThis.lastEvaluatedKey = parsedPaginationParams.lastEvaluatedKey;
+    } else {
+      oThis.addresses = oThis.addresses || [];
+      oThis.page = 1;
+      oThis.limit = oThis.limit || oThis._defaultPageLimit();
+      oThis.lastEvaluatedKey = null;
+    }
+
+    if (oThis.addresses && oThis.addresses.length > oThis._maxPageLimit()) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_s_l_bui_1',
@@ -68,75 +85,29 @@ class SessionListByUserId extends SessionGetBase {
       );
     }
 
-    if (oThis.paginationIdentifier) {
-      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
-    }
+    //Validate limit
+    return oThis._validatePageSize();
   }
 
   /**
    * Set addresses for fetching session details
    *
+   * Sets oThis.sessionAddresses
+   *
    * @private
    */
-  async _setAddresses() {
+  async _setSessionAddresses() {
     const oThis = this;
 
-    // If addresses are sent as filter and return from here
-    if (oThis.addresses) {
-      return Promise.resolve(responseHelper.successWithData());
-    }
-
-    // Else fetch addresses from relevant source
-    let response;
-
-    // Cache only first page
-    if (oThis.paginationParams && oThis.paginationParams.lastEvaluatedKey) {
-      response = await oThis._fetchFromDdb();
+    if (!oThis.addresses || oThis.addresses.length === 0) {
+      let response = await oThis._fetchFromCache();
+      oThis.sessionAddresses = response.data.addresses;
+      oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
     } else {
-      response = await oThis._fetchFromCache();
+      for (let index = 0; index < oThis.addresses.length; index++) {
+        oThis.sessionAddresses.push(basicHelper.sanitizeAddress(oThis.addresses[index]));
+      }
     }
-
-    oThis.addresses = response.data['addresses'];
-    oThis.nextPagePayload = response.data['nextPagePayload'];
-  }
-
-  /**
-   * Fetch sessions from cache.
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _fetchSessionFromCache() {
-    const oThis = this;
-
-    let response = await oThis._getUserSessionsDataFromCache(oThis.addresses);
-
-    let returnData = {
-      [resultType.sessions]: response.data
-    };
-
-    if (oThis.nextPagePayload) {
-      returnData[resultType.nextPagePayload] = oThis.nextPagePayload;
-    }
-
-    return returnData;
-  }
-
-  /**
-   * Fetch user sessions from DDB
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _fetchFromDdb() {
-    const oThis = this,
-      SessionModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionModel');
-
-    let sessionObj = new SessionModel({ shardNumber: oThis.sessionShardNumber });
-
-    let lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
-
-    return sessionObj.getSessionsAddresses(oThis.userId, oThis.limit, lastEvaluatedKey);
   }
 
   /**
@@ -147,49 +118,72 @@ class SessionListByUserId extends SessionGetBase {
   async _fetchFromCache() {
     const oThis = this;
 
-    let SessionAddressesByUserId = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'SessionAddressesByUserIdCache'),
-      sessionAddressesByUserId = new SessionAddressesByUserId({
+    let UserSessionAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserSessionAddressCache'),
+      userSessionAddressCache = new UserSessionAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
-        shardNumber: oThis.sessionShardNumber
+        shardNumber: oThis.sessionShardNumber,
+        page: oThis.page,
+        limit: oThis._currentPageLimit(),
+        lastEvaluatedKey: oThis.lastEvaluatedKey
       });
 
-    return sessionAddressesByUserId.fetch();
+    return userSessionAddressCache.fetch();
   }
 
   /**
-   * Fetch session nonce
+   * Format API response
    *
-   * @returns {Promise<void>}
+   * @return {*}
    * @private
    */
-  async _fetchSessionNonce(responseData) {
-    const oThis = this,
-      currentTimestamp = Math.floor(new Date() / 1000);
+  _formatApiResponse() {
+    const oThis = this;
+    return responseHelper.successWithData({
+      [resultType.sessions]: oThis.sessionDetails,
+      [resultType.meta]: oThis.responseMetaData
+    });
+  }
 
-    let promises = [];
-    for (let index in responseData.sessions) {
-      let sessionData = responseData.sessions[index],
-        approxExpirationTimestamp = sessionData.expirationTimestamp || 0;
+  /**
+   * _defaultPageLimit
+   *
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultSessionPageSize;
+  }
 
-      // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
-      // If session is expired then avoid fetching from contract.
-      if (Number(approxExpirationTimestamp) > currentTimestamp) {
-        promises.push(oThis._fetchSessionTokenHolderNonce(sessionData.address));
-      }
-    }
-    await Promise.all(promises);
-    for (let index in responseData.sessions) {
-      let sessionData = responseData.sessions[index];
-      responseData.sessions[index].nonce = oThis.sessionNonce[sessionData.address];
-    }
+  /**
+   * _minPageLimit
+   *
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minSessionPageSize;
+  }
 
-    return responseData;
+  /**
+   * _maxPageLimit
+   *
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxSessionPageSize;
+  }
+
+  /**
+   * _currentPageLimit
+   *
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
+
+    return oThis.limit;
   }
 }
 
-InstanceComposer.registerAsShadowableClass(SessionListByUserId, coreConstants.icNameSpace, 'SessionListByUserId');
+InstanceComposer.registerAsShadowableClass(UserSessionList, coreConstants.icNameSpace, 'UserSessionList');
 
 module.exports = {};

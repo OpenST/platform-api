@@ -191,12 +191,13 @@ class Session extends Base {
    * Get paginated data
    *
    * @param {Number} userId
-   * @param {Number} [limit] - optional
+   * @param {Number} page  - page number
+   * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getSessionsAddresses(userId, limit, lastEvaluatedKey) {
+  async getSessionsAddresses(userId, page, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForUserId = oThis.shortNameFor('userId'),
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId];
@@ -208,7 +209,7 @@ class Session extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('address'),
-      Limit: limit || pagination.maxSessionPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -235,10 +236,12 @@ class Session extends Base {
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query.
+          limit: limit
+        }
       };
     }
 
@@ -285,6 +288,8 @@ class Session extends Base {
       shortNameForUserId = oThis.shortNameFor('userId'),
       shortNameForAddress = oThis.shortNameFor('address'),
       shortNameForStatus = oThis.shortNameFor('status'),
+      shortNameForTimeStamp = oThis.shortNameFor('updatedTimestamp'),
+      dataTypeForTimeStamp = oThis.shortNameToDataType[shortNameForTimeStamp],
       dataTypeForStatus = oThis.shortNameToDataType[shortNameForStatus],
       initialStatusInt = sessionConstants.invertedSessionStatuses[initialStatus],
       finalStatusInt = sessionConstants.invertedSessionStatuses[finalStatus];
@@ -301,13 +306,15 @@ class Session extends Base {
         ' AND #initialStatus = :initialStatus',
       ExpressionAttributeNames: {
         '#initialStatus': shortNameForStatus,
-        '#finalStatus': shortNameForStatus
+        '#finalStatus': shortNameForStatus,
+        '#updatedTimeStamp': shortNameForTimeStamp
       },
       ExpressionAttributeValues: {
         ':initialStatus': { [dataTypeForStatus]: initialStatusInt },
-        ':finalStatus': { [dataTypeForStatus]: finalStatusInt }
+        ':finalStatus': { [dataTypeForStatus]: finalStatusInt },
+        ':updatedTimeStamp': { [dataTypeForTimeStamp]: basicHelper.getCurrentTimestampInSeconds().toString() }
       },
-      UpdateExpression: 'SET #finalStatus = :finalStatus',
+      UpdateExpression: 'SET #finalStatus = :finalStatus, #updatedTimeStamp = :updatedTimeStamp',
       ReturnValues: 'ALL_NEW'
     };
 
@@ -374,16 +381,13 @@ class Session extends Base {
 
     await sessionsByAddressCache.clear();
 
-    require(rootPrefix + '/lib/cacheManagement/chain/SessionAddressesByUserId');
-    let SessionAddressesByUserIdCache = ic.getShadowedClassFor(
-        coreConstants.icNameSpace,
-        'SessionAddressesByUserIdCache'
-      ),
-      sessionAddressesByUserIdCache = new SessionAddressesByUserIdCache({
+    require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
+    let UserSessionAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'UserSessionAddressCache'),
+      userSessionAddressCache = new UserSessionAddressCache({
         userId: params.userId
       });
 
-    await sessionAddressesByUserIdCache.clear();
+    await userSessionAddressCache.clear();
 
     logger.info('Session caches cleared.');
     return responseHelper.successWithData({});

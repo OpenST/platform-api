@@ -2,7 +2,7 @@
 /**
  * Factory class for workflowRouter.
  *
- * @module executables/workflowRouter/factory
+ * @module executables/notifier
  */
 const program = require('commander');
 
@@ -18,7 +18,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/workflowRouter/factory.js --cronProcessId 3');
+  logger.log('    node executables/notifier.js --cronProcessId 3');
   logger.log('');
   logger.log('');
 });

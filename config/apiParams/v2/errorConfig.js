@@ -94,11 +94,6 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address'
   },
-  invalid_filter_address: {
-    parameter: 'address',
-    code: 'invalid',
-    message: 'Invalid address. Max comma seperated 25 addresses allowed'
-  },
   invalid_device_address: {
     parameter: 'device_address',
     code: 'invalid',
@@ -118,6 +113,11 @@ const v2ErrorConfig = {
     parameter: 'chain_id',
     code: 'invalid',
     message: 'Invalid chain id'
+  },
+  price_point_not_available_chain_id: {
+    parameter: 'chain_id',
+    code: 'invalid',
+    message: 'Price point is not available for this chain id.'
   },
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
@@ -159,6 +159,11 @@ const v2ErrorConfig = {
     parameter: 'raw_calldata',
     code: 'invalid',
     message: 'Invalid method in raw_calldata'
+  },
+  invalid_raw_calldata: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid raw_calldata'
   },
   invalid_raw_calldata_parameter_address: {
     parameter: 'raw_calldata',
@@ -224,6 +229,16 @@ const v2ErrorConfig = {
     parameter: 'tokenHolderAddress',
     code: 'missing',
     message: 'missing token holder address'
+  },
+  invalid_next_page_payload: {
+    parameter: 'next_page_payload',
+    code: 'invalid',
+    message: 'Invalid next page payload'
+  },
+  invalid_limit: {
+    parameter: 'limit',
+    code: 'invalid',
+    message: 'Invalid limit'
   }
 };
 

@@ -12,9 +12,21 @@ class ApiAuthentication {
       return getRequestConfig;
     }
     getRequestConfig = {
+      [apiName.getChain]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/chains/:chain_id/'
+      },
+      [apiName.getPricePoints]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/chains/:chain_id/price-points/'
+      },
       [apiName.getToken]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/tokens/'
+      },
+      [apiName.getRules]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/rules/'
       },
       [apiName.getUserList]: {
         supportedSignatureKinds: [apiSignature.hmacKind],
@@ -44,14 +56,6 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/:session_address/'
       },
-      [apiName.getPricePoints]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/price-points/'
-      },
-      [apiName.getChain]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/chains/:chain_id/'
-      },
       [apiName.getTokenHolder]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/token-holders/'
@@ -59,10 +63,6 @@ class ApiAuthentication {
       [apiName.getUserSalt]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/salts/'
-      },
-      [apiName.getRules]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/rules/'
       },
       [apiName.getTransaction]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
@@ -114,7 +114,7 @@ class ApiAuthentication {
         route: '/users/:user_id/transactions/'
       },
       [apiName.executeTransactionFromCompany]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/'
       }
     };

@@ -4,9 +4,10 @@
  *
  * @module app/models/ddb/sharded/Device
  */
+const OSTBase = require('@openstfoundation/openst-base');
+
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
-  OSTBase = require('@openstfoundation/openst-base'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -341,13 +342,13 @@ class Device extends Base {
 
     await deviceDetailCache.clear();
 
-    require(rootPrefix + '/lib/cacheManagement/chain/WalletAddressesByUserId');
-    let WalletAddressesByUserId = ic.getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
-      walletAddressesByUserId = new WalletAddressesByUserId({
+    require(rootPrefix + '/lib/cacheManagement/chain/UserWalletAddress');
+    let UserWalletAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'UserWalletAddressCache'),
+      userWalletAddressCache = new UserWalletAddressCache({
         userId: params.userId
       });
 
-    await walletAddressesByUserId.clear();
+    await userWalletAddressCache.clear();
 
     logger.info('device cache cleared.');
     return responseHelper.successWithData({});
@@ -357,12 +358,13 @@ class Device extends Base {
    * Get paginated data
    *
    * @param {Number} userId
-   * @param {Number} [limit] - optional
+   * @param {Number} page - page number
+   * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getWalletAddresses(userId, limit, lastEvaluatedKey) {
+  async getWalletAddresses(userId, page, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForUserId = oThis.shortNameFor('userId'),
       dataTypeForUserId = oThis.shortNameToDataType[shortNameForUserId];
@@ -374,7 +376,7 @@ class Device extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('walletAddress'),
-      Limit: limit || pagination.maxDeviceListPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -399,10 +401,12 @@ class Device extends Base {
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query.
+          limit: limit
+        }
       };
     }
 
