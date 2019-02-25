@@ -228,5 +228,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Recovery for this user is already in progress."
+  },
+  "recovery_never_initiated": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery for this user was never initiated."
   }
 }
