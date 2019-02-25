@@ -210,7 +210,7 @@ And add it to tables using following script.
 ### Update price points.
 ```bash
    source set_env_vars.sh
-   node executables/UpdatePricePoints.js --cronProcessId 15
+   node executables/updatePricePoints.js --cronProcessId 15
 ```
 
 ### Start Crons
