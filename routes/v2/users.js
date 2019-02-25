@@ -405,7 +405,7 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   );
 });
 
-router.get('/:user_id/balance', function(req, res, next) {
+router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserBalance;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
