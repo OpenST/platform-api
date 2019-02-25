@@ -144,7 +144,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
 
     // Change old device from authorized to Revoking
     // New device from Registered to Authorizing
-    let statusMap = {
+    const statusMap = {
       [oThis.oldDeviceAddress]: {
         initial: deviceConstants.authorizedStatus,
         final: deviceConstants.revokingStatus

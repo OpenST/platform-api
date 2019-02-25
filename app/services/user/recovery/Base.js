@@ -312,8 +312,10 @@ class UserRecoveryBase extends ServiceBase {
   /**
    * Change Device statuses.
    *
-   * @param statusMap
+   * @param {Object} statusMap
+   *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _changeDeviceStatuses(statusMap) {
