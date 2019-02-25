@@ -13,6 +13,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -41,10 +42,16 @@ class GetUserTransactions extends ServiceBase {
     const oThis = this;
 
     oThis.userId = params.user_id;
+    oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
     oThis.status = params.status;
     oThis.meta_property = params.meta_property;
     oThis.auxChainId = null;
+    oThis.transactionDetails = {};
+
+    oThis.responseMetaData = {
+      [pagination.nextPagePayloadKey]: {}
+    };
   }
 
   /**
@@ -75,12 +82,18 @@ class GetUserTransactions extends ServiceBase {
     logger.debug('userTransactions from Elastic search ', userTransactions);
 
     if (userTransactions.isSuccess()) {
+      oThis._setMeta(userTransactions.data);
+
       let response = await new GetTransactionDetails({
         chainId: oThis.auxChainId,
         esSearchData: userTransactions
       }).perform();
 
-      return responseHelper.successWithData({ [resultType.transactions]: response.data });
+      if (response.isSuccess()) {
+        oThis.transactionDetails = response.data;
+
+        return oThis._formatApiResponse();
+      }
     } else {
       return responseHelper.error({
         internal_error_identifier: 'a_s_t_gut_1',
@@ -205,6 +218,31 @@ class GetUserTransactions extends ServiceBase {
     logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
 
     return queryObject;
+  }
+
+  /**
+   * Set meta property.
+   *
+   * @private
+   */
+  _setMeta(esResponseData) {
+    const oThis = this;
+    oThis.responseMetaData[pagination.nextPagePayloadKey] = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+    oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
+  }
+
+  /**
+   * Format API response
+   *
+   * @return {*}
+   * @private
+   */
+  _formatApiResponse() {
+    const oThis = this;
+    return responseHelper.successWithData({
+      [resultType.transactions]: oThis.transactionDetails,
+      [resultType.meta]: oThis.responseMetaData
+    });
   }
 
   /***
