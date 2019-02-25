@@ -172,7 +172,7 @@ class Balance extends Base {
       UpdateExpression:
         'Add #blockChainUnsettledDebits :deltaBUD, #blockChainSettledBalance :deltaBSB ' +
         ', #pessimisticSettledBalance :deltaPessimisticBalance ' +
-        ', #creditUnSettledDebits :deltaCUD, #creditSettledBalance :deltaCSB Set #uts :uts',
+        ', #creditUnSettledDebits :deltaCUD, #creditSettledBalance :deltaCSB Set #uts = :uts',
       ExpressionAttributeNames: {
         '#blockChainUnsettledDebits': oThis.shortNameFor('blockChainUnsettleDebits'),
         '#blockChainSettledBalance': oThis.shortNameFor('blockChainSettledBalance'),
