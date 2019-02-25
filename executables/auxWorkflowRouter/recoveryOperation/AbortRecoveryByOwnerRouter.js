@@ -74,13 +74,13 @@ class AbortRecoveryByOwnerRouter extends AuxWorkflowRouterBase {
         oThis.requestParams.pendingTransactionExtraData = oThis._currentStepPayloadForPendingTrx();
         oThis.requestParams.workflowId = oThis.workflowId;
 
-        const PerformAbortRecoveryTransaction = ic.getShadowedClassFor(
+        const PerformAbortRecoveryByOwnerTransaction = ic.getShadowedClassFor(
             coreConstants.icNameSpace,
-            'PerformAbortRecoveryTransaction'
+            'PerformAbortRecoveryByOwnerTransaction'
           ),
-          performAbortRecoveryTransactionObj = new PerformAbortRecoveryTransaction(oThis.requestParams);
+          performAbortRecoveryByOwnerTransactionObj = new PerformAbortRecoveryByOwnerTransaction(oThis.requestParams);
 
-        return performAbortRecoveryTransactionObj.perform();
+        return performAbortRecoveryByOwnerTransactionObj.perform();
 
       // Verify abort recovery by owner transaction.
       case workflowStepConstants.abortRecoveryByOwnerVerifyTransaction:
