@@ -344,13 +344,10 @@ class TransactionParser extends SubscriberBase {
   async _markMinedInTransactionMeta(txHashes) {
     const oThis = this;
 
-    await new TransactionMeta()
-      .update({
-        status: transactionMetaConst.invertedStatuses[transactionMetaConst.minedStatus],
-        updated_at: new Date()
-      })
-      .where(['transaction_hash IN (?)', txHashes])
-      .fire();
+    await new TransactionMeta().releaseLockAndMarkStatus({
+      status: transactionMetaConst.minedStatus,
+      transactionHashes: txHashes
+    });
   }
 
   /**

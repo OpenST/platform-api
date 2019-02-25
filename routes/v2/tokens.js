@@ -2,6 +2,7 @@ const express = require('express');
 
 const rootPrefix = '../..',
   TokenFormatter = require(rootPrefix + '/lib/formatter/entity/Token'),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   routeHelper = require(rootPrefix + '/routes/helper');
@@ -11,7 +12,7 @@ const router = express.Router();
 require(rootPrefix + '/app/services/token/Detail');
 
 /* Get tokens details*/
-router.get('/', function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getToken;
   req.decodedParams.clientConfigStrategyRequired = true;
 

@@ -22,11 +22,16 @@ router.get('/', function(req, res, next) {
   const performer = function() {
     // 200 OK response needed for ELB Health checker
     logger.log(req.headers['user-agent']); // "ELB-HealthChecker/2.0"
-
     if (req.headers['user-agent'] === 'ELB-HealthChecker/2.0') {
       return responseHelper.successWithData({}).renderResponse(res, errorConfig);
     } else {
-      return responseHelper.error('404', 'resource_not_found', {}).renderResponse(res, errorConfig);
+      return responseHelper
+        .error({
+          internal_error_identifier: 'r_i_r_1',
+          api_error_identifier: 'resource_not_found',
+          debug_options: {}
+        })
+        .renderResponse(res, errorConfig);
     }
   };
 
