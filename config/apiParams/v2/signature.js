@@ -5,6 +5,26 @@ const rootPrefix = '../../..',
   pagination = require(rootPrefix + '/lib/globalConstant/pagination');
 
 const v2Signature = {
+  [apiName.getChain]: {
+    mandatory: [
+      {
+        parameter: 'chain_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getPricePoints]: {
+    mandatory: [
+      {
+        parameter: 'chain_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.getToken]: {
     mandatory: [
       {
@@ -96,16 +116,6 @@ const v2Signature = {
       {
         parameter: 'spending_limit',
         validatorMethod: 'validateNonZeroWeiValue'
-      }
-    ],
-    optional: []
-  },
-
-  [apiName.getChain]: {
-    mandatory: [
-      {
-        parameter: 'chain_id',
-        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -584,16 +594,6 @@ const v2Signature = {
       {
         parameter: 'nonce',
         validatorMethod: 'validateNonNegativeInteger'
-      }
-    ],
-    optional: []
-  },
-
-  [apiName.getPricePoints]: {
-    mandatory: [
-      {
-        parameter: 'client_id',
-        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []

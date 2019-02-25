@@ -3,9 +3,9 @@
  * This script will update price oracle price points using ost-price-oracle npm package.
  * This fetches OST Current price in given currency from coin market cap and sets it in price oracle.
  *
- * Usage: node executables/UpdatePricePoints.js --cronProcessId 13
+ * Usage: node executables/updatePricePoints.js --cronProcessId 13
  *
- * @module executables/UpdatePricePoints
+ * @module executables/updatePricePoints
  *
  * This cron expects auxChainId and quoteCurrency in cron params. quoteCurrency is an optional parameter.
  */
@@ -26,7 +26,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/UpdatePricePoints.js --cronProcessId 13');
+  logger.log('    node executables/updatePricePoints.js --cronProcessId 13');
   logger.log('');
   logger.log('');
 });

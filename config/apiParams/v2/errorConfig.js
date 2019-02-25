@@ -114,6 +114,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid chain id'
   },
+  price_point_not_available_chain_id: {
+    parameter: 'chain_id',
+    code: 'invalid',
+    message: 'Price point is not available for this chain id.'
+  },
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
     code: 'invalid',
