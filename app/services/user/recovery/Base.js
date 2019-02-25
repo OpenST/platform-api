@@ -58,6 +58,7 @@ class UserRecoveryBase extends ServiceBase {
     oThis.signer = params.signer;
 
     oThis.userData = null;
+    oThis.deviceShardNumber = null;
     oThis.auxChainId = null;
   }
 
@@ -128,6 +129,7 @@ class UserRecoveryBase extends ServiceBase {
     }
 
     oThis.userData = cacheFetchRsp.data[oThis.userId];
+    oThis.deviceShardNumber = oThis.userData.deviceShardNumber;
   }
 
   /**

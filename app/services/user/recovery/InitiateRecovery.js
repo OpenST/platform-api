@@ -181,6 +181,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
         oldDeviceAddress: oThis.oldDeviceAddress,
         newDeviceAddress: oThis.newDeviceAddress,
         signature: oThis.signature,
+        deviceShardNumber: oThis.deviceShardNumber,
         recoveryAddress: oThis.recoveryContractAddress,
         recoveryOperationId: recoveryOperationId
       },
