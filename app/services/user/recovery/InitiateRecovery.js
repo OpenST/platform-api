@@ -154,7 +154,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
         final: deviceConstants.recoveringStatus
       }
     };
-    // await oThis._changeDeviceStatuses(statusMap);
+    await oThis._changeDeviceStatuses(statusMap);
 
     let recOperation = await new RecoveryOperationModelKlass()
       .insert({
