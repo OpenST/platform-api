@@ -19,7 +19,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  RevokeDeviceRouter = require(rootPrefix + '/executables/auxWorkflowRouter/multisigOperation/RevokeDeviceRouter'),
+  RevokeDeviceRouter = require(rootPrefix + '/lib/workflow/revokeDevice/Router'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
@@ -62,8 +62,10 @@ class RevokeDevice extends Base {
    * @returns {Promise<never>}
    * @private
    */
-  _sanitizeSpecificParams() {
+  async _sanitizeSpecificParams() {
     const oThis = this;
+
+    oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
 
     let rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod != 'removeOwner') {

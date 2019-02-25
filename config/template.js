@@ -188,9 +188,10 @@ configTemplate['entitiesMap'] = {
     entityType: 'object',
     entitiesPresent: {
       host: 'hostEntity',
-      accessKey: 'accessKeyEntity',
       region: 'regionEntity',
-      secretKey: 'secretKeyEntity'
+      apiKey: 'accessKeyEntity',
+      apiSecret: 'secretKeyEntity',
+      apiVersion: 'apiVersionEntity'
     }
   },
   hostEntity: {

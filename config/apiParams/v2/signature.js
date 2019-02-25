@@ -2,9 +2,29 @@
 
 const rootPrefix = '../../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
-  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination');
 
 const v2Signature = {
+  [apiName.getChain]: {
+    mandatory: [
+      {
+        parameter: 'chain_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getPricePoints]: {
+    mandatory: [
+      {
+        parameter: 'chain_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.getToken]: {
     mandatory: [
       {
@@ -101,16 +121,6 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.getChain]: {
-    mandatory: [
-      {
-        parameter: 'chain_id',
-        validatorMethod: 'validateNonZeroInteger'
-      }
-    ],
-    optional: []
-  },
-
   [apiName.getTokenHolder]: {
     mandatory: [
       {
@@ -142,7 +152,11 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: paginationConstants.paginationIdentifierKey,
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -199,7 +213,11 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: paginationConstants.paginationIdentifierKey,
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -249,7 +267,11 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: paginationConstants.paginationIdentifierKey,
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateDdbPaginationIdentifier'
       }
     ]
@@ -325,7 +347,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -395,7 +417,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -465,7 +487,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -535,7 +557,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'operation',
@@ -577,16 +599,6 @@ const v2Signature = {
     optional: []
   },
 
-  [apiName.getPricePoints]: {
-    mandatory: [
-      {
-        parameter: 'client_id',
-        validatorMethod: 'validateNonZeroInteger'
-      }
-    ],
-    optional: []
-  },
-
   [apiName.executeTransactionFromUser]: {
     mandatory: [
       {
@@ -607,7 +619,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       },
       {
         parameter: 'signature',
@@ -642,7 +654,7 @@ const v2Signature = {
       },
       {
         parameter: 'raw_calldata',
-        validatorMethod: 'validateObject'
+        validatorMethod: 'validateString'
       }
     ],
     optional: [
@@ -694,6 +706,37 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.getUserBalance]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuid'
+      },
+      {
+        parameter: 'api_signature_kind',
+        validatorMethod: 'validateApiSignatureKind'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
+      }
+    ]
   }
 };
 

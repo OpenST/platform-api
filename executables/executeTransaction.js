@@ -1,8 +1,8 @@
 'use strict';
 /**
- * Factory class for workflowRouter.
+ * execute transaction
  *
- * @module executables/workflowRouter/factory
+ * @module executables/executeTransaction
  */
 const program = require('commander'),
   OSTBase = require('@openstfoundation/openst-base');

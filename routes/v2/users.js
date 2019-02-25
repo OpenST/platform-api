@@ -6,30 +6,34 @@ const rootPrefix = '../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  BalanceFormatter = require(rootPrefix + '/lib/formatter/entity/Balance'),
+  UserListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserList'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   DeviceFormatter = require(rootPrefix + '/lib/formatter/entity/Device'),
+  DeviceListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/DeviceList'),
   SessionFormatter = require(rootPrefix + '/lib/formatter/entity/Session'),
+  SessionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/SessionList'),
   UserSaltFormatter = require(rootPrefix + '/lib/formatter/entity/UserSalt'),
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
-  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
-  NextPagePayloadFormatter = require(rootPrefix + '/lib/formatter/entity/NextPagePayload');
+  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
-require(rootPrefix + '/app/services/user/Get');
-require(rootPrefix + '/app/services/user/GetList');
+require(rootPrefix + '/app/services/user/get/ById');
+require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
 require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
-require(rootPrefix + '/app/services/user/ExecuteTransaction');
+require(rootPrefix + '/app/services/transaction/execute/FromCompany');
+require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/GetTransaction');
 require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
-require(rootPrefix + '/app/services/device/get/ByWalletAddress');
+require(rootPrefix + '/app/services/device/get/ByAddress');
 require(rootPrefix + '/app/services/device/multisigOperation/AuthorizeDevice');
 require(rootPrefix + '/app/services/device/multisigOperation/RevokeDevice');
 
@@ -84,7 +88,7 @@ router.get('/', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let users = serviceResponse.data[resultType.users],
       formattedUsers = [],
-      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data.nextPagePayload).perform().data;
+      metaPayload = new UserListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let index in users) {
       formattedUsers.push(new UserFormatter(users[index]).perform().data);
@@ -93,11 +97,11 @@ router.get('/', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.users,
       [resultType.users]: formattedUsers,
-      [resultType.nextPagePayload]: nextPagePayload
+      [resultType.meta]: metaPayload
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetUsersList', 'r_v2_u_3', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetUserList', 'r_v2_u_3', null, dataFormatterFunc));
 });
 
 /* Create device for user*/
@@ -127,7 +131,7 @@ router.get('/:user_id/devices', function(req, res, next) {
     let devices = serviceResponse.data[resultType.devices],
       formattedDevices = [],
       buffer,
-      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data[resultType.nextPagePayload]).perform().data;
+      metaPayload = new DeviceListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let deviceUuid in devices) {
       buffer = devices[deviceUuid];
@@ -140,11 +144,11 @@ router.get('/:user_id/devices', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.devices,
       [resultType.devices]: formattedDevices,
-      [resultType.nextPagePayload]: nextPagePayload
+      [resultType.meta]: metaPayload
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceByUserId', 'r_v2_u_5', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'UserDeviceList', 'r_v2_u_5', null, dataFormatterFunc));
 });
 
 /* Get User device By device Address */
@@ -168,7 +172,7 @@ router.get('/:user_id/devices/:device_address', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeviceByWalletAddress', 'r_v2_u_6', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceByAddress', 'r_v2_u_6', null, dataFormatterFunc));
 });
 
 /* Get sessions by userId */
@@ -180,7 +184,7 @@ router.get('/:user_id/sessions', function(req, res, next) {
   const dataFormatterFunc = async function(serviceResponse) {
     let sessions = serviceResponse.data[resultType.sessions],
       formattedSessions = [],
-      nextPagePayload = new NextPagePayloadFormatter(serviceResponse.data.nextPagePayload).perform().data;
+      metaPayload = new SessionListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let address in sessions) {
       formattedSessions.push(new SessionFormatter(sessions[address]).perform().data);
@@ -189,13 +193,11 @@ router.get('/:user_id/sessions', function(req, res, next) {
     serviceResponse.data = {
       result_type: resultType.sessions,
       [resultType.sessions]: formattedSessions,
-      [resultType.nextPagePayload]: nextPagePayload
+      [resultType.meta]: metaPayload
     };
   };
 
-  return Promise.resolve(
-    routeHelper.perform(req, res, next, 'SessionListByUserId', 'r_v2_u_7', null, dataFormatterFunc)
-  );
+  return Promise.resolve(routeHelper.perform(req, res, next, 'UserSessionList', 'r_v2_u_7', null, dataFormatterFunc));
 });
 
 /* Get User session By session Address */
@@ -215,7 +217,7 @@ router.get('/:user_id/sessions/:session_address', function(req, res, next) {
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'SessionGetByAddress', 'r_v2_u_8', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetSessionByAddress', 'r_v2_u_8', null, dataFormatterFunc));
 });
 
 /* Get user device managers*/
@@ -396,6 +398,22 @@ router.get('/:user_id/transactions', function(req, res, next) {
   return Promise.resolve(
     routeHelper.perform(req, res, next, 'GetUserTransaction', 'r_v_u_13', null, dataFormatterFunc)
   );
+});
+
+router.get('/:user_id/balance', function(req, res, next) {
+  req.decodedParams.apiName = apiName.getUserBalance;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const balanceFormattedRsp = new BalanceFormatter(serviceResponse.data[resultType.balance]).perform();
+    serviceResponse.data = {
+      result_type: resultType.balance,
+      [resultType.balance]: balanceFormattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v_u_14', null, dataFormatterFunc));
 });
 
 module.exports = router;
