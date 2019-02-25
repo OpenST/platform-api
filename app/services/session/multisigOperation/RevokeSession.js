@@ -19,7 +19,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
-  RevokeSessionRouter = require(rootPrefix + '/executables/auxWorkflowRouter/multisigOperation/RevokeSessionRouter'),
+  RevokeSessionRouter = require(rootPrefix + '/lib/workflow/revokeSession/Router'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 

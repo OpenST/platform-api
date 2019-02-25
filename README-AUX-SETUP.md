@@ -217,7 +217,7 @@ And add it to tables using following script.
 * Start Aux Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/auxWorkflowRouter/factory.js --cronProcessId 20
+  node executables/auxWorkflowFactory.js --cronProcessId 20
 ```
 
 ###### ALWAYS AT THE END

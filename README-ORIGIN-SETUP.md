@@ -151,7 +151,7 @@ Granter address gets ETH and OST in this step.
 * Start Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/workflowRouter/factory.js --cronProcessId 1
+  node executables/workflowFactory.js --cronProcessId 1
 ```
 
 * Run Origin Transaction Parser

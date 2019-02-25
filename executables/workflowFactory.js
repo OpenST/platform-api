@@ -2,11 +2,11 @@
 /**
  * Factory class for workflowRouter.
  *
- * @module executables/notifier
+ * @module executables/workflowFactory
  */
 const program = require('commander');
 
-const rootPrefix = '../..',
+const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -18,7 +18,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/notifier.js --cronProcessId 3');
+  logger.log('    node executables/workflowFactory.js --cronProcessId 3');
   logger.log('');
   logger.log('');
 });
@@ -33,7 +33,7 @@ if (!program.cronProcessId) {
  *
  * @class
  */
-class EmailNotifier extends SubscriberBase {
+class WorkflowRouterFactory extends SubscriberBase {
   /**
    * Constructor for workflow router factory.
    *
@@ -60,7 +60,7 @@ class EmailNotifier extends SubscriberBase {
    * @private
    */
   get _topicsToSubscribe() {
-    return [workflowTopicConstant.emailNotifierTopic];
+    return ['workflow.#'];
   }
 
   /**
@@ -71,7 +71,7 @@ class EmailNotifier extends SubscriberBase {
    * @private
    */
   get _queueName() {
-    return 'email_notifier';
+    return 'workflow';
   }
 
   /**
@@ -82,7 +82,7 @@ class EmailNotifier extends SubscriberBase {
    * @private
    */
   get _processNamePrefix() {
-    return 'email_notifier';
+    return 'workflow_processor';
   }
 
   /**
@@ -105,7 +105,7 @@ class EmailNotifier extends SubscriberBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.emailNotifier;
+    return cronProcessesConstants.workflowWorker;
   }
 
   /**
@@ -129,14 +129,40 @@ class EmailNotifier extends SubscriberBase {
     // Query in workflow_steps to get details pf parent id in message params
     let msgParams = messageParams.message.payload;
     msgParams.topic = messageParams.topics[0];
+
+    switch (msgParams.topic) {
+      case workflowTopicConstant.test:
+        const testProcessRouter = require(rootPrefix + '/lib/workflow/test/Router');
+        return new testProcessRouter(msgParams).perform();
+      case workflowTopicConstant.stateRootSync:
+        const stateRootSyncRouter = require(rootPrefix + '/lib/workflow/stateRootSync/Router');
+        return new stateRootSyncRouter(msgParams).perform();
+      case workflowTopicConstant.economySetup:
+        const EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router');
+        return new EconomySetupRouter(msgParams).perform();
+      case workflowTopicConstant.stPrimeStakeAndMint:
+        const stPrimeRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/stPrime/Router');
+        return new stPrimeRouter(msgParams).perform();
+
+      case workflowTopicConstant.btStakeAndMint:
+        const BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router');
+        return new BtStakeAndMintRouter(msgParams).perform();
+
+      case workflowTopicConstant.grantEthOst:
+        const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
+        return new GrantEthOstRouter(msgParams).perform();
+
+      default:
+        throw 'Unsupported workflow topic ' + messageParams.topics[0];
+    }
   }
 }
 
 logger.step('Workflow Router Factory started.');
 
-new EmailNotifier({ cronProcessId: +program.cronProcessId }).perform();
+new WorkflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform();
 
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, 45 * 60 * 1000);
+}, 30 * 60 * 1000);

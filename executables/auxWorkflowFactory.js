@@ -2,11 +2,11 @@
 /**
  * Factory class for workflowRouter.
  *
- * @module executables/workflowRouter/factory
+ * @module executables/auxWorkflowFactory
  */
 const program = require('commander');
 
-const rootPrefix = '../..',
+const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -18,7 +18,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/workflowRouter/factory.js --cronProcessId 3');
+  logger.log('    node executables/auxWorkflowFactory.js --cronProcessId 18');
   logger.log('');
   logger.log('');
 });
@@ -33,9 +33,9 @@ if (!program.cronProcessId) {
  *
  * @class
  */
-class WorkflowRouterFactory extends SubscriberBase {
+class AuxWorkflowRouterFactory extends SubscriberBase {
   /**
-   * Constructor for workflow router factory.
+   * Constructor for aux workflow router factory.
    *
    * @augments SubscriberBase
    *
@@ -60,7 +60,7 @@ class WorkflowRouterFactory extends SubscriberBase {
    * @private
    */
   get _topicsToSubscribe() {
-    return ['workflow.#'];
+    return ['auxWorkflow.#'];
   }
 
   /**
@@ -71,7 +71,7 @@ class WorkflowRouterFactory extends SubscriberBase {
    * @private
    */
   get _queueName() {
-    return 'workflow';
+    return 'auxWorkflow';
   }
 
   /**
@@ -82,7 +82,7 @@ class WorkflowRouterFactory extends SubscriberBase {
    * @private
    */
   get _processNamePrefix() {
-    return 'workflow_processor';
+    return 'aux_workflow_processor';
   }
 
   /**
@@ -105,18 +105,20 @@ class WorkflowRouterFactory extends SubscriberBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.workflowWorker;
+    return cronProcessesConstants.auxWorkflowWorker;
   }
 
   /**
    * Process message
    *
    * @param {Object} messageParams
-   * @param {String} messageParams.stepKind: Which step to execute in router
-   * @param {Number} messageParams.currentStepId: id of process parent
-   * @param {Number} messageParams.parentStepId: id of process parent
-   * @param {String} messageParams.status
-   * @param {Object} messageParams.payload
+   * @param {Object} messageParams.message
+   * @param {Array} messageParams.topics
+   * @param {String} messageParams.message.stepKind: Which step to execute in router
+   * @param {Number} messageParams.message.currentStepId: id of process parent
+   * @param {Number} messageParams.message.parentStepId: id of process parent
+   * @param {String} messageParams.message.status
+   * @param {Object} messageParams.message.payload
    *
    * @returns {Promise<>}
    *
@@ -125,32 +127,27 @@ class WorkflowRouterFactory extends SubscriberBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    // identify which file/function to initiate to execute task of specific kind.
+    // Identify which file/function to initiate to execute task of specific kind.
     // Query in workflow_steps to get details pf parent id in message params
     let msgParams = messageParams.message.payload;
     msgParams.topic = messageParams.topics[0];
 
     switch (msgParams.topic) {
-      case workflowTopicConstant.test:
-        const testProcessRouter = require(rootPrefix + '/lib/workflow/test/Router');
-        return new testProcessRouter(msgParams).perform();
-      case workflowTopicConstant.stateRootSync:
-        const stateRootSyncRouter = require(rootPrefix + '/lib/workflow/stateRootSync/Router');
-        return new stateRootSyncRouter(msgParams).perform();
-      case workflowTopicConstant.economySetup:
-        const EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router');
-        return new EconomySetupRouter(msgParams).perform();
-      case workflowTopicConstant.stPrimeStakeAndMint:
-        const stPrimeRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/stPrime/Router');
-        return new stPrimeRouter(msgParams).perform();
-
-      case workflowTopicConstant.btStakeAndMint:
-        const BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router');
-        return new BtStakeAndMintRouter(msgParams).perform();
-
-      case workflowTopicConstant.grantEthOst:
-        const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
-        return new GrantEthOstRouter(msgParams).perform();
+      case workflowTopicConstant.userSetup:
+        const UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
+        return new UserSetupRouter(msgParams).perform();
+      case workflowTopicConstant.authorizeDevice:
+        const AuthorizeDeviceRouter = require(rootPrefix + '/lib/workflow/authorizeDevice/Router');
+        return new AuthorizeDeviceRouter(msgParams).perform();
+      case workflowTopicConstant.revokeDevice:
+        const RevokeDeviceRouter = require(rootPrefix + '/lib/workflow/revokeDevice/Router');
+        return new RevokeDeviceRouter(msgParams).perform();
+      case workflowTopicConstant.authorizeSession:
+        const AuthorizeSessionRouter = require(rootPrefix + '/lib/workflow/authorizeSession/Router');
+        return new AuthorizeSessionRouter(msgParams).perform();
+      case workflowTopicConstant.revokeSession:
+        const RevokeSessionRouter = require(rootPrefix + '/lib/workflow/revokeSession/Router');
+        return new RevokeSessionRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
@@ -158,11 +155,11 @@ class WorkflowRouterFactory extends SubscriberBase {
   }
 }
 
-logger.step('Workflow Router Factory started.');
+logger.step('Aux Workflow Router Factory started.');
 
-new WorkflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform();
+new AuxWorkflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform();
 
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, 30 * 60 * 1000);
+}, 45 * 60 * 1000);

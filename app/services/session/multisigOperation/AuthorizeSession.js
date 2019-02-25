@@ -20,8 +20,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
-  AuthorizeSessionRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeSessionRouter'),
+  AuthorizeSessionRouter = require(rootPrefix + '/lib/workflow/authorizeSession/Router'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer

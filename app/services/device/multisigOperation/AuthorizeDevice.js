@@ -19,8 +19,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
-  AuthorizeDeviceRouter = require(rootPrefix +
-    '/executables/auxWorkflowRouter/multisigOperation/AuthorizeDeviceRouter'),
+  AuthorizeDeviceRouter = require(rootPrefix + '/lib/workflow/authorizeDevice/Router'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
