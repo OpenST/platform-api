@@ -4,6 +4,7 @@
  *
  * @module app/services/user/CreateTokenHolder
  */
+
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -15,11 +16,11 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router');
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');
@@ -208,6 +209,7 @@ class CreateTokenHolder extends ServiceBase {
       });
 
     logger.log('Updating user status from created to activating.');
+
     oThis.userStatusUpdateResponse = await userModel.updateStatusFromInitialToFinal(
       oThis.tokenId,
       oThis.userId,
@@ -247,7 +249,8 @@ class CreateTokenHolder extends ServiceBase {
       });
 
     logger.log('Updating device details.');
-    let deviceStatusUpdateResponse = await deviceModel.updateStatusFromInitialToFinal(
+
+    const deviceStatusUpdateResponse = await deviceModel.updateStatusFromInitialToFinal(
       oThis.userId,
       oThis.deviceAddress,
       deviceConstants.registeredStatus,
@@ -284,6 +287,7 @@ class CreateTokenHolder extends ServiceBase {
       });
 
     logger.log('Authorizing recovery owner address.');
+
     const recoveryOwnerCreationResponse = await recoveryOwnerModel.createRecoveryOwner({
       userId: oThis.userId,
       address: oThis.recoveryOwnerAddress,
@@ -335,9 +339,8 @@ class CreateTokenHolder extends ServiceBase {
         requestParams: requestParams
       };
 
-    const userSetupObj = new UserSetupRouter(userSetupInitParams);
-
-    let response = await userSetupObj.perform();
+    const userSetupObj = new UserSetupRouter(userSetupInitParams),
+      response = await userSetupObj.perform();
 
     if (response.isFailure()) {
       return Promise.reject(
@@ -366,7 +369,7 @@ class CreateTokenHolder extends ServiceBase {
 
     logger.log('Faced an error while deploying token holder for user. Updating user status back to created.');
 
-    let userStatusRollbackResponse = await userModel.updateStatus({
+    const userStatusRollbackResponse = await userModel.updateStatus({
       tokenId: oThis.tokenId,
       userId: oThis.userId,
       status: tokenUserConstants.createdStatus
