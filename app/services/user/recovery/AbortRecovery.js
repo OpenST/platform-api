@@ -132,6 +132,8 @@ class AbortRecovery extends UserRecoveryServiceBase {
   /**
    * Validate Devices from cache.
    *
+   * @sets oThis.newDeviceAddressEntity
+   *
    * @returns {Promise<never>}
    *
    * @private
@@ -140,6 +142,8 @@ class AbortRecovery extends UserRecoveryServiceBase {
     const oThis = this;
 
     const devicesCacheResponse = await oThis._fetchDevices();
+
+    oThis.newDeviceAddressEntity = devicesCacheResponse[oThis.newDeviceAddress];
 
     // Check if old device address is found or not and its status is revoking or not.
     if (

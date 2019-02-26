@@ -11,7 +11,6 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -129,7 +128,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   async _validateDevices() {
     const oThis = this;
 
-    let devicesCacheResponse = await oThis._fetchDevices();
+    const devicesCacheResponse = await oThis._fetchDevices();
 
     // Check if old device address is found or not and its status is authorized or not.
     if (
@@ -165,6 +164,8 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   /**
    * Initiate recovery for user.
    *
+   * @sets oThis.newDeviceAddressEntity
+   *
    * @returns {Promise<never>}
    *
    * @private
@@ -184,9 +185,15 @@ class InitiateRecovery extends UserRecoveryServiceBase {
         final: deviceConstants.recoveringStatus
       }
     };
-    await oThis._changeDeviceStatuses(statusMap);
+    const devicesInfo = await oThis._changeDeviceStatuses(statusMap);
 
-    let recOperation = await new RecoveryOperationModelKlass()
+    for (let index = 0; index < devicesInfo.length; index++) {
+      if (devicesInfo[index].walletAddress === oThis.newDeviceAddress) {
+        oThis.newDeviceAddressEntity = devicesInfo[index];
+      }
+    }
+
+    const recOperation = await new RecoveryOperationModelKlass()
       .insert({
         token_id: oThis.tokenId,
         user_id: oThis.userId,

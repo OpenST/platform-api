@@ -5,14 +5,14 @@
  */
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  ServiceBase = require(rootPrefix + '/app/services/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  basicHelper = require(rootPrefix + '/helpers/basic');
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
@@ -62,6 +62,7 @@ class UserRecoveryBase extends ServiceBase {
     oThis.userData = null;
     oThis.deviceShardNumber = null;
     oThis.auxChainId = null;
+    oThis.newDeviceAddressEntity = {};
   }
 
   /**
@@ -85,6 +86,12 @@ class UserRecoveryBase extends ServiceBase {
     await oThis._validateDevices();
 
     await oThis._performRecoveryOperation();
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        [resultType.device]: oThis.newDeviceAddressEntity
+      })
+    );
   }
 
   /**
@@ -142,6 +149,7 @@ class UserRecoveryBase extends ServiceBase {
    * Perform basic validations on user data before recovery procedures.
    *
    * @returns {Promise<Void>}
+   *
    * @private
    */
   async _basicValidations() {
@@ -305,7 +313,7 @@ class UserRecoveryBase extends ServiceBase {
   /**
    * Perform recovery operation for user.
    *
-   * @returns {Promise<void>}
+   * @returns {Promise<Array>}
    *
    * @private
    */
@@ -326,11 +334,12 @@ class UserRecoveryBase extends ServiceBase {
     const oThis = this,
       DeviceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel');
 
-    const promises = [];
+    const promises = [],
+      deviceEntities = [];
     let ddbQueryFailed = false;
 
     for (let address in statusMap) {
-      let initialStatus = statusMap[address].initial,
+      const initialStatus = statusMap[address].initial,
         finalStatus = statusMap[address].final,
         deviceModelObj = new DeviceModel({ shardNumber: oThis.userData.deviceShardNumber });
 
@@ -339,6 +348,7 @@ class UserRecoveryBase extends ServiceBase {
           deviceModelObj
             .updateStatusFromInitialToFinal(oThis.userId, address, initialStatus, finalStatus)
             .then(function(resp) {
+              deviceEntities.push(resp.data);
               if (resp.isFailure()) {
                 ddbQueryFailed = true;
               }
@@ -365,6 +375,7 @@ class UserRecoveryBase extends ServiceBase {
         })
       );
     }
+    return deviceEntities;
   }
 }
 
