@@ -49,17 +49,17 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // Config for addresses which need to be funded.
 const ethFundingConfig = {
   [chainAddressConstants.originDeployerKind]: {
-    oneGWeiMinAmount: '0.01240',
+    oneGWeiMinAmount: '0.01240', //TODO-FUNDING:
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   },
   [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
-    oneGWeiMinAmount: '0.00012',
+    oneGWeiMinAmount: '0.00012', //TODO-FUNDING:
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   },
   [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
-    oneGWeiMinAmount: '0.00010',
+    oneGWeiMinAmount: '0.00010', //TODO-FUNDING:
     fundForFlows: flowsForTransferBalance,
     fundIfLessThanFlows: flowsForMinimumBalance
   }
@@ -68,12 +68,12 @@ const ethFundingConfig = {
 // Alert Config
 const alertConfig = {
   [chainAddressConstants.masterInternalFunderKind]: {
-    minAmount: '0.6',
+    minAmount: '0.6', //TODO-FUNDING:
     alertIfLessThanFlows: flowsForMasterInternalFunderMinimumBalance,
     alertRequired: true
   },
   [chainAddressConstants.originGranterKind]: {
-    minAmount: '1',
+    minAmount: '1', //TODO-FUNDING:
     alertIfLessThanFlows: flowsForGranterMinimumBalance,
     alertRequired: coreConstants.subEnvironment !== environmentInfoConstants.subEnvironment.main
   }

@@ -140,6 +140,13 @@ class UpdatePriceOraclePricePoints extends CronBase {
     }
   }
 
+  /**
+   * Update Price Point
+   *
+   * @returns {Promise<void>}
+   *
+   * @private
+   */
   async _updatePricePoint() {
     const oThis = this,
       updatePricePoints = new UpdatePricePoints({

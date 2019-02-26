@@ -34,7 +34,7 @@
       "chainId": 2000,
       "client": "geth",
       "blockGenerationTime": 2,
-      "finalizeAfterBlocks": 24
+      "finalizeAfterBlocks": 4
     },
     "dynamodb": {
       "endpoint": "http://localhost:8000",
