@@ -4,6 +4,7 @@
  *
  * @module app/services/user/GetTokenHolder
  */
+
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -73,7 +74,7 @@ class GetTokenHolder extends ServiceBase {
     }
     response = response.data[oThis.userId];
 
-    let responseEntity = {
+    const responseEntity = {
       userId: response.userId,
       address: response.tokenHolderAddress,
       status: response.status, // This is the integer value of the status. User formatter converts this to a string at the end.
