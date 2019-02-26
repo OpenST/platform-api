@@ -1,6 +1,6 @@
 'use strict';
 /**
- * This service helps in fetching transaction for a user
+ * This service helps in fetching transaction
  *
  * @module app/services/transaction/GetTransaction
  */
@@ -8,13 +8,18 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
+  esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
+  ESTransactionService = esServices.services.transactions,
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
-  ESTransactionService = esServices.services.transactions;
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails');
+
+// Following require(s) for registering into instance composer
+require(rootPrefix + '/lib/transactions/GetTransactionDetails');
 
 /**
  * Class to Get transaction
@@ -33,8 +38,11 @@ class GetTransaction extends ServiceBase {
     super(params);
 
     const oThis = this;
-    oThis.user_id = params.user_id;
-    oThis.transaction_id = params.transaction_id;
+    oThis.userId = params.user_id;
+    oThis.transactionId = params.transaction_id;
+
+    oThis.configStrategyObj = null;
+    oThis.auxChainId = null;
   }
 
   /**
@@ -45,17 +53,33 @@ class GetTransaction extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateParams();
-
-    const serviceConfig = oThis.getServiceConfig(),
+    const GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
+      serviceConfig = oThis.getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
       esQuery = oThis.getQueryObject();
 
     let transactionDetails = await service.search(esQuery);
 
-    let responseData = transactionDetails; // TODO get from Dynamo
+    if (transactionDetails.isSuccess() && transactionDetails.data[oThis.auxChainId + '_transactions'].length !== 0) {
+      let response = await new GetTransactionDetails({
+        chainId: oThis.auxChainId,
+        esSearchData: transactionDetails
+      }).perform();
+      return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
+    } else {
+      let response = await new GetTransactionDetails({
+        chainId: oThis.auxChainId,
+        esSearchData: transactionDetails,
+        pendingTransactionUuids: [oThis.transactionId]
+      }).perform();
+      return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
 
-    return responseHelper.successWithData(responseData);
+      // return responseHelper.error({
+      //   internal_error_identifier: 'a_s_t_gt_1',
+      //   api_error_identifier: 'es_data_not_found',
+      //   debug_options: { esData: transactionDetails }
+      // });
+    }
   }
 
   /**
@@ -78,14 +102,14 @@ class GetTransaction extends ServiceBase {
   getServiceConfig() {
     const oThis = this,
       configStrategy = oThis._configStrategyObject,
-      chainId = configStrategy.auxChainId,
       esConfig = configStrategy.elasticSearchConfig,
       elasticSearchKey = configStrategyConstants.elasticSearch;
 
-    let finalConfig = {
-      chainId: chainId
-    };
+    oThis.auxChainId = configStrategy.auxChainId;
 
+    let finalConfig = {
+      chainId: oThis.auxChainId
+    };
     finalConfig[elasticSearchKey] = esConfig;
 
     return finalConfig;
@@ -101,31 +125,10 @@ class GetTransaction extends ServiceBase {
     return {
       query: {
         terms: {
-          _id: [oThis.transaction_id]
+          _id: [oThis.transactionId]
         }
       }
     };
-  }
-
-  /**
-   * Validate Specific params
-   *
-   * @returns {Promise<never>}
-   * @private
-   */
-  async _validateParams() {
-    const oThis = this;
-
-    if (!oThis.transaction_id) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 's_t_gut_1',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['missing_transaction_id'],
-          debug_options: {}
-        })
-      );
-    }
   }
 
   /***

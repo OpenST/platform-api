@@ -58,8 +58,6 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
-
-    // TODO - add necessary validations
   }
 
   /**
@@ -239,7 +237,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const transactionObject = {
       // TODO - move the toChecksumAddress sanitizing inside interaction layers
       from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
-      to: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenRuleAddress), // TR contract address
+      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // rule contract address (TR / Pricer)
       data: oThis.transferExecutableData,
       nonce: oThis.sessionKeyNonce,
       callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix()
