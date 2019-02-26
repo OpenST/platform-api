@@ -176,22 +176,13 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    await oThis._setTokenDetails();
+    await oThis._fetchTokenDetails();
 
     await oThis._setTokenAddresses();
 
     oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
 
     await oThis._setTokenHolderAddress();
-  }
-
-  async _setTokenDetails() {
-    const oThis = this;
-
-    // fetch token details for client id
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
   }
 
   /**
@@ -369,12 +360,12 @@ class ExecuteTxBase extends ServiceBase {
       ruleAddress: oThis.toAddress,
       erc20Address: oThis.erc20Address,
       sessionKeyNonce: oThis.sessionKeyNonce,
+      sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
       createdTimestamp: currentTimestamp,
-      updatedTimeStamp: currentTimestamp
+      updatedTimestamp: currentTimestamp
     });
-
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
     } else {

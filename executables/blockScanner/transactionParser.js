@@ -25,6 +25,7 @@ const rootPrefix = '../..',
   TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
+  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
 
 const TX_BATCH_SIZE = 20;
@@ -239,12 +240,7 @@ class TransactionParser extends SubscriberBase {
           }
         }
 
-        let promiseArray = [];
-
-        promiseArray.push(oThis._markMinedInTransactionMeta(txHashList));
-        promiseArray.push(oThis._markSuccessInPendingTransaction(txHashList, transactionReceiptMap));
-
-        await Promise.all(promiseArray);
+        await oThis._updateStatusesInDb(txHashList, transactionReceiptMap);
 
         // Call token parser if it is needed.
         if (tokenParserNeeded) {
@@ -335,30 +331,14 @@ class TransactionParser extends SubscriberBase {
   }
 
   /**
-   * Mark transactions mined in transaction meta
-   *
-   * @param txHashes
-   * @return {Promise<void>}
-   * @private
-   */
-  async _markMinedInTransactionMeta(txHashes) {
-    const oThis = this;
-
-    await new TransactionMeta().releaseLockAndMarkStatus({
-      status: transactionMetaConst.minedStatus,
-      transactionHashes: txHashes
-    });
-  }
-
-  /**
-   * Mark success in pending transaction
+   * update statuses in pending tx and tx meta
    *
    * @param txHashes
    * @param transactionReceiptMap
    * @return {Promise<void>}
    * @private
    */
-  async _markSuccessInPendingTransaction(txHashes, transactionReceiptMap) {
+  async _updateStatusesInDb(txHashes, transactionReceiptMap) {
     const oThis = this;
 
     let pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
@@ -371,20 +351,32 @@ class TransactionParser extends SubscriberBase {
 
     fetchPendingTxData = fetchPendingTxData.data;
 
-    let promiseArray = [];
+    let promiseArray = [],
+      receiptSuccessTxHashes = [],
+      receiptFailureTxHashes = [],
+      flushNonceCacheForSessionAddresses = [];
 
     for (let pendingTxUuid in fetchPendingTxData) {
       let pendingTxData = fetchPendingTxData[pendingTxUuid],
         transactionReceipt = transactionReceiptMap[pendingTxData['transactionHash']];
 
-      let transactionStatus = transactionReceipt.status == '0x0' || transactionReceipt.status == false ? false : true;
-
-      let status = transactionStatus && transactionReceipt.internalStatus;
+      let transactionStatus = transactionReceipt.status == '0x0' || transactionReceipt.status === false ? false : true;
+      if (transactionStatus) {
+        receiptSuccessTxHashes.push(pendingTxData['transactionHash']);
+      } else {
+        receiptFailureTxHashes.push(pendingTxData['transactionHash']);
+        if (pendingTxData.sessionKeyAddress) {
+          flushNonceCacheForSessionAddresses.push(pendingTxData.sessionKeyAddress);
+        }
+      }
 
       let updateParams = {
         chainId: oThis.chainId,
         transactionUuid: pendingTxData.transactionUuid,
-        status: status ? pendingTransactionConstants.minedStatus : pendingTransactionConstants.failedStatus,
+        status:
+          transactionStatus & transactionReceipt.internalStatus
+            ? pendingTransactionConstants.minedStatus
+            : pendingTransactionConstants.failedStatus,
         blockNumber: transactionReceiptMap[pendingTxData.transactionHash].blockNumber,
         blockTimestamp: transactionReceiptMap[pendingTxData.transactionHash].blockTimestamp
       };
@@ -401,6 +393,50 @@ class TransactionParser extends SubscriberBase {
     if (promiseArray.length > 0) {
       await Promise.all(promiseArray);
     }
+
+    if (receiptSuccessTxHashes.length > 0) {
+      await new TransactionMeta().releaseLockAndMarkStatus({
+        status: transactionMetaConst.minedStatus,
+        receiptStatus: transactionMetaConst.successReceiptStatus,
+        transactionHashes: receiptSuccessTxHashes,
+        chainId: oThis.chainId
+      });
+    }
+
+    if (receiptFailureTxHashes.length > 0) {
+      await new TransactionMeta().releaseLockAndMarkStatus({
+        status: transactionMetaConst.minedStatus,
+        receiptStatus: transactionMetaConst.failureReceiptStatus,
+        transactionHashes: receiptFailureTxHashes,
+        chainId: oThis.chainId
+      });
+    }
+
+    if (flushNonceCacheForSessionAddresses.length > 0) {
+      await oThis._flushNonceCacheForSessionAddresses(flushNonceCacheForSessionAddresses);
+    }
+  }
+
+  /**
+   *
+   * @param addresses
+   * @private
+   */
+  async _flushNonceCacheForSessionAddresses(addresses) {
+    const oThis = this;
+
+    let promises = [];
+
+    for (let i = 0; i < addresses.length; i++) {
+      promises.push(
+        new NonceForSession({
+          address: addresses[i],
+          chainId: oThis.auxChainId
+        }).clear()
+      );
+    }
+
+    await Promise.all(promises);
   }
 }
 
