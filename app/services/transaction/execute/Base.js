@@ -365,6 +365,7 @@ class ExecuteTxBase extends ServiceBase {
       sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
+      toBeSyncedInEs: true,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
     });
