@@ -281,6 +281,7 @@ class GetUserTransactions extends ServiceBase {
    */
   _setMeta(esResponseData) {
     const oThis = this;
+    logger.debug('esResponseData =======', esResponseData);
     oThis.responseMetaData[pagination.nextPagePayloadKey] = esResponseData.meta[pagination.nextPagePayloadKey] || {};
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
     logger.debug('==== oThis.responseMetaData while setting meta =====', oThis.responseMetaData);
@@ -294,7 +295,6 @@ class GetUserTransactions extends ServiceBase {
    */
   _formatApiResponse() {
     const oThis = this;
-    logger.debug('==== oThis.responseMetaData while formatting =====', oThis.responseMetaData);
     return responseHelper.successWithData({
       [resultType.transactions]: oThis.transactionDetails,
       [resultType.meta]: oThis.responseMetaData
