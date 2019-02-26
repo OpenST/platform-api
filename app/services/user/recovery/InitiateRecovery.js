@@ -255,7 +255,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   }
 
   /**
-   * Return required response as per the service.
+   * Return device entity.
    *
    * @returns {Promise<>}
    *

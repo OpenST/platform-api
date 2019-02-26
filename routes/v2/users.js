@@ -471,10 +471,12 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    const recoveryOwner = serviceResponse.data[resultType.recoveryOwner],
+      formattedRsp = new RecoveryOwnerFormatter(recoveryOwner).perform();
+
     serviceResponse.data = {
-      result_type: resultType.device,
-      [resultType.device]: formattedRsp.data
+      result_type: resultType.recoveryOwner,
+      [resultType.recoveryOwner]: formattedRsp.data
     };
   };
 

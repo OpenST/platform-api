@@ -121,7 +121,7 @@ class UserRecoveryBase extends ServiceBase {
   async _fetchUserDetails() {
     const oThis = this;
 
-    let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+    const TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
       cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
 
