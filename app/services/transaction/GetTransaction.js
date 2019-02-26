@@ -70,7 +70,7 @@ class GetTransaction extends ServiceBase {
       return responseHelper.error({
         internal_error_identifier: 'a_s_t_gt_1',
         api_error_identifier: 'es_data_not_found',
-        debug_options: {}
+        debug_options: { esData: transactionDetails }
       });
     }
   }
