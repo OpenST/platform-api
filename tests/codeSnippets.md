@@ -85,52 +85,6 @@ submitTx = new TokenUserDetailsCache({
 });
 submitTx.fetch().then(console.log).catch(console.log)
 
-user to company
-
-
-user_data = {
-  recoveryOwnerAddress: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c',
-  updatedTimestamp: '1550931687',
-  status: 'ACTIVATED',
-  multisigAddress: '0x9acd27a2a7cec37b04b3d6ff4e1c7488343d9c9e',
-  tokenId: '1063',
-  userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9',
-  tokenHolderAddress: '0xd97f2ca4dff7b8e129d1e7d72ec1cf9ff9c0ae00',
-  deviceShardNumber: '1',
-  kind: 'user',
-  sessionShardNumber: '1',
-  recoveryAddressShardNumber: 0,
-  saasApiStatus: 'active'
-}
-
-params = {
-  user_data: user_data,
-  nonce: 4,
-  signature: '0x20b3c042818c5063b9510c98ed0f6d1c31160e5a1c3288d921aeb501c25bf5fd452f3b60b74838c458f9e1a6c335a5296f3486bf970676829e83ff379fa4e8361c',
-  signer: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027',
-  client_id: 10087,
-  token_id: 1063,
-  meta_property: {
-      "name":  "user_to_company" , //like, download
-      "type":  "company_to_user", // user_to_user, company_to_user, user_to_company
-      "details" : "company_to_user"
-  },
-  to: "0x3afb43da7d39c963278f338054d9fd92a609e04b",
-  raw_calldata: JSON.stringify({
-                                     method: 'directTransfers',
-                                     parameters: [
-                                         ['0x30fa423c14625bb0bac6852d7b68f9d326ac1242'],
-                                         ['100000']
-                                     ]
-                                 })
-}
-
-require('./app/services/transaction/execute/FromUser.js');
-ExecuteTxFromUser = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteTxFromUser');
-submitTx = new ExecuteTxFromUser(params);
-submitTx.perform().then(console.log).catch(console.log)
-
-
 
 require('./app/models/ddb/sharded/Balance.js');
 BalanceModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel');
@@ -146,7 +100,6 @@ require('./lib/executeTransactionManagement/AssociateWorker');
 AssociateWorker = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AssociateWorker');
 asso = new AssociateWorker({tokenId:1009, cronProcessIds: [21]});
 asso.perform().then(console.log);
-
 
 ```
 
