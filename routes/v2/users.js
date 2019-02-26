@@ -17,6 +17,7 @@ const rootPrefix = '../..',
   DeviceManagerFormatter = require(rootPrefix + '/lib/formatter/entity/DeviceManager'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
+  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
 // Following require(s) for registering into instance composer
