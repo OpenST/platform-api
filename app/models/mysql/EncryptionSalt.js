@@ -3,7 +3,6 @@
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
-  ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   encryptionSaltConst = require(rootPrefix + '/lib/globalConstant/encryptionSalt'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');

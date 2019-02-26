@@ -316,7 +316,8 @@ class ConfigStrategyModel extends ModelBase {
    */
 
   async _fetchAddressSalt(managedAddressSaltId) {
-    let addrSalt = await new EncryptionSaltModel().getById(managedAddressSaltId);
+    const encryptionSaltModelObj = new EncryptionSaltModel();
+    let addrSalt = await encryptionSaltModelObj.getById(managedAddressSaltId);
 
     if (!addrSalt[0]) {
       return Promise.reject(
