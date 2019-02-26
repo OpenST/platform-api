@@ -360,12 +360,12 @@ class ExecuteTxBase extends ServiceBase {
       ruleAddress: oThis.toAddress,
       erc20Address: oThis.erc20Address,
       sessionKeyNonce: oThis.sessionKeyNonce,
+      sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
       createdTimestamp: currentTimestamp,
-      updatedTimeStamp: currentTimestamp
+      updatedTimestamp: currentTimestamp
     });
-
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
     } else {

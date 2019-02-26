@@ -112,6 +112,10 @@ class ConfigStrategyObject {
           shortName: 'skn',
           dataType: 'S'
         },
+        sessionKeyAddress: {
+          shortName: 'ska',
+          dataType: 'S'
+        },
         tokenId: {
           shortName: 'ti',
           dataType: 'N'
