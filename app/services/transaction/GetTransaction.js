@@ -13,6 +13,7 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -64,6 +65,8 @@ class GetTransaction extends ServiceBase {
       esQuery = oThis.getQueryObject();
 
     let transactionDetails = await service.search(esQuery);
+
+    logger.debug('userTransactions from Elastic search ', transactionDetails);
 
     if (transactionDetails.isSuccess() && transactionDetails.data[oThis.auxChainId + '_transactions'].length !== 0) {
       let response = await new GetTransactionDetails({
