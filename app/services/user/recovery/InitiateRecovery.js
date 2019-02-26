@@ -61,7 +61,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     if (oThis.oldDeviceAddress === oThis.newDeviceAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_b_5',
+          internal_error_identifier: 'a_s_u_r_ir_1',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['same_new_and_old_device_addresses'],
           debug_options: {}
@@ -95,7 +95,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       ) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'a_s_u_r_ir_1',
+            internal_error_identifier: 'a_s_u_r_ir_2',
             api_error_identifier: 'another_recovery_operation_in_process',
             debug_options: {}
           })
@@ -109,7 +109,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       ) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'a_s_u_r_ir_2',
+            internal_error_identifier: 'a_s_u_r_ir_3',
             api_error_identifier: 'initiate_recovery_is_pending',
             debug_options: {}
           })
@@ -137,7 +137,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ir_3',
+          internal_error_identifier: 'a_s_u_r_ir_4',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['old_device_address_not_authorized'],
           debug_options: {}
@@ -152,7 +152,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ir_4',
+          internal_error_identifier: 'a_s_u_r_ir_5',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['new_device_address_not_registered'],
           debug_options: {}
@@ -245,7 +245,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ir_5',
+          internal_error_identifier: 'a_s_u_r_ir_6',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })

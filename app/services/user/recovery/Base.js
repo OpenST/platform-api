@@ -206,7 +206,7 @@ class UserRecoveryBase extends ServiceBase {
     if (!CommonValidators.validateObject(linkedAddressesMap)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_6',
+          internal_error_identifier: 'a_s_u_r_b_5',
           api_error_identifier: 'could_not_proceed',
           debug_options: {}
         })
@@ -220,7 +220,7 @@ class UserRecoveryBase extends ServiceBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_b_7',
+          internal_error_identifier: 'a_s_u_r_b_6',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['invalid_old_linked_address'],
           debug_options: {}
@@ -246,7 +246,7 @@ class UserRecoveryBase extends ServiceBase {
       logger.error('Error in fetching linked addresses');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_8',
+          internal_error_identifier: 'a_s_u_r_b_7',
           api_error_identifier: 'cache_issue',
           debug_options: {}
         })
@@ -300,7 +300,7 @@ class UserRecoveryBase extends ServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_9',
+          internal_error_identifier: 'a_s_u_r_b_8',
           api_error_identifier: 'cache_issue',
           debug_options: {}
         })
@@ -326,7 +326,7 @@ class UserRecoveryBase extends ServiceBase {
    *
    * @param {Object} statusMap
    *
-   * @returns {Promise<void>}
+   * @returns {Promise<Array>}
    *
    * @private
    */
@@ -369,7 +369,7 @@ class UserRecoveryBase extends ServiceBase {
     if (ddbQueryFailed) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_10',
+          internal_error_identifier: 'a_s_u_r_b_9',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
