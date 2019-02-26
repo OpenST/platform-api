@@ -13,7 +13,6 @@ class SharedCacheFlush extends FlushBase {
   /**
    * Constructor
    *
-   *
    * @constructor
    */
   constructor() {
@@ -31,9 +30,10 @@ class SharedCacheFlush extends FlushBase {
   async _asyncPerform() {
     const oThis = this;
     let cacheImplementer = cache.getInstance().cacheInstance;
-    console.log('Flushing shared memcache ::');
 
+    console.log('Flushing shared memcache... START');
     let response = await cacheImplementer.delAll();
+    console.log('Flushing shared memcache... DONE');
     return response;
   }
 }
