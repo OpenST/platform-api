@@ -109,7 +109,7 @@ class AbortRecoveryRouter extends AuxWorkflowRouterBase {
       default:
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'e_awr_ro_arbor_1',
+            internal_error_identifier: 'e_awr_ro_bo_arr_1',
             api_error_identifier: 'something_went_wrong',
             debug_options: { workflowId: oThis.workflowId }
           })
