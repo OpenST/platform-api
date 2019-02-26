@@ -245,6 +245,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'New device cannot be same as old.'
   },
+  same_new_and_old_recovery_owners: {
+    parameter: 'new_recovery_owner_address',
+    code: 'invalid',
+    message: 'Recovery owner cannot be same as old.'
+  },
   invalid_old_linked_address: {
     parameter: 'old_linked_address',
     code: 'invalid',

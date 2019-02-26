@@ -159,6 +159,7 @@ class RecoveryOwner extends Base {
     const conditionalExpression =
       'attribute_not_exists(' + shortNameForUserId + ') AND attribute_not_exists(' + shortNameForAddress + ')';
 
+    console.log('Recovery owners insert', params);
     return oThis.putItem(params, conditionalExpression);
   }
 

@@ -38,6 +38,7 @@ class UserRecoveryBase extends ServiceBase {
    * @param {String} params.old_linked_address
    * @param {String} params.old_device_address
    * @param {String} params.new_device_address
+   * @param {String} params.new_recovery_owner_address
    * @param {String} params.to - Transaction to address, user recovery proxy address
    * @param {String} params.signature - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
    * @param {String} params.signer - recovery owner address who signed this transaction
@@ -50,9 +51,10 @@ class UserRecoveryBase extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
     oThis.userId = params.user_id;
-    oThis.oldLinkedAddress = params.old_linked_address;
-    oThis.oldDeviceAddress = params.old_device_address;
-    oThis.newDeviceAddress = params.new_device_address;
+    oThis.oldLinkedAddress = params.old_linked_address || '';
+    oThis.oldDeviceAddress = params.old_device_address || '';
+    oThis.newDeviceAddress = params.new_device_address || '';
+    oThis.newRecoveryOwnerAddress = params.new_recovery_owner_address || '';
     oThis.recoveryContractAddress = params.to;
     oThis.signature = params.signature;
     oThis.signer = params.signer;
@@ -96,6 +98,7 @@ class UserRecoveryBase extends ServiceBase {
     oThis.oldLinkedAddress = basicHelper.sanitizeAddress(oThis.oldLinkedAddress);
     oThis.oldDeviceAddress = basicHelper.sanitizeAddress(oThis.oldDeviceAddress);
     oThis.newDeviceAddress = basicHelper.sanitizeAddress(oThis.newDeviceAddress);
+    oThis.newRecoveryOwnerAddress = basicHelper.sanitizeAddress(oThis.newRecoveryOwnerAddress);
     oThis.recoveryContractAddress = basicHelper.sanitizeAddress(oThis.recoveryContractAddress);
     oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
 
@@ -175,20 +178,6 @@ class UserRecoveryBase extends ServiceBase {
         })
       );
     }
-
-    // Check for same old and new device addresses
-    if (oThis.oldDeviceAddress == oThis.newDeviceAddress) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_b_5',
-          api_error_identifier: 'invalid_params',
-          params_error_identifiers: ['same_new_and_old_device_addresses'],
-          debug_options: {}
-        })
-      );
-    }
-
-    await oThis._validateOldLinkedAddress();
   }
 
   /**
