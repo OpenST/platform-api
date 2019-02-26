@@ -2,28 +2,29 @@
 
 const abiDecoder = require('abi-decoder'),
   MosaicJs = require('@openstfoundation/mosaic.js'),
+  OpenStJs = require('@openstfoundation/openst.js'),
   mosaicTbdAbiBinProvider = new MosaicJs.AbiBinProvider(),
+  OpenStJsAbiBinProvider = new OpenStJs.AbiBinProvider(),
   BrandedToken = require('@openstfoundation/brandedtoken.js'),
   brandedTokenAbiBinProvider = new BrandedToken.AbiBinProvider(),
-  OpenStJs = require('@openstfoundation/openst.js'),
-  openStJsAbiBinProvider = new OpenStJs.AbiBinProvider(),
   web3 = require('web3');
 
 const EIP20GatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20Gateway'),
   EIP20CoGatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20CoGateway'),
   AnchorAbi = mosaicTbdAbiBinProvider.getABI('Anchor'),
+  TokenHolderAbi = OpenStJsAbiBinProvider.getABI('TokenHolder'),
   GatewayComposerAbi = brandedTokenAbiBinProvider.getABI('GatewayComposer'),
   BrandedTokenAbi = brandedTokenAbiBinProvider.getABI('BrandedToken'),
   UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken'),
-  DelayedRecoveryModuleAbi = openStJsAbiBinProvider.getABI('DelayedRecoveryModule'),
-  UserWalletFactoryAbi = openStJsAbiBinProvider.getABI('UserWalletFactory'),
-  ProxyFactoryAbi = openStJsAbiBinProvider.getABI('ProxyFactory'),
-  GnosisSafeAbi = openStJsAbiBinProvider.getABI('GnosisSafe');
+  DelayedRecoveryModuleAbi = OpenStJsAbiBinProvider.getABI('DelayedRecoveryModule'),
+  UserWalletFactoryAbi = OpenStJsAbiBinProvider.getABI('UserWalletFactory'),
+  ProxyFactoryAbi = OpenStJsAbiBinProvider.getABI('ProxyFactory'),
+  GnosisSafeAbi = OpenStJsAbiBinProvider.getABI('GnosisSafe');
 
 abiDecoder.addABI(EIP20GatewayAbi);
 abiDecoder.addABI(EIP20CoGatewayAbi);
 abiDecoder.addABI(AnchorAbi);
-
+abiDecoder.addABI(TokenHolderAbi);
 abiDecoder.addABI(GatewayComposerAbi);
 abiDecoder.addABI(BrandedTokenAbi);
 abiDecoder.addABI(UtilityBrandedTokenAbi);
@@ -71,9 +72,11 @@ txD = require('./tests/getTxData')
 txO = new txD({
   txHash: '0xb39eb764c39b84d9550940ab7406fe97ef0499fa82c246463331641eb769bd7f',
   web3ProviderUrl: 'ws://127.0.0.1:9546'
+  txHash: '0x1ec96265f98e83436e19b83728314cb5ab2e9c9eb769ee24fe6d70e1db0aeb50',
+  web3ProviderUrl: 'ws://127.0.0.1:9546'
 })
 
-txO.getDecodedInputParams().then(console.log)
+txO.getDecodedInputParams().then(console.log);
 txO.getDecodedEvents().then(function(q){r=q})
 
 */

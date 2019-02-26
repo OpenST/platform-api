@@ -126,7 +126,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.signer = basicHelper.sanitizeAddress(oThis.signers[0]);
 
     // Sanitize action specific params
-    oThis._sanitizeSpecificParams();
+    await oThis._sanitizeSpecificParams();
   }
 
   /**

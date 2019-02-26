@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xc8790ff9daef1bca224765c14b23233b1109d46a'; // master internal funder address
+let address = '0xc19f87b84723e14d438419c078123489a1952653'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -90,7 +90,7 @@ NOTE: Copy the 'Setup Simple Token response' from the script response above and 
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...' --stAmount 10000 --ethAmount 50
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...' --stAmount 1000000 --ethAmount 50
 ```
 
 * Save simple token admin and owner addresses in database.
@@ -124,12 +124,14 @@ Granter address gets ETH and OST in this step.
 
 * [Only Development] Seed the cron processes which are unique in a sub-environment using this script.
 ```bash
-   node tools/localSetup/subEnvSpecificCronSeeder.js
+    source set_env_vars.sh
+    node tools/localSetup/subEnvSpecificCronSeeder.js
 ```
 
 * [Only Development] Seed the cron processes which are associated to origin chain using this script.
 ```bash
-   node tools/localSetup/originChainSpecificCronSeeder.js
+    source set_env_vars.sh
+    node tools/localSetup/originChainSpecificCronSeeder.js
 ```
 
 ### Insert Pricer ABI into rules table
@@ -151,30 +153,30 @@ Granter address gets ETH and OST in this step.
 * Start Workflow router factory
 ```bash
   source set_env_vars.sh
-  node executables/workflowRouter/factory.js --cronProcessId 1
+  node executables/workflowFactory.js --cronProcessId 1
 ```
 
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/TransactionParser.js --cronProcessId 5
+  node executables/blockScanner/transactionParser.js --cronProcessId 5
 ```
 
 * Run Origin Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/BlockParser.js --cronProcessId 4
+  node executables/blockScanner/blockParser.js --cronProcessId 4
 ```
 
 * Run Origin Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/Finalizer.js --cronProcessId 6
+  node executables/blockScanner/finalizer.js --cronProcessId 6
 ```
 
 ### Funding crons
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7 //TODO-FUNDING: Wrong addresses funded here?
 ```

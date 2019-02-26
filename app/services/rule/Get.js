@@ -59,7 +59,7 @@ class GetRule extends ServiceBase {
     for (let eachTokenRule in tokenRulesData) {
       let ruleTokenIdNameString = '',
         tokenRule = tokenRulesData[eachTokenRule];
-      ruleTokenIdNameString = ruleConstants.getKey(tokenRule.rule_token_id, tokenRule.rule_name);
+      ruleTokenIdNameString = ruleConstants.getKey(tokenRule.ruleTokenId, tokenRule.ruleName);
       tokenIdNamesArray.push(ruleTokenIdNameString);
     }
 
@@ -73,12 +73,12 @@ class GetRule extends ServiceBase {
         rule = ruleDetailsData[eachRule],
         tokenRuleEntity = tokenRulesData[rule.name];
 
-      ruleEntity['id'] = tokenRuleEntity.rule_id;
-      ruleEntity['tokenId'] = tokenRuleEntity.token_id;
-      ruleEntity['name'] = tokenRuleEntity.rule_name;
+      ruleEntity['id'] = tokenRuleEntity.ruleId;
+      ruleEntity['tokenId'] = tokenRuleEntity.tokenId;
+      ruleEntity['name'] = tokenRuleEntity.ruleName;
       ruleEntity['address'] = tokenRuleEntity.address;
       ruleEntity['abi'] = rule.abi;
-      ruleEntity['updatedTimestamp'] = tokenRuleEntity.updated_at;
+      ruleEntity['updatedTimestamp'] = tokenRuleEntity.updatedAt;
 
       rulesArray.push(ruleEntity);
     }

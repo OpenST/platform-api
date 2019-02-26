@@ -14,6 +14,8 @@
 // coreConstants = require(rootPrefix + '/config/coreConstants');
 // basicHelper = require(rootPrefix + '/helpers/basic');
 // ByChainIdKlass = require(rootPrefix + '/helpers/configStrategy/ByChainId');
+// rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq');
+// rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
 // OSTBase = require('@openstfoundation/openst-base');
 //
 // require(rootPrefix + '/lib/executeTransactionManagement/GetPublishDetails');
@@ -48,22 +50,22 @@
 // }
 //
 // function getNotiInstance() {
-//   return rabbitMqProvider.getInstance({
+//   return rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
+//     chainId: chainId,
 //     connectionWaitSeconds: connectionTimeoutConst.crons,
-//     switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
-//     chainId: chainId
+//     switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
 //   });
 // }
 //
 // async function getPublishDetails() {
 //   await getConfig();
 //   let GetTopicNameToPublishObj = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ExTxGetPublishDetails');
-//   return new GetTopicNameToPublishObj({ tokenId: 1012, ephemeralAddress: getEpheAddr() }).perform();
+//   return new GetTopicNameToPublishObj({ tokenId: 1001, ephemeralAddress: getEpheAddr() }).perform();
 // }
 //
 // async function publish() {
 //   let openStNotification = await getNotiInstance();
-//   for (let i = 0; i < 5; i++) {
+//   for (let i = 0; i < 1; i++) {
 //     let publishDetails = await getPublishDetails();
 //     let messageParams = {
 //       topics: [publishDetails.topicName],
@@ -73,7 +75,8 @@
 //         payload: {
 //           chainId: 2000,
 //           tokenAddressId: publishDetails.tokenAddressId,
-//           sequence: i
+//           sequence: i,
+//           transactionMetaId: 1
 //         }
 //       }
 //     };

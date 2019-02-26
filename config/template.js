@@ -8,7 +8,6 @@ let configTemplate = { entitiesMap: {}, rootLevelEntities: {} };
 configTemplate['rootLevelEntities'][configStrategyConstants.memcached] = 'memcachedEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.originMemcached] = 'memcachedEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.globalMemcached] = 'memcachedEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.nonceMemcached] = 'memcachedEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.globalNonceMemcached] = 'memcachedEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.inMemoryCache] = 'inMemoryCacheEntity';
 configTemplate['rootLevelEntities'][configStrategyConstants.dynamodb] = 'dynamodbEntity';
@@ -189,9 +188,10 @@ configTemplate['entitiesMap'] = {
     entityType: 'object',
     entitiesPresent: {
       host: 'hostEntity',
-      accessKey: 'accessKeyEntity',
       region: 'regionEntity',
-      secretKey: 'secretKeyEntity'
+      apiKey: 'accessKeyEntity',
+      apiSecret: 'secretKeyEntity',
+      apiVersion: 'apiVersionEntity'
     }
   },
   hostEntity: {

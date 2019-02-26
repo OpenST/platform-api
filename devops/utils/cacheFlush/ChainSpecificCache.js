@@ -1,25 +1,23 @@
 'use strict';
-const rootPrefix='../../..';
-const chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig')
-  ,OSTBase = require('@openstfoundation/openst-base')
-  ,InstanceComposer = OSTBase.InstanceComposer
-  , configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy')
-  ,coreConstants = require(rootPrefix + '/config/coreConstants')
-  ,ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId')
-  ,cacheManagementConst = require(rootPrefix + '/lib/globalConstant/cacheManagement')
-  ,FlushBase= require(rootPrefix + '/devops/utils/cacheFlush/Base.js')
-;
+const rootPrefix = '../../..';
+const chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  OSTBase = require('@openstfoundation/openst-base'),
+  InstanceComposer = OSTBase.InstanceComposer,
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  cacheManagementConst = require(rootPrefix + '/lib/globalConstant/cacheManagement'),
+  FlushBase = require(rootPrefix + '/devops/utils/cacheFlush/Base.js');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/providers/clientSpecificCacheFactory');
-
 
 /**
  * Class for flushing chain specific memcache
  *
  * @class
  */
-class ChainCacheFlush extends FlushBase{
+class ChainCacheFlush extends FlushBase {
   /**
    * Constructor
    *
@@ -30,11 +28,7 @@ class ChainCacheFlush extends FlushBase{
     super();
 
     const oThis = this;
-
   }
-
-
-
 
   /**
    *
@@ -53,10 +47,9 @@ class ChainCacheFlush extends FlushBase{
 
     // Flush memcache one by one for all the chains
 
-
     let response = await chainConfigProvider.getFor(auxChainIds);
     let flushResponse;
-    let errResponse=[];
+    let errResponse = [];
     for (let i = 0; i < auxChainIds.length; i++) {
       try {
         let chainConfig = response[auxChainIds[i]];
@@ -66,19 +59,17 @@ class ChainCacheFlush extends FlushBase{
           .getInstance(cacheManagementConst.memcached, '1');
         let cacheImplementer = cacheObject.cacheInstance;
         flushResponse = await cacheImplementer.delAll();
-        console.log("Flushing cache for chainid ::", auxChainIds[i]);
-      }
-      catch(err){
+        console.log('Flushing cache for chainid ::', auxChainIds[i]);
+      } catch (err) {
         errResponse.push(auxChainIds[i]);
-        console.log("err is ./devops/utils/cacheFlush/ChainSpecificCache.js:   do_u_cf_cs_ap1::",err)
+        console.log('err is ./devops/utils/cacheFlush/ChainSpecificCache.js:   do_u_cf_cs_ap1::', err);
       }
-
     }
-    if(errResponse.length > 0 ){
-      return {success:false,data:errResponse}
+    if (errResponse.length > 0) {
+      return { success: false, data: errResponse };
     }
 
-    return {success:true}
+    return { success: true };
   }
 
   /**
@@ -95,11 +86,8 @@ class ChainCacheFlush extends FlushBase{
       csResponse = await csHelper.getForKind(configStrategyConstants.constants),
       configConstants = csResponse.data[configStrategyConstants.constants];
 
-     return configConstants.originChainId;
+    return configConstants.originChainId;
   }
-
-
 }
 
 module.exports = ChainCacheFlush;
-

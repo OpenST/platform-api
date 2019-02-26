@@ -9,7 +9,6 @@ const express = require('express'),
   cookieParser = require('cookie-parser'),
   bodyParser = require('body-parser'),
   helmet = require('helmet'),
-  sanitizer = require('express-sanitized'),
   customUrlParser = require('url'),
   cluster = require('cluster'),
   http = require('http');
@@ -18,6 +17,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   v2Routes = require(rootPrefix + '/routes/v2/index'),
   internalRoutes = require(rootPrefix + '/routes/internal/index'),
+  elbHealthCheckerRoute = require(rootPrefix + '/routes/internal/elb_health_checker'),
   ValidateApiSignature = require(rootPrefix + '/lib/validateApiSignature/Factory'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   customMiddleware = require(rootPrefix + '/helpers/customMiddleware'),
@@ -25,7 +25,8 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   environmentInfo = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal);
+  errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
+  sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 const requestSharedNameSpace = createNamespace('saasApiNameSpace'),
   systemServiceStatusesCache = new SystemServiceStatusesCacheKlass({});
@@ -42,7 +43,7 @@ morgan.token('endDateTime', function getEndDateTime(req) {
   return basicHelper.logDateFormat();
 });
 
-const assignParams = function(req) {
+const startRequestLogLine = function(req, res, next) {
   let message =
     "Started '" +
     customUrlParser.parse(req.originalUrl).pathname +
@@ -52,21 +53,39 @@ const assignParams = function(req) {
     basicHelper.logDateFormat();
   logger.info(message);
 
-  if (req.method == 'POST') {
-    req.decodedParams = req.body;
-  } else if (req.method == 'GET') {
-    req.decodedParams = req.query;
-  }
+  next();
 };
 
+const assignParams = function(req, res, next) {
+  // IMPORTANT NOTE: Don't assign parameters before sanitization
+  //req.decodedParams = getRequestParams(req);
+  Object.assign(req.decodedParams, getRequestParams(req));
+
+  next();
+};
+
+const getRequestParams = function(req) {
+  // IMPORTANT NOTE: Don't assign parameters before sanitization
+  if (req.method == 'POST') {
+    return req.body;
+  } else if (req.method == 'GET') {
+    return req.query;
+  }
+};
 const validateApiSignature = function(req, res, next) {
-  assignParams(req);
+  let inputParams = getRequestParams(req);
 
   const handleParamValidationResult = function(result) {
     if (result.isSuccess()) {
+      if (!req.decodedParams) {
+        req.decodedParams = {};
+      }
+      // NOTE: MAKE SURE ALL SANITIZED VALUES ARE ASSIGNED HERE
       req.decodedParams['client_id'] = result.data['clientId'];
       req.decodedParams['token_id'] = result.data['tokenId'];
       req.decodedParams['user_data'] = result.data['userData'];
+      req.decodedParams['app_validated_api_name'] = result.data['appValidatedApiName'];
+      req.decodedParams['api_signature_kind'] = result.data['apiSignatureKind'];
       next();
     } else {
       return result.renderResponse(res, errorConfig);
@@ -74,7 +93,7 @@ const validateApiSignature = function(req, res, next) {
   };
 
   return new ValidateApiSignature({
-    inputParams: req.decodedParams,
+    inputParams: inputParams,
     requestPath: customUrlParser.parse(req.originalUrl).pathname,
     requestMethod: req.method
   })
@@ -84,15 +103,6 @@ const validateApiSignature = function(req, res, next) {
 
 // before action for verifying the jwt token and setting the decoded info in req obj
 const decodeJwt = function(req, res, next) {
-  let message =
-    "Started '" +
-    customUrlParser.parse(req.originalUrl).pathname +
-    "'  '" +
-    req.method +
-    "' at " +
-    basicHelper.logDateFormat();
-  logger.info(message);
-
   if (req.method == 'POST') {
     var token = req.body.token || '';
   } else if (req.method == 'GET') {
@@ -102,6 +112,7 @@ const decodeJwt = function(req, res, next) {
   // Set the decoded params in the re and call the next in control flow.
   const jwtOnResolve = function(reqParams) {
     req.decodedParams = reqParams.data;
+    req.decodedParams['app_validated_api_name'] = '';
     // Validation passed.
     return next();
   };
@@ -285,16 +296,6 @@ if (cluster.isMaster) {
   app.use(cookieParser());
   app.use(express.static(path.join(__dirname, 'public')));
 
-  // Health checker
-  app.get('/health-checker', function(req, res, next) {
-    res.send('');
-  });
-
-  /*
-    The sanitizer() piece of code should always be before routes for jwt and after validateApiSignature for sdk.
-    Docs: https://www.npmjs.com/package/express-sanitized
-  */
-
   // Mark older routes as UNSUPPORTED_VERSION
   app.use('/transaction-types', handleDepricatedRoutes);
   app.use('/users', handleDepricatedRoutes);
@@ -302,13 +303,19 @@ if (cluster.isMaster) {
   app.use('/v1.1', handleDepricatedRoutes);
 
   // Following are the routes
-  app.use('/', internalRoutes);
+  app.use('/health-checker', elbHealthCheckerRoute);
+
+  /*
+    The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
+    Docs: https://www.npmjs.com/package/sanitize-html
+  */
 
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
-    sanitizer(),
+    startRequestLogLine,
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
+    sanitizer.sanitizeBodyAndQuery,
     decodeJwt,
     appendInternalVersion,
     internalRoutes
@@ -316,10 +323,12 @@ if (cluster.isMaster) {
 
   app.use(
     '/' + environmentInfo.urlPrefix + '/v2',
+    startRequestLogLine,
     checkSystemServiceStatuses,
     appendRequestDebugInfo,
     validateApiSignature,
-    sanitizer(),
+    sanitizer.sanitizeBodyAndQuery,
+    assignParams,
     appendV2Version,
     v2Routes
   );

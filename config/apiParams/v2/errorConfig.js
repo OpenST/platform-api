@@ -44,6 +44,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  saas_inactive_user_id: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `user_id is suspended. Please contact support`
+  },
   user_not_found: {
     parameter: 'user_id',
     code: 'invalid',
@@ -89,11 +94,6 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address'
   },
-  invalid_filter_address: {
-    parameter: 'address',
-    code: 'invalid',
-    message: 'Invalid address. Max comma separated 25 addresses allowed.'
-  },
   invalid_device_address: {
     parameter: 'device_address',
     code: 'invalid',
@@ -119,6 +119,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid chain id'
   },
+  price_point_not_available_chain_id: {
+    parameter: 'chain_id',
+    code: 'invalid',
+    message: 'Price point is not available for this chain id.'
+  },
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
     code: 'invalid',
@@ -134,6 +139,27 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Either recovery owner address already exists or is not allowed to be authorized.'
   },
+  invalid_executable_data: {
+    parameter: 'executable_data',
+    code: 'invalid',
+    message: 'invalid executable_data'
+  },
+  insufficient_funds: {
+    parameter: 'signer',
+    code: 'invalid',
+    message:
+      'The account executing the transaction or transfer does not have sufficient funds to complete the transaction or transfer.'
+  },
+  session_key_spending_limit_breached: {
+    parameter: 'signer',
+    code: 'invalid',
+    message: 'The session key being used is not authorised for this big amount.'
+  },
+  session_key_not_authorized: {
+    parameter: 'signer',
+    code: 'invalid',
+    message: 'The session key being used is not authorised'
+  },
   unauthorized_to_access_other_user_information: {
     parameter: 'user_id',
     code: 'invalid',
@@ -143,6 +169,11 @@ const v2ErrorConfig = {
     parameter: 'raw_calldata',
     code: 'invalid',
     message: 'Invalid method in raw_calldata'
+  },
+  invalid_raw_calldata: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid raw_calldata'
   },
   invalid_raw_calldata_parameter_address: {
     parameter: 'raw_calldata',
@@ -218,6 +249,26 @@ const v2ErrorConfig = {
     parameter: 'old_linked_address',
     code: 'invalid',
     message: 'Invalid address'
+  },
+  missing_transaction_id: {
+    parameter: 'transaction_id',
+    code: 'missing',
+    message: `Missing transaction_id`
+  },
+  missing_token_holder_address: {
+    parameter: 'tokenHolderAddress',
+    code: 'missing',
+    message: 'missing token holder address'
+  },
+  invalid_next_page_payload: {
+    parameter: 'next_page_payload',
+    code: 'invalid',
+    message: 'Invalid next page payload'
+  },
+  invalid_limit: {
+    parameter: 'limit',
+    code: 'invalid',
+    message: 'Invalid limit'
   }
 };
 

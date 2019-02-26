@@ -362,6 +362,10 @@ class User extends Base {
     if (params['multisigAddress']) {
       params['multisigAddress'] = basicHelper.sanitizeAddress(params['multisigAddress']);
     }
+    if (params['saasApiStatus']) {
+      params['saasApiStatus'] = tokenUserConstants.invertedSaasApiStatuses[params['saasApiStatus']];
+    }
+
     if (params['recoveryOwnerAddress']) {
       params['recoveryOwnerAddress'] = basicHelper.sanitizeAddress(params['recoveryOwnerAddress']);
     }
@@ -380,8 +384,6 @@ class User extends Base {
    * Method to perform extra formatting
    *
    * @param {Object} dbRow
-   * @param {Number} dbRow.status
-   * @param {Number} dbRow.kind
    *
    * @return {Object}
    *
@@ -390,7 +392,10 @@ class User extends Base {
   _sanitizeRowFromDynamo(dbRow) {
     dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
     dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
-
+    if (dbRow.hasOwnProperty('saasApiStatus')) {
+      dbRow['saasApiStatus'] =
+        tokenUserConstants.saasApiStatuses[dbRow['saasApiStatus']] || tokenUserConstants.saasApiActiveStatus;
+    }
     return dbRow;
   }
 
@@ -398,12 +403,13 @@ class User extends Base {
    * Get token users paginated data
    *
    * @param {Number} tokenId
+   * @param {Number} page  - page number
    * @param {Number} limit
    * @param [lastEvaluatedKey] - optional
    *
    * @returns {Promise<*>}
    */
-  async getUserIds(tokenId, limit, lastEvaluatedKey) {
+  async getUserIds(tokenId, page, limit, lastEvaluatedKey) {
     const oThis = this,
       shortNameForTokenId = oThis.shortNameFor('tokenId'),
       dataTypeForTokenId = oThis.shortNameToDataType[shortNameForTokenId];
@@ -415,7 +421,7 @@ class User extends Base {
         ':tid': { [dataTypeForTokenId]: tokenId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('userId'),
-      Limit: limit || pagination.defaultUserListPageSize
+      Limit: limit
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
@@ -429,23 +435,25 @@ class User extends Base {
 
     let row,
       formattedRow,
-      users = [];
+      userIds = [];
 
     for (let i = 0; i < response.data.Items.length; i++) {
       row = response.data.Items[i];
       formattedRow = oThis._formatRowFromDynamo(row);
-      users.push(formattedRow);
+      userIds.push(formattedRow.userId);
     }
 
     let responseData = {
-      users: users
+      userIds: userIds
     };
 
     if (response.data.LastEvaluatedKey) {
-      responseData['nextPagePayload'] = {
-        [pagination.paginationIdentifierKey]: basicHelper.encryptNextPagePayload({
-          lastEvaluatedKey: response.data.LastEvaluatedKey
-        })
+      responseData[pagination.nextPagePayloadKey] = {
+        [pagination.paginationIdentifierKey]: {
+          lastEvaluatedKey: response.data.LastEvaluatedKey,
+          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query
+          limit: limit
+        }
       };
     }
 
@@ -467,6 +475,14 @@ class User extends Base {
     });
 
     await tokenUserDetailsCache.clear();
+
+    require(rootPrefix + '/lib/cacheManagement/chain/TokenUserId');
+    let TokenUserIdCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserIdCache'),
+      tokenUserIdCache = new TokenUserIdCache({
+        tokenId: params.tokenId
+      });
+
+    await tokenUserIdCache.clear();
 
     return responseHelper.successWithData({});
   }

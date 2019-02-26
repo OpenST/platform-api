@@ -4,45 +4,36 @@
  *
  * @module app/services/device/get/ByUserId
  */
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  userConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  GetListBase = require(rootPrefix + '/app/services/device/get/Base'),
+  GetDeviceBase = require(rootPrefix + '/app/services/device/get/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/app/models/ddb/sharded/Device');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chain/WalletAddressesByUserId');
+require(rootPrefix + '/lib/cacheManagement/chain/UserWalletAddress');
 
 /**
  * Class to list devices by userId.
  *
- * @class ListByUserId
+ * @class UserDeviceList
  */
-class ListByUserId extends GetListBase {
+class UserDeviceList extends GetDeviceBase {
   /**
    * Constructor to list devices by userId.
    *
    * @param params
-   * @param {Integer} params.client_id
-   * @param {String} params.user_id: uuid
-   * @param {Integer} [params.token_id]
-   * @param {String} [params.pagination_identifier]: pagination identifier to fetch page
    * @param {String} [params.addresses]: Array of wallet addresses
+   * @param {Integer} [params.limit]
+   * @param {String} [params.pagination_identifier]: pagination identifier to fetch page
    *
-   * @sets oThis.paginationIdentifier
-   * @sets oThis.addresses
-   *
-   * @augments GetListBase
+   * @augments GetDeviceBase
    *
    * @constructor
    */
@@ -51,12 +42,16 @@ class ListByUserId extends GetListBase {
 
     const oThis = this;
 
-    oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
-    oThis.addresses = params.addresses || [];
+    oThis.addresses = params.addresses;
+    oThis.limit = params.limit;
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
-    oThis.paginationParams = null;
-    oThis.nextPagePayload = null;
-    oThis.walletAddresses = [];
+    oThis.lastEvaluatedKey = null;
+    oThis.page = null;
+
+    oThis.responseMetaData = {
+      [pagination.nextPagePayloadKey]: {}
+    };
   }
 
   /**
@@ -66,27 +61,43 @@ class ListByUserId extends GetListBase {
    *
    * @private
    */
-  _sanitizeParams() {
+  async _validateAndSanitizeParams() {
     const oThis = this;
 
+    // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
-      oThis.paginationParams = basicHelper.decryptNextPagePayload(oThis.paginationIdentifier);
+      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+      oThis.addresses = []; //addresses not allowed after first page
+      oThis.page = parsedPaginationParams.page; //override page
+      oThis.limit = parsedPaginationParams.limit; //override limit
+      oThis.lastEvaluatedKey = parsedPaginationParams.lastEvaluatedKey;
+    } else {
+      oThis.addresses = oThis.addresses || [];
+      oThis.page = 1;
+      oThis.limit = oThis.limit || oThis._defaultPageLimit();
+      oThis.lastEvaluatedKey = null;
     }
 
-    if (oThis.addresses.length > paginationConstants.maxDeviceListPageSize) {
+    // Validate addresses length
+    if (oThis.addresses && oThis.addresses.length > oThis._maxPageLimit()) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_d_gl_buid_1',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_filter_address'],
-          debug_options: { addresses: oThis.addresses }
+          params_error_identifiers: ['addresses_more_than_allowed_limit'],
+          debug_options: {}
         })
       );
     }
+
+    //Validate limit
+    return oThis._validatePageSize();
   }
 
   /**
    * Set wallet addresses.
+   *
+   * Sets oThis.walletAddresses
    *
    * @private
    */
@@ -94,54 +105,14 @@ class ListByUserId extends GetListBase {
     const oThis = this;
 
     if (!oThis.addresses || oThis.addresses.length === 0) {
-      let response;
-
-      if (oThis.paginationParams && oThis.paginationParams.lastEvaluatedKey) {
-        response = await oThis._fetchFromDdb();
-      } else {
-        response = await oThis._fetchFromCache();
-      }
-
-      oThis.walletAddresses = response.data['walletAddresses'];
-      oThis.nextPagePayload = response.data['nextPagePayload'];
+      let response = await oThis._fetchFromCache();
+      oThis.walletAddresses = response.data.walletAddresses;
+      oThis.responseMetaData[pagination.nextPagePayloadKey] = response.data[pagination.nextPagePayloadKey] || {};
     } else {
       for (let index = 0; index < oThis.addresses.length; index++) {
-        oThis.walletAddresses.push(oThis.addresses[index].toLowerCase());
+        oThis.walletAddresses.push(basicHelper.sanitizeAddress(oThis.addresses[index]));
       }
     }
-  }
-
-  /**
-   * Fetch from DB.
-   *
-   * @return {Promise<*>}
-   *
-   * @private
-   */
-  async _fetchFromDdb() {
-    const oThis = this,
-      DeviceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel');
-
-    let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
-      cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
-
-    if (!CommonValidators.validateObject(cacheFetchRsp.data[oThis.userId])) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_d_gl_buid_2',
-          api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['user_not_found'],
-          debug_options: {}
-        })
-      );
-    }
-
-    const userData = cacheFetchRsp.data[oThis.userId],
-      deviceObj = new DeviceModel({ shardNumber: userData['deviceShardNumber'] }),
-      lastEvaluatedKey = oThis.paginationParams ? oThis.paginationParams.lastEvaluatedKey : '';
-
-    return deviceObj.getWalletAddresses(oThis.userId, paginationConstants.defaultDeviceListPageSize, lastEvaluatedKey);
   }
 
   /**
@@ -152,61 +123,73 @@ class ListByUserId extends GetListBase {
   async _fetchFromCache() {
     const oThis = this;
 
-    let WalletAddressesByUserIdKlass = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'WalletAddressesByUserId'),
-      walletAddressesByUserId = new WalletAddressesByUserIdKlass({
+    let UserWalletAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserWalletAddressCache'),
+      userWalletAddressCache = new UserWalletAddressCache({
         userId: oThis.userId,
-        tokenId: oThis.tokenId
+        tokenId: oThis.tokenId,
+        page: oThis.page,
+        limit: oThis._currentPageLimit(),
+        lastEvaluatedKey: oThis.lastEvaluatedKey
       });
 
-    return walletAddressesByUserId.fetch();
+    return userWalletAddressCache.fetch();
   }
 
   /**
-   * Get user device data from cache.
+   * Format response
    *
-   * @returns {Promise<*|result>}
+   * @return {*}
+   *
+   * @private
    */
-  async _getUserDeviceDataFromCache() {
+  _formatApiResponse() {
     const oThis = this;
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
-      deviceDetailCache = new DeviceDetailCache({
-        userId: oThis.userId,
-        tokenId: oThis.tokenId,
-        walletAddresses: oThis.walletAddresses
-      }),
-      response = await deviceDetailCache.fetch();
+    return responseHelper.successWithData({
+      [resultType.devices]: oThis.deviceDetails,
+      [resultType.meta]: oThis.responseMetaData
+    });
+  }
 
-    if (response.isFailure()) {
-      return Promise.reject(response);
-    }
+  /**
+   * _defaultPageLimit
+   *
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultDeviceListPageSize;
+  }
 
-    let finalResponse = response.data,
-      linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
+  /**
+   * _minPageLimit
+   *
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minDeviceListPageSize;
+  }
 
-    for (let deviceUuid in finalResponse) {
-      let device = finalResponse[deviceUuid];
-      if (!CommonValidators.validateObject(device)) {
-        continue;
-      }
-      let deviceAddress = device.walletAddress;
-      finalResponse[deviceUuid].linkedAddress = linkedAddressesMap[deviceAddress];
-    }
+  /**
+   * _maxPageLimit
+   *
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxDeviceListPageSize;
+  }
 
-    const returnData = {
-      [resultType.devices]: finalResponse
-    };
+  /**
+   * _currentPageLimit
+   *
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
 
-    if (oThis.nextPagePayload) {
-      returnData[resultType.nextPagePayload] = oThis.nextPagePayload;
-    }
-
-    return returnData;
+    return oThis.limit;
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ListByUserId, coreConstants.icNameSpace, 'DeviceByUserId');
+InstanceComposer.registerAsShadowableClass(UserDeviceList, coreConstants.icNameSpace, 'UserDeviceList');
 
 module.exports = {};

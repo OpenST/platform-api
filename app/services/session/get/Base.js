@@ -1,5 +1,4 @@
 'use strict';
-
 /**
  *  Fetch session details by userId and addresses.
  *
@@ -9,6 +8,7 @@
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   ServiceBase = require(rootPrefix + '/app/services/Base');
@@ -19,11 +19,15 @@ require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
-const BigNumber = require('bignumber.js');
-
-class SessionGetBase extends ServiceBase {
+/**
+ * Class for get sessions base.
+ *
+ * @class
+ */
+class GetSessionBase extends ServiceBase {
   /**
-   * @param params
+   *
+   * @param {Object} params
    * @param {String}   params.user_id
    * @param {Integer} params.client_id
    * @param {Integer} [params.token_id]
@@ -38,6 +42,9 @@ class SessionGetBase extends ServiceBase {
 
     oThis.sessionShardNumber = null;
     oThis.sessionNonce = {};
+    oThis.sessionAddresses = [];
+    oThis.lastKnownChainBlockDetails = {};
+    oThis.sessionDetails = [];
   }
 
   /**
@@ -48,7 +55,7 @@ class SessionGetBase extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateParams();
+    await oThis._validateAndSanitizeParams();
 
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
@@ -56,43 +63,24 @@ class SessionGetBase extends ServiceBase {
 
     await oThis._fetchUserSessionShardNumber();
 
-    await oThis._setAddresses();
+    await oThis._setSessionAddresses();
 
-    let response = await oThis._fetchSessionFromCache();
+    await oThis._setLastKnownChainBlockDetails();
 
-    let finalResponse = await oThis._fetchSessionNonce(response);
+    await oThis._fetchSessionsExtendedDetails();
 
-    return responseHelper.successWithData(finalResponse);
+    return oThis._formatApiResponse();
   }
 
   /**
+   * Fetch session shard number of user
+   *
+   * Sets oThis.sessionShardNumber
+   *
+   * @return {Promise<never>}
+   *
    * @private
    */
-  _validateParams() {
-    throw 'sub class to implement';
-  }
-
-  /**
-   * @private
-   */
-  _setAddresses() {
-    throw 'sub class to implement';
-  }
-
-  /**
-   * @private
-   */
-  _fetchSessionFromCache() {
-    throw 'sub class to implement';
-  }
-
-  /**
-   * @private
-   */
-  _fetchSessionNonce() {
-    throw 'sub class to implement';
-  }
-
   async _fetchUserSessionShardNumber() {
     const oThis = this;
 
@@ -104,7 +92,7 @@ class SessionGetBase extends ServiceBase {
     if (!CommonValidators.validateObject(userData)) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 's_s_l_bui_2',
+          internal_error_identifier: 'a_s_s_g_b_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['user_not_found'],
           debug_options: {}
@@ -112,7 +100,84 @@ class SessionGetBase extends ServiceBase {
       );
     }
 
-    oThis.sessionShardNumber = userData['sessionShardNumber'];
+    oThis.sessionShardNumber = userData.sessionShardNumber;
+  }
+
+  /**
+   * Set last known block details of a specifc chain
+   *
+   * Sets oThis.lastKnownChainBlockDetails
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _setLastKnownChainBlockDetails() {
+    const oThis = this,
+      chainId = oThis.ic().configStrategy.auxGeth.chainId,
+      BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
+      blockTimeDetailsCache = new BlockTimeDetailsCache({ chainId: chainId });
+
+    let blockDetails = await blockTimeDetailsCache.fetch();
+
+    oThis.lastKnownChainBlockDetails = {
+      blockGenerationTime: Number(blockDetails.data.blockGenerationTime),
+      lastKnownBlockTime: Number(blockDetails.data.createdTimestamp),
+      lastKnownBlockNumber: Number(blockDetails.data.block)
+    };
+  }
+
+  /**
+   * Fetch session extended details
+   *
+   * @returns {Promise<*>}
+   *
+   * @private
+   */
+  async _fetchSessionsExtendedDetails() {
+    const oThis = this;
+
+    let sessionsMap = (await oThis._fetchSessionsFromCache()).data;
+
+    let noncePromiseArray = [],
+      currentTimestamp = Math.floor(new Date() / 1000);
+
+    for (let sessionAddress in sessionsMap) {
+      let session = sessionsMap[sessionAddress];
+
+      if (!CommonValidators.validateObject(session)) {
+        continue;
+      }
+
+      // Add expirationTimestamp to session
+      // Only send approx expiry when authorized
+      session.expirationTimestamp = null;
+      if (session.status === sessionConstants.authorizedStatus) {
+        session.expirationHeight = Number(session.expirationHeight);
+
+        let blockDifference = session.expirationHeight - oThis.lastKnownChainBlockDetails.lastKnownBlockNumber,
+          timeDifferenceInSecs = blockDifference * oThis.lastKnownChainBlockDetails.blockGenerationTime,
+          approxTimeInSecs = oThis.lastKnownChainBlockDetails.lastKnownBlockTime + timeDifferenceInSecs;
+
+        session.expirationTimestamp = approxTimeInSecs;
+      }
+
+      // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
+      // If session is expired then avoid fetching from contract.
+      let approxExpirationTimestamp = session.expirationTimestamp || 0;
+      if (Number(approxExpirationTimestamp) > currentTimestamp) {
+        noncePromiseArray.push(oThis._fetchSessionTokenHolderNonce(session.address));
+      }
+
+      oThis.sessionDetails.push(session);
+    }
+
+    await Promise.all(noncePromiseArray);
+
+    for (let i = 0; i < oThis.sessionDetails.length; i++) {
+      let session = oThis.sessionDetails[i];
+      session.nonce = oThis.sessionNonce[session.address] || null;
+    }
   }
 
   /**
@@ -120,14 +185,14 @@ class SessionGetBase extends ServiceBase {
    *
    * @returns {Promise<*|result>}
    */
-  async _getUserSessionsDataFromCache(addresses) {
+  async _fetchSessionsFromCache() {
     const oThis = this;
 
     let SessionsByAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
       sessionsByAddressCache = new SessionsByAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
-        addresses: addresses,
+        addresses: oThis.sessionAddresses,
         shardNumber: oThis.sessionShardNumber
       }),
       response = await sessionsByAddressCache.fetch();
@@ -135,61 +200,20 @@ class SessionGetBase extends ServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_s_l_bui_3',
+          internal_error_identifier: 'a_s_s_g_b_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })
       );
     }
 
-    response = await oThis._addExpirationTime(response);
-
     return response;
   }
 
   /**
-   * Add expiration timestamp to session details
-   *
-   * @private
-   */
-  async _addExpirationTime(response) {
-    const oThis = this,
-      finalResponse = {},
-      chainId = oThis.ic().configStrategy.auxGeth.chainId,
-      BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
-      blockTimeDetailsCache = new BlockTimeDetailsCache({ chainId: chainId });
-
-    let blockDetails = await blockTimeDetailsCache.fetch(),
-      blockGenerationTimeInSecs = Number(blockDetails.data.blockGenerationTime),
-      lastKnownBlockCreatedTimeInSecs = Number(blockDetails.data.createdTimestamp),
-      lastKnownBlockNumber = Number(blockDetails.data.block);
-
-    for (let address in response.data) {
-      let sessionData = response.data[address];
-
-      if (!CommonValidators.validateObject(sessionData)) {
-        continue;
-      }
-
-      // Only send approx expiry when authorized
-      if (sessionData.status === sessionConstants.authorizedStatus) {
-        let sessionExpirationHeight = Number(sessionData.expirationHeight);
-
-        let blockDifference = sessionExpirationHeight - lastKnownBlockNumber,
-          timeDifferenceInSecs = blockDifference * blockGenerationTimeInSecs,
-          approxTimeInSecs = lastKnownBlockCreatedTimeInSecs + timeDifferenceInSecs;
-
-        sessionData.expirationTimestamp = approxTimeInSecs;
-      }
-
-      finalResponse[address] = sessionData;
-    }
-
-    return responseHelper.successWithData(finalResponse);
-  }
-
-  /**
    * Fetch nonce from contract
+   *
+   * Sets oThis.sessionNonce
    *
    * @private
    */
@@ -206,9 +230,11 @@ class SessionGetBase extends ServiceBase {
       };
 
     return new Promise(function(onResolve, onReject) {
+      logger.debug('Fetching nonce session token holder nonce. SessionAddress:', sessionAddress);
       new TokenHolderNonceKlass(params)
         .perform()
         .then(function(resp) {
+          logger.debug('Fetching nonce Done: ', resp);
           if (resp.isSuccess()) {
             oThis.sessionNonce[sessionAddress] = resp.data.nonce;
           }
@@ -220,6 +246,31 @@ class SessionGetBase extends ServiceBase {
         });
     });
   }
+
+  /**
+   * Validate and sanitize input parameters.
+   *
+   * @returns {*}
+   *
+   * @private
+   */
+  async _validateAndSanitizeParams() {
+    throw 'sub-class to implement';
+  }
+
+  /**
+   * @private
+   */
+  async _setSessionAddresses() {
+    throw 'sub-class to implement';
+  }
+
+  /**
+   * @private
+   */
+  async _formatApiResponse() {
+    throw 'sub-class to implement';
+  }
 }
 
-module.exports = SessionGetBase;
+module.exports = GetSessionBase;

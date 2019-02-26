@@ -67,7 +67,7 @@ class SyncInView {
 
     return responseHelper.successWithData({
       taskStatus: workflowStepConstants.taskDone,
-      taskResponseData: {
+      debugParams: {
         simpleStakeAddress: oThis.simpleStakeAddress,
         brandedTokenContract: oThis.brandedTokenAddress,
         utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,

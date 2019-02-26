@@ -20,7 +20,6 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '4': tokenAddressConstants.originWorkerAddressKind,
     '5': tokenAddressConstants.auxWorkerAddressKind,
     '6': tokenAddressConstants.auxFunderAddressKind,
-    '7': tokenAddressConstants.whiteListedAddressKind,
     '8': tokenAddressConstants.txWorkerAddressKind,
     '9': tokenAddressConstants.tokenUserOpsWorkerKind,
     '10': tokenAddressConstants.recoveryControllerAddressKind,
@@ -47,6 +46,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '2': tokenAddressConstants.inActiveStatus
   },
   invertedStatuses = util.invert(statuses);
+
+const deployedChainKinds = {
+    '1': coreConstants.originChainKind,
+    '2': coreConstants.auxChainKind
+  },
+  invertedDeployedChainKinds = util.invert(deployedChainKinds);
 
 /**
  * Class for token address model
@@ -81,6 +86,14 @@ class TokenAddress extends ModelBase {
 
   get invertedStatuses() {
     return invertedStatuses;
+  }
+
+  get deployedChainKinds() {
+    return deployedChainKinds;
+  }
+
+  get invertedDeployedChainKinds() {
+    return invertedDeployedChainKinds;
   }
 
   /**
@@ -171,13 +184,44 @@ class TokenAddress extends ModelBase {
         token_id: params.tokenId,
         kind: params.kind,
         address: params.address.toLowerCase(),
-        known_address_id: params.knownAddressId
+        known_address_id: params.knownAddressId,
+        deployed_chain_id: params.deployedChainId,
+        deployed_chain_kind: params.deployedChainKind
       })
       .fire();
 
     await TokenAddress.flushCache(params.tokenId);
 
     return responseHelper.successWithData(insertRsp);
+  }
+
+  /**
+   * Get token id from address and chain id
+   *
+   * @param params
+   *
+   * @return {*|void}
+   */
+  async getTokenIdByAddress(params) {
+    const oThis = this;
+
+    let query = oThis
+      .select('token_id, kind, address')
+      .where(['address IN (?) AND status = ?', params.addresses, invertedStatuses[tokenAddressConstants.activeStatus]]);
+
+    if (invertedKinds[params.chainId]) {
+      query.where(['AND deployed_chain_id = ?', oThis.chainId]);
+    }
+
+    let response = await query.fire();
+
+    let result = {};
+    for (let i = 0; i < response.length; i++) {
+      let data = response[i];
+      result[data.address] = data;
+    }
+
+    return responseHelper.successWithData(result);
   }
 
   /***
