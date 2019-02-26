@@ -176,22 +176,13 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    await oThis._setTokenDetails();
+    await oThis._fetchTokenDetails();
 
     await oThis._setTokenAddresses();
 
     oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
 
     await oThis._setTokenHolderAddress();
-  }
-
-  async _setTokenDetails() {
-    const oThis = this;
-
-    // fetch token details for client id
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
   }
 
   /**
