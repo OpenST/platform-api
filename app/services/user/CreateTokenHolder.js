@@ -19,7 +19,7 @@ const rootPrefix = '../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
+  UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');

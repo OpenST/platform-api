@@ -404,7 +404,11 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
 });
 
 /* Get recovery owner by address */
-router.get('/:user_id/recovery-owners/:recovery_owner_address', function(req, res, next) {
+router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.sanitizeDynamicUrlParams, function(
+  req,
+  res,
+  next
+) {
   req.decodedParams.apiName = apiName.getRecoveryOwner;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
@@ -421,7 +425,7 @@ router.get('/:user_id/recovery-owners/:recovery_owner_address', function(req, re
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_13', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_14', null, dataFormatterFunc)
   );
 });
 

@@ -134,7 +134,7 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
 
     switch (msgParams.topic) {
       case workflowTopicConstant.userSetup:
-        const UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
+        const UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router');
         return new UserSetupRouter(msgParams).perform();
       case workflowTopicConstant.authorizeDevice:
         const AuthorizeDeviceRouter = require(rootPrefix + '/lib/workflow/authorizeDevice/Router');
@@ -150,15 +150,15 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
         return new RevokeSessionRouter(msgParams).perform();
       case workflowTopicConstant.initiateRecovery:
         const InitiateRecoveryRouter = require(rootPrefix +
-          '/executables/auxWorkflowRouter/recoveryOperation/byOwner/InitiateRecoveryRouter');
+          '/lib/workflow/deviceRecovery/byOwner/initiateRecovery/Router');
         return new InitiateRecoveryRouter(msgParams).perform();
       case workflowTopicConstant.abortRecoveryByOwner:
         const AbortRecoveryByOwnerRouter = require(rootPrefix +
-          '/executables/auxWorkflowRouter/recoveryOperation/byOwner/AbortRecoveryRouter');
+          '/lib/workflow/deviceRecovery/byOwner/abortRecovery/Router');
         return new AbortRecoveryByOwnerRouter(msgParams).perform();
       case workflowTopicConstant.resetRecoveryOwner:
         const ResetRecoveryOwnerRouter = require(rootPrefix +
-          '/executables/auxWorkflowRouter/recoveryOperation/byOwner/ResetRecoveryOwnerRouter');
+          '/lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router');
         return new ResetRecoveryOwnerRouter(msgParams).perform();
 
       default:
