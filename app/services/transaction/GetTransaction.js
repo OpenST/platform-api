@@ -60,18 +60,25 @@ class GetTransaction extends ServiceBase {
 
     let transactionDetails = await service.search(esQuery);
 
-    if (transactionDetails.isSuccess()) {
+    if (transactionDetails.isSuccess() && transactionDetails.data[oThis.auxChainId + '_transactions'].length !== 0) {
       let response = await new GetTransactionDetails({
         chainId: oThis.auxChainId,
         esSearchData: transactionDetails
       }).perform();
       return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
     } else {
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_t_gt_1',
-        api_error_identifier: 'es_data_not_found',
-        debug_options: { esData: transactionDetails }
-      });
+      let response = await new GetTransactionDetails({
+        chainId: oThis.auxChainId,
+        esSearchData: transactionDetails,
+        pendingTransactionUuids: [oThis.transactionId]
+      }).perform();
+      return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
+
+      // return responseHelper.error({
+      //   internal_error_identifier: 'a_s_t_gt_1',
+      //   api_error_identifier: 'es_data_not_found',
+      //   debug_options: { esData: transactionDetails }
+      // });
     }
   }
 
