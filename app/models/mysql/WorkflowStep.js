@@ -181,7 +181,15 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 
     '306': workflowStepConstants.resetRecoveryOwnerInit,
     '307': workflowStepConstants.resetRecoveryOwnerPerformTransaction,
-    '308': workflowStepConstants.resetRecoveryOwnerVerifyTransaction
+    '308': workflowStepConstants.resetRecoveryOwnerVerifyTransaction,
+
+    '309': workflowStepConstants.executeRecoveryInit,
+    '310': workflowStepConstants.executeRecoveryPerformTransaction,
+    '311': workflowStepConstants.executeRecoveryVerifyTransaction,
+
+    '312': workflowStepConstants.abortRecoveryByRecoveryControllerInit,
+    '313': workflowStepConstants.abortRecoveryByRecoveryControllerPerformTransaction,
+    '314': workflowStepConstants.abortRecoveryByRecoveryControllerVerifyTransaction
   },
   invertedKinds = util.invert(kinds);
 
