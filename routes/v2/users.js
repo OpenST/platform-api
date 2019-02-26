@@ -34,6 +34,7 @@ require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 
 require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
 require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
+require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
@@ -480,7 +481,9 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_15', null, dataFormatterFunc));
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v_u_15', null, dataFormatterFunc)
+  );
 });
 
 module.exports = router;

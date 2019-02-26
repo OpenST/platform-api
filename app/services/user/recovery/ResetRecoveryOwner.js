@@ -27,9 +27,9 @@ require(rootPrefix + '/app/models/ddb/sharded/RecoveryOwner');
 /**
  * Class to reset recovery owner of user.
  *
- * @class ResetOwner
+ * @class ResetRecoveryOwner
  */
-class ResetOwner extends UserRecoveryServiceBase {
+class ResetRecoveryOwner extends UserRecoveryServiceBase {
   /**
    * Constructor to reset recovery owner of user.
    *
@@ -289,6 +289,6 @@ class ResetOwner extends UserRecoveryServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(ResetOwner, coreConstants.icNameSpace, 'ResetUserRecoveryOwner');
+InstanceComposer.registerAsShadowableClass(ResetRecoveryOwner, coreConstants.icNameSpace, 'ResetRecoveryOwner');
 
 module.exports = {};
