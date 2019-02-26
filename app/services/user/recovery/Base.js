@@ -1,7 +1,5 @@
-'use strict';
-
 /**
- *  Base for user recovery operations
+ *  Base for user recovery operations.
  *
  * @module app/services/user/recovery/Base
  */
@@ -23,13 +21,13 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/app/models/ddb/sharded/Device');
 
 /**
- * Class for user recovery operations
+ * Class for user recovery operations.
  *
  * @class UserRecoveryBase
  */
-
 class UserRecoveryBase extends ServiceBase {
   /**
+   * Constructor for user recovery operations.
    *
    * @param {Object} params
    * @param {Number} params.client_id
@@ -47,7 +45,9 @@ class UserRecoveryBase extends ServiceBase {
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
     oThis.userId = params.user_id;
@@ -65,9 +65,10 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * async perform
+   * Async perform
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _asyncPerform() {
@@ -90,6 +91,7 @@ class UserRecoveryBase extends ServiceBase {
    * Sanitize Params
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _sanitizeParams() {
@@ -111,6 +113,7 @@ class UserRecoveryBase extends ServiceBase {
    * Fetch user details
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _fetchUserDetails() {
@@ -145,7 +148,7 @@ class UserRecoveryBase extends ServiceBase {
     const oThis = this;
 
     // User is activated or not
-    if (oThis.userData.status != tokenUserConstants.activatedStatus) {
+    if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_r_b_2',
@@ -156,7 +159,7 @@ class UserRecoveryBase extends ServiceBase {
     }
 
     // Signer cannot be different from recovery owner.
-    if (oThis.userData.recoveryOwnerAddress != oThis.signer) {
+    if (oThis.userData.recoveryOwnerAddress !== oThis.signer) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_b_3',
@@ -168,7 +171,7 @@ class UserRecoveryBase extends ServiceBase {
     }
 
     // Validate user recovery contract address is same as input
-    if (oThis.userData.recoveryAddress != oThis.recoveryContractAddress) {
+    if (oThis.userData.recoveryAddress !== oThis.recoveryContractAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_b_4',
@@ -184,12 +187,13 @@ class UserRecoveryBase extends ServiceBase {
    * Validate old linked address from input with contract
    *
    * @returns {Promise<Void>}
+   *
    * @private
    */
   async _validateOldLinkedAddress() {
     const oThis = this;
 
-    let linkedAddressesMap = await oThis._fetchUserAddressesLink();
+    const linkedAddressesMap = await oThis._fetchUserAddressesLink();
 
     if (!CommonValidators.validateObject(linkedAddressesMap)) {
       return Promise.reject(
@@ -204,7 +208,7 @@ class UserRecoveryBase extends ServiceBase {
     // Validate old linked address from input is same as one found from contract
     if (
       !linkedAddressesMap[oThis.oldDeviceAddress] ||
-      linkedAddressesMap[oThis.oldDeviceAddress].toLowerCase() != oThis.oldLinkedAddress
+      linkedAddressesMap[oThis.oldDeviceAddress].toLowerCase() !== oThis.oldLinkedAddress
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -226,7 +230,7 @@ class UserRecoveryBase extends ServiceBase {
   async _fetchUserAddressesLink() {
     const oThis = this;
 
-    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+    const PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
       previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
       previousOwnersMapRsp = await previousOwnersMapObj.fetch();
 
@@ -245,31 +249,38 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
+   * Check if recovery operation can be performed or not.
+   *
+   * @return {Promise<void>}
    *
    * @private
    */
-  _canPerformRecoveryOperation() {
-    throw 'Sub-class to implement.';
+  async _canPerformRecoveryOperation() {
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Validate devices from cache.
+   *
+   * @return {Promise<void>}
    *
    * @private
    */
-  _validateDevices() {
-    throw 'Sub-class to implement.';
+  async _validateDevices() {
+    throw new Error('Sub-class to implement.');
   }
 
   /**
    * Fetch devices from cache.
    *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _fetchDevices() {
     const oThis = this;
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+    const DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
       deviceDetailCache = new DeviceDetailCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
@@ -292,12 +303,14 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
+   * Perform recovery operation for user.
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _performRecoveryOperation() {
-    throw 'Sub-class to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
@@ -313,8 +326,9 @@ class UserRecoveryBase extends ServiceBase {
     const oThis = this,
       DeviceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel');
 
-    let promises = [],
-      ddbQueryFailed = false;
+    const promises = [];
+    let ddbQueryFailed = false;
+
     for (let address in statusMap) {
       let initialStatus = statusMap[address].initial,
         finalStatus = statusMap[address].final,

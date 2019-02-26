@@ -22,12 +22,13 @@ const rootPrefix = '../../../..',
   AbortRecoveryRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/abortRecovery/Router');
 
 /**
- * Class to abort existing recovery procedure for user
+ * Class to abort existing recovery procedure for user.
  *
  * @class AbortRecovery
  */
 class AbortRecovery extends UserRecoveryServiceBase {
   /**
+   * Constructor to abort existing recovery procedure for user.
    *
    * @param {Object} params
    * @param {Number} params.client_id
@@ -54,6 +55,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Perform basic validations on user data before recovery procedures.
    *
    * @returns {Promise<Void>}
+   *
    * @private
    */
   async _basicValidations() {
@@ -62,7 +64,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
     await super._basicValidations();
 
     // Check for same old and new device addresses
-    if (oThis.oldDeviceAddress == oThis.newDeviceAddress) {
+    if (oThis.oldDeviceAddress === oThis.newDeviceAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_b_5',
@@ -77,20 +79,21 @@ class AbortRecovery extends UserRecoveryServiceBase {
   }
 
   /**
-   * Check if Recovery operation can be performed or not.
+   * Check if recovery operation can be performed or not.
    *
    * @returns {Promise<Void>}
+   *
    * @private
    */
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
     // Fetch all recovery operations of user
-    let recoveryOperationObj = new RecoveryOperationModelKlass(),
+    const recoveryOperationObj = new RecoveryOperationModelKlass(),
       recoveryOperations = await recoveryOperationObj.getPendingOperationsOfTokenUser(oThis.tokenId, oThis.userId);
 
     for (let index in recoveryOperations) {
-      let operation = recoveryOperations[index];
+      const operation = recoveryOperations[index];
 
       // Another in progress operation is present.
       if (
@@ -130,17 +133,18 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Validate Devices from cache.
    *
    * @returns {Promise<never>}
+   *
    * @private
    */
   async _validateDevices() {
     const oThis = this;
 
-    let devicesCacheResponse = await oThis._fetchDevices();
+    const devicesCacheResponse = await oThis._fetchDevices();
 
     // Check if old device address is found or not and its status is revoking or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.oldDeviceAddress]) ||
-      devicesCacheResponse[oThis.oldDeviceAddress].status != deviceConstants.revokingStatus
+      devicesCacheResponse[oThis.oldDeviceAddress].status !== deviceConstants.revokingStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -155,7 +159,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
     // Check if new device address is found or not and its status is recovering or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.newDeviceAddress]) ||
-      devicesCacheResponse[oThis.newDeviceAddress].status != deviceConstants.recoveringStatus
+      devicesCacheResponse[oThis.newDeviceAddress].status !== deviceConstants.recoveringStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -172,26 +176,13 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Initiate recovery for user.
    *
    * @returns {Promise<never>}
+   *
    * @private
    */
   async _performRecoveryOperation() {
     const oThis = this;
 
-    // Change old device from Revoking to Authorized
-    // New device from Recovering to Registered
-    const statusMap = {
-      [oThis.oldDeviceAddress]: {
-        initial: deviceConstants.revokingStatus,
-        final: deviceConstants.authorizedStatus
-      },
-      [oThis.newDeviceAddress]: {
-        initial: deviceConstants.recoveringStatus,
-        final: deviceConstants.registeredStatus
-      }
-    };
-    await oThis._changeDeviceStatuses(statusMap);
-
-    let recOperation = await new RecoveryOperationModelKlass()
+    const recOperation = await new RecoveryOperationModelKlass()
       .insert({
         token_id: oThis.tokenId,
         user_id: oThis.userId,
@@ -200,11 +191,19 @@ class AbortRecovery extends UserRecoveryServiceBase {
       })
       .fire();
 
-    console.log('Operation inserted ************** ', recOperation);
-    // Start Initiate Recovery workflow
+    // Start Abort Recovery workflow
     await oThis._startAbortRecoveryWorkflow(recOperation.insertId);
   }
 
+  /**
+   * Start abort recovery workflow.
+   *
+   * @param {String/Number} recoveryOperationId
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
   async _startAbortRecoveryWorkflow(recoveryOperationId) {
     const oThis = this;
 
@@ -230,9 +229,8 @@ class AbortRecovery extends UserRecoveryServiceBase {
         requestParams: requestParams
       };
 
-    const abortRecoveryObj = new AbortRecoveryRouter(initParams);
-
-    let response = await abortRecoveryObj.perform();
+    const abortRecoveryObj = new AbortRecoveryRouter(initParams),
+      response = await abortRecoveryObj.perform();
 
     if (response.isFailure()) {
       return Promise.reject(

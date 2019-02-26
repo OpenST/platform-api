@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This service initiates recovery procedure for user.
  *
@@ -22,12 +21,13 @@ const rootPrefix = '../../../..',
   InitRecoveryRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/initiateRecovery/Router');
 
 /**
- * Class to initiate recovery procedure for user
+ * Class to initiate recovery procedure for user.
  *
  * @class InitiateRecovery
  */
 class InitiateRecovery extends UserRecoveryServiceBase {
   /**
+   * Constructor to initiate recovery procedure for user.
    *
    * @param {Object} params
    * @param {Number} params.client_id
@@ -50,6 +50,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
    * Perform basic validations on user data before recovery procedures.
    *
    * @returns {Promise<Void>}
+   *
    * @private
    */
   async _basicValidations() {
@@ -58,7 +59,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     await super._basicValidations();
 
     // Check for same old and new device addresses
-    if (oThis.oldDeviceAddress == oThis.newDeviceAddress) {
+    if (oThis.oldDeviceAddress === oThis.newDeviceAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_b_5',
@@ -73,20 +74,21 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   }
 
   /**
-   * Check if Recovery operation can be performed or not.
+   * Check if recovery operation can be performed or not.
    *
    * @returns {Promise<Void>}
+   *
    * @private
    */
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    // Fetch all recovery operations of user
-    let recoveryOperationObj = new RecoveryOperationModelKlass(),
+    // Fetch all recovery operations of user.
+    const recoveryOperationObj = new RecoveryOperationModelKlass(),
       recoveryOperations = await recoveryOperationObj.getPendingOperationsOfTokenUser(oThis.tokenId, oThis.userId);
 
     for (let index in recoveryOperations) {
-      let operation = recoveryOperations[index];
+      const operation = recoveryOperations[index];
 
       // Another in progress operation is present.
       if (
@@ -118,9 +120,10 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   }
 
   /**
-   * Validate Devices from cache.
+   * Validate devices from cache.
    *
    * @returns {Promise<never>}
+   *
    * @private
    */
   async _validateDevices() {
@@ -131,7 +134,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     // Check if old device address is found or not and its status is authorized or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.oldDeviceAddress]) ||
-      devicesCacheResponse[oThis.oldDeviceAddress].status != deviceConstants.authorizedStatus
+      devicesCacheResponse[oThis.oldDeviceAddress].status !== deviceConstants.authorizedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -146,7 +149,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     // Check if new device address is found or not and its status is registered or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.newDeviceAddress]) ||
-      devicesCacheResponse[oThis.newDeviceAddress].status != deviceConstants.registeredStatus
+      devicesCacheResponse[oThis.newDeviceAddress].status !== deviceConstants.registeredStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -163,6 +166,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
    * Initiate recovery for user.
    *
    * @returns {Promise<never>}
+   *
    * @private
    */
   async _performRecoveryOperation() {
@@ -191,11 +195,19 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       })
       .fire();
 
-    console.log('Operation inserted ************** ', recOperation);
     // Start Initiate Recovery workflow
     await oThis._startInitiateRecoveryWorkflow(recOperation.insertId);
   }
 
+  /**
+   * Start initiate recovery workflow.
+   *
+   * @param {String/Number} recoveryOperationId
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
   async _startInitiateRecoveryWorkflow(recoveryOperationId) {
     const oThis = this;
 
@@ -220,9 +232,8 @@ class InitiateRecovery extends UserRecoveryServiceBase {
         requestParams: requestParams
       };
 
-    const initRecoveryObj = new InitRecoveryRouter(initParams);
-
-    let response = await initRecoveryObj.perform();
+    const initRecoveryObj = new InitRecoveryRouter(initParams),
+      response = await initRecoveryObj.perform();
 
     if (response.isFailure()) {
       return Promise.reject(
