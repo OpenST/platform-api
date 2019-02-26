@@ -8,19 +8,20 @@ const program = require('commander'),
   OSTBase = require('@openstfoundation/openst-base');
 
 const rootPrefix = '..',
-  InstanceComposer = OSTBase.InstanceComposer,
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
-  SequentialManagerKlass = require(rootPrefix + '/lib/nonce/SequentialManager'),
+  SequentialManager = require(rootPrefix + '/lib/transactions/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/transactions/ProcessRmqMessage');
 
@@ -46,7 +47,7 @@ if (!cronProcessId) {
  *
  * @class
  */
-class ExecuteTransactionProcess extends MultiSubscriptionBase {
+class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   /**
    * Constructor for Execute Transaction Process.
    *
@@ -144,7 +145,10 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
   }
 
   /**
+   * Sequential executor
    *
+   * @param messageParams
+   * @return {Promise<any>}
    * @private
    */
   async _sequentialExecutor(messageParams) {
@@ -153,9 +157,9 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
       kind = messageParams.message.kind;
 
     if (kind == kwcConstant.executeTx) {
-      return new SequentialManagerKlass(oThis.auxChainId, msgParams.tokenAddressId, {
+      return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId, {
         transactionMetaId: msgParams.transactionMetaId
-      }).queueAndFetchNonce();
+      }).perform();
     } else {
       return Promise.resolve(responseHelper.successWithData({}));
     }
@@ -278,6 +282,7 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
+    // TODO - move to debug logs.
     logger.log('_processMessage-------------------------.......\n', messageParams);
 
     if (kind == kwcConstant.executeTx) {
@@ -291,30 +296,14 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
           'ProcessRmqExecuteTxMessage'
         ),
         processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
-          tokenAddressId: payload.tokenAddressId,
           transactionUuid: payload.transaction_uuid,
-          sequentialExecutorResponse: messageParams.sequentialExecutorResponse,
-          transactionMetaId: payload.transactionMetaId
+          transactionMetaId: payload.transactionMetaId,
+          fromAddress: messageParams.fromAddress,
+          fromAddressNonce: messageParams.fromAddressNonce
         });
 
-      // Start transaction parser service.
-      const processMsgRsp = await processRmqExecuteTxMessage.perform();
-
-      if (processMsgRsp.isSuccess()) {
-        logger.debug('------unAckCount -> ', oThis.unAckCount);
-        // ACK RMQ.
-        return;
-      } else {
-        logger.error(
-          'e_et_1',
-          'Error in processRmqExecuteTxMessage. unAckCount ->',
-          oThis.unAckCount,
-          'processRmqExecuteTxMessage response: ',
-          processMsgRsp
-        );
-        // ACK RMQ.
-        return;
-      }
+      // Process Ex Tx Message
+      await processRmqExecuteTxMessage.perform();
     } else if (kind == kwcConstant.commandMsg) {
       logger.info('Command specific perform called called called called called called called called.......\n');
       let commandMessageParams = {
@@ -324,6 +313,7 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
       let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
       await oThis._commandResponseActions(commandProcessorResponse);
     }
+
     return true;
   }
 
@@ -354,4 +344,4 @@ class ExecuteTransactionProcess extends MultiSubscriptionBase {
   }
 }
 
-new ExecuteTransactionProcess({ cronProcessId: +program.cronProcessId }).perform();
+new ExecuteTransactionExecutable({ cronProcessId: +program.cronProcessId }).perform();

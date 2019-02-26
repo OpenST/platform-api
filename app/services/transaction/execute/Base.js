@@ -243,28 +243,22 @@ class ExecuteTxBase extends ServiceBase {
     let BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
       balanceObj = new BalanceModel({ shardNumber: oThis.balanceShardNumber });
 
-    let buffer = {
+    let balanceUpdateParams = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
       blockChainUnsettleDebits: oThis.pessimisticDebitAmount.toString(10)
     };
 
-    let updateBalanceRsp = await balanceObj.updateBalance(buffer).catch(function(updateBalanceResponse) {
+    await balanceObj.updateBalance(balanceUpdateParams).catch(function(updateBalanceResponse) {
       if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
-        oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
-        return oThis._validationError('s_et_b_9', ['insufficient_funds']);
+        return oThis._validationError('s_et_b_9', ['insufficient_funds'], { balanceUpdateParams: balanceUpdateParams });
       }
       return updateBalanceResponse;
     });
 
-    if (updateBalanceRsp.isFailure()) {
-      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
-      return Promise.reject(updateBalanceRsp);
-    }
-
     oThis.pessimisticAmountDebitted = true;
 
-    oThis.unsettledDebits = [buffer];
+    oThis.unsettledDebits = [balanceUpdateParams];
   }
 
   /**
@@ -366,14 +360,13 @@ class ExecuteTxBase extends ServiceBase {
       ruleAddress: oThis.toAddress,
       erc20Address: oThis.erc20Address,
       sessionKeyNonce: oThis.sessionKeyNonce,
+      sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
       createdTimestamp: currentTimestamp,
-      updatedTimeStamp: currentTimestamp
+      updatedTimestamp: currentTimestamp
     });
-
     if (insertRsp.isFailure()) {
-      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
       return Promise.reject(insertRsp);
     } else {
       oThis.pendingTransactionInserted = 1;
@@ -398,7 +391,6 @@ class ExecuteTxBase extends ServiceBase {
 
     let publishDetails = await exTxGetPublishDetails.perform().catch(async function(error) {
       logger.error(`In catch block of exTxGetPublishDetails in file: ${__filename}`, error);
-      oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.finalFailedStatus;
       return Promise.reject(error);
     });
 
@@ -455,13 +447,11 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     if (oThis.transactionMetaId) {
-      await new TransactionMetaModel()
-        .update({
-          status: transactionMetaConst.invertedStatuses[oThis.failureStatusToUpdateInTxMeta],
-          debug_params: JSON.stringify(customError.toHash())
-        })
-        .where({ id: oThis.transactionMetaId })
-        .fire();
+      await new TransactionMetaModel().releaseLockAndMarkStatus({
+        status: oThis.failureStatusToUpdateInTxMeta || transactionMetaConst.finalFailedStatus,
+        id: oThis.transactionMetaId,
+        debugParams: customError.toHash()
+      });
     }
   }
 

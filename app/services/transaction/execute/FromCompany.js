@@ -68,6 +68,9 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   async _setTokenHolderAddress() {
     const oThis = this;
 
+    // fetch token details for client id
+    await oThis._fetchTokenDetails();
+
     // fetch token's company users
     let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
 

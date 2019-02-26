@@ -9,6 +9,7 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain');
 
 /**
@@ -52,6 +53,7 @@ class TransferStPrime {
       auxChainConfig = response[oThis.auxChainId];
 
     oThis.auxWsProvider = auxChainConfig.auxGeth.readOnly.wsProviders[0];
+    oThis.web3Instance = web3Provider.getInstance(oThis.auxWsProvider).web3WsProvider;
   }
 
   /**
@@ -64,17 +66,18 @@ class TransferStPrime {
     const oThis = this;
 
     let txOptions = {
-      from: '0x3ceefa4855a75dee019d480e840513c89a157af1',
-      to: '0x094f7e57095b5df01113826340b6e21261240415',
+      from: '0x22b390d28f1477c6dab913739dedfeafa7a9799a',
+      to: '0xbc871d72cebc2fcb65c9381c809011f64a293811',
       value: '1000000000',
       gas: oThis.gas,
-      gasPrice: oThis.auxGasPrice,
-      nonce: 1
+      gasPrice: oThis.auxGasPrice
+      //nonce: 1
     };
 
     let params = {
       chainId: oThis.auxChainId,
-      provider: oThis.auxWsProvider,
+      //provider: oThis.auxWsProvider,
+      web3Instance: oThis.web3Instance,
       waitTillReceipt: 1,
       txOptions: txOptions
     };

@@ -62,7 +62,8 @@ class Balance extends Base {
       bud: 'N',
       psb: 'N',
       scb: 'N',
-      ucb: 'N'
+      ucb: 'N',
+      uts: 'N'
     };
   }
 
@@ -156,12 +157,13 @@ class Balance extends Base {
     let deltaBUD = params['blockChainUnsettleDebits'] || '0',
       deltaBSB = params['blockChainSettledBalance'] || '0',
       deltaCUD = params['creditUnSettledDebits'] || '0',
-      deltaCSB = params['creditSettledBalance'] || '0';
+      deltaCSB = params['creditSettledBalance'] || '0',
+      uts = basicHelper.formatWeiToString(basicHelper.timestampInSeconds());
 
     // New column = old column + delta(delta can be negative value)
     const deltaPessimisticChainBalance = new BigNumber(deltaBSB).minus(new BigNumber(deltaBUD)),
       deltaPessimisticCreditBalance = new BigNumber(deltaCSB).minus(new BigNumber(deltaCUD)),
-      deltaPessimisticBalance = deltaPessimisticChainBalance.add(deltaPessimisticCreditBalance).toString(10),
+      deltaPessimisticBalance = deltaPessimisticChainBalance.add(deltaPessimisticCreditBalance),
       totalUnsettledDebits = new BigNumber(deltaBUD).add(new BigNumber(deltaCUD));
 
     const balanceParams = {
@@ -170,27 +172,31 @@ class Balance extends Base {
       UpdateExpression:
         'Add #blockChainUnsettledDebits :deltaBUD, #blockChainSettledBalance :deltaBSB ' +
         ', #pessimisticSettledBalance :deltaPessimisticBalance ' +
-        ', #creditUnSettledDebits :deltaCUD, #creditSettledBalance :deltaCSB',
+        ', #creditUnSettledDebits :deltaCUD, #creditSettledBalance :deltaCSB Set #uts = :uts',
       ExpressionAttributeNames: {
         '#blockChainUnsettledDebits': oThis.shortNameFor('blockChainUnsettleDebits'),
         '#blockChainSettledBalance': oThis.shortNameFor('blockChainSettledBalance'),
         '#pessimisticSettledBalance': oThis.shortNameFor('pessimisticSettledBalance'),
         '#creditUnSettledDebits': oThis.shortNameFor('creditUnSettledDebits'),
-        '#creditSettledBalance': oThis.shortNameFor('creditSettledBalance')
+        '#creditSettledBalance': oThis.shortNameFor('creditSettledBalance'),
+        '#uts': oThis.shortNameFor('updatedTimestamp')
       },
       ExpressionAttributeValues: {
         ':deltaBSB': { N: deltaBSB },
         ':deltaBUD': { N: deltaBUD },
         ':deltaCSB': { N: deltaCSB },
         ':deltaCUD': { N: deltaCUD },
-        ':deltaPessimisticBalance': { N: deltaPessimisticBalance }
+        ':uts': { N: uts },
+        ':deltaPessimisticBalance': { N: basicHelper.formatWeiToString(deltaPessimisticBalance) }
       },
       ReturnValues: 'NONE'
     };
 
     if (totalUnsettledDebits.gt(new BigNumber(0))) {
       balanceParams['ConditionExpression'] = '#pessimisticSettledBalance >= :totalUnsettledDebits';
-      balanceParams['ExpressionAttributeValues'][':totalUnsettledDebits'] = { N: totalUnsettledDebits.toString(10) };
+      balanceParams['ExpressionAttributeValues'][':totalUnsettledDebits'] = {
+        N: basicHelper.formatWeiToString(totalUnsettledDebits)
+      };
       balanceParams['ExpressionAttributeNames']['#pessimisticSettledBalance'] = oThis.shortNameFor(
         'pessimisticSettledBalance'
       );
