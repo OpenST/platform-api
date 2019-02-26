@@ -32,6 +32,8 @@ require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/GetTransaction');
 require(rootPrefix + '/app/services/transaction/GetUserTransactions');
 
+require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
+
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
 require(rootPrefix + '/app/services/device/get/ByAddress');
@@ -428,6 +430,70 @@ router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.saniti
   return Promise.resolve(
     routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_14', null, dataFormatterFunc)
   );
+});
+
+router.post('/:user_id/devices/initiate-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.initiateRecovery;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.old_linked_address = req.params.old_linked_address;
+  req.decodedParams.old_device_address = req.params.old_device_address;
+  req.decodedParams.new_device_address = req.params.new_device_address;
+  req.decodedParams.signature = req.params.signature;
+  req.decodedParams.signer = req.params.signer;
+  req.decodedParams.to = req.params.to;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_13', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.abortRecovery;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.old_linked_address = req.params.old_linked_address;
+  req.decodedParams.old_device_address = req.params.old_device_address;
+  req.decodedParams.new_device_address = req.params.new_device_address;
+  req.decodedParams.signature = req.params.signature;
+  req.decodedParams.signer = req.params.signer;
+  req.decodedParams.to = req.params.to;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_14', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.resetRecoveryOwner;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.new_recovery_owner_address = req.params.new_recovery_owner_address;
+  req.decodedParams.signature = req.params.signature;
+  req.decodedParams.signer = req.params.signer;
+  req.decodedParams.to = req.params.to;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_15', null, dataFormatterFunc));
 });
 
 module.exports = router;

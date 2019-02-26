@@ -120,6 +120,18 @@ class ApiAuthentication {
       [apiName.executeTransactionFromCompany]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/'
+      },
+      [apiName.initiateRecovery]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/initiate-recovery/'
+      },
+      [apiName.abortRecovery]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/abort-recovery/'
+      },
+      [apiName.resetRecoveryOwner]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/recovery-owners/'
       }
     };
     return postRequestConfig;
