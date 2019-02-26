@@ -17,8 +17,8 @@ const rootPrefix = '..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  QueuedHandlerKlass = require(rootPrefix + '/lib/transactionErrorHandlers/queuedHandler'),
-  GethDownHandlerKlass = require(rootPrefix + '/lib/transactionErrorHandlers/gethDownHandler'),
+  QueuedHandlerKlass = require(rootPrefix + '/lib/transaction/errorHandlers/queuedHandler'),
+  MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactionErrorHandlers/submittedHandler'),
   TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
@@ -171,11 +171,27 @@ class TransactionMetaObserver extends CronBase {
     }
 
     for (let txStatus in transactionsGroup) {
-      let transactionDetails = transactionsGroup[txStatus];
-      if (transactionDetails && transactionDetails.length > 0) {
-        if (txStatus == transactionMetaConst.queuedStatus) {
+      let transactionsMetaRecords = transactionsGroup[txStatus];
+      let params = {
+        auxChainId: oThis.auxChainId,
+        lockId: oThis.lockId,
+        transactionsMetaRecords: transactionsMetaRecords
+      };
+
+      if (transactionsMetaRecords && transactionsMetaRecords.length > 0) {
+        if (
+          txStatus == transactionMetaConst.queuedStatus ||
+          txStatus == transactionMetaConst.submissionInProcessStatus ||
+          txStatus == transactionMetaConst.gethDownStatus ||
+          txStatus == transactionMetaConst.gethOutOfSyncStatus
+        ) {
           oThis.handlerPromises.push(new QueuedHandlerKlass().perform());
-        } else {
+        } else if (txStatus == transactionMetaConst.rollBackBalanceStatus) {
+          oThis.handlerPromises.push(new MarkFailAndRollbackBalanceKlass(params).perform());
+        } else if (txStatus == transactionMetaConst.submittedWithDynamoFailedStatus) {
+          // TODO: possibly this should be handled from finalizer.
+        } else if (txStatus == transactionMetaConst.submittedToGethStatus) {
+          oThis.handlerPromises.push(new SubmittedHandlerKlass().perform());
         }
       }
     }
