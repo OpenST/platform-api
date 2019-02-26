@@ -431,7 +431,7 @@ class TransactionParser extends SubscriberBase {
       promises.push(
         new NonceForSession({
           address: addresses[i],
-          chainId: oThis.auxChainId
+          chainId: oThis.chainId
         }).clear()
       );
     }
