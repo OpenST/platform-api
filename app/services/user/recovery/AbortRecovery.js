@@ -37,9 +37,9 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * @param {String} params.old_linked_address
    * @param {String} params.old_device_address
    * @param {String} params.new_device_address
-   * @param {String} params.to - Transaction to address, user recovery proxy address
-   * @param {String} params.signature - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer - recovery owner address who signed this transaction
+   * @param {String} params.to: Transaction to address, user recovery proxy address
+   * @param {String} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {String} params.signer: recovery owner address who signed this transaction
    *
    * @constructor
    */
@@ -245,6 +245,23 @@ class AbortRecovery extends UserRecoveryServiceBase {
         })
       );
     }
+  }
+
+  /**
+   * Return required response as per the service.
+   *
+   * @returns {Promise<>}
+   *
+   * @private
+   */
+  async _returnResponse() {
+    const oThis = this;
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        [resultType.device]: oThis.newDeviceAddressEntity
+      })
+    );
   }
 }
 

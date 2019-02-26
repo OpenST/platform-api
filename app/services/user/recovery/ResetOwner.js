@@ -35,9 +35,9 @@ class ResetOwner extends UserRecoveryServiceBase {
    * @param {Number} params.token_id
    * @param {String} params.user_id
    * @param {String} params.new_recovery_owner_address
-   * @param {String} params.to - Transaction to address, user recovery proxy address
-   * @param {String} params.signature - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer - recovery owner address who signed this transaction
+   * @param {String} params.to: Transaction to address, user recovery proxy address
+   * @param {String} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {String} params.signer: recovery owner address who signed this transaction
    *
    * @constructor
    */

@@ -11,14 +11,13 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
-require(rootPrefix + '/app/models/ddb/sharded/Device');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
  * Class for user recovery operations.
@@ -37,9 +36,9 @@ class UserRecoveryBase extends ServiceBase {
    * @param {String} params.old_device_address
    * @param {String} params.new_device_address
    * @param {String} params.new_recovery_owner_address
-   * @param {String} params.to - Transaction to address, user recovery proxy address
-   * @param {String} params.signature - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer - recovery owner address who signed this transaction
+   * @param {String} params.to: Transaction to address, user recovery proxy address
+   * @param {String} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {String} params.signer: recovery owner address who signed this transaction
    *
    * @constructor
    */
@@ -87,11 +86,7 @@ class UserRecoveryBase extends ServiceBase {
 
     await oThis._performRecoveryOperation();
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        [resultType.device]: oThis.newDeviceAddressEntity
-      })
-    );
+    return await oThis._returnResponse();
   }
 
   /**
@@ -318,6 +313,17 @@ class UserRecoveryBase extends ServiceBase {
    * @private
    */
   async _performRecoveryOperation() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Return required response as per the service.
+   *
+   * @returns {Promise<>}
+   *
+   * @private
+   */
+  async _returnResponse() {
     throw new Error('Sub-class to implement.');
   }
 
