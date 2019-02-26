@@ -365,15 +365,15 @@ class User extends Base {
     if (params['saasApiStatus']) {
       params['saasApiStatus'] = tokenUserConstants.invertedSaasApiStatuses[params['saasApiStatus']];
     }
-
     if (params['recoveryOwnerAddress']) {
       params['recoveryOwnerAddress'] = basicHelper.sanitizeAddress(params['recoveryOwnerAddress']);
     }
     if (params['recoveryAddress']) {
       params['recoveryAddress'] = basicHelper.sanitizeAddress(params['recoveryAddress']);
     }
-    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
-
+    if (params['status']) {
+      params['status'] = tokenUserConstants.invertedStatuses[params['status']];
+    }
     if (!params['updatedTimestamp']) {
       params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
     }

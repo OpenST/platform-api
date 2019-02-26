@@ -8,8 +8,11 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
@@ -114,7 +117,7 @@ class ResetOwner extends UserRecoveryServiceBase {
   }
 
   /**
-   * Initiate recovery for user.
+   * Reset recovery owner for user.
    *
    * @returns {Promise<never>}
    *
@@ -123,26 +126,7 @@ class ResetOwner extends UserRecoveryServiceBase {
   async _performRecoveryOperation() {
     const oThis = this;
 
-    // Create entry of new recovery owner.
-    const RecoveryOwnerModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwner'),
-      recoveryOwnerModelObj = new RecoveryOwnerModel({ shardNumber: oThis.userData.recoveryOwnerShardNumber });
-
-    const resp = await recoveryOwnerModelObj.createRecoveryOwner({
-      userId: oThis.userId,
-      address: oThis.newRecoveryOwnerAddress,
-      status: recoveryOwnerConstants.authorizingStatus
-    });
-
-    if (resp.isFailure()) {
-      // TODO: Have to change this error
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ro_3',
-          api_error_identifier: 'another_recovery_operation_in_process',
-          debug_options: {}
-        })
-      );
-    }
+    await oThis._performRecoveryOwnerShardQueries();
 
     const recOperation = await new RecoveryOperationModelKlass()
       .insert({
@@ -201,6 +185,107 @@ class ResetOwner extends UserRecoveryServiceBase {
         })
       );
     }
+  }
+
+  /**
+   * Create new recovery owner and update status of old recovery owner address.
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _performRecoveryOwnerShardQueries() {
+    const oThis = this,
+      RecoveryOwnerModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwner');
+
+    const promises = [];
+
+    let ddbQueryFailed = false,
+      recoveryOwnerModelObj = new RecoveryOwnerModel({ shardNumber: oThis.userData.recoveryOwnerShardNumber });
+
+    // Create new recovery owner with status as authorizing.
+    promises.push(
+      new Promise(function(onResolve, onReject) {
+        recoveryOwnerModelObj
+          .createRecoveryOwner({
+            userId: oThis.userId,
+            address: oThis.newRecoveryOwnerAddress,
+            status: recoveryOwnerConstants.authorizingStatus
+          })
+          .then(function(resp) {
+            if (resp.isFailure()) {
+              ddbQueryFailed = true;
+            }
+            onResolve();
+          })
+          .catch(function(error) {
+            logger.error(error);
+            ddbQueryFailed = true;
+            onResolve();
+          });
+      })
+    );
+
+    recoveryOwnerModelObj = new RecoveryOwnerModel({ shardNumber: oThis.userData.recoveryOwnerShardNumber });
+
+    // Update status of oldRecoveryOwnerAddress to revokingStatus from authorizedStatus.
+    promises.push(
+      new Promise(function(onResolve, onReject) {
+        recoveryOwnerModelObj
+          .updateStatusFromInitialToFinal(
+            oThis.userId,
+            oThis.userData.recoveryOwnerAddress,
+            recoveryOwnerConstants.authorizedStatus,
+            recoveryOwnerConstants.revokingStatus
+          )
+          .then(function(resp) {
+            if (resp.isFailure()) {
+              ddbQueryFailed = true;
+            }
+            onResolve();
+          })
+          .catch(function(error) {
+            logger.error(error);
+            ddbQueryFailed = true;
+            onResolve();
+          });
+      })
+    );
+
+    await Promise.all(promises);
+
+    // If ddb query is failed. Then reject reset recovery owner request.
+    if (ddbQueryFailed) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_r_ir_5',
+          api_error_identifier: 'action_not_performed_contact_support',
+          debug_options: {}
+        })
+      );
+    }
+  }
+
+  /**
+   * Return recovery owner entity.
+   *
+   * @returns {Promise<>}
+   *
+   * @private
+   */
+  async _returnResponse() {
+    const oThis = this;
+
+    return Promise.resolve(
+      responseHelper.successWithData({
+        [resultType.recoveryOwner]: {
+          userId: oThis.userId,
+          recoveryOwnerAddress: oThis.newRecoveryOwnerAddress,
+          status: recoveryOwnerConstants.invertedRecoveryOwnerStatuses[recoveryOwnerConstants.authorizingStatus],
+          updatedTimestamp: basicHelper.getCurrentTimestampInSeconds()
+        }
+      })
+    );
   }
 }
 
