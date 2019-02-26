@@ -64,7 +64,7 @@
 And add it to tables using following script.
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc...' --sealerPrivateKey '0xabc...'
+    node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xaFd5AAa702CcBD6698679853a38FAE03Bf9B1d0C' --sealerPrivateKey '611c164d961c839fc1b8b4bb1ac02463db77d2b7b18db7d657f12415081dc515'
 ```
 
 * Setup Aux Contracts
@@ -137,14 +137,14 @@ And add it to tables using following script.
                 chainId: 1000,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xc19f87b84723e14d438419c078123489a1952653', 
+                    stakerAddress: '0x01eb6a6fab66c365a84395c8040e61b425a526c4', 
                     originChainId: 1000, 
                     auxChainId: 2000, 
                     sourceChainId: 1000,
                     destinationChainId: 2000,
-                    facilitator: '0xc19f87b84723e14d438419c078123489a1952653', 
-                    amountToStake: '1000000000000000000001', 
-                    beneficiary: '0xc19f87b84723e14d438419c078123489a1952653',
+                    facilitator: '0x01eb6a6fab66c365a84395c8040e61b425a526c4', 
+                    amountToStake: '1000000000000000000000000', 
+                    beneficiary: '0x01eb6a6fab66c365a84395c8040e61b425a526c4',
                     firstTimeMint: true //[optional]
                 }
         }
@@ -220,6 +220,11 @@ And add it to tables using following script.
 ```bash
     source set_env_vars.sh
     node executables/auxWorkflowFactory.js --cronProcessId 20
+```
+* Start execute transaction cron process
+```bash
+    source set_env_vars.sh
+    node executables/executeTransaction.js --cronProcessId 18
 ```
 
 ###### ALWAYS AT THE END
