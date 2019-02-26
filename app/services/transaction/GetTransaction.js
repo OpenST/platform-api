@@ -40,6 +40,7 @@ class GetTransaction extends ServiceBase {
     const oThis = this;
     oThis.userId = params.user_id;
     oThis.transactionId = params.transaction_id;
+    oThis.tokenId = params.token_id;
 
     oThis.configStrategyObj = null;
     oThis.auxChainId = null;
@@ -52,6 +53,10 @@ class GetTransaction extends ServiceBase {
    */
   async _asyncPerform() {
     const oThis = this;
+
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
 
     const GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       serviceConfig = oThis.getServiceConfig(),
@@ -70,7 +75,8 @@ class GetTransaction extends ServiceBase {
       let response = await new GetTransactionDetails({
         chainId: oThis.auxChainId,
         esSearchData: transactionDetails,
-        pendingTransactionUuids: [oThis.transactionId]
+        pendingTransactionUuids: [oThis.transactionId],
+        tokenId: oThis.tokenId
       }).perform();
       return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
 

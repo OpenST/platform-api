@@ -519,6 +519,17 @@ class User extends Base {
 
     await tokenUserIdCache.clear();
 
+    if (params.hasOwnProperty('tokenHolderAddress')) {
+      require(rootPrefix + '/lib/cacheManagement/chainMulti/UserDetail');
+      let UserDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
+        userDetailCacheObj = new UserDetailCache({
+          tokenHolderAddresses: [params.tokenHolderAddress],
+          tokenId: params.tokenId
+        });
+
+      await userDetailCacheObj.clear();
+    }
+
     return responseHelper.successWithData({});
   }
 
