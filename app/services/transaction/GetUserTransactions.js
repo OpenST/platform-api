@@ -44,8 +44,11 @@ class GetUserTransactions extends ServiceBase {
     oThis.userId = params.user_id;
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-    oThis.status = params.status;
-    oThis.meta_property = params.meta_property;
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+
+    oThis.status = params.status || [];
+    oThis.limit = params.limit || null;
+    oThis.meta_property = params.meta_property || [];
     oThis.auxChainId = null;
     oThis.transactionDetails = {};
 
@@ -65,6 +68,9 @@ class GetUserTransactions extends ServiceBase {
     if (!oThis.tokenId) {
       await oThis._fetchTokenDetails();
     }
+
+    // Parse pagination.
+    oThis._validateAndSanitizeParams();
 
     let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       cacheResponse = await oThis._fetchUserFromCache(),
@@ -103,6 +109,54 @@ class GetUserTransactions extends ServiceBase {
     }
   }
 
+  _createResponseMeta(metaData) {
+    const oThis = this;
+  }
+  /**
+   * Validate and sanitize input parameters.
+   *
+   * @returns {*}
+   *
+   * @private
+   */
+  async _validateAndSanitizeParams() {
+    const oThis = this;
+
+    // Parameters in paginationIdentifier take higher precedence
+    if (oThis.paginationIdentifier) {
+      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+
+      oThis.status = parsedPaginationParams.status || [];
+      oThis.limit = parsedPaginationParams.limit || oThis._defaultPageLimit(); //override limit
+      oThis.metaProperty = parsedPaginationParams.metaProperty || [];
+    } else {
+      oThis.limit = oThis._defaultPageLimit();
+      oThis.status = [];
+      oThis.metaProperty = [];
+    }
+
+    // Validate addresses length
+    if (oThis.addresses && oThis.addresses.length > oThis._maxPageLimit()) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_d_gl_buid_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['addresses_more_than_allowed_limit'],
+          debug_options: {}
+        })
+      );
+    }
+  }
+
+  /**
+   * Returns default page limit.
+   *
+   * @returns {number}
+   * @private
+   */
+  _defaultPageLimit() {
+    return 10;
+  }
   /**
    * Fetch user details.
    *
@@ -229,6 +283,7 @@ class GetUserTransactions extends ServiceBase {
     const oThis = this;
     oThis.responseMetaData[pagination.nextPagePayloadKey] = esResponseData.meta[pagination.nextPagePayloadKey] || {};
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
+    logger.debug('==== oThis.responseMetaData while setting meta =====', oThis.responseMetaData);
   }
 
   /**
@@ -239,6 +294,7 @@ class GetUserTransactions extends ServiceBase {
    */
   _formatApiResponse() {
     const oThis = this;
+    logger.debug('==== oThis.responseMetaData while formatting =====', oThis.responseMetaData);
     return responseHelper.successWithData({
       [resultType.transactions]: oThis.transactionDetails,
       [resultType.meta]: oThis.responseMetaData
