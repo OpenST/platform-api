@@ -229,6 +229,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Another recovery operation is happening for User. Please try after sometime."
   },
+  "initiate_recovery_request_not_present": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Initiate Recovery request for user not found."
+  },
   "initiate_recovery_is_pending": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
