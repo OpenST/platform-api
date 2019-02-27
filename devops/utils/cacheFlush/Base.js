@@ -3,16 +3,13 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 /**
- * Class for Generating addresses for Origin and Auxiliary chains
+ * Cache flush
  *
  * @class
  */
 class Base {
   /**
    * Constructor
-   *
-   * @param configFilePath
-   *
    * @constructor
    */
   constructor() {
@@ -36,6 +33,24 @@ class Base {
         logger.error('devops/utils/flush_memcache.js::perform::catch', error);
         return oThis._getRespError('do_u_fm_b_p1');
       }
+    });
+  }
+
+  /**
+   * Generate Error response
+   *
+   * @param code {String} - Error internal identifier
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _getRespError(code, debugData) {
+    const oThis = this;
+
+    return responseHelper.error({
+      internal_error_identifier: code,
+      api_error_identifier: 'something_went_wrong',
+      debug_options: debugData || {}
     });
   }
 }

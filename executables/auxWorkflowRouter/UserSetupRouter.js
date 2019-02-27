@@ -75,7 +75,6 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.addSessionAddresses:
         let AddSessionAddressKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
           addSessionAddrObj = new AddSessionAddressKlass(oThis.requestParams);
-
         return addSessionAddrObj.perform();
 
       // Add user in User wallet factory.
@@ -106,14 +105,12 @@ class UserSetupRouter extends AuxWorkflowRouterBase {
       case workflowStepConstants.activateUser:
         let ActivateUserKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ActivateUser'),
           activateUserObj = new ActivateUserKlass(oThis.requestParams);
-
         return activateUserObj.perform();
 
       // Rollback user and device and sessions
       case workflowStepConstants.rollbackUserSetup:
         let RollbackKlass = ic.getShadowedClassFor(coreConstants.icNameSpace, 'RollbackUserActivation'),
           rollbackObj = new RollbackKlass(oThis.requestParams);
-
         return rollbackObj.perform();
 
       case workflowStepConstants.markSuccess:

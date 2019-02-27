@@ -13,6 +13,7 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -40,6 +41,7 @@ class GetTransaction extends ServiceBase {
     const oThis = this;
     oThis.userId = params.user_id;
     oThis.transactionId = params.transaction_id;
+    oThis.tokenId = params.token_id;
 
     oThis.configStrategyObj = null;
     oThis.auxChainId = null;
@@ -53,6 +55,10 @@ class GetTransaction extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
+
     const GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       serviceConfig = oThis.getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
@@ -60,17 +66,27 @@ class GetTransaction extends ServiceBase {
 
     let transactionDetails = await service.search(esQuery);
 
-    if (transactionDetails.isSuccess()) {
+    logger.debug('userTransactions from Elastic search ', transactionDetails);
+
+    if (transactionDetails.isSuccess() && transactionDetails.data[oThis.auxChainId + '_transactions'].length !== 0) {
       let response = await new GetTransactionDetails({
         chainId: oThis.auxChainId,
         esSearchData: transactionDetails
       }).perform();
       return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
     } else {
+      // let response = await new GetTransactionDetails({
+      //   chainId: oThis.auxChainId,
+      //   esSearchData: transactionDetails,
+      //   pendingTransactionUuids: [oThis.transactionId],
+      //   tokenId: oThis.tokenId
+      // }).perform();
+      // return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
+
       return responseHelper.error({
         internal_error_identifier: 'a_s_t_gt_1',
         api_error_identifier: 'es_data_not_found',
-        debug_options: {}
+        debug_options: { esData: transactionDetails }
       });
     }
   }

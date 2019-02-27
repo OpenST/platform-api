@@ -131,6 +131,10 @@ class ConfigStrategyObject {
         erc20Address: {
           shortName: 'ea',
           dataType: 'S'
+        },
+        toBeSyncedInEs: {
+          shortName: 'sie',
+          dataType: 'BOOL'
         }
       },
       transactions: {

@@ -25,7 +25,7 @@ class ApiAuthentication {
         route: '/tokens/'
       },
       [apiName.getRules]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/rules/'
       },
       [apiName.getUserList]: {
@@ -45,7 +45,7 @@ class ApiAuthentication {
         route: '/users/:user_id/devices/:device_address/'
       },
       [apiName.getUserDeviceManager]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/device-managers/'
       },
       [apiName.getUserSessions]: {
