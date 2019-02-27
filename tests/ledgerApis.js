@@ -9,7 +9,7 @@ const StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByCh
 const strategyByChainHelperObj = new StrategyByChainHelper(2000);
 
 const coreConstants = require(rootPrefix + '/config/coreConstants');
-require(rootPrefix + '/app/services/transaction/GetUserTransactions');
+require(rootPrefix + '/app/services/transaction/get/TransactionsList');
 
 const esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   ESTransactionService = esServices.services.transactions;
@@ -25,7 +25,7 @@ getStrategyByChainHelperObj()
     configStrategyResp = res;
     const configStrategy = configStrategyResp.data;
     const ic = new InstanceComposer(configStrategy),
-      GetUserTransactions = ic.getShadowedClassFor(coreConstants.icNameSpace, 'GetUserTransactions'),
+      GetUserTransactions = ic.getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionsList'),
       getTransaction = new GetTransaction(2000, [txuuid], false);
     let resp = await getTransaction.perform(),
       data = resp['data'],
