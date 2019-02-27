@@ -10,6 +10,7 @@ const OpenStOracle = require('@ostdotcom/ost-price-oracle'),
 const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
@@ -108,7 +109,9 @@ class DeployPriceOracle {
     let response = await chainConfigProvider.getFor([oThis.auxChainId]),
       auxChainConfig = response[oThis.auxChainId];
 
-    oThis.wsProvider = auxChainConfig.auxGeth.readWrite.wsProviders[0];
+    let provider = basicHelper.shuffleArray(auxChainConfig.auxGeth.readWrite.wsProviders);
+
+    oThis.wsProvider = provider[0];
     oThis.web3Instance = web3Provider.getInstance(oThis.wsProvider).web3WsProvider;
   }
 

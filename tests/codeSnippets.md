@@ -5,7 +5,7 @@
 let config = null;
 rootPrefix = '.'
 coreConstants = require(rootPrefix + '/config/coreConstants')
-chainId = 200;
+chainId = 199;
 a = require('./helpers/configStrategy/ByChainId.js')
 b = new a(chainId);
 b.getComplete().then(function(r) {config = r.data});

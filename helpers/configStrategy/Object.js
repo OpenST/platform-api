@@ -5,6 +5,7 @@
  * @module helpers/configStrategy/Object
  */
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
@@ -185,22 +186,38 @@ class ConfigStrategyObject {
 
   originChainWsProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProvider;
+
+    let providers = oThis.originChainWsProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   auxChainWsProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProvider;
+
+    let providers = oThis.auxChainWsProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   originChainRpcProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].rpcProvider;
+
+    let providers = oThis.originChainRpcProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   auxChainRpcProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].rpcProvider;
+
+    let providers = oThis.auxChainRpcProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   originFinalizeAfterBlocks() {

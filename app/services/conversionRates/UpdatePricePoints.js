@@ -206,8 +206,11 @@ class UpdatePricePoints {
     let response = await chainConfigProvider.getFor([oThis.auxChainId]),
       auxChainConfig = response[oThis.auxChainId];
 
-    oThis.wsProvider = auxChainConfig.auxGeth.readWrite.wsProviders[0];
-    oThis.web3Instance = web3Provider.getInstance(oThis.wsProvider).web3WsProvider;
+    let wsProviders = auxChainConfig.auxGeth.readWrite.wsProviders;
+
+    let shuffledProviders = basicHelper.shuffleArray(wsProviders);
+
+    oThis.web3Instance = web3Provider.getInstance(shuffledProviders[0]).web3WsProvider;
   }
 
   /**
@@ -256,7 +259,7 @@ class UpdatePricePoints {
     let submitTransactionResponse = await new SubmitTransaction({
       chainId: oThis.auxChainId,
       txOptions: txParams,
-      provider: oThis.wsProvider,
+      web3Instance: oThis.web3Instance,
       waitTillReceipt: 1
     }).perform();
 

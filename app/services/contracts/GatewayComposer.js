@@ -214,7 +214,7 @@ class GatewayComposer {
 
     oThis.stakerNonce = await oThis._stakeHelperObject.getNonce(
       oThis.responseData['gateway_composer_contract_address'],
-      oThis.originWeb3,
+      oThis.originReadOnlyWeb3,
       oThis.responseData['gateway_contract_address']
     );
 
@@ -234,9 +234,11 @@ class GatewayComposer {
       originChainId = configStrategy.constants.originChainId,
       response = await chainConfigProvider.getFor([originChainId]),
       originChainConfig = response[originChainId],
-      originWsProviders = originChainConfig.originGeth.readWrite.wsProviders;
+      originWsProviders = originChainConfig.originGeth.readOnly.wsProviders;
 
-    oThis.originWeb3 = web3Provider.getInstance(originWsProviders[0]).web3WsProvider;
+    let shuffledProviders = basicHelper.shuffleArray(originWsProviders);
+
+    oThis.originReadOnlyWeb3 = web3Provider.getInstance(shuffledProviders[0]).web3WsProvider;
   }
 
   /**
