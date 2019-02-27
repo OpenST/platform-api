@@ -19,10 +19,12 @@ const rootPrefix = '../../../..',
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
   RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ResetRecoveryOwnerRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/models/ddb/sharded/RecoveryOwner');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/RecoveryOwnerDetail');
 
 /**
  * Class to reset recovery owner of user.
@@ -46,6 +48,9 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    */
   constructor(params) {
     super(params);
+    const oThis = this;
+
+    oThis.newRecoveryOwnerAlreadyPresent = false;
   }
 
   /**
@@ -96,7 +101,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
       ) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'a_s_u_r_ro_2',
+            internal_error_identifier: 'a_s_u_r_ro_5',
             api_error_identifier: 'another_recovery_operation_in_process',
             debug_options: {}
           })
@@ -106,14 +111,51 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
   }
 
   /**
-   * Validate Devices from cache.
+   * Validate input addresses with recovery owners statuses
    *
    * @returns {Promise<never>}
    *
    * @private
    */
-  async _validateDevices() {
+  async _validateAddressStatuses() {
+    const oThis = this;
     // Device validation is not required for this service.
+    // Instead of that we are checking for recovery owners
+
+    let recoveryOwnersCacheResp = await oThis._fetchRecoveryOwners();
+
+    if (
+      !CommonValidators.validateObject(recoveryOwnersCacheResp[oThis.userData.recoveryOwnerAddress]) ||
+      recoveryOwnersCacheResp[oThis.userData.recoveryOwnerAddress].status !== recoveryOwnerConstants.authorizedStatus
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_ro_2',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['action_not_performed_contact_support'],
+          debug_options: {}
+        })
+      );
+    }
+
+    // New Recovery owner would not be present first time and if its present then it should be in Authorization failed state
+    // Authorization failed state means last attempt failed so user is retyring now.
+    oThis.newRecoveryOwnerAlreadyPresent = CommonValidators.validateObject(
+      recoveryOwnersCacheResp[oThis.newRecoveryOwnerAddress]
+    );
+    if (
+      oThis.newRecoveryOwnerAlreadyPresent &&
+      recoveryOwnersCacheResp[oThis.newRecoveryOwnerAddress].status !== recoveryOwnerConstants.authorizationFailedStatus
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_ro_3',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['action_not_performed_contact_support'],
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
@@ -126,7 +168,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
   async _performRecoveryOperation() {
     const oThis = this;
 
-    await oThis._performRecoveryOwnerShardQueries();
+    await oThis._createUpdateRecoveryOwners();
 
     const recOperation = await new RecoveryOperationModelKlass()
       .insert({
@@ -179,12 +221,46 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ir_4',
+          internal_error_identifier: 'a_s_u_r_ro_4',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
       );
     }
+  }
+
+  /**
+   * Fetch devices from cache.
+   *
+   * @returns {Promise<*>}
+   *
+   * @private
+   */
+  async _fetchRecoveryOwners() {
+    const oThis = this;
+
+    const RecoveryOwnerDetailCache = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwnerDetailCache'),
+      recoveryOwnerCache = new RecoveryOwnerDetailCache({
+        userId: oThis.userId,
+        tokenId: oThis.tokenId,
+        recoveryOwnerAddresses: [oThis.userData.recoveryOwnerAddress, oThis.newRecoveryOwnerAddress],
+        shardNumber: oThis.userData.recoveryOwnerShardNumber
+      }),
+      response = await recoveryOwnerCache.fetch();
+
+    if (response.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_r_ro_6',
+          api_error_identifier: 'cache_issue',
+          debug_options: {}
+        })
+      );
+    }
+
+    return response.data;
   }
 
   /**
@@ -194,7 +270,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    *
    * @private
    */
-  async _performRecoveryOwnerShardQueries() {
+  async _createUpdateRecoveryOwners() {
     const oThis = this,
       RecoveryOwnerModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RecoveryOwner');
 
@@ -203,15 +279,27 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     let ddbQueryFailed = false,
       recoveryOwnerModelObj = new RecoveryOwnerModel({ shardNumber: oThis.userData.recoveryOwnerShardNumber });
 
+    // If new recovery owner is already present then update
+    let newRecoveryOwnerPromise = null;
+    if (oThis.newRecoveryOwnerAlreadyPresent) {
+      newRecoveryOwnerPromise = recoveryOwnerModelObj.updateStatusFromInitialToFinal(
+        oThis.userId,
+        oThis.newRecoveryOwnerAddress,
+        recoveryOwnerConstants.authorizationFailedStatus,
+        recoveryOwnerConstants.authorizingStatus
+      );
+    } else {
+      newRecoveryOwnerPromise = recoveryOwnerModelObj.createRecoveryOwner({
+        userId: oThis.userId,
+        address: oThis.newRecoveryOwnerAddress,
+        status: recoveryOwnerConstants.authorizingStatus
+      });
+    }
+
     // Create new recovery owner with status as authorizing.
     promises.push(
       new Promise(function(onResolve, onReject) {
-        recoveryOwnerModelObj
-          .createRecoveryOwner({
-            userId: oThis.userId,
-            address: oThis.newRecoveryOwnerAddress,
-            status: recoveryOwnerConstants.authorizingStatus
-          })
+        newRecoveryOwnerPromise
           .then(function(resp) {
             if (resp.isFailure()) {
               ddbQueryFailed = true;
@@ -258,7 +346,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     if (ddbQueryFailed) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ir_5',
+          internal_error_identifier: 'a_s_u_r_ro_7',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })

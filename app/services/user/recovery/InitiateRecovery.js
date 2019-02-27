@@ -120,13 +120,13 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   }
 
   /**
-   * Validate devices from cache.
+   * Validate input addresses with devices statuses
    *
    * @returns {Promise<never>}
    *
    * @private
    */
-  async _validateDevices() {
+  async _validateAddressStatuses() {
     const oThis = this;
 
     const devicesCacheResponse = await oThis._fetchDevices();

@@ -82,7 +82,7 @@ class UserRecoveryBase extends ServiceBase {
 
     await oThis._canPerformRecoveryOperation();
 
-    await oThis._validateDevices();
+    await oThis._validateAddressStatuses();
 
     await oThis._performRecoveryOperation();
 
@@ -263,13 +263,13 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Validate devices from cache.
+   * Validate input addresses with devices or recovery owners based on service.
    *
    * @return {Promise<void>}
    *
    * @private
    */
-  async _validateDevices() {
+  async _validateAddressStatuses() {
     throw new Error('Sub-class to implement.');
   }
 

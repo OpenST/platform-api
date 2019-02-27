@@ -130,7 +130,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
   }
 
   /**
-   * Validate Devices from cache.
+   * Validate input addresses with device statuses
    *
    * @sets oThis.newDeviceAddressEntity
    *
@@ -138,7 +138,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
    *
    * @private
    */
-  async _validateDevices() {
+  async _validateAddressStatuses() {
     const oThis = this;
 
     const devicesCacheResponse = await oThis._fetchDevices();
