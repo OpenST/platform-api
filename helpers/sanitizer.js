@@ -85,6 +85,16 @@ class Sanitizer {
     req.params = sanitizeRecursively.sanitize_params_recursively(req.params);
     return next();
   }
+
+  /**
+   * Sanitize Object
+   *
+   * @param {Object} params
+   * @returns {Object}
+   */
+  sanitizeParams(params) {
+    return sanitizeRecursively.sanitize_params_recursively(params);
+  }
 }
 
 module.exports = new Sanitizer();

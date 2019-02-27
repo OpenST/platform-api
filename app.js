@@ -113,7 +113,7 @@ const decodeJwt = function(req, res, next) {
 
   // Set the decoded params in the re and call the next in control flow.
   const jwtOnResolve = function(reqParams) {
-    req.decodedParams = reqParams.data;
+    req.decodedParams = sanitizer.sanitizeParams(reqParams.data);
     req.decodedParams['app_validated_api_name'] = apiName.allInternalRoutes;
     // Validation passed.
     return next();
