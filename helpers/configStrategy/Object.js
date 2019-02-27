@@ -5,8 +5,8 @@
  * @module helpers/configStrategy/Object
  */
 const rootPrefix = '../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  basicHelper = require(rootPrefix + '/helpers/basic');
 
 /**
  * Class for object that gives getter methods on config strategy fetched for a chain.
@@ -166,12 +166,14 @@ class ConfigStrategyObject {
 
   originChainWsProviders(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
+    let wsProviders = oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
+    return basicHelper.shuffleArray(wsProviders);
   }
 
   auxChainWsProviders(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProviders;
+    let wsProviders = oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProviders;
+    return basicHelper.shuffleArray(wsProviders);
   }
 
   originChainRpcProviders(intent) {
