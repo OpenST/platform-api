@@ -69,6 +69,12 @@ class ExecuteTxFromUser extends ExecuteTxBase {
       });
     }
 
+    if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
+      return oThis._validationError('s_et_fu_2', ['inactive_user_id'], {
+        saasApiStatus: oThis.userData.saasApiStatus
+      });
+    }
+
     await oThis._validateAndSanitizeSessionKeyAddress();
   }
 

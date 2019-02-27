@@ -77,25 +77,32 @@ class TransactionMetaModel extends ModelBase {
   }
 
   /**
+   * Fetch records by txHashes
+   *
+   * @param chainId
+   * @param transactionHashes
+   * @return {Object}
+   */
+  fetchByTransactionHashes(chainId, transactionHashes) {
+    const oThis = this;
+
+    return oThis
+      .select('id, status,receipt_status,transaction_hash')
+      .where(['associated_aux_chain_id = ? and transaction_hash IN (?)', chainId, transactionHashes])
+      .fire();
+  }
+
+  /**
    * Release lock and mark status
    *
    * @return {*|void}
    */
   releaseLockAndMarkStatus(params) {
     const oThis = this,
-      whereClause = {},
       dataToUpdate = {
         lock_id: null,
         status: transactionMetaConst.invertedStatuses[params.status]
       };
-
-    if (params.lockId) {
-      whereClause.lock_id = params.lockId;
-    } else if (params.id) {
-      whereClause.id = params.id;
-    } else {
-      throw 'no param for where clause';
-    }
 
     if (params.transactionHash) {
       dataToUpdate.transaction_hash = params.transactionHash;
@@ -113,66 +120,43 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.debug_params = JSON.stringify(params.debugParams);
     }
 
-    return oThis
-      .update(dataToUpdate)
-      .where(whereClause)
-      .fire();
-  }
+    if (transactionMetaConst.nextActionAtDelta[params.status]) {
+      dataToUpdate.next_action_at = transactionMetaConst.getNextActionAtFor(params.status);
+    }
 
-  markAsQueuedFailed(transactionUuid) {
-    const oThis = this;
-    return oThis
-      .update(['status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.queuedFailedStatus]])
-      .where({ transaction_uuid: transactionUuid })
-      .fire();
-  }
+    if (params.receiptStatus) {
+      dataToUpdate.receipt_status = transactionMetaConst.invertedReceiptStatuses[params.receiptStatus];
+    }
 
-  markAsRollbackNeededById(id) {
-    const oThis = this;
-    return oThis
-      .update([
-        'lock_id = null, status=?',
-        transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus]
-      ])
-      .where({ id: id })
-      .fire();
-  }
+    let queryObj = oThis.update(dataToUpdate);
 
-  markAsGethDownById(id) {
-    const oThis = this;
-    return oThis
-      .update(['lock_id = null, status=?', transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus]])
-      .where({ id: id })
-      .fire();
-  }
+    if (params.lockId) {
+      queryObj = queryObj.where({ lock_id: params.lockId });
+    } else if (params.id) {
+      queryObj = queryObj.where({ id: params.id });
+    } else if (params.transactionHashes && params.chainId) {
+      queryObj = queryObj
+        .where({ associated_aux_chain_id: params.chainId })
+        .where(['transaction_hash IN (?)', params.transactionHashes]);
+    } else if (params.ids) {
+      queryObj = queryObj.where(['id IN (?)', params.ids]);
+    } else if (params.transactionHash && params.chainId) {
+      queryObj = queryObj.where({ transaction_hash: params.transactionHash, associated_aux_chain_id: params.chainId });
+    } else {
+      throw 'no param for where clause';
+    }
 
-  /**
-   * Mark transaction failed
-   * @param id
-   * @param failStatus
-   * @param debug_params
-   * @return {*|void}
-   */
-  markFailed(id, failStatus, debug_params) {
-    const oThis = this;
-
-    return oThis
-      .update({
-        lock_id: null,
-        status: transactionMetaConst.invertedStatuses[failStatus],
-        debug_params: debug_params
-      })
-      .where({ id: id })
-      .fire();
+    return queryObj.fire();
   }
 
   /**
    * This function return the highest nonce for sessionAddress from Tx Meta table
    *
+   * @param chainId
    * @param sessionAddress
    * @return {void|*}
    */
-  async getSessionNonce(sessionAddress) {
+  async getSessionNonce(chainId, sessionAddress) {
     const oThis = this;
 
     let statuses = [
@@ -185,6 +169,11 @@ class TransactionMetaModel extends ModelBase {
 
     let dbRows = await oThis
       .select('session_address, session_nonce')
+      .where({ associated_aux_chain_id: chainId })
+      .where([
+        'receipt_status != ?',
+        transactionMetaConst.invertedReceiptStatuses[transactionMetaConst.failureReceiptStatus]
+      ])
       .where(['session_address = ? AND status IN (?)', sessionAddress, statuses])
       .order_by('session_nonce DESC')
       .limit(1)

@@ -20,7 +20,6 @@ const rootPrefix = '../..',
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
-  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);

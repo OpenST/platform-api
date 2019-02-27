@@ -112,6 +112,10 @@ class ConfigStrategyObject {
           shortName: 'skn',
           dataType: 'S'
         },
+        sessionKeyAddress: {
+          shortName: 'ska',
+          dataType: 'S'
+        },
         tokenId: {
           shortName: 'ti',
           dataType: 'N'
@@ -127,6 +131,10 @@ class ConfigStrategyObject {
         erc20Address: {
           shortName: 'ea',
           dataType: 'S'
+        },
+        toBeSyncedInEs: {
+          shortName: 'sie',
+          dataType: 'BOOL'
         }
       },
       transactions: {

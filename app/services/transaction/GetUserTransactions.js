@@ -10,17 +10,20 @@ const OSTBase = require('@openstfoundation/openst-base'),
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
-  ESTransactionService = esServices.services.transactions,
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  ESTransactionService = esServices.services.transactions;
 
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-
+require(rootPrefix + '/lib/transactions/GetTransactionDetails');
 /**
  * Class to Get User transactions
  *
@@ -36,24 +39,41 @@ class GetUserTransactions extends ServiceBase {
    */
   constructor(params) {
     super(params);
-
     const oThis = this;
 
     oThis.userId = params.user_id;
+    oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-    oThis.status = params.status;
-    oThis.meta_property = params.meta_property;
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+
+    oThis.status = params.status || [];
+    oThis.limit = params.limit || null;
+    oThis.meta_property = params.meta_property || [];
+    oThis.auxChainId = null;
+    oThis.transactionDetails = {};
+
+    oThis.responseMetaData = {
+      [pagination.nextPagePayloadKey]: {}
+    };
   }
 
   /**
-   * perform - perform user creation
+   * Main performer method.
    *
    * @return {Promise<void>}
    */
   async _asyncPerform() {
     const oThis = this;
 
-    let cacheResponse = await oThis._fetchUserFromCache(),
+    if (!oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
+
+    // Parse pagination.
+    oThis._validateAndSanitizeParams();
+
+    let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
+      cacheResponse = await oThis._fetchUserFromCache(),
       userData = cacheResponse && cacheResponse.data[oThis.userId],
       tokenHolderAddress = userData && userData['tokenHolderAddress'];
 
@@ -67,11 +87,73 @@ class GetUserTransactions extends ServiceBase {
 
     logger.debug('userTransactions from Elastic search ', userTransactions);
 
-    let responseData = userTransactions; // TODO get from Dynamo
+    if (userTransactions.isSuccess()) {
+      oThis._setMeta(userTransactions.data);
 
-    return responseHelper.successWithData(responseData);
+      let response = await new GetTransactionDetails({
+        chainId: oThis.auxChainId,
+        esSearchData: userTransactions
+      }).perform();
+
+      if (response.isSuccess()) {
+        oThis.transactionDetails = response.data;
+
+        return oThis._formatApiResponse();
+      }
+    } else {
+      return responseHelper.error({
+        internal_error_identifier: 'a_s_t_gut_1',
+        api_error_identifier: 'es_data_not_found',
+        debug_options: {}
+      });
+    }
   }
 
+  /**
+   * Validate and sanitize input parameters.
+   *
+   * @returns {*}
+   *
+   * @private
+   */
+  async _validateAndSanitizeParams() {
+    const oThis = this;
+
+    // Parameters in paginationIdentifier take higher precedence
+    if (oThis.paginationIdentifier) {
+      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+
+      oThis.status = parsedPaginationParams.status || [];
+      oThis.limit = parsedPaginationParams.limit || oThis._defaultPageLimit(); //override limit
+      oThis.metaProperty = parsedPaginationParams.metaProperty || [];
+    } else {
+      oThis.limit = oThis._defaultPageLimit();
+      oThis.status = [];
+      oThis.metaProperty = [];
+    }
+
+    // Validate addresses length
+    if (oThis.addresses && oThis.addresses.length > oThis._maxPageLimit()) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_d_gl_buid_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['addresses_more_than_allowed_limit'],
+          debug_options: {}
+        })
+      );
+    }
+  }
+
+  /**
+   * Returns default page limit.
+   *
+   * @returns {number}
+   * @private
+   */
+  _defaultPageLimit() {
+    return 10;
+  }
   /**
    * Fetch user details.
    *
@@ -87,13 +169,12 @@ class GetUserTransactions extends ServiceBase {
 
   /**
    * Validate Specific params
-   * @input tokenHolderAddress
-   * @returns {Promise<never>}
+   *
+   * @param tokenHolderAddress
+   * @returns {Promise<*>}
    * @private
    */
   async _validateTokenHolderAddress(tokenHolderAddress) {
-    const oThis = this;
-
     if (!tokenHolderAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -126,12 +207,13 @@ class GetUserTransactions extends ServiceBase {
   getServiceConfig() {
     const oThis = this,
       configStrategy = oThis._configStrategyObject,
-      chainId = configStrategy.auxChainId,
       esConfig = configStrategy.elasticSearchConfig,
       elasticSearchKey = configStrategyConstants.elasticSearch;
 
+    oThis.auxChainId = configStrategy.auxChainId;
+
     let finalConfig = {
-      chainId: chainId
+      chainId: oThis.auxChainId
     };
 
     finalConfig[elasticSearchKey] = esConfig;
@@ -187,6 +269,33 @@ class GetUserTransactions extends ServiceBase {
     logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
 
     return queryObject;
+  }
+
+  /**
+   * Set meta property.
+   *
+   * @private
+   */
+  _setMeta(esResponseData) {
+    const oThis = this;
+    logger.debug('esResponseData =======', esResponseData);
+    oThis.responseMetaData[pagination.nextPagePayloadKey] = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+    oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
+    logger.debug('==== oThis.responseMetaData while setting meta =====', oThis.responseMetaData);
+  }
+
+  /**
+   * Format API response
+   *
+   * @return {*}
+   * @private
+   */
+  _formatApiResponse() {
+    const oThis = this;
+    return responseHelper.successWithData({
+      [resultType.transactions]: oThis.transactionDetails,
+      [resultType.meta]: oThis.responseMetaData
+    });
   }
 
   /***
