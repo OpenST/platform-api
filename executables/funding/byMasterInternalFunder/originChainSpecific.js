@@ -2,6 +2,10 @@
 /**
  * Cron to fund eth by master internal funder.
  *
+ * Funding
+ * by: Master Internal Funder
+ * to: [originDeployerKind, originDefaultBTOrgContractAdminKind, originDefaultBTOrgContractWorkerKind]
+ *
  * @module executables/funding/byMasterInternalFunder/originChainSpecific
  *
  * This cron expects originChainId as a parameter in the params.
@@ -17,6 +21,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   environmentInfoConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
@@ -46,22 +51,23 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
   ),
   originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
 
+const fundingAmountsOriginGasMap = fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas;
+
 // Config for addresses which need to be funded.
 const ethFundingConfig = {
   [chainAddressConstants.originDeployerKind]: {
-    oneGWeiMinAmount: '0.01240', //TODO-FUNDING:
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount, //TODO-FUNDING:
+    thresholdAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDeployerKind].thresholdAmount
   },
   [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
-    oneGWeiMinAmount: '0.00012', //TODO-FUNDING:
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractAdminKind].fundAmount,
+    thresholdAmount:
+      fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractAdminKind].thresholdAmount
   },
   [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
-    oneGWeiMinAmount: '0.00010', //TODO-FUNDING:
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].fundAmount,
+    thresholdAmount:
+      fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].thresholdAmount
   }
 };
 
@@ -254,21 +260,26 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       let fundingAddressDetails = ethFundingConfig[addressKind],
         address = fundingAddressDetails.address,
         addressMinimumBalance = basicHelper
-          .convertToWei(String(fundingAddressDetails.oneGWeiMinAmount))
+          .convertToWei(String(fundingAddressDetails.thresholdAmount))
           .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
-        addressCurrentBalance = basicHelper.convertToBigNumber(fundingAddressDetails.balance);
+        addressCurrentBalance = basicHelper.convertToBigNumber(fundingAddressDetails.balance),
+        addressMaxAmountToFund = basicHelper
+          .convertToWei(String(fundingAddressDetails.oneGWeiMinAmount))
+          .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
-      if (addressCurrentBalance.lt(addressMinimumBalance.mul(fundingAddressDetails.fundIfLessThanFlows))) {
+      if (addressCurrentBalance.lt(addressMinimumBalance)) {
         let params = {
           from: oThis.masterInternalFunderAddress,
           to: address,
-          amountInWei: addressMinimumBalance.mul(fundingAddressDetails.fundForFlows).toString(10)
+          amountInWei: addressMaxAmountToFund.minus(addressMinimumBalance).toString(10)
         };
         transferDetails.push(params);
       }
     }
 
     logger.step('Transferring amount.');
+    logger.debug('Transfer Amount Details Map:', transferDetails);
+    //Todo: Check if masterInternalFunder has that much amount
     if (transferDetails.length > 0) {
       oThis.canExit = false;
 
@@ -277,7 +288,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
         transferDetails: transferDetails
       });
 
-      await transferEth.perform();
+      //await transferEth.perform();
       oThis.canExit = true;
     }
   }
