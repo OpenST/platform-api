@@ -280,7 +280,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
       responseHelper.successWithData({
         [resultType.recoveryOwner]: {
           userId: oThis.userId,
-          recoveryOwnerAddress: oThis.newRecoveryOwnerAddress,
+          address: oThis.newRecoveryOwnerAddress,
           status: recoveryOwnerConstants.invertedRecoveryOwnerStatuses[recoveryOwnerConstants.authorizingStatus],
           updatedTimestamp: basicHelper.getCurrentTimestampInSeconds()
         }
