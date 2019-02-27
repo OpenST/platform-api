@@ -101,7 +101,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
       ) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'a_s_u_r_ro_5',
+            internal_error_identifier: 'a_s_u_r_ro_2',
             api_error_identifier: 'another_recovery_operation_in_process',
             debug_options: {}
           })
@@ -130,7 +130,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ro_2',
+          internal_error_identifier: 'a_s_u_r_ro_3',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['action_not_performed_contact_support'],
           debug_options: {}
@@ -139,17 +139,34 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     }
 
     // New Recovery owner would not be present first time and if its present then it should be in Authorization failed state
-    // Authorization failed state means last attempt failed so user is retyring now.
     oThis.newRecoveryOwnerAlreadyPresent = CommonValidators.validateObject(
       recoveryOwnersCacheResp[oThis.newRecoveryOwnerAddress]
     );
+
+    // Revoked status means that the recovery owner address was already present with us and thus, user should not
+    // try to authorize the same address again.
+    if (
+      oThis.newRecoveryOwnerAlreadyPresent &&
+      recoveryOwnersCacheResp[oThis.newRecoveryOwnerAddress].status === recoveryOwnerConstants.revokedStatus
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_ro_4',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['device_pin_already_used'],
+          debug_options: {}
+        })
+      );
+    }
+
+    // Authorization failed state means last attempt failed so user is retrying now.
     if (
       oThis.newRecoveryOwnerAlreadyPresent &&
       recoveryOwnersCacheResp[oThis.newRecoveryOwnerAddress].status !== recoveryOwnerConstants.authorizationFailedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ro_3',
+          internal_error_identifier: 'a_s_u_r_ro_5',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['action_not_performed_contact_support'],
           debug_options: {}
@@ -221,7 +238,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ro_4',
+          internal_error_identifier: 'a_s_u_r_ro_6',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
@@ -253,7 +270,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ro_6',
+          internal_error_identifier: 'a_s_u_r_ro_7',
           api_error_identifier: 'cache_issue',
           debug_options: {}
         })
@@ -346,7 +363,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
     if (ddbQueryFailed) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ro_7',
+          internal_error_identifier: 'a_s_u_r_ro_8',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
