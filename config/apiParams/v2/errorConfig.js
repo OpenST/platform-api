@@ -44,6 +44,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid user_id`
   },
+  inactive_user_id: {
+    parameter: 'user_id',
+    code: 'invalid',
+    message: `user setup hasn't been started / not completed yet.`
+  },
   saas_inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',

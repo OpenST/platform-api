@@ -65,17 +65,22 @@ class ApiAuthentication {
         route: '/users/:user_id/salts/'
       },
       [apiName.getTransaction]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind],
         route: '/users/:user_id/transactions/:transaction_id/'
       },
       [apiName.getUserTransactions]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/transactions'
+        route: '/users/:user_id/transactions/'
+      },
+      [apiName.getUserBalance]: {
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        route: '/users/:user_id/balance/'
       },
       [apiName.getRecoveryOwner]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
       }
+      // Note: - Urls should end with a slash. Add config above this.
     };
     return getRequestConfig;
   }
@@ -133,6 +138,7 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/recovery-owners/'
       }
+      // Note: - Urls should end with a slash. Add config above this.
     };
     return postRequestConfig;
   }

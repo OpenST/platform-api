@@ -36,9 +36,9 @@ class Rule extends ModelBase {
    * This method inserts an entry in the table.
    *
    * @param {Object} params
-   * @param {String} params.tokenId
+   * @param {Integer} params.tokenId
    * @param {String} params.name
-   * @param {String} params.kind
+   * @param {Integer} params.kind
    * @param {String} params.abi
    *
    * @returns {*}
@@ -60,7 +60,13 @@ class Rule extends ModelBase {
       })
       .fire();
 
-    await Rule.flushCache(params.tokenId, params.name);
+    let cacheParams = {
+      tokenId: params.tokenId,
+      name: params.name,
+      ruleIds: [insertResponse.id]
+    };
+
+    await Rule.flushCache(cacheParams);
 
     return Promise.resolve(responseHelper.successWithData(insertResponse.insertId));
   }
@@ -97,6 +103,33 @@ class Rule extends ModelBase {
     });
   }
 
+  /**
+   *
+   * @param {Array} ruleIds
+   *
+   * @return {Promise<*|result>}
+   */
+  async getRuleDetails(ruleIds) {
+    const oThis = this,
+      response = {};
+
+    let dbRows = await oThis
+      .select('id, name')
+      .where(['id IN (?)', ruleIds])
+      .fire();
+
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
+    for (let index = 0; index < dbRows.length; index++) {
+      response[dbRows[index].id] = {
+        name: dbRows[index].name
+      };
+    }
+
+    return responseHelper.successWithData(response);
+  }
   /**
    *
    * Fetch Pricer Rule Details
@@ -143,18 +176,23 @@ class Rule extends ModelBase {
     return responseHelper.successWithData(ruleCacheRspData);
   }
 
-  /***
-   * Flush cache
+  /**
+   * Flush cache.
    *
-   * @param {Number} tokenId
-   * @param {String} name
+   * @param {Object} params
+   * @param {Number} params.tokenId
+   * @param {String} params.name
+   * @param {Array} params.ruleIds
    *
-   * @returns {Promise<*>}
+   * @returns {Promise<void>}
    */
-  static flushCache(tokenId, name) {
+  static async flushCache(params) {
     let Cache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
-      ruleTokenIdNames = ruleConstants.getKey(tokenId, name);
-    return new Cache({ ruleTokenIdNames: [ruleTokenIdNames] }).clear();
+      ruleTokenIdNames = ruleConstants.getKey(params.tokenId, params.name);
+    await new Cache({ ruleTokenIdNames: [ruleTokenIdNames] }).clear();
+
+    let RuleNameByRuleId = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RuleNameByRuleId');
+    await new RuleNameByRuleId({ ruleIds: params.ruleIds }).clear();
   }
 }
 

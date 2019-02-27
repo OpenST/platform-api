@@ -1,5 +1,10 @@
 'use strict';
 
+/**
+ * User model.
+ *
+ * @module app/models/ddb/sharded/User
+ */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -105,6 +110,17 @@ class User extends Base {
   }
 
   /**
+   * Returns the first global secondary index name.
+   *
+   * @returns {String}
+   */
+  firstGlobalSecondaryIndexName() {
+    const oThis = this;
+
+    return oThis.shortNameFor('tokenHolderAddress');
+  }
+
+  /**
    * Primary key of the table.
    *
    * @param {Object} params
@@ -137,7 +153,8 @@ class User extends Base {
     const oThis = this;
 
     let tokenIdShortName = oThis.shortNameFor('tokenId'),
-      userIdShortName = oThis.shortNameFor('userId');
+      userIdShortName = oThis.shortNameFor('userId'),
+      tokenHolderAddressShortName = oThis.shortNameFor('tokenHolderAddress');
 
     const tableSchema = {
       TableName: oThis.tableName(),
@@ -153,7 +170,11 @@ class User extends Base {
       ],
       AttributeDefinitions: [
         { AttributeName: tokenIdShortName, AttributeType: oThis.shortNameToDataType[tokenIdShortName] },
-        { AttributeName: userIdShortName, AttributeType: oThis.shortNameToDataType[userIdShortName] }
+        { AttributeName: userIdShortName, AttributeType: oThis.shortNameToDataType[userIdShortName] },
+        {
+          AttributeName: tokenHolderAddressShortName,
+          AttributeType: oThis.shortNameToDataType[tokenHolderAddressShortName]
+        }
       ],
       ProvisionedThroughput: {
         ReadCapacityUnits: 1,
@@ -161,7 +182,25 @@ class User extends Base {
       },
       SSESpecification: {
         Enabled: false
-      }
+      },
+      GlobalSecondaryIndexes: [
+        {
+          IndexName: oThis.firstGlobalSecondaryIndexName(),
+          KeySchema: [
+            {
+              AttributeName: tokenHolderAddressShortName,
+              KeyType: 'HASH'
+            }
+          ],
+          Projection: {
+            ProjectionType: 'KEYS_ONLY'
+          },
+          ProvisionedThroughput: {
+            ReadCapacityUnits: 1,
+            WriteCapacityUnits: 1
+          }
+        }
+      ]
     };
 
     return tableSchema;
@@ -231,6 +270,53 @@ class User extends Base {
     }
 
     return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
+  }
+
+  /**
+   * Get userIds for respective tokenHolder addresses.
+   *
+   * @param {Object} params
+   * @param {Array} params.tokenHolderAddresses - token holder addresses
+   *
+   * @return {Promise<void>}
+   */
+  async getUserIdsByTokenHolderAddresses(params) {
+    const oThis = this;
+
+    let promiseArray = [],
+      tokenHolderAddressShortName = oThis.shortNameFor('tokenHolderAddress'),
+      tokenHolderAddressDatatype = oThis.shortNameToDataType[tokenHolderAddressShortName];
+
+    for (let index = 0; index < params.tokenHolderAddresses.length; index++) {
+      let queryParams = {
+        TableName: oThis.tableName(),
+        IndexName: oThis.firstGlobalSecondaryIndexName(),
+        KeyConditionExpression: '#tokenHolderAddress = :tha',
+        ExpressionAttributeNames: {
+          '#tokenHolderAddress': tokenHolderAddressShortName
+        },
+        ExpressionAttributeValues: {
+          ':tha': { [tokenHolderAddressDatatype]: params.tokenHolderAddresses[index].toString() }
+        }
+      };
+
+      promiseArray.push(oThis.ddbServiceObj.query(queryParams));
+    }
+    let responses = await Promise.all(promiseArray);
+    let results = [];
+
+    for (let index = 0; index < responses.length; index++) {
+      if (responses[index] && responses[index].data && responses[index].data.Items) {
+        let result = responses[index].data.Items[0];
+        if (result) {
+          results.push(result);
+        }
+      }
+    }
+
+    let formattedData = oThis._formatRowsFromDynamo(results, 'tokenHolderAddress');
+
+    return responseHelper.successWithData(formattedData);
   }
 
   /**
@@ -483,6 +569,17 @@ class User extends Base {
       });
 
     await tokenUserIdCache.clear();
+
+    if (params.hasOwnProperty('tokenHolderAddress')) {
+      require(rootPrefix + '/lib/cacheManagement/chainMulti/UserDetail');
+      let UserDetailCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
+        userDetailCacheObj = new UserDetailCache({
+          tokenHolderAddresses: [params.tokenHolderAddress],
+          tokenId: params.tokenId
+        });
+
+      await userDetailCacheObj.clear();
+    }
 
     return responseHelper.successWithData({});
   }
