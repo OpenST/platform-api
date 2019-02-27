@@ -87,6 +87,7 @@ const validateApiSignature = function(req, res, next) {
       req.decodedParams['user_data'] = result.data['userData'];
       req.decodedParams['app_validated_api_name'] = result.data['appValidatedApiName'];
       req.decodedParams['api_signature_kind'] = result.data['apiSignatureKind'];
+      req.decodedParams['token_shard_details'] = result.data['tokenShardDetails'];
       next();
     } else {
       return result.renderResponse(res, errorConfig);

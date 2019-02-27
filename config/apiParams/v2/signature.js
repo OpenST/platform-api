@@ -668,6 +668,10 @@ const v2Signature = {
   [apiName.getTransaction]: {
     mandatory: [
       {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
         parameter: 'user_id',
         validatorMethod: 'validateUuidV4'
       },
@@ -697,15 +701,46 @@ const v2Signature = {
   [apiName.getUserTransactions]: {
     mandatory: [
       {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getUserBalance]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
         parameter: 'user_id',
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'token_id',
-        validatorMethod: 'validateNonZeroInteger'
+        parameter: 'api_signature_kind',
+        validatorMethod: 'validateApiSignatureKind'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
+      }
+    ]
   }
 };
 
