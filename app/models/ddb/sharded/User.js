@@ -461,7 +461,7 @@ class User extends Base {
       params['status'] = tokenUserConstants.invertedStatuses[params['status']];
     }
     if (!params['updatedTimestamp']) {
-      params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+      params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds().toString();
     }
     return params;
   }
