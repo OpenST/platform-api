@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Object that gives getter methods on config strategy fetched for a chain.
+ * Object that gives getter methods on config strategy fetched for a chain
  *
  * @module helpers/configStrategy/Object
  */
