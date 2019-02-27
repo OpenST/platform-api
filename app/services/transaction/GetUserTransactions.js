@@ -109,9 +109,6 @@ class GetUserTransactions extends ServiceBase {
     }
   }
 
-  _createResponseMeta(metaData) {
-    const oThis = this;
-  }
   /**
    * Validate and sanitize input parameters.
    *
