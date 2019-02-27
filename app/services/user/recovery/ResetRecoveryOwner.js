@@ -369,7 +369,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
         [resultType.recoveryOwner]: {
           userId: oThis.userId,
           address: oThis.newRecoveryOwnerAddress,
-          status: recoveryOwnerConstants.invertedRecoveryOwnerStatuses[recoveryOwnerConstants.authorizingStatus],
+          status: recoveryOwnerConstants.authorizingStatus,
           updatedTimestamp: basicHelper.getCurrentTimestampInSeconds()
         }
       })
