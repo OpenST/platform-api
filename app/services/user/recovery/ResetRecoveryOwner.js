@@ -12,6 +12,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -19,7 +20,6 @@ const rootPrefix = '../../../..',
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
   RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ResetRecoveryOwnerRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router');
 
 // Following require(s) for registering into instance composer.
