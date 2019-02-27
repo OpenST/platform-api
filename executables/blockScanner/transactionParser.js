@@ -427,11 +427,16 @@ class TransactionParser extends SubscriberBase {
 
     let promises = [];
 
+    if (!oThis.chainId) {
+      console.error('_flushNonceCacheForSessionAddresses chainIdNotFound TransactionParser');
+      return;
+    }
+
     for (let i = 0; i < addresses.length; i++) {
       promises.push(
         new NonceForSession({
           address: addresses[i],
-          chainId: oThis.auxChainId
+          chainId: oThis.chainId
         }).clear()
       );
     }

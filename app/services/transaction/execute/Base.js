@@ -193,11 +193,12 @@ class ExecuteTxBase extends ServiceBase {
   async _processExecutableData() {
     const oThis = this;
 
-    await oThis._getRulesDetails();
+    let ruleDetails = await oThis._getRulesDetails();
 
     let response;
 
     if (oThis.tokenRuleAddress === oThis.toAddress) {
+      oThis.ruleId = ruleDetails[ruleConstants.tokenRuleName].ruleId;
       response = await new ProcessTokenRuleExecutableData({
         contractAddress: oThis.tokenRuleAddress,
         web3Instance: oThis.web3Instance,
@@ -205,6 +206,7 @@ class ExecuteTxBase extends ServiceBase {
         rawCallData: oThis.rawCalldata
       }).perform();
     } else if (oThis.pricerRuleAddress === oThis.toAddress) {
+      oThis.ruleId = ruleDetails[ruleConstants.pricerRuleName].ruleId;
       response = await new ProcessPricerRuleExecutableData({
         contractAddress: oThis.pricerRuleAddress,
         web3Instance: oThis.web3Instance,
@@ -363,6 +365,7 @@ class ExecuteTxBase extends ServiceBase {
       sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
+      toBeSyncedInEs: true,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
     });
@@ -498,6 +501,7 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.tokenRuleAddress = tokenRuleDetailsCacheRsp.data[ruleConstants.tokenRuleName].address;
     oThis.pricerRuleAddress = tokenRuleDetailsCacheRsp.data[ruleConstants.pricerRuleName].address;
+    return tokenRuleDetailsCacheRsp.data;
   }
 
   /**
