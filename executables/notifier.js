@@ -30,8 +30,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-// Global variable defined for email aggregation
-global.emailsAggregator = {};
+let emailsAggregator = {};
 
 // Declare variables.
 let waitingForEmail = false;
@@ -123,8 +122,8 @@ class EmailNotifier extends SubscriberBase {
    */
   sendAggregatedEmail() {
     logger.log('Sending Aggregated Emails');
-    const send_for_email = JSON.parse(JSON.stringify(global.emailsAggregator));
-    global.emailsAggregator = {};
+    const send_for_email = JSON.parse(JSON.stringify(emailsAggregator));
+    emailsAggregator = {};
 
     for (let subject in send_for_email) {
       let emailPayload = send_for_email[subject];
@@ -156,11 +155,11 @@ class EmailNotifier extends SubscriberBase {
     let emailSubject = emailPayload.subject;
 
     // aggregate same errors for a while
-    if (global.emailsAggregator[emailSubject]) {
-      global.emailsAggregator[emailSubject].count++;
+    if (emailsAggregator[emailSubject]) {
+      emailsAggregator[emailSubject].count++;
     } else {
-      global.emailsAggregator[emailSubject] = emailPayload;
-      global.emailsAggregator[emailSubject].count = 1;
+      emailsAggregator[emailSubject] = emailPayload;
+      emailsAggregator[emailSubject].count = 1;
     }
 
     // Wait for 30 sec to aggregate emails with subject line
