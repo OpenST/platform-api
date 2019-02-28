@@ -235,6 +235,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid signature provided'
   },
+  invalid_signature: {
+    parameter: 'signature',
+    code: 'invalid',
+    message: 'Invalid signature provided'
+  },
   old_device_address_not_authorized: {
     parameter: 'old_device_address',
     code: 'invalid',

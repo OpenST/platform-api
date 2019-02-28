@@ -7,11 +7,15 @@
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
+  signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Device');
@@ -61,6 +65,8 @@ class UserRecoveryBase extends ServiceBase {
     oThis.userData = null;
     oThis.deviceShardNumber = null;
     oThis.auxChainId = null;
+    oThis.web3InstanceObj = null;
+    oThis.configStrategyObj = null;
     oThis.newDeviceAddressEntity = {};
   }
 
@@ -106,7 +112,7 @@ class UserRecoveryBase extends ServiceBase {
     oThis.recoveryContractAddress = basicHelper.sanitizeAddress(oThis.recoveryContractAddress);
     oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
 
-    oThis.auxChainId = oThis.ic().configStrategy.auxGeth.chainId;
+    oThis.auxChainId = oThis._configStrategyObject.auxChainId;
 
     // TODO: EC recover signature.
   }
@@ -184,6 +190,49 @@ class UserRecoveryBase extends ServiceBase {
         })
       );
     }
+
+    // Signature is valid or not.
+    await oThis._validateSignature();
+  }
+
+  /**
+   * Validate signature.
+   *
+   * @return {Promise<never>}
+   *
+   * @private
+   */
+  async _validateSignature() {
+    const oThis = this,
+      typedData = oThis._createTypedData();
+
+    const verifySignRsp = await signatureVerification.validateSignature(
+      typedData.getEIP712SignHash(),
+      oThis.signature,
+      oThis.signer
+    );
+
+    if (!verifySignRsp.isValid) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_b_5',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['invalid_signature'],
+          debug_options: {}
+        })
+      );
+    }
+  }
+
+  /**
+   * Get typed data.
+   *
+   * @return {TypedData}
+   *
+   * @private
+   */
+  _createTypedData() {
+    throw new Error('Sub-class to implement.');
   }
 
   /**
@@ -382,6 +431,48 @@ class UserRecoveryBase extends ServiceBase {
       );
     }
     return deviceEntities;
+  }
+
+  /***
+   * Config strategy
+   *
+   * @return {Object}
+   */
+  get _configStrategy() {
+    const oThis = this;
+
+    return oThis.ic().configStrategy;
+  }
+
+  /**
+   * Object of config strategy class
+   *
+   * @return {Object}
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+
+    return oThis.configStrategyObj;
+  }
+
+  /**
+   * Get web3instance to interact with chain
+   *
+   * @return {Object}
+   */
+  get _web3Instance() {
+    const oThis = this;
+
+    if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
+
+    const chainEndPoint = oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite);
+    oThis.web3InstanceObj = web3Provider.getInstance(chainEndPoint).web3WsProvider;
+
+    return oThis.web3InstanceObj;
   }
 }
 

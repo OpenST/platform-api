@@ -4,7 +4,9 @@
  * @module app/services/user/recovery/InitiateRecovery
  */
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OpenStJs = require('@openstfoundation/openst.js'),
+  OSTBase = require('@openstfoundation/openst-base'),
+  RecoveryHelper = OpenStJs.Helpers.Recovery,
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
@@ -71,6 +73,24 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     }
 
     await oThis._validateOldLinkedAddress();
+  }
+
+  /**
+   * Get typed data.
+   *
+   * @return {TypedData}
+   *
+   * @private
+   */
+  _createTypedData() {
+    const oThis = this,
+      recoveryHelperObj = new RecoveryHelper(oThis._web3Instance, oThis.recoveryContractAddress);
+
+    return recoveryHelperObj.getInitiateRecoveryData(
+      oThis.oldLinkedAddress,
+      oThis.oldDeviceAddress,
+      oThis.newDeviceAddress
+    );
   }
 
   /**

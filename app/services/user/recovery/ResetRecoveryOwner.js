@@ -4,7 +4,9 @@
  * @module app/services/user/recovery/ResetOwner
  */
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OpenStJs = require('@openstfoundation/openst.js'),
+  OSTBase = require('@openstfoundation/openst-base'),
+  RecoveryHelper = OpenStJs.Helpers.Recovery,
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
@@ -76,6 +78,20 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
         })
       );
     }
+  }
+
+  /**
+   * Get typed data.
+   *
+   * @return {TypedData}
+   *
+   * @private
+   */
+  _createTypedData() {
+    const oThis = this,
+      recoveryHelperObj = new RecoveryHelper(oThis._web3Instance, oThis.recoveryContractAddress);
+
+    return recoveryHelperObj.resetRecoveryOwnerData(oThis.signer, oThis.newRecoveryOwnerAddress);
   }
 
   /**
