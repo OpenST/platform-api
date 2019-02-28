@@ -6,7 +6,7 @@
 
 const program = require('commander');
 
-const rootPrefix = '../../..',
+const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   StateRootSyncBase = require(rootPrefix + '/executables/stateRootSync/Base'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
@@ -57,11 +57,9 @@ class StateRootSyncFromAuxToOrigin extends StateRootSyncBase {
   }
 }
 
-new StateRootSyncFromAuxToOrigin({ cronProcessId: +program.cronProcessId })
-  .perform()
-  .then(function() {
-    process.emit('SIGINT');
-  })
-  .catch(function() {
-    process.emit('SIGINT');
-  });
+new StateRootSyncFromAuxToOrigin({ cronProcessId: +program.cronProcessId }).perform();
+
+setInterval(function() {
+  logger.info('Ending the process. Sending SIGINT.');
+  process.emit('SIGINT');
+}, 10 * 60 * 1000);
