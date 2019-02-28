@@ -63,6 +63,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
 
+    // TODO - add validation for signature
+
     if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
       return oThis._validationError('s_et_fu_1', ['saas_inactive_user_id'], {
         saasApiStatus: oThis.userData.saasApiStatus
@@ -124,7 +126,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     if (oThis.pessimisticDebitAmount.gte(new BigNumber(oThis.sessionData.spendingLimit))) {
-      return oThis._validationError('s_et_fu_1', ['session_key_spending_limit_breached'], {
+      return oThis._validationError('s_et_fu_3', ['session_key_spending_limit_breached'], {
         spendingLimit: basicHelper.formatWeiToString(oThis.sessionData.spendingLimit),
         pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
       });
