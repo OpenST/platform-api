@@ -31,8 +31,8 @@ require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
 require(rootPrefix + '/app/services/transaction/execute/FromUser');
-require(rootPrefix + '/app/services/transaction/GetTransaction');
-require(rootPrefix + '/app/services/transaction/GetUserTransactions');
+require(rootPrefix + '/app/services/transaction/get/Transaction');
+require(rootPrefix + '/app/services/transaction/get/TransactionsList');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
@@ -414,7 +414,7 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetUserTransactions', 'r_v_u_13', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v_u_13', null, dataFormatterFunc)
   );
 });
 
