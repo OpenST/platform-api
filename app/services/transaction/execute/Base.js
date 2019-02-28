@@ -180,8 +180,6 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setTokenAddresses();
 
-    oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
-
     await oThis._setTokenHolderAddress();
   }
 
@@ -197,7 +195,7 @@ class ExecuteTxBase extends ServiceBase {
 
     let response;
 
-    if (oThis.tokenRuleAddress === oThis.toAddress) {
+    if (oThis.toAddress === oThis.tokenRuleAddress) {
       oThis.ruleId = ruleDetails[ruleConstants.tokenRuleName].ruleId;
       response = await new ProcessTokenRuleExecutableData({
         contractAddress: oThis.tokenRuleAddress,
@@ -205,7 +203,7 @@ class ExecuteTxBase extends ServiceBase {
         tokenHolderAddress: oThis.tokenHolderAddress,
         rawCallData: oThis.rawCalldata
       }).perform();
-    } else if (oThis.pricerRuleAddress === oThis.toAddress) {
+    } else if (oThis.toAddress === oThis.pricerRuleAddress) {
       oThis.ruleId = ruleDetails[ruleConstants.pricerRuleName].ruleId;
       response = await new ProcessPricerRuleExecutableData({
         contractAddress: oThis.pricerRuleAddress,
@@ -371,10 +369,9 @@ class ExecuteTxBase extends ServiceBase {
     });
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
-    } else {
-      oThis.pendingTransactionInserted = 1;
     }
 
+    oThis.pendingTransactionInserted = 1;
     oThis.pendingTransactionData = insertRsp.data;
   }
 
@@ -526,6 +523,7 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     oThis.tokenAddresses = getAddrRsp.data;
+    oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
   }
 
   /**
