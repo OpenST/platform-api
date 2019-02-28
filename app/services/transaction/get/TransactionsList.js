@@ -87,7 +87,7 @@ class GetTransactionsList extends ServiceBase {
 
     logger.debug('userTransactions from Elastic search ', userTransactions);
 
-    if (userTransactions.isSuccess()) {
+    if (userTransactions.isSuccess() && userTransactions.data[oThis.auxChainId + '_transactions'].length !== 0) {
       oThis._setMeta(userTransactions.data);
 
       let response = await new GetTransactionDetails({
@@ -102,9 +102,10 @@ class GetTransactionsList extends ServiceBase {
       }
     } else {
       return responseHelper.error({
-        internal_error_identifier: 'a_s_t_gut_1',
+        internal_error_identifier: 'a_s_t_g_tl_1',
         api_error_identifier: 'es_data_not_found',
-        debug_options: {}
+        params_error_identifiers: ['invalid_user_id'],
+        debug_options: { esData: userTransactions }
       });
     }
   }
@@ -130,18 +131,6 @@ class GetTransactionsList extends ServiceBase {
       oThis.limit = oThis._defaultPageLimit();
       oThis.status = [];
       oThis.metaProperty = [];
-    }
-
-    // Validate addresses length
-    if (oThis.addresses && oThis.addresses.length > oThis._maxPageLimit()) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_d_gl_buid_1',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['addresses_more_than_allowed_limit'],
-          debug_options: {}
-        })
-      );
     }
   }
 
