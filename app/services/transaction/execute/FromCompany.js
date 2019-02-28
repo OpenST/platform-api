@@ -12,22 +12,22 @@ const BigNumber = require('bignumber.js'),
   TokenHolderHelper = OpenStJs.Helpers.TokenHolder;
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   NonceGetForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base'),
-  AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'),
-  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail');
+  AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey');
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/UserTransactionCount');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 
 /**
  * Class
@@ -71,61 +71,47 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     // fetch token details for client id
     await oThis._fetchTokenDetails();
 
-    // fetch token's company users
-    let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
-
-    if (
-      tokenCompanyUserCacheRsp.isFailure() ||
-      !tokenCompanyUserCacheRsp.data ||
-      !tokenCompanyUserCacheRsp.data['userUuids']
-    ) {
-      return Promise.reject(tokenCompanyUserCacheRsp);
-    }
-
-    let tokenCompanyUsers = tokenCompanyUserCacheRsp.data['userUuids'];
-
     // fetch company users details
     let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUserDetailsCache({
         tokenId: oThis.tokenId,
-        userIds: tokenCompanyUsers
+        userIds: [oThis.userId]
       }),
       tokenUserDetailsCacheRsp = await tokenUserDetailsCacheObj.fetch();
 
-    if (tokenUserDetailsCacheRsp.isFailure() || !tokenUserDetailsCacheRsp.data) {
-      return Promise.reject(tokenUserDetailsCacheRsp);
+    if (tokenUserDetailsCacheRsp.isFailure()) {
+      logger.error('Could not fetched token user details.');
+      Promise.reject(tokenUserDetailsCacheRsp);
     }
 
-    let usersData = tokenUserDetailsCacheRsp.data,
-      companyTokenHolderAddresses = [],
-      sessionShards = [];
+    let companyUserData = tokenUserDetailsCacheRsp.data[oThis.userId];
 
-    for (let uuid in usersData) {
-      let userData = usersData[uuid];
-
-      // select company users with saas api status = active
-      if (userData.saasApiStatus == tokenUserConstants.saasApiActiveStatus) {
-        companyTokenHolderAddresses.push(userData.tokenHolderAddress);
-        sessionShards.push(userData.sessionShardNumber);
-      }
+    if (!CommonValidators.validateObject(companyUserData)) {
+      return oThis._validationError('s_et_fc_1', ['invalid_user_id'], {
+        userId: oThis.userId
+      });
     }
 
-    if (companyTokenHolderAddresses.length === 0) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_fc_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            clientId: oThis.clientId
-          }
-        })
-      );
+    if (companyUserData.kind !== tokenUserConstants.companyKind) {
+      return oThis._validationError('s_et_fc_2', ['invalid_user_id'], {
+        userKind: companyUserData.kind
+      });
     }
 
-    // currently, we have only one company token holder
-    oThis.userId = tokenCompanyUsers[0]; //token Company UserUuid
-    oThis.tokenHolderAddress = companyTokenHolderAddresses[0];
-    oThis.sessionShardNumber = sessionShards[0];
+    if (companyUserData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
+      return oThis._validationError('s_et_fc_3', ['saas_inactive_user_id'], {
+        saasApiStatus: companyUserData.saasApiStatus
+      });
+    }
+
+    if (companyUserData.status !== tokenUserConstants.activatedStatus) {
+      return oThis._validationError('s_et_fc_4', ['inactive_user_id'], {
+        status: companyUserData.status
+      });
+    }
+
+    oThis.tokenHolderAddress = companyUserData.tokenHolderAddress;
+    oThis.sessionShardNumber = companyUserData.sessionShardNumber;
   }
 
   /**
@@ -152,7 +138,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     if (userSessionAddressCacheResp.data['addresses'].length === 0) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_fc_2',
+          internal_error_identifier: 's_et_fc_5',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
             userId: oThis.userId,
@@ -188,7 +174,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     if (allowedSessionKeys.length === 0) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_fc_3',
+          internal_error_identifier: 's_et_fc_6',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
             sessionKeyAddresses: oThis.sessionKeyAddresses
@@ -293,7 +279,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     if (sessionsByAddressCacheRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_s_l_bui_3',
+          internal_error_identifier: 's_et_fc_7',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

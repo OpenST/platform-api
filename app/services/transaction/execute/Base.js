@@ -51,8 +51,9 @@ class ExecuteTxBase extends ServiceBase {
    * Constructor
    *
    * @param {Object} params
-   * @param {Number} params.token_id
-   * @param {String} params.to
+   * @param {String} params.user_id - user_id
+   * @param {Number} params.token_id - token id
+   * @param {String} params.to - rules address
    * @param {Object} params.raw_calldata - raw_calldata
    * @param {Object} [params.meta_property]
    *
@@ -63,6 +64,7 @@ class ExecuteTxBase extends ServiceBase {
 
     const oThis = this;
 
+    oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
     oThis.toAddress = params.to;
     oThis.rawCalldata = params.raw_calldata;
