@@ -113,8 +113,6 @@ class UserRecoveryBase extends ServiceBase {
     oThis.signer = basicHelper.sanitizeAddress(oThis.signer);
 
     oThis.auxChainId = oThis._configStrategyObject.auxChainId;
-
-    // TODO: EC recover signature.
   }
 
   /**
@@ -277,6 +275,7 @@ class UserRecoveryBase extends ServiceBase {
    * Fetch linked addresses map of user.
    *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _fetchUserAddressesLink() {
