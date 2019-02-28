@@ -6,7 +6,9 @@
  * @module app/services/transaction/execute/Base
  */
 
-const uuidv4 = require('uuid/v4');
+const uuidv4 = require('uuid/v4'),
+  OpenStJs = require('@openstfoundation/openst.js'),
+  TokenHolderHelper = OpenStJs.Helpers.TokenHolder;
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -95,6 +97,8 @@ class ExecuteTxBase extends ServiceBase {
     oThis.transactionMetaId = null;
     oThis.token = null;
     oThis.pendingTransactionData = null;
+    oThis.callPrefix = null;
+    oThis.executableTxData = null;
   }
 
   /**
@@ -142,6 +146,8 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setNonce();
 
+    await oThis._setExecutableTxData();
+
     await oThis._setSignature();
 
     await oThis._verifySessionSpendingLimit();
@@ -178,11 +184,16 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    await oThis._fetchTokenDetails();
+    // fetch token details for client id
+    if (oThis.clientId && !oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
 
     await oThis._setTokenAddresses();
 
     await oThis._setTokenHolderAddress();
+
+    await oThis._setCallPrefix();
   }
 
   /**
@@ -518,7 +529,7 @@ class ExecuteTxBase extends ServiceBase {
     if (getAddrRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_b_1',
+          internal_error_identifier: 's_et_b_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -561,6 +572,33 @@ class ExecuteTxBase extends ServiceBase {
     oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
 
     return oThis.configStrategyObj;
+  }
+
+  /**
+   * set call prefix
+   * @private
+   */
+  async _setCallPrefix() {
+    const oThis = this,
+      tokenHolderHelper = new TokenHolderHelper(oThis.web3Instance, oThis.tokenHolderAddress);
+
+    oThis.callPrefix = tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix();
+  }
+
+  /**
+   * set executable tx data
+   * @private
+   */
+  async _setExecutableTxData() {
+    const oThis = this;
+
+    oThis.executableTxData = {
+      from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
+      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // rule contract address (TR / Pricer)
+      data: oThis.transferExecutableData,
+      nonce: oThis.sessionKeyNonce,
+      callPrefix: oThis.callPrefix
+    };
   }
 
   get auxChainId() {

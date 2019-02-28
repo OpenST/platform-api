@@ -6,10 +6,8 @@
  */
 
 const BigNumber = require('bignumber.js'),
-  OpenStJs = require('@openstfoundation/openst.js'),
   OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer,
-  TokenHolderHelper = OpenStJs.Helpers.TokenHolder;
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -67,9 +65,6 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    */
   async _setTokenHolderAddress() {
     const oThis = this;
-
-    // fetch token details for client id
-    await oThis._fetchTokenDetails();
 
     // fetch company users details
     let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
@@ -221,18 +216,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   async _setSignature() {
     const oThis = this;
 
-    const tokenHolderHelper = new TokenHolderHelper(oThis.web3Instance, oThis.tokenHolderAddress);
-
-    const transactionObject = {
-      // TODO - move the toChecksumAddress sanitizing inside interaction layers
-      from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
-      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // rule contract address (TR / Pricer)
-      data: oThis.transferExecutableData,
-      nonce: oThis.sessionKeyNonce,
-      callPrefix: tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix()
-    };
-
-    logger.debug('========signEIP1077Transaction===transactionObject==========', transactionObject);
+    logger.debug('========signEIP1077Transaction===transactionObject==========', oThis.executableTxData);
 
     // fetch Private Key of session address
     let sessionKeyAddrPK = await oThis._fetchPrivateKey(oThis.sessionKeyAddress),
@@ -240,7 +224,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
 
     // sign EIP1077 tx
     // TODO - ethereum js tx support for EIP1077
-    const vrs = sessionKeyObject.signEIP1077Transaction(transactionObject);
+    const vrs = sessionKeyObject.signEIP1077Transaction(oThis.executableTxData);
 
     oThis.signatureData = {
       r: vrs.r,
