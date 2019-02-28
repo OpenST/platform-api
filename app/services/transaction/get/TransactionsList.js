@@ -169,7 +169,7 @@ class GetTransactionsList extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 's_t_gut_2',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['missing_token_holder_address'], //TODO confirm
+          params_error_identifiers: ['invalid_user_id'], //TODO confirm
           debug_options: {}
         })
       );
