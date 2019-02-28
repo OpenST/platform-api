@@ -167,7 +167,7 @@ class GetTransactionsList extends ServiceBase {
     if (!tokenHolderAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 's_t_gut_2',
+          internal_error_identifier: 'a_s_t_g_tl_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_user_id'], //TODO confirm
           debug_options: {}
