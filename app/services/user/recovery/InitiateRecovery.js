@@ -223,6 +223,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
         auxChainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
+        clientId: oThis.clientId,
         oldLinkedAddress: oThis.oldLinkedAddress,
         oldDeviceAddress: oThis.oldDeviceAddress,
         newDeviceAddress: oThis.newDeviceAddress,

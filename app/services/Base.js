@@ -96,7 +96,7 @@ class ServicesBaseKlass {
 
     oThis.token = response.data;
     oThis.tokenId = oThis.token.id;
-    oThis.delayedRecoveryInterval = oThis.token.delayed_recovery_interval;
+    oThis.delayedRecoveryInterval = oThis.token.delayedRecoveryInterval;
   }
 
   /**
