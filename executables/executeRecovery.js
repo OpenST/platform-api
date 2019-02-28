@@ -10,6 +10,7 @@ const rootPrefix = '..',
   ChainDetails = require(rootPrefix + '/app/services/chain/Get'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
   ProcessRecoveryRequest = require(rootPrefix +
@@ -67,6 +68,32 @@ class ExecuteRecovery extends PublisherBase {
     await oThis._fetchCurrentBlockNumber();
 
     await oThis._startExecuteRecovery();
+
+    logger.step('Cron completed.');
+  }
+
+  /**
+   * Cron kind
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  get _cronKind() {
+    return cronProcessesConstants.executeRecovery;
+  }
+
+  /**
+   * Pending tasks done
+   *
+   * @return {Boolean}
+   *
+   * @private
+   */
+  _pendingTasksDone() {
+    const oThis = this;
+
+    return oThis.canExit;
   }
 
   /**
@@ -130,6 +157,7 @@ class ExecuteRecovery extends PublisherBase {
 
     logger.log('Processing ', oThis.recoveryOperations.length, ' recovery requests.');
 
+    oThis.canExit = false;
     for (let index = 0; index < oThis.recoveryOperations.length; index++) {
       const recoveryOperationEntity = oThis.recoveryOperations[index];
 
@@ -143,13 +171,18 @@ class ExecuteRecovery extends PublisherBase {
 
     await Promise.all(promisesArray);
 
+    oThis.canExit = true;
+
     logger.log('Execute recovery operations completed.');
   }
 }
 
-new ExecuteRecovery({ cronProcessId: +program.cronProcessId }).perform();
-
-setInterval(function() {
-  logger.info('Ending the process. Sending SIGINT.');
-  process.emit('SIGINT');
-}, 30 * 60 * 1000);
+// Perform action
+new ExecuteRecovery({ cronProcessId: +program.cronProcessId })
+  .perform()
+  .then(function() {
+    process.emit('SIGINT');
+  })
+  .catch(function() {
+    process.emit('SIGINT');
+  });
