@@ -38,6 +38,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertAuxWorkflowWorkerTwoEntry();
     await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
     await oThis.insertBalanceSettlerEntry();
+    await oThis.insertExecuteRecoveryEntry();
   }
 
   /**
@@ -274,6 +275,16 @@ class AuxChainSpecificCronSeeder {
         auxChainId: 2000,
         prefetchCount: 5,
         sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  async insertExecuteRecoveryEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.executeRecovery, {
+        chainId: 2000
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
