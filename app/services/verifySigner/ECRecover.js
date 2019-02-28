@@ -12,11 +12,11 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  Web3EthAccount = require('web3-eth-accounts');
+  signValidator = require(rootPrefix + '/lib/validators/Sign');
 
 class ECRecover {
   /**
-   *
+   * @constructor
    *
    * @param params
    */
@@ -29,6 +29,7 @@ class ECRecover {
   }
 
   /**
+   * Perform
    *
    * @return {Promise<>}
    */
@@ -51,7 +52,7 @@ class ECRecover {
   }
 
   /**
-   *
+   * Async Perform
    *
    * @return {Promise<any>}
    */
@@ -60,21 +61,13 @@ class ECRecover {
 
     oThis._validateParameters();
 
-    let accountAddress = new Web3EthAccount('').recover(oThis.messageToSign, oThis.personalSign);
+    let validationResp = await signValidator.validatePersonalSign(
+      oThis.messageToSign,
+      oThis.personalSign,
+      oThis.signer
+    );
 
-    if (!accountAddress) {
-      return Promise.resolve(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_vs_ecr_2',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_signer_address']
-        })
-      );
-    }
-
-    accountAddress = accountAddress.toLowerCase();
-
-    if (oThis.signer !== accountAddress) {
+    if (!validationResp.isValid) {
       logger.error('Input owner address does not matches recovered address');
       return Promise.resolve(
         responseHelper.error({
@@ -85,8 +78,7 @@ class ECRecover {
       );
     }
 
-    logger.log('Input owner address matches with recovered address');
-    return Promise.resolve(responseHelper.successWithData({ signer: accountAddress }));
+    return responseHelper.successWithData({ signer: validationResp.signer });
   }
 
   /**
