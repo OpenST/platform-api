@@ -78,6 +78,7 @@ class GetTransaction extends ServiceBase {
       return responseHelper.paramValidationError({
         internal_error_identifier: 'a_s_t_gt_1',
         api_error_identifier: 'es_data_not_found',
+        params_error_identifiers: ['invalid_transaction_id'],
         debug_options: { esData: transactionDetails }
       });
     }
