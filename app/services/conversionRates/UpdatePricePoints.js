@@ -6,8 +6,8 @@
  */
 
 const requestPromise = require('request-promise'),
-  OpenStOracle = require('@ostdotcom/ost-price-oracle'),
-  PriceOracleHelper = OpenStOracle.PriceOracleHelper,
+  OpenSTOracle = require('@ostdotcom/ost-price-oracle'),
+  PriceOracleHelper = OpenSTOracle.PriceOracleHelper,
   exchangeUrl = 'https://api.coinmarketcap.com/v1/ticker/simple-token';
 
 const rootPrefix = '../../..',
