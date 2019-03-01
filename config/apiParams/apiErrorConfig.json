@@ -229,10 +229,39 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "User not activated."
   },
+  "another_recovery_operation_in_process": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Another recovery operation is happening for User. Please try after sometime."
+  },
+  "initiate_recovery_request_not_present": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Initiate Recovery request for user not found."
+  },
+  "initiate_recovery_is_pending": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "One Initiate Recovery request is already waiting for Admin approval."
+  },
+  "recovery_already_in_progress": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery for this user is already in progress."
+  },
+  "recovery_never_initiated": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery for this user was never initiated."
+  },
+  "device_pin_already_used": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "This pin was used recently. Please use another pin for security reasons."
+  },
   "es_data_not_found": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Data not found in es"
   }
-
 }

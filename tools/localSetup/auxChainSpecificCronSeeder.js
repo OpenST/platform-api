@@ -23,21 +23,22 @@ class AuxChainSpecificCronSeeder {
   async perform() {
     const oThis = this;
 
-    // await oThis.insertBlockParserEntry();
-    // await oThis.insertTransactionParserEntry();
-    // await oThis.insertBlockFinalizerEntry();
-    // await oThis.insertEconomyAggregatorEntry();
-    // await oThis.insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry();
-    // await oThis.insertFundBySealerAuxChainSpecificEntry();
-    // await oThis.insertFundByTokenAuxFunderAuxChainSpecificEntry();
-    // await oThis.insertUpdatePriceOraclePricePointsEntry();
-    // await oThis.insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry();
-    // await oThis.insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry();
-    // await oThis.insertExecuteTransactionOneEntry();
-    // await oThis.insertExecuteTransactionTwoEntry();
-    // await oThis.insertAuxWorkflowWorkerTwoEntry();
-    // await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
-    // await oThis.insertBalanceSettlerEntry();
+    await oThis.insertBlockParserEntry();
+    await oThis.insertTransactionParserEntry();
+    await oThis.insertBlockFinalizerEntry();
+    await oThis.insertEconomyAggregatorEntry();
+    await oThis.insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry();
+    await oThis.insertFundBySealerAuxChainSpecificEntry();
+    await oThis.insertFundByTokenAuxFunderAuxChainSpecificEntry();
+    await oThis.insertUpdatePriceOraclePricePointsEntry();
+    await oThis.insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry();
+    await oThis.insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry();
+    await oThis.insertExecuteTransactionOneEntry();
+    await oThis.insertExecuteTransactionTwoEntry();
+    await oThis.insertAuxWorkflowWorkerTwoEntry();
+    await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
+    await oThis.insertBalanceSettlerEntry();
+    await oThis.insertExecuteRecoveryEntry();
     await oThis.insertStateRootSyncFromOriginToAux();
     await oThis.insertStateRootSyncFromAuxToOrigin();
   }
@@ -313,6 +314,16 @@ class AuxChainSpecificCronSeeder {
       .perform(cronProcessConstants.auxToOriginStateRootSync, {
         auxChainId: 2000,
         originChainId: 1000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  async insertExecuteRecoveryEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.executeRecovery, {
+        chainId: 2000
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

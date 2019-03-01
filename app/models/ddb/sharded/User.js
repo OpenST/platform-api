@@ -17,6 +17,7 @@ const rootPrefix = '../../../..',
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser');
 
+// Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
@@ -50,12 +51,14 @@ class User extends Base {
       tokenId: 'tid',
       userId: 'uid',
       kind: 'ki',
+      salt: 'ss',
       tokenHolderAddress: 'tha',
       multisigAddress: 'ma',
-      recoveryOwnerAddress: 'ra',
+      recoveryOwnerAddress: 'roa',
+      recoveryAddress: 'ra',
       deviceShardNumber: 'dsn',
       sessionShardNumber: 'ssn',
-      recoveryAddressShardNumber: 'rasn',
+      recoveryOwnerShardNumber: 'rosn',
       saasApiStatus: 'sas',
       status: 'sts',
       updatedTimestamp: 'uts'
@@ -83,12 +86,14 @@ class User extends Base {
       tid: 'N',
       uid: 'S',
       ki: 'N',
+      ss: 'S',
       tha: 'S',
       ma: 'S',
+      roa: 'S',
       ra: 'S',
       dsn: 'N',
       ssn: 'N',
-      rasn: 'N',
+      rosn: 'N',
       sas: 'N',
       sts: 'N',
       uts: 'N'
@@ -213,7 +218,22 @@ class User extends Base {
   async getUsersByIds(params) {
     const oThis = this;
 
-    let keyObjArray = [];
+    let keyObjArray = [],
+      selectColumns = [
+        'tokenId',
+        'userId',
+        'kind',
+        'tokenHolderAddress',
+        'multisigAddress',
+        'recoveryOwnerAddress',
+        'recoveryAddress',
+        'deviceShardNumber',
+        'sessionShardNumber',
+        'recoveryOwnerShardNumber',
+        'saasApiStatus',
+        'status',
+        'updatedTimestamp'
+      ];
 
     for (let i = 0; i < params.userIds.length; i++) {
       keyObjArray.push(
@@ -224,7 +244,32 @@ class User extends Base {
       );
     }
 
-    return oThis.batchGetItem(keyObjArray, 'userId');
+    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
+  }
+
+  /**
+   * Get User salt from users table.
+   *
+   * @param tokenId
+   * @param userIds
+   * @returns {Promise<void>}
+   */
+  getUsersSalt(tokenId, userIds) {
+    const oThis = this;
+
+    let keyObjArray = [],
+      selectColumns = ['tokenId', 'userId', 'salt', 'updatedTimestamp'];
+
+    for (let i = 0; i < userIds.length; i++) {
+      keyObjArray.push(
+        oThis._keyObj({
+          tokenId: tokenId,
+          userId: userIds[i]
+        })
+      );
+    }
+
+    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
   }
 
   /**
@@ -406,11 +451,17 @@ class User extends Base {
     if (params['saasApiStatus']) {
       params['saasApiStatus'] = tokenUserConstants.invertedSaasApiStatuses[params['saasApiStatus']];
     }
-
-    params['status'] = tokenUserConstants.invertedStatuses[params['status']];
-
+    if (params['recoveryOwnerAddress']) {
+      params['recoveryOwnerAddress'] = basicHelper.sanitizeAddress(params['recoveryOwnerAddress']);
+    }
+    if (params['recoveryAddress']) {
+      params['recoveryAddress'] = basicHelper.sanitizeAddress(params['recoveryAddress']);
+    }
+    if (params['status']) {
+      params['status'] = tokenUserConstants.invertedStatuses[params['status']];
+    }
     if (!params['updatedTimestamp']) {
-      params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+      params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds().toString();
     }
     return params;
   }
