@@ -134,7 +134,7 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Either device not registered or not allowed to be authorized.'
   },
-  invalid_executable_data: {
+  invalid_raw_calldata: {
     parameter: 'executable_data',
     code: 'invalid',
     message: 'invalid executable_data'
