@@ -8,9 +8,12 @@ const program = require('commander');
 
 const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -33,7 +36,7 @@ if (!program.cronProcessId) {
  *
  * @class
  */
-class AuxWorkflowRouterFactory extends SubscriberBase {
+class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Constructor for aux workflow router factory.
    *
@@ -48,8 +51,15 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
     super(params);
   }
 
-  async _beforeSubscribe() {
-    return true;
+  /**
+   * Process name prefix
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  get _processNamePrefix() {
+    return 'aux_workflow_processor';
   }
 
   /**
@@ -75,17 +85,6 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
   }
 
   /**
-   * Process name prefix
-   *
-   * @returns {String}
-   *
-   * @private
-   */
-  get _processNamePrefix() {
-    return 'aux_workflow_processor';
-  }
-
-  /**
    * Specific validations
    *
    * @returns {Boolean}
@@ -106,6 +105,35 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
    */
   get _cronKind() {
     return cronProcessesConstants.auxWorkflowWorker;
+  }
+
+  /**
+   * Steps to do before subscribe
+   *
+   * @return {Promise<boolean>}
+   * @private
+   */
+  async _beforeSubscribe() {
+    return true;
+  }
+
+  /**
+   * Prepare subscription data.
+   *
+   * @returns {{}}
+   * @private
+   */
+
+  _prepareSubscriptionData() {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription({
+      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      topic: oThis._topicsToSubscribe[0],
+      queue: oThis._queueName,
+      prefetchCount: oThis.prefetchCount,
+      auxChainId: oThis.auxChainId
+    });
   }
 
   /**
@@ -152,6 +180,69 @@ class AuxWorkflowRouterFactory extends SubscriberBase {
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];
     }
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
+  }
+
+  /**
+   * Increment Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _incrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Decrement Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Get Unack count.
+   *
+   * @param messageParams
+   * @returns {number}
+   * @private
+   */
+  _getUnAck(messageParams) {
+    const oThis = this;
+
+    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
+  }
+
+  /**
+   * Sequential executor
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _sequentialExecutor(messageParams) {
+    return responseHelper.successWithData({});
   }
 }
 
