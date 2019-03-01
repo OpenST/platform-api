@@ -2,6 +2,10 @@
 /**
  * Cron to fund eth by chainOwner to chain specific inter chain facilitator addresses
  *
+ * by: Master internal funder
+ * to: Inter chain facilitator addresses
+ * what: eth
+ *
  * @module executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses
  *
  * This cron expects originChainId and auxChainIds as parameter in the params.
@@ -13,6 +17,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
@@ -40,14 +45,14 @@ if (!program.cronProcessId) {
 // Declare variables.
 const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
   flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
-  originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
+  originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer(),
+  fundingAmountsOriginGasMap = fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas;
 
 // Eth funding config per chain
 const ethFundingConfig = {
   [chainAddressConstants.interChainFacilitatorKind]: {
-    oneGWeiMinAmount: '0.00540', //TODO-Funding
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.interChainFacilitatorKind].fundAmount, //TODO-FUNDING:
+    thresholdAmount: fundingAmountsOriginGasMap[chainAddressConstants.interChainFacilitatorKind].thresholdAmount
   }
 };
 
@@ -167,41 +172,40 @@ class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses e
     const oThis = this;
 
     let transferDetails = [],
+      totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0),
       fundingAddressDetails = ethFundingConfig[[chainAddressConstants.interChainFacilitatorKind]],
-      addressMinimumBalance = basicHelper
-        .convertToWei(String(fundingAddressDetails.oneGWeiMinAmount))
+      addressMaxFundAmount = basicHelper
+        .convertToWei(String(fundingAddressDetails.fundAmount))
         .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
     for (let address in addressesToBalanceMap) {
       let addressCurrentBalance = basicHelper.convertToBigNumber(addressesToBalanceMap[address]),
-        addressMinimumBalanceRequiredForGivenFlows = addressMinimumBalance.mul(
-          fundingAddressDetails.fundIfLessThanFlows
-        );
+        addressThresholdBalance = basicHelper
+          .convertToWei(String(fundingAddressDetails.thresholdAmount))
+          .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
       logger.log('Address: ', address);
       logger.log('Current balance of address: ', addressCurrentBalance.toString(10));
-      logger.log('Minimum required balance of address: ', addressMinimumBalance.toString(10));
-      logger.log(
-        'Minimum required balance of address for required flows: ',
-        addressMinimumBalanceRequiredForGivenFlows.toString(10)
-      );
+      logger.log('Max Amount to Fund to address: ', addressMaxFundAmount.toString(10));
+      logger.log('Minimum required balance of address', addressThresholdBalance.toString(10));
 
-      if (addressCurrentBalance.lt(addressMinimumBalanceRequiredForGivenFlows)) {
-        let amountToBeTransferred = addressMinimumBalance.mul(fundingAddressDetails.fundForFlows).toString(10),
+      if (addressCurrentBalance.lt(addressThresholdBalance)) {
+        let amountToBeTransferredBN = addressMaxFundAmount.minus(addressCurrentBalance),
           transferParams = {
             from: oThis.masterInternalFunderAddress,
             to: address,
-            amountInWei: amountToBeTransferred
+            amountInWei: amountToBeTransferredBN.toString(10)
           };
-        logger.log('Funds transferred are: ', amountToBeTransferred);
+        logger.log('Funds transferred are: ', amountToBeTransferredBN.toString(10));
         transferDetails.push(transferParams);
+        totalAmountToTransferFromMIF = totalAmountToTransferFromMIF.plus(amountToBeTransferredBN);
       }
     }
 
     // Start transfer.
     oThis.canExit = false;
 
-    if (transferDetails.length > 0) {
+    if (transferDetails.length > 0 && (await oThis._isMIFEthBalanceGreaterThan(totalAmountToTransferFromMIF))) {
       logger.step('Transferring Eth to facilitator addresses on origin chain id: ', oThis.originChainId);
 
       await oThis._transferEth(transferDetails);
