@@ -17,9 +17,11 @@ const rootPrefix = '../../..',
   TransferEth = require(rootPrefix + '/lib/transfer/Eth'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   GetEthBalance = require(rootPrefix + '/lib/getBalance/Eth'),
+  GetOstBalance = require(rootPrefix + '/lib/getBalance/Ost'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  grantConstants = require(rootPrefix + '/lib/globalConstant/grant'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -56,16 +58,16 @@ const fundingAmountsOriginGasMap = fundingAmounts[chainAddressConstants.masterIn
 // Config for addresses which need to be funded.
 const ethFundingConfig = {
   [chainAddressConstants.originDeployerKind]: {
-    oneGWeiMinAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount, //TODO-FUNDING:
+    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount,
     thresholdAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDeployerKind].thresholdAmount
   },
   [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
-    oneGWeiMinAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractAdminKind].fundAmount,
+    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractAdminKind].fundAmount,
     thresholdAmount:
       fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractAdminKind].thresholdAmount
   },
   [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
-    oneGWeiMinAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].fundAmount,
+    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].fundAmount,
     thresholdAmount:
       fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].thresholdAmount
   }
@@ -74,13 +76,9 @@ const ethFundingConfig = {
 // Alert Config
 const alertConfig = {
   [chainAddressConstants.masterInternalFunderKind]: {
-    minAmount: '0.6', //TODO-FUNDING:
-    alertIfLessThanFlows: flowsForMasterInternalFunderMinimumBalance,
     alertRequired: true
   },
   [chainAddressConstants.originGranterKind]: {
-    minAmount: '1', //TODO-FUNDING:
-    alertIfLessThanFlows: flowsForGranterMinimumBalance,
     alertRequired: coreConstants.subEnvironment !== environmentInfoConstants.subEnvironment.main
   }
 };
@@ -159,6 +157,9 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _start() {
     const oThis = this;
 
+    logger.step('Populating alert config');
+    oThis.populateAlertConfig();
+
     logger.step('Fetching addresses which need to be funded.');
     await oThis._fetchAddresses();
 
@@ -172,6 +173,44 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     await oThis._sendAlertIfNeeded();
 
     logger.step('Cron completed.');
+  }
+
+  /**
+   * This function populates alert config
+   *
+   * @returns {Object}
+   */
+  populateAlertConfig() {
+    const oThis = this;
+
+    let maxEthBalanceToFund = basicHelper.convertToWei(String(0)),
+      thresholdEthBalance = basicHelper.convertToWei(String(0)),
+      mifEthFundingConfig = basicHelper.deepDup(
+        fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas
+      );
+
+    for (let address in mifEthFundingConfig) {
+      maxEthBalanceToFund = maxEthBalanceToFund.plus(
+        basicHelper.convertToWei(String(mifEthFundingConfig[address].fundAmount))
+      );
+      thresholdEthBalance = thresholdEthBalance.plus(
+        basicHelper.convertToWei(String(mifEthFundingConfig[address].thresholdAmount))
+      );
+    }
+
+    alertConfig[chainAddressConstants.masterInternalFunderKind].maxEthRequirement = maxEthBalanceToFund.mul(
+      basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)
+    );
+
+    let granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei),
+      granterOstRequirement = basicHelper.convertToBigNumber(grantConstants.grantOstValueInWei);
+
+    alertConfig[chainAddressConstants.originGranterKind].maxEthRequirement = granterEthRequirement.mul(
+      flowsForGranterMinimumBalance
+    );
+    alertConfig[chainAddressConstants.originGranterKind].maxOstRequirement = granterOstRequirement.mul(
+      flowsForGranterMinimumBalance
+    );
   }
 
   /**
@@ -254,33 +293,35 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _sendFundsIfNeeded() {
     const oThis = this;
 
-    let transferDetails = [];
+    let transferDetails = [],
+      totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0);
 
     for (let addressKind in ethFundingConfig) {
       let fundingAddressDetails = ethFundingConfig[addressKind],
         address = fundingAddressDetails.address,
-        addressMinimumBalance = basicHelper
+        addressThresholdBalance = basicHelper
           .convertToWei(String(fundingAddressDetails.thresholdAmount))
           .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
         addressCurrentBalance = basicHelper.convertToBigNumber(fundingAddressDetails.balance),
         addressMaxAmountToFund = basicHelper
-          .convertToWei(String(fundingAddressDetails.oneGWeiMinAmount))
+          .convertToWei(String(fundingAddressDetails.fundAmount))
           .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
-      if (addressCurrentBalance.lt(addressMinimumBalance)) {
-        let params = {
-          from: oThis.masterInternalFunderAddress,
-          to: address,
-          amountInWei: addressMaxAmountToFund.minus(addressMinimumBalance).toString(10)
-        };
+      if (addressCurrentBalance.lt(addressThresholdBalance)) {
+        let amountToTransferBN = addressMaxAmountToFund.minus(addressCurrentBalance),
+          params = {
+            from: oThis.masterInternalFunderAddress,
+            to: address,
+            amountInWei: amountToTransferBN.toString(10)
+          };
+        totalAmountToTransferFromMIF = totalAmountToTransferFromMIF.plus(amountToTransferBN);
         transferDetails.push(params);
       }
     }
 
     logger.step('Transferring amount.');
     logger.debug('Transfer Amount Details Map:', transferDetails);
-    //Todo: Check if masterInternalFunder has that much amount
-    if (transferDetails.length > 0) {
+    if (transferDetails.length > 0 && (await oThis._isMIFBalanceGreaterThan(totalAmountToTransferFromMIF))) {
       oThis.canExit = false;
 
       const transferEth = new TransferEth({
@@ -288,9 +329,45 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
         transferDetails: transferDetails
       });
 
-      //await transferEth.perform();
+      await transferEth.perform();
       oThis.canExit = true;
     }
+  }
+
+  /**
+   * This function tells if the master internal funder balance is greater than the given amount.
+   *
+   * @param amount
+   * @returns {Promise<boolean>}
+   * @private
+   */
+  async _isMIFBalanceGreaterThan(amount) {
+    const oThis = this;
+
+    // Fetch eth balances
+    const getMIFBalance = new GetEthBalance({
+      originChainId: oThis.originChainId,
+      addresses: [oThis.masterInternalFunderAddress]
+    });
+
+    let mifAddressToBalanceMap = await getMIFBalance.perform(),
+      mifBalance = basicHelper.convertToBigNumber(mifAddressToBalanceMap[oThis.masterInternalFunderAddress]);
+
+    if (mifBalance.lt(amount)) {
+      //Create an alert
+      logger.warn(
+        'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
+      );
+      logger.notify(
+        'e_f_bco_ocs_3',
+        'Low balance of addressKind: ' + chainAddressConstants.masterInternalFunderKind + '. on chainId: ',
+        +oThis.originChainId + ' Address: ' + oThis.masterInternalFunderAddress
+      );
+
+      return false;
+    }
+
+    return true;
   }
 
   /**
@@ -303,24 +380,64 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
 
     for (let addressKind in alertConfig) {
       let alertConfigDetails = alertConfig[addressKind],
-        address = alertConfigDetails.address,
-        addressMinimumBalance = basicHelper
-          .convertToWei(String(alertConfigDetails.minAmount))
-          .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
-        addressCurrentBalance = basicHelper.convertToBigNumber(alertConfigDetails.balance);
+        address = alertConfigDetails.address;
 
-      if (
-        addressCurrentBalance.lt(addressMinimumBalance.mul(alertConfigDetails.alertIfLessThanFlows)) &&
-        alertConfigDetails.alertRequired
-      ) {
-        logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
-        logger.notify(
-          'e_f_bco_ocs_4',
-          'Low balance of addressKind: ' + addressKind + '. on chainId: ',
-          +oThis.originChainId + ' Address: ' + address
-        );
+      if (alertConfigDetails.maxEthRequirement) {
+        let addressEthRequirement = alertConfigDetails.maxEthRequirement,
+          addressCurrentBalance = basicHelper.convertToBigNumber(alertConfigDetails.balance),
+          currency = 'Eth';
+
+        if (addressCurrentBalance.lt(addressEthRequirement) && alertConfigDetails.alertRequired) {
+          oThis._notify(addressKind, address, currency);
+        }
+      }
+
+      if (alertConfigDetails.maxOstRequirement) {
+        let addressOstRequirement = alertConfigDetails.maxOstRequirement,
+          addressCurrentOstBalance = await oThis._fetchOstBalance(address), //Ost Balance
+          addressCurrentOstBalanceBN = basicHelper.convertToBigNumber(addressCurrentOstBalance),
+          currency = 'OST';
+
+        if (addressCurrentOstBalanceBN.lt(addressOstRequirement) && alertConfigDetails.alertRequired) {
+          oThis._notify(addressKind, address, currency);
+        }
       }
     }
+  }
+
+  /**
+   * Fetches OST balance of a given address
+   *
+   * @param address
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchOstBalance(address) {
+    const oThis = this;
+
+    let getOstBalanceObj = new GetOstBalance({ originChainId: oThis.originChainId, addresses: [address] }),
+      getOstBalanceMap = await getOstBalanceObj.perform();
+
+    return getOstBalanceMap[address];
+  }
+
+  /**
+   * This function performs notification of an error condition
+   *
+   * @param addressKind
+   * @param address
+   * @param currency
+   * @private
+   */
+  _notify(addressKind, address, currency) {
+    const oThis = this;
+
+    logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
+    logger.notify(
+      'e_f_bco_ocs_4',
+      'Low balance of ' + currency + '. ' + 'addressKind: ' + addressKind + '. on chainId: ',
+      +oThis.originChainId + ' Address: ' + address
+    );
   }
 }
 

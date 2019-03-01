@@ -10,6 +10,7 @@ const BigNumber = require('bignumber.js');
 
 const rootPrefix = '..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   apiErrorConfig = require(rootPrefix + '/config/apiParams/apiErrorConfig'),
   v2ParamErrorConfig = require(rootPrefix + '/config/apiParams/v2/errorConfig'),
@@ -62,9 +63,22 @@ class BasicHelperKlass {
    */
   getOriginMaxGasPriceMultiplierWithBuffer() {
     let maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
-      maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(this.convertToBigNumber(1))).toString(10);
+      maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(1)).toString(10);
 
-    return String(Number(maxGasValueInString) + 1);
+    return String(Number(maxGasValueInString) + coreConstants.ORIGIN_GAS_BUFFER);
+  }
+
+  /**
+   * Get the multiple of max gas price in aux with some buffer (example: 75Gwei will return '75')
+   * Buffer right now is 1 Gwei.
+   *
+   * @return {String}
+   */
+  getAuxMaxGasPriceMultiplierWithBuffer() {
+    let maxGasValueInBigNumber = this.convertToBigNumber(contractConstants.auxChainGasPrice),
+      maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(1)).toString(10);
+
+    return String(Number(maxGasValueInString) + coreConstants.AUX_GAS_BUFFER);
   }
 
   /**
@@ -72,7 +86,7 @@ class BasicHelperKlass {
    * @param {BigNumber} num
    */
   convertGweiToWei(num) {
-    return num.mul(this.convertToBigNumber(10).toPower(9));
+    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(9));
   }
 
   /**
