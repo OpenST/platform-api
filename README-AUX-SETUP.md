@@ -21,10 +21,9 @@
 * Create all SAAS Owned DDB Tables
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2 --balanceShardNoStr 1,2
+    node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2 --balanceShardNoStr 1,2 --recoveryOwnerAddressShardNoStr 1,2
 ```
-    * Mandatory parameters: auxChainId
-    * Optional parameters (defaults to 1): userShardCount, deviceShardCount, sessionShardCount
+    * All the parameters are mandatory parameters.
 
 * Create Aux DDB Tables (Run the addChain service and pass all the necessary parameters):
 ```bash

@@ -110,6 +110,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '84': workflowStepConstants.checkProgressStakeStatus,
     '85': workflowStepConstants.checkProgressMintStatus,
 
+    '131': workflowStepConstants.deployDelayedRecoveryModuleMasterCopy,
+    '132': workflowStepConstants.saveDelayedRecoveryModuleMasterCopy,
+    '133': workflowStepConstants.deployCreateAndAddModules,
+    '134': workflowStepConstants.saveCreateAndAddModules,
+
     '101': workflowStepConstants.markSuccess,
     '102': workflowStepConstants.markFailure,
 
@@ -164,7 +169,27 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '218': workflowStepConstants.revokeSessionInit,
     '219': workflowStepConstants.revokeSessionPerformTransaction,
     '220': workflowStepConstants.revokeSessionVerifyTransaction,
-    '221': workflowStepConstants.rollbackRevokeSessionTransaction
+    '221': workflowStepConstants.rollbackRevokeSessionTransaction,
+
+    '300': workflowStepConstants.initiateRecoveryInit,
+    '301': workflowStepConstants.initiateRecoveryPerformTransaction,
+    '302': workflowStepConstants.initiateRecoveryVerifyTransaction,
+
+    '303': workflowStepConstants.abortRecoveryByOwnerInit,
+    '304': workflowStepConstants.abortRecoveryByOwnerPerformTransaction,
+    '305': workflowStepConstants.abortRecoveryByOwnerVerifyTransaction,
+
+    '306': workflowStepConstants.resetRecoveryOwnerInit,
+    '307': workflowStepConstants.resetRecoveryOwnerPerformTransaction,
+    '308': workflowStepConstants.resetRecoveryOwnerVerifyTransaction,
+
+    '309': workflowStepConstants.executeRecoveryInit,
+    '310': workflowStepConstants.executeRecoveryPerformTransaction,
+    '311': workflowStepConstants.executeRecoveryVerifyTransaction,
+
+    '312': workflowStepConstants.abortRecoveryByRecoveryControllerInit,
+    '313': workflowStepConstants.abortRecoveryByRecoveryControllerPerformTransaction,
+    '314': workflowStepConstants.abortRecoveryByRecoveryControllerVerifyTransaction
   },
   invertedKinds = util.invert(kinds);
 

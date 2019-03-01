@@ -33,7 +33,7 @@
       },
       "chainId": 2000,
       "client": "geth",
-      "blockGenerationTime": 2,
+      "blockGenerationTime": 3,
       "finalizeAfterBlocks": 4
     },
     "dynamodb": {

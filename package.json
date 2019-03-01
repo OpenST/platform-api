@@ -10,7 +10,7 @@
     "@openstfoundation/brandedtoken.js": "0.10.0-alpha.1",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@openstfoundation/mosaic.js": "0.10.0-beta.4",
-    "@openstfoundation/openst.js": "0.10.0-alpha.1",
+    "@openstfoundation/openst.js": "0.10.0-alpha.4",
     "@ostdotcom/base": "1.0.0-beta.1",
     "@ostdotcom/ost-block-scanner": "1.0.0-beta.3",
     "@ostdotcom/cache": "1.0.6-beta.14",
