@@ -71,8 +71,8 @@ class ConfigStrategyObject {
           shortName: 'oca',
           dataType: 'S'
         },
-        simpleStakeAddress: {
-          shortName: 'ssa',
+        gatewayContractAddress: {
+          shortName: 'gwca',
           dataType: 'S'
         }
       },
@@ -135,7 +135,7 @@ class ConfigStrategyObject {
         },
         toBeSyncedInEs: {
           shortName: 'sie',
-          dataType: 'BOOL'
+          dataType: 'N'
         }
       },
       transactions: {

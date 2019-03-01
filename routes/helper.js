@@ -1,6 +1,6 @@
 'use strict';
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '..',
@@ -9,6 +9,7 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId');
 
 class RoutesHelper {
@@ -64,7 +65,7 @@ class RoutesHelper {
       errorConfig = basicHelper.fetchErrorConfig(req.decodedParams.apiVersion);
 
     if (
-      req.decodedParams.app_validated_api_name &&
+      req.decodedParams.app_validated_api_name != apiName.allInternalRoutes &&
       req.decodedParams.app_validated_api_name != req.decodedParams.apiName
     ) {
       return responseHelper

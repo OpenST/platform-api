@@ -5,7 +5,7 @@
  * @module app/models/ddb/shared/ShardByToken
  */
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),

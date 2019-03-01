@@ -4,7 +4,7 @@
  *
  * @module executables/setup/origin/saasDdb
  */
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),

@@ -24,6 +24,8 @@ class SanitizeRecursively {
 
     if (typeof params === 'string') {
       params = oThis._sanitizeString(params);
+    } else if (typeof params === 'boolean' || typeof params === 'number') {
+      // do nothing and return param as is
     } else if (params instanceof Array) {
       for (let i in params) {
         params[i] = oThis.sanitize_params_recursively(params[i]);
@@ -84,6 +86,16 @@ class Sanitizer {
   sanitizeDynamicUrlParams(req, res, next) {
     req.params = sanitizeRecursively.sanitize_params_recursively(req.params);
     return next();
+  }
+
+  /**
+   * Sanitize Object
+   *
+   * @param {Object} params
+   * @returns {Object}
+   */
+  sanitizeParams(params) {
+    return sanitizeRecursively.sanitize_params_recursively(params);
   }
 }
 

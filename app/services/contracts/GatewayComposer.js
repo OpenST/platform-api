@@ -9,7 +9,7 @@
  *
  * @module app/services/contracts/GatewayComposer
  */
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
   MosaicJs = require('@openstfoundation/mosaic.js');
 

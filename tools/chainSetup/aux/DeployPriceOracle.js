@@ -4,8 +4,8 @@
  *
  * @module tools/chainSetup/aux/DeployPriceOracle
  */
-const OpenStOracle = require('@ostdotcom/ost-price-oracle'),
-  deployAndSetOpsAndAdminHelper = new OpenStOracle.DeployAndSetOpsAndAdminHelper();
+const OpenSTOracle = require('@ostdotcom/ost-price-oracle'),
+  deployAndSetOpsAndAdminHelper = new OpenSTOracle.DeployAndSetOpsAndAdminHelper();
 
 const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),

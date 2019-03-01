@@ -17,7 +17,7 @@
 // ByChainIdKlass = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 // rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq');
 // rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-// OSTBase = require('@openstfoundation/openst-base');
+// OSTBase = require('@ostdotcom/base');
 //
 // require(rootPrefix + '/lib/executeTransactionManagement/GetPublishDetails');
 //
@@ -65,7 +65,7 @@
 // }
 //
 // async function publish() {
-//   let openStNotification = await getNotiInstance();
+//   let ostNotification = await getNotiInstance();
 //   for (let i = 0; i < 1; i++) {
 //     let publishDetails = await getPublishDetails();
 //     let messageParams = {
@@ -82,7 +82,7 @@
 //       }
 //     };
 //     await basicHelper.pauseForMilliSeconds(100);
-//     let setToRMQ = await openStNotification.publishEvent.perform(messageParams);
+//     let setToRMQ = await ostNotification.publishEvent.perform(messageParams);
 //     console.log('topicName-----', publishDetails.topicName, 'setToRMQ----', setToRMQ);
 //   }
 //   return true;

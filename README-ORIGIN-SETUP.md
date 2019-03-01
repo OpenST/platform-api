@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xc19f87b84723e14d438419c078123489a1952653'; // master internal funder address
+let address = '0xf5f8f91830fba42229478838e73ef35d3b98e0da'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -90,7 +90,7 @@ NOTE: Copy the 'Setup Simple Token response' from the script response above and 
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...' --stAmount 1000000 --ethAmount 50
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0xef5f953eac4f2449f1e62696922d16953e4fe433010a96e791128de0ae4fe772' --ethOwnerPrivateKey '0x26c384c491d793cd2fde78c56f622b22c1bb2a6f3d13ef5993002693248a4980' --stAmount 1000000 --ethAmount 50
 ```
 
 * Save simple token admin and owner addresses in database.
@@ -104,7 +104,7 @@ Granter address gets ETH and OST in this step.
     - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xabc...'
+    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xef5f953eac4f2449f1e62696922d16953e4fe433010a96e791128de0ae4fe772'
 ```
 
 * Setup Origin Contracts

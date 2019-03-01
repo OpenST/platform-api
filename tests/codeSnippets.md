@@ -16,7 +16,7 @@ b.getComplete().then(function(r) {config = r.data});
 
 ```node
 
-OSTBase = require('@openstfoundation/openst-base')
+OSTBase = require('@ostdotcom/base')
 InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
@@ -36,11 +36,11 @@ asso.perform().then(console.log);
 
 require('./app/services/user/CreateTokenHolder');
 CreateTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateTokenHolder');
-asso = new CreateTokenHolder({client_id:10087, user_id: '053bbb8a-534a-44ef-8af1-cec9084be8f9', device_address: '0x734d3f5e8e51c40dd5e166fda7b8329655d49ef6', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
+asso = new CreateTokenHolder({client_id:10004, user_id: 'ec866539-65d9-4561-a145-17c9e592632d', device_address: '0xbE8b3Fa4133E77e72277aF6b3Ea7BB3750511B88', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
 asso.perform().then(console.log);
 
 a = require('./lib/executeTransactionManagement/FundExTxWorker.js')
-b = new a({tokenId: 1063, chainId: 200, exTxWorkerAddresses: ['0x207f44087ccd5bdecdf8606c4ca3a2ffec74fe87']})
+b = new a({tokenId: 1001, chainId: 2000, exTxWorkerAddresses: ['0xb953bf26c311cf1f6d07091f5db26558140176e7']})
 b.perform().then(console.log)
 
 
@@ -48,6 +48,10 @@ ForSession = require('./lib/nonce/get/ForSession');
 asso = new ForSession({tokenId: '1063', chainId:200, address: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027', userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9'});
 asso.getNonce().then(console.log);
 
+require('./lib/setup/economy/VerifySetup');
+EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
+asso = new EconomySetupVerifier({originChainId:1000, auxChainId: 2000, tokenId: 1000});
+asso.perform().then(console.log);
 
 
 params = {
@@ -80,19 +84,66 @@ submitTx.perform().then(console.log).catch(console.log)
 require('./lib/cacheManagement/chainMulti/TokenUserDetail.js')
 TokenUserDetailsCache = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenUserDetailsCache');
 submitTx = new TokenUserDetailsCache({
-  tokenId: '1063',
-  userIds: ['053bbb8a-534a-44ef-8af1-cec9084be8f9']
+  tokenId: '1001',
+  userIds: ['32e1ef20-5c9f-4336-a80f-bee4c330e13b']
 });
 submitTx.fetch().then(console.log).catch(console.log)
 
 
+// From User Tx
+
+user_data = {
+  userId: '32e1ef20-5c9f-4336-a80f-bee4c330e13b',
+    status: 'ACTIVATED',
+    multisigAddress: '0x2e4f07ddca608b0369efa5325fdd3ebd08f64c13',
+    updatedTimestamp: '1551346703',
+    tokenHolderAddress: '0x5c9ff8ca5b2a5dd063b7804c34ec23f226f23a8d',
+    deviceShardNumber: '1',
+    kind: 'user',
+    tokenId: '1001',
+    recoveryOwnerAddress: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c',
+    sessionShardNumber: '1',
+    recoveryAddressShardNumber: 0,
+    saasApiStatus: 'active'
+}
+
+params = {
+  user_data: user_data,
+  nonce: 3,
+  signature: '0x3130c04bfef72b821ef2bfa53f7a39a7b90b37e47cab4d95c44d3981566770771520418704d221f4ad9e2703582e4006d59e79002f202bfc55b7f0aec1fccbf61b',
+  signer: '0x481D1b527188968E5A4FF9fc112A9163384CCb03',
+  client_id: 10001,
+  token_id: 1001,
+  meta_property: {
+      "name":  "user_to_company" , //like, download
+      "type":  "company_to_user", // user_to_user, company_to_user, user_to_company
+      "details" : "company_to_user"
+  },
+  to: "0x4ddef38f71699c1680a5df47be783613dc0a46db",
+  raw_calldata: JSON.stringify({
+      method: 'directTransfers',
+      parameters: [
+          ['0x39c5f8de38f5915d07ef2e74eb28a81ef053f1d3'],
+          ['100']
+      ]
+  })
+}
+
+require('./app/services/transaction/execute/FromUser.js');
+ExecuteTxFromUser = ic.getShadowedClassFor(coreConstants.icNameSpace,'ExecuteTxFromUser');
+submitTx = new ExecuteTxFromUser(params);
+submitTx.perform().then(console.log).catch(console.log)
+
+
+// Fetch user balance
+
 require('./app/models/ddb/sharded/Balance.js');
 BalanceModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel');
-asso = new BalanceModel({shardNumber:2, chainId: 200});
+asso = new BalanceModel({shardNumber:1, chainId: 2000});
 asso.updateBalance({
-  blockChainSettledBalance: '500000000000000000000',
-  erc20Address: '0xb00b57df128e9afbc6a2487544d1e847bf7d2039',
-  tokenHolderAddress: '0xd97f2ca4dff7b8e129d1e7d72ec1cf9ff9c0ae00'
+  blockChainSettledBalance: '1110999999999999913000',
+  erc20Address: '0x73a59fd69dbf0d9451dd57e894ce71ec718d258d',
+  tokenHolderAddress: '0x39c5f8de38f5915d07ef2e74eb28a81ef053f1d3'
 }).then(console.log);
 
 
@@ -140,7 +191,7 @@ b.get().then(function(r) {config = r.data});
 // wait
 
 
-OSTBase = require('@openstfoundation/openst-base')
+OSTBase = require('@ostdotcom/base')
 InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
@@ -161,9 +212,9 @@ a.perform().then(console.log)
 ```node
 
 params = {
-  currentStepId: 82,
-  workflowId: 2,
-  stepKind: 'initializeCompanyTokenHolderInDb',
+  currentStepId: 46,
+  workflowId: 3,
+  stepKind: 'deployTokenGateway',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
   topic: 'workflow.economySetup'
@@ -214,10 +265,10 @@ a = require('./lib/transfer/Eth');
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]});
 b.perform().then(console.log);
 
-chainOwner = '0xdb3b6e4c9ce358b0ed2586bf36d2f3a0c21678b6';
+chainOwner = '0x687bd5a85997d7f394f5322644ea19c291617057';
 auxChainId = 2000;
 a = require('./lib/fund/stPrime/BatchTransfer')
-b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0x1d6927f6dc4f5184e55a79bcb1fac663adb9f021', amountInWei:'10000000000000000000'}]})
+b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0xb953bf26c311cf1f6d07091f5db26558140176e7', amountInWei:'10000000000000000000'}]})
 b.perform().then(console.log)
 
 

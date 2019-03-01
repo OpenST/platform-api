@@ -44,8 +44,8 @@ class ShardedBase extends BaseModel {
 
     oThis.configStrategyObj = null;
 
-    oThis.openSTStorage = storageProvider.getInstance(storageConstants.sharded, oThis.chainId);
-    oThis.ddbServiceObj = oThis.openSTStorage.dynamoDBService;
+    oThis.ostStorage = storageProvider.getInstance(storageConstants.sharded, oThis.chainId);
+    oThis.ddbServiceObj = oThis.ostStorage.dynamoDBService;
   }
 
   /**
@@ -63,7 +63,7 @@ class ShardedBase extends BaseModel {
   get shardHelper() {
     const oThis = this;
 
-    return new oThis.openSTStorage.model.ShardHelper({
+    return new oThis.ostStorage.model.DynamodbShardHelper({
       table_schema: oThis.tableSchema(),
       shard_name: oThis.tableName()
     });
