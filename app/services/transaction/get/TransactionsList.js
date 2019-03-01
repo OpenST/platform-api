@@ -8,15 +8,13 @@ const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  GetTransactionBase = require(rootPrefix + '/app/services/transaction/get/Base'),
   GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   ESTransactionService = esServices.services.transactions;
@@ -29,7 +27,7 @@ require(rootPrefix + '/lib/transactions/GetTransactionDetails');
  *
  * @class
  */
-class GetTransactionsList extends ServiceBase {
+class GetTransactionsList extends GetTransactionBase {
   /**
    * Constructor for execute transaction
    *
@@ -41,9 +39,6 @@ class GetTransactionsList extends ServiceBase {
     super(params);
     const oThis = this;
 
-    oThis.userId = params.user_id;
-    oThis.clientId = params.client_id;
-    oThis.tokenId = params.token_id;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
     oThis.status = params.status || [];
@@ -65,27 +60,23 @@ class GetTransactionsList extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
-
     // Parse pagination.
     oThis._validateAndSanitizeParams();
 
     let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       cacheResponse = await oThis._fetchUserFromCache(),
       userData = cacheResponse && cacheResponse.data[oThis.userId],
-      tokenHolderAddress = userData && userData['tokenHolderAddress'];
+      tokenHolderAddress = userData && userData.tokenHolderAddress;
 
     await oThis._validateTokenHolderAddress(tokenHolderAddress);
 
-    const serviceConfig = oThis.getServiceConfig(),
+    const serviceConfig = oThis._getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
-      esQuery = oThis.getElasticSearchQuery(tokenHolderAddress);
+      esQuery = oThis._getElasticSearchQuery(tokenHolderAddress);
 
     let userTransactions = await service.search(esQuery);
 
-    logger.debug('userTransactions from Elastic search ', userTransactions);
+    logger.debug('User Transactions from Elastic search ', userTransactions);
 
     if (userTransactions.isSuccess() && userTransactions.data[oThis.auxChainId + '_transactions'].length !== 0) {
       oThis._setMeta(userTransactions.data);
@@ -143,21 +134,9 @@ class GetTransactionsList extends ServiceBase {
   _defaultPageLimit() {
     return 10;
   }
-  /**
-   * Fetch user details.
-   *
-   * @return {Promise<string>}
-   */
-  async _fetchUserFromCache() {
-    const oThis = this,
-      TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] });
-
-    return tokenUserDetailsCacheObj.fetch();
-  }
 
   /**
-   * Validate Specific params
+   * Validate if token holder exists.
    *
    * @param tokenHolderAddress
    * @returns {Promise<*>}
@@ -169,7 +148,7 @@ class GetTransactionsList extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_t_g_tl_2',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_user_id'], //TODO confirm
+          params_error_identifiers: ['invalid_user_id'],
           debug_options: {}
         })
       );
@@ -177,41 +156,8 @@ class GetTransactionsList extends ServiceBase {
   }
 
   /**
-   * getServiceConfig
+   * Get elastic search query.
    *
-   * @return Object <Service config>
-   *
-   * Eg finalConfig = {
-   *             "chainId": 123, //Aux chainId
-   *             "elasticSearch": {
-   *               "host":"localhost:9200",
-   *               "region":"localhost",
-   *               "apiKey":"elastic",
-   *               "apiSecret":"changeme",
-   *               "apiVersion":"6.2"
-   *             }
-   *   }
-   **/
-
-  getServiceConfig() {
-    const oThis = this,
-      configStrategy = oThis._configStrategyObject,
-      esConfig = configStrategy.elasticSearchConfig,
-      elasticSearchKey = configStrategyConstants.elasticSearch;
-
-    oThis.auxChainId = configStrategy.auxChainId;
-
-    let finalConfig = {
-      chainId: oThis.auxChainId
-    };
-
-    finalConfig[elasticSearchKey] = esConfig;
-
-    return finalConfig;
-  }
-
-  /**
-   * getServiceConfig
    * @input tokenHolderAddress
    * @return Object <Service config>
    *
@@ -223,9 +169,10 @@ class GetTransactionsList extends ServiceBase {
    *     }
    *   }
    * }
+   * @private
    **/
 
-  getElasticSearchQuery(tokenHolderAddress) {
+  _getElasticSearchQuery(tokenHolderAddress) {
     const oThis = this,
       addressQueryString = oThis.getUserAddressQueryString(tokenHolderAddress),
       statusQueryString = oThis.getStatusQueryString(),
@@ -449,32 +396,6 @@ class GetTransactionsList extends ServiceBase {
 
   getQuerySubString(query) {
     return ' ( ' + query + ' ) ';
-  }
-
-  /***
-   * Config strategy
-   *
-   * @return {Object}
-   */
-  get _configStrategy() {
-    const oThis = this;
-
-    return oThis.ic().configStrategy;
-  }
-
-  /**
-   * Object of config strategy class
-   *
-   * @return {Object}
-   */
-  get _configStrategyObject() {
-    const oThis = this;
-
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
-
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
-
-    return oThis.configStrategyObj;
   }
 }
 
