@@ -4,7 +4,7 @@
  *
  * @module executables/rabbitmq/MultiSubscriptionBase
  */
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
@@ -137,7 +137,7 @@ class MultiSubscriptionBase extends CronBase {
 
     let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[subscriptionTopic];
 
-    const openStNotification = await rabbitmqProvider.getInstance(rabbitmqSubscription.rabbitmqKind, {
+    const ostNotification = await rabbitmqProvider.getInstance(rabbitmqSubscription.rabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
       auxChainId: rabbitmqSubscription.auxChainId
@@ -152,7 +152,7 @@ class MultiSubscriptionBase extends CronBase {
       if (rabbitmqSubscription.consumerTag) {
         process.emit('RESUME_CONSUME', rabbitmqSubscription.consumerTag);
       } else {
-        openStNotification.subscribeEvent
+        ostNotification.subscribeEvent
           .rabbit(
             [rabbitmqSubscription.topic],
             {

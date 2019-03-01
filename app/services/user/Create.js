@@ -6,7 +6,7 @@
  */
 
 const uuidV4 = require('uuid/v4'),
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',

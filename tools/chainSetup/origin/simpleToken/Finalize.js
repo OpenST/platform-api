@@ -6,7 +6,7 @@
  * @module tools/chainSetup/origin/simpleToken/Finalize
  */
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),

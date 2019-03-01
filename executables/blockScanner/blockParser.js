@@ -331,11 +331,11 @@ class BlockParser extends PublisherBase {
         }
       };
 
-      let openSTNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
+      let ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
           connectionWaitSeconds: connectionTimeoutConst.crons,
           switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
         }),
-        setToRMQ = await openSTNotification.publishEvent.perform(messageParams);
+        setToRMQ = await ostNotification.publishEvent.perform(messageParams);
 
       // If could not set to RMQ run in async.
       if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {

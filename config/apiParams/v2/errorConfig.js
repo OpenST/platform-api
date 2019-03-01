@@ -284,6 +284,11 @@ const v2ErrorConfig = {
     parameter: 'limit',
     code: 'invalid',
     message: 'Invalid limit'
+  },
+  invalid_transaction_id: {
+    parameter: 'transaction_id',
+    code: 'invalid',
+    message: 'Invalid transaction id'
   }
 };
 

@@ -6,7 +6,9 @@
  * @module app/services/transaction/execute/Base
  */
 
-const uuidv4 = require('uuid/v4');
+const uuidv4 = require('uuid/v4'),
+  OpenSTJs = require('@openstfoundation/openst.js'),
+  TokenHolderHelper = OpenSTJs.Helpers.TokenHolder;
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -51,8 +53,9 @@ class ExecuteTxBase extends ServiceBase {
    * Constructor
    *
    * @param {Object} params
-   * @param {Number} params.token_id
-   * @param {String} params.to
+   * @param {String} params.user_id - user_id
+   * @param {Number} params.token_id - token id
+   * @param {String} params.to - rules address
    * @param {Object} params.raw_calldata - raw_calldata
    * @param {Object} [params.meta_property]
    *
@@ -63,6 +66,7 @@ class ExecuteTxBase extends ServiceBase {
 
     const oThis = this;
 
+    oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
     oThis.toAddress = params.to;
     oThis.rawCalldata = params.raw_calldata;
@@ -93,6 +97,8 @@ class ExecuteTxBase extends ServiceBase {
     oThis.transactionMetaId = null;
     oThis.token = null;
     oThis.pendingTransactionData = null;
+    oThis.callPrefix = null;
+    oThis.executableTxData = null;
   }
 
   /**
@@ -140,6 +146,8 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setNonce();
 
+    await oThis._setExecutableTxData();
+
     await oThis._setSignature();
 
     await oThis._verifySessionSpendingLimit();
@@ -176,13 +184,16 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    await oThis._fetchTokenDetails();
+    // fetch token details for client id
+    if (oThis.clientId && !oThis.tokenId) {
+      await oThis._fetchTokenDetails();
+    }
 
     await oThis._setTokenAddresses();
 
-    oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
-
     await oThis._setTokenHolderAddress();
+
+    await oThis._setCallPrefix();
   }
 
   /**
@@ -197,7 +208,7 @@ class ExecuteTxBase extends ServiceBase {
 
     let response;
 
-    if (oThis.tokenRuleAddress === oThis.toAddress) {
+    if (oThis.toAddress === oThis.tokenRuleAddress) {
       oThis.ruleId = ruleDetails[ruleConstants.tokenRuleName].ruleId;
       response = await new ProcessTokenRuleExecutableData({
         contractAddress: oThis.tokenRuleAddress,
@@ -205,7 +216,7 @@ class ExecuteTxBase extends ServiceBase {
         tokenHolderAddress: oThis.tokenHolderAddress,
         rawCallData: oThis.rawCalldata
       }).perform();
-    } else if (oThis.pricerRuleAddress === oThis.toAddress) {
+    } else if (oThis.toAddress === oThis.pricerRuleAddress) {
       oThis.ruleId = ruleDetails[ruleConstants.pricerRuleName].ruleId;
       response = await new ProcessPricerRuleExecutableData({
         contractAddress: oThis.pricerRuleAddress,
@@ -365,16 +376,15 @@ class ExecuteTxBase extends ServiceBase {
       sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
-      toBeSyncedInEs: true,
+      toBeSyncedInEs: 1,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
     });
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
-    } else {
-      oThis.pendingTransactionInserted = 1;
     }
 
+    oThis.pendingTransactionInserted = 1;
     oThis.pendingTransactionData = insertRsp.data;
   }
 
@@ -519,13 +529,14 @@ class ExecuteTxBase extends ServiceBase {
     if (getAddrRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_b_1',
+          internal_error_identifier: 's_et_b_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
     }
 
     oThis.tokenAddresses = getAddrRsp.data;
+    oThis.erc20Address = oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
   }
 
   /**
@@ -561,6 +572,33 @@ class ExecuteTxBase extends ServiceBase {
     oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
 
     return oThis.configStrategyObj;
+  }
+
+  /**
+   * set call prefix
+   * @private
+   */
+  async _setCallPrefix() {
+    const oThis = this,
+      tokenHolderHelper = new TokenHolderHelper(oThis.web3Instance, oThis.tokenHolderAddress);
+
+    oThis.callPrefix = tokenHolderHelper.getTokenHolderExecuteRuleCallPrefix();
+  }
+
+  /**
+   * set executable tx data
+   * @private
+   */
+  async _setExecutableTxData() {
+    const oThis = this;
+
+    oThis.executableTxData = {
+      from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
+      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // rule contract address (TR / Pricer)
+      data: oThis.transferExecutableData,
+      nonce: oThis.sessionKeyNonce,
+      callPrefix: oThis.callPrefix
+    };
   }
 
   get auxChainId() {

@@ -4,10 +4,9 @@
  *
  * @module app/services/device/Create
  */
-const OSTBase = require('@openstfoundation/openst-base'),
-  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
+  OSTBase = require('@ostdotcom/base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -17,6 +16,8 @@ const rootPrefix = '../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/Device');

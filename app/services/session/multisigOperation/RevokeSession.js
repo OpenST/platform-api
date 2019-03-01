@@ -6,7 +6,7 @@
  * @module app/services/session/multisigOperation/RevokeSession
  */
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',

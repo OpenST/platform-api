@@ -4,7 +4,7 @@
  *
  * @module app/models/ddb/sharded/Device
  */
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),

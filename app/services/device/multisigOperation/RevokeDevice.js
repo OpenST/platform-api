@@ -6,7 +6,7 @@
  * @module app/services/device/multisigOperation/RevokeDevice
  */
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',

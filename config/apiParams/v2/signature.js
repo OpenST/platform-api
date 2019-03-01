@@ -645,6 +645,10 @@ const v2Signature = {
   [apiName.executeTransactionFromCompany]: {
     mandatory: [
       {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
         parameter: 'client_id',
         validatorMethod: 'validateNonZeroInteger'
       },

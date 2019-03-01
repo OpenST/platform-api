@@ -258,5 +258,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "This pin was used recently. Please use another pin for security reasons."
+  },
+  "es_data_not_found": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Data not found in es"
   }
 }
