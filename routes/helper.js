@@ -64,7 +64,7 @@ class RoutesHelper {
     const oThis = this,
       errorConfig = basicHelper.fetchErrorConfig(req.decodedParams.apiVersion);
 
-    if (
+    /*if (
       req.decodedParams.app_validated_api_name != apiName.allInternalRoutes &&
       req.decodedParams.app_validated_api_name != req.decodedParams.apiName
     ) {
@@ -78,7 +78,7 @@ class RoutesHelper {
           }
         })
         .renderResponse(res, errorConfig);
-    }
+    }*/
 
     const apiParamsValidatorRsp = await new ApiParamsValidator({
       api_name: req.decodedParams.apiName,
