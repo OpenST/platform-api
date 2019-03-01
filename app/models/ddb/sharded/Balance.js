@@ -9,7 +9,7 @@ const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const BigNumber = require('bignumber.js');
@@ -114,11 +114,11 @@ class Balance extends Base {
       TableName: oThis.tableName(),
       KeySchema: [
         {
-          AttributeName: tokenHolderShortName,
+          AttributeName: erc20AddressShortName,
           KeyType: 'HASH'
         }, //Partition key
         {
-          AttributeName: erc20AddressShortName,
+          AttributeName: tokenHolderShortName,
           KeyType: 'RANGE'
         } //Sort key
       ],

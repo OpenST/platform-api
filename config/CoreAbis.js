@@ -9,7 +9,7 @@
 const fs = require('fs'),
   path = require('path'),
   BrandedToken = require('@openstfoundation/brandedtoken.js'),
-  OpenStJs = require('@openstfoundation/openst.js');
+  OpenSTJs = require('@openstfoundation/openst.js');
 
 const rootPrefix = '..';
 
@@ -47,23 +47,23 @@ class CoreAbis {
   }
 
   static get GnosisSafe() {
-    return new OpenStJs.AbiBinProvider().getABI('GnosisSafe');
+    return new OpenSTJs.AbiBinProvider().getABI('GnosisSafe');
   }
 
   static get ProxyFactory() {
-    return new OpenStJs.AbiBinProvider().getABI('ProxyFactory');
+    return new OpenSTJs.AbiBinProvider().getABI('ProxyFactory');
   }
 
   static get UserWalletFactory() {
-    return new OpenStJs.AbiBinProvider().getABI('UserWalletFactory');
+    return new OpenSTJs.AbiBinProvider().getABI('UserWalletFactory');
   }
 
   static get TokenRules() {
-    return new OpenStJs.AbiBinProvider().getABI('TokenRules');
+    return new OpenSTJs.AbiBinProvider().getABI('TokenRules');
   }
 
   static get TokenHolder() {
-    return new OpenStJs.AbiBinProvider().getABI('TokenHolder');
+    return new OpenSTJs.AbiBinProvider().getABI('TokenHolder');
   }
 }
 

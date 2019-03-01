@@ -6,7 +6,7 @@
  * @module tools/chainSetup/origin/simpleTokenPrime/Base
  */
 const rootPrefix = '../../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
   MosaicJs = require('@openstfoundation/mosaic.js'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),

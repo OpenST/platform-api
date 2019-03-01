@@ -265,11 +265,11 @@ class CoreConstants {
   }
 
   get MINIMUM_NO_OF_EXECUTE_TRANSACTION() {
-    return 100;
+    return 1000;
   }
 
   get TOTAL_NO_OF_EXECUTE_TRANSACTION() {
-    return 1000;
+    return 10000;
   }
 
   get BUFFER_BLOCK_HEIGHT() {
