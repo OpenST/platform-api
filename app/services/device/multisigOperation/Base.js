@@ -6,8 +6,8 @@
  * @module app/services/device/multisigOperation/Base
  */
 
-const OpenStJs = require('@openstfoundation/openst.js'),
-  GnosisSafeHelper = OpenStJs.Helpers.GnosisSafe;
+const OpenSTJs = require('@openstfoundation/openst.js'),
+  GnosisSafeHelper = OpenSTJs.Helpers.GnosisSafe;
 
 const rootPrefix = '../../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),

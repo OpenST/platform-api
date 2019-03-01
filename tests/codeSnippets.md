@@ -16,7 +16,7 @@ b.getComplete().then(function(r) {config = r.data});
 
 ```node
 
-OSTBase = require('@openstfoundation/openst-base')
+OSTBase = require('@ostdotcom/base')
 InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
@@ -48,6 +48,10 @@ ForSession = require('./lib/nonce/get/ForSession');
 asso = new ForSession({tokenId: '1063', chainId:200, address: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027', userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9'});
 asso.getNonce().then(console.log);
 
+require('./lib/setup/economy/VerifySetup');
+EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
+asso = new EconomySetupVerifier({originChainId:1000, auxChainId: 2000, tokenId: 1000});
+asso.perform().then(console.log);
 
 
 params = {
@@ -187,7 +191,7 @@ b.get().then(function(r) {config = r.data});
 // wait
 
 
-OSTBase = require('@openstfoundation/openst-base')
+OSTBase = require('@ostdotcom/base')
 InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
@@ -208,9 +212,9 @@ a.perform().then(console.log)
 ```node
 
 params = {
-  currentStepId: 82,
-  workflowId: 2,
-  stepKind: 'initializeCompanyTokenHolderInDb',
+  currentStepId: 46,
+  workflowId: 3,
+  stepKind: 'deployTokenGateway',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
   topic: 'workflow.economySetup'

@@ -33,11 +33,11 @@ class SharedBaseKlass extends BaseModel {
 
     const oThis = this,
       storageProvider = oThis.ic().getInstanceFor(coreConstants.icNameSpace, 'storageProvider'),
-      openSTStorage = storageProvider.getInstance(storageConstants.shared);
+      ostStorage = storageProvider.getInstance(storageConstants.shared);
 
-    oThis.ddbServiceObj = openSTStorage.dynamoDBService;
+    oThis.ddbServiceObj = ostStorage.dynamoDBService;
 
-    oThis.shardHelper = new openSTStorage.model.ShardHelper({
+    oThis.shardHelper = new ostStorage.model.DynamodbShardHelper({
       table_schema: oThis.tableSchema(),
       shard_name: oThis.tableName()
     });

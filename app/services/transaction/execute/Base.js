@@ -7,8 +7,8 @@
  */
 
 const uuidv4 = require('uuid/v4'),
-  OpenStJs = require('@openstfoundation/openst.js'),
-  TokenHolderHelper = OpenStJs.Helpers.TokenHolder;
+  OpenSTJs = require('@openstfoundation/openst.js'),
+  TokenHolderHelper = OpenSTJs.Helpers.TokenHolder;
 
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
