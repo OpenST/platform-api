@@ -9,6 +9,7 @@
 //
 // ****/
 //
+
 // rootPrefix = '.';
 // connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 // coreConstants = require(rootPrefix + '/config/coreConstants');

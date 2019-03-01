@@ -9,7 +9,6 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain');
 
 /**
@@ -52,8 +51,7 @@ class TransferStPrime {
     let response = await chainConfigProvider.getFor([oThis.auxChainId]),
       auxChainConfig = response[oThis.auxChainId];
 
-    oThis.auxWsProvider = auxChainConfig.auxGeth.readOnly.wsProviders[0];
-    oThis.web3Instance = web3Provider.getInstance(oThis.auxWsProvider).web3WsProvider;
+    oThis.auxWsProviders = auxChainConfig.auxGeth.readWrite.wsProviders;
   }
 
   /**
@@ -76,8 +74,7 @@ class TransferStPrime {
 
     let params = {
       chainId: oThis.auxChainId,
-      //provider: oThis.auxWsProvider,
-      web3Instance: oThis.web3Instance,
+      providers: oThis.auxWsProviders,
       waitTillReceipt: 1,
       txOptions: txOptions
     };

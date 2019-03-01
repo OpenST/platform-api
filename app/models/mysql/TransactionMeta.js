@@ -1,9 +1,7 @@
 'use strict';
 
 const rootPrefix = '../../..',
-  util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  //LockableBaseKlass = require(rootPrefix + '/app/models/lockable_base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
@@ -129,6 +127,9 @@ class TransactionMetaModel extends ModelBase {
     }
 
     let queryObj = oThis.update(dataToUpdate);
+    if (params.increseRetryCount) {
+      queryObj = queryObj.update(['retry_count = retry_count+1']);
+    }
 
     if (params.lockId) {
       queryObj = queryObj.where({ lock_id: params.lockId });
