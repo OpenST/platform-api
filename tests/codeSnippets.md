@@ -36,7 +36,7 @@ asso.perform().then(console.log);
 
 require('./app/services/user/CreateTokenHolder');
 CreateTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateTokenHolder');
-asso = new CreateTokenHolder({client_id:10001, user_id: '32e1ef20-5c9f-4336-a80f-bee4c330e13b', device_address: '0xbE8b3Fa4133E77e72277aF6b3Ea7BB3750511B88', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x481D1b527188968E5A4FF9fc112A9163384CCb03'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
+asso = new CreateTokenHolder({client_id:10004, user_id: 'ec866539-65d9-4561-a145-17c9e592632d', device_address: '0xbE8b3Fa4133E77e72277aF6b3Ea7BB3750511B88', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
 asso.perform().then(console.log);
 
 a = require('./lib/executeTransactionManagement/FundExTxWorker.js')

@@ -26,6 +26,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   environmentInfo = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 const requestSharedNameSpace = createNamespace('saasApiNameSpace'),
@@ -112,8 +113,8 @@ const decodeJwt = function(req, res, next) {
 
   // Set the decoded params in the re and call the next in control flow.
   const jwtOnResolve = function(reqParams) {
-    req.decodedParams = reqParams.data;
-    req.decodedParams['app_validated_api_name'] = '';
+    req.decodedParams = sanitizer.sanitizeParams(reqParams.data);
+    req.decodedParams['app_validated_api_name'] = apiName.allInternalRoutes;
     // Validation passed.
     return next();
   };
