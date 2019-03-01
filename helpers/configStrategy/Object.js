@@ -134,7 +134,7 @@ class ConfigStrategyObject {
         },
         toBeSyncedInEs: {
           shortName: 'sie',
-          dataType: 'BOOL'
+          dataType: 'N'
         }
       },
       transactions: {
