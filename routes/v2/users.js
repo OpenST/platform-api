@@ -19,7 +19,8 @@ const rootPrefix = '../..',
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
-  TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList');
+  TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList'),
+  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -34,6 +35,10 @@ require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/get/Transaction');
 require(rootPrefix + '/app/services/transaction/get/TransactionsList');
 
+require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
+require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
+require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
+
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
 require(rootPrefix + '/app/services/device/get/ByAddress');
@@ -46,6 +51,8 @@ require(rootPrefix + '/app/services/session/get/ByAddress');
 require(rootPrefix + '/app/services/session/get/ByUserId');
 require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
+
+require(rootPrefix + '/app/services/recoveryOwner/get/ByRecoveryOwnerAddress');
 
 /* Create user*/
 router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -433,6 +440,84 @@ router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req
   };
 
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v_u_14', null, dataFormatterFunc));
+});
+
+/* Get recovery owner by address */
+router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.sanitizeDynamicUrlParams, function(
+  req,
+  res,
+  next
+) {
+  req.decodedParams.apiName = apiName.getRecoveryOwner;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.recovery_owner_address = req.params.recovery_owner_address;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const recoveryOwner = serviceResponse.data[resultType.recoveryOwner],
+      formattedRsp = new RecoveryOwnerFormatter(recoveryOwner).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.recoveryOwner,
+      [resultType.recoveryOwner]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_14', null, dataFormatterFunc)
+  );
+});
+
+router.post('/:user_id/devices/initiate-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.initiateRecovery;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_13', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.abortRecovery;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v_u_14', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.resetRecoveryOwner;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const recoveryOwner = serviceResponse.data[resultType.recoveryOwner],
+      formattedRsp = new RecoveryOwnerFormatter(recoveryOwner).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.recoveryOwner,
+      [resultType.recoveryOwner]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v_u_15', null, dataFormatterFunc)
+  );
 });
 
 module.exports = router;

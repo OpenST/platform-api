@@ -5,7 +5,8 @@
  * @module executables/setup/aux/saasDdb
  */
 const program = require('commander'),
-  OSTBase = require('@ostdotcom/base');
+  OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -15,8 +16,6 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
 require(rootPrefix + '/lib/shardManagement/Create');
 
 program
@@ -25,6 +24,10 @@ program
   .option('--balanceShardNoStr [balanceShardNoStr]', 'Comma seperated numbers for which balance shards has be created')
   .option('--deviceShardNoStr [deviceShardNoStr]', 'Comma seperated numbers for which device shards has be created')
   .option('--sessionShardNoStr [sessionShardNoStr]', 'Comma seperated numbers for which session shards has be created')
+  .option(
+    '--recoveryOwnerAddressShardNoStr [sessionShardNoStr]',
+    'Comma seperated numbers for which recovery owner shards has be created'
+  )
   .parse(process.argv);
 
 program.on('--help', () => {
@@ -32,7 +35,7 @@ program.on('--help', () => {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2,3 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2 --balanceShardNoStr 1,2'
+    ' node executables/setup/aux/saasDdb.js --auxChainId 2000 --userShardNoStr 1,2 --deviceShardNoStr 1,2 --sessionShardNoStr 1,2 --recoveryOwnerAddressShardNoStr 1,2 --balanceShardNoStr 1,2'
   );
   logger.log('');
   logger.log('');
@@ -48,10 +51,11 @@ class CreateInitialAuxDdbTablesForSaas {
    *
    * @param {Object} params
    * @param {Number} params.auxChainId - chain id
-   * @param {Array} [params.userShardNos] - array of numbers using which shards are to be created
+   * @param {Array} params.userShardNos - array of numbers using which shards are to be created
+   * @param {Array} params.deviceShardNos - array of numbers using which shards are to be created
+   * @param {Array} params.sessionShardNos - array of numbers using which shards are to be created
+   * @param {Array} params.recoveryOwnerAddressShardNos - array of numbers using which shards are to be created
    * @param {Array} [params.balanceShardNos] - array of numbers using which shards are to be created
-   * @param {Array} [params.deviceShardNos] - array of numbers using which shards are to be created
-   * @param {Array} [params.sessionShardNos] - array of numbers using which shards are to be created
    *
    * @constructor
    */
@@ -62,6 +66,7 @@ class CreateInitialAuxDdbTablesForSaas {
     oThis.balanceShardNos = params.balanceShardNos;
     oThis.deviceShardNos = params.deviceShardNos;
     oThis.sessionShardNos = params.sessionShardNos;
+    oThis.recoveryOwnerAddressShardNos = params.recoveryOwnerAddressShardNos;
   }
 
   /**
@@ -129,6 +134,17 @@ class CreateInitialAuxDdbTablesForSaas {
       await sessionShardObject.perform();
     }
 
+    // Create recovery shards
+    if (oThis.recoveryOwnerAddressShardNos.length > 0) {
+      let recoveryOwnerAddressShardObject = new CreateShard({
+        chainId: oThis.auxChainId,
+        entityKind: shardConstant.recoveryOwnerAddressEntityKind,
+        shardNumbers: oThis.recoveryOwnerAddressShardNos,
+        isAvailableForAllocation: true
+      });
+      await recoveryOwnerAddressShardObject.perform();
+    }
+
     // Create balance table(s)
     if (oThis.balanceShardNos.length > 0) {
       let balanceShardObject = new CreateShard({
@@ -161,6 +177,9 @@ const validateAndSanitize = function() {
     : [];
   program.sessionShardNos = program.sessionShardNoStr
     ? basicHelper.commaSeperatedStrToArray(program.sessionShardNoStr)
+    : [];
+  program.recoveryOwnerAddressShardNos = program.recoveryOwnerAddressShardNoStr
+    ? basicHelper.commaSeperatedStrToArray(program.recoveryOwnerAddressShardNoStr)
     : [];
 };
 

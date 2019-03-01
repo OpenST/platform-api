@@ -75,6 +75,10 @@ class ApiAuthentication {
       [apiName.getUserBalance]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/balance/'
+      },
+      [apiName.getRecoveryOwner]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
       }
       // Note: - Urls should end with a slash. Add config above this.
     };
@@ -91,7 +95,7 @@ class ApiAuthentication {
         route: '/users/'
       },
       [apiName.activateUser]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind],
         route: '/users/:user_id/activate-user/'
       },
       [apiName.createUserDevice]: {
@@ -121,6 +125,18 @@ class ApiAuthentication {
       [apiName.executeTransactionFromCompany]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/'
+      },
+      [apiName.initiateRecovery]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/initiate-recovery/'
+      },
+      [apiName.abortRecovery]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/abort-recovery/'
+      },
+      [apiName.resetRecoveryOwner]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/recovery-owners/'
       }
       // Note: - Urls should end with a slash. Add config above this.
     };
