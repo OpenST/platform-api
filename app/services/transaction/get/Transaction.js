@@ -68,7 +68,7 @@ class GetTransaction extends GetTransactionBase {
     let transactionDetails = await service.search(esQuery),
       transactionDetailsData = transactionDetails.data[oThis.auxChainId + '_transactions'];
 
-    // Here tokenHolder address should be present in data coming from es,
+    // NOTE: Here tokenHolder address should be present in data coming from es,
     // else it is invalid as the query is done only on transaction uuid.
     if (
       transactionDetails.isFailure() ||
