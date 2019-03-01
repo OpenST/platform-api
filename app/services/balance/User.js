@@ -5,7 +5,7 @@
  * @module app/services/balance/User
  */
 
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),

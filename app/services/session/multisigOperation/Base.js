@@ -6,10 +6,14 @@
  * @module app/services/session/multisigOperation/Base
  */
 
+const OpenSTJs = require('@openstfoundation/openst.js'),
+  GnosisSafeHelper = OpenSTJs.Helpers.GnosisSafe;
+
 const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
@@ -191,6 +195,9 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
       );
     }
 
+    //Validates if the signatures provided is valid.
+    await oThis._validateSignature();
+
     // Perform action specific pre checks
     await oThis._performSpecificPreChecks();
 
@@ -269,6 +276,47 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     }
 
     return sessionDetailsRsp;
+  }
+
+  /**
+   * Validate signature
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _validateSignature() {
+    const oThis = this;
+
+    let gnosisSafeProxyInstance = new GnosisSafeHelper(oThis.multisigProxyAddress, oThis._web3Instance),
+      safeTxData = gnosisSafeProxyInstance.getSafeTxData(
+        oThis.tokenHolderProxyAddress,
+        oThis.value,
+        oThis.calldata,
+        oThis.operation,
+        oThis.safeTxGas,
+        oThis.dataGas,
+        oThis.gasPrice,
+        oThis.gasToken,
+        oThis.refundReceiver,
+        oThis.nonce
+      );
+
+    let verifySignRsp = await signatureVerification.validateSignature(
+      safeTxData.getEIP712SignHash(),
+      oThis.signatures,
+      oThis.signer
+    );
+
+    if (!verifySignRsp.isValid) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_b_4',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_signatures'],
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**

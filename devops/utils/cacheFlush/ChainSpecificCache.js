@@ -1,7 +1,7 @@
 'use strict';
 const rootPrefix = '../../..';
 const chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),

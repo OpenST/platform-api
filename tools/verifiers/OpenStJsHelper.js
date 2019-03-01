@@ -1,12 +1,12 @@
 'use strict';
 
-const OpenStJs = require('@openstfoundation/openst.js');
+const OpenSTJs = require('@openstfoundation/openst.js');
 
 const rootPrefix = '../..',
   RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),
   TokenRuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRule');
 
-class OpenStJsVerifierHelper {
+class OpenSTJsVerifierHelper {
   /**
    * Constructor
    *
@@ -84,7 +84,7 @@ class OpenStJsVerifierHelper {
   async _getABI(contractName) {
     const oThis = this;
 
-    return new OpenStJs.AbiBinProvider().getABI(contractName);
+    return new OpenSTJs.AbiBinProvider().getABI(contractName);
   }
 
   /**
@@ -97,7 +97,7 @@ class OpenStJsVerifierHelper {
   async _getBIN(contractName) {
     const oThis = this;
 
-    return new OpenStJs.AbiBinProvider().getBIN(contractName);
+    return new OpenSTJs.AbiBinProvider().getBIN(contractName);
   }
 
   /**
@@ -131,4 +131,4 @@ class OpenStJsVerifierHelper {
   }
 }
 
-module.exports = OpenStJsVerifierHelper;
+module.exports = OpenSTJsVerifierHelper;

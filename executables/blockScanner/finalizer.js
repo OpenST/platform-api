@@ -163,7 +163,7 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.openSTNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
+    oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });
@@ -311,7 +311,7 @@ class Finalizer extends PublisherBase {
       }
     };
 
-    let setToRMQ = await oThis.openSTNotification.publishEvent.perform(messageParams);
+    let setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
 
     // If could not set to RMQ run in async.
     if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
@@ -337,7 +337,7 @@ class Finalizer extends PublisherBase {
 
     let messageParams = JSON.parse(publishParams);
 
-    let setToRMQ = await oThis.openSTNotification.publishEvent.perform(messageParams);
+    let setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
 
     // If could not set to RMQ run in async.
     if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {

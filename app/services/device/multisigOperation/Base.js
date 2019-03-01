@@ -6,8 +6,8 @@
  * @module app/services/device/multisigOperation/Base
  */
 
-const OpenStJs = require('@openstfoundation/openst.js'),
-  GnosisSafeHelper = OpenStJs.Helpers.GnosisSafe;
+const OpenSTJs = require('@openstfoundation/openst.js'),
+  GnosisSafeHelper = OpenSTJs.Helpers.GnosisSafe;
 
 const rootPrefix = '../../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
@@ -15,7 +15,7 @@ const rootPrefix = '../../../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ECRecover = require(rootPrefix + '/app/services/verifySigner/ECRecover'),
+  signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
@@ -181,7 +181,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       );
     }
     //Validates if the signatures provided is valid.
-    //await oThis._validateSignature();
+    await oThis._validateSignature();
 
     // Perform action specific pre checks
     await oThis._performSpecificPreChecks();
@@ -212,13 +212,13 @@ class MultisigOpertationBaseKlass extends ServiceBase {
         oThis.nonce
       );
 
-    let verifySignRsp = await new ECRecover({
-      signer: oThis.signer,
-      personal_sign: oThis.signatures,
-      message_to_sign: safeTxData
-    }).perform();
+    let verifySignRsp = await signatureVerification.validateSignature(
+      safeTxData.getEIP712SignHash(),
+      oThis.signatures,
+      oThis.signer
+    );
 
-    if (verifySignRsp.isFailure()) {
+    if (!verifySignRsp.isValid) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_mo_b_4',

@@ -4,7 +4,7 @@
  *
  * @module executables/rabbitmq/SubscriberBase
  */
-const OSTBase = require('@openstfoundation/openst-base');
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
@@ -122,11 +122,11 @@ class SubscriberBase extends CronBase {
   async _startSubscription() {
     const oThis = this;
 
-    const openStNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
+    const ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     });
-    openStNotification.subscribeEvent
+    ostNotification.subscribeEvent
       .rabbit(
         oThis._topicsToSubscribe,
         {

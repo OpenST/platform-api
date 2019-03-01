@@ -5,7 +5,7 @@
  * @module tools/chainSetup/origin/simpleTokenPrime/Deploy
  */
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
