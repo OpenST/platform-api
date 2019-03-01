@@ -286,7 +286,7 @@ router.get('/:user_id/salts', sanitizer.sanitizeDynamicUrlParams, function(req, 
 /*Authorize Device*/
 router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeDevice;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -303,7 +303,7 @@ router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, f
 /*Revoke Device*/
 router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeDevice;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -320,7 +320,7 @@ router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, func
 /*Authorize Session*/
 router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeSession;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -337,7 +337,7 @@ router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, 
 /*Revoke Session*/
 router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeSession;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -353,14 +353,17 @@ router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, fun
 
 router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   let klassGetterName;
-  if (req.decodedParams['api_signature_kind'] === apiSignature.hmacKind) {
+
+  if (req.decodedParams.api_signature_kind === apiSignature.hmacKind) {
     req.decodedParams.apiName = apiName.executeTransactionFromCompany;
     klassGetterName = 'ExecuteCompanyToUserTx';
-  } else if (req.decodedParams['api_signature_kind'] === apiSignature.personalSignKind) {
+  } else if (req.decodedParams.api_signature_kind === apiSignature.personalSignKind) {
     req.decodedParams.apiName = apiName.executeTransactionFromUser;
     klassGetterName = 'ExecuteTxFromUser';
   }
-  req.decodedParams.userId = req.params.user_id;
+
+  req.decodedParams.user_id = req.params.user_id;
+
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
