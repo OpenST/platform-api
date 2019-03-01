@@ -70,8 +70,8 @@ class ConfigStrategyObject {
           shortName: 'oca',
           dataType: 'S'
         },
-        simpleStakeAddress: {
-          shortName: 'ssa',
+        gatewayContractAddress: {
+          shortName: 'gwca',
           dataType: 'S'
         }
       },
