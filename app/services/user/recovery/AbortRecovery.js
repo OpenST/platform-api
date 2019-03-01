@@ -6,7 +6,7 @@
  */
 
 const OpenStJs = require('@openstfoundation/openst.js'),
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   RecoveryHelper = OpenStJs.Helpers.Recovery,
   InstanceComposer = OSTBase.InstanceComposer;
 
