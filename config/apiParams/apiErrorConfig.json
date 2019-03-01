@@ -228,6 +228,11 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "User not activated."
+  },
+  "es_data_not_found": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Data not found in es"
   }
 
 }

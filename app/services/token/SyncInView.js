@@ -5,7 +5,7 @@
  * @module app/services/token/SyncInView
  */
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
@@ -57,7 +57,7 @@ class SyncInView {
       tokenId: oThis.tokenId,
       chainId: oThis.chainId,
       clientId: oThis.clientId,
-      simpleStakeAddress: oThis.simpleStakeAddress,
+      gatewayContractAddress: oThis.gatewayContractAddress,
       brandedTokenContract: oThis.brandedTokenAddress,
       utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
       chainEndpoint: chainEndPoint[0]
@@ -68,7 +68,7 @@ class SyncInView {
     return responseHelper.successWithData({
       taskStatus: workflowStepConstants.taskDone,
       debugParams: {
-        simpleStakeAddress: oThis.simpleStakeAddress,
+        gatewayContractAddress: oThis.gatewayContractAddress,
         brandedTokenContract: oThis.brandedTokenAddress,
         utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
         chainEndpoint: chainEndPoint[0]
@@ -87,17 +87,17 @@ class SyncInView {
       tokenId: oThis.tokenId
     }).fetch();
 
-    oThis.simpleStakeAddress = getAddrRsp.data[tokenAddressConstants.simpleStakeContract];
+    oThis.gatewayContractAddress = getAddrRsp.data[tokenAddressConstants.tokenGatewayContract];
     oThis.brandedTokenAddress = getAddrRsp.data[tokenAddressConstants.brandedTokenContract];
     oThis.utilityBrandedTokenAddress = getAddrRsp.data[tokenAddressConstants.utilityBrandedTokenContract];
 
-    if (!oThis.simpleStakeAddress || !oThis.brandedTokenAddress || !oThis.utilityBrandedTokenAddress) {
+    if (!oThis.gatewayContractAddress || !oThis.brandedTokenAddress || !oThis.utilityBrandedTokenAddress) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_es_siv_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
-            simpleStakeAddress: oThis.simpleStakeAddress,
+            gatewayContractAddress: oThis.gatewayContractAddress,
             brandedTokenAddress: oThis.brandedTokenAddress,
             utilityBrandedTokenAddress: oThis.utilityBrandedTokenAddress
           }

@@ -2,9 +2,9 @@
 
 const abiDecoder = require('abi-decoder'),
   MosaicJs = require('@openstfoundation/mosaic.js'),
-  OpenStJs = require('@openstfoundation/openst.js'),
+  OpenSTJs = require('@openstfoundation/openst.js'),
   mosaicTbdAbiBinProvider = new MosaicJs.AbiBinProvider(),
-  OpenStJsAbiBinProvider = new OpenStJs.AbiBinProvider(),
+  OpenSTJsAbiBinProvider = new OpenSTJs.AbiBinProvider(),
   BrandedToken = require('@openstfoundation/brandedtoken.js'),
   brandedTokenAbiBinProvider = new BrandedToken.AbiBinProvider(),
   web3 = require('web3');
@@ -12,7 +12,7 @@ const abiDecoder = require('abi-decoder'),
 const EIP20GatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20Gateway'),
   EIP20CoGatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20CoGateway'),
   AnchorAbi = mosaicTbdAbiBinProvider.getABI('Anchor'),
-  TokenHolderAbi = OpenStJsAbiBinProvider.getABI('TokenHolder'),
+  TokenHolderAbi = OpenSTJsAbiBinProvider.getABI('TokenHolder'),
   GatewayComposerAbi = brandedTokenAbiBinProvider.getABI('GatewayComposer'),
   BrandedTokenAbi = brandedTokenAbiBinProvider.getABI('BrandedToken'),
   UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken');

@@ -1,5 +1,8 @@
 'use strict';
-
+/**
+ *
+ * @module executables/CronBase
+ */
 const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
