@@ -131,16 +131,9 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     }
 
     if (userSessionAddressCacheResp.data['addresses'].length === 0) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_fc_5',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            userId: oThis.userId,
-            tokenId: oThis.tokenId
-          }
-        })
-      );
+      return oThis._validationError('s_et_fc_5', ['session_not_found'], {
+        userId: oThis.userId
+      });
     }
 
     oThis.sessionKeyAddresses = userSessionAddressCacheResp.data['addresses'];
@@ -153,11 +146,12 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     }
 
     let sessionAddressToDetailsMap = getUserSessionsCacheResponse.data,
-      allowedSessionKeys = [];
+      allowedSessionKeys = [],
+      sessionData = {};
 
     // select session keys such that its spending limit is greater than pessimisticDebitAmount
     for (let i = 0; i < oThis.sessionKeyAddresses.length; i++) {
-      let sessionData = sessionAddressToDetailsMap[oThis.sessionKeyAddresses[i]];
+      sessionData = sessionAddressToDetailsMap[oThis.sessionKeyAddresses[i]];
       if (
         sessionData.status === sessionConstants.authorizedStatus &&
         oThis.pessimisticDebitAmount.lte(new BigNumber(sessionData.spendingLimit))
@@ -167,15 +161,10 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     }
 
     if (allowedSessionKeys.length === 0) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_fc_6',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            sessionKeyAddresses: oThis.sessionKeyAddresses
-          }
-        })
-      );
+      return oThis._validationError('s_et_fc_6', ['session_key_spending_limit_breached'], {
+        spendingLimit: basicHelper.formatWeiToString(sessionData.spendingLimit),
+        pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
+      });
     }
 
     // then, sequentially select one session key using index from cache
@@ -261,13 +250,9 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       sessionsByAddressCacheRsp = await sessionsByAddressCache.fetch();
 
     if (sessionsByAddressCacheRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_et_fc_7',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
+      return oThis._validationError('s_et_fc_7', ['invalid_session_addresses'], {
+        userId: oThis.userId
+      });
     }
 
     return sessionsByAddressCacheRsp;
