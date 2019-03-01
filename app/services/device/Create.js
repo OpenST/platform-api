@@ -6,7 +6,7 @@
  */
 
 const rootPrefix = '../../..',
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),

@@ -8,7 +8,7 @@
 
 const BigNumber = require('bignumber.js'),
   web3Utils = require('web3-utils'),
-  OSTBase = require('@openstfoundation/openst-base'),
+  OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',

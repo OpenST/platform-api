@@ -5,7 +5,7 @@
  * @module executables/executeTransaction
  */
 const program = require('commander'),
-  OSTBase = require('@openstfoundation/openst-base');
+  OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '..',
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),

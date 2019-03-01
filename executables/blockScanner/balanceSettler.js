@@ -38,7 +38,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-const OSTBase = require('@openstfoundation/openst-base'),
+const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/transactions/finalizer/BalanceSettler');
