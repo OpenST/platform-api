@@ -17,9 +17,9 @@ const rootPrefix = '..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  QueuedHandlerKlass = require(rootPrefix + '/lib/transaction/errorHandlers/queuedHandler'),
+  QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
-  SubmittedHandlerKlass = require(rootPrefix + '/lib/transactionErrorHandlers/submittedHandler'),
+  SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
@@ -29,14 +29,14 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/UpdatePricePoints.js --cronProcessId 13');
+  logger.log('    node executables/transactionMetaObserver.js --cronProcessId 23');
   logger.log('');
   logger.log('');
 });
 
 const cronProcessId = +program.cronProcessId;
 
-if (cronProcessId) {
+if (!cronProcessId) {
   program.help();
   process.exit(1);
 }
@@ -69,7 +69,7 @@ class TransactionMetaObserver extends CronBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.transactionMetaObserver;
+    return cronProcessesConstants.transactionErrorHandler;
   }
 
   /**
@@ -105,38 +105,58 @@ class TransactionMetaObserver extends CronBase {
 
     oThis.initializeVars();
 
+    logger.step('** Acquiring lock.');
     await oThis.acquireLock();
 
-    await oThis.getTransactionsToProcess();
+    await oThis._getTransactionsToProcess();
 
     await oThis._processPendingTransactions();
 
-    logger.step('**Releasing lock.');
-    oThis.releaseLock();
+    logger.step('** Releasing lock.');
+
+    oThis._releaseLock();
 
     logger.step('**Cron completed.');
   }
 
+  /**
+   * initializing variables.
+   *
+   */
   initializeVars() {
     const oThis = this;
 
     let currentTimeMs = new Date().getTime();
 
-    oThis.statusesToObserve = [];
-    oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 100;
+    oThis.statusesToObserve = [
+      transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.submissionInProcessStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.gethOutOfSyncStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus]
+    ];
+    oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 50;
+    oThis.maxRetry = oThis.maxRetry || 10;
     oThis.currentTime = Math.floor(currentTimeMs / 1000);
     oThis.lockId = parseFloat(currentTimeMs + '.' + cronProcessId);
   }
 
+  /**
+   * Acquiring lock, so that another instance of cron doesn't pick same row.
+   *
+   * @returns {Promise}
+   */
   async acquireLock() {
     const oThis = this;
 
     await new TransactionMetaModel()
       .update(['lock_id=?', oThis.lockId])
       .where([
-        'status IN (?) AND next_action_at < ? AND retry_count < 10 AND lock_id IS NULL',
+        'status IN (?) AND next_action_at < ? AND next_action_at > 0 AND retry_count < ? AND lock_id IS NULL',
         oThis.statusesToObserve,
-        oThis.currentTime
+        oThis.currentTime,
+        oThis.maxRetry
       ])
       .limit(oThis.noOfRowsToProcess)
       .fire();
@@ -146,7 +166,13 @@ class TransactionMetaObserver extends CronBase {
     return true;
   }
 
-  async getTransactionsToProcess() {
+  /**
+   * Get transactions using lock_id, to ensure locked rows to be processed here.
+   *
+   * @returns {Promise}
+   * @private
+   */
+  async _getTransactionsToProcess() {
     const oThis = this;
 
     oThis.transactionsToProcess = [];
@@ -159,9 +185,17 @@ class TransactionMetaObserver extends CronBase {
     return true;
   }
 
+  /**
+   * Process transactions, and check whether to resubmit or mark fail or still wait.
+   *
+   * @returns {Promise}
+   * @private
+   *
+   */
   async _processPendingTransactions() {
     const oThis = this;
 
+    oThis.handlerPromises = [];
     let transactionsGroup = {};
     for (let i = 0; i < oThis.transactionsToProcess.length; i++) {
       let txMeta = oThis.transactionsToProcess[i];
@@ -178,26 +212,27 @@ class TransactionMetaObserver extends CronBase {
         transactionsMetaRecords: transactionsMetaRecords
       };
 
+      let txStatusString = transactionMetaConst.statuses[txStatus];
+      console.log('------------txStatus---', txStatus, txStatusString);
+
       if (transactionsMetaRecords && transactionsMetaRecords.length > 0) {
         if (
-          txStatus == transactionMetaConst.queuedStatus ||
-          txStatus == transactionMetaConst.submissionInProcessStatus ||
-          txStatus == transactionMetaConst.gethDownStatus ||
-          txStatus == transactionMetaConst.gethOutOfSyncStatus
+          txStatusString == transactionMetaConst.queuedStatus ||
+          txStatusString == transactionMetaConst.submissionInProcessStatus ||
+          txStatusString == transactionMetaConst.gethDownStatus ||
+          txStatusString == transactionMetaConst.gethOutOfSyncStatus
         ) {
-          oThis.handlerPromises.push(new QueuedHandlerKlass().perform());
-        } else if (txStatus == transactionMetaConst.rollBackBalanceStatus) {
+          oThis.handlerPromises.push(new QueuedHandlerKlass(params).perform());
+        } else if (txStatusString == transactionMetaConst.rollBackBalanceStatus) {
           oThis.handlerPromises.push(new MarkFailAndRollbackBalanceKlass(params).perform());
-        } else if (txStatus == transactionMetaConst.submittedWithDynamoFailedStatus) {
-          // TODO: possibly this should be handled from finalizer.
-        } else if (txStatus == transactionMetaConst.submittedToGethStatus) {
-          oThis.handlerPromises.push(new SubmittedHandlerKlass().perform());
+        } else if (txStatusString == transactionMetaConst.submittedToGethStatus) {
+          oThis.handlerPromises.push(new SubmittedHandlerKlass(params).perform());
         }
       }
     }
     await Promise.all(oThis.handlerPromises);
     oThis.handlerPromises = [];
-    return Promise.resolve(oThis.handlerPromises);
+    return Promise.resolve({});
   }
 
   /**
@@ -205,13 +240,15 @@ class TransactionMetaObserver extends CronBase {
    *
    * @return {Promise<Result>}
    */
-  async releaseLock() {
+  async _releaseLock() {
     const oThis = this;
 
     await new TransactionMetaModel()
-      .update(['lock_id = NULL'])
-      .where(['lock_id = ?'])
+      .update(['lock_id = NULL, retry_count = retry_count+1'])
+      .where(['lock_id = ?', oThis.lockId])
       .fire();
+
+    oThis.lockAcquired = false;
   }
 
   /**
@@ -229,11 +266,13 @@ class TransactionMetaObserver extends CronBase {
 }
 
 // Perform action
-new TransactionMetaObserver({ cronProcessId: cronProcessId }).perform().catch(function() {
-  process.emit('SIGINT');
-});
-
-setInterval(function() {
-  logger.info('Ending the process. Sending SIGINT.');
-  process.emit('SIGINT');
-}, 30 * 60 * 1000);
+new TransactionMetaObserver({ cronProcessId: cronProcessId })
+  .perform()
+  .then(function() {
+    logger.step('** Exiting Process');
+    process.emit('SIGINT');
+  })
+  .catch(function(err) {
+    logger.error('** Exiting Process Due to Error.', err);
+    process.emit('SIGINT');
+  });

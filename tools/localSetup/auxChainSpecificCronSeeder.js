@@ -279,6 +279,19 @@ class AuxChainSpecificCronSeeder {
         logger.log('InsertId: ', insertId);
       });
   }
+
+  async insertTransactionErrorHandlerEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.transactionErrorHandler, {
+        auxChainId: 2000,
+        noOfRowsToProcess: 50,
+        maxRetry: 100,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
 }
 
 module.exports = AuxChainSpecificCronSeeder;
