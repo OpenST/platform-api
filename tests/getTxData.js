@@ -3,19 +3,23 @@
 const abiDecoder = require('abi-decoder'),
   MosaicJs = require('@openstfoundation/mosaic.js'),
   OpenSTJs = require('@openstfoundation/openst.js'),
-  mosaicTbdAbiBinProvider = new MosaicJs.AbiBinProvider(),
+  mosaicJsAbiBinProvider = new MosaicJs.AbiBinProvider(),
   OpenSTJsAbiBinProvider = new OpenSTJs.AbiBinProvider(),
   BrandedToken = require('@openstfoundation/brandedtoken.js'),
   brandedTokenAbiBinProvider = new BrandedToken.AbiBinProvider(),
   web3 = require('web3');
 
-const EIP20GatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20Gateway'),
-  EIP20CoGatewayAbi = mosaicTbdAbiBinProvider.getABI('EIP20CoGateway'),
-  AnchorAbi = mosaicTbdAbiBinProvider.getABI('Anchor'),
+const EIP20GatewayAbi = mosaicJsAbiBinProvider.getABI('EIP20Gateway'),
+  EIP20CoGatewayAbi = mosaicJsAbiBinProvider.getABI('EIP20CoGateway'),
+  AnchorAbi = mosaicJsAbiBinProvider.getABI('Anchor'),
   TokenHolderAbi = OpenSTJsAbiBinProvider.getABI('TokenHolder'),
   GatewayComposerAbi = brandedTokenAbiBinProvider.getABI('GatewayComposer'),
   BrandedTokenAbi = brandedTokenAbiBinProvider.getABI('BrandedToken'),
-  UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken');
+  UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken'),
+  DelayedRecoveryModuleAbi = OpenStJsAbiBinProvider.getABI('DelayedRecoveryModule'),
+  UserWalletFactoryAbi = OpenStJsAbiBinProvider.getABI('UserWalletFactory'),
+  ProxyFactoryAbi = OpenStJsAbiBinProvider.getABI('ProxyFactory'),
+  GnosisSafeAbi = OpenStJsAbiBinProvider.getABI('GnosisSafe');
 
 abiDecoder.addABI(EIP20GatewayAbi);
 abiDecoder.addABI(EIP20CoGatewayAbi);
@@ -24,6 +28,11 @@ abiDecoder.addABI(TokenHolderAbi);
 abiDecoder.addABI(GatewayComposerAbi);
 abiDecoder.addABI(BrandedTokenAbi);
 abiDecoder.addABI(UtilityBrandedTokenAbi);
+
+abiDecoder.addABI(DelayedRecoveryModuleAbi);
+abiDecoder.addABI(UserWalletFactoryAbi);
+abiDecoder.addABI(ProxyFactoryAbi);
+abiDecoder.addABI(GnosisSafeAbi);
 
 class GetTxData {
   constructor(params) {
@@ -61,13 +70,14 @@ module.exports = GetTxData;
 
 txD = require('./tests/getTxData')
 txO = new txD({
+  txHash: '0xb39eb764c39b84d9550940ab7406fe97ef0499fa82c246463331641eb769bd7f',
+  web3ProviderUrl: 'ws://127.0.0.1:9546'
   txHash: '0x1ec96265f98e83436e19b83728314cb5ab2e9c9eb769ee24fe6d70e1db0aeb50',
   web3ProviderUrl: 'ws://127.0.0.1:9546'
 })
 
 txO.getDecodedInputParams().then(console.log);
-txO.getDecodedInputParams().then(console.log)
-txO.getDecodedEvents().then(console.log)
+txO.getDecodedEvents().then(function(q){r=q})
 
 */
 

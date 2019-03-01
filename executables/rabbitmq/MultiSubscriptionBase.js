@@ -184,7 +184,7 @@ class MultiSubscriptionBase extends CronBase {
                     return rabbitmqSubscription.promiseQueueManager.createPromise(messageParams);
                   },
                   function(err) {
-                    logger.error('---------------------reject err------', JSON.stringify(err));
+                    logger.error('---------------------reject err------', err.toString());
                     return Promise.resolve({});
                   }
                 )

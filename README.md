@@ -15,7 +15,7 @@ Saas API layer.
 ```
 git clone https://github.com/ethereum/go-ethereum.git
 cd go-ethereum
-git checkout tags/v1.8.20
+git checkout tags/v1.8.22
 make geth
 sudo cp ~/workspace/go-ethereum/build/bin/geth /usr/local/bin
 ```

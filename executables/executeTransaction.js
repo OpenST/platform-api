@@ -157,9 +157,7 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
       kind = messageParams.message.kind;
 
     if (kind == kwcConstant.executeTx) {
-      return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId, {
-        transactionMetaId: msgParams.transactionMetaId
-      }).perform();
+      return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId).perform(msgParams.transactionMetaId);
     } else {
       return Promise.resolve(responseHelper.successWithData({}));
     }

@@ -104,6 +104,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid device_address.'
   },
+  invalid_recovery_owner_address: {
+    parameter: 'recovery_owner_address',
+    code: 'invalid',
+    message: 'Invalid recovery_owner_address.'
+  },
   ids_more_than_allowed_limit: {
     parameter: 'ids',
     code: 'invalid',
@@ -133,6 +138,16 @@ const v2ErrorConfig = {
     parameter: 'device_address',
     code: 'invalid',
     message: 'Either device not registered or not allowed to be authorized.'
+  },
+  user_activation_failed_invalid_recovery_owner_address: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message: 'Either recovery owner address already exists or is not allowed to be authorized.'
+  },
+  invalid_executable_data: {
+    parameter: 'executable_data',
+    code: 'invalid',
+    message: 'invalid executable_data'
   },
   insufficient_funds: {
     parameter: 'signer',
@@ -219,6 +234,36 @@ const v2ErrorConfig = {
     parameter: 'signatures',
     code: 'invalid',
     message: 'Invalid signature provided'
+  },
+  invalid_signature: {
+    parameter: 'signature',
+    code: 'invalid',
+    message: 'Invalid signature provided'
+  },
+  old_device_address_not_authorized: {
+    parameter: 'old_device_address',
+    code: 'invalid',
+    message: 'Old device address is either invalid or not Authorized.'
+  },
+  new_device_address_not_registered: {
+    parameter: 'new_device_address',
+    code: 'invalid',
+    message: 'New device address is either invalid or not Registered.'
+  },
+  same_new_and_old_device_addresses: {
+    parameter: 'new_device_address',
+    code: 'invalid',
+    message: 'New device cannot be same as old.'
+  },
+  same_new_and_old_recovery_owners: {
+    parameter: 'new_recovery_owner_address',
+    code: 'invalid',
+    message: 'Recovery owner cannot be same as old.'
+  },
+  invalid_old_linked_address: {
+    parameter: 'old_linked_address',
+    code: 'invalid',
+    message: 'Invalid address'
   },
   missing_transaction_id: {
     parameter: 'transaction_id',
