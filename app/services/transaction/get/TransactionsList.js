@@ -2,12 +2,12 @@
 /**
  * This service helps in fetching transactions of a user
  *
- * @module app/services/user/GetUserTransactions
+ * @module app/services/transaction/get/TransactionsList
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -29,7 +29,7 @@ require(rootPrefix + '/lib/transactions/GetTransactionDetails');
  *
  * @class
  */
-class GetUserTransactions extends ServiceBase {
+class GetTransactionsList extends ServiceBase {
   /**
    * Constructor for execute transaction
    *
@@ -489,6 +489,6 @@ class GetUserTransactions extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(GetUserTransactions, coreConstants.icNameSpace, 'GetUserTransactions');
+InstanceComposer.registerAsShadowableClass(GetTransactionsList, coreConstants.icNameSpace, 'GetTransactionsList');
 
 module.exports = {};

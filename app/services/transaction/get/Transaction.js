@@ -2,12 +2,12 @@
 /**
  * This service helps in fetching transaction
  *
- * @module app/services/transaction/GetTransaction
+ * @module app/services/transaction/get/Transaction
  */
 const OSTBase = require('@openstfoundation/openst-base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   ESTransactionService = esServices.services.transactions,
   ServiceBase = require(rootPrefix + '/app/services/Base'),
