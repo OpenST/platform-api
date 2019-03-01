@@ -56,16 +56,16 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/:session_address/'
       },
-      [apiName.getTokenHolder]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/token-holders/'
-      },
+      // [apiName.getTokenHolder]: {
+      //   supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+      //   route: '/users/:user_id/token-holders/'
+      // },
       [apiName.getUserSalt]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/salts/'
       },
       [apiName.getTransaction]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/transactions/:transaction_id/'
       },
       [apiName.getUserTransactions]: {
@@ -119,7 +119,7 @@ class ApiAuthentication {
         route: '/users/:user_id/transactions/'
       },
       [apiName.executeTransactionFromCompany]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.hmacKind],
         route: '/users/:user_id/transactions/'
       }
       // Note: - Urls should end with a slash. Add config above this.

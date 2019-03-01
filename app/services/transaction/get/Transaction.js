@@ -8,6 +8,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   ESTransactionService = esServices.services.transactions,
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -51,38 +52,44 @@ class GetTransaction extends GetTransactionBase {
       serviceConfig = oThis._getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
       esQuery = oThis._getQueryObject(),
-      cacheResponse = await oThis._fetchUserFromCache(),
-      userData = cacheResponse && cacheResponse.data[oThis.userId],
-      tokenHolderAddress = userData && userData.tokenHolderAddress;
+      userCacheResponse = await oThis._fetchUserFromCache(),
+      userCacheResponseData = userCacheResponse.data[oThis.userId],
+      tokenHolderAddress = userCacheResponseData.tokenHolderAddress;
 
-    let transactionDetails = await service.search(esQuery),
-      transactionDetailsData = transactionDetails.data[oThis.auxChainId + '_transactions']; // Remove this
-
-    if (transactionDetailsData[0] && !transactionDetailsData[0].user_addresses_status.includes(tokenHolderAddress)) {
+    if (basicHelper.isEmptyObject(userCacheResponseData) || !tokenHolderAddress) {
       return responseHelper.paramValidationError({
-        internal_error_identifier: 'a_s_t_g_t_2',
-        api_error_identifier: 'invalid_api_params',
+        internal_error_identifier: 'a_s_t_g_t_1',
+        api_error_identifier: 'resource_not_found',
         params_error_identifiers: ['invalid_user_id'],
         debug_options: {}
       });
     }
 
-    logger.debug('User transactions from Elastic search ', transactionDetails);
+    let transactionDetails = await service.search(esQuery),
+      transactionDetailsData = transactionDetails.data[oThis.auxChainId + '_transactions'];
 
-    if (transactionDetails.isSuccess() && transactionDetailsData.length !== 0) {
-      let response = await new GetTransactionDetails({
-        chainId: oThis.auxChainId,
-        esSearchData: transactionDetails
-      }).perform();
-      return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
-    } else {
+    // Here tokenHolder address should be present in data coming from es,
+    // else it is invalid as the query is done only on transaction uuid.
+    if (
+      transactionDetails.isFailure() ||
+      transactionDetailsData.length === 0 ||
+      !transactionDetailsData[0].user_addresses_status.includes(tokenHolderAddress)
+    ) {
       return responseHelper.paramValidationError({
-        internal_error_identifier: 'a_s_t_g_t_1',
-        api_error_identifier: 'es_data_not_found',
+        internal_error_identifier: 'a_s_t_g_t_2',
+        api_error_identifier: 'resource_not_found',
         params_error_identifiers: ['invalid_transaction_id'],
         debug_options: { esData: transactionDetails }
       });
     }
+
+    logger.debug('User transactions from Elastic search ', transactionDetails);
+
+    let response = await new GetTransactionDetails({
+      chainId: oThis.auxChainId,
+      esSearchData: transactionDetails
+    }).perform();
+    return responseHelper.successWithData({ [resultType.transaction]: response.data[oThis.transactionId] });
   }
 
   /**

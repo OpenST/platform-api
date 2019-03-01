@@ -47,7 +47,7 @@ const v2ErrorConfig = {
   inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `user setup hasn't been started / not completed yet.`
+    message: `User setup hasn't been started / not completed yet.`
   },
   saas_inactive_user_id: {
     parameter: 'user_id',
@@ -133,11 +133,6 @@ const v2ErrorConfig = {
     parameter: 'device_address',
     code: 'invalid',
     message: 'Either device not registered or not allowed to be authorized.'
-  },
-  invalid_raw_calldata: {
-    parameter: 'executable_data',
-    code: 'invalid',
-    message: 'invalid executable_data'
   },
   insufficient_funds: {
     parameter: 'signer',
@@ -249,6 +244,11 @@ const v2ErrorConfig = {
     parameter: 'transaction_id',
     code: 'invalid',
     message: 'Invalid transaction id'
+  },
+  invalid_status: {
+    parameter: 'status',
+    code: 'invalid',
+    message: 'Invalid status'
   }
 };
 
