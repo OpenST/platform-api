@@ -120,6 +120,8 @@ class TransactionMetaModel extends ModelBase {
 
     if (transactionMetaConst.nextActionAtDelta[params.status]) {
       dataToUpdate.next_action_at = transactionMetaConst.getNextActionAtFor(params.status);
+    } else {
+      dataToUpdate.next_action_at = null;
     }
 
     if (params.receiptStatus) {
