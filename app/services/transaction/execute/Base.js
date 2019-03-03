@@ -259,12 +259,15 @@ class ExecuteTxBase extends ServiceBase {
     let balanceUpdateParams = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
-      blockChainUnsettleDebits: oThis.pessimisticDebitAmount.toString(10)
+      blockChainUnsettleDebits: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
     };
 
     await balanceObj.updateBalance(balanceUpdateParams).catch(function(updateBalanceResponse) {
-      if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
-        return oThis._validationError('s_et_b_9', ['insufficient_funds'], { balanceUpdateParams: balanceUpdateParams });
+      logger.error(updateBalanceResponse);
+      if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.insufficientFunds)) {
+        return oThis._validationError(`s_et_b_9:${updateBalanceResponse.internalErrorCode}`, ['insufficient_funds'], {
+          balanceUpdateParams: balanceUpdateParams
+        });
       }
       return updateBalanceResponse;
     });
@@ -341,7 +344,7 @@ class ExecuteTxBase extends ServiceBase {
     let buffer = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
-      blockChainUnsettleDebits: oThis.pessimisticDebitAmount.mul(-1).toString(10)
+      blockChainUnsettleDebits: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount.mul(-1))
     };
 
     await balanceObj.updateBalance(buffer);

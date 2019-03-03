@@ -7,14 +7,13 @@ const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
   Base = require(rootPrefix + '/app/models/ddb/sharded/Base');
 
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const BigNumber = require('bignumber.js');
-
-require(rootPrefix + '/lib/cacheManagement/chainMulti/Balance');
 
 class Balance extends Base {
   /**
@@ -158,13 +157,18 @@ class Balance extends Base {
       deltaBSB = params['blockChainSettledBalance'] || '0',
       deltaCUD = params['creditUnSettledDebits'] || '0',
       deltaCSB = params['creditSettledBalance'] || '0',
-      uts = basicHelper.formatWeiToString(basicHelper.timestampInSeconds());
+      uts = basicHelper.timestampInSeconds().toString(10),
+      zeroBn = new BigNumber(0);
 
     // New column = old column + delta(delta can be negative value)
     const deltaPessimisticChainBalance = new BigNumber(deltaBSB).minus(new BigNumber(deltaBUD)),
       deltaPessimisticCreditBalance = new BigNumber(deltaCSB).minus(new BigNumber(deltaCUD)),
       deltaPessimisticBalance = deltaPessimisticChainBalance.add(deltaPessimisticCreditBalance),
       totalUnsettledDebits = new BigNumber(deltaBUD).add(new BigNumber(deltaCUD));
+
+    if (totalUnsettledDebits.gt(zeroBn)) {
+      await oThis._checkBalanceFromCache(params.erc20Address, params.tokenHolderAddress, totalUnsettledDebits);
+    }
 
     const balanceParams = {
       TableName: oThis.tableName(),
@@ -192,7 +196,7 @@ class Balance extends Base {
       ReturnValues: 'NONE'
     };
 
-    if (totalUnsettledDebits.gt(new BigNumber(0))) {
+    if (totalUnsettledDebits.gt(zeroBn)) {
       balanceParams['ConditionExpression'] = '#pessimisticSettledBalance >= :totalUnsettledDebits';
       balanceParams['ExpressionAttributeValues'][':totalUnsettledDebits'] = {
         N: basicHelper.formatWeiToString(totalUnsettledDebits)
@@ -202,7 +206,20 @@ class Balance extends Base {
       );
     }
 
-    const updateResponse = await oThis.ddbServiceObj.updateItem(balanceParams);
+    const updateResponse = await oThis.ddbServiceObj.updateItem(balanceParams).catch(function(updateBalanceResponse) {
+      if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: `a_m_d_dh_b_1:${errorConstant.insufficientFunds}`,
+            api_error_identifier: 'something_went_wrong',
+            debug_options: {
+              totalUnsettledDebits: totalUnsettledDebits
+            }
+          })
+        );
+      }
+      return updateBalanceResponse;
+    });
 
     if (updateResponse.isFailure()) {
       return Promise.reject(updateResponse);
@@ -216,6 +233,45 @@ class Balance extends Base {
     }
 
     return updateResponse;
+  }
+
+  /**
+   *
+   * check if balance from cache is greater than totalUnsettledDebits
+   *
+   * @param {String} erc20Address
+   * @param {String} tokenHolderAddress
+   * @param {String} totalUnsettledDebits
+   * @private
+   */
+  async _checkBalanceFromCache(erc20Address, tokenHolderAddress, totalUnsettledDebits) {
+    const oThis = this;
+
+    require(rootPrefix + '/lib/cacheManagement/chainMulti/Balance');
+    let BalanceCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
+      balanceCache = new BalanceCache({
+        tokenHolderAddresses: [tokenHolderAddress],
+        erc20Address: erc20Address
+      });
+    let balanceFetchRsp = await balanceCache.fetch();
+    if (balanceFetchRsp.isFailure()) {
+      return balanceFetchRsp;
+    }
+
+    let pessimisticBalance = balanceFetchRsp.data[tokenHolderAddress]['pessimisticSettledBalance'];
+
+    if (!pessimisticBalance || new BigNumber(pessimisticBalance).lt(totalUnsettledDebits)) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: `a_m_d_dh_b_2:${errorConstant.insufficientFunds}`,
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            totalUnsettledDebits: totalUnsettledDebits,
+            pessimisticBalance: pessimisticBalance
+          }
+        })
+      );
+    }
   }
 
   /**
@@ -272,17 +328,15 @@ class Balance extends Base {
    * @return {Promise<void>}
    */
   static async afterUpdate(ic, params) {
-    const oThis = this;
-
+    require(rootPrefix + '/lib/cacheManagement/chainMulti/Balance');
     let BalanceCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
       balanceCache = new BalanceCache({
         tokenHolderAddresses: [params.tokenHolderAddress],
         erc20Address: params.erc20Address
       });
-
     await balanceCache.clear();
 
-    logger.info('Balance related caches cleared.');
+    logger.debug('Balance related caches cleared.', params);
     return responseHelper.successWithData({});
   }
 
