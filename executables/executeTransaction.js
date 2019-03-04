@@ -99,21 +99,6 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   }
 
   /**
-   * Start subscription
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _startSubscription() {
-    const oThis = this;
-
-    if (oThis.initProcessResp.shouldStartTxQueConsume == 1) {
-      await oThis._startSubscriptionFor(oThis.exTxTopicName);
-    }
-    await oThis._startSubscriptionFor(oThis.cMsgTopicName);
-  }
-
-  /**
    * Prepare subscription data.
    *
    * @returns {{}}
@@ -124,12 +109,16 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
       queueTopicSuffix = oThis.initProcessResp.processDetails.queueTopicSuffix;
 
     oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
+
+    // Set topic names in oThis. Topic names are used while starting the subscription.
     oThis.exTxTopicName = kwcConstant.exTxTopicName(oThis.auxChainId, queueTopicSuffix);
     oThis.cMsgTopicName = kwcConstant.commandMessageTopicName(oThis.auxChainId, queueTopicSuffix);
 
+    // Fetch queue names.
     let exTxQueueName = kwcConstant.exTxQueueName(oThis.auxChainId, queueTopicSuffix),
       cMsgQueueName = kwcConstant.commandMessageQueueName(oThis.auxChainId, queueTopicSuffix);
 
+    // Set rabbitmq subscription object.
     oThis.subscriptionTopicToDataMap[oThis.exTxTopicName] = new RabbitmqSubscription({
       rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
       topic: oThis.exTxTopicName,
@@ -145,6 +134,24 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
       prefetchCount: 1,
       auxChainId: oThis.auxChainId
     });
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    // check if subscription can start for ex tx queue, if yes start subscription.
+    if (oThis.initProcessResp.shouldStartTxQueConsume === 1) {
+      await oThis._startSubscriptionFor(oThis.exTxTopicName);
+    }
+
+    // always start subscription for command message queue.
+    await oThis._startSubscriptionFor(oThis.cMsgTopicName);
   }
 
   /**
