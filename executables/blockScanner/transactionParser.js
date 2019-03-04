@@ -11,22 +11,23 @@
  * @module executables/blockScanner/transactionParser.
  */
 
+const program = require('commander');
+
 const rootPrefix = '../..',
-  program = require('commander'),
+  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
+  TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
+  FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
-  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
-  TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
-  FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
-  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
-  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
-  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction');
 
 const TX_BATCH_SIZE = 20;
 
