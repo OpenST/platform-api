@@ -1,6 +1,7 @@
 'use strict';
+
 /**
- * execute transaction
+ * Executable transaction executable
  *
  * @module executables/executeTransaction
  */
@@ -8,18 +9,18 @@ const program = require('commander'),
   OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '..',
-  kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   InitExTxExecutableProcess = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManager = require(rootPrefix + '/lib/transactions/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription');
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -286,70 +287,77 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    // Identify which file/function to initiate to execute task of specific kind.
+    let kind = messageParams.message.kind;
 
-    let msgParams = messageParams.message.payload,
-      kind = messageParams.message.kind;
-
-    // TODO - move to debug logs.
-    logger.log('_processMessage-------------------------.......\n', messageParams);
-
-    if (kind == kwcConstant.executeTx) {
-      logger.info('Message specific perform called called called called called called called.......\n');
-      //message specific perform called.
-
-      const payload = messageParams.message.payload;
-
-      let ProcessRmqExecuteTxMessage = oThis.ic.getShadowedClassFor(
-          coreConstants.icNameSpace,
-          'ProcessRmqExecuteTxMessage'
-        ),
-        processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
-          transactionUuid: payload.transaction_uuid,
-          transactionMetaId: payload.transactionMetaId,
-          fromAddress: messageParams.fromAddress,
-          fromAddressNonce: messageParams.fromAddressNonce
-        });
-
-      // Process Ex Tx Message
-      await processRmqExecuteTxMessage.perform();
-    } else if (kind == kwcConstant.commandMsg) {
-      logger.info('Command specific perform called called called called called called called called.......\n');
-      let commandMessageParams = {
-        auxChainId: oThis.auxChainId,
-        commandMessage: msgParams
-      };
-      let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
-      await oThis._commandResponseActions(commandProcessorResponse);
+    // Depending on kind, call the message processor
+    if (kind === kwcConstant.executeTx) {
+      await oThis._executeTxMessageProcessor(messageParams);
+    } else if (kind === kwcConstant.commandMsg) {
+      await oThis._commandMessageProcessor(messageParams);
     }
-
-    return true;
   }
 
   /**
-   * Actions to take on command messages.
+   * Execute tx message processor
    *
-   * @param commandProcessorResponse
-   * @returns {Promise<boolean>}
+   * @param messageParams
+   * @return {Promise<void>}
    * @private
    */
-  async _commandResponseActions(commandProcessorResponse) {
+  async _executeTxMessageProcessor(messageParams) {
+    const oThis = this,
+      payload = messageParams.message.payload;
+
+    let ProcessRmqExecuteTxMessage = oThis.ic.getShadowedClassFor(
+        coreConstants.icNameSpace,
+        'ProcessRmqExecuteTxMessage'
+      ),
+      processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
+        transactionUuid: payload.transaction_uuid,
+        transactionMetaId: payload.transactionMetaId,
+        fromAddress: messageParams.fromAddress,
+        fromAddressNonce: messageParams.fromAddressNonce
+      });
+
+    // Process Ex Tx Message
+    await processRmqExecuteTxMessage.perform();
+  }
+
+  /**
+   * Command message processor
+   *
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _commandMessageProcessor(messageParams) {
+    let commandProcessorResponse = await new CommandMessageProcessor({
+      auxChainId: oThis.auxChainId,
+      commandMessage: messageParams.message.payload
+    }).perform();
+
+    await oThis._performAfterCommandActions(commandProcessorResponse);
+  }
+
+  /**
+   * Perform after command actions
+   *
+   * @param commandProcessorResponse
+   * @return {Promise<void>}
+   * @private
+   */
+  async _performAfterCommandActions(commandProcessorResponse) {
     const oThis = this;
 
-    if (
-      commandProcessorResponse &&
-      commandProcessorResponse.data.shouldStartTxQueConsume &&
-      commandProcessorResponse.data.shouldStartTxQueConsume === 1
-    ) {
+    if (!commandProcessorResponse) {
+      return;
+    }
+
+    if (commandProcessorResponse.data.shouldStartTxQueConsume === 1) {
       await oThis._startSubscriptionFor(oThis.exTxTopicName);
-    } else if (
-      commandProcessorResponse &&
-      commandProcessorResponse.data.shouldStopTxQueConsume &&
-      commandProcessorResponse.data.shouldStopTxQueConsume === 1
-    ) {
+    } else if (commandProcessorResponse.data.shouldStopTxQueConsume === 1) {
       oThis._stopPickingUpNewTasks(oThis.exTxTopicName);
     }
-    return true;
   }
 }
 
