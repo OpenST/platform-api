@@ -20,7 +20,7 @@ const rootPrefix = '..',
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq');
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -121,7 +121,7 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
 
     // Set rabbitmq subscription object.
     oThis.subscriptionTopicToDataMap[oThis.exTxTopicName] = new RabbitmqSubscription({
-      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      rabbitmqKind: rabbitmqConstant.auxRabbitmqKind,
       topic: oThis.exTxTopicName,
       queue: exTxQueueName,
       prefetchCount: oThis.prefetchCount,
@@ -129,7 +129,7 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
     });
 
     oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName] = new RabbitmqSubscription({
-      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      rabbitmqKind: rabbitmqConstant.auxRabbitmqKind,
       topic: oThis.cMsgTopicName,
       queue: cMsgQueueName,
       prefetchCount: 1,

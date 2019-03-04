@@ -19,7 +19,7 @@ const rootPrefix = '../..',
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -331,7 +331,7 @@ class BlockParser extends PublisherBase {
         }
       };
 
-      let ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
+      let ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.globalRabbitmqKind, {
           connectionWaitSeconds: connectionTimeoutConst.crons,
           switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
         }),

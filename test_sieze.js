@@ -16,7 +16,7 @@
 // basicHelper = require(rootPrefix + '/helpers/basic');
 // ByChainIdKlass = require(rootPrefix + '/helpers/configStrategy/ByChainId');
 // rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq');
-// rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+// rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
 // OSTBase = require('@ostdotcom/base');
 //
 // require(rootPrefix + '/lib/executeTransactionManagement/GetPublishDetails');
@@ -51,7 +51,7 @@
 // }
 //
 // function getNotiInstance() {
-//   return rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
+//   return rabbitmqProvider.getInstance(rabbitmqConstant.globalRabbitmqKind, {
 //     chainId: chainId,
 //     connectionWaitSeconds: connectionTimeoutConst.crons,
 //     switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
