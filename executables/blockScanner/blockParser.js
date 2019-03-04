@@ -372,7 +372,6 @@ class BlockParser extends PublisherBase {
           break;
         }
         let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-            oThis.chainId,
             batchedTransactionHashes
           ),
           pendingTransactionsMap = pendingTransactionRsp.data;
