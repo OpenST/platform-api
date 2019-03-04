@@ -12,7 +12,7 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
-  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
+  InitExTxExecutableProcess = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
   SequentialManager = require(rootPrefix + '/lib/transactions/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -79,12 +79,14 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   async _beforeSubscribe() {
     const oThis = this;
 
-    // Query to get queue_topic suffix & chainId
-    oThis.initProcessResp = await new InitProcessKlass({ processId: cronProcessId }).perform();
+    // Query to get queue_topic suffix, chainId and whether to start consumption
+    oThis.initProcessResp = await new InitExTxExecutableProcess({ processId: cronProcessId }).perform();
 
+    // Fetch config strategy for the aux chain
     const strategyByChainHelperObj = new StrategyByChainHelper(oThis.auxChainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
+    // if config strategy fetch failed, then emit SIGINT
     if (configStrategyResp.isFailure()) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
@@ -92,6 +94,7 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
 
     const configStrategy = configStrategyResp.data;
 
+    // Creating ic object using the config strategy
     oThis.ic = new InstanceComposer(configStrategy);
   }
 
