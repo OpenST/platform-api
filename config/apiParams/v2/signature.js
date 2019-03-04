@@ -713,7 +713,24 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'status',
+        validatorMethod: 'validateStringArray'
+      },
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'meta_property',
+        validatorMethod: 'validateMetaProperty'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateEsPaginationIdentifier'
+      }
+    ]
   },
 
   [apiName.getUserBalance]: {
