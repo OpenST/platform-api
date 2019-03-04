@@ -11,7 +11,7 @@ const program = require('commander'),
 const rootPrefix = '..',
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   InitExTxExecutableProcess = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
-  SequentialManager = require(rootPrefix + '/lib/transactions/SequentialManager'),
+  BeforeExTxProcessorSequentialStepPerformer = require(rootPrefix + '/lib/transactions/SequentialManager'),
   CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
@@ -169,7 +169,9 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
 
     // Sequential executor required only in case of execute transaction message kind. Otherwise do nothing.
     if (kind === kwcConstant.executeTx) {
-      return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId).perform(msgParams.transactionMetaId);
+      return new BeforeExTxProcessorSequentialStepPerformer(oThis.auxChainId, msgParams.tokenAddressId).perform(
+        msgParams.transactionMetaId
+      );
     } else {
       return responseHelper.successWithData({});
     }
