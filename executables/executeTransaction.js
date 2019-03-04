@@ -166,10 +166,11 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
-    if (kind == kwcConstant.executeTx) {
+    // Sequential executor required only in case of execute transaction message kind. Otherwise do nothing.
+    if (kind === kwcConstant.executeTx) {
       return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId).perform(msgParams.transactionMetaId);
     } else {
-      return Promise.resolve(responseHelper.successWithData({}));
+      return responseHelper.successWithData({});
     }
   }
 
