@@ -273,6 +273,7 @@ class GetTransactionsList extends GetTransactionBase {
    */
 
   getUserAddressQueryString(tokenHolderAddress) {
+    tokenHolderAddress = oThis.getEscapedQuery(tokenHolderAddress);
     const oThis = this,
       address = [ESConstants.formAddressPrefix + tokenHolderAddress, ESConstants.toAddressPrefix + tokenHolderAddress],
       query = oThis.getORQuery(address);
@@ -290,7 +291,11 @@ class GetTransactionsList extends GetTransactionBase {
 
     if (oThis.integerStatuses.length === 0) return null;
 
-    let query = oThis.getORQuery(oThis.integerStatuses);
+    var status = oThis.integerStatuses.map(function(val) {
+      return oThis.getEscapedQuery(val);
+    });
+
+    let query = oThis.getORQuery(status);
 
     return oThis.getQuerySubString(query);
   }
@@ -298,7 +303,7 @@ class GetTransactionsList extends GetTransactionBase {
   /***
    * getMetaQueryString
    * @return String
-   * Eg ( ( n=transaction_name1 AND t=user_to_user1 AND d=details1) || ( n=transaction_name2 AND t=user_to_user2 ))
+   * Eg ( ( n=transaction_name1 AND t=user_to_user1 AND d=details1) OR ( n=transaction_name2 AND t=user_to_user2 ))
    */
 
   getMetaQueryString() {
@@ -357,16 +362,19 @@ class GetTransactionsList extends GetTransactionBase {
       vals = [];
 
     if (name) {
+      name = oThis.getEscapedQuery(name);
       nameVal = nameKey + separator + name;
       vals.push(nameVal);
     }
 
     if (type) {
+      type = oThis.getEscapedQuery(type);
       typeVal = typeKey + separator + type;
       vals.push(typeVal);
     }
 
     if (details) {
+      details = oThis.getEscapedQuery(details);
       detailsVal = detailsKey + separator + details;
       vals.push(detailsVal);
     }
@@ -414,6 +422,16 @@ class GetTransactionsList extends GetTransactionBase {
 
   getQuerySubString(query) {
     return ' ( ' + query + ' ) ';
+  }
+
+  getEscapedQuery(query) {
+    return query
+      .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single character special characters
+      .replace(/\|\|/g, '\\||') // replace ||
+      .replace(/\&\&/g, '\\&&') // replace &&
+      .replace(/AND/g, '\\A\\N\\D') // replace AND
+      .replace(/OR/g, '\\O\\R') // replace OR
+      .replace(/NOT/g, '\\N\\O\\T'); // replace NOT
   }
 
   /**
