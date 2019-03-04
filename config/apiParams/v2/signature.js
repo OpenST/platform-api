@@ -637,7 +637,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'meta_property',
-        validatorMethod: 'validateMetaProperty'
+        validatorMethod: 'validateMetaPropertyForInsertion'
       }
     ]
   },
@@ -664,7 +664,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'meta_property',
-        validatorMethod: 'validateMetaProperty'
+        validatorMethod: 'validateMetaPropertyForInsertion'
       }
     ]
   },
