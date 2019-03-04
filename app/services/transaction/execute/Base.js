@@ -42,6 +42,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/Balance');
 require(rootPrefix + '/lib/executeTransactionManagement/GetPublishDetails');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/UserDetail');
 
 /**
  * Class
@@ -241,6 +242,38 @@ class ExecuteTxBase extends ServiceBase {
     oThis.transferExecutableData = responseData.transferExecutableData;
     oThis.estimatedTransfers = responseData.estimatedTransfers;
     oThis.gas = responseData.gas;
+
+    await oThis._setUserUuidsInEstimatedTransfers(responseData.affectedTokenHolderAddresses);
+  }
+
+  /**
+   *
+   * @param {Array} affectedTokenHolderAddresses
+   *
+   * @private
+   */
+  async _setUserUuidsInEstimatedTransfers(affectedTokenHolderAddresses) {
+    const oThis = this;
+    let UserDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
+      userDetailRsp = await new UserDetailCache({
+        tokenHolderAddresses: affectedTokenHolderAddresses,
+        tokenId: oThis.tokenId
+      }).fetch();
+    if (userDetailRsp.isFailure()) {
+      return Promise.reject(userDetailRsp);
+    }
+    let userDetailsData = userDetailRsp.data;
+    for (let i = 0; i < oThis.estimatedTransfers.length; i++) {
+      let estimatedTransfer = oThis.estimatedTransfers[i],
+        fromUserId = userDetailsData[estimatedTransfer.fromAddress]['userId'],
+        toUserId = userDetailsData[estimatedTransfer.toAddress]['userId'];
+      if (fromUserId) {
+        estimatedTransfer.fromUserId = fromUserId;
+      }
+      if (toUserId) {
+        estimatedTransfer.toUserId = toUserId;
+      }
+    }
   }
 
   /**
