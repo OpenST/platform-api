@@ -185,7 +185,9 @@ class ApiAuthentication {
 
       buffer.regExUrl = new RegExp(buffer.regExUrl, 'i');
 
-      regexes[config['route']] = buffer;
+      regexes[config['route']] = regexes[config['route']] || [];
+
+      regexes[config['route']].push(buffer);
     }
 
     return regexes;
