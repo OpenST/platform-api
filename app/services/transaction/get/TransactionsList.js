@@ -19,6 +19,7 @@ const rootPrefix = '../../../..',
   GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
   pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
+  esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter'),
   ESTransactionService = esServices.services.transactions;
 
 // Following require(s) for registering into instance composer
@@ -208,7 +209,7 @@ class GetTransactionsList extends GetTransactionBase {
       esQueryVals.push(metaQueryString);
     }
 
-    esQuery = oThis.getAndQuery(esQueryVals);
+    esQuery = esQueryFormatter.getAndQuery(esQueryVals);
 
     queryBody['query'] = esQuery;
 
@@ -273,10 +274,11 @@ class GetTransactionsList extends GetTransactionBase {
    */
 
   getUserAddressQueryString(tokenHolderAddress) {
+    tokenHolderAddress = esQueryFormatter.getEscapedQuery(tokenHolderAddress);
     const oThis = this,
       address = [ESConstants.formAddressPrefix + tokenHolderAddress, ESConstants.toAddressPrefix + tokenHolderAddress],
-      query = oThis.getORQuery(address);
-    return oThis.getQuerySubString(query);
+      query = esQueryFormatter.getORQuery(address);
+    return esQueryFormatter.getQuerySubString(query);
   }
 
   /***
@@ -290,9 +292,13 @@ class GetTransactionsList extends GetTransactionBase {
 
     if (oThis.integerStatuses.length === 0) return null;
 
-    let query = oThis.getORQuery(oThis.integerStatuses);
+    let status = oThis.integerStatuses.map(function(val) {
+      return esQueryFormatter.getEscapedQuery(val);
+    });
 
-    return oThis.getQuerySubString(query);
+    let query = esQueryFormatter.getORQuery(status);
+
+    return esQueryFormatter.getQuerySubString(query);
   }
 
   /***
@@ -319,17 +325,17 @@ class GetTransactionsList extends GetTransactionBase {
       currMeta = meta[cnt];
       currMetaValues = oThis.getMetaVals(currMeta);
       if (currMetaValues) {
-        currMetaQuery = oThis.getAndQuery(currMetaValues);
-        currMetaQuery = oThis.getQuerySubString(currMetaQuery);
+        currMetaQuery = esQueryFormatter.getAndQuery(currMetaValues);
+        currMetaQuery = esQueryFormatter.getQuerySubString(currMetaQuery);
         metaQueries.push(currMetaQuery);
       }
     }
 
     if (metaQueries.length == 0) return null;
 
-    metaQueriesString = oThis.getORQuery(metaQueries);
+    metaQueriesString = esQueryFormatter.getORQuery(metaQueries);
 
-    return oThis.getQuerySubString(metaQueriesString);
+    return esQueryFormatter.getQuerySubString(metaQueriesString);
   }
 
   /***
@@ -357,19 +363,19 @@ class GetTransactionsList extends GetTransactionBase {
       vals = [];
 
     if (name) {
-      name = oThis.getEscapedQuery(name);
+      name = esQueryFormatter.getEscapedQuery(name);
       nameVal = nameKey + separator + name;
       vals.push(nameVal);
     }
 
     if (type) {
-      type = oThis.getEscapedQuery(type);
+      type = esQueryFormatter.getEscapedQuery(type);
       typeVal = typeKey + separator + type;
       vals.push(typeVal);
     }
 
     if (details) {
-      details = oThis.getEscapedQuery(details);
+      details = esQueryFormatter.getEscapedQuery(details);
       detailsVal = detailsKey + separator + details;
       vals.push(detailsVal);
     }
@@ -377,63 +383,6 @@ class GetTransactionsList extends GetTransactionBase {
     if (vals.length == 0) return null;
 
     return vals;
-  }
-
-  /***
-   * getORQuery
-   * @input Array[String]
-   * Eg [ f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 , t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ]
-   * @return String
-   * Eg f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99
-   */
-
-  getORQuery(vals) {
-    if (!vals || vals.length == 0) return null;
-    const ORQuery = ' OR ';
-    return vals.join(ORQuery);
-  }
-
-  /***
-   * getAndQuery
-   * @input Array[String]
-   * Eg [ f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 , t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ]
-   * @return String
-   * Eg f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 AND t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99
-   */
-
-  getAndQuery(vals) {
-    if (!vals || vals.length == 0) return null;
-    const ANDQuery = ' AND ';
-    return vals.join(ANDQuery);
-  }
-
-  /***
-   * getAndQuery
-   * @input String
-   * Eg : "f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 AND t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99"
-   * @return String
-   * Eg ( string )
-   */
-
-  getQuerySubString(query) {
-    return ' ( ' + query + ' ) ';
-  }
-
-  /**
-   *
-   * escape restricted ES chars
-   *
-   * @param query
-   * @return {string}
-   */
-  getEscapedQuery(query) {
-    return query
-      .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single character special characters
-      .replace(/\|\|/g, '\\||') // replace ||
-      .replace(/\&\&/g, '\\&&') // replace &&
-      .replace(/AND/g, '\\A\\N\\D') // replace AND
-      .replace(/OR/g, '\\O\\R') // replace OR
-      .replace(/NOT/g, '\\N\\O\\T'); // replace NOT
   }
 
   /**
