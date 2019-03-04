@@ -89,8 +89,6 @@ class GetTransactionsList extends GetTransactionBase {
 
     let userTransactions = await service.search(esQuery);
 
-    logger.debug('User Transactions from Elastic search ', userTransactions);
-
     if (userTransactions.isSuccess() && userTransactions.data[oThis.auxChainId + '_transactions'].length !== 0) {
       oThis._setMeta(userTransactions.data);
 
@@ -226,18 +224,18 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _setMeta(esResponseData) {
     const oThis = this;
-    logger.debug('esResponseData =======', esResponseData);
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
       oThis.responseMetaData[pagination.nextPagePayloadKey] = {
-        from: esNextPagePayload.from,
-        limit: oThis.limit,
-        meta_property: oThis.metaProperty,
-        status: oThis.status
+        [pagination.paginationIdentifierKey]: {
+          from: esNextPagePayload.from,
+          limit: oThis.limit,
+          meta_property: oThis.metaProperty,
+          status: oThis.status
+        }
       };
     }
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
-    logger.debug('==== oThis.responseMetaData while setting meta =====', oThis.responseMetaData);
   }
 
   /**
