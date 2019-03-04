@@ -322,33 +322,6 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * _publishAfterReceiptInfo
-   *
-   * @param publishParams - Params to publish message
-   * @return {Promise<never>}
-   * @private
-   */
-  async _publishAfterReceiptInfo(publishParams) {
-    const oThis = this;
-
-    if (!publishParams || publishParams == '') {
-      return;
-    }
-
-    let messageParams = JSON.parse(publishParams);
-
-    let setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
-
-    // If could not set to RMQ run in async.
-    if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
-      logger.error("====Couldn't publish the message to RMQ====");
-      return Promise.reject({ err: "Couldn't publish transaction pending for publish: " + publishParams });
-    }
-
-    logger.info('==== Pending transaction published ===');
-  }
-
-  /**
    * _topicsToPublish
    *
    * @return {*[]}

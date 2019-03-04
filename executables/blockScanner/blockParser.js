@@ -337,11 +337,21 @@ class BlockParserExecutable extends PublisherBase {
         }
       };
 
-      // get RMQ instance from instance cache
-      let ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.globalRabbitmqKind, {
-          connectionWaitSeconds: connectionTimeoutConst.crons,
-          switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-        }),
+      let rabbitParams = {
+        connectionWaitSeconds: connectionTimeoutConst.crons,
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+      };
+
+      let rabbitKind = null;
+
+      if (oThis.isOriginChain) {
+        rabbitKind = rabbitmqConstant.originRabbitmqKind;
+      } else {
+        rabbitParams['auxChainId'] = oThis.chainId;
+        rabbitKind = rabbitmqConstant.auxRabbitmqKind;
+      }
+
+      let ostNotification = await rabbitmqProvider.getInstance(rabbitKind, rabbitParams),
         setToRMQ = await ostNotification.publishEvent.perform(messageParams);
 
       // If could not set to RMQ run in async.
@@ -381,7 +391,6 @@ class BlockParserExecutable extends PublisherBase {
         break;
       }
       let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-          oThis.chainId,
           batchedTransactionHashes
         ),
         pendingTransactionsMap = pendingTransactionRsp.data;
