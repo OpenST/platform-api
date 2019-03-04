@@ -154,6 +154,7 @@ class ServicesBaseKlass {
 
     let limitVas = CommonValidators.validateAndSanitizeLimit(
       oThis._currentPageLimit(),
+      oThis._defaultPageLimit(),
       oThis._minPageLimit(),
       oThis._maxPageLimit()
     );

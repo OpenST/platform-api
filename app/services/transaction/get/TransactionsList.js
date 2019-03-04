@@ -48,6 +48,7 @@ class GetTransactionsList extends GetTransactionBase {
 
     oThis.auxChainId = null;
     oThis.transactionDetails = {};
+    oThis.integerStatuses = [];
 
     oThis.responseMetaData = {
       [pagination.nextPagePayloadKey]: {}
@@ -83,6 +84,9 @@ class GetTransactionsList extends GetTransactionBase {
       service = new ESTransactionService(serviceConfig),
       esQuery = oThis._getElasticSearchQuery(tokenHolderAddress);
 
+    esQuery['size'] = oThis.limit;
+    esQuery['from'] = oThis.from;
+
     let userTransactions = await service.search(esQuery);
 
     logger.debug('User Transactions from Elastic search ', userTransactions);
@@ -116,17 +120,19 @@ class GetTransactionsList extends GetTransactionBase {
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      oThis.status = parsedPaginationParams.status; //override limit
+      oThis.status = parsedPaginationParams.status; //override status
+      oThis.metaProperty = parsedPaginationParams.meta_property; //override meta_property
       oThis.limit = parsedPaginationParams.limit; //override limit
-      oThis.metaProperty = parsedPaginationParams.metaProperty; //override limit
+      oThis.from = parsedPaginationParams.from; //override from
     } else {
-      oThis.limit = oThis.limit || oThis._defaultPageLimit();
       oThis.status = oThis.status || [];
       oThis.metaProperty = oThis.metaProperty || [];
+      oThis.limit = oThis.limit || oThis._defaultPageLimit();
+      oThis.from = 0;
     }
 
     // Validate status
-    await oThis._validateStatus();
+    await oThis._validateAndSanitizeStatus();
 
     //Validate limit
     return oThis._validatePageSize();
@@ -138,18 +144,25 @@ class GetTransactionsList extends GetTransactionBase {
    * @returns {Promise<void>}
    * @private
    */
-  async _validateStatus() {
+  async _validateAndSanitizeStatus() {
     const oThis = this,
-      validStatus = pendingTransactionConstant.invertedStatuses;
+      validStatuses = pendingTransactionConstant.invertedStatuses;
+
+    let currStatusInt;
 
     for (let i = 0; i < oThis.status.length; i++) {
-      if (!validStatus[oThis.status[i]]) {
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_t_g_tl_2',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_status'],
-          debug_options: {}
-        });
+      currStatusInt = validStatuses[oThis.status[i]];
+      if (!currStatusInt) {
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_t_g_tl_2',
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_status'],
+            debug_options: {}
+          })
+        );
+      } else {
+        oThis.integerStatuses.push(currStatusInt);
       }
     }
   }
@@ -214,7 +227,15 @@ class GetTransactionsList extends GetTransactionBase {
   _setMeta(esResponseData) {
     const oThis = this;
     logger.debug('esResponseData =======', esResponseData);
-    oThis.responseMetaData[pagination.nextPagePayloadKey] = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+    if (esResponseData.meta[pagination.hasNextPage]) {
+      let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+      oThis.responseMetaData[pagination.nextPagePayloadKey] = {
+        from: esNextPagePayload.from,
+        limit: oThis.limit,
+        meta_property: oThis.metaProperty,
+        status: oThis.status
+      };
+    }
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
     logger.debug('==== oThis.responseMetaData while setting meta =====', oThis.responseMetaData);
   }
@@ -269,9 +290,9 @@ class GetTransactionsList extends GetTransactionBase {
   getStatusQueryString() {
     const oThis = this;
 
-    if (!oThis.status || oThis.status.length == 0) return null;
+    if (oThis.integerStatuses.length === 0) return null;
 
-    let query = oThis.getORQuery(oThis.status);
+    let query = oThis.getORQuery(oThis.integerStatuses);
 
     return oThis.getQuerySubString(query);
   }
