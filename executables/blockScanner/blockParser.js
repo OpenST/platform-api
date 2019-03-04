@@ -19,7 +19,7 @@ const rootPrefix = '../..',
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -331,10 +331,21 @@ class BlockParser extends PublisherBase {
         }
       };
 
-      let ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
-          connectionWaitSeconds: connectionTimeoutConst.crons,
-          switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-        }),
+      let rabbitParams = {
+        connectionWaitSeconds: connectionTimeoutConst.crons,
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+      };
+
+      let rabbitKind = null;
+
+      if (oThis.isOriginChain) {
+        rabbitKind = rabbitmqConstant.originRabbitmqKind;
+      } else {
+        rabbitParams['auxChainId'] = oThis.chainId;
+        rabbitKind = rabbitmqConstant.auxRabbitmqKind;
+      }
+
+      let ostNotification = await rabbitmqProvider.getInstance(rabbitKind, rabbitParams),
         setToRMQ = await ostNotification.publishEvent.perform(messageParams);
 
       // If could not set to RMQ run in async.
@@ -372,7 +383,6 @@ class BlockParser extends PublisherBase {
           break;
         }
         let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-            oThis.chainId,
             batchedTransactionHashes
           ),
           pendingTransactionsMap = pendingTransactionRsp.data;
