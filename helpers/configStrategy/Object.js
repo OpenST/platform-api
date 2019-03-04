@@ -1,11 +1,12 @@
 'use strict';
 /**
- * Object that gives getter methods on config strategy fetched for a chain.
+ * Object that gives getter methods on config strategy fetched for a chain
  *
  * @module helpers/configStrategy/Object
  */
 const rootPrefix = '../..',
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  basicHelper = require(rootPrefix + '/helpers/basic');
 
 /**
  * Class for object that gives getter methods on config strategy fetched for a chain.
@@ -70,8 +71,8 @@ class ConfigStrategyObject {
           shortName: 'oca',
           dataType: 'S'
         },
-        simpleStakeAddress: {
-          shortName: 'ssa',
+        gatewayContractAddress: {
+          shortName: 'gwca',
           dataType: 'S'
         }
       },
@@ -134,7 +135,7 @@ class ConfigStrategyObject {
         },
         toBeSyncedInEs: {
           shortName: 'sie',
-          dataType: 'BOOL'
+          dataType: 'N'
         }
       },
       transactions: {
@@ -165,12 +166,14 @@ class ConfigStrategyObject {
 
   originChainWsProviders(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
+    let wsProviders = oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
+    return basicHelper.shuffleArray(wsProviders);
   }
 
   auxChainWsProviders(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProviders;
+    let wsProviders = oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProviders;
+    return basicHelper.shuffleArray(wsProviders);
   }
 
   originChainRpcProviders(intent) {
@@ -185,22 +188,38 @@ class ConfigStrategyObject {
 
   originChainWsProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProvider;
+
+    let providers = oThis.originChainWsProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   auxChainWsProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProvider;
+
+    let providers = oThis.auxChainWsProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   originChainRpcProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].rpcProvider;
+
+    let providers = oThis.originChainRpcProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   auxChainRpcProvider(intent) {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].rpcProvider;
+
+    let providers = oThis.auxChainRpcProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
   }
 
   originFinalizeAfterBlocks() {

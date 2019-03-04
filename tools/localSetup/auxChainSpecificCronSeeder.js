@@ -38,6 +38,9 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertAuxWorkflowWorkerTwoEntry();
     await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
     await oThis.insertBalanceSettlerEntry();
+    await oThis.insertExecuteRecoveryEntry();
+    await oThis.insertStateRootSyncFromOriginToAux();
+    await oThis.insertStateRootSyncFromAuxToOrigin();
   }
 
   /**
@@ -268,11 +271,71 @@ class AuxChainSpecificCronSeeder {
       });
   }
 
+  /**
+   * Insert balance settler cron entry.
+   *
+   * @returns {Promise<void>}
+   */
   async insertBalanceSettlerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.balanceSettler, {
         auxChainId: 2000,
         prefetchCount: 5,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert state root sync from origin to aux cron entry.
+   *
+   * @returns {Promise<void>}
+   */
+  async insertStateRootSyncFromOriginToAux() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.originToAuxStateRootSync, {
+        auxChainId: 2000,
+        originChainId: 1000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert state root sync from aux to origin cron entry.
+   *
+   * @returns {Promise<void>}
+   */
+  async insertStateRootSyncFromAuxToOrigin() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.auxToOriginStateRootSync, {
+        auxChainId: 2000,
+        originChainId: 1000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  async insertExecuteRecoveryEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.executeRecovery, {
+        chainId: 2000
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  async insertTransactionErrorHandlerEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.transactionErrorHandler, {
+        auxChainId: 2000,
+        noOfRowsToProcess: 50,
+        maxRetry: 100,
         sequenceNumber: 1
       })
       .then(function(insertId) {

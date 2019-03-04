@@ -6,6 +6,7 @@
  */
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   TransferEth = require(rootPrefix + '/lib/transfer/Eth'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   GetEthBalance = require(rootPrefix + '/lib/getBalance/Eth'),
@@ -14,7 +15,9 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
 
 /**
@@ -223,6 +226,100 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     });
 
     await transferEth.perform();
+  }
+
+  /**
+   * This function calculates token funder's st prime requirement.
+   *
+   * @returns {Object}
+   */
+  calculateTokenAuxFunderStPrimeRequirement() {
+    const oThis = this;
+
+    let maxBalanceToFund = basicHelper.convertToWei(String(0)),
+      thresholdBalance = basicHelper.convertToWei(String(0)),
+      tokenAuxFunderConfig = basicHelper.deepDup(fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas);
+
+    for (let address in tokenAuxFunderConfig) {
+      maxBalanceToFund = maxBalanceToFund.plus(
+        basicHelper.convertToWei(String(tokenAuxFunderConfig[address].fundAmount))
+      );
+      thresholdBalance = thresholdBalance.plus(
+        basicHelper.convertToWei(String(tokenAuxFunderConfig[address].thresholdAmount))
+      );
+    }
+
+    let calculation = {
+      [tokenAddressConstants.auxFunderAddressKind]: {
+        maxBalanceToFundAtOneGwei: maxBalanceToFund.toString(10),
+        thresholdBalanceAtOneGwei: thresholdBalance.toString(10)
+      }
+    };
+
+    return calculation;
+  }
+
+  /**
+   * This function tells if the master internal funder eth balance is greater than the given amount.
+   *
+   * @param amount
+   * @returns {Promise<boolean>}
+   * @private
+   */
+  async _isMIFEthBalanceGreaterThan(amount) {
+    const oThis = this;
+
+    // Fetch eth balance
+    let mifAddressToBalanceMap = await oThis._fetchEthBalances([oThis.masterInternalFunderAddress]),
+      mifBalance = basicHelper.convertToBigNumber(mifAddressToBalanceMap[oThis.masterInternalFunderAddress]);
+
+    if (mifBalance.lt(amount)) {
+      //Create an alert
+      logger.warn(
+        'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
+      );
+      logger.notify(
+        'e_f_bmif_acs_1',
+        'Low balance of addressKind: ' + chainAddressConstants.masterInternalFunderKind + '. on chainId: ',
+        +oThis.originChainId + ' Address: ' + oThis.masterInternalFunderAddress
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * This function tells if the master internal funder st prime balance is greater than the given amount.
+   *
+   * @param amount
+   * @returns {Promise<boolean>}
+   * @private
+   */
+  async _isMIFStPrimeBalanceGreaterThan(amount) {
+    const oThis = this;
+
+    let mifAddressToBalanceMap = await oThis._fetchStPrimeBalance(oThis.auxChainId, [
+        oThis.masterInternalFunderAddress
+      ]),
+      mifBalance = basicHelper.convertToBigNumber(mifAddressToBalanceMap[oThis.masterInternalFunderAddress]);
+
+    if (mifBalance.lt(amount)) {
+      //Create an alert
+      logger.warn(
+        'addressKind ' + oThis.masterInternalFunderAddress + ' has low st prime balance on chainId: ' + oThis.auxChainId
+      );
+      logger.notify(
+        'e_f_bmif_acs_2',
+        'Low st prime balance of addressKind: ' + chainAddressConstants.masterInternalFunderKind + '. on chainId: ',
+        +oThis.auxChainId + ' Address: ' + oThis.masterInternalFunderAddress
+      );
+
+      return false;
+    }
+
+    return true;
   }
 }
 

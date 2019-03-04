@@ -2,6 +2,10 @@
 /**
  * Cron to fund stPrime by chainOwner to chain specific addresses.
  *
+ * by: Master Internal Funder
+ * to: [interChainFacilitatorKind, auxAnchorOrgContractAdminKind, auxDeployerKind, auxPriceOracleContractWorkerKind]
+ * what: St Prime
+ *
  * @module executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses
  *
  * This cron expects originChainId and auxChainIds as parameter in the params.
@@ -13,6 +17,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
@@ -26,7 +31,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 10'
+    '    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 12'
   );
   logger.log('');
   logger.log('');
@@ -40,29 +45,27 @@ if (!program.cronProcessId) {
 // Declare variables.
 const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
   flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
-  originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
+  auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer(),
+  fundingAmountsAuxGasMap = fundingAmounts[chainAddressConstants.masterInternalFunderKind].auxGas;
 
 // Config for addresses which need to be funded per chain by OST Prime
 const stPrimeFundingPerChainConfig = {
   [chainAddressConstants.interChainFacilitatorKind]: {
-    oneGWeiMinOSTPrimeAmount: '0.02840', //TODO-Funding
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.interChainFacilitatorKind].fundAmount, //TODO-FUNDING:
+    thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.interChainFacilitatorKind].thresholdAmount
   },
   [chainAddressConstants.auxAnchorOrgContractAdminKind]: {
-    oneGWeiMinOSTPrimeAmount: '0.00030', //TODO-Funding
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxAnchorOrgContractAdminKind].fundAmount, //TODO-FUNDING:
+    thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxAnchorOrgContractAdminKind].thresholdAmount
   },
   [chainAddressConstants.auxDeployerKind]: {
-    oneGWeiMinOSTPrimeAmount: '0.02330', //TODO-Funding
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxDeployerKind].fundAmount, //TODO-FUNDING:
+    thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxDeployerKind].thresholdAmount
   },
   [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
-    oneGWeiMinOSTPrimeAmount: '0.00008', //TODO-Funding
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
+    oneGWeiMinOSTPrimeAmount:
+      fundingAmountsAuxGasMap[chainAddressConstants.auxPriceOracleContractWorkerKind].fundAmount, //TODO-FUNDING:
+    thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxPriceOracleContractWorkerKind].thresholdAmount
   }
 };
 
@@ -228,7 +231,8 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
   async _checkEligibilityAndTransferFunds(auxChainId, perChainFundingConfig) {
     const oThis = this;
 
-    let transferDetails = [];
+    let transferDetails = [],
+      totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0);
 
     for (let addressKind in perChainFundingConfig) {
       let fundingAddressDetails = perChainFundingConfig[addressKind],
@@ -245,31 +249,29 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
         continue;
       }
 
-      let addressMinimumBalance = basicHelper
+      let addressFundAmount = basicHelper
           .convertToWei(String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount))
-          .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
         addressCurrentBalance = basicHelper.convertToBigNumber(balance),
-        addressMinimumBalanceRequiredForGivenFlows = addressMinimumBalance.mul(
-          fundingAddressDetails.fundIfLessThanFlows
-        );
+        addressThresholdAmount = basicHelper
+          .convertToWei(String(fundingAddressDetails.thresholdAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
-      logger.log('Address: ', address);
+      logger.log('\n\nAddress: ', address);
       logger.log('Current balance of address: ', addressCurrentBalance.toString(10));
-      logger.log('Minimum required balance of address: ', addressMinimumBalance.toString(10));
-      logger.log(
-        'Minimum required balance of address for required flows: ',
-        addressMinimumBalanceRequiredForGivenFlows.toString(10)
-      );
+      logger.log('Max funding amount of address: ', addressFundAmount.toString(10));
+      logger.log('Threshold Amount for address: ', addressThresholdAmount.toString(10));
 
-      if (addressCurrentBalance.lt(addressMinimumBalanceRequiredForGivenFlows)) {
-        let amountToBeTransferred = addressMinimumBalance.mul(fundingAddressDetails.fundForFlows).toString(10),
+      if (addressCurrentBalance.lt(addressThresholdAmount)) {
+        let amountToBeTransferredBN = addressFundAmount.minus(addressCurrentBalance),
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,
-            amountInWei: amountToBeTransferred
+            amountInWei: amountToBeTransferredBN.toString(10)
           };
-        logger.log('Funds transferred are: ', amountToBeTransferred);
+        logger.log('Funds transferred are: ', amountToBeTransferredBN.toString(10));
         transferDetails.push(transferParams);
+        totalAmountToTransferFromMIF = totalAmountToTransferFromMIF.plus(amountToBeTransferredBN);
       }
     }
 
@@ -278,7 +280,7 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
     // Start transfer.
     oThis.canExit = false;
 
-    if (transferDetails.length > 0) {
+    if (transferDetails.length > 0 && (await oThis._isMIFStPrimeBalanceGreaterThan(totalAmountToTransferFromMIF))) {
       await oThis._transferStPrime(auxChainId, transferDetails);
     }
     oThis.canExit = true;

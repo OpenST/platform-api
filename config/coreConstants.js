@@ -276,6 +276,14 @@ class CoreConstants {
     return 100;
   }
 
+  get ORIGIN_GAS_BUFFER() {
+    return 1;
+  }
+
+  get AUX_GAS_BUFFER() {
+    return 1;
+  }
+
   /**
    * Batch delete retry count
    *

@@ -162,7 +162,7 @@ class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
 
     switch (msgParams.topic) {
       case workflowTopicConstant.userSetup:
-        const UserSetupRouter = require(rootPrefix + '/executables/auxWorkflowRouter/UserSetupRouter');
+        const UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router');
         return new UserSetupRouter(msgParams).perform();
       case workflowTopicConstant.authorizeDevice:
         const AuthorizeDeviceRouter = require(rootPrefix + '/lib/workflow/authorizeDevice/Router');
@@ -176,6 +176,26 @@ class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
       case workflowTopicConstant.revokeSession:
         const RevokeSessionRouter = require(rootPrefix + '/lib/workflow/revokeSession/Router');
         return new RevokeSessionRouter(msgParams).perform();
+      case workflowTopicConstant.initiateRecovery:
+        const InitiateRecoveryRouter = require(rootPrefix +
+          '/lib/workflow/deviceRecovery/byOwner/initiateRecovery/Router');
+        return new InitiateRecoveryRouter(msgParams).perform();
+      case workflowTopicConstant.abortRecoveryByOwner:
+        const AbortRecoveryByOwnerRouter = require(rootPrefix +
+          '/lib/workflow/deviceRecovery/byOwner/abortRecovery/Router');
+        return new AbortRecoveryByOwnerRouter(msgParams).perform();
+      case workflowTopicConstant.resetRecoveryOwner:
+        const ResetRecoveryOwnerRouter = require(rootPrefix +
+          '/lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router');
+        return new ResetRecoveryOwnerRouter(msgParams).perform();
+      case workflowTopicConstant.executeRecovery:
+        const ExecuteRecoveryRouter = require(rootPrefix +
+          '/lib/workflow/deviceRecovery/byRecoveryController/executeRecovery/Router');
+        return new ExecuteRecoveryRouter(msgParams).perform();
+      case workflowTopicConstant.abortRecoveryByRecoveryController:
+        const AbortRecoveryByRecoveryControllerRouter = require(rootPrefix +
+          '/lib/workflow/deviceRecovery/byRecoveryController/abortRecovery/Router');
+        return new AbortRecoveryByRecoveryControllerRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];

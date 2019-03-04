@@ -1,6 +1,8 @@
 'use strict';
 /**
  * Cron to fund stPrime by tokenAuxFunder.
+ * by: tokenAuxFunder
+ * to: [auxAdminAddressKind, auxWorkerAddressKind, tokenUserOpsWorkerKind]
  *
  * @module executables/funding/byTokenAuxFunder/auxChainSpecific
  *
@@ -14,6 +16,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
+  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -37,12 +40,22 @@ if (!program.cronProcessId) {
 
 // Declare variables.
 const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
-  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE);
+  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
+  fundingAmountsAuxGasMap = fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas;
 
-// Config for addresses which need to be funded.
 const fundingConfig = {
-  [tokenAddressConstants.auxAdminAddressKind]: '0.00005', //TODO-Funding
-  [tokenAddressConstants.auxWorkerAddressKind]: '0.00005' //TODO-Funding
+  [tokenAddressConstants.auxAdminAddressKind]: {
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[tokenAddressConstants.auxAdminAddressKind].fundAmount,
+    thresholdAmount: fundingAmountsAuxGasMap[tokenAddressConstants.auxAdminAddressKind].thresholdAmount
+  },
+  [tokenAddressConstants.auxWorkerAddressKind]: {
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[tokenAddressConstants.auxWorkerAddressKind].fundAmount,
+    thresholdAmount: fundingAmountsAuxGasMap[tokenAddressConstants.auxWorkerAddressKind].thresholdAmount
+  },
+  [tokenAddressConstants.tokenUserOpsWorkerKind]: {
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[tokenAddressConstants.tokenUserOpsWorkerKind].fundAmount,
+    thresholdAmount: fundingAmountsAuxGasMap[tokenAddressConstants.tokenUserOpsWorkerKind].thresholdAmount
+  }
 };
 
 /**
@@ -153,7 +166,8 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
         [
           new TokenAddressModel().invertedKinds[tokenAddressConstants.auxFunderAddressKind],
           new TokenAddressModel().invertedKinds[tokenAddressConstants.auxWorkerAddressKind],
-          new TokenAddressModel().invertedKinds[tokenAddressConstants.auxAdminAddressKind]
+          new TokenAddressModel().invertedKinds[tokenAddressConstants.auxAdminAddressKind],
+          new TokenAddressModel().invertedKinds[tokenAddressConstants.tokenUserOpsWorkerKind]
         ]
       ])
       .fire();
@@ -193,44 +207,108 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
 
     oThis.transferDetails = [];
 
+    let auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
+
     // Loop over tokenIds.
     for (let index = 0; index < oThis.tokenIds.length; index++) {
+      let totalStPrimeToTransfer = basicHelper.convertToBigNumber(0);
       // Fetch addresses.
       let tokenId = oThis.tokenIds[index],
         tokenAddresses = oThis.tokenAddresses[tokenId],
         tokenAuxFunderAddress = tokenAddresses[tokenAddressConstants.auxFunderAddressKind],
         tokenAuxAdminAddress = tokenAddresses[tokenAddressConstants.auxAdminAddressKind],
-        tokenAuxWorkerAddress = tokenAddresses[tokenAddressConstants.auxWorkerAddressKind];
+        tokenAuxWorkerAddress = tokenAddresses[tokenAddressConstants.auxWorkerAddressKind],
+        tokenUserOpsWorkerAddress = tokenAddresses[tokenAddressConstants.tokenUserOpsWorkerKind];
 
       // Determine minimum balances of addresses.
-      let tokenAuxAdminMinimumBalance = basicHelper.convertToBigNumber(
-          fundingConfig[tokenAddressConstants.auxAdminAddressKind]
-        ),
-        tokenAuxWorkerMinimumBalance = basicHelper.convertToBigNumber(
-          fundingConfig[tokenAddressConstants.auxWorkerAddressKind]
-        );
+      let tokenAuxAdminMaxFundBalance = basicHelper
+          .convertToWei(String(fundingConfig[tokenAddressConstants.auxAdminAddressKind].oneGWeiMinOSTPrimeAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
+        tokenAuxWorkerMaxFundBalance = basicHelper
+          .convertToWei(String(fundingConfig[tokenAddressConstants.auxWorkerAddressKind].oneGWeiMinOSTPrimeAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
+        tokenUserOpsWorkerMaxFundBalance = basicHelper
+          .convertToWei(String(fundingConfig[tokenAddressConstants.tokenUserOpsWorkerKind].oneGWeiMinOSTPrimeAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
+        tokenAuxAdminThresholdFund = basicHelper
+          .convertToWei(String(fundingConfig[tokenAddressConstants.auxAdminAddressKind].thresholdAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
+        tokenAuxWorkerThresholdFund = basicHelper
+          .convertToWei(String(fundingConfig[tokenAddressConstants.auxWorkerAddressKind].thresholdAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
+        tokenUserOpsWorkerThresholdFund = basicHelper
+          .convertToWei(String(fundingConfig[tokenAddressConstants.tokenUserOpsWorkerKind].thresholdAmount))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
       // Determine current balances of addresses.
       let tokenAuxAdminCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[tokenAuxAdminAddress]),
-        tokenAuxWorkerCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[tokenAuxWorkerAddress]);
+        tokenAuxWorkerCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[tokenAuxWorkerAddress]),
+        tokenUserOpsWorkerCurrentBalance = basicHelper.convertToBigNumber(
+          currentAddressBalances[tokenUserOpsWorkerAddress]
+        ),
+        tokenAuxFunderCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[tokenAuxFunderAddress]);
 
       // Check for refund eligibility.
-      if (tokenAuxAdminCurrentBalance.lt(tokenAuxAdminMinimumBalance.mul(flowsForMinimumBalance))) {
-        let params = {
-          fromAddress: tokenAuxFunderAddress,
-          toAddress: tokenAuxAdminAddress,
-          amountInWei: basicHelper.convertToWei(tokenAuxAdminMinimumBalance.mul(flowsForTransferBalance)).toString(10)
-        };
-        oThis.transferDetails.push(params);
+      if (tokenAuxAdminCurrentBalance.lt(tokenAuxAdminThresholdFund)) {
+        logger.info('\n\n1----->tokenAuxAdminCurrentBalance', tokenAuxAdminCurrentBalance.toString(10));
+        logger.info('1------>tokenAuxAdminThresholdFund', tokenAuxAdminThresholdFund.toString(10));
+        logger.info('1-------->tokenAuxAdminAddress', tokenAuxAdminAddress);
+        logger.info('1-------->tokenAuxAdminMaxFundBalance', tokenAuxAdminMaxFundBalance);
+        let amountToTransferToAuxAdminBN = tokenAuxAdminMaxFundBalance.minus(tokenAuxAdminCurrentBalance),
+          params = {
+            fromAddress: tokenAuxFunderAddress,
+            toAddress: tokenAuxAdminAddress,
+            amountInWei: amountToTransferToAuxAdminBN.toString(10)
+          };
+        totalStPrimeToTransfer = totalStPrimeToTransfer.plus(amountToTransferToAuxAdminBN);
+        if (tokenAuxFunderCurrentBalance.gt(totalStPrimeToTransfer)) {
+          oThis.transferDetails.push(params);
+        } else {
+          continue;
+        }
       }
 
-      if (tokenAuxWorkerCurrentBalance.lt(tokenAuxWorkerMinimumBalance.mul(flowsForMinimumBalance))) {
-        let params = {
-          fromAddress: tokenAuxFunderAddress,
-          toAddress: tokenAuxWorkerAddress,
-          amountInWei: basicHelper.convertToWei(tokenAuxWorkerMinimumBalance.mul(flowsForTransferBalance)).toString(10)
-        };
-        oThis.transferDetails.push(params);
+      if (tokenAuxWorkerCurrentBalance.lt(tokenAuxWorkerThresholdFund)) {
+        logger.info('\n\n2----->tokenAuxWorkerCurrentBalance', tokenAuxWorkerCurrentBalance.toString(10));
+        logger.info('2------>tokenAuxWorkerThresholdFund', tokenAuxWorkerThresholdFund.toString(10));
+        logger.info('2-------->tokenAuxWorkerAddress', tokenAuxWorkerAddress);
+        logger.info('2-------->tokenAuxWorkerMaxFundBalance', tokenAuxWorkerMaxFundBalance);
+
+        let amountToTransferToAuxWorkerBN = tokenAuxWorkerMaxFundBalance.minus(tokenAuxWorkerCurrentBalance),
+          params = {
+            fromAddress: tokenAuxFunderAddress,
+            toAddress: tokenAuxWorkerAddress,
+            amountInWei: amountToTransferToAuxWorkerBN.toString(10)
+          };
+        totalStPrimeToTransfer = totalStPrimeToTransfer.plus(amountToTransferToAuxWorkerBN);
+        if (tokenAuxFunderCurrentBalance.gt(totalStPrimeToTransfer)) {
+          oThis.transferDetails.push(params);
+        } else {
+          continue;
+        }
+      }
+
+      if (tokenUserOpsWorkerCurrentBalance.lt(tokenUserOpsWorkerThresholdFund)) {
+        logger.info('3----->tokenUserOpsWorkerCurrentBalance', tokenUserOpsWorkerCurrentBalance.toString(10));
+        logger.info('3------>tokenUserOpsWorkerThresholdFund', tokenUserOpsWorkerThresholdFund.toString(10));
+        logger.info('3-------->tokenUserOpsWorkerAddress', tokenUserOpsWorkerAddress);
+        logger.info('3-------->tokenUserOpsWorkerMaxFundBalance', tokenUserOpsWorkerMaxFundBalance);
+
+        let amountToTransferToUserOpsWorkerBN = tokenUserOpsWorkerMaxFundBalance.minus(
+            tokenUserOpsWorkerCurrentBalance
+          ),
+          params = {
+            fromAddress: tokenAuxFunderAddress,
+            toAddress: tokenUserOpsWorkerAddress,
+            amountInWei: amountToTransferToUserOpsWorkerBN.toString(10)
+          };
+        logger.info('3.2-------->amountToTransferToUserOpsWorkerBN', amountToTransferToUserOpsWorkerBN);
+        totalStPrimeToTransfer = totalStPrimeToTransfer.plus(amountToTransferToUserOpsWorkerBN);
+        if (tokenAuxFunderCurrentBalance.gt(totalStPrimeToTransfer)) {
+          oThis.transferDetails.push(params);
+        } else {
+          continue;
+        }
       }
     }
   }

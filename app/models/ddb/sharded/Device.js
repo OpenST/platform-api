@@ -257,8 +257,9 @@ class Device extends Base {
     if (dbRow['personalSignAddress']) {
       dbRow['personalSignAddress'] = basicHelper.sanitizeAddress(dbRow['personalSignAddress']);
     }
+
     if (!dbRow['updatedTimestamp']) {
-      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds();
+      dbRow['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds().toString();
     }
     return dbRow;
   }
@@ -350,7 +351,7 @@ class Device extends Base {
 
     await userWalletAddressCache.clear();
 
-    logger.info('device cache cleared.');
+    logger.info('Device cache cleared.');
     return responseHelper.successWithData({});
   }
 

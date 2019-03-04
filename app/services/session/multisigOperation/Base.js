@@ -183,7 +183,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
 
     if (
       basicHelper.isEmptyObject(signerAddressDetails) ||
-      signerAddressDetails.status !== deviceConstants.authorisedStatus
+      signerAddressDetails.status !== deviceConstants.authorizedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({

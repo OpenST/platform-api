@@ -39,6 +39,7 @@ class GetDeviceBase extends ServiceBase {
     super(params);
 
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
@@ -123,13 +124,12 @@ class GetDeviceBase extends ServiceBase {
    * fetch linked device addresses for specified user id
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchLinkedDeviceAddressMap() {
     const oThis = this;
 
-    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+    const PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
       previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
       previousOwnersMapRsp = await previousOwnersMapObj.fetch();
 

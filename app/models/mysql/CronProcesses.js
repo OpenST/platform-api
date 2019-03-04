@@ -30,7 +30,11 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '15': cronProcessesConstants.executeTransaction,
     '16': cronProcessesConstants.auxWorkflowWorker,
     '17': cronProcessesConstants.fundByTokenAuxFunderToExTxWorkers,
-    '18': cronProcessesConstants.balanceSettler
+    '18': cronProcessesConstants.balanceSettler,
+    '19': cronProcessesConstants.executeRecovery,
+    '20': cronProcessesConstants.originToAuxStateRootSync,
+    '21': cronProcessesConstants.auxToOriginStateRootSync,
+    '22': cronProcessesConstants.transactionErrorHandler
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,

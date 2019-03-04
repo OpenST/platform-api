@@ -19,7 +19,8 @@ const rootPrefix = '../..',
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
-  TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList');
+  TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList'),
+  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -34,6 +35,10 @@ require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/get/Transaction');
 require(rootPrefix + '/app/services/transaction/get/TransactionsList');
 
+require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
+require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
+require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
+
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
 require(rootPrefix + '/app/services/device/get/ByAddress');
@@ -46,6 +51,8 @@ require(rootPrefix + '/app/services/session/get/ByAddress');
 require(rootPrefix + '/app/services/session/get/ByUserId');
 require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
+
+require(rootPrefix + '/app/services/recoveryOwner/get/ByRecoveryOwnerAddress');
 
 /* Create user*/
 router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -279,7 +286,7 @@ router.get('/:user_id/salts', sanitizer.sanitizeDynamicUrlParams, function(req, 
 /*Authorize Device*/
 router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeDevice;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -296,7 +303,7 @@ router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, f
 /*Revoke Device*/
 router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeDevice;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -313,7 +320,7 @@ router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, func
 /*Authorize Session*/
 router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postAuthorizeSession;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -330,7 +337,7 @@ router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, 
 /*Revoke Session*/
 router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.postRevokeSession;
-  req.decodedParams.userId = req.params.user_id; // review params
+  req.decodedParams.user_id = req.params.user_id; // review params
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -346,14 +353,17 @@ router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, fun
 
 router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   let klassGetterName;
-  if (req.decodedParams['api_signature_kind'] === apiSignature.hmacKind) {
+
+  if (req.decodedParams.api_signature_kind === apiSignature.hmacKind) {
     req.decodedParams.apiName = apiName.executeTransactionFromCompany;
     klassGetterName = 'ExecuteCompanyToUserTx';
-  } else if (req.decodedParams['api_signature_kind'] === apiSignature.personalSignKind) {
+  } else if (req.decodedParams.api_signature_kind === apiSignature.personalSignKind) {
     req.decodedParams.apiName = apiName.executeTransactionFromUser;
     klassGetterName = 'ExecuteTxFromUser';
   }
-  req.decodedParams.userId = req.params.user_id;
+
+  req.decodedParams.user_id = req.params.user_id;
+
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -433,6 +443,84 @@ router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req
   };
 
   return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v_u_14', null, dataFormatterFunc));
+});
+
+/* Get recovery owner by address */
+router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.sanitizeDynamicUrlParams, function(
+  req,
+  res,
+  next
+) {
+  req.decodedParams.apiName = apiName.getRecoveryOwner;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.recovery_owner_address = req.params.recovery_owner_address;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const recoveryOwner = serviceResponse.data[resultType.recoveryOwner],
+      formattedRsp = new RecoveryOwnerFormatter(recoveryOwner).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.recoveryOwner,
+      [resultType.recoveryOwner]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_14', null, dataFormatterFunc)
+  );
+});
+
+router.post('/:user_id/devices/initiate-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.initiateRecovery;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_13', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.abortRecovery;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = new DeviceFormatter(serviceResponse.data[resultType.device]).perform();
+    serviceResponse.data = {
+      result_type: resultType.device,
+      [resultType.device]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v_u_14', null, dataFormatterFunc));
+});
+
+router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.resetRecoveryOwner;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const recoveryOwner = serviceResponse.data[resultType.recoveryOwner],
+      formattedRsp = new RecoveryOwnerFormatter(recoveryOwner).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.recoveryOwner,
+      [resultType.recoveryOwner]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v_u_15', null, dataFormatterFunc)
+  );
 });
 
 module.exports = router;

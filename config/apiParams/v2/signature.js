@@ -637,7 +637,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'meta_property',
-        validatorMethod: 'validateMetaProperty'
+        validatorMethod: 'validateMetaPropertyForInsertion'
       }
     ]
   },
@@ -664,7 +664,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'meta_property',
-        validatorMethod: 'validateMetaProperty'
+        validatorMethod: 'validateMetaPropertyForInsertion'
       }
     ]
   },
@@ -713,7 +713,24 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'status',
+        validatorMethod: 'validateStringArray'
+      },
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'meta_property',
+        validatorMethod: 'validateMetaProperty'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateEsPaginationIdentifier'
+      }
+    ]
   },
 
   [apiName.getUserBalance]: {
@@ -745,6 +762,147 @@ const v2Signature = {
         validatorMethod: 'validateObject'
       }
     ]
+  },
+
+  [apiName.getRecoveryOwner]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'recovery_owner_address',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
+  },
+
+  [apiName.initiateRecovery]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'old_linked_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'old_device_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'new_device_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.abortRecovery]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'old_linked_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'old_device_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'new_device_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.resetRecoveryOwner]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'new_recovery_owner_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'signature',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'signer',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
   }
 };
 

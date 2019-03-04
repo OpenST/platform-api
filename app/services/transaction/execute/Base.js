@@ -42,6 +42,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/Balance');
 require(rootPrefix + '/lib/executeTransactionManagement/GetPublishDetails');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/UserDetail');
 
 /**
  * Class
@@ -241,6 +242,38 @@ class ExecuteTxBase extends ServiceBase {
     oThis.transferExecutableData = responseData.transferExecutableData;
     oThis.estimatedTransfers = responseData.estimatedTransfers;
     oThis.gas = responseData.gas;
+
+    await oThis._setUserUuidsInEstimatedTransfers(responseData.affectedTokenHolderAddresses);
+  }
+
+  /**
+   *
+   * @param {Array} affectedTokenHolderAddresses
+   *
+   * @private
+   */
+  async _setUserUuidsInEstimatedTransfers(affectedTokenHolderAddresses) {
+    const oThis = this;
+    let UserDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
+      userDetailRsp = await new UserDetailCache({
+        tokenHolderAddresses: affectedTokenHolderAddresses,
+        tokenId: oThis.tokenId
+      }).fetch();
+    if (userDetailRsp.isFailure()) {
+      return Promise.reject(userDetailRsp);
+    }
+    let userDetailsData = userDetailRsp.data;
+    for (let i = 0; i < oThis.estimatedTransfers.length; i++) {
+      let estimatedTransfer = oThis.estimatedTransfers[i],
+        fromUserId = userDetailsData[estimatedTransfer.fromAddress]['userId'],
+        toUserId = userDetailsData[estimatedTransfer.toAddress]['userId'];
+      if (fromUserId) {
+        estimatedTransfer.fromUserId = fromUserId;
+      }
+      if (toUserId) {
+        estimatedTransfer.toUserId = toUserId;
+      }
+    }
   }
 
   /**
@@ -259,12 +292,15 @@ class ExecuteTxBase extends ServiceBase {
     let balanceUpdateParams = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
-      blockChainUnsettleDebits: oThis.pessimisticDebitAmount.toString(10)
+      blockChainUnsettleDebits: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
     };
 
     await balanceObj.updateBalance(balanceUpdateParams).catch(function(updateBalanceResponse) {
-      if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
-        return oThis._validationError('s_et_b_9', ['insufficient_funds'], { balanceUpdateParams: balanceUpdateParams });
+      logger.error(updateBalanceResponse);
+      if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.insufficientFunds)) {
+        return oThis._validationError(`s_et_b_9:${updateBalanceResponse.internalErrorCode}`, ['insufficient_funds'], {
+          balanceUpdateParams: balanceUpdateParams
+        });
       }
       return updateBalanceResponse;
     });
@@ -341,7 +377,7 @@ class ExecuteTxBase extends ServiceBase {
     let buffer = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
-      blockChainUnsettleDebits: oThis.pessimisticDebitAmount.mul(-1).toString(10)
+      blockChainUnsettleDebits: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount.mul(-1))
     };
 
     await balanceObj.updateBalance(buffer);
@@ -376,7 +412,7 @@ class ExecuteTxBase extends ServiceBase {
       sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
-      toBeSyncedInEs: true,
+      toBeSyncedInEs: 1,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
     });

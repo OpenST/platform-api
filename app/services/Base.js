@@ -33,6 +33,7 @@ class ServicesBaseKlass {
 
     oThis.tokenId = null;
     oThis.token = null;
+    oThis.delayedRecoveryInterval = null;
   }
 
   /**
@@ -95,6 +96,7 @@ class ServicesBaseKlass {
 
     oThis.token = response.data;
     oThis.tokenId = oThis.token.id;
+    oThis.delayedRecoveryInterval = oThis.token.delayedRecoveryInterval;
   }
 
   /**
@@ -152,6 +154,7 @@ class ServicesBaseKlass {
 
     let limitVas = CommonValidators.validateAndSanitizeLimit(
       oThis._currentPageLimit(),
+      oThis._defaultPageLimit(),
       oThis._minPageLimit(),
       oThis._maxPageLimit()
     );

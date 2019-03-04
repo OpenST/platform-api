@@ -6,8 +6,10 @@
  */
 const program = require('commander');
 
-const rootPrefix = '../..',
+const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  applicationMailerKlass = require(rootPrefix + '/lib/applicationMailer'),
+  applicationMailer = new applicationMailerKlass(),
   SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
@@ -18,7 +20,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/notifier.js --cronProcessId 3');
+  logger.log('    node executables/notifier.js --cronProcessId 2');
   logger.log('');
   logger.log('');
 });
@@ -27,6 +29,11 @@ if (!program.cronProcessId) {
   program.help();
   process.exit(1);
 }
+
+let emailsAggregator = {};
+
+// Declare variables.
+let waitingForEmail = false;
 
 /**
  * Class for workflow router factory.
@@ -109,6 +116,23 @@ class EmailNotifier extends SubscriberBase {
   }
 
   /**
+   * Send Emails Aggregated by subject
+   *
+   * @private
+   */
+  sendAggregatedEmail() {
+    logger.log('Sending Aggregated Emails');
+    const send_for_email = JSON.parse(JSON.stringify(emailsAggregator));
+    emailsAggregator = {};
+
+    for (let subject in send_for_email) {
+      let emailPayload = send_for_email[subject];
+      emailPayload.body = 'Total Error Count: ' + emailPayload.count + '\n' + emailPayload.body;
+      applicationMailer.perform(emailPayload);
+    }
+  }
+
+  /**
    * Process message
    *
    * @param {Object} messageParams
@@ -125,10 +149,40 @@ class EmailNotifier extends SubscriberBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    // identify which file/function to initiate to execute task of specific kind.
-    // Query in workflow_steps to get details pf parent id in message params
-    let msgParams = messageParams.message.payload;
-    msgParams.topic = messageParams.topics[0];
+    logger.log('Consumed error message -> ', messageParams);
+
+    const emailPayload = messageParams.message.payload;
+    let emailSubject = emailPayload.subject;
+
+    // aggregate same errors for a while
+    if (emailsAggregator[emailSubject]) {
+      emailsAggregator[emailSubject].count++;
+    } else {
+      emailsAggregator[emailSubject] = emailPayload;
+      emailsAggregator[emailSubject].count = 1;
+    }
+
+    // Wait for 30 sec to aggregate emails with subject line
+    if (!waitingForEmail) {
+      waitingForEmail = true;
+      setTimeout(function() {
+        oThis.sendAggregatedEmail();
+        waitingForEmail = false;
+      }, 30000);
+    }
+  }
+
+  /**
+   * This function checks if there are any pending tasks left or not.
+   *
+   * @returns {Boolean}
+   */
+  _pendingTasksDone() {
+    const oThis = this;
+
+    logger.log('Check pendingTasks');
+    oThis.sendAggregatedEmail();
+    return !waitingForEmail;
   }
 }
 

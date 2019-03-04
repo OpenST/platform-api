@@ -1,6 +1,9 @@
 'use strict';
 /**
- * Cron to fund stPrime by chainOwner to token funder addresses.
+ * Cron to fund stPrime
+ * by: Master Internal Funder
+ * to: Token funder addresses.
+ * what: St prime
  *
  * @module executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses
  *
@@ -40,18 +43,7 @@ if (!program.cronProcessId) {
 }
 
 // Declare variables.
-const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
-  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
-  originMaxGasPriceMultiplierWithBuffer = basicHelper.getOriginMaxGasPriceMultiplierWithBuffer();
-
-// Config for Per Token addresses which need to be funded per chain by OST Prime
-const stPrimeFundingPerTokenConfig = {
-  [tokenAddressConstants.auxFunderAddressKind]: {
-    oneGWeiMinOSTPrimeAmount: '1.0', //TODO-Funding
-    fundForFlows: flowsForTransferBalance,
-    fundIfLessThanFlows: flowsForMinimumBalance
-  }
-};
+const auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
 /**
  * Class to fund StPrime by chain owner to token funder addresses.
@@ -70,6 +62,8 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
     const oThis = this;
 
     oThis.canExit = true;
+
+    oThis.tokenFunderFundsConfig = {};
   }
 
   /**
@@ -105,6 +99,8 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
    */
   async _sendFundsIfNeeded() {
     const oThis = this;
+
+    oThis.tokenFunderFundsConfig = super.calculateTokenAuxFunderStPrimeRequirement();
 
     // Loop over all auxChainIds.
     for (let index = 0; index < oThis.auxChainIds.length; index++) {
@@ -145,7 +141,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
     const oThis = this;
 
     // Fetch all addresses associated to auxChainId.
-    let perTokenFundingConfig = basicHelper.deepDup(stPrimeFundingPerTokenConfig);
+    let perTokenFundingConfig = basicHelper.deepDup(oThis.tokenFunderFundsConfig);
 
     logger.step('Fetching token addresses on auxChainId: ' + auxChainId);
 
@@ -161,6 +157,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       return perTokenFundingConfig;
     }
 
+    console.log('======perTokenFundingConfig', perTokenFundingConfig);
     let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds),
       tokenFunderAddressesLength = tokenFunderAddresses.length;
 
@@ -175,6 +172,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       );
     }
 
+    console.log('======perTokenFundingConfig', perTokenFundingConfig);
     return perTokenFundingConfig;
   }
 
@@ -240,7 +238,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
 
   /**
    * Fetch funder addresses for specific token ids.
-   *
+   *Todo: Introduce batching
    * @param {Array} tokenIds
    *
    * @return {Promise<Array>}
@@ -278,47 +276,51 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
   async _checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap) {
     const oThis = this;
 
+    console.log('\n\n======>perTokenFundingConfig', perTokenFundingConfig);
+    console.log('======>addressesToBalanceMap', addressesToBalanceMap);
     let transferDetails = [],
+      totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0),
       fundingAddressDetails = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]],
-      addressMinimumBalance = basicHelper
-        .convertToWei(String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount))
-        .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
+      addressMaxAmountToFund = basicHelper
+        .convertToBigNumber(String(fundingAddressDetails.maxBalanceToFundAtOneGwei))
+        .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
     for (let address in addressesToBalanceMap) {
       let addressCurrentBalance = basicHelper.convertToBigNumber(addressesToBalanceMap[address]),
-        addressMinimumBalanceRequiredForGivenFlows = addressMinimumBalance.mul(
-          fundingAddressDetails.fundIfLessThanFlows
-        );
+        addressThresholdFund = basicHelper
+          .convertToBigNumber(String(fundingAddressDetails.thresholdBalanceAtOneGwei))
+          .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
-      logger.log('Address: ', address);
+      logger.log('\n\nAddress: ', address);
       logger.log('Current balance of address: ', addressCurrentBalance.toString(10));
-      logger.log('Minimum required balance of address: ', addressMinimumBalance.toString(10));
-      logger.log(
-        'Minimum required balance of address for required flows: ',
-        addressMinimumBalanceRequiredForGivenFlows.toString(10)
-      );
+      logger.log('Minimum required balance of address: ', addressMaxAmountToFund.toString(10));
+      logger.log('Threshold amount ', addressThresholdFund.toString(10));
 
-      if (addressCurrentBalance.lt(addressMinimumBalanceRequiredForGivenFlows)) {
-        let amountToBeTransferred = addressMinimumBalance.mul(fundingAddressDetails.fundForFlows).toString(10),
+      if (addressCurrentBalance.lt(addressThresholdFund)) {
+        let amountToBeTransferredBN = addressMaxAmountToFund
+            .minus(addressCurrentBalance)
+            .plus(basicHelper.convertToWei(1)),
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,
-            amountInWei: amountToBeTransferred
+            amountInWei: amountToBeTransferredBN.toString(10)
           };
-        logger.log('Funds transferred are: ', amountToBeTransferred);
+
+        logger.log('Funds transferred are: ', amountToBeTransferredBN.toString(10));
         transferDetails.push(transferParams);
+        totalAmountToTransferFromMIF = totalAmountToTransferFromMIF.plus(amountToBeTransferredBN);
       }
     }
 
     // Start transfer.
     oThis.canExit = false;
 
-    if (transferDetails.length > 0) {
+    if (transferDetails.length > 0 && (await oThis._isMIFStPrimeBalanceGreaterThan(totalAmountToTransferFromMIF))) {
       logger.step('Transferring StPrime to token addresses on auxChainId: ' + auxChainId);
 
       await oThis._transferStPrime(auxChainId, transferDetails);
     } else {
-      logger.step('None of the addresses had lower than threshold balance on chainId: ', auxChainId);
+      logger.step('No transfer performed on chainID: ', auxChainId);
     }
     oThis.canExit = true;
   }

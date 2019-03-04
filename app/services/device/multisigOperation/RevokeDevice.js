@@ -125,7 +125,7 @@ class RevokeDevice extends Base {
 
     if (
       basicHelper.isEmptyObject(signerAddressDetails) ||
-      signerAddressDetails.status !== deviceConstants.authorisedStatus
+      signerAddressDetails.status !== deviceConstants.authorizedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -139,7 +139,7 @@ class RevokeDevice extends Base {
 
     if (
       basicHelper.isEmptyObject(deviceAddressDetails) ||
-      deviceAddressDetails.status !== deviceConstants.authorisedStatus
+      deviceAddressDetails.status !== deviceConstants.authorizedStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -205,7 +205,7 @@ class RevokeDevice extends Base {
 
     let updateResponse = await oThis._updateDeviceStatus(
       oThis.deviceAddressToRemove,
-      deviceConstants.authorisedStatus,
+      deviceConstants.authorizedStatus,
       deviceConstants.revokingStatus
     );
 

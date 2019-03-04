@@ -48,7 +48,7 @@
 
 * [Only Development] Get ETH funder private key
 ```js
-let address = '0xf5f8f91830fba42229478838e73ef35d3b98e0da'; // master internal funder address
+let address = '0x0a___'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
 addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
@@ -69,7 +69,7 @@ NOTE: Copy the ETH funder private key for later use.
 * [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0as..' --amount 10
+    node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0a___' --amount 10
 ```
 
 * Generate origin address and fund them
@@ -81,7 +81,7 @@ NOTE: Copy the ETH funder private key for later use.
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/exceptProductionMain.js --originChainId 1000 --ethOwnerPrivateKey '0xabc...'
+    node executables/setup/origin/exceptProductionMain.js --originChainId 1000 --ethOwnerPrivateKey '0xabc___'
 ```
 
 NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
@@ -90,13 +90,13 @@ NOTE: Copy the 'Setup Simple Token response' from the script response above and 
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10...' --ethOwnerPrivateKey '0x3d...' --stAmount 1000000 --ethAmount 50
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
 ```
 
 * Save simple token admin and owner addresses in database.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc...' --owner '0xabc...'
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
@@ -104,7 +104,7 @@ Granter address gets ETH and OST in this step.
     - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xabc...'
+    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xabc___'
 ```
 
 * Setup Origin Contracts

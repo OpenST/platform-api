@@ -8,6 +8,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -16,6 +17,7 @@ const rootPrefix = '../../../..',
   ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
   GetTransactionBase = require(rootPrefix + '/app/services/transaction/get/Base'),
   GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
+  pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   ESTransactionService = esServices.services.transactions;
 
@@ -39,13 +41,14 @@ class GetTransactionsList extends GetTransactionBase {
     super(params);
     const oThis = this;
 
+    oThis.status = params.status;
+    oThis.limit = params.limit;
+    oThis.metaProperty = params.meta_property;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
-    oThis.status = params.status || [];
-    oThis.limit = params.limit || null;
-    oThis.meta_property = params.meta_property || [];
     oThis.auxChainId = null;
     oThis.transactionDetails = {};
+    oThis.integerStatuses = [];
 
     oThis.responseMetaData = {
       [pagination.nextPagePayloadKey]: {}
@@ -64,15 +67,25 @@ class GetTransactionsList extends GetTransactionBase {
     oThis._validateAndSanitizeParams();
 
     let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
-      cacheResponse = await oThis._fetchUserFromCache(),
-      userData = cacheResponse && cacheResponse.data[oThis.userId],
-      tokenHolderAddress = userData && userData.tokenHolderAddress;
+      userCacheResponse = await oThis._fetchUserFromCache(),
+      userCacheResponseData = userCacheResponse.data[oThis.userId],
+      tokenHolderAddress = userCacheResponseData.tokenHolderAddress;
 
-    await oThis._validateTokenHolderAddress(tokenHolderAddress);
+    if (basicHelper.isEmptyObject(userCacheResponseData) || !tokenHolderAddress) {
+      return responseHelper.paramValidationError({
+        internal_error_identifier: 'a_s_t_g_tl_1',
+        api_error_identifier: 'resource_not_found',
+        params_error_identifiers: ['invalid_user_id'],
+        debug_options: {}
+      });
+    }
 
     const serviceConfig = oThis._getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
       esQuery = oThis._getElasticSearchQuery(tokenHolderAddress);
+
+    esQuery['size'] = oThis.limit;
+    esQuery['from'] = oThis.from;
 
     let userTransactions = await service.search(esQuery);
 
@@ -88,17 +101,10 @@ class GetTransactionsList extends GetTransactionBase {
 
       if (response.isSuccess()) {
         oThis.transactionDetails = response.data;
-
-        return oThis._formatApiResponse();
       }
-    } else {
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_t_g_tl_1',
-        api_error_identifier: 'es_data_not_found',
-        params_error_identifiers: ['invalid_user_id'],
-        debug_options: { esData: userTransactions }
-      });
     }
+
+    return oThis._formatApiResponse();
   }
 
   /**
@@ -114,44 +120,50 @@ class GetTransactionsList extends GetTransactionBase {
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-
-      oThis.status = parsedPaginationParams.status || [];
-      oThis.limit = parsedPaginationParams.limit || oThis._defaultPageLimit(); //override limit
-      oThis.metaProperty = parsedPaginationParams.metaProperty || [];
+      oThis.status = parsedPaginationParams.status; //override status
+      oThis.metaProperty = parsedPaginationParams.meta_property; //override meta_property
+      oThis.limit = parsedPaginationParams.limit; //override limit
+      oThis.from = parsedPaginationParams.from; //override from
     } else {
-      oThis.limit = oThis._defaultPageLimit();
-      oThis.status = [];
-      oThis.metaProperty = [];
+      oThis.status = oThis.status || [];
+      oThis.metaProperty = oThis.metaProperty || [];
+      oThis.limit = oThis.limit || oThis._defaultPageLimit();
+      oThis.from = 0;
     }
+
+    // Validate status
+    await oThis._validateAndSanitizeStatus();
+
+    //Validate limit
+    return oThis._validatePageSize();
   }
 
   /**
-   * Returns default page limit.
+   * Status validations
    *
-   * @returns {number}
+   * @returns {Promise<void>}
    * @private
    */
-  _defaultPageLimit() {
-    return 10;
-  }
+  async _validateAndSanitizeStatus() {
+    const oThis = this,
+      validStatuses = pendingTransactionConstant.invertedStatuses;
 
-  /**
-   * Validate if token holder exists.
-   *
-   * @param tokenHolderAddress
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _validateTokenHolderAddress(tokenHolderAddress) {
-    if (!tokenHolderAddress) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_t_g_tl_2',
-          api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_user_id'],
-          debug_options: {}
-        })
-      );
+    let currStatusInt;
+
+    for (let i = 0; i < oThis.status.length; i++) {
+      currStatusInt = validStatuses[oThis.status[i]];
+      if (!currStatusInt) {
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_t_g_tl_2',
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_status'],
+            debug_options: {}
+          })
+        );
+      } else {
+        oThis.integerStatuses.push(currStatusInt);
+      }
     }
   }
 
@@ -215,7 +227,15 @@ class GetTransactionsList extends GetTransactionBase {
   _setMeta(esResponseData) {
     const oThis = this;
     logger.debug('esResponseData =======', esResponseData);
-    oThis.responseMetaData[pagination.nextPagePayloadKey] = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+    if (esResponseData.meta[pagination.hasNextPage]) {
+      let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+      oThis.responseMetaData[pagination.nextPagePayloadKey] = {
+        from: esNextPagePayload.from,
+        limit: oThis.limit,
+        meta_property: oThis.metaProperty,
+        status: oThis.status
+      };
+    }
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
     logger.debug('==== oThis.responseMetaData while setting meta =====', oThis.responseMetaData);
   }
@@ -270,9 +290,9 @@ class GetTransactionsList extends GetTransactionBase {
   getStatusQueryString() {
     const oThis = this;
 
-    if (!oThis.status || oThis.status.length == 0) return null;
+    if (oThis.integerStatuses.length === 0) return null;
 
-    let query = oThis.getORQuery(oThis.status);
+    let query = oThis.getORQuery(oThis.integerStatuses);
 
     return oThis.getQuerySubString(query);
   }
@@ -286,11 +306,11 @@ class GetTransactionsList extends GetTransactionBase {
   getMetaQueryString() {
     const oThis = this;
 
-    if (!oThis.meta_property || oThis.meta_property.length == 0) return null;
+    if (!oThis.metaProperty || oThis.metaProperty.length == 0) return null;
 
-    let ln = oThis.meta_property.length,
+    let ln = oThis.metaProperty.length,
       cnt,
-      meta = oThis.meta_property,
+      meta = oThis.metaProperty,
       currMeta,
       currMetaValues,
       currMetaQuery,
@@ -396,6 +416,44 @@ class GetTransactionsList extends GetTransactionBase {
 
   getQuerySubString(query) {
     return ' ( ' + query + ' ) ';
+  }
+
+  /**
+   * _defaultPageLimit
+   *
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultTransactionPageSize;
+  }
+
+  /**
+   * _minPageLimit
+   *
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minTransactionPageSize;
+  }
+
+  /**
+   * _maxPageLimit
+   *
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxTransactionPageSize;
+  }
+
+  /**
+   * _currentPageLimit
+   *
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
+
+    return oThis.limit;
   }
 }
 
