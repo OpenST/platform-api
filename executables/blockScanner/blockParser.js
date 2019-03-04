@@ -1,4 +1,5 @@
 'use strict';
+
 /**
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * Transaction parser processes.
@@ -10,20 +11,21 @@
  *
  * @module executables/blockScanner/blockParser
  */
+const program = require('commander');
+
 const rootPrefix = '../..',
-  program = require('commander'),
+  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -50,7 +52,7 @@ const FAILURE_CODE = -1,
  *
  * @class
  */
-class BlockParser extends PublisherBase {
+class BlockParserExecutable extends PublisherBase {
   /**
    * Constructor for transaction parser
    *
@@ -67,6 +69,12 @@ class BlockParser extends PublisherBase {
     oThis.canExit = true; // Denotes whether process can exit or not.
   }
 
+  /**
+   * Start cron related processing
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _start() {
     const oThis = this;
 
@@ -126,29 +134,30 @@ class BlockParser extends PublisherBase {
    * @returns {Promise<void>}
    */
   async _validateChainId() {
-    // Fetch config strategy by chainId.
-    const oThis = this,
-      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+    const oThis = this;
+
+    // Fetch config strategy for chain id
+    const strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
+    // If config strategy not found, then emit SIGINT
     if (configStrategyResp.isFailure()) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
     }
-
     const configStrategy = configStrategyResp.data;
 
-    // Its an origin chain
+    // Check if it is origin chain
     oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
 
     // Fetching wsProviders for warmUpWeb3Pool method.
-    oThis.wsProviders = configStrategy.hasOwnProperty('auxGeth')
-      ? configStrategy.auxGeth.readOnly.wsProviders
-      : configStrategy.originGeth.readOnly.wsProviders;
+    oThis.wsProviders = oThis.isOriginChain
+      ? configStrategy.originGeth.readOnly.wsProviders
+      : configStrategy.auxGeth.readOnly.wsProviders;
 
-    oThis.blockGenerationTime = configStrategy.hasOwnProperty('auxGeth')
-      ? configStrategy.auxGeth.blockGenerationTime
-      : configStrategy.originGeth.blockGenerationTime;
+    oThis.blockGenerationTime = oThis.isOriginChain
+      ? configStrategy.originGeth.blockGenerationTime
+      : configStrategy.auxGeth.blockGenerationTime;
 
     // Get blockScanner object.
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
@@ -199,7 +208,7 @@ class BlockParser extends PublisherBase {
     const oThis = this;
 
     // Initialize BlockParser.
-    oThis.BlockParser = blockScannerObj.block.Parser;
+    oThis.BlockParserExecutable = blockScannerObj.block.Parser;
     oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
 
     // Initialize blockToProcess.
@@ -230,14 +239,13 @@ class BlockParser extends PublisherBase {
       let blockParser, blockParserResponse;
 
       // If blockToProcess is null, don't pass that.
-
       if (oThis.blockToProcess === null) {
-        blockParser = new oThis.BlockParser(oThis.chainId, {
+        blockParser = new oThis.BlockParserExecutable(oThis.chainId, {
           blockDelay: oThis.intentionalBlockDelay
         });
         blockParserResponse = await blockParser.perform();
       } else {
-        blockParser = new oThis.BlockParser(oThis.chainId, {
+        blockParser = new oThis.BlockParserExecutable(oThis.chainId, {
           blockDelay: oThis.intentionalBlockDelay,
           blockToProcess: oThis.blockToProcess
         });
@@ -258,7 +266,7 @@ class BlockParser extends PublisherBase {
         if (currentBlock && currentBlock !== nextBlockToProcess) {
           // If the block contains transactions, distribute those transactions.
           if (transactions.length > 0) {
-            await oThis.distributeTransactions(rawCurrentBlock, nodesWithBlock);
+            await oThis._distributeTransactions(rawCurrentBlock, nodesWithBlock);
           }
           logger.step('Current Processed block: ', currentBlock, 'with Tx Count: ', transactions.length);
           await oThis.sleep(10);
@@ -274,8 +282,6 @@ class BlockParser extends PublisherBase {
 
       oThis.canExit = true;
     }
-
-    return Promise.resolve();
   }
 
   /**
@@ -286,7 +292,7 @@ class BlockParser extends PublisherBase {
    *
    * @returns {Promise<number>}
    */
-  async distributeTransactions(rawCurrentBlock, nodesWithBlock) {
+  async _distributeTransactions(rawCurrentBlock, nodesWithBlock) {
     const oThis = this;
 
     let blockHash = rawCurrentBlock.hash,
@@ -331,6 +337,7 @@ class BlockParser extends PublisherBase {
         }
       };
 
+      // get RMQ instance from instance cache
       let ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.globalRabbitmqKind, {
           connectionWaitSeconds: connectionTimeoutConst.crons,
           switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
@@ -359,48 +366,72 @@ class BlockParser extends PublisherBase {
   async _intersectPendingTransactions(blockTransactions) {
     const oThis = this;
 
-    // In case of origin chain add transactions only if they are present in Pending transactions.
-    if (oThis.isOriginChain) {
-      let pendingTransactionModel = new oThis.PendingTransactionModel({
-          chainId: oThis.chainId
-        }),
-        transactionHashes = blockTransactions,
-        intersectData = [];
-      while (true) {
-        let batchedTransactionHashes = transactionHashes.splice(0, 50);
-        if (batchedTransactionHashes.length <= 0) {
-          break;
-        }
-        let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-            oThis.chainId,
-            batchedTransactionHashes
-          ),
-          pendingTransactionsMap = pendingTransactionRsp.data;
+    if (!oThis.isOriginChain) return blockTransactions;
 
-        for (let txHash in pendingTransactionsMap) {
-          intersectData.push(txHash);
-        }
+    // In case of origin chain add transactions only if they are present in Pending transactions.
+    let pendingTransactionModel = new oThis.PendingTransactionModel({
+        chainId: oThis.chainId
+      }),
+      transactionHashes = blockTransactions,
+      intersectData = [];
+
+    while (true) {
+      let batchedTransactionHashes = transactionHashes.splice(0, 50);
+      if (batchedTransactionHashes.length <= 0) {
+        break;
       }
-      return Promise.resolve(intersectData);
-    } else {
-      return Promise.resolve(blockTransactions);
+      let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
+          oThis.chainId,
+          batchedTransactionHashes
+        ),
+        pendingTransactionsMap = pendingTransactionRsp.data;
+
+      for (let txHash in pendingTransactionsMap) {
+        intersectData.push(txHash);
+      }
     }
+
+    return intersectData;
   }
 
+  /**
+   * topics to publish
+   *
+   * @return {*[]}
+   * @private
+   */
   get _topicsToPublish() {
     const oThis = this;
 
     return ['transaction_parser_' + oThis.chainId];
   }
 
+  /**
+   * Publisher
+   *
+   * @return {string}
+   * @private
+   */
   get _publisher() {
     return 'OST';
   }
 
+  /**
+   * Message Kind
+   *
+   * @return {string}
+   * @private
+   */
   get _messageKind() {
     return 'background_job';
   }
 
+  /**
+   * Cron Kind
+   *
+   * @return {string}
+   * @private
+   */
   get _cronKind() {
     return cronProcessesConstants.blockParser;
   }
@@ -408,7 +439,7 @@ class BlockParser extends PublisherBase {
 
 logger.step('Block parser process started.');
 
-new BlockParser({ cronProcessId: +program.cronProcessId }).perform();
+new BlockParserExecutable({ cronProcessId: +program.cronProcessId }).perform();
 
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
