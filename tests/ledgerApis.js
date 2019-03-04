@@ -17,7 +17,7 @@ const userId = 'a38bc737-54b7-4042-8364-511bf17c2997',
   txuuid = '64c01c94-8631-415f-903f-edc36bc68710',
   tokenId = 1016;
 
-const GetTransaction = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByUuid');
+const FetchPendingTransactionsByUuid = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByUuid');
 
 let configStrategyResp = null;
 getStrategyByChainHelperObj()
@@ -26,7 +26,7 @@ getStrategyByChainHelperObj()
     const configStrategy = configStrategyResp.data;
     const ic = new InstanceComposer(configStrategy),
       GetUserTransactions = ic.getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionsList'),
-      getTransaction = new GetTransaction(2000, [txuuid], false);
+      getTransaction = new FetchPendingTransactionsByUuid(2000, [txuuid], false);
     let resp = await getTransaction.perform(),
       data = resp['data'],
       transactionDetails = data[txuuid];
