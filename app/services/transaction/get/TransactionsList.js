@@ -19,6 +19,7 @@ const rootPrefix = '../../../..',
   GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
   pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
+  esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter'),
   ESTransactionService = esServices.services.transactions;
 
 // Following require(s) for registering into instance composer
@@ -208,7 +209,7 @@ class GetTransactionsList extends GetTransactionBase {
       esQueryVals.push(metaQueryString);
     }
 
-    esQuery = oThis.getAndQuery(esQueryVals);
+    esQuery = esQueryFormatter.getAndQuery(esQueryVals);
 
     queryBody['query'] = esQuery;
 
@@ -275,8 +276,8 @@ class GetTransactionsList extends GetTransactionBase {
   getUserAddressQueryString(tokenHolderAddress) {
     const oThis = this,
       address = [ESConstants.formAddressPrefix + tokenHolderAddress, ESConstants.toAddressPrefix + tokenHolderAddress],
-      query = oThis.getORQuery(address);
-    return oThis.getQuerySubString(query);
+      query = esQueryFormatter.getORQuery(address);
+    return esQueryFormatter.getQuerySubString(query);
   }
 
   /***
@@ -290,15 +291,15 @@ class GetTransactionsList extends GetTransactionBase {
 
     if (oThis.integerStatuses.length === 0) return null;
 
-    let query = oThis.getORQuery(oThis.integerStatuses);
+    let query = esQueryFormatter.getORQuery(oThis.integerStatuses);
 
-    return oThis.getQuerySubString(query);
+    return esQueryFormatter.getQuerySubString(query);
   }
 
   /***
    * getMetaQueryString
    * @return String
-   * Eg ( ( n=transaction_name1 AND t=user_to_user1 AND d=details1) || ( n=transaction_name2 AND t=user_to_user2 ))
+   * Eg ( ( n=transaction_name1 AND t=user_to_user1 AND d=details1) OR ( n=transaction_name2 AND t=user_to_user2 ))
    */
 
   getMetaQueryString() {
@@ -319,17 +320,17 @@ class GetTransactionsList extends GetTransactionBase {
       currMeta = meta[cnt];
       currMetaValues = oThis.getMetaVals(currMeta);
       if (currMetaValues) {
-        currMetaQuery = oThis.getAndQuery(currMetaValues);
-        currMetaQuery = oThis.getQuerySubString(currMetaQuery);
+        currMetaQuery = esQueryFormatter.getAndQuery(currMetaValues);
+        currMetaQuery = esQueryFormatter.getQuerySubString(currMetaQuery);
         metaQueries.push(currMetaQuery);
       }
     }
 
     if (metaQueries.length == 0) return null;
 
-    metaQueriesString = oThis.getORQuery(metaQueries);
+    metaQueriesString = esQueryFormatter.getORQuery(metaQueries);
 
-    return oThis.getQuerySubString(metaQueriesString);
+    return esQueryFormatter.getQuerySubString(metaQueriesString);
   }
 
   /***
@@ -357,16 +358,19 @@ class GetTransactionsList extends GetTransactionBase {
       vals = [];
 
     if (name) {
+      name = esQueryFormatter.getEscapedQuery(name);
       nameVal = nameKey + separator + name;
       vals.push(nameVal);
     }
 
     if (type) {
+      type = esQueryFormatter.getEscapedQuery(type);
       typeVal = typeKey + separator + type;
       vals.push(typeVal);
     }
 
     if (details) {
+      details = esQueryFormatter.getEscapedQuery(details);
       detailsVal = detailsKey + separator + details;
       vals.push(detailsVal);
     }
@@ -374,46 +378,6 @@ class GetTransactionsList extends GetTransactionBase {
     if (vals.length == 0) return null;
 
     return vals;
-  }
-
-  /***
-   * getORQuery
-   * @input Array[String]
-   * Eg [ f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 , t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ]
-   * @return String
-   * Eg f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99
-   */
-
-  getORQuery(vals) {
-    if (!vals || vals.length == 0) return null;
-    const ORQuery = ' OR ';
-    return vals.join(ORQuery);
-  }
-
-  /***
-   * getAndQuery
-   * @input Array[String]
-   * Eg [ f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 , t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ]
-   * @return String
-   * Eg f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 AND t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99
-   */
-
-  getAndQuery(vals) {
-    if (!vals || vals.length == 0) return null;
-    const ANDQuery = ' AND ';
-    return vals.join(ANDQuery);
-  }
-
-  /***
-   * getAndQuery
-   * @input String
-   * Eg : "f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 AND t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99"
-   * @return String
-   * Eg ( string )
-   */
-
-  getQuerySubString(query) {
-    return ' ( ' + query + ' ) ';
   }
 
   /**
