@@ -1,6 +1,6 @@
 'use strict';
 
-const rootPrefix = '../..',
+const rootPrefix = '..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
@@ -55,6 +55,23 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas[
   thresholdAmount: '0.001'
 };
 
+fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas[
+  chainAddressConstants.originAnchorOrgContractAdminKind
+] = {
+  fundAmount: '0.0048',
+  thresholdAmount: '0.0024'
+};
+
+fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas[chainAddressConstants.stContractOwnerKind] = {
+  fundAmount: '0.00138',
+  thresholdAmount: '0.00138'
+};
+
+fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas[chainAddressConstants.stContractAdminKind] = {
+  fundAmount: '0.00005',
+  thresholdAmount: '0.00005'
+};
+
 fundingAmounts[chainAddressConstants.masterInternalFunderKind].auxGas[
   chainAddressConstants.auxAnchorOrgContractAdminKind
 ] = {
@@ -99,6 +116,13 @@ fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas[tokenAddressCo
 fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas[tokenAddressConstants.tokenUserOpsWorkerKind] = {
   fundAmount: '13.4915',
   thresholdAmount: '6.74575'
+};
+
+fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas[
+  tokenAddressConstants.recoveryControllerAddressKind
+] = {
+  fundAmount: '0.0575',
+  thresholdAmount: '0.02875'
 };
 
 module.exports = fundingAmounts;

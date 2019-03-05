@@ -23,7 +23,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   grantConstants = require(rootPrefix + '/lib/globalConstant/grant'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
+  fundingAmounts = require(rootPrefix + '/config/funding'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   environmentInfoConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
@@ -70,6 +70,10 @@ const ethFundingConfig = {
     fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].fundAmount,
     thresholdAmount:
       fundingAmountsOriginGasMap[chainAddressConstants.originDefaultBTOrgContractWorkerKind].thresholdAmount
+  },
+  [chainAddressConstants.originAnchorOrgContractAdminKind]: {
+    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.originAnchorOrgContractAdminKind].fundAmount,
+    thresholdAmount: fundingAmountsOriginGasMap[chainAddressConstants.originAnchorOrgContractAdminKind].thresholdAmount
   }
 };
 
@@ -100,6 +104,10 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     const oThis = this;
 
     oThis.canExit = true;
+
+    oThis.ethFundingConfig = basicHelper.deepDup(ethFundingConfig);
+
+    oThis.alertConfig = basicHelper.deepDup(alertConfig);
   }
 
   /**
@@ -198,17 +206,17 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       );
     }
 
-    alertConfig[chainAddressConstants.masterInternalFunderKind].maxEthRequirement = maxEthBalanceToFund.mul(
+    oThis.alertConfig[chainAddressConstants.masterInternalFunderKind].minEthRequirement = maxEthBalanceToFund.mul(
       basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)
     );
 
     let granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei),
       granterOstRequirement = basicHelper.convertToBigNumber(grantConstants.grantOstValueInWei);
 
-    alertConfig[chainAddressConstants.originGranterKind].maxEthRequirement = granterEthRequirement.mul(
+    oThis.alertConfig[chainAddressConstants.originGranterKind].minEthRequirement = granterEthRequirement.mul(
       flowsForGranterMinimumBalance
     );
-    alertConfig[chainAddressConstants.originGranterKind].maxOstRequirement = granterOstRequirement.mul(
+    oThis.alertConfig[chainAddressConstants.originGranterKind].minOstRequirement = granterOstRequirement.mul(
       flowsForGranterMinimumBalance
     );
   }
@@ -241,15 +249,15 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     oThis.AdddressesToKindMap = {};
 
     // Populate Address in fund config
-    for (let addressKind in ethFundingConfig) {
-      ethFundingConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
-      oThis.AdddressesToKindMap[ethFundingConfig[addressKind].address] = addressKind;
+    for (let addressKind in oThis.ethFundingConfig) {
+      oThis.ethFundingConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
+      oThis.AdddressesToKindMap[oThis.ethFundingConfig[addressKind].address] = addressKind;
     }
 
     // Populate Address in alert config
-    for (let addressKind in alertConfig) {
-      alertConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
-      oThis.AdddressesToKindMap[alertConfig[addressKind].address] = addressKind;
+    for (let addressKind in oThis.alertConfig) {
+      oThis.alertConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
+      oThis.AdddressesToKindMap[oThis.alertConfig[addressKind].address] = addressKind;
     }
   }
 
@@ -276,11 +284,11 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       let balance = addressesToBalanceMap[address],
         addressKind = oThis.AdddressesToKindMap[address];
 
-      if (ethFundingConfig[addressKind]) {
-        ethFundingConfig[addressKind].balance = balance;
+      if (oThis.ethFundingConfig[addressKind]) {
+        oThis.ethFundingConfig[addressKind].balance = balance;
       }
-      if (alertConfig[addressKind]) {
-        alertConfig[addressKind].balance = balance;
+      if (oThis.alertConfig[addressKind]) {
+        oThis.alertConfig[addressKind].balance = balance;
       }
     }
   }
@@ -296,8 +304,8 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     let transferDetails = [],
       totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0);
 
-    for (let addressKind in ethFundingConfig) {
-      let fundingAddressDetails = ethFundingConfig[addressKind],
+    for (let addressKind in oThis.ethFundingConfig) {
+      let fundingAddressDetails = oThis.ethFundingConfig[addressKind],
         address = fundingAddressDetails.address,
         addressThresholdBalance = basicHelper
           .convertToWei(String(fundingAddressDetails.thresholdAmount))
@@ -378,12 +386,12 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _sendAlertIfNeeded() {
     const oThis = this;
 
-    for (let addressKind in alertConfig) {
-      let alertConfigDetails = alertConfig[addressKind],
+    for (let addressKind in oThis.alertConfig) {
+      let alertConfigDetails = oThis.alertConfig[addressKind],
         address = alertConfigDetails.address;
 
-      if (alertConfigDetails.maxEthRequirement) {
-        let addressEthRequirement = alertConfigDetails.maxEthRequirement,
+      if (alertConfigDetails.minEthRequirement) {
+        let addressEthRequirement = alertConfigDetails.minEthRequirement,
           addressCurrentBalance = basicHelper.convertToBigNumber(alertConfigDetails.balance),
           currency = 'Eth';
 
@@ -392,8 +400,8 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
         }
       }
 
-      if (alertConfigDetails.maxOstRequirement) {
-        let addressOstRequirement = alertConfigDetails.maxOstRequirement,
+      if (alertConfigDetails.minOstRequirement) {
+        let addressOstRequirement = alertConfigDetails.minOstRequirement,
           addressCurrentOstBalance = await oThis._fetchOstBalance(address), //Ost Balance
           addressCurrentOstBalanceBN = basicHelper.convertToBigNumber(addressCurrentOstBalance),
           currency = 'OST';
