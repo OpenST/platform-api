@@ -284,7 +284,7 @@ class CoreConstants {
     return 1;
   }
 
-  get FUND_ST_OWNER_WITH_OST_AMOUNT() {
+  get FUND_MIF_WITH_OST_AMOUNT() {
     return 1000000;
   }
 
