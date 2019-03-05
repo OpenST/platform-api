@@ -169,6 +169,8 @@ class ServicesBaseKlass {
         })
       );
     }
+
+    oThis.limit = limitVas[1];
   }
 
   _currentPageLimit() {
