@@ -14,6 +14,7 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
@@ -82,13 +83,13 @@ class BlockParserExecutable extends PublisherBase {
     await oThis._fetchConfigStrategy();
 
     // Get blockScanner object.
-    const blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
+    const blockScanner = await blockScannerProvider.getInstance([oThis.chainId]);
 
     // Validate whether chainId exists in the chains table.
-    await oThis._validateChainId(blockScannerObj);
+    await oThis._validateChainId(blockScanner);
 
     // Initialize certain variables.
-    oThis._initializeBlockParser(blockScannerObj);
+    oThis._initializeBlockParser(blockScanner);
 
     // Warm up web3 pool.
     await oThis.warmUpWeb3Pool();
@@ -225,8 +226,9 @@ class BlockParserExecutable extends PublisherBase {
     const oThis = this;
 
     // Initialize BlockParser.
-    oThis.BlockParserExecutable = blockScannerObj.block.Parser;
+    oThis.BlockParser = blockScannerObj.block.Parser;
     oThis.PendingTransactionModel = blockScannerObj.model.PendingTransaction;
+    oThis.PendingTransactionByHashCache = blockScannerObj.cache.PendingTransactionByHash;
 
     // Initialize blockToProcess.
     if (oThis.startBlockNumber >= 0) {
@@ -263,7 +265,7 @@ class BlockParserExecutable extends PublisherBase {
         blockParserOptions.blockToProcess = oThis.blockToProcess;
       }
 
-      let blockParser = new oThis.BlockParserExecutable(oThis.chainId, blockParserOptions);
+      let blockParser = new oThis.BlockParser(oThis.chainId, blockParserOptions);
 
       let blockParserResponse = await blockParser.perform();
 
@@ -421,28 +423,23 @@ class BlockParserExecutable extends PublisherBase {
     // If not origin chain, nothing to filter out.
     if (!oThis.isOriginChain) return blockTransactions;
 
-    // In case of origin chain add transactions only if they are present in Pending transactions.
-    let pendingTransactionModel = new oThis.PendingTransactionModel({
-        chainId: oThis.chainId
-      }),
-      allTransactionHahes = blockTransactions,
+    let allTxHahes = blockTransactions,
       intersectedTxHashes = [];
 
     while (true) {
-      // Proceed batch-wise
-      let batchedTransactionHashes = allTransactionHahes.splice(0, 50);
-      if (batchedTransactionHashes.length <= 0) {
-        break;
-      }
+      let batchedTxHashes = allTxHahes.splice(0, 50);
 
-      // TODO - why not using cache??
-      let pendingTransactionRsp = await pendingTransactionModel.getPendingTransactionsWithHashes(
-          batchedTransactionHashes
-        ),
-        pendingTransactionsMap = pendingTransactionRsp.data;
+      if (batchedTxHashes.length <= 0) break;
 
-      for (let txHash in pendingTransactionsMap) {
-        intersectedTxHashes.push(txHash);
+      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
+        chainId: oThis.chainId,
+        transactionHashes: batchedTxHashes
+      }).fetch();
+
+      for (let txHash in pendingTransactionRsp.data) {
+        if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
+          intersectedTxHashes.push(txHash);
+        }
       }
     }
 
