@@ -37,7 +37,7 @@ class ApiAuthentication {
         route: '/users/:user_id/'
       },
       [apiName.getUserDevices]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/devices/'
       },
       [apiName.getUserDevice]: {
