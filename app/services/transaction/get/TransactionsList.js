@@ -348,9 +348,9 @@ class GetTransactionsList extends GetTransactionBase {
       typeKey = ESConstants.metaTypeKey,
       detailsKey = ESConstants.metaDetailsKey;
 
-    let name = meta[nameKey],
-      type = meta[typeKey],
-      details = meta[detailsKey],
+    let name = meta['name'],
+      type = meta['type'],
+      details = meta['details'],
       separator = '=',
       nameVal,
       typeVal,
