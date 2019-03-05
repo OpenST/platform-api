@@ -92,7 +92,7 @@ class BlockParserExecutable extends PublisherBase {
     oThis._initializeBlockParser(blockScanner);
 
     // Warm up web3 pool.
-    await oThis.warmUpWeb3Pool();
+    await oThis._warmUpWeb3Pool();
 
     // Parse blocks.
     await oThis.parseBlocks();
@@ -161,7 +161,7 @@ class BlockParserExecutable extends PublisherBase {
     // Check if it is origin chain
     oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
 
-    // Fetching wsProviders for warmUpWeb3Pool method.
+    // Fetching wsProviders for _warmUpWeb3Pool method.
     oThis.wsProviders = oThis.isOriginChain
       ? configStrategy.originGeth.readOnly.wsProviders
       : configStrategy.auxGeth.readOnly.wsProviders;
@@ -200,7 +200,7 @@ class BlockParserExecutable extends PublisherBase {
    *
    * @returns {Promise<void>}
    */
-  async warmUpWeb3Pool() {
+  async _warmUpWeb3Pool() {
     const oThis = this;
 
     let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;

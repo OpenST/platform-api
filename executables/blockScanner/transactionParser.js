@@ -11,26 +11,27 @@
  * @module executables/blockScanner/transactionParser.
  */
 
+const program = require('commander');
+
 const rootPrefix = '../..',
-  program = require('commander'),
+  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
+  TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
+  FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
-  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
-  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
-  TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
-  FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
-  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
-  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
-  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction');
 
 const TX_BATCH_SIZE = 20;
 
@@ -134,41 +135,106 @@ class TransactionParser extends MultiSubscriptionBase {
    */
   async _beforeSubscribe() {
     // Fetch config strategy by chainId.
-    const oThis = this,
-      strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
+    const oThis = this;
+
+    await oThis._fetchConfigStrategy();
+
+    // Get blockScanner object.
+    let blockScanner = await blockScannerProvider.getInstance([oThis.chainId]);
+
+    // Validate whether chainId exists in the chains table.
+    await oThis._validateChainId(blockScanner);
+
+    oThis._initializeTransactionParser(blockScanner);
+
+    await oThis._warmUpWeb3Pool();
+
+    logger.step('Services initialised.');
+  }
+
+  /**
+   * Fetch config strategy and set isOriginChain, wsProviders and blockGenerationTime in oThis.
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _fetchConfigStrategy() {
+    const oThis = this;
+
+    // Fetch config strategy for chain id
+    const strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
+    // If config strategy not found, then emit SIGINT
     if (configStrategyResp.isFailure()) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
     }
+    const configStrategy = configStrategyResp.data;
 
-    const configStrategy = configStrategyResp.data,
-      web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE,
-      wsProviders = configStrategy.hasOwnProperty('auxGeth')
-        ? configStrategy.auxGeth.readOnly.wsProviders
-        : configStrategy.originGeth.readOnly.wsProviders;
-
+    // Check if it is origin chain
     oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
 
-    logger.log('====Warming up geth pool for providers====', wsProviders);
+    // Fetching wsProviders for _warmUpWeb3Pool method.
+    oThis.wsProviders = oThis.isOriginChain
+      ? configStrategy.originGeth.readOnly.wsProviders
+      : configStrategy.auxGeth.readOnly.wsProviders;
+  }
 
-    for (let index = 0; index < wsProviders.length; index++) {
-      let provider = wsProviders[index];
+  /**
+   * This method validates whether the chainId passed actually exists in the chains
+   * table in DynamoDB or not. This method internally initialises certain services
+   * sets some variables as well.
+   *
+   * @private
+   *
+   * @returns {Promise<void>}
+   */
+  async _validateChainId(blockScannerObj) {
+    const oThis = this;
+
+    // Get ChainModel.
+    const ChainModel = blockScannerObj.model.Chain,
+      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
+
+    if (!chainExists) {
+      logger.error('ChainId does not exist in the chains table.');
+      process.emit('SIGINT');
+    }
+
+    logger.step('ChainID exists in chains table in dynamoDB.');
+  }
+
+  /**
+   *
+   * @param blockScannerObj
+   * @private
+   */
+  _initializeTransactionParser(blockScannerObj) {
+    const oThis = this;
+
+    oThis.TransactionParser = blockScannerObj.transaction.Parser;
+    oThis.TokenTransferParser = blockScannerObj.transfer.Parser;
+  }
+
+  /**
+   * Warm up web3 pool.
+   *
+   * @returns {Promise<void>}
+   */
+  async _warmUpWeb3Pool() {
+    const oThis = this;
+
+    let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
+
+    for (let index = 0; index < oThis.wsProviders.length; index++) {
+      let provider = oThis.wsProviders[index];
       for (let i = 0; i < web3PoolSize; i++) {
         web3InteractFactory.getInstance(provider);
       }
     }
 
     logger.step('Web3 pool warmed up.');
-
-    // Get blockScanner object.
-    oThis.blockScannerObj = await blockScannerProvider.getInstance([oThis.chainId]);
-
-    oThis.TransactionParser = oThis.blockScannerObj.transaction.Parser;
-    oThis.TokenTransferParser = oThis.blockScannerObj.transfer.Parser;
-
-    logger.step('Services initialised.');
   }
 
   /**
