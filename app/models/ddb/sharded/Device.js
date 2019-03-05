@@ -377,7 +377,8 @@ class Device extends Base {
         ':uid': { [dataTypeForUserId]: userId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('walletAddress'),
-      Limit: limit
+      Limit: limit,
+      ScanIndexForward: false
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
