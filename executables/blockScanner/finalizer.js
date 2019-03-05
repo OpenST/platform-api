@@ -201,7 +201,7 @@ class Finalizer extends PublisherBase {
         let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
         if (validationResponse.isSuccess() && validationResponse.data.blockProcessable) {
           // Intersect pending transactions for Origin chain
-          finalizer.currentBlockInfo.transactions = await oThis._intersectPendingTransactions(
+          finalizer.currentBlockInfo.transactions = await oThis._filterOutUsingPendingTransaction(
             finalizer.currentBlockInfo.transactions
           );
           let finalizerResponse = await finalizer.finalizeBlock();
@@ -355,43 +355,39 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * This method intersect block transactions with Pending transactions for Origin chain.
+   * Filter out using pending transactions.
    *
    * @param {Array} blockTransactions
    *
    * @returns {Promise<Array>}
    */
-  async _intersectPendingTransactions(blockTransactions) {
+  async _filterOutUsingPendingTransaction(blockTransactions) {
     const oThis = this;
 
-    // In case of origin chain add transactions only if they are present in Pending transactions.
-    if (oThis.isOriginChain) {
-      let transactionHashes = blockTransactions,
-        intersectData = [];
+    // If not origin chain, nothing to filter out.
+    if (!oThis.isOriginChain) return blockTransactions;
 
-      while (true) {
-        let batchedTransactionHashes = transactionHashes.splice(0, 50);
+    let allTxHahes = blockTransactions,
+      intersectedTxHashes = [];
 
-        if (batchedTransactionHashes.length <= 0) {
-          break;
-        }
+    while (true) {
+      let batchedTxHashes = allTxHahes.splice(0, 50);
 
-        let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
-          chainId: oThis.chainId,
-          transactionHashes: batchedTransactionHashes
-        }).fetch();
+      if (batchedTxHashes.length <= 0) break;
 
-        for (let txHash in pendingTransactionRsp.data) {
-          if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
-            intersectData.push(txHash);
-          }
+      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
+        chainId: oThis.chainId,
+        transactionHashes: batchedTxHashes
+      }).fetch();
+
+      for (let txHash in pendingTransactionRsp.data) {
+        if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
+          intersectedTxHashes.push(txHash);
         }
       }
-
-      return intersectData;
-    } else {
-      return blockTransactions;
     }
+
+    return intersectedTxHashes;
   }
 }
 
