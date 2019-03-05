@@ -23,7 +23,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
@@ -512,7 +512,7 @@ class ExecuteTxBase extends ServiceBase {
    */
   async _setRmqInstance() {
     const oThis = this;
-    oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstants.auxRabbitmqKind, {
+    oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstant.auxRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
       auxChainId: oThis.auxChainId

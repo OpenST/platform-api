@@ -20,6 +20,7 @@ const rootPrefix = '..',
   QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
@@ -134,6 +135,10 @@ class TransactionMetaObserver extends CronBase {
       transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.gethOutOfSyncStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.unknownGethSubmissionErrorStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.insufficientGasStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.nonceTooLowStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.replacementTxUnderpricedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus]
     ];
     oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 50;
@@ -200,20 +205,24 @@ class TransactionMetaObserver extends CronBase {
     for (let i = 0; i < oThis.transactionsToProcess.length; i++) {
       let txMeta = oThis.transactionsToProcess[i];
 
-      transactionsGroup[txMeta.status] = transactionsGroup[txMeta.status] || [];
-      transactionsGroup[txMeta.status].push(txMeta);
+      let txStatusString = transactionMetaConst.statuses[txMeta.status];
+      transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
+      transactionsGroup[txStatusString].push(txMeta);
+      await emailNotifier.notify(
+        'e_tmo-' + txStatusString,
+        'transactionMetaObserver Observed error',
+        {},
+        { txMetaId: txMeta.id }
+      );
     }
 
-    for (let txStatus in transactionsGroup) {
-      let transactionsMetaRecords = transactionsGroup[txStatus];
+    for (let txStatusString in transactionsGroup) {
+      let transactionsMetaRecords = transactionsGroup[txStatusString];
       let params = {
         auxChainId: oThis.auxChainId,
         lockId: oThis.lockId,
         transactionsMetaRecords: transactionsMetaRecords
       };
-
-      let txStatusString = transactionMetaConst.statuses[txStatus];
-      console.log('------------txStatus---', txStatus, txStatusString);
 
       if (transactionsMetaRecords && transactionsMetaRecords.length > 0) {
         if (
@@ -223,7 +232,13 @@ class TransactionMetaObserver extends CronBase {
           txStatusString == transactionMetaConst.gethOutOfSyncStatus
         ) {
           oThis.handlerPromises.push(new QueuedHandlerKlass(params).perform());
-        } else if (txStatusString == transactionMetaConst.rollBackBalanceStatus) {
+        } else if (
+          txStatusString == transactionMetaConst.rollBackBalanceStatus ||
+          txStatusString == transactionMetaConst.unknownGethSubmissionErrorStatus ||
+          txStatusString == transactionMetaConst.insufficientGasStatus ||
+          txStatusString == transactionMetaConst.nonceTooLowStatus ||
+          txStatusString == transactionMetaConst.replacementTxUnderpricedStatus
+        ) {
           oThis.handlerPromises.push(new MarkFailAndRollbackBalanceKlass(params).perform());
         } else if (txStatusString == transactionMetaConst.submittedToGethStatus) {
           oThis.handlerPromises.push(new SubmittedHandlerKlass(params).perform());

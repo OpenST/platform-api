@@ -1,6 +1,7 @@
 'use strict';
+
 /**
- * execute transaction
+ * Executable transaction executable
  *
  * @module executables/executeTransaction
  */
@@ -8,18 +9,18 @@ const program = require('commander'),
   OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '..',
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
+  InitExTxExecutableProcess = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
+  BeforeExTxProcessorSequentialStepPerformer = require(rootPrefix + '/lib/transactions/SequentialManager'),
+  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
-  InitProcessKlass = require(rootPrefix + '/lib/executeTransactionManagement/InitProcess'),
-  SequentialManager = require(rootPrefix + '/lib/transactions/SequentialManager'),
-  CommandMessageProcessor = require(rootPrefix + '/lib/executeTransactionManagement/CommandMessageProcessor'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription');
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
@@ -79,12 +80,14 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   async _beforeSubscribe() {
     const oThis = this;
 
-    // Query to get queue_topic suffix & chainId
-    oThis.initProcessResp = await new InitProcessKlass({ processId: cronProcessId }).perform();
+    // Query to get queue_topic suffix, chainId and whether to start consumption
+    oThis.initProcessResp = await new InitExTxExecutableProcess({ processId: cronProcessId }).perform();
 
+    // Fetch config strategy for the aux chain
     const strategyByChainHelperObj = new StrategyByChainHelper(oThis.auxChainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
+    // if config strategy fetch failed, then emit SIGINT
     if (configStrategyResp.isFailure()) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
@@ -92,22 +95,8 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
 
     const configStrategy = configStrategyResp.data;
 
+    // Creating ic object using the config strategy
     oThis.ic = new InstanceComposer(configStrategy);
-  }
-
-  /**
-   * Start subscription
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _startSubscription() {
-    const oThis = this;
-
-    if (oThis.initProcessResp.shouldStartTxQueConsume == 1) {
-      await oThis._startSubscriptionFor(oThis.exTxTopicName);
-    }
-    await oThis._startSubscriptionFor(oThis.cMsgTopicName);
   }
 
   /**
@@ -121,14 +110,18 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
       queueTopicSuffix = oThis.initProcessResp.processDetails.queueTopicSuffix;
 
     oThis.auxChainId = oThis.initProcessResp.processDetails.chainId;
+
+    // Set topic names in oThis. Topic names are used while starting the subscription.
     oThis.exTxTopicName = kwcConstant.exTxTopicName(oThis.auxChainId, queueTopicSuffix);
     oThis.cMsgTopicName = kwcConstant.commandMessageTopicName(oThis.auxChainId, queueTopicSuffix);
 
+    // Fetch queue names.
     let exTxQueueName = kwcConstant.exTxQueueName(oThis.auxChainId, queueTopicSuffix),
       cMsgQueueName = kwcConstant.commandMessageQueueName(oThis.auxChainId, queueTopicSuffix);
 
+    // Set rabbitmq subscription object.
     oThis.subscriptionTopicToDataMap[oThis.exTxTopicName] = new RabbitmqSubscription({
-      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      rabbitmqKind: rabbitmqConstant.auxRabbitmqKind,
       topic: oThis.exTxTopicName,
       queue: exTxQueueName,
       prefetchCount: oThis.prefetchCount,
@@ -136,12 +129,30 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
     });
 
     oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName] = new RabbitmqSubscription({
-      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      rabbitmqKind: rabbitmqConstant.auxRabbitmqKind,
       topic: oThis.cMsgTopicName,
       queue: cMsgQueueName,
       prefetchCount: 1,
       auxChainId: oThis.auxChainId
     });
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    // check if subscription can start for ex tx queue, if yes start subscription.
+    if (oThis.initProcessResp.shouldStartTxQueConsume === 1) {
+      await oThis._startSubscriptionFor(oThis.exTxTopicName);
+    }
+
+    // always start subscription for command message queue.
+    await oThis._startSubscriptionFor(oThis.cMsgTopicName);
   }
 
   /**
@@ -156,10 +167,13 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
     let msgParams = messageParams.message.payload,
       kind = messageParams.message.kind;
 
-    if (kind == kwcConstant.executeTx) {
-      return new SequentialManager(oThis.auxChainId, msgParams.tokenAddressId).perform(msgParams.transactionMetaId);
+    // Sequential executor required only in case of execute transaction message kind. Otherwise do nothing.
+    if (kind === kwcConstant.executeTx) {
+      return new BeforeExTxProcessorSequentialStepPerformer(oThis.auxChainId, msgParams.tokenAddressId).perform(
+        msgParams.transactionMetaId
+      );
     } else {
-      return Promise.resolve(responseHelper.successWithData({}));
+      return responseHelper.successWithData({});
     }
   }
 
@@ -275,70 +289,77 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    // Identify which file/function to initiate to execute task of specific kind.
+    let kind = messageParams.message.kind;
 
-    let msgParams = messageParams.message.payload,
-      kind = messageParams.message.kind;
-
-    // TODO - move to debug logs.
-    logger.log('_processMessage-------------------------.......\n', messageParams);
-
-    if (kind == kwcConstant.executeTx) {
-      logger.info('Message specific perform called called called called called called called.......\n');
-      //message specific perform called.
-
-      const payload = messageParams.message.payload;
-
-      let ProcessRmqExecuteTxMessage = oThis.ic.getShadowedClassFor(
-          coreConstants.icNameSpace,
-          'ProcessRmqExecuteTxMessage'
-        ),
-        processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
-          transactionUuid: payload.transaction_uuid,
-          transactionMetaId: payload.transactionMetaId,
-          fromAddress: messageParams.fromAddress,
-          fromAddressNonce: messageParams.fromAddressNonce
-        });
-
-      // Process Ex Tx Message
-      await processRmqExecuteTxMessage.perform();
-    } else if (kind == kwcConstant.commandMsg) {
-      logger.info('Command specific perform called called called called called called called called.......\n');
-      let commandMessageParams = {
-        auxChainId: oThis.auxChainId,
-        commandMessage: msgParams
-      };
-      let commandProcessorResponse = await new CommandMessageProcessor(commandMessageParams).perform();
-      await oThis._commandResponseActions(commandProcessorResponse);
+    // Depending on kind, call the message processor
+    if (kind === kwcConstant.executeTx) {
+      await oThis._executeTxMessageProcessor(messageParams);
+    } else if (kind === kwcConstant.commandMsg) {
+      await oThis._commandMessageProcessor(messageParams);
     }
-
-    return true;
   }
 
   /**
-   * Actions to take on command messages.
+   * Execute tx message processor
    *
-   * @param commandProcessorResponse
-   * @returns {Promise<boolean>}
+   * @param messageParams
+   * @return {Promise<void>}
    * @private
    */
-  async _commandResponseActions(commandProcessorResponse) {
+  async _executeTxMessageProcessor(messageParams) {
+    const oThis = this,
+      payload = messageParams.message.payload;
+
+    let ProcessRmqExecuteTxMessage = oThis.ic.getShadowedClassFor(
+        coreConstants.icNameSpace,
+        'ProcessRmqExecuteTxMessage'
+      ),
+      processRmqExecuteTxMessage = new ProcessRmqExecuteTxMessage({
+        transactionUuid: payload.transaction_uuid,
+        transactionMetaId: payload.transactionMetaId,
+        fromAddress: messageParams.fromAddress,
+        fromAddressNonce: messageParams.fromAddressNonce
+      });
+
+    // Process Ex Tx Message
+    await processRmqExecuteTxMessage.perform();
+  }
+
+  /**
+   * Command message processor
+   *
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _commandMessageProcessor(messageParams) {
+    let commandProcessorResponse = await new CommandMessageProcessor({
+      auxChainId: oThis.auxChainId,
+      commandMessage: messageParams.message.payload
+    }).perform();
+
+    await oThis._performAfterCommandActions(commandProcessorResponse);
+  }
+
+  /**
+   * Perform after command actions
+   *
+   * @param commandProcessorResponse
+   * @return {Promise<void>}
+   * @private
+   */
+  async _performAfterCommandActions(commandProcessorResponse) {
     const oThis = this;
 
-    if (
-      commandProcessorResponse &&
-      commandProcessorResponse.data.shouldStartTxQueConsume &&
-      commandProcessorResponse.data.shouldStartTxQueConsume === 1
-    ) {
+    if (!commandProcessorResponse) {
+      return;
+    }
+
+    if (commandProcessorResponse.data.shouldStartTxQueConsume === 1) {
       await oThis._startSubscriptionFor(oThis.exTxTopicName);
-    } else if (
-      commandProcessorResponse &&
-      commandProcessorResponse.data.shouldStopTxQueConsume &&
-      commandProcessorResponse.data.shouldStopTxQueConsume === 1
-    ) {
+    } else if (commandProcessorResponse.data.shouldStopTxQueConsume === 1) {
       oThis._stopPickingUpNewTasks(oThis.exTxTopicName);
     }
-    return true;
   }
 }
 

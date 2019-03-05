@@ -1,12 +1,14 @@
 'use strict';
+
 /**
  * This is model for token_addresses table.
  *
  * @module app/models/mysql/TokenAddress
  */
+
 const rootPrefix = '../../..',
-  util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
@@ -58,7 +60,7 @@ const deployedChainKinds = {
  *
  * @class
  */
-class TokenAddress extends ModelBase {
+class TokenAddressModel extends ModelBase {
   /**
    * Constructor for token address model
    *
@@ -190,7 +192,7 @@ class TokenAddress extends ModelBase {
       })
       .fire();
 
-    await TokenAddress.flushCache(params.tokenId);
+    await TokenAddressModel.flushCache(params.tokenId, insertRsp.insertId);
 
     return responseHelper.successWithData(insertRsp);
   }
@@ -224,19 +226,33 @@ class TokenAddress extends ModelBase {
     return responseHelper.successWithData(result);
   }
 
-  /***
-   *
+  /**
    * flush cache
    *
    * @param tokenId
-   * @returns {Promise<*>}
+   * @param tokenAddressId
+   * @return {Promise<any[]>}
    */
-  static flushCache(tokenId) {
+  static flushCache(tokenId, tokenAddressId) {
     const TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
-    return new TokenAddressCache({
-      tokenId: tokenId
-    }).clear();
+    const TokenAddressByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddressById');
+
+    let promiseArray = [];
+
+    promiseArray.push(
+      new TokenAddressCache({
+        tokenId: tokenId
+      }).clear()
+    );
+
+    promiseArray.push(
+      new TokenAddressByIdCache({
+        tokenAddressId: tokenAddressId
+      }).clear()
+    );
+
+    return Promise.all(promiseArray);
   }
 }
 
-module.exports = TokenAddress;
+module.exports = TokenAddressModel;

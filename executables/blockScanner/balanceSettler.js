@@ -14,7 +14,7 @@ const rootPrefix = '../..',
   program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -144,7 +144,7 @@ class BalanceSettler extends MultiSubscriptionBase {
     const oThis = this;
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription({
-      rabbitmqKind: rabbitmqConstants.auxRabbitmqKind,
+      rabbitmqKind: rabbitmqConstant.auxRabbitmqKind,
       topic: oThis._topicsToSubscribe[0],
       queue: oThis._queueName,
       prefetchCount: oThis.prefetchCount,

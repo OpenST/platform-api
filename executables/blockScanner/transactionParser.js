@@ -20,8 +20,12 @@ const rootPrefix = '../..',
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
   pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
@@ -46,7 +50,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-class TransactionParser extends SubscriberBase {
+class TransactionParser extends MultiSubscriptionBase {
   /**
    * Constructor for transaction parser
    *
@@ -113,6 +117,12 @@ class TransactionParser extends SubscriberBase {
     }
   }
 
+  /**
+   * Cron kind
+   *
+   * @return {string}
+   * @private
+   */
   get _cronKind() {
     return cronProcessesConstants.transactionParser;
   }
@@ -139,6 +149,8 @@ class TransactionParser extends SubscriberBase {
         ? configStrategy.auxGeth.readOnly.wsProviders
         : configStrategy.originGeth.readOnly.wsProviders;
 
+    oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
+
     logger.log('====Warming up geth pool for providers====', wsProviders);
 
     for (let index = 0; index < wsProviders.length; index++) {
@@ -157,6 +169,32 @@ class TransactionParser extends SubscriberBase {
     oThis.TokenTransferParser = oThis.blockScannerObj.transfer.Parser;
 
     logger.step('Services initialised.');
+  }
+
+  /**
+   * Prepare subscription data.
+   *
+   * @returns {{}}
+   * @private
+   */
+
+  _prepareSubscriptionData() {
+    const oThis = this;
+
+    let rabbitParams = {
+      topic: oThis._topicsToSubscribe[0],
+      queue: oThis._queueName,
+      prefetchCount: oThis.prefetchCount
+    };
+
+    if (oThis.isOriginChain) {
+      rabbitParams['rabbitmqKind'] = rabbitmqConstants.originRabbitmqKind;
+    } else {
+      rabbitParams['auxChainId'] = oThis.chainId;
+      rabbitParams['rabbitmqKind'] = rabbitmqConstants.auxRabbitmqKind;
+    }
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription(rabbitParams);
   }
 
   /**
@@ -300,6 +338,69 @@ class TransactionParser extends SubscriberBase {
         return Promise.resolve();
       }
     }
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
+  }
+
+  /**
+   * Increment Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _incrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Decrement Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Get Unack count.
+   *
+   * @param messageParams
+   * @returns {number}
+   * @private
+   */
+  _getUnAck(messageParams) {
+    const oThis = this;
+
+    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
+  }
+
+  /**
+   * Sequential executor
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _sequentialExecutor(messageParams) {
+    return responseHelper.successWithData({});
   }
 
   /**
