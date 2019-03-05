@@ -50,14 +50,14 @@ class ByTokenAuxFunderBaseToExTxWorkers extends ByTokenAuxFunderBase {
    * @returns {Promise<void>}
    * @private
    */
-  async _startTransfer(tokenIds, auxChainId) {
+  async _startTransfer(tokenIds) {
     const oThis = this;
 
     for (let i = 0; i < tokenIds.length; i++) {
       let tokenId = tokenIds[i];
       let fundExTxWorkerObject = new FundExTxWorker({
         tokenId: tokenId,
-        chainId: auxChainId
+        chainId: oThis.auxChainId
       });
 
       let fundExTxWorkerResponse = await fundExTxWorkerObject.perform();

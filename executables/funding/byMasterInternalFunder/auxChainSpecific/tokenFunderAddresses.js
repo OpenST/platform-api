@@ -7,7 +7,7 @@
  *
  * @module executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses
  *
- * This cron expects originChainId and auxChainIds as parameter in the params.
+ * This cron expects originChainId and auxChainId as parameter in the params.
  */
 const program = require('commander');
 
@@ -21,6 +21,7 @@ const rootPrefix = '../../../..',
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  tokenAuxFunderRequirement = require(rootPrefix + '/lib/calculateTokenAuxFunderSTPRequirement'),
   AuxChainSpecificFundingCronBase = require(rootPrefix +
     '/executables/funding/byMasterInternalFunder/auxChainSpecific/Base');
 
@@ -100,32 +101,29 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
   async _sendFundsIfNeeded() {
     const oThis = this;
 
-    oThis.tokenFunderFundsConfig = super.calculateTokenAuxFunderStPrimeRequirement();
+    oThis.tokenFunderFundsConfig = tokenAuxFunderRequirement.perform();
 
-    // Loop over all auxChainIds.
-    for (let index = 0; index < oThis.auxChainIds.length; index++) {
-      let auxChainId = oThis.auxChainIds[index];
+    let auxChainId = oThis.auxChainId;
 
-      logger.step('** Starting auxChainId: ', auxChainId);
+    logger.step('** Starting auxChainId: ', auxChainId);
 
-      logger.step(
-        'Fetching chain specific token funder addresses for all clients and populating per token funding config'
-      );
-      let perTokenFundingConfig = await oThis._createDuplicateTokenFundingConfigFor(auxChainId);
+    logger.step(
+      'Fetching chain specific token funder addresses for all clients and populating per token funding config'
+    );
+    let perTokenFundingConfig = await oThis._createDuplicateTokenFundingConfigFor(auxChainId);
 
-      if (!perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses) {
-        logger.error('No token addresses found on chainId: ', auxChainId);
-        continue;
-      }
-
-      let tokenAddresses = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses;
-
-      logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
-      let addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, tokenAddresses);
-
-      logger.step('Fund chain specific addresses with StPrime if needed');
-      await oThis._checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap);
+    if (!perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses) {
+      logger.error('No token addresses found on chainId: ', auxChainId);
+      return;
     }
+
+    let tokenAddresses = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses;
+
+    logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
+    let addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, tokenAddresses);
+
+    logger.step('Fund chain specific addresses with StPrime if needed');
+    await oThis._checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap);
   }
 
   /**
@@ -157,7 +155,6 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       return perTokenFundingConfig;
     }
 
-    console.log('======perTokenFundingConfig', perTokenFundingConfig);
     let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds),
       tokenFunderAddressesLength = tokenFunderAddresses.length;
 
@@ -172,7 +169,6 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       );
     }
 
-    console.log('======perTokenFundingConfig', perTokenFundingConfig);
     return perTokenFundingConfig;
   }
 
@@ -188,7 +184,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
   async _fetchClientsOnChain(auxChainId) {
     const oThis = this;
 
-    // Step 1: Fetch all clientIds associated to auxChainIds.
+    // Step 1: Fetch all clientIds associated to auxChainId.
     let chainClientIds = await new ClientConfigGroup()
       .select('client_id')
       .where(['chain_id = (?)', auxChainId])
@@ -276,8 +272,6 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
   async _checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap) {
     const oThis = this;
 
-    console.log('\n\n======>perTokenFundingConfig', perTokenFundingConfig);
-    console.log('======>addressesToBalanceMap', addressesToBalanceMap);
     let transferDetails = [],
       totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0),
       fundingAddressDetails = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]],
@@ -299,7 +293,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       if (addressCurrentBalance.lt(addressThresholdFund)) {
         let amountToBeTransferredBN = addressMaxAmountToFund
             .minus(addressCurrentBalance)
-            .plus(basicHelper.convertToWei(1)),
+            .plus(basicHelper.convertToWei(1)), //Adding some more buffer for its own gas consumption
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,
