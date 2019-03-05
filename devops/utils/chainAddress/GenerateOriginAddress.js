@@ -9,6 +9,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
+  fundingConfig = require(rootPrefix + '/config/funding'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
@@ -77,7 +78,9 @@ class GenerateOriginAddress extends ChainAddressBase {
       logger.log(
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
-      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], 0.0072); //TODO-FUNDING:
+      let amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
+        amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount;
+      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer);
     }
 
     return addressesResp;

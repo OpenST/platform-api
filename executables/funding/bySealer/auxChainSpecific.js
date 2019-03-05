@@ -94,11 +94,6 @@ class FundBySealerAuxChainSpecific extends CronBase {
         })
       );
     }
-
-    // We are converting auxChainId into an array because the cron is only associated with one auxChainId. However,
-    // in the code, auxChainIds is used. We are creating an array here so as to not refactor the code right now.
-    // TODO: Refactor code to work only on one auxChainId.
-    oThis.auxChainIds = [oThis.auxChainId];
   }
 
   /**
@@ -124,34 +119,13 @@ class FundBySealerAuxChainSpecific extends CronBase {
   async _start() {
     const oThis = this;
 
-    logger.step('Fetching all chainIds.');
-    await oThis._fetchChainIds();
-
     logger.step('fetch master internal funder address');
     await oThis._fetchMasterInternalFunderAddress();
 
     logger.step('Transferring StPrime to auxChainId addresses.');
-    await oThis._transferStPrimeToAll();
+    await oThis._transferStPrimeOnChain();
 
     logger.step('Cron completed.');
-  }
-
-  /**
-   * Fetch all chainIds.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _fetchChainIds() {
-    const oThis = this;
-
-    if (!oThis.auxChainIds || oThis.auxChainIds.length === 0) {
-      oThis.chainIds = await chainConfigProvider.allChainIds();
-      oThis.auxChainIds = oThis.chainIds.filter((chainId) => chainId !== oThis.originChainId);
-    } else {
-      oThis.chainIds = oThis.auxChainIds;
-    }
   }
 
   /**
@@ -181,43 +155,25 @@ class FundBySealerAuxChainSpecific extends CronBase {
   }
 
   /**
-   * Transfer StPrime on all auxChainIds.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _transferStPrimeToAll() {
-    const oThis = this;
-
-    // Loop over all auxChainIds.
-    for (let i = 0; i < oThis.auxChainIds.length; i++) {
-      await oThis._transferStPrimeOnChain(oThis.auxChainIds[i]);
-    }
-  }
-
-  /**
    * Transfer StPrime to addresses on specific auxChainId.
    *
-   * @param {Number} auxChainId
-   *
    * @return {Promise<void>}
    *
    * @private
    */
-  async _transferStPrimeOnChain(auxChainId) {
+  async _transferStPrimeOnChain() {
     const oThis = this;
 
-    logger.step('Fetching addresses on auxChainId: ' + auxChainId);
+    logger.step('Fetching addresses on auxChainId: ' + oThis.auxChainId);
 
     // Fetch chainAddresses.
-    const chainAddresses = await oThis._fetchAddressesForChain(auxChainId);
+    const chainAddresses = await oThis._fetchAddressesForChain();
 
-    logger.step('Fetching balances of addresses from auxChainId: ' + auxChainId);
+    logger.step('Fetching balances of addresses from auxChainId: ' + oThis.auxChainId);
 
     // Fetch StPrime balance for addresses.
     const getStPrimeBalance = new GetStPrimeBalance({
-      auxChainId: auxChainId,
+      auxChainId: oThis.auxChainId,
       addresses: chainAddresses
     });
 
@@ -226,14 +182,14 @@ class FundBySealerAuxChainSpecific extends CronBase {
     // Check if addresses are eligible for refund.
     await oThis._checkIfEligibleForTransfer(addressBalances);
 
-    logger.step('Transferring StPrime to addresses on auxChainId: ' + auxChainId);
+    logger.step('Transferring StPrime to addresses on auxChainId: ' + oThis.auxChainId);
 
     // Start transfer.
     oThis.canExit = false;
 
     if (oThis.transferDetails.length > 0) {
       const transferStPrime = new TransferStPrimeBatch({
-        auxChainId: auxChainId,
+        auxChainId: oThis.auxChainId,
         transferDetails: oThis.transferDetails
       });
 
@@ -245,17 +201,16 @@ class FundBySealerAuxChainSpecific extends CronBase {
   /**
    * Fetch all the required addresses for the specific chainId.
    *
-   * @param {Number} auxChainId
    *
    * @return {Promise<Array>}
    *
    * @private
    */
-  async _fetchAddressesForChain(auxChainId) {
+  async _fetchAddressesForChain() {
     const oThis = this;
 
     // Fetch all addresses associated to auxChainId.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
+    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -271,7 +226,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
       sealerAddressEntities = chainAddressesRsp.data[chainAddressConstants.auxSealerKind];
 
     if (!sealerAddressEntities || sealerAddressEntities.length == 0) {
-      logger.error('No sealer present for aux chain id: ', auxChainId);
+      logger.error('No sealer present for aux chain id: ', oThis.auxChainId);
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_f_bs_acs_5',
@@ -311,13 +266,12 @@ class FundBySealerAuxChainSpecific extends CronBase {
       logger.debug('sealerAddressBalance-----', sealerAddressBalance);
 
       if (basicHelper.convertToBigNumber(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
-        //TODO-Funding
         oThis.transferDetails.push({
           fromAddress: sealerAddress,
           toAddress: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
-            .convertToBigNumber(sealerAddressBalance) //TODO-Funding
-            .minus(basicHelper.convertToWei(0.5)) //TODO-Funding
+            .convertToBigNumber(sealerAddressBalance)
+            .minus(basicHelper.convertToWei(0.5))
             .toString(10)
         });
       }

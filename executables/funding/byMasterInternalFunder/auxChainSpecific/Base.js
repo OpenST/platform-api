@@ -15,7 +15,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
+  fundingAmounts = require(rootPrefix + '/config/funding'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
@@ -64,11 +64,6 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
         })
       );
     }
-
-    // We are converting auxChainId into an array because the cron is only associated with one auxChainId. However,
-    // in the code, auxChainIds is used. We are creating an array here so as to not refactor the code right now.
-    // TODO: Refactor code to work only on one auxChainId.
-    oThis.auxChainIds = [oThis.auxChainId];
   }
 
   /**
@@ -81,9 +76,6 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
   async _start() {
     const oThis = this;
 
-    logger.step('Fetching all chainIds.');
-    await oThis._fetchChainIds();
-
     logger.step('Fetching master internal funder address.');
     await oThis._fetchMasterInternalFunderAddress();
 
@@ -91,22 +83,6 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     await oThis._sendFundsIfNeeded();
 
     logger.step('Cron completed.');
-  }
-
-  /**
-   * Fetch all chainIds.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _fetchChainIds() {
-    const oThis = this;
-
-    if (!oThis.auxChainIds || oThis.auxChainIds.length === 0) {
-      oThis.chainIds = await chainConfigProvider.allChainIds();
-      oThis.auxChainIds = oThis.chainIds.filter((chainId) => chainId !== oThis.originChainId);
-    }
   }
 
   /**
