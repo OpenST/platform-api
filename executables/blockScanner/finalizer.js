@@ -14,7 +14,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -163,10 +163,13 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
-      connectionWaitSeconds: connectionTimeoutConst.crons,
-      switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-    });
+    if (!oThis.isOriginChain) {
+      oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.auxRabbitmqKind, {
+        auxChainId: oThis.chainId,
+        connectionWaitSeconds: connectionTimeoutConst.crons,
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+      });
+    }
 
     let waitTime = 0;
     while (true) {
@@ -198,7 +201,7 @@ class Finalizer extends PublisherBase {
         let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
         if (validationResponse.isSuccess() && validationResponse.data.blockProcessable) {
           // Intersect pending transactions for Origin chain
-          finalizer.currentBlockInfo.transactions = await oThis._intersectPendingTransactions(
+          finalizer.currentBlockInfo.transactions = await oThis._filterOutUsingPendingTransaction(
             finalizer.currentBlockInfo.transactions
           );
           let finalizerResponse = await finalizer.finalizeBlock();
@@ -241,7 +244,9 @@ class Finalizer extends PublisherBase {
 
               logger.info('===== Processed block', processedBlockNumber, '=======');
 
-              await oThis._publishBlock(processedBlockNumber);
+              if (!oThis.isOriginChain) {
+                await oThis._publishBlock(processedBlockNumber);
+              }
             }
 
             logger.log('===Waiting for 10 milli-secs');
@@ -322,33 +327,6 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * _publishAfterReceiptInfo
-   *
-   * @param publishParams - Params to publish message
-   * @return {Promise<never>}
-   * @private
-   */
-  async _publishAfterReceiptInfo(publishParams) {
-    const oThis = this;
-
-    if (!publishParams || publishParams == '') {
-      return;
-    }
-
-    let messageParams = JSON.parse(publishParams);
-
-    let setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
-
-    // If could not set to RMQ run in async.
-    if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
-      logger.error("====Couldn't publish the message to RMQ====");
-      return Promise.reject({ err: "Couldn't publish transaction pending for publish: " + publishParams });
-    }
-
-    logger.info('==== Pending transaction published ===');
-  }
-
-  /**
    * _topicsToPublish
    *
    * @return {*[]}
@@ -377,43 +355,39 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * This method intersect block transactions with Pending transactions for Origin chain.
+   * Filter out using pending transactions.
    *
    * @param {Array} blockTransactions
    *
    * @returns {Promise<Array>}
    */
-  async _intersectPendingTransactions(blockTransactions) {
+  async _filterOutUsingPendingTransaction(blockTransactions) {
     const oThis = this;
 
-    // In case of origin chain add transactions only if they are present in Pending transactions.
-    if (oThis.isOriginChain) {
-      let transactionHashes = blockTransactions,
-        intersectData = [];
+    // If not origin chain, nothing to filter out.
+    if (!oThis.isOriginChain) return blockTransactions;
 
-      while (true) {
-        let batchedTransactionHashes = transactionHashes.splice(0, 50);
+    let allTxHahes = blockTransactions,
+      intersectedTxHashes = [];
 
-        if (batchedTransactionHashes.length <= 0) {
-          break;
-        }
+    while (true) {
+      let batchedTxHashes = allTxHahes.splice(0, 50);
 
-        let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
-          chainId: oThis.chainId,
-          transactionHashes: batchedTransactionHashes
-        }).fetch();
+      if (batchedTxHashes.length <= 0) break;
 
-        for (let txHash in pendingTransactionRsp.data) {
-          if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
-            intersectData.push(txHash);
-          }
+      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
+        chainId: oThis.chainId,
+        transactionHashes: batchedTxHashes
+      }).fetch();
+
+      for (let txHash in pendingTransactionRsp.data) {
+        if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
+          intersectedTxHashes.push(txHash);
         }
       }
-
-      return intersectData;
-    } else {
-      return blockTransactions;
     }
+
+    return intersectedTxHashes;
   }
 }
 
