@@ -10,8 +10,10 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   applicationMailerKlass = require(rootPrefix + '/lib/applicationMailer'),
   applicationMailer = new applicationMailerKlass(),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -40,11 +42,11 @@ let waitingForEmail = false;
  *
  * @class
  */
-class EmailNotifier extends SubscriberBase {
+class EmailNotifier extends MultiSubscriptionBase {
   /**
    * Constructor for workflow router factory.
    *
-   * @augments SubscriberBase
+   * @augments MultiSubscriptionBase
    *
    * @param {Object} params: params object
    * @param {Number} params.cronProcessId: cron_processes table id
@@ -184,9 +186,65 @@ class EmailNotifier extends SubscriberBase {
     oThis.sendAggregatedEmail();
     return !waitingForEmail;
   }
+
+  /**
+   * Prepare Subscription data
+   *
+   * @private
+   */
+  _prepareSubscriptionData() {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription({
+      rabbitmqKind: rabbitmqConstant.globalRabbitmqKind,
+      topic: oThis._topicsToSubscribe[0],
+      queue: oThis._queueName,
+      prefetchCount: oThis.prefetchCount
+    });
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
+  }
+
+  /**
+   * Increment Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _incrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Decrement Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
+
+    return true;
+  }
 }
 
-logger.step('Workflow Router Factory started.');
+logger.step('Email Notifier started.');
 
 new EmailNotifier({ cronProcessId: +program.cronProcessId }).perform();
 
