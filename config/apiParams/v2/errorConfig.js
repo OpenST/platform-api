@@ -185,6 +185,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address in raw_calldata parameters'
   },
+  invalid_raw_calldata_parameter_amount: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid amounts in raw_calldata parameters'
+  },
   invalid_raw_calldata_parameter_threshold: {
     parameter: 'raw_calldata',
     code: 'invalid',
