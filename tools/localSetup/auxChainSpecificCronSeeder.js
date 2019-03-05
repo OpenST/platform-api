@@ -41,6 +41,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertExecuteRecoveryEntry();
     await oThis.insertStateRootSyncFromOriginToAux();
     await oThis.insertStateRootSyncFromAuxToOrigin();
+    await oThis.insertTransactionErrorHandlerEntry();
   }
 
   /**
