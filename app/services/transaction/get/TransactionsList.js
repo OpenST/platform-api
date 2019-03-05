@@ -72,7 +72,7 @@ class GetTransactionsList extends GetTransactionBase {
     const oThis = this;
 
     // Parse pagination.
-    oThis._validateAndSanitizeParams();
+    await oThis._validateAndSanitizeParams();
 
     let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       userCacheResponse = await oThis._fetchUserFromCache(),
