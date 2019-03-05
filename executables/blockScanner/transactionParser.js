@@ -459,13 +459,14 @@ class TransactionParser extends MultiSubscriptionBase {
 
     for (let pendingTxUuid in fetchPendingTxData) {
       let pendingTxData = fetchPendingTxData[pendingTxUuid],
-        transactionReceipt = transactionReceiptMap[pendingTxData['transactionHash']];
+        transactionHash = pendingTxData['transactionHash'],
+        transactionReceipt = transactionReceiptMap[transactionHash];
 
       let transactionStatus = transactionReceipt.status == '0x0' || transactionReceipt.status === false ? false : true;
       if (transactionStatus) {
-        receiptSuccessTxHashes.push(pendingTxData['transactionHash']);
+        receiptSuccessTxHashes.push(transactionHash);
       } else {
-        receiptFailureTxHashes.push(pendingTxData['transactionHash']);
+        receiptFailureTxHashes.push(transactionHash);
         if (pendingTxData.sessionKeyAddress) {
           flushNonceCacheForSessionAddresses.push(pendingTxData.sessionKeyAddress);
         }
@@ -478,8 +479,8 @@ class TransactionParser extends MultiSubscriptionBase {
           transactionStatus & transactionReceipt.internalStatus
             ? pendingTransactionConstants.minedStatus
             : pendingTransactionConstants.failedStatus,
-        blockNumber: transactionReceiptMap[pendingTxData.transactionHash].blockNumber,
-        blockTimestamp: transactionReceiptMap[pendingTxData.transactionHash].blockTimestamp
+        blockNumber: transactionReceipt.blockNumber,
+        blockTimestamp: transactionReceipt.blockTimestamp
       };
 
       promiseArray.push(pendingTransactionObj.update(updateParams));
