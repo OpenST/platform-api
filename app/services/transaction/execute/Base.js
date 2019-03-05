@@ -498,6 +498,7 @@ class ExecuteTxBase extends ServiceBase {
     if (oThis.transactionMetaId) {
       await new TransactionMetaModel().releaseLockAndMarkStatus({
         status: oThis.failureStatusToUpdateInTxMeta || transactionMetaConst.finalFailedStatus,
+        receiptStatus: transactionMetaConst.failureReceiptStatus,
         id: oThis.transactionMetaId,
         debugParams: customError.toHash()
       });
