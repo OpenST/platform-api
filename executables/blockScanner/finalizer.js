@@ -198,7 +198,7 @@ class Finalizer extends PublisherBase {
         let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
         if (validationResponse.isSuccess() && validationResponse.data.blockProcessable) {
           // Intersect pending transactions for Origin chain
-          finalizer.currentBlockInfo.transactions = await oThis._intersectPendingTransactions(
+          finalizer.currentBlockInfo.transactions = await oThis._filterOutUsingPendingTransaction(
             finalizer.currentBlockInfo.transactions
           );
           let finalizerResponse = await finalizer.finalizeBlock();
@@ -356,7 +356,7 @@ class Finalizer extends PublisherBase {
    *
    * @returns {Promise<Array>}
    */
-  async _intersectPendingTransactions(blockTransactions) {
+  async _filterOutUsingPendingTransaction(blockTransactions) {
     const oThis = this;
 
     // In case of origin chain add transactions only if they are present in Pending transactions.
