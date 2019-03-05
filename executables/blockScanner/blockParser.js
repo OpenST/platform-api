@@ -352,8 +352,8 @@ class BlockParserExecutable extends PublisherBase {
 
       if (batchedTxHashes.length === 0) break;
 
-      let blockParserTaskmodel = new BlockParserPendingTaskModel(),
-        insertedRecord = await blockParserTaskmodel.insertTask(oThis.chainId, blockNumber, batchedTxHashes);
+      let blockParserTaskModel = new BlockParserPendingTaskModel(),
+        insertedRecord = await blockParserTaskModel.insertTask(oThis.chainId, blockNumber, batchedTxHashes);
 
       let messageParams = {
         topics: oThis._topicsToPublish,

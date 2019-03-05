@@ -19,7 +19,7 @@ const rootPrefix = '../..',
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
-  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
+  BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -153,6 +153,166 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
+   * Prepare subscription data.
+   *
+   * @returns {{}}
+   * @private
+   */
+
+  _prepareSubscriptionData() {
+    const oThis = this;
+
+    let rabbitParams = {
+      topic: oThis._topicsToSubscribe[0],
+      queue: oThis._queueName,
+      prefetchCount: oThis.prefetchCount
+    };
+
+    if (oThis.isOriginChain) {
+      rabbitParams['rabbitmqKind'] = rabbitmqConstants.originRabbitmqKind;
+    } else {
+      rabbitParams['auxChainId'] = oThis.chainId;
+      rabbitParams['rabbitmqKind'] = rabbitmqConstants.auxRabbitmqKind;
+    }
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription(rabbitParams);
+  }
+
+  /**
+   * This method calls the transaction parser and token transfer parser services as needed.
+   *
+   * @param {String} messageParams
+   *
+   * @returns {Promise<*>}
+   */
+  async _processMessage(messageParams) {
+    const oThis = this,
+      payload = messageParams.message.payload,
+      chainId = payload.chainId.toString(),
+      blockHash = payload.blockHash,
+      taskId = payload.taskId,
+      nodes = payload.nodes;
+
+    // Fetch Task from table
+    let blockParserTaskModel = new BlockParserPendingTaskModel(),
+      blockParserTasks = await blockParserTaskModel.fetchTask(taskId);
+
+    if (blockParserTasks.length <= 0) {
+      logger.error(
+        'e_bs_tp_3',
+        'Error in transaction parsing. unAckCount ->',
+        oThis.unAckCount,
+        'Transaction parsing response: ',
+        'Could not fetch details for pending task: ',
+        taskId
+      );
+      // ACK RMQ.
+      return;
+    }
+
+    // Fetch block number and transaction hashes from query response
+    const blockNumber = blockParserTasks[0].block_number,
+      transactionHashes = JSON.parse(blockParserTasks[0].transaction_hashes);
+
+    // Validate if current block hash on GETH and in table are same.
+    const blockValidationResponse = await oThis._verifyBlockNumberAndBlockHash(blockNumber, blockHash, nodes),
+      blockVerified = blockValidationResponse.blockVerified,
+      rawBlock = blockValidationResponse.rawBlock;
+
+    // Block hash of block number passed and block hash received from params don't match.
+    if (!blockVerified) {
+      logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
+      // logger.notify(); TODO: Add this.
+      logger.debug('------unAckCount -> ', oThis.unAckCount);
+      // ACK RMQ.
+      return;
+    }
+
+    // Create object of transaction parser.
+    let transactionParser = new oThis.TransactionParser(chainId, rawBlock, transactionHashes, nodes);
+
+    // Start transaction parser service.
+    const transactionParserResponse = await transactionParser.perform();
+
+    // If transaction parser returns error, then delete the task from table and ACK RMQ
+    if (!transactionParserResponse.isSuccess()) {
+      // Delete block parser pensing task if transaction parser took it.
+      new BlockParserPendingTaskModel().deleteTask(taskId);
+
+      // Transaction parsing response was unsuccessful.
+
+      logger.error(
+        'e_bs_tp_4',
+        'Error in transaction parsing. unAckCount ->',
+        oThis.unAckCount,
+        'Transaction parsing response: ',
+        transactionParserResponse
+      );
+
+      // ACK RMQ.
+      return;
+    }
+
+    // Fetch data from transaction parser response.
+    let transactionReceiptMap = transactionParserResponse.data.transactionReceiptMap || {},
+      unprocessedItems = transactionParserResponse.data.unprocessedTransactions || [],
+      processedReceipts = {};
+
+    let unprocessedItemsMap = {},
+      tokenParserNeeded = false;
+
+    for (let index = 0; index < unprocessedItems.length; index++) {
+      unprocessedItemsMap[unprocessedItems[index]] = 1;
+    }
+
+    let txHashList = [];
+
+    for (let txHash in transactionReceiptMap) {
+      if (!unprocessedItemsMap[txHash] && transactionReceiptMap[txHash]) {
+        txHashList.push(txHash);
+        processedReceipts[txHash] = transactionReceiptMap[txHash];
+        tokenParserNeeded = true;
+      }
+    }
+
+    await oThis._updateStatusesInDb(txHashList, transactionReceiptMap);
+
+    // If token transfer parsing not needed, ACK RMQ
+    if (!tokenParserNeeded) {
+      logger.log('Token transfer parsing not needed.');
+      logger.debug('------unAckCount -> ', oThis.unAckCount);
+      // ACK RMQ.
+      return;
+    }
+
+    const tokenTransferParserResponse = await new oThis.TokenTransferParser(
+      chainId,
+      rawBlock,
+      processedReceipts,
+      nodes
+    ).perform();
+
+    // Delete block parser pending task if transaction parser is done.
+    new BlockParserPendingTaskModel().deleteTask(taskId);
+
+    if (tokenTransferParserResponse.isSuccess()) {
+      // Token transfer parser was successful.
+      // TODO: Add dirty balances entry in MySQL.
+      // TODO: Chainable
+      logger.debug('------unAckCount -> ', oThis.unAckCount);
+    } else {
+      // If token transfer parsing failed.
+      logger.error(
+        'e_bs_w_3',
+        'Token transfer parsing unsuccessful. unAckCount ->',
+        oThis.unAckCount,
+        'Token transfer parsing response: ',
+        tokenTransferParserResponse
+      );
+    }
+  }
+
+  /**
    * Fetch config strategy and set isOriginChain, wsProviders and blockGenerationTime in oThis.
    *
    * @return {Promise<void>}
@@ -235,175 +395,6 @@ class TransactionParser extends MultiSubscriptionBase {
     }
 
     logger.step('Web3 pool warmed up.');
-  }
-
-  /**
-   * Prepare subscription data.
-   *
-   * @returns {{}}
-   * @private
-   */
-
-  _prepareSubscriptionData() {
-    const oThis = this;
-
-    let rabbitParams = {
-      topic: oThis._topicsToSubscribe[0],
-      queue: oThis._queueName,
-      prefetchCount: oThis.prefetchCount
-    };
-
-    if (oThis.isOriginChain) {
-      rabbitParams['rabbitmqKind'] = rabbitmqConstants.originRabbitmqKind;
-    } else {
-      rabbitParams['auxChainId'] = oThis.chainId;
-      rabbitParams['rabbitmqKind'] = rabbitmqConstants.auxRabbitmqKind;
-    }
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription(rabbitParams);
-  }
-
-  /**
-   * This method calls the transaction parser and token transfer parser services as needed.
-   *
-   * @param {String} messageParams
-   *
-   * @returns {Promise<*>}
-   */
-  async _processMessage(messageParams) {
-    const oThis = this;
-
-    // Process request
-    const payload = messageParams.message.payload;
-
-    // Fetch params from payload.
-    const chainId = payload.chainId.toString(),
-      blockHash = payload.blockHash,
-      taskId = payload.taskId,
-      nodes = payload.nodes;
-
-    let blockParserTaskObj = new BlockParserPendingTask(),
-      blockParserTasks = await blockParserTaskObj.fetchTask(taskId);
-
-    if (blockParserTasks.length <= 0) {
-      logger.error(
-        'e_bs_tp_3',
-        'Error in transaction parsing. unAckCount ->',
-        oThis.unAckCount,
-        'Transaction parsing response: ',
-        'Could not fetch details for pending task: ',
-        taskId
-      );
-      // ACK RMQ.
-      return Promise.resolve();
-    }
-
-    const blockNumber = blockParserTasks[0].block_number,
-      transactionHashes = JSON.parse(blockParserTasks[0].transaction_hashes);
-
-    const blockValidationResponse = await oThis._verifyBlockNumberAndBlockHash(blockNumber, blockHash, nodes),
-      blockVerified = blockValidationResponse.blockVerified,
-      rawBlock = blockValidationResponse.rawBlock;
-
-    // Block hash of block number passed and block hash received from params don't match.
-    if (!blockVerified) {
-      logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
-      // logger.notify(); TODO: Add this.
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
-      // ACK RMQ.
-      return Promise.resolve();
-    } else {
-      // Block hash of block number passed and block hash received from params are the same.
-
-      // Create object of transaction parser.
-      let transactionParser = new oThis.TransactionParser(chainId, rawBlock, transactionHashes, nodes);
-
-      // Start transaction parser service.
-      const transactionParserResponse = await transactionParser.perform();
-
-      if (transactionParserResponse.isSuccess()) {
-        // Fetch data from transaction parser response.
-        let transactionReceiptMap = transactionParserResponse.data.transactionReceiptMap || {},
-          unprocessedItems = transactionParserResponse.data.unprocessedTransactions || [],
-          processedReceipts = {};
-
-        let unprocessedItemsMap = {},
-          tokenParserNeeded = false;
-
-        for (let index = 0; index < unprocessedItems.length; index++) {
-          unprocessedItemsMap[unprocessedItems[index]] = 1;
-        }
-
-        let txHashList = [];
-
-        for (let txHash in transactionReceiptMap) {
-          if (!unprocessedItemsMap[txHash] && transactionReceiptMap[txHash]) {
-            txHashList.push(txHash);
-            processedReceipts[txHash] = transactionReceiptMap[txHash];
-            tokenParserNeeded = true;
-          }
-        }
-
-        await oThis._updateStatusesInDb(txHashList, transactionReceiptMap);
-
-        // Call token parser if it is needed.
-        if (tokenParserNeeded) {
-          const tokenTransferParserResponse = await new oThis.TokenTransferParser(
-            chainId,
-            rawBlock,
-            processedReceipts,
-            nodes
-          ).perform();
-
-          // Delete block parser pending task if transaction parser is done.
-          new BlockParserPendingTask().deleteTask(taskId);
-
-          if (tokenTransferParserResponse.isSuccess()) {
-            // Token transfer parser was successful.
-            // TODO: Add dirty balances entry in MySQL.
-            // TODO: Chainable
-            logger.debug('------unAckCount -> ', oThis.unAckCount);
-            // ACK RMQ.
-            return Promise.resolve();
-          } else {
-            // If token transfer parsing failed.
-
-            logger.error(
-              'e_bs_w_3',
-              'Token transfer parsing unsuccessful. unAckCount ->',
-              oThis.unAckCount,
-              'Token transfer parsing response: ',
-              tokenTransferParserResponse
-            );
-            // ACK RMQ.
-            return Promise.resolve();
-          }
-        } else {
-          // If token transfer parsing not needed.
-
-          logger.log('Token transfer parsing not needed.');
-          logger.debug('------unAckCount -> ', oThis.unAckCount);
-          // ACK RMQ.
-          return Promise.resolve();
-        }
-      } else {
-        // Delete block parser pensing task if transaction parser took it.
-        new BlockParserPendingTask().deleteTask(taskId);
-
-        // Transaction parsing response was unsuccessful.
-
-        logger.error(
-          'e_bs_tp_4',
-          'Error in transaction parsing. unAckCount ->',
-          oThis.unAckCount,
-          'Transaction parsing response: ',
-          transactionParserResponse
-        );
-
-        // ACK RMQ.
-        return Promise.resolve();
-      }
-    }
   }
 
   /**
@@ -509,22 +500,20 @@ class TransactionParser extends MultiSubscriptionBase {
     const oThis = this;
 
     let pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
-
-    let fetchPendingTxData = await new FetchPendingTxData(oThis.chainId, txHashes, false).perform();
-
-    if (fetchPendingTxData.isFailure()) {
-      return fetchPendingTxData;
+    let fetchPendingTxResp = await new FetchPendingTxData(oThis.chainId, txHashes, false).perform();
+    if (fetchPendingTxResp.isFailure()) {
+      return fetchPendingTxResp;
     }
-
-    fetchPendingTxData = fetchPendingTxData.data;
+    fetchPendingTxResp = fetchPendingTxResp.data;
 
     let promiseArray = [],
       receiptSuccessTxHashes = [],
       receiptFailureTxHashes = [],
       flushNonceCacheForSessionAddresses = [];
 
-    for (let pendingTxUuid in fetchPendingTxData) {
-      let pendingTxData = fetchPendingTxData[pendingTxUuid],
+    // Update Pending tx
+    for (let pendingTxUuid in fetchPendingTxResp) {
+      let pendingTxData = fetchPendingTxResp[pendingTxUuid],
         transactionHash = pendingTxData['transactionHash'],
         transactionReceipt = transactionReceiptMap[transactionHash];
 
@@ -562,6 +551,7 @@ class TransactionParser extends MultiSubscriptionBase {
       await Promise.all(promiseArray);
     }
 
+    // Release lock and mark tx meta status
     if (receiptSuccessTxHashes.length > 0) {
       await new TransactionMeta().releaseLockAndMarkStatus({
         status: transactionMetaConst.minedStatus,
@@ -580,6 +570,7 @@ class TransactionParser extends MultiSubscriptionBase {
       });
     }
 
+    // Flush session nonce cache
     if (flushNonceCacheForSessionAddresses.length > 0) {
       await oThis._flushNonceCacheForSessionAddresses(flushNonceCacheForSessionAddresses);
     }
