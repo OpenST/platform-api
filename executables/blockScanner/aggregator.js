@@ -14,9 +14,12 @@ const rootPrefix = '../..',
   program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  SubscriberBase = require(rootPrefix + '/executables/rabbitmq/SubscriberBase');
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -34,7 +37,7 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-class Aggregator extends SubscriberBase {
+class Aggregator extends MultiSubscriptionBase {
   /**
    * Constructor for transaction parser
    *
@@ -130,6 +133,25 @@ class Aggregator extends SubscriberBase {
   }
 
   /**
+   * Prepare subscription data.
+   *
+   * @returns {{}}
+   * @private
+   */
+
+  _prepareSubscriptionData() {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription({
+      rabbitmqKind: rabbitmqConstant.auxRabbitmqKind,
+      topic: oThis._topicsToSubscribe[0],
+      queue: oThis._queueName,
+      prefetchCount: oThis.prefetchCount,
+      auxChainId: oThis.chainId
+    });
+  }
+
+  /**
    * This method calls aggregator for finalized transactions
    *
    * @param {String} messageParams
@@ -170,6 +192,69 @@ class Aggregator extends SubscriberBase {
       // ACK RMQ.
       return;
     }
+  }
+
+  /**
+   * Start subscription
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _startSubscription() {
+    const oThis = this;
+
+    await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
+  }
+
+  /**
+   * Increment Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _incrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Decrement Unack count
+   *
+   * @param messageParams
+   * @private
+   */
+  _decrementUnAck(messageParams) {
+    const oThis = this;
+
+    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
+
+    return true;
+  }
+
+  /**
+   * Get Unack count.
+   *
+   * @param messageParams
+   * @returns {number}
+   * @private
+   */
+  _getUnAck(messageParams) {
+    const oThis = this;
+
+    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
+  }
+
+  /**
+   * Sequential executor
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _sequentialExecutor(messageParams) {
+    return responseHelper.successWithData({});
   }
 }
 

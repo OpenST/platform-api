@@ -163,10 +163,13 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.globalRabbitmqKind, {
-      connectionWaitSeconds: connectionTimeoutConst.crons,
-      switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-    });
+    if (!oThis.isOriginChain) {
+      oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.auxRabbitmqKind, {
+        auxChainId: oThis.chainId,
+        connectionWaitSeconds: connectionTimeoutConst.crons,
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+      });
+    }
 
     let waitTime = 0;
     while (true) {
@@ -241,7 +244,9 @@ class Finalizer extends PublisherBase {
 
               logger.info('===== Processed block', processedBlockNumber, '=======');
 
-              await oThis._publishBlock(processedBlockNumber);
+              if (!oThis.isOriginChain) {
+                await oThis._publishBlock(processedBlockNumber);
+              }
             }
 
             logger.log('===Waiting for 10 milli-secs');
