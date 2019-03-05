@@ -402,9 +402,6 @@ router.get('/:user_id/transactions/:transaction_id', sanitizer.sanitizeDynamicUr
 router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getUserTransactions;
   req.decodedParams.user_id = req.params.user_id;
-  req.decodedParams.token_id = req.params.token_id;
-  req.decodedParams.meta_property = req.params.meta_property;
-  req.decodedParams.status = req.params.status;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {

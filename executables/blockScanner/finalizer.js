@@ -14,7 +14,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -163,10 +163,13 @@ class Finalizer extends PublisherBase {
   async _startFinalizer() {
     const oThis = this;
 
-    oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstants.globalRabbitmqKind, {
-      connectionWaitSeconds: connectionTimeoutConst.crons,
-      switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
-    });
+    if (!oThis.isOriginChain) {
+      oThis.ostNotification = await rabbitmqProvider.getInstance(rabbitmqConstant.auxRabbitmqKind, {
+        auxChainId: oThis.chainId,
+        connectionWaitSeconds: connectionTimeoutConst.crons,
+        switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
+      });
+    }
 
     let waitTime = 0;
     while (true) {
@@ -241,7 +244,9 @@ class Finalizer extends PublisherBase {
 
               logger.info('===== Processed block', processedBlockNumber, '=======');
 
-              await oThis._publishBlock(processedBlockNumber);
+              if (!oThis.isOriginChain) {
+                await oThis._publishBlock(processedBlockNumber);
+              }
             }
 
             logger.log('===Waiting for 10 milli-secs');
@@ -319,33 +324,6 @@ class Finalizer extends PublisherBase {
       return Promise.reject({ err: "Couldn't publish block number" + blockNumber });
     }
     logger.log('====published block', blockNumber);
-  }
-
-  /**
-   * _publishAfterReceiptInfo
-   *
-   * @param publishParams - Params to publish message
-   * @return {Promise<never>}
-   * @private
-   */
-  async _publishAfterReceiptInfo(publishParams) {
-    const oThis = this;
-
-    if (!publishParams || publishParams == '') {
-      return;
-    }
-
-    let messageParams = JSON.parse(publishParams);
-
-    let setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
-
-    // If could not set to RMQ run in async.
-    if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
-      logger.error("====Couldn't publish the message to RMQ====");
-      return Promise.reject({ err: "Couldn't publish transaction pending for publish: " + publishParams });
-    }
-
-    logger.info('==== Pending transaction published ===');
   }
 
   /**
