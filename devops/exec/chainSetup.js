@@ -83,11 +83,11 @@ const Main = async function() {
       throw 'This step is not allowed for production-main ENV. Either this has already done or ask Sunil! :)';
     }
 
-    if (!program.originChainId && !program.ethOwnerPrivateKey) {
+    if (!program.chainId && !program.ethOwnerPrivateKey) {
       handleError();
     }
 
-    performerObj = new ExceptProductionMain(program.originChainId, program.ethOwnerPrivateKey);
+    performerObj = new ExceptProductionMain(program.chainId, program.ethOwnerPrivateKey);
   } else {
     return handleError();
   }
