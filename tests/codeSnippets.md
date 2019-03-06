@@ -5,7 +5,7 @@
 let config = null;
 rootPrefix = '.'
 coreConstants = require(rootPrefix + '/config/coreConstants')
-chainId = 2000;
+chainId = 199;
 a = require('./helpers/configStrategy/ByChainId.js')
 b = new a(chainId);
 b.getComplete().then(function(r) {config = r.data});
@@ -26,17 +26,17 @@ ic = new InstanceComposer(config)
 
 require('./app/services/user/Create');
 CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateUser');
-asso = new CreateUser({client_id:10087, token_id: 1063, kind: 'user'});
+asso = new CreateUser({client_id:1, token_id: 1, kind: 'user'});
 asso.perform().then(console.log);
 
 require('./app/services/device/Create');
 CreateDevice = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateDevice');
-asso = new CreateDevice({client_id:10087, user_id: '053bbb8a-534a-44ef-8af1-cec9084be8f9', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', device_name: 'sdsdsds', device_uuid: 'dsdsdsds'});
+asso = new CreateDevice({client_id:1, user_id: '61e7a797-f7e4-4760-bd6d-2516b6b1e7ff', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', device_name: 'sdsdsds', device_uuid: 'dsdsdsds'});
 asso.perform().then(console.log);
 
 require('./app/services/user/CreateTokenHolder');
 CreateTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateTokenHolder');
-asso = new CreateTokenHolder({client_id:10004, user_id: 'ec866539-65d9-4561-a145-17c9e592632d', device_address: '0xbE8b3Fa4133E77e72277aF6b3Ea7BB3750511B88', recovery_owner_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', session_addresses: ['0x2dB56678B1F95272E55650BDdbCf1eE32aB2B027'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
+asso = new CreateTokenHolder({client_id:1, user_id: '61e7a797-f7e4-4760-bd6d-2516b6b1e7ff', device_address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', recovery_owner_address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', session_addresses: ['0x595e45045c31438b95f9e38965d88de8f8879676'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
 asso.perform().then(console.log);
 
 a = require('./lib/executeTransactionManagement/FundExTxWorker.js')
@@ -47,6 +47,11 @@ b.perform().then(console.log)
 ForSession = require('./lib/nonce/get/ForSession');
 asso = new ForSession({tokenId: '1063', chainId:200, address: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027', userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9'});
 asso.getNonce().then(console.log);
+
+require('./lib/nonce/contract/TokenHolder.js');
+CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenHolderNonce');
+asso = new CreateUser({auxChainId: 199, sessionAddress:'0x521e1488888d026c982ef0b871cbb8bbc0cba760', tokenId: 1063, userId: '0209c1a0-e4e7-446c-a1cd-df9acd0e45a3'});
+asso.perform().then(console.log);
 
 require('./lib/setup/economy/VerifySetup');
 EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
@@ -84,8 +89,8 @@ submitTx.perform().then(console.log).catch(console.log)
 require('./lib/cacheManagement/chainMulti/TokenUserDetail.js')
 TokenUserDetailsCache = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenUserDetailsCache');
 submitTx = new TokenUserDetailsCache({
-  tokenId: '1001',
-  userIds: ['32e1ef20-5c9f-4336-a80f-bee4c330e13b']
+  tokenId: '1',
+  userIds: ['61e7a797-f7e4-4760-bd6d-2516b6b1e7ff']
 });
 submitTx.fetch().then(console.log).catch(console.log)
 
@@ -254,21 +259,21 @@ b = new a({originChainId: originChainId, addresses: [chainOwner, originDeployer,
 b.perform().then(console.log);
 
 a = require('./lib/getBalance/Ost');
-b = new a({originChainId: originChainId, addresses: ['0x75c16730392e04218a5d14cdd405267c4d88973a']});
+b = new a({originChainId: 1000, addresses: ['0x51f79cc09a4d3464e52a686292c6e9e371095b4b']});
 b.perform().then(console.log);
 
 a = require('./lib/getBalance/StPrime');
-b = new a({auxChainId: auxChainId, addresses: [chainOwner, facilitator, auxAdmin]});
+b = new a({auxChainId: 2000, addresses: ['0x9b8497f476ca8c285f69c911f2fc6fb727d5c9c9']});
 b.perform().then(console.log);
 
 a = require('./lib/transfer/Eth');
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]});
 b.perform().then(console.log);
 
-chainOwner = '0x687bd5a85997d7f394f5322644ea19c291617057';
+chainOwner = '0x736ffae5b3f2375c5b3fccb3bb76341a565cb217';
 auxChainId = 2000;
 a = require('./lib/fund/stPrime/BatchTransfer')
-b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0xb953bf26c311cf1f6d07091f5db26558140176e7', amountInWei:'10000000000000000000'}]})
+b = new a({auxChainId: auxChainId, transferDetails: [{fromAddress: chainOwner,toAddress: '0x9b8497f476ca8c285f69c911f2fc6fb727d5c9c9', amountInWei:'50000000000000000000'}]})
 b.perform().then(console.log)
 
 
