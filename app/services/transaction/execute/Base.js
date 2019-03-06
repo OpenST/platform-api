@@ -23,6 +23,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
@@ -186,8 +187,10 @@ class ExecuteTxBase extends ServiceBase {
     await oThis._setWeb3Instance();
 
     // fetch token details for client id
-    if (oThis.clientId && !oThis.tokenId) {
+    if (oThis.clientId && !oThis.token) {
+      logger.debug('oThis.clientId', oThis.clientId, oThis.token);
       await oThis._fetchTokenDetails();
+      logger.debug('oThis.token', oThis.clientId, oThis.token);
     }
 
     await oThis._setTokenAddresses();
@@ -502,6 +505,13 @@ class ExecuteTxBase extends ServiceBase {
         id: oThis.transactionMetaId,
         debugParams: customError.toHash()
       });
+    }
+
+    if (oThis.sessionKeyAddress) {
+      await new NonceForSession({
+        address: oThis.sessionKeyAddress,
+        chainId: oThis.auxChainId
+      }).clear();
     }
   }
 
