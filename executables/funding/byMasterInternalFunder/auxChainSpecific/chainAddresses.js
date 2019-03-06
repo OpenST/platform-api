@@ -8,7 +8,7 @@
  *
  * @module executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses
  *
- * This cron expects originChainId and auxChainIds as parameter in the params.
+ * This cron expects originChainId and auxChainId as parameter in the params.
  */
 const program = require('commander');
 
@@ -17,7 +17,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
+  fundingAmounts = require(rootPrefix + '/config/funding'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
@@ -51,20 +51,20 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // Config for addresses which need to be funded per chain by OST Prime
 const stPrimeFundingPerChainConfig = {
   [chainAddressConstants.interChainFacilitatorKind]: {
-    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.interChainFacilitatorKind].fundAmount, //TODO-FUNDING:
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.interChainFacilitatorKind].fundAmount,
     thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.interChainFacilitatorKind].thresholdAmount
   },
   [chainAddressConstants.auxAnchorOrgContractAdminKind]: {
-    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxAnchorOrgContractAdminKind].fundAmount, //TODO-FUNDING:
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxAnchorOrgContractAdminKind].fundAmount,
     thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxAnchorOrgContractAdminKind].thresholdAmount
   },
   [chainAddressConstants.auxDeployerKind]: {
-    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxDeployerKind].fundAmount, //TODO-FUNDING:
+    oneGWeiMinOSTPrimeAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxDeployerKind].fundAmount,
     thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxDeployerKind].thresholdAmount
   },
   [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
     oneGWeiMinOSTPrimeAmount:
-      fundingAmountsAuxGasMap[chainAddressConstants.auxPriceOracleContractWorkerKind].fundAmount, //TODO-FUNDING:
+      fundingAmountsAuxGasMap[chainAddressConstants.auxPriceOracleContractWorkerKind].fundAmount,
     thresholdAmount: fundingAmountsAuxGasMap[chainAddressConstants.auxPriceOracleContractWorkerKind].thresholdAmount
   }
 };
@@ -122,36 +122,33 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
   async _sendFundsIfNeeded() {
     const oThis = this;
 
-    // Loop over all auxChainIds.
-    for (let index = 0; index < oThis.auxChainIds.length; index++) {
-      let auxChainId = oThis.auxChainIds[index];
+    let auxChainId = oThis.auxChainId;
 
-      logger.step('Re-initiating variables for auxChainId: ' + auxChainId);
-      let perChainFundingConfig = null;
-      oThis.addressesToKindMap = {};
+    logger.step('Re-initiating variables for auxChainId: ' + auxChainId);
+    let perChainFundingConfig = null;
+    oThis.addressesToKindMap = {};
 
-      logger.step('Fetching chain specific addresses and populating funding config');
-      perChainFundingConfig = await oThis._createDuplicateChainFundingConfigFor(auxChainId);
+    logger.step('Fetching chain specific addresses and populating funding config');
+    perChainFundingConfig = await oThis._createDuplicateChainFundingConfigFor(auxChainId);
 
-      let addresses = Object.keys(oThis.addressesToKindMap);
+    let addresses = Object.keys(oThis.addressesToKindMap);
 
-      if (addresses.length === 0) {
-        logger.error('No chain addresses found on auxChainId: ', auxChainId);
-        continue;
-      }
-
-      logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
-      let addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, addresses);
-
-      for (let address in addressesToBalanceMap) {
-        let balance = addressesToBalanceMap[address],
-          addressKind = oThis.addressesToKindMap[address];
-        perChainFundingConfig[addressKind].balance = balance;
-      }
-
-      logger.step('Fund chain specific addresses with StPrime if needed');
-      await oThis._checkEligibilityAndTransferFunds(auxChainId, perChainFundingConfig);
+    if (addresses.length === 0) {
+      logger.error('No chain addresses found on auxChainId: ', auxChainId);
+      return;
     }
+
+    logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
+    let addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, addresses);
+
+    for (let address in addressesToBalanceMap) {
+      let balance = addressesToBalanceMap[address],
+        addressKind = oThis.addressesToKindMap[address];
+      perChainFundingConfig[addressKind].balance = balance;
+    }
+
+    logger.step('Fund chain specific addresses with StPrime if needed');
+    await oThis._checkEligibilityAndTransferFunds(auxChainId, perChainFundingConfig);
   }
 
   /**

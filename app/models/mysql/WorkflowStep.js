@@ -114,6 +114,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '132': workflowStepConstants.saveDelayedRecoveryModuleMasterCopy,
     '133': workflowStepConstants.deployCreateAndAddModules,
     '134': workflowStepConstants.saveCreateAndAddModules,
+    '135': workflowStepConstants.fundRecoveryControllerAddress,
 
     '101': workflowStepConstants.markSuccess,
     '102': workflowStepConstants.markFailure,

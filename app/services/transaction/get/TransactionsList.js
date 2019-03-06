@@ -19,6 +19,7 @@ const rootPrefix = '../../../..',
   GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
   pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
+  esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter'),
   ESTransactionService = esServices.services.transactions;
 
 // Following require(s) for registering into instance composer
@@ -53,6 +54,13 @@ class GetTransactionsList extends GetTransactionBase {
     oThis.responseMetaData = {
       [pagination.nextPagePayloadKey]: {}
     };
+
+    logger.debug('== constructor start == ');
+    logger.debug('== oThis.status == ', JSON.stringify(oThis.status));
+    logger.debug('== oThis.metaProperty == ', JSON.stringify(oThis.metaProperty));
+    logger.debug('== oThis.limit == ', oThis.limit);
+    logger.debug('==  oThis.paginationIdentifier == ', oThis.paginationIdentifier);
+    logger.debug('== constructor end == ');
   }
 
   /**
@@ -64,7 +72,7 @@ class GetTransactionsList extends GetTransactionBase {
     const oThis = this;
 
     // Parse pagination.
-    oThis._validateAndSanitizeParams();
+    await oThis._validateAndSanitizeParams();
 
     let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       userCacheResponse = await oThis._fetchUserFromCache(),
@@ -80,6 +88,9 @@ class GetTransactionsList extends GetTransactionBase {
       });
     }
 
+    logger.debug('== _asyncPerform start == ');
+    logger.debug('== tokenHolderAddress == ', tokenHolderAddress);
+
     const serviceConfig = oThis._getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
       esQuery = oThis._getElasticSearchQuery(tokenHolderAddress);
@@ -88,6 +99,9 @@ class GetTransactionsList extends GetTransactionBase {
     esQuery['from'] = oThis.from;
 
     let userTransactions = await service.search(esQuery);
+
+    logger.debug('== esQuery == ', esQuery);
+    logger.debug('== userTransactions == ', userTransactions);
 
     if (userTransactions.isSuccess() && userTransactions.data[oThis.auxChainId + '_transactions'].length !== 0) {
       oThis._setMeta(userTransactions.data);
@@ -102,6 +116,8 @@ class GetTransactionsList extends GetTransactionBase {
       }
     }
 
+    logger.debug('== _asyncPerform end == ');
+
     return oThis._formatApiResponse();
   }
 
@@ -115,9 +131,11 @@ class GetTransactionsList extends GetTransactionBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
+    logger.debug('== _validateAndSanitizeParams start == ');
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+      logger.debug('== parsedPaginationParams == ', JSON.stringify(parsedPaginationParams));
       oThis.status = parsedPaginationParams.status; //override status
       oThis.metaProperty = parsedPaginationParams.meta_property; //override meta_property
       oThis.limit = parsedPaginationParams.limit; //override limit
@@ -131,6 +149,11 @@ class GetTransactionsList extends GetTransactionBase {
 
     // Validate status
     await oThis._validateAndSanitizeStatus();
+
+    logger.debug('== oThis.status == ', JSON.stringify(oThis.status));
+    logger.debug('== oThis.metaProperty == ', JSON.stringify(oThis.metaProperty));
+    logger.debug('== oThis.limit == ', oThis.limit);
+    logger.debug('== _validateAndSanitizeParams end == ');
 
     //Validate limit
     return oThis._validatePageSize();
@@ -163,6 +186,10 @@ class GetTransactionsList extends GetTransactionBase {
         oThis.integerStatuses.push(currStatusInt);
       }
     }
+
+    logger.debug('== _validateAndSanitizeStatus start == ');
+    logger.debug('== oThis.integerStatuses == ', JSON.stringify(oThis.integerStatuses));
+    logger.debug('== _validateAndSanitizeStatus end == ');
   }
 
   /**
@@ -208,7 +235,7 @@ class GetTransactionsList extends GetTransactionBase {
       esQueryVals.push(metaQueryString);
     }
 
-    esQuery = oThis.getAndQuery(esQueryVals);
+    esQuery = esQueryFormatter.getAndQuery(esQueryVals);
 
     queryBody['query'] = esQuery;
 
@@ -224,8 +251,16 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _setMeta(esResponseData) {
     const oThis = this;
+
+    logger.debug('== _setMeta start == ');
+    logger.debug('== esResponseData == ', JSON.stringify(esResponseData));
+    logger.debug('== pagination.hasNextPage == ', pagination.hasNextPage);
+    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', esResponseData.meta[pagination.hasNextPage]);
+
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+      logger.debug('== pagination.nextPagePayloadKey == ', pagination.nextPagePayloadKey);
+      logger.debug('== esNextPagePayload == ', esNextPagePayload);
       oThis.responseMetaData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           from: esNextPagePayload.from,
@@ -236,6 +271,10 @@ class GetTransactionsList extends GetTransactionBase {
       };
     }
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
+
+    logger.debug('== pagination.getEsTotalRecordKey == ', JSON.stringify(pagination.getEsTotalRecordKey));
+    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', JSON.stringify(oThis.responseMetaData));
+    logger.debug('== _setMeta end == ');
   }
 
   /**
@@ -246,10 +285,14 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _formatApiResponse() {
     const oThis = this;
+    logger.debug('== _formatApiResponse start == ');
+    logger.debug('== oThis.transactionDetails == ', oThis.transactionDetails);
+    logger.debug('== oThis.responseMetaData == ', oThis.responseMetaData);
     return responseHelper.successWithData({
       [resultType.transactions]: oThis.transactionDetails,
       [resultType.meta]: oThis.responseMetaData
     });
+    logger.debug('== _formatApiResponse end == ');
   }
 
   /***
@@ -275,8 +318,8 @@ class GetTransactionsList extends GetTransactionBase {
   getUserAddressQueryString(tokenHolderAddress) {
     const oThis = this,
       address = [ESConstants.formAddressPrefix + tokenHolderAddress, ESConstants.toAddressPrefix + tokenHolderAddress],
-      query = oThis.getORQuery(address);
-    return oThis.getQuerySubString(query);
+      query = esQueryFormatter.getORQuery(address);
+    return esQueryFormatter.getQuerySubString(query);
   }
 
   /***
@@ -290,9 +333,9 @@ class GetTransactionsList extends GetTransactionBase {
 
     if (oThis.integerStatuses.length === 0) return null;
 
-    let query = oThis.getORQuery(oThis.integerStatuses);
+    let query = esQueryFormatter.getORQuery(oThis.integerStatuses);
 
-    return oThis.getQuerySubString(query);
+    return esQueryFormatter.getQuerySubString(query);
   }
 
   /***
@@ -319,17 +362,17 @@ class GetTransactionsList extends GetTransactionBase {
       currMeta = meta[cnt];
       currMetaValues = oThis.getMetaVals(currMeta);
       if (currMetaValues) {
-        currMetaQuery = oThis.getAndQuery(currMetaValues);
-        currMetaQuery = oThis.getQuerySubString(currMetaQuery);
+        currMetaQuery = esQueryFormatter.getAndQuery(currMetaValues);
+        currMetaQuery = esQueryFormatter.getQuerySubString(currMetaQuery);
         metaQueries.push(currMetaQuery);
       }
     }
 
     if (metaQueries.length == 0) return null;
 
-    metaQueriesString = oThis.getORQuery(metaQueries);
+    metaQueriesString = esQueryFormatter.getORQuery(metaQueries);
 
-    return oThis.getQuerySubString(metaQueriesString);
+    return esQueryFormatter.getQuerySubString(metaQueriesString);
   }
 
   /***
@@ -347,9 +390,9 @@ class GetTransactionsList extends GetTransactionBase {
       typeKey = ESConstants.metaTypeKey,
       detailsKey = ESConstants.metaDetailsKey;
 
-    let name = meta[nameKey],
-      type = meta[typeKey],
-      details = meta[detailsKey],
+    let name = meta['name'],
+      type = meta['type'],
+      details = meta['details'],
       separator = '=',
       nameVal,
       typeVal,
@@ -357,19 +400,19 @@ class GetTransactionsList extends GetTransactionBase {
       vals = [];
 
     if (name) {
-      name = oThis.getEscapedQuery(name);
+      name = esQueryFormatter.getEscapedQuery(name);
       nameVal = nameKey + separator + name;
       vals.push(nameVal);
     }
 
     if (type) {
-      type = oThis.getEscapedQuery(type);
+      type = esQueryFormatter.getEscapedQuery(type);
       typeVal = typeKey + separator + type;
       vals.push(typeVal);
     }
 
     if (details) {
-      details = oThis.getEscapedQuery(details);
+      details = esQueryFormatter.getEscapedQuery(details);
       detailsVal = detailsKey + separator + details;
       vals.push(detailsVal);
     }
@@ -377,63 +420,6 @@ class GetTransactionsList extends GetTransactionBase {
     if (vals.length == 0) return null;
 
     return vals;
-  }
-
-  /***
-   * getORQuery
-   * @input Array[String]
-   * Eg [ f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 , t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ]
-   * @return String
-   * Eg f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99
-   */
-
-  getORQuery(vals) {
-    if (!vals || vals.length == 0) return null;
-    const ORQuery = ' OR ';
-    return vals.join(ORQuery);
-  }
-
-  /***
-   * getAndQuery
-   * @input Array[String]
-   * Eg [ f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 , t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ]
-   * @return String
-   * Eg f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 AND t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99
-   */
-
-  getAndQuery(vals) {
-    if (!vals || vals.length == 0) return null;
-    const ANDQuery = ' AND ';
-    return vals.join(ANDQuery);
-  }
-
-  /***
-   * getAndQuery
-   * @input String
-   * Eg : "f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 AND t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99"
-   * @return String
-   * Eg ( string )
-   */
-
-  getQuerySubString(query) {
-    return ' ( ' + query + ' ) ';
-  }
-
-  /**
-   *
-   * escape restricted ES chars
-   *
-   * @param query
-   * @return {string}
-   */
-  getEscapedQuery(query) {
-    return query
-      .replace(/[\*\+\-=~><\"\?^\${}\(\)\:\!\/[\]\\\s]/g, '\\$&') // replace single character special characters
-      .replace(/\|\|/g, '\\||') // replace ||
-      .replace(/\&\&/g, '\\&&') // replace &&
-      .replace(/AND/g, '\\A\\N\\D') // replace AND
-      .replace(/OR/g, '\\O\\R') // replace OR
-      .replace(/NOT/g, '\\N\\O\\T'); // replace NOT
   }
 
   /**

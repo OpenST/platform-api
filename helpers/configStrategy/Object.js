@@ -76,85 +76,95 @@ class ConfigStrategyObject {
           dataType: 'S'
         }
       },
-      pendingTransactions: {
-        unsettledDebits: {
-          shortName: 'ud',
-          dataType: 'S'
-        },
-        eip1077Signature: {
-          shortName: 'es',
-          dataType: 'S'
-        },
-        metaProperty: {
-          shortName: 'mp',
-          dataType: 'S'
-        },
-        ruleId: {
-          shortName: 'rid',
-          dataType: 'N'
-        },
-        status: {
-          shortName: 'sts',
-          dataType: 'N'
-        },
-        transferExecutableData: {
-          shortName: 'ted',
-          dataType: 'S'
-        },
-        transfers: {
-          shortName: 'trs',
-          dataType: 'S'
-        },
-        ruleAddress: {
-          shortName: 'ra',
-          dataType: 'S'
-        },
-        sessionKeyNonce: {
-          shortName: 'skn',
-          dataType: 'S'
-        },
-        sessionKeyAddress: {
-          shortName: 'ska',
-          dataType: 'S'
-        },
-        tokenId: {
-          shortName: 'ti',
-          dataType: 'N'
-        },
-        blockNumber: {
-          shortName: 'bn',
-          dataType: 'N'
-        },
-        blockTimestamp: {
-          shortName: 'bts',
-          dataType: 'N'
-        },
-        erc20Address: {
-          shortName: 'ea',
-          dataType: 'S'
-        },
-        toBeSyncedInEs: {
-          shortName: 'sie',
-          dataType: 'N'
-        }
+      pendingTransactions: oThis.pendingTransactionsExtraConfig,
+      transactions: oThis.transactionsExtraConfig
+    };
+  }
+
+  get transactionsExtraConfig() {
+    return {
+      metaProperty: {
+        shortName: 'mp',
+        dataType: 'S'
       },
-      transactions: {
-        metaProperty: {
-          shortName: 'mp',
-          dataType: 'S'
-        },
-        ruleId: {
-          shortName: 'rid',
-          dataType: 'N'
-        }
+      ruleId: {
+        shortName: 'rid',
+        dataType: 'N'
+      }
+    };
+  }
+
+  get pendingTransactionsExtraConfig() {
+    return {
+      unsettledDebits: {
+        shortName: 'ud',
+        dataType: 'S'
+      },
+      eip1077Signature: {
+        shortName: 'es',
+        dataType: 'S'
+      },
+      metaProperty: {
+        shortName: 'mp',
+        dataType: 'S'
+      },
+      ruleId: {
+        shortName: 'rid',
+        dataType: 'N'
+      },
+      status: {
+        shortName: 'sts',
+        dataType: 'N'
+      },
+      transferExecutableData: {
+        shortName: 'ted',
+        dataType: 'S'
+      },
+      transfers: {
+        shortName: 'trs',
+        dataType: 'S'
+      },
+      ruleAddress: {
+        shortName: 'ra',
+        dataType: 'S'
+      },
+      sessionKeyNonce: {
+        shortName: 'skn',
+        dataType: 'S'
+      },
+      sessionKeyAddress: {
+        shortName: 'ska',
+        dataType: 'S'
+      },
+      tokenId: {
+        shortName: 'ti',
+        dataType: 'N'
+      },
+      blockNumber: {
+        shortName: 'bn',
+        dataType: 'N'
+      },
+      blockTimestamp: {
+        shortName: 'bts',
+        dataType: 'N'
+      },
+      erc20Address: {
+        shortName: 'ea',
+        dataType: 'S'
+      },
+      toBeSyncedInEs: {
+        shortName: 'sie',
+        dataType: 'N'
       }
     };
   }
 
   get extraStorageColumnsForOriginDdb() {
-    const oThis = this,
-      ddbTablePrefix = oThis.configStrategy[configStrategyConstants.constants].originDdbTablePrefix;
-    return {};
+    const oThis = this;
+    return {
+      pendingTransactions: oThis.pendingTransactionsExtraConfig,
+      transactions: oThis.transactionsExtraConfig
+    };
   }
 
   get subEnvDdbTablePrefix() {
