@@ -14,6 +14,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -63,6 +64,7 @@ class TokenDetail extends ServiceBase {
 
     oThis.token['originChainId'] = oThis.originChainId;
     oThis.token['auxChainId'] = oThis.auxChainId;
+    oThis.token['decimals'] = contractConstants.requiredPriceOracleDecimals;
 
     await oThis._fetchTokenAddresses();
 
