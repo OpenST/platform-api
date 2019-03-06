@@ -142,8 +142,9 @@ class GetSessionBase extends ServiceBase {
     let noncePromiseArray = [],
       currentTimestamp = Math.floor(new Date() / 1000);
 
-    for (let sessionAddress in sessionsMap) {
-      let session = sessionsMap[sessionAddress];
+    for (let index in oThis.sessionAddresses) {
+      let sessionAddress = oThis.sessionAddresses[index],
+        session = sessionsMap[sessionAddress];
 
       if (!CommonValidators.validateObject(session)) {
         continue;

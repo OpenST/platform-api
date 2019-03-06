@@ -81,8 +81,10 @@ class GetDeviceBase extends ServiceBase {
       devices = response.data,
       linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
 
-    for (let deviceUuid in devices) {
-      let device = devices[deviceUuid];
+    for (let index in oThis.walletAddresses) {
+      let deviceAddr = oThis.walletAddresses[index],
+        device = devices[deviceAddr];
+
       if (!CommonValidators.validateObject(device)) {
         continue;
       }
