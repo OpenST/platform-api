@@ -180,6 +180,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid raw_calldata'
   },
+  invalid_meta_property: {
+    parameter: 'meta_property',
+    code: 'invalid',
+    message: 'Invalid meta_property'
+  },
   invalid_raw_calldata_parameter_address: {
     parameter: 'raw_calldata',
     code: 'invalid',

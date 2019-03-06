@@ -110,7 +110,7 @@ class TransactionMetaModel extends ModelBase {
       dataToUpdate.sender_address = params.senderAddress;
     }
 
-    if (params.senderNonce) {
+    if (params.hasOwnProperty('senderNonce')) {
       dataToUpdate.sender_nonce = params.senderNonce;
     }
 
@@ -129,7 +129,7 @@ class TransactionMetaModel extends ModelBase {
     }
 
     let queryObj = oThis.update(dataToUpdate);
-    if (params.increseRetryCount) {
+    if (params.hasOwnProperty('increseRetryCount')) {
       queryObj = queryObj.update(['retry_count = retry_count+1']);
     }
 

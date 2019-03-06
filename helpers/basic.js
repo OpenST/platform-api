@@ -431,6 +431,27 @@ class BasicHelperKlass {
   }
 
   /**
+   * sanitize meta property data
+   *
+   * @param metaProperty
+   * @return {Promise<void>}
+   */
+  async sanitizeMetaPropertyData(metaProperty) {
+    const oThis = this;
+
+    return oThis.promisifyJsonParse(metaProperty).catch(function() {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'h_b_2',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_meta_property'],
+          debug_options: {}
+        })
+      );
+    });
+  }
+
+  /**
    * Timestamp in seconds
    *
    * @return {number}
