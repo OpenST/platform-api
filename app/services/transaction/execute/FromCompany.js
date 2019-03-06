@@ -37,15 +37,11 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    * Constructor for company to user tx class
    *
    * @param {Object} params
-   * @param {Object} params.client_id - client id
    *
    * @constructor
    */
   constructor(params) {
     super(params);
-
-    const oThis = this;
-    oThis.clientId = params.client_id;
   }
 
   /**

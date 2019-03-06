@@ -23,6 +23,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
@@ -56,6 +57,7 @@ class ExecuteTxBase extends ServiceBase {
    * @param {Object} params
    * @param {String} params.user_id - user_id
    * @param {Number} params.token_id - token id
+   * @param {Object} params.client_id - client id
    * @param {String} params.to - rules address
    * @param {Object} params.raw_calldata - raw_calldata
    * @param {Object} [params.meta_property]
@@ -69,6 +71,7 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
+    oThis.clientId = params.client_id;
     oThis.toAddress = params.to;
     oThis.rawCalldata = params.raw_calldata;
     oThis.metaProperty = params.meta_property;
@@ -186,8 +189,10 @@ class ExecuteTxBase extends ServiceBase {
     await oThis._setWeb3Instance();
 
     // fetch token details for client id
-    if (oThis.clientId && !oThis.tokenId) {
+    if (oThis.clientId && !oThis.token) {
+      logger.debug('oThis.clientId', oThis.clientId, oThis.token);
       await oThis._fetchTokenDetails();
+      logger.debug('oThis.token', oThis.clientId, oThis.token);
     }
 
     await oThis._setTokenAddresses();
@@ -265,13 +270,13 @@ class ExecuteTxBase extends ServiceBase {
     let userDetailsData = userDetailRsp.data;
     for (let i = 0; i < oThis.estimatedTransfers.length; i++) {
       let estimatedTransfer = oThis.estimatedTransfers[i],
-        fromUserId = userDetailsData[estimatedTransfer.fromAddress]['userId'],
-        toUserId = userDetailsData[estimatedTransfer.toAddress]['userId'];
-      if (fromUserId) {
-        estimatedTransfer.fromUserId = fromUserId;
+        fromUserData = userDetailsData[estimatedTransfer.fromAddress],
+        toUserData = userDetailsData[estimatedTransfer.toAddress];
+      if (fromUserData && fromUserData['userId']) {
+        estimatedTransfer.fromUserId = fromUserData['userId'];
       }
-      if (toUserId) {
-        estimatedTransfer.toUserId = toUserId;
+      if (toUserData && toUserData['userId']) {
+        estimatedTransfer.toUserId = toUserData['userId'];
       }
     }
   }
@@ -502,6 +507,13 @@ class ExecuteTxBase extends ServiceBase {
         id: oThis.transactionMetaId,
         debugParams: customError.toHash()
       });
+    }
+
+    if (oThis.sessionKeyAddress) {
+      await new NonceForSession({
+        address: oThis.sessionKeyAddress,
+        chainId: oThis.auxChainId
+      }).clear();
     }
   }
 

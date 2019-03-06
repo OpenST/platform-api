@@ -53,7 +53,9 @@ class SubEnvSpecificCronSeeder {
   async insertEmailNotifierEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.emailNotifier, {
-        chainId: 0
+        prefetchCount: 5,
+        chainId: 0,
+        sequenceNumber: 1
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

@@ -16,10 +16,10 @@ const EIP20GatewayAbi = mosaicJsAbiBinProvider.getABI('EIP20Gateway'),
   GatewayComposerAbi = brandedTokenAbiBinProvider.getABI('GatewayComposer'),
   BrandedTokenAbi = brandedTokenAbiBinProvider.getABI('BrandedToken'),
   UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken'),
-  DelayedRecoveryModuleAbi = OpenStJsAbiBinProvider.getABI('DelayedRecoveryModule'),
-  UserWalletFactoryAbi = OpenStJsAbiBinProvider.getABI('UserWalletFactory'),
-  ProxyFactoryAbi = OpenStJsAbiBinProvider.getABI('ProxyFactory'),
-  GnosisSafeAbi = OpenStJsAbiBinProvider.getABI('GnosisSafe');
+  DelayedRecoveryModuleAbi = OpenSTJsAbiBinProvider.getABI('DelayedRecoveryModule'),
+  UserWalletFactoryAbi = OpenSTJsAbiBinProvider.getABI('UserWalletFactory'),
+  ProxyFactoryAbi = OpenSTJsAbiBinProvider.getABI('ProxyFactory'),
+  GnosisSafeAbi = OpenSTJsAbiBinProvider.getABI('GnosisSafe');
 
 abiDecoder.addABI(EIP20GatewayAbi);
 abiDecoder.addABI(EIP20CoGatewayAbi);
@@ -70,10 +70,8 @@ module.exports = GetTxData;
 
 txD = require('./tests/getTxData')
 txO = new txD({
-  txHash: '0xb39eb764c39b84d9550940ab7406fe97ef0499fa82c246463331641eb769bd7f',
-  web3ProviderUrl: 'ws://127.0.0.1:9546'
-  txHash: '0x1ec96265f98e83436e19b83728314cb5ab2e9c9eb769ee24fe6d70e1db0aeb50',
-  web3ProviderUrl: 'ws://127.0.0.1:9546'
+  txHash: '0xfbd194a271a9a82c1739c8dd96511eaebd64842cf2bee2b1c9a01acd76862188',
+  web3ProviderUrl: 'ws://s6-sb-c199-r1.stagingost.com:8551'
 })
 
 txO.getDecodedInputParams().then(console.log);

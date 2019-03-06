@@ -507,7 +507,8 @@ class User extends Base {
         ':tid': { [dataTypeForTokenId]: tokenId.toString() }
       },
       ProjectionExpression: oThis.shortNameFor('userId'),
-      Limit: limit
+      Limit: limit,
+      ScanIndexForward: false
     };
     if (lastEvaluatedKey) {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;

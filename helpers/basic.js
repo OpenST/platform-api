@@ -32,6 +32,17 @@ class BasicHelperKlass {
   }
 
   /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  convertWeiToNormal(wei) {
+    return this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+  }
+
+  /**
    * Fetch hostname of machine.
    *
    * @return {*}
