@@ -270,13 +270,13 @@ class ExecuteTxBase extends ServiceBase {
     let userDetailsData = userDetailRsp.data;
     for (let i = 0; i < oThis.estimatedTransfers.length; i++) {
       let estimatedTransfer = oThis.estimatedTransfers[i],
-        fromUserId = userDetailsData[estimatedTransfer.fromAddress]['userId'],
-        toUserId = userDetailsData[estimatedTransfer.toAddress]['userId'];
-      if (fromUserId) {
-        estimatedTransfer.fromUserId = fromUserId;
+        fromUserData = userDetailsData[estimatedTransfer.fromAddress],
+        toUserData = userDetailsData[estimatedTransfer.toAddress];
+      if (fromUserData && fromUserData['userId']) {
+        estimatedTransfer.fromUserId = fromUserData['userId'];
       }
-      if (toUserId) {
-        estimatedTransfer.toUserId = toUserId;
+      if (toUserData && toUserData['userId']) {
+        estimatedTransfer.toUserId = toUserData['userId'];
       }
     }
   }
