@@ -190,6 +190,16 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid amounts in raw_calldata parameters'
   },
+  invalid_raw_calldata_pay_currency_code: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid Pay Currency Code in raw_calldata parameters'
+  },
+  invalid_raw_calldata_ost_to_usd_value: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Invalid Ost To Usd Conversion Rate in raw_calldata parameters'
+  },
   invalid_raw_calldata_parameter_threshold: {
     parameter: 'raw_calldata',
     code: 'invalid',
