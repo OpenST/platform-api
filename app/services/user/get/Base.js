@@ -7,6 +7,7 @@
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   basicHelper = require(rootPrefix + '/helpers/basic');
 
 // Following require(s) for registering into instance composer
@@ -77,6 +78,16 @@ class GetUserBase extends ServiceBase {
     });
 
     let response = await tokenShardNumbersCache.fetch();
+
+    if (!response || !response.data.user) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_g_b_1',
+          api_error_identifier: 'token_not_setup',
+          debug_options: {}
+        })
+      );
+    }
 
     oThis.userShard = response.data.user;
   }
