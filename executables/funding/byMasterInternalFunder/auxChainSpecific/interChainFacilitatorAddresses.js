@@ -8,7 +8,7 @@
  *
  * @module executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses
  *
- * This cron expects originChainId and auxChainIds as parameter in the params.
+ * This cron expects originChainId and auxChainId as parameter in the params.
  */
 const program = require('commander');
 
@@ -17,7 +17,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  fundingAmounts = require(rootPrefix + '/executables/funding/fundingAmounts'),
+  fundingAmounts = require(rootPrefix + '/config/funding'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
@@ -51,7 +51,7 @@ const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOW
 // Eth funding config per chain
 const ethFundingConfig = {
   [chainAddressConstants.interChainFacilitatorKind]: {
-    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.interChainFacilitatorKind].fundAmount, //TODO-FUNDING:
+    fundAmount: fundingAmountsOriginGasMap[chainAddressConstants.interChainFacilitatorKind].fundAmount,
     thresholdAmount: fundingAmountsOriginGasMap[chainAddressConstants.interChainFacilitatorKind].thresholdAmount
   }
 };
@@ -109,20 +109,16 @@ class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses e
   async _sendFundsIfNeeded() {
     const oThis = this;
 
-    let facilitatorAddresses = [];
+    let facilitatorAddresses = [],
+      auxChainId = oThis.auxChainId;
 
-    // Loop over all auxChainIds.
-    for (let index = 0; index < oThis.auxChainIds.length; index++) {
-      let auxChainId = oThis.auxChainIds[index];
+    logger.step('** Starting auxChainId: ', auxChainId);
 
-      logger.step('** Starting auxChainId: ', auxChainId);
+    logger.step('Fetching chain specific addresses and populating funding config');
 
-      logger.step('Fetching chain specific addresses and populating funding config');
+    let facilitatorAddress = await oThis._fetchFacilitatorAddresses(auxChainId);
 
-      let facilitatorAddress = await oThis._fetchFacilitatorAddresses(auxChainId);
-
-      facilitatorAddresses.push(facilitatorAddress);
-    }
+    facilitatorAddresses.push(facilitatorAddress);
 
     logger.step('Fetching balances for facilitator addresses on origin chain id: ', oThis.originChainId);
 

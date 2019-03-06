@@ -72,7 +72,7 @@ class GetTransactionsList extends GetTransactionBase {
     const oThis = this;
 
     // Parse pagination.
-    oThis._validateAndSanitizeParams();
+    await oThis._validateAndSanitizeParams();
 
     let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       userCacheResponse = await oThis._fetchUserFromCache(),
@@ -251,8 +251,16 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _setMeta(esResponseData) {
     const oThis = this;
+
+    logger.debug('== _setMeta start == ');
+    logger.debug('== esResponseData == ', JSON.stringify(esResponseData));
+    logger.debug('== pagination.hasNextPage == ', pagination.hasNextPage);
+    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', esResponseData.meta[pagination.hasNextPage]);
+
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
+      logger.debug('== pagination.nextPagePayloadKey == ', pagination.nextPagePayloadKey);
+      logger.debug('== esNextPagePayload == ', esNextPagePayload);
       oThis.responseMetaData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           from: esNextPagePayload.from,
@@ -263,6 +271,10 @@ class GetTransactionsList extends GetTransactionBase {
       };
     }
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
+
+    logger.debug('== pagination.getEsTotalRecordKey == ', JSON.stringify(pagination.getEsTotalRecordKey));
+    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', JSON.stringify(oThis.responseMetaData));
+    logger.debug('== _setMeta end == ');
   }
 
   /**

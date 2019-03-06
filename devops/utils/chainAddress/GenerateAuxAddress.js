@@ -6,6 +6,7 @@
  * @module devops/utils/GenerateAddress
  */
 const rootPrefix = '../../..',
+  fundingConfig = require(rootPrefix + '/config/funding'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -124,14 +125,16 @@ class GenerateAuxAddress extends ChainAddressBase {
   async _fundOriginAddresses() {
     const oThis = this;
 
-    logger.log('* Funding origin deployer address with ETH.');
-    await oThis._fundAddressWithEth(oThis.originDeployerAddress, 0.0069); //TODO-FUNDING:
+    let amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
+      amountForSTOrganizationOwner = amountToFundOriginGasMap[chainAddressConstants.stOrgContractOwnerKind].fundAmount,
+      amountForOriginAnchorContractOwner =
+        amountToFundOriginGasMap[chainAddressConstants.originAnchorOrgContractOwnerKind].fundAmount;
 
     logger.log('* Funding st org contract owner address with ETH.');
-    await oThis._fundAddressWithEth(oThis.stOrgContractOwnerAddress, 0.00012); //TODO-FUNDING:
+    await oThis._fundAddressWithEth(oThis.stOrgContractOwnerAddress, amountForSTOrganizationOwner);
 
     logger.log('* Funding origin anchor org contract owner address with ETH.');
-    await oThis._fundAddressWithEth(oThis.originAnchorOrgContractOwnerAddress, 0.00006); //TODO-FUNDING:
+    await oThis._fundAddressWithEth(oThis.originAnchorOrgContractOwnerAddress, amountForOriginAnchorContractOwner);
   }
 }
 

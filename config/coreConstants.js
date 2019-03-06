@@ -284,6 +284,10 @@ class CoreConstants {
     return 1;
   }
 
+  get FUND_MIF_WITH_OST_AMOUNT() {
+    return 1000000;
+  }
+
   /**
    * Batch delete retry count
    *
