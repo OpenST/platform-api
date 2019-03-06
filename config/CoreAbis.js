@@ -8,10 +8,12 @@
 
 const fs = require('fs'),
   path = require('path'),
+  MosaicJs = require('@openstfoundation/mosaic.js'),
   BrandedToken = require('@openstfoundation/brandedtoken.js'),
   OpenSTJs = require('@openstfoundation/openst.js');
 
-const rootPrefix = '..';
+const rootPrefix = '..',
+  contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName');
 
 const nameToAbiMap = {};
 
@@ -42,28 +44,31 @@ class CoreAbis {
     return nameToAbiMap['simpleToken'];
   }
 
-  static get utilityBrandedToken() {
-    return new BrandedToken.AbiBinProvider().getABI('UtilityBrandedToken');
-  }
+  /**
+   * Get abi
+   *
+   * @param contractName
+   * @returns {String}
+   */
+  static getAbi(contractName) {
+    switch (contractName) {
+      case contractNameConstants.tokenHolderContractName:
+      case contractNameConstants.tokenRuleContractName:
+      case contractNameConstants.userWalletFactoryContractName:
+      case contractNameConstants.proxyFactoryContractName:
+      case contractNameConstants.gnosisSafeContractName:
+        return new OpenSTJs.AbiBinProvider().getABI(contractName);
 
-  static get GnosisSafe() {
-    return new OpenSTJs.AbiBinProvider().getABI('GnosisSafe');
-  }
+      case contractNameConstants.utilityBrandedTokenContractName:
+      case contractNameConstants.brandedTokenContractName:
+      case contractNameConstants.gatewayComposerContractName:
+        return new BrandedToken.AbiBinProvider().getABI(contractName);
 
-  static get ProxyFactory() {
-    return new OpenSTJs.AbiBinProvider().getABI('ProxyFactory');
-  }
-
-  static get UserWalletFactory() {
-    return new OpenSTJs.AbiBinProvider().getABI('UserWalletFactory');
-  }
-
-  static get TokenRules() {
-    return new OpenSTJs.AbiBinProvider().getABI('TokenRules');
-  }
-
-  static get TokenHolder() {
-    return new OpenSTJs.AbiBinProvider().getABI('TokenHolder');
+      case contractNameConstants.organizationContractName:
+      case contractNameConstants.eip20GatewayContractName:
+      case contractNameConstants.eip20CoGatewayContractName:
+        return new MosaicJs.AbiBinProvider().getABI(contractName);
+    }
   }
 }
 

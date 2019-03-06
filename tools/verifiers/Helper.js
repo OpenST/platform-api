@@ -4,6 +4,7 @@ const MosaicJs = require('@openstfoundation/mosaic.js');
 
 const rootPrefix = '../..',
   CoreBins = require(rootPrefix + '/config/CoreBins'),
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 class VerifierHelper {
@@ -45,9 +46,8 @@ class VerifierHelper {
    */
   async validateContract(contractAddress, contractName) {
     const oThis = this;
-
     let deployedCode = await oThis.web3Instance.eth.getCode(contractAddress),
-      binCode = await oThis._getBIN(contractName);
+      binCode = CoreBins.getBin(contractName);
 
     deployedCode = deployedCode.slice(2);
 
@@ -66,7 +66,7 @@ class VerifierHelper {
   async getContractObj(contractName, contractAddress) {
     const oThis = this;
 
-    let abiOfOrganization = await oThis._getABI(contractName);
+    let abiOfOrganization = CoreAbis.getAbi(contractName);
 
     return new oThis.web3Instance.eth.Contract(abiOfOrganization, contractAddress);
   }
@@ -78,32 +78,6 @@ class VerifierHelper {
    */
   static get AbiBinProviderHelper() {
     return MosaicJs.AbiBinProvider;
-  }
-
-  /**
-   * Get given organization contract abi
-   *
-   * @param organizationName
-   * @return {Promise<void>}
-   * @private
-   */
-  async _getABI(organizationName) {
-    const oThis = this;
-
-    return new VerifierHelper.AbiBinProviderHelper().getABI(organizationName);
-  }
-
-  /**
-   * Get given contract bin
-   *
-   * @param contractName
-   * @return {Promise<void>}
-   * @private
-   */
-  async _getBIN(contractName) {
-    const oThis = this;
-
-    return new VerifierHelper.AbiBinProviderHelper().getBIN(contractName);
   }
 
   /**
