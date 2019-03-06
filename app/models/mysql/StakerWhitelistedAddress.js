@@ -1,5 +1,3 @@
-'use strict';
-
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   stakerWhitelistedAddressConstants = require(rootPrefix + '/lib/globalConstant/stakerWhitelistedAddress'),
@@ -11,25 +9,26 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 class StakerWhitelistedAddress extends ModelBase {
   constructor() {
     super({ dbName: dbName });
+
     const oThis = this;
+
     oThis.tableName = 'staker_whitelisted_addresses';
   }
 
   /**
-   * fetch address
+   * Fetch address
    *
-   * @param {object} params - external passed parameters
-   * @param {Integer} params.tokenId - tokenId
-   * @param {string} params.stakerAddress - staker address
+   * @param {Object} params - external passed parameters
+   * @param {Number/String} params.tokenId - tokenId
    *
    * @return {Promise}
    */
   async fetchAddress(params) {
     const oThis = this;
 
-    let existingRows = await oThis
+    const existingRows = await oThis
       .select('*')
-      .where(oThis._activeEntriesWhereClause(params))
+      .where(oThis._activeTokenAddressesWhereClause(params))
       .fire();
 
     if (existingRows.length === 0) {
@@ -42,15 +41,16 @@ class StakerWhitelistedAddress extends ModelBase {
           debug_options: {}
         })
       );
-    } else {
-      return responseHelper.successWithData({
-        gatewayComposerAddress: existingRows[0].gateway_composer_address
-      });
     }
+
+    return responseHelper.successWithData({
+      stakerAddress: existingRows[0].staker_address,
+      gatewayComposerAddress: existingRows[0].gateway_composer_address
+    });
   }
 
   /**
-   * check if active address already exists. if yes then inactivates all of them before inserting fresh record
+   * Check if active address already exists. if yes then inactivates all of them before inserting fresh record
    *
    * @param {object} params - external passed parameters
    * @param {Integer} params.tokenId - tokenId
@@ -66,7 +66,7 @@ class StakerWhitelistedAddress extends ModelBase {
 
     await oThis._inactivateExistingEntries(params);
 
-    let insertRsp = await new StakerWhitelistedAddress()
+    const insertRsp = await new StakerWhitelistedAddress()
       .insert({
         token_id: params.tokenId,
         status: params.status,
@@ -80,16 +80,15 @@ class StakerWhitelistedAddress extends ModelBase {
     return responseHelper.successWithData(insertRsp);
   }
 
-  /***
-   *
-   * check if active entries exist, yes then inactivate them
+  /**
+   * Check if active entries exist, yes then inactivate them
    *
    * @private
    */
   async _inactivateExistingEntries(params) {
     const oThis = this;
 
-    let existingRows = await new StakerWhitelistedAddress()
+    const existingRows = await new StakerWhitelistedAddress()
       .select('id')
       .where(oThis._activeEntriesWhereClause(params))
       .fire();
@@ -98,10 +97,10 @@ class StakerWhitelistedAddress extends ModelBase {
       return responseHelper.successWithData({});
     }
 
-    let idsToInactivate = [];
+    const idsToInactivate = [];
 
-    for (let i = 0; i < existingRows.length; i++) {
-      idsToInactivate.push(existingRows[i].id);
+    for (let index = 0; index < existingRows.length; index++) {
+      idsToInactivate.push(existingRows[index].id);
     }
 
     return oThis
@@ -112,7 +111,7 @@ class StakerWhitelistedAddress extends ModelBase {
       .fire();
   }
 
-  /***
+  /**
    *
    * @param params
    * @return {array}
@@ -127,23 +126,38 @@ class StakerWhitelistedAddress extends ModelBase {
     ];
   }
 
-  /***
+  /**
+   * Returns where clause for all active token addresses.
    *
-   * flush cache
+   * @param {Object} params
+   * @param {String/Number} params.tokenId
    *
-   * @param {object} params - external passed parameters
-   * @param {Integer} params.tokenId - tokenId
-   * @param {Integer} params.clientId - clientId
-   * @param {string} params.stakerAddress - staker address
+   * @return {*[]}
+   *
+   * @private
+   */
+  _activeTokenAddressesWhereClause(params) {
+    return [
+      'token_id = ? AND status = ?',
+      params.tokenId,
+      stakerWhitelistedAddressConstants.invertedStatuses[stakerWhitelistedAddressConstants.activeStatus]
+    ];
+  }
+
+  /**
+   *
+   * Flush cache
+   *
+   * @param {Object} params - external passed parameters
+   * @param {Number/String} params.tokenId - tokenId
    *
    * @returns {Promise<*>}
    */
-
   static async flushCache(params) {
     const StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress');
+
     return new StakerWhitelistedAddressCache({
-      tokenId: params.tokenId,
-      address: params.stakerAddress
+      tokenId: params.tokenId
     }).clear();
   }
 }
