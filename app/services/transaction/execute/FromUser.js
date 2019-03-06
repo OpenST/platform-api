@@ -50,7 +50,6 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
-    oThis.token = params.token;
 
     oThis.sessionData = null;
   }
