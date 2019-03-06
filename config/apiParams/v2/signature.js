@@ -724,7 +724,7 @@ const v2Signature = {
       },
       {
         parameter: 'meta_property',
-        validatorMethod: 'validateMetaProperty'
+        validatorMethod: 'validateString'
       },
       {
         parameter: pagination.paginationIdentifierKey,
