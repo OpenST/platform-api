@@ -1,11 +1,6 @@
-'use strict';
-
 /**
- * This service gets the
- * gateway composer contract address,
- * origin chain gas price,
- * gateway contract address,
- * staker nonce from gateway
+ * This service gets the gateway composer contract address, origin chain gas price,
+ * gateway contract address, staker nonce from gateway.
  *
  * @module app/services/contracts/GatewayComposer
  */
@@ -37,29 +32,30 @@ class GatewayComposer {
   }
 
   /**
-   * perform
+   * Perform
+   *
    * @return {Promise<>}
    */
   perform() {
     const oThis = this;
 
-    return oThis.asyncPerform().catch(function(error) {
+    return oThis.asyncPerform().catch((error) => {
       if (responseHelper.isCustomResult(error)) {
         return error;
-      } else {
-        logger.error('app/services/contracts/GatewayComposer::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_c_gc_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
       }
+      logger.error('app/services/contracts/GatewayComposer::perform::catch');
+      logger.error(error);
+
+      return responseHelper.error({
+        internal_error_identifier: 'a_s_c_gc_1',
+        api_error_identifier: 'unhandled_catch_response',
+        debug_options: {}
+      });
     });
   }
 
   /**
-   * asyncPerform
+   * AsyncPerform
    *
    * @return {Promise<any>}
    */
@@ -91,6 +87,7 @@ class GatewayComposer {
 
     if (!basicHelper.isEthAddressValid(oThis.stakerAddress)) {
       logger.error('Staker address is not passed or wrong in input parameters.');
+
       return responseHelper.error({
         internal_error_identifier: 'a_s_c_gc_3',
         api_error_identifier: 'invalid_params',
@@ -106,9 +103,8 @@ class GatewayComposer {
    */
   async getGatewayComposerContractAddress() {
     const oThis = this;
-    let stakerWhitelistedCacheObj = new StakerWhitelistedAddressCache({
-        tokenId: oThis.tokenId,
-        address: oThis.stakerAddress
+    const stakerWhitelistedCacheObj = new StakerWhitelistedAddressCache({
+        tokenId: oThis.tokenId
       }),
       stakerWhitelistedAddrRsp = await stakerWhitelistedCacheObj.fetch();
 
@@ -121,7 +117,7 @@ class GatewayComposer {
       );
     }
 
-    oThis.responseData['gateway_composer_contract_address'] = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
+    oThis.responseData.gateway_composer_contract_address = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
   }
 
   /**
@@ -132,7 +128,7 @@ class GatewayComposer {
   async getGatewayContractAddress() {
     const oThis = this;
 
-    let tokenAddressesCacheObj = new TokenAddressCache({
+    const tokenAddressesCacheObj = new TokenAddressCache({
         tokenId: oThis.tokenId
       }),
       tokenAddressesRsp = await tokenAddressesCacheObj.fetch();
@@ -146,7 +142,7 @@ class GatewayComposer {
       );
     }
 
-    oThis.responseData['gateway_contract_address'] = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
+    oThis.responseData.gateway_contract_address = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
   }
 
   /**
@@ -157,18 +153,18 @@ class GatewayComposer {
   async getBeneficiaryAddress() {
     const oThis = this;
 
-    let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
+    const tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
 
     if (
       tokenCompanyUserCacheRsp.isFailure() ||
       !tokenCompanyUserCacheRsp.data ||
-      !tokenCompanyUserCacheRsp.data['userUuids'] ||
-      tokenCompanyUserCacheRsp.data['userUuids'].length === 0
+      !tokenCompanyUserCacheRsp.data.userUuids ||
+      tokenCompanyUserCacheRsp.data.userUuids.length === 0
     ) {
       return Promise.reject(tokenCompanyUserCacheRsp);
     }
 
-    let tokenHolderUuid = tokenCompanyUserCacheRsp.data['userUuids'][0],
+    const tokenHolderUuid = tokenCompanyUserCacheRsp.data.userUuids[0],
       TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUserDetailsCache({
         tokenId: oThis.tokenId,
@@ -184,8 +180,7 @@ class GatewayComposer {
       return Promise.reject(tokenUserDetailsCacheRsp);
     }
 
-    oThis.responseData['stake_and_mint_beneficiary'] =
-      tokenUserDetailsCacheRsp.data[tokenHolderUuid]['tokenHolderAddress'];
+    oThis.responseData.stake_and_mint_beneficiary = tokenUserDetailsCacheRsp.data[tokenHolderUuid].tokenHolderAddress;
   }
 
   /**
@@ -196,10 +191,10 @@ class GatewayComposer {
   async getOriginChainGasPrice() {
     const oThis = this;
 
-    let gasPriceCacheObj = new gasPriceCacheKlass(),
+    const gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
-    oThis.responseData['origin_chain_gas_price'] = gasPriceRsp.data;
+    oThis.responseData.origin_chain_gas_price = gasPriceRsp.data;
   }
 
   /**
@@ -213,12 +208,12 @@ class GatewayComposer {
     await oThis._setOriginWeb3Instance();
 
     oThis.stakerNonce = await oThis._stakeHelperObject.getNonce(
-      oThis.responseData['gateway_composer_contract_address'],
+      oThis.responseData.gateway_composer_contract_address,
       oThis.originReadOnlyWeb3,
-      oThis.responseData['gateway_contract_address']
+      oThis.responseData.gateway_contract_address
     );
 
-    oThis.responseData['staker_gateway_nonce'] = oThis.stakerNonce;
+    oThis.responseData.staker_gateway_nonce = oThis.stakerNonce;
   }
 
   /**
@@ -230,13 +225,13 @@ class GatewayComposer {
   async _setOriginWeb3Instance() {
     const oThis = this;
 
-    let configStrategy = oThis.ic().configStrategy,
+    const configStrategy = oThis.ic().configStrategy,
       originChainId = configStrategy.constants.originChainId,
       response = await chainConfigProvider.getFor([originChainId]),
       originChainConfig = response[originChainId],
       originWsProviders = originChainConfig.originGeth.readOnly.wsProviders;
 
-    let shuffledProviders = basicHelper.shuffleArray(originWsProviders);
+    const shuffledProviders = basicHelper.shuffleArray(originWsProviders);
 
     oThis.originReadOnlyWeb3 = web3Provider.getInstance(shuffledProviders[0]).web3WsProvider;
   }
