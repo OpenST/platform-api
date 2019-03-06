@@ -47,6 +47,7 @@ class Create extends ServiceBase {
     oThis.shardNumbersMap = {};
     oThis.userSaltEncrypted = null;
     oThis.configStrategyObj = null;
+    oThis.userShardNumber = null;
   }
 
   /**
@@ -63,11 +64,39 @@ class Create extends ServiceBase {
 
     oThis.userId = uuidV4();
 
+    await oThis._fetchTokenUserShard();
+
     await oThis._allocateShards();
 
     await oThis._generateUserSalt();
 
     return oThis.createUser();
+  }
+
+  /**
+   * Fetch shard to create user entry.
+   *
+   * @returns {Promise<Void>}
+   * @private
+   */
+  async _fetchTokenUserShard() {
+    const oThis = this,
+      TokenShardNumbers = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
+      tokenShardNumbers = new TokenShardNumbers({ tokenId: oThis.tokenId });
+
+    let shardNumbers = await tokenShardNumbers.fetch();
+
+    if (!shardNumbers || !shardNumbers.data[shardConstants.userEntityKind]) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_u_c_1',
+          api_error_identifier: 'token_not_setup',
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.userShardNumber = shardNumbers.data[shardConstants.userEntityKind];
   }
 
   /**
@@ -127,11 +156,7 @@ class Create extends ServiceBase {
    * @return {Promise<string>}
    */
   async createUser() {
-    const oThis = this,
-      TokenShardNumbers = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
-      tokenShardNumbers = new TokenShardNumbers({ tokenId: oThis.tokenId });
-
-    let shardNumbers = await tokenShardNumbers.fetch();
+    const oThis = this;
 
     let timeInSecs = Math.floor(Date.now() / 1000);
 
@@ -156,14 +181,14 @@ class Create extends ServiceBase {
     }
 
     let User = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserModel'),
-      user = new User({ shardNumber: shardNumbers.data[shardConstants.userEntityKind] });
+      user = new User({ shardNumber: oThis.userShardNumber });
 
     let insertRsp = await user.insertUser(params);
 
     if (insertRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_u_c_1',
+          internal_error_identifier: 's_u_c_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
