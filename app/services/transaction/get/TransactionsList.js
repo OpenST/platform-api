@@ -20,6 +20,7 @@ const rootPrefix = '../../../..',
   pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ESTransactionService = esServices.services.transactions;
 
 // Following require(s) for registering into instance composer
@@ -142,7 +143,21 @@ class GetTransactionsList extends GetTransactionBase {
       oThis.from = parsedPaginationParams.from; //override from
     } else {
       oThis.status = oThis.status || [];
-      oThis.metaProperty = oThis.metaProperty || [];
+      if (oThis.metaProperty) {
+        oThis.metaProperty = await basicHelper.sanitizeMetaPropertyData(oThis.metaProperty);
+        if (!CommonValidators.validateMetaPropertyArray(oThis.metaProperty)) {
+          return Promise.reject(
+            responseHelper.paramValidationError({
+              internal_error_identifier: 'a_s_t_g_tl_3',
+              api_error_identifier: 'invalid_api_params',
+              params_error_identifiers: ['invalid_meta_property'],
+              debug_options: {}
+            })
+          );
+        }
+      } else {
+        oThis.metaProperty = [];
+      }
       oThis.limit = oThis.limit || oThis._defaultPageLimit();
       oThis.from = 0;
     }
