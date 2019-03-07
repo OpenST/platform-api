@@ -59,8 +59,7 @@ const startRequestLogLine = function(req, res, next) {
 
 const assignParams = function(req, res, next) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
-  //req.decodedParams = getRequestParams(req);
-  Object.assign(req.decodedParams, getRequestParams(req));
+  Object.assign(getRequestParams(req), req.decodedParams);
 
   next();
 };
@@ -156,21 +155,6 @@ const appendRequestDebugInfo = function(req, res, next) {
 
 // check system service statuses and return error if they are down
 const checkSystemServiceStatuses = async function(req, res, next) {
-  if (req.method === 'POST') {
-    var rParams = req.body;
-  } else {
-    var rParams = req.query;
-  }
-
-  if (
-    rParams &&
-    rParams.api_key &&
-    ['67ac5a9b79f49bcdba5e', '02db2e7059d66d8e83f2', '771044c4e1f943eb1f77'].includes(rParams.api_key)
-  ) {
-    logger.info('Bypassing system maintainence checks for', rParams.api_key);
-    return next();
-  }
-
   const statusRsp = await systemServiceStatusesCache.fetch();
   if (statusRsp.isSuccess && statusRsp.data && statusRsp.data['saas_api_available'] != 1) {
     return responseHelper
