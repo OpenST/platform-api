@@ -9,21 +9,23 @@
  *
  * @module executables/blockScanner/finalizer
  */
+const program = require('commander');
+
 const rootPrefix = '../..',
-  program = require('commander'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   TxFinalizeDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
+  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   PostTxFinalizeSteps = require(rootPrefix + '/lib/transactions/PostTransactionFinalizeSteps'),
-  BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask');
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -195,7 +197,7 @@ class Finalizer extends PublisherBase {
         logger.log('=== Transactions not yet completely parsed for block: ', blockToProcess);
         logger.log('=== Waiting for 2 secs');
         waitTime += 2;
-        await oThis.sleep(2000);
+        await basicHelper.sleep(2000);
       } else {
         waitTime = 0;
         let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
@@ -208,7 +210,7 @@ class Finalizer extends PublisherBase {
           if (finalizerResponse.isFailure()) {
             logger.log('=== Finalization failed for block: ', blockToProcess);
             logger.log('=== Waiting for 2 secs');
-            await oThis.sleep(2000);
+            await basicHelper.sleep(2000);
           } else {
             if (finalizerResponse.data.processedBlock) {
               let processedTransactionHashes = finalizerResponse.data.processedTransactions,
@@ -250,30 +252,17 @@ class Finalizer extends PublisherBase {
             }
 
             logger.log('===Waiting for 10 milli-secs');
-            await oThis.sleep(10);
+            await basicHelper.sleep(10);
           }
         } else {
           logger.log('=== Block not processable yet. ');
           logger.log('=== Waiting for 2 secs');
-          await oThis.sleep(2000);
+          await basicHelper.sleep(2000);
         }
       }
 
       oThis.canExit = true;
     }
-  }
-
-  /**
-   * Sleep for particular time
-   *
-   * @param ms {Number}: time in ms
-   *
-   * @returns {Promise<any>}
-   */
-  sleep(ms) {
-    return new Promise(function(resolve) {
-      setTimeout(resolve, ms);
-    });
   }
 
   /**

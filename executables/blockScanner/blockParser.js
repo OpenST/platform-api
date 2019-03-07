@@ -18,6 +18,7 @@ const rootPrefix = '../..',
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
@@ -271,7 +272,7 @@ class BlockParserExecutable extends PublisherBase {
 
       if (!blockParserResponse.isSuccess()) {
         // If blockParser returns an error then sleep for 10 ms and try again.
-        await oThis.sleep(10);
+        await basicHelper.sleep(10);
         oThis.canExit = true;
         return;
       }
@@ -288,10 +289,10 @@ class BlockParserExecutable extends PublisherBase {
       if (wasNewBlockParsed) {
         // If the block contains transactions, distribute those transactions.
         await oThis._distributeTransactions(rawCurrentBlock, nodesWithBlock);
-        await oThis.sleep(10);
+        await basicHelper.sleep(10);
       } else {
         // Sleep for higher time, assuming new block will be there to parse.
-        await oThis.sleep(oThis.blockGenerationTime * 1000);
+        await basicHelper.sleep(oThis.blockGenerationTime * 1000);
       }
 
       oThis.blockToProcess = nextBlockToProcess;
