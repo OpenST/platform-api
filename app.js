@@ -59,7 +59,9 @@ const startRequestLogLine = function(req, res, next) {
 
 const assignParams = function(req, res, next) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
-  Object.assign(getRequestParams(req), req.decodedParams);
+  // Also override any request params, related to signatures
+  // And finally assign it to req.decodedParams
+  req.decodedParams = Object.assign(getRequestParams(req), req.decodedParams);
 
   next();
 };
