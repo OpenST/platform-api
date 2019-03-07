@@ -7,7 +7,7 @@ const v2ErrorConfig = {
   invalid_api_signature_kind: {
     parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `Unsupported api signature kinds`
+    message: `Unsupported api signature kind`
   },
   unsupported_api_signature_kind: {
     parameter: 'api_signature_kind',
