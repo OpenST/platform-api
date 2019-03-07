@@ -138,8 +138,8 @@ Granter address gets ETH and OST in this step.
 ``` bash
 > source set_env_vars.sh
 > node
-    InsertPricerAbiKlass = require('./lib/setup/InsertPricerAbiIntoRulesTable.js');
-    new InsertPricerAbiKlass().perform().then(console.log).catch(console.log)
+    InsertRuleAbiKlass = require('./lib/setup/InsertRuleAbiIntoRulesTable.js');
+    new InsertRuleAbiKlass().perform().then(console.log).catch(console.log)
 ```
 
 ### Create entry in DDB table for highest block on origin chain.
