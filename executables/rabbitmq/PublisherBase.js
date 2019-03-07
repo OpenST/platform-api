@@ -41,20 +41,6 @@ class PublisherBase extends CronBase {
     return oThis.canExit;
   }
 
-  // TODO - following can be moved to common place.
-  /**
-   * Sleep for particular time
-   *
-   * @param ms {Number}: time in ms
-   *
-   * @returns {Promise<any>}
-   */
-  sleep(ms) {
-    return new Promise(function(resolve) {
-      setTimeout(resolve, ms);
-    });
-  }
-
   get _topicsToPublish() {
     throw 'sub class to implement.';
   }

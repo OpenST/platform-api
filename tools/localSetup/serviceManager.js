@@ -271,7 +271,7 @@ class ServiceManager {
     logger.info(cmd);
     shellAsyncCmd.run(cmd);
 
-    await basicHelper.pauseForMilliSeconds(3 * 1000);
+    await basicHelper.sleep(3 * 1000);
     logger.info('* ' + chainType + '-' + chainId + ' chain is running.');
 
     let fileName = null,

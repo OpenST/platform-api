@@ -264,21 +264,6 @@ class BasicHelperKlass {
   }
 
   /**
-   *
-   * Pauses flow of execution for a few milliseconds.
-   *
-   * @param timeInMilliSeconds
-   * @returns {Promise<any>}
-   */
-  async pauseForMilliSeconds(timeInMilliSeconds) {
-    return new Promise(function(onResolve) {
-      setTimeout(function() {
-        onResolve();
-      }, timeInMilliSeconds);
-    });
-  }
-
-  /**
    * Log date format
    *
    * @returns {string}
@@ -472,6 +457,19 @@ class BasicHelperKlass {
       s: `0x${signature.slice(66, 130)}`,
       v: `0x${signature.slice(130, 132)}`
     };
+  }
+
+  /**
+   * Sleep for particular time
+   *
+   * @param ms {Number}: time in ms
+   *
+   * @returns {Promise<any>}
+   */
+  sleep(ms) {
+    return new Promise(function(resolve) {
+      setTimeout(resolve, ms);
+    });
   }
 }
 

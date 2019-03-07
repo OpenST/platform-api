@@ -81,7 +81,7 @@
 //         }
 //       }
 //     };
-//     await basicHelper.pauseForMilliSeconds(100);
+//     await basicHelper.sleep(100);
 //     let setToRMQ = await ostNotification.publishEvent.perform(messageParams);
 //     console.log('topicName-----', publishDetails.topicName, 'setToRMQ----', setToRMQ);
 //   }

@@ -14,14 +14,14 @@ const program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
+  SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
+  MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
-  MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
-  SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   emailNotifier = require(rootPrefix + '/lib/notifier'),
-  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -60,6 +60,8 @@ class TransactionMetaObserver extends CronBase {
    */
   constructor(params) {
     super(params);
+
+    oThis.canExit = false;
   }
 
   /**
@@ -106,16 +108,21 @@ class TransactionMetaObserver extends CronBase {
 
     oThis.initializeVars();
 
-    logger.step('** Acquiring lock.');
-    await oThis.acquireLock();
+    while (true) {
+      logger.step('** Acquiring lock.');
+      await oThis.acquireLock();
 
-    await oThis._getTransactionsToProcess();
+      logger.step('** Getting transactions to process.');
+      await oThis._getTransactionsToProcess();
 
-    await oThis._processPendingTransactions();
+      logger.step('** Process transactions.');
+      await oThis._processPendingTransactions();
 
-    logger.step('** Releasing lock.');
+      logger.step('** Releasing lock.');
+      oThis._releaseLock();
 
-    oThis._releaseLock();
+      logger.step('** Sleeping...');
+    }
 
     logger.step('**Cron completed.');
   }
@@ -154,6 +161,8 @@ class TransactionMetaObserver extends CronBase {
    */
   async acquireLock() {
     const oThis = this;
+
+    oThis.canExit = false;
 
     await new TransactionMetaModel()
       .update(['lock_id=?', oThis.lockId])
@@ -264,19 +273,32 @@ class TransactionMetaObserver extends CronBase {
       .fire();
 
     oThis.lockAcquired = false;
+
+    oThis.canExit = true;
   }
 
+  // /**
+  //  * Pending tasks done
+  //  *
+  //  * @return {Boolean}
+  //  *
+  //  * @private
+  //  */
+  // _pendingTasksDone() {
+  //   const oThis = this;
+  //
+  //   return oThis.handlerPromises.length === 0 && !oThis.lockAcquired;
+  // }
+
   /**
-   * Pending tasks done
+   * This function checks if there are any pending tasks left or not.
    *
-   * @return {Boolean}
-   *
-   * @private
+   * @returns {Boolean}
    */
   _pendingTasksDone() {
     const oThis = this;
 
-    return oThis.handlerPromises.length === 0 && !oThis.lockAcquired;
+    return oThis.canExit;
   }
 }
 
