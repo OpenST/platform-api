@@ -226,6 +226,19 @@ And add it to tables using following script.
     node executables/executeTransaction.js --cronProcessId 18
 ```
 
+### Start state root sync cron
+* Start origin to aux state root sync cron.
+```bash
+    source set_env_vars.sh
+    node executables/stateRootSync/originToAux.js --cronProcessId 23
+```
+
+* Start aux to origin state root sync cron.
+```bash
+    source set_env_vars.sh
+    node executables/stateRootSync/auxToOrigin.js --cronProcessId 24
+```
+
 ###### ALWAYS AT THE END
 ### Open up config group for allocation
 ```js

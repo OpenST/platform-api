@@ -17,7 +17,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/stateRootSync/AuxToOrigin --cronProcessId 24');
+  logger.log('    node executables/stateRootSync/auxToOrigin --cronProcessId 24');
   logger.log('');
   logger.log('');
 });
