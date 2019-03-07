@@ -7,7 +7,7 @@ const v2ErrorConfig = {
   invalid_api_signature_kind: {
     parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `List of supported api signature kinds (${apiSignature.hmacKind}, ${apiSignature.personalSignKind})`
+    message: `Unsupported api signature kinds`
   },
   unsupported_api_signature_kind: {
     parameter: 'api_signature_kind',
