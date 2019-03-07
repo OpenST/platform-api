@@ -9,7 +9,8 @@
 const fs = require('fs'),
   path = require('path'),
   MosaicJs = require('@openstfoundation/mosaic.js'),
-  BrandedToken = require('@openstfoundation/brandedtoken.js');
+  BrandedToken = require('@openstfoundation/brandedtoken.js'),
+  OpenSTJs = require('@openstfoundation/openst.js');
 
 const rootPrefix = '..',
   contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName'),
@@ -49,6 +50,13 @@ class CoreBins {
    */
   static getBin(contractName) {
     switch (contractName) {
+      case contractNameConstants.tokenHolderContractName:
+      case contractNameConstants.tokenRuleContractName:
+      case contractNameConstants.userWalletFactoryContractName:
+      case contractNameConstants.proxyFactoryContractName:
+      case contractNameConstants.gnosisSafeContractName:
+        return new OpenSTJs.AbiBinProvider().getABI(contractName);
+
       case contractNameConstants.brandedTokenContractName:
       case contractNameConstants.utilityBrandedTokenContractName:
       case contractNameConstants.gatewayComposerContractName:
@@ -57,6 +65,11 @@ class CoreBins {
       case contractNameConstants.organizationContractName:
       case contractNameConstants.eip20GatewayContractName:
       case contractNameConstants.eip20CoGatewayContractName:
+      case contractNameConstants.merklePatriciaProofContractName:
+      case contractNameConstants.messageBusContractName:
+      case contractNameConstants.gatewayLibContractName:
+      case contractNameConstants.OSTPrimeContractName:
+      case contractNameConstants.AnchorContractName:
         return new MosaicJs.AbiBinProvider().getBIN(contractName);
     }
   }

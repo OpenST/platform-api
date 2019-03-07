@@ -67,6 +67,11 @@ class CoreAbis {
       case contractNameConstants.organizationContractName:
       case contractNameConstants.eip20GatewayContractName:
       case contractNameConstants.eip20CoGatewayContractName:
+      case contractNameConstants.merklePatriciaProofContractName:
+      case contractNameConstants.messageBusContractName:
+      case contractNameConstants.gatewayLibContractName:
+      case contractNameConstants.OSTPrimeContractName:
+      case contractNameConstants.AnchorContractName:
         return new MosaicJs.AbiBinProvider().getABI(contractName);
     }
   }
