@@ -166,7 +166,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   async _validateAndSanitizeSessionKeyAddress() {
     const oThis = this;
 
-    oThis.sessionKeyAddress = oThis.sessionKeyAddress.toLowerCase();
+    oThis.sessionKeyAddress = basicHelper.sanitizeAddress(oThis.sessionKeyAddress);
 
     let SessionsByAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
       sessionsByAddressCache = new SessionsByAddressCache({

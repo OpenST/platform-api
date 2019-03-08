@@ -60,7 +60,7 @@ class generateInternalAddresses {
 
       if (r.isFailure()) {
         logger.error('Address generation failed ============ ', r);
-        process.exit(0);
+        process.exit(1);
       }
 
       Object.assign(addressKindToValueMap, r.data);
