@@ -71,8 +71,6 @@ class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses e
     super(params);
 
     const oThis = this;
-
-    oThis.canExit = true;
   }
 
   /**
@@ -84,19 +82,6 @@ class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses e
    */
   get _cronKind() {
     return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses;
-  }
-
-  /**
-   * Pending tasks done
-   *
-   * @return {Boolean}
-   *
-   * @private
-   */
-  _pendingTasksDone() {
-    const oThis = this;
-
-    return oThis.canExit;
   }
 
   /**
@@ -205,11 +190,10 @@ class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses e
       logger.step('Transferring Eth to facilitator addresses on origin chain id: ', oThis.originChainId);
 
       await oThis._transferEth(transferDetails);
-
-      oThis.canExit = true;
     } else {
       logger.step('None of the addresses had lower than threshold balance on chainId: ', oThis.originChainId);
     }
+
     oThis.canExit = true;
   }
 }

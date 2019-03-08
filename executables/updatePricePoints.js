@@ -115,6 +115,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
   async _start() {
     const oThis = this;
 
+    oThis.canExit = false;
+
     logger.step('Validating quoteCurrency.');
     oThis._validateQuoteCurrency();
 
@@ -122,6 +124,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
     await oThis._updatePricePoint();
 
     logger.step('Cron completed.');
+
+    oThis.canExit = true;
   }
 
   /**

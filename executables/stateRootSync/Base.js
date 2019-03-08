@@ -71,8 +71,10 @@ class StateRootSyncBase extends CronBase {
   async _start() {
     const oThis = this;
 
+    oThis.canExit = false;
+
     logger.step('Set source and destination chainIds');
-    await oThis._setChainIds();
+    await oThis._setChainId();
 
     logger.step('Fetching highest finalized block');
     await oThis._getHighestFinalizedBlock();
@@ -81,6 +83,8 @@ class StateRootSyncBase extends CronBase {
     await oThis._startStateRootSync();
 
     logger.step('Cron completed.');
+
+    oThis.canExit = true;
   }
 
   /**
@@ -88,7 +92,7 @@ class StateRootSyncBase extends CronBase {
    *
    * @private
    */
-  _setChainIds() {
+  _setChainId() {
     throw 'sub class to implement.';
   }
 

@@ -50,7 +50,7 @@ class StateRootSyncFromAuxToOrigin extends StateRootSyncBase {
    *
    * @private
    */
-  _setChainIds() {
+  _setChainId() {
     const oThis = this;
     oThis.sourceChainId = oThis.auxChainId;
     oThis.destinationChainId = oThis.originChainId;

@@ -13,7 +13,6 @@ const rootPrefix = '../../..',
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token');
 

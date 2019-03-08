@@ -177,6 +177,7 @@ class Finalizer extends PublisherBase {
     while (true) {
       // SIGINT Received
       if (oThis.stopPickingUpNewWork) {
+        oThis.canExit = true;
         break;
       }
 

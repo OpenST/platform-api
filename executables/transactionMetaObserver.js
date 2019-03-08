@@ -18,10 +18,11 @@ const rootPrefix = '..',
   QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -61,7 +62,27 @@ class TransactionMetaObserver extends CronBase {
   constructor(params) {
     super(params);
 
-    oThis.canExit = false;
+    const oThis = this;
+
+    oThis.statusesToObserve = [
+      transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.submissionInProcessStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.gethOutOfSyncStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.unknownGethSubmissionErrorStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.insufficientGasStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.nonceTooLowStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.replacementTxUnderpricedStatus],
+      transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus]
+    ];
+    oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 5;
+    oThis.maxRetry = oThis.maxRetry || 10;
+    oThis.canExit = true;
+
+    oThis.lockId = null;
+    oThis.currentTime = null;
+    oThis.transactionsToProcess = null;
   }
 
   /**
@@ -106,11 +127,13 @@ class TransactionMetaObserver extends CronBase {
   async _start() {
     const oThis = this;
 
-    oThis.initializeVars();
+    while (!oThis.stopPickingUpNewWork) {
+      oThis.canExit = false;
 
-    while (true) {
+      oThis._initializeLoopVars();
+
       logger.step('** Acquiring lock.');
-      await oThis.acquireLock();
+      await oThis._acquireLock();
 
       logger.step('** Getting transactions to process.');
       await oThis._getTransactionsToProcess();
@@ -119,39 +142,27 @@ class TransactionMetaObserver extends CronBase {
       await oThis._processPendingTransactions();
 
       logger.step('** Releasing lock.');
-      oThis._releaseLock();
+      await oThis._releaseLock();
+
+      oThis.canExit = true;
 
       logger.step('** Sleeping...');
+      await basicHelper.sleep(100);
     }
-
-    logger.step('**Cron completed.');
   }
 
   /**
    * initializing variables.
    *
    */
-  initializeVars() {
+  _initializeLoopVars() {
     const oThis = this;
 
     let currentTimeMs = new Date().getTime();
-
-    oThis.statusesToObserve = [
-      transactionMetaConst.invertedStatuses[transactionMetaConst.queuedStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.submissionInProcessStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.gethDownStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.gethOutOfSyncStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.rollBackBalanceStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.unknownGethSubmissionErrorStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.insufficientGasStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.nonceTooLowStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.replacementTxUnderpricedStatus],
-      transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus]
-    ];
-    oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 50;
-    oThis.maxRetry = oThis.maxRetry || 10;
     oThis.currentTime = Math.floor(currentTimeMs / 1000);
     oThis.lockId = parseFloat(currentTimeMs + '.' + cronProcessId);
+
+    oThis.transactionsToProcess = [];
   }
 
   /**
@@ -159,12 +170,10 @@ class TransactionMetaObserver extends CronBase {
    *
    * @returns {Promise}
    */
-  async acquireLock() {
+  _acquireLock() {
     const oThis = this;
 
-    oThis.canExit = false;
-
-    await new TransactionMetaModel()
+    return new TransactionMetaModel()
       .update(['lock_id=?', oThis.lockId])
       .where([
         'status IN (?) AND next_action_at < ? AND next_action_at > 0 AND retry_count < ? AND lock_id IS NULL',
@@ -174,10 +183,6 @@ class TransactionMetaObserver extends CronBase {
       ])
       .limit(oThis.noOfRowsToProcess)
       .fire();
-
-    oThis.lockAcquired = true;
-
-    return true;
   }
 
   /**
@@ -189,14 +194,10 @@ class TransactionMetaObserver extends CronBase {
   async _getTransactionsToProcess() {
     const oThis = this;
 
-    oThis.transactionsToProcess = [];
-
     oThis.transactionsToProcess = await new TransactionMetaModel()
       .select('*')
       .where(['lock_id = ?', oThis.lockId])
       .fire();
-
-    return true;
   }
 
   /**
@@ -209,8 +210,8 @@ class TransactionMetaObserver extends CronBase {
   async _processPendingTransactions() {
     const oThis = this;
 
-    oThis.handlerPromises = [];
-    let transactionsGroup = {};
+    let promiseArray = [],
+      transactionsGroup = {};
     for (let i = 0; i < oThis.transactionsToProcess.length; i++) {
       let txMeta = oThis.transactionsToProcess[i];
 
@@ -240,7 +241,7 @@ class TransactionMetaObserver extends CronBase {
           txStatusString == transactionMetaConst.gethDownStatus ||
           txStatusString == transactionMetaConst.gethOutOfSyncStatus
         ) {
-          oThis.handlerPromises.push(new QueuedHandlerKlass(params).perform());
+          promiseArray.push(new QueuedHandlerKlass(params).perform());
         } else if (
           txStatusString == transactionMetaConst.rollBackBalanceStatus ||
           txStatusString == transactionMetaConst.unknownGethSubmissionErrorStatus ||
@@ -248,15 +249,14 @@ class TransactionMetaObserver extends CronBase {
           txStatusString == transactionMetaConst.nonceTooLowStatus ||
           txStatusString == transactionMetaConst.replacementTxUnderpricedStatus
         ) {
-          oThis.handlerPromises.push(new MarkFailAndRollbackBalanceKlass(params).perform());
+          promiseArray.push(new MarkFailAndRollbackBalanceKlass(params).perform());
         } else if (txStatusString == transactionMetaConst.submittedToGethStatus) {
-          oThis.handlerPromises.push(new SubmittedHandlerKlass(params).perform());
+          promiseArray.push(new SubmittedHandlerKlass(params).perform());
         }
       }
     }
-    await Promise.all(oThis.handlerPromises);
-    oThis.handlerPromises = [];
-    return Promise.resolve({});
+
+    await Promise.all(promiseArray);
   }
 
   /**
@@ -271,24 +271,7 @@ class TransactionMetaObserver extends CronBase {
       .update(['lock_id = NULL, retry_count = retry_count+1'])
       .where(['lock_id = ?', oThis.lockId])
       .fire();
-
-    oThis.lockAcquired = false;
-
-    oThis.canExit = true;
   }
-
-  // /**
-  //  * Pending tasks done
-  //  *
-  //  * @return {Boolean}
-  //  *
-  //  * @private
-  //  */
-  // _pendingTasksDone() {
-  //   const oThis = this;
-  //
-  //   return oThis.handlerPromises.length === 0 && !oThis.lockAcquired;
-  // }
 
   /**
    * This function checks if there are any pending tasks left or not.

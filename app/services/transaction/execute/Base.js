@@ -509,12 +509,10 @@ class ExecuteTxBase extends ServiceBase {
       });
     }
 
-    if (oThis.sessionKeyAddress) {
-      await new NonceForSession({
-        address: oThis.sessionKeyAddress,
-        chainId: oThis.auxChainId
-      }).clear();
-    }
+    await new NonceForSession({
+      address: oThis.sessionKeyAddress,
+      chainId: oThis.auxChainId
+    }).clear();
   }
 
   /**

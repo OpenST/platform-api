@@ -62,8 +62,6 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
 
     const oThis = this;
 
-    oThis.canExit = true;
-
     oThis.tokenFunderFundsConfig = {};
   }
 
@@ -76,19 +74,6 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
    */
   get _cronKind() {
     return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses;
-  }
-
-  /**
-   * Pending tasks done
-   *
-   * @return {Boolean}
-   *
-   * @private
-   */
-  _pendingTasksDone() {
-    const oThis = this;
-
-    return oThis.canExit;
   }
 
   /**
@@ -308,6 +293,8 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
 
     // Start transfer.
     oThis.canExit = false;
+
+    // TODO - introduce batching here
 
     if (transferDetails.length > 0 && (await oThis._isMIFStPrimeBalanceGreaterThan(totalAmountToTransferFromMIF))) {
       logger.step('Transferring StPrime to token addresses on auxChainId: ' + auxChainId);

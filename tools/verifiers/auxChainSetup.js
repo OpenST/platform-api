@@ -356,18 +356,15 @@ class AuxChainSetup {
     const oThis = this;
 
     let verifierHelperObj = null,
-      chainId = null,
       remoteChainId = null,
       coAnchorAddress = null;
 
     if (anchorKind === chainAddressConstants.originAnchorContractKind) {
       verifierHelperObj = new VerifiersHelper(oThis.originWeb3Instance);
-      chainId = oThis.originChainId;
       remoteChainId = parseInt(oThis.auxChainId);
       coAnchorAddress = oThis.auxAnchorContractAddress;
     } else {
       verifierHelperObj = new VerifiersHelper(oThis.auxWeb3Instance);
-      chainId = oThis.auxChainId;
       remoteChainId = parseInt(oThis.originChainId);
       coAnchorAddress = oThis.originAnchorContractAddress;
     }

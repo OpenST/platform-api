@@ -335,7 +335,7 @@ class AuxChainSpecificCronSeeder {
     return new InsertCrons()
       .perform(cronProcessConstants.transactionErrorHandler, {
         auxChainId: 2000,
-        noOfRowsToProcess: 50,
+        noOfRowsToProcess: 5,
         maxRetry: 100,
         sequenceNumber: 1
       })

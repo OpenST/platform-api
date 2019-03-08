@@ -8,7 +8,6 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint');
@@ -106,12 +105,12 @@ class PricePointsGet extends ServiceBase {
       );
     }
 
-    let pricePointServiceResponse = pricePointsResponse.data;
-    pricePointServiceResponse.decimals = contractConstants.requiredPriceOracleDecimals;
+    let pricePointData = pricePointsResponse.data;
+    pricePointData.decimals = contractConstants.requiredPriceOracleDecimals;
 
-    logger.debug('Price points data: ', pricePointServiceResponse);
+    logger.debug('Price points data: ', pricePointData);
 
-    return responseHelper.successWithData(pricePointServiceResponse);
+    return responseHelper.successWithData(pricePointData);
   }
 }
 
