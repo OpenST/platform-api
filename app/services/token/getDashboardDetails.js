@@ -44,8 +44,8 @@ class GetTokenDashboardDetail extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
 
-    oThis.totalSupply = 0;
-    oThis.totalVolume = 0;
+    oThis.totalSupplyInWei = 0;
+    oThis.totalVolumeInWei = 0;
     oThis.tokenHoldersBalance = 0;
 
     oThis.companyTokenHolderAddresses = [];
@@ -147,10 +147,9 @@ class GetTokenDashboardDetail extends ServiceBase {
     }
 
     let economyDetails = cacheResponse.data[oThis.economyContractAddress];
-    console.log('economyDetails----------e--------', economyDetails);
 
-    oThis.totalSupply = economyDetails.totalSupply;
-    oThis.totalVolume = economyDetails.totalVolume;
+    oThis.totalSupplyInWei = economyDetails.totalSupply;
+    oThis.totalVolumeInWei = economyDetails.totalVolume;
   }
 
   /**
@@ -184,8 +183,6 @@ class GetTokenDashboardDetail extends ServiceBase {
       let userData = usersData[uuid];
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
     }
-
-    console.log('--oThis.companyTokenHolderAddresses--------------', oThis.companyTokenHolderAddresses);
   }
 
   async _getTokenHoldersBalance() {
@@ -201,7 +198,6 @@ class GetTokenDashboardDetail extends ServiceBase {
       let ubtbalance = ubtbalances[i];
       new BigNumber(oThis.tokenHoldersBalance).plus(ubtbalance);
     }
-    console.log('--oThis.tokenHoldersBalance--------', oThis.tokenHoldersBalance);
   }
 
   /**
@@ -239,15 +235,13 @@ class GetTokenDashboardDetail extends ServiceBase {
   prepareResponse() {
     const oThis = this;
 
-    let totalSupply = basicHelper.convertWeiToNormal(oThis.totalSupply).toString(10),
-      totalSupplyDollar = basicHelper.convertWeiToNormal(oThis.getBtToDollar(oThis.totalSupply)).toString(10),
-      totalVolume = basicHelper.convertWeiToNormal(oThis.totalVolume).toString(10),
-      totalVolumeDollar = basicHelper.convertWeiToNormal(oThis.getBtToDollar(oThis.totalVolume)).toString(10),
-      circulatingSupplyInWei = new BigNumber(oThis.totalSupply).minus(oThis.tokenHoldersBalance),
-      circulatingSupply = basicHelper.convertWeiToNormal(circulatingSupplyInWei).toString(10),
-      circulatingSupplyDollar = basicHelper
-        .convertWeiToNormal(oThis.getBtToDollar(circulatingSupplyInWei))
-        .toString(10);
+    let totalSupply = basicHelper.toPrecessionBT(oThis.totalSupplyInWei),
+      totalSupplyDollar = oThis.getBtToDollar(oThis.totalSupplyInWei),
+      totalVolume = basicHelper.toPrecessionBT(oThis.totalVolumeInWei),
+      totalVolumeDollar = oThis.getBtToDollar(oThis.totalVolumeInWei),
+      circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalance),
+      circulatingSupply = basicHelper.toPrecessionBT(circulatingSupplyInWei),
+      circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei);
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -274,7 +268,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     let totalOstInWei = new BigNumber(amountinWei).div(oneOstIsHowManyBtFactor);
     let inUSD = new BigNumber(totalOstInWei).mul(oThis.ostIsHowManyUSD);
 
-    return inUSD;
+    return basicHelper.toPrecessionFiat(inUSD);
   }
 }
 
