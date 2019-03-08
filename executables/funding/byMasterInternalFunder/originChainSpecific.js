@@ -18,6 +18,7 @@ const rootPrefix = '../../..',
   GetOstBalance = require(rootPrefix + '/lib/getBalance/Ost'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -363,7 +364,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       logger.warn(
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
       );
-      await basicHelper.notify(
+      await emailNotifier.perform(
         'e_f_bmif_ocs_3',
         `Low balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
           oThis.originChainId
@@ -445,7 +446,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     const oThis = this;
 
     logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
-    await basicHelper.notify(
+    await emailNotifier.perform(
       'e_f_bmif_ocs_4',
       `Low balance of ${currency} addressKind: ${addressKind} on chainId: ${oThis.originChainId}. Address: ${address}`,
       {},
