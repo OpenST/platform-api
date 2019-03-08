@@ -63,7 +63,7 @@
 And add it to tables using following script.
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xaFd5AAa702CcBD6698679853a38FAE03Bf9B1d0C' --sealerPrivateKey '611c164d961c839fc1b8b4bb1ac02463db77d2b7b18db7d657f12415081dc515'
+    node executables/setup/aux/addSealerAddress.js --auxChainId 2000 --sealerAddress '0xabc___' --sealerPrivateKey '0xabc___'
 ```
 
 * Setup Aux Contracts
@@ -230,13 +230,13 @@ And add it to tables using following script.
 * Start origin to aux state root sync cron.
 ```bash
     source set_env_vars.sh
-    node executables/stateRootSync/originToAux.js --cronProcessId 23
+    node executables/stateRootSync/originToAux.js --cronProcessId 24
 ```
 
 * Start aux to origin state root sync cron.
 ```bash
     source set_env_vars.sh
-    node executables/stateRootSync/auxToOrigin.js --cronProcessId 24
+    node executables/stateRootSync/auxToOrigin.js --cronProcessId 25
 ```
 
 ###### ALWAYS AT THE END
