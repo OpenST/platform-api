@@ -23,7 +23,7 @@ const rootPrefix = '../../..',
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-program.on('--help', () => {
+program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
@@ -335,9 +335,9 @@ logger.log('Starting cron to fund St Prime by tokenAuxFunder.');
 
 new FundByChainOwnerAuxChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()
-  .then(() => {
+  .then(function() {
     process.emit('SIGINT');
   })
-  .catch(() => {
+  .catch(function() {
     process.emit('SIGINT');
   });

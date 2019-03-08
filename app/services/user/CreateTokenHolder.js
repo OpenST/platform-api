@@ -90,13 +90,13 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._updateUserStatusToActivating();
 
-    await oThis._updateDeviceStatusToAuthorising().catch(async (error) => {
+    await oThis._updateDeviceStatusToAuthorising().catch(async function(error) {
       await oThis._rollbackUserStatusToCreated();
 
       return Promise.reject(error);
     });
 
-    await oThis._authorizingRecoveryOwnerAddress().catch(async (error) => {
+    await oThis._authorizingRecoveryOwnerAddress().catch(async function(error) {
       await oThis._rollbackDeviceStatusToRegistered();
       await oThis._rollbackUserStatusToCreated();
 
@@ -390,7 +390,7 @@ class CreateTokenHolder extends ServiceBase {
 
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_8',
+          internal_error_identifier: 'a_s_u_cth_7',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
@@ -423,7 +423,7 @@ class CreateTokenHolder extends ServiceBase {
     if (deviceStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback device status back to registered. ');
       await basicHelper.notify(
-        'a_s_u_cth_9',
+        'a_s_u_cth_8',
         `Could not rollback device status back to registered. TokenId: ${oThis.tokenId}, UserId: ${
           oThis.userId
         }, Device address: ${oThis.deviceAddress}`,
@@ -433,7 +433,7 @@ class CreateTokenHolder extends ServiceBase {
 
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_cth_10',
+          internal_error_identifier: 'a_s_u_cth_8',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })

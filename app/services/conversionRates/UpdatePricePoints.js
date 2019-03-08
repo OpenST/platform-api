@@ -59,7 +59,7 @@ class UpdatePricePoints {
   perform() {
     const oThis = this;
 
-    return oThis.asyncPerform().catch((error) => {
+    return oThis.asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
       }
@@ -315,7 +315,7 @@ class UpdatePricePoints {
 
     let attemptCountForVerifyPriceInContract = 1;
 
-    return new Promise((onResolve, onReject) => {
+    return new Promise(function(onResolve, onReject) {
       const loopCompareContractPrice = async function() {
         if (attemptCountForVerifyPriceInContract > oThis.maxRetryCountForVerifyPriceInContract) {
           await basicHelper.notify(

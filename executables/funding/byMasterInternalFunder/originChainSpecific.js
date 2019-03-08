@@ -29,7 +29,7 @@ const rootPrefix = '../../..',
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-program.on('--help', () => {
+program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
@@ -128,7 +128,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     if (!oThis.originChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_ocs_1',
+          internal_error_identifier: 'e_f_bmif_ocs_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { originChainId: oThis.originChainId }
         })
@@ -233,7 +233,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_ocs_2',
+          internal_error_identifier: 'e_f_bmif_ocs_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -364,7 +364,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
       );
       await basicHelper.notify(
-        'e_f_bco_ocs_3',
+        'e_f_bmif_ocs_3',
         `Low balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
           oThis.originChainId
         }.
@@ -446,7 +446,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
 
     logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
     await basicHelper.notify(
-      'e_f_bco_ocs_4',
+      'e_f_bmif_ocs_4',
       `Low balance of ${currency} addressKind: ${addressKind} on chainId: ${oThis.originChainId}. Address: ${address}`,
       {},
       {}
@@ -458,9 +458,9 @@ logger.log('Starting cron to fund eth by master internal funder.');
 
 new FundByMasterInternalFunderOriginChainSpecific({ cronProcessId: +program.cronProcessId })
   .perform()
-  .then(() => {
+  .then(function() {
     process.emit('SIGINT');
   })
-  .catch(() => {
+  .catch(function() {
     process.emit('SIGINT');
   });

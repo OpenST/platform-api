@@ -50,7 +50,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     if (!oThis.originChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_acs_b_1',
+          internal_error_identifier: 'e_f_bmif_acs_b_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { originChainId: oThis.originChainId }
         })
@@ -60,7 +60,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     if (!oThis.auxChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_acs_b_2',
+          internal_error_identifier: 'e_f_bmif_acs_b_2',
           api_error_identifier: 'something_went_wrong',
           debug_options: { auxChainId: oThis.auxChainId }
         })
@@ -104,7 +104,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_f_bco_acs_b_3',
+          internal_error_identifier: 'e_f_bmif_acs_b_3',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -236,7 +236,9 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    * This function tells if the master internal funder eth balance is greater than the given amount.
    *
    * @param amount
+   *
    * @returns {Promise<boolean>}
+   *
    * @private
    */
   async _isMIFEthBalanceGreaterThan(amount) {
@@ -252,7 +254,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
       );
       await basicHelper.notify(
-        'e_f_bmif_acs_1',
+        'e_f_bmif_acs_b_4',
         `Low balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
           oThis.originChainId
         }. Address: ${oThis.masterInternalFunderAddress}`,
@@ -289,7 +291,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low st prime balance on chainId: ' + oThis.auxChainId
       );
       await basicHelper.notify(
-        'e_f_bmif_acs_2',
+        'e_f_bmif_acs_b_5',
         `Low st prime balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
           oThis.auxChainId
         }. Address: ${oThis.masterInternalFunderAddress}`,

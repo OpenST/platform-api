@@ -18,7 +18,6 @@ const rootPrefix = '..',
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -26,7 +25,7 @@ const rootPrefix = '..',
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-program.on('--help', () => {
+program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
@@ -108,7 +107,7 @@ class TransactionMetaObserver extends CronBase {
     if (!oThis.auxChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_upp_1',
+          internal_error_identifier: 'e_tmo_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { auxChainId: oThis.auxChainId }
         })
@@ -217,8 +216,8 @@ class TransactionMetaObserver extends CronBase {
       const txStatusString = transactionMetaConst.statuses[txMeta.status];
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
-      await emailNotifier.perform(
-        'e_tmo-' + txStatusString,
+      await basicHelper.notify(
+        'e_tmo_2-' + txStatusString,
         'transactionMetaObserver Observed error',
         {},
         { txMetaId: txMeta.id }
@@ -287,11 +286,11 @@ class TransactionMetaObserver extends CronBase {
 // Perform action
 new TransactionMetaObserver({ cronProcessId: cronProcessId })
   .perform()
-  .then(() => {
+  .then(function() {
     logger.step('** Exiting Process');
     process.emit('SIGINT');
   })
-  .catch((err) => {
+  .catch(function(err) {
     logger.error('** Exiting Process Due to Error.', err);
     process.emit('SIGINT');
   });

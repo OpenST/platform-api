@@ -191,11 +191,11 @@ class BasicHelper {
    * @return {Array}
    */
   shuffleArray(array) {
-    for (let i = array.length - 1; i >= 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      const temp = array[i];
-      array[i] = array[j];
-      array[j] = temp;
+    for (let elementOne = array.length - 1; elementOne >= 0; elementOne--) {
+      const elementTwo = Math.floor(Math.random() * (elementOne + 1));
+      const temp = array[elementOne];
+      array[elementOne] = array[elementTwo];
+      array[elementTwo] = temp;
     }
 
     return array;
@@ -273,25 +273,25 @@ class BasicHelper {
   /**
    * Log date format
    *
-   * @returns {string}
+   * @returns {String}
    */
   logDateFormat() {
-    const d = new Date();
+    const date = new Date();
 
     return (
-      d.getFullYear() +
+      date.getFullYear() +
       '-' +
-      (d.getMonth() + 1) +
+      (date.getMonth() + 1) +
       '-' +
-      d.getDate() +
+      date.getDate() +
       ' ' +
-      d.getHours() +
+      date.getHours() +
       ':' +
-      d.getMinutes() +
+      date.getMinutes() +
       ':' +
-      d.getSeconds() +
+      date.getSeconds() +
       '.' +
-      d.getMilliseconds()
+      date.getMilliseconds()
     );
   }
 
@@ -323,9 +323,10 @@ class BasicHelper {
 
   /**
    *
-   * @param {number} min
-   * @param {number} max
-   * @return {number}
+   * @param {Number} min
+   * @param {Number} max
+   *
+   * @return {Number}
    */
   getRandomNumber(min, max) {
     min = Math.ceil(min);
@@ -357,7 +358,7 @@ class BasicHelper {
   /**
    * Converts conversion rate to contract interpreted string. ex 1.5 -> 150000
    * @param conversionRate
-   * @return {string}
+   * @return {String}
    */
   computeConversionRateForContract(conversionRate) {
     const conversionFactorFromDB = new BigNumber(conversionRate),
@@ -415,43 +416,44 @@ class BasicHelper {
   async sanitizeRawCallData(rawCallData) {
     const oThis = this;
 
-    return oThis.promisifyJsonParse(rawCallData).catch(() =>
-      Promise.reject(
+    return oThis.promisifyJsonParse(rawCallData).catch(function() {
+      return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'h_b_1',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata'],
           debug_options: {}
         })
-      )
-    );
+      );
+    });
   }
 
   /**
    * Sanitize meta property data
    *
    * @param metaProperty
+   *
    * @return {Promise<void>}
    */
   async sanitizeMetaPropertyData(metaProperty) {
     const oThis = this;
 
-    return oThis.promisifyJsonParse(metaProperty).catch(() =>
-      Promise.reject(
+    return oThis.promisifyJsonParse(metaProperty).catch(function() {
+      return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'h_b_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_meta_property'],
           debug_options: {}
         })
-      )
-    );
+      );
+    });
   }
 
   /**
    * Timestamp in seconds
    *
-   * @return {number}
+   * @return {Number}
    */
   timestampInSeconds() {
     return Math.floor(new Date() / 1000);
@@ -479,7 +481,7 @@ class BasicHelper {
    * @returns {Promise<any>}
    */
   sleep(ms) {
-    return new Promise((resolve) => {
+    return new Promise(function(resolve) {
       setTimeout(resolve, ms);
     });
   }
@@ -492,10 +494,10 @@ class BasicHelper {
    * @param {String/Object} errData
    * @param {String/Object} debugData
    *
-   * @return {Promise<void>}
+   * @return {*}
    */
-  async notify(code, msg, errData, debugData) {
-    await emailNotifier.perform(code, msg, errData, debugData);
+  notify(code, msg, errData, debugData) {
+    return emailNotifier.perform(code, msg, errData, debugData);
   }
 }
 

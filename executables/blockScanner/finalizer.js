@@ -28,7 +28,7 @@ const rootPrefix = '../..',
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-program.on('--help', () => {
+program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
@@ -416,7 +416,7 @@ logger.step('Block finalizer process started.');
 
 new Finalizer({ cronProcessId: +program.cronProcessId }).perform();
 
-setInterval(() => {
+setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
 }, 30 * 60 * 1000);
