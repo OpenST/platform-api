@@ -19,11 +19,11 @@ const rootPrefix = '../..',
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
-  BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
+  BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
@@ -222,7 +222,15 @@ class TransactionParser extends MultiSubscriptionBase {
     // Block hash of block number passed and block hash received from params don't match.
     if (!blockVerified) {
       logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
-      // logger.notify(); TODO: Add this.
+      await basicHelper.notify(
+        'e_bs_tp_4',
+        `Hash of block number: ${blockNumber} does not match the blockHash: ${blockHash}`,
+        {},
+        {
+          blockNumber: blockNumber,
+          blockHash: blockHash
+        }
+      );
       logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
       return;

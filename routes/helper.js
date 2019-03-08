@@ -1,17 +1,25 @@
-'use strict';
+/**
+ * Route helper class.
+ *
+ * @module routes/helper
+ */
 
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '..',
+  ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
+  ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
-  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
-  ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId');
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
+/**
+ * Class for routes helper.
+ *
+ * @class RoutesHelper
+ */
 class RoutesHelper {
   /**
    * Perform
@@ -19,10 +27,11 @@ class RoutesHelper {
    * @param req
    * @param res
    * @param next
-   * @param serviceGetter - in case of getting from ic, this is the getter name. else it is relative path in app root folder
+   * @param serviceGetter : in case of getting from ic, this is the getter name. else it is relative path in app root folder
    * @param errorCode
    * @param afterValidationCallback
    * @param formatter
+   *
    * @return {Promise<T>}
    */
   static perform(req, res, next, serviceGetter, errorCode, afterValidationCallback, formatter) {
@@ -33,7 +42,7 @@ class RoutesHelper {
       if (responseHelper.isCustomResult(error)) {
         error.renderResponse(res, errorConfig);
       } else {
-        //TODO:- temp change (remove this and use notify)
+        basicHelper.notify(errorCode, 'Something went wrong.', error, {});
         logger.error(errorCode, 'Something went wrong', error);
 
         responseHelper
@@ -56,6 +65,7 @@ class RoutesHelper {
    * @param serviceGetter
    * @param afterValidationCallback
    * @param formatter
+   *
    * @return {Promise<*>}
    */
   static async asyncPerform(req, res, next, serviceGetter, afterValidationCallback, formatter) {

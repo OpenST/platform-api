@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Cron to fund stPrime by tokenAuxFunder.
  * by: tokenAuxFunder
@@ -11,17 +10,16 @@
 const program = require('commander');
 
 const rootPrefix = '../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  fundingAmounts = require(rootPrefix + '/config/funding'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
+  ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  fundingAmounts = require(rootPrefix + '/config/funding'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -40,9 +38,7 @@ if (!program.cronProcessId) {
 }
 
 // Declare variables.
-const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
-  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
-  fundingAmountsAuxGasMap = fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas;
+const fundingAmountsAuxGasMap = fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas;
 
 const fundingConfig = {
   [tokenAddressConstants.auxAdminAddressKind]: {
@@ -161,7 +157,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     }
 
     // Step 3: Fetch token addresses associated to tokenIds.
-    let tokenIdAddresses = await new TokenAddressModel()
+    const tokenIdAddresses = await new TokenAddressModel()
       .select('*')
       .where([
         'token_id IN (?) AND kind IN (?)',
@@ -180,7 +176,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     oThis.tokenIdToKindToAddressesMap = {};
 
     for (let index = 0; index < tokenIdAddresses.length; index++) {
-      let tokenIdAddress = tokenIdAddresses[index],
+      const tokenIdAddress = tokenIdAddresses[index],
         tokenId = tokenIdAddress.token_id,
         addressKind = new TokenAddressModel().kinds[tokenIdAddress.kind],
         address = tokenIdAddress.address;
@@ -206,12 +202,12 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
    *
    * @private
    */
-  _prepareTransferDetails(currentAddressBalances) {
+  async _prepareTransferDetails(currentAddressBalances) {
     const oThis = this;
 
     oThis.transferDetails = [];
 
-    let tokenAddressKindsForFunding = [
+    const tokenAddressKindsForFunding = [
       tokenAddressConstants.auxAdminAddressKind,
       tokenAddressConstants.auxWorkerAddressKind,
       tokenAddressConstants.recoveryControllerAddressKind,
@@ -222,17 +218,17 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     for (let index = 0; index < oThis.tokenIds.length; index++) {
       oThis.totalStPrimeToTransfer = basicHelper.convertToBigNumber(0);
 
-      let tokenId = oThis.tokenIds[index];
+      const tokenId = oThis.tokenIds[index];
 
-      for (let i = 0; i < tokenAddressKindsForFunding.length; i++) {
-        let evaluationResponse = oThis._evaluteTranferDetails(
-          tokenAddressKindsForFunding[i],
+      for (let arrayIndex = 0; arrayIndex < tokenAddressKindsForFunding.length; arrayIndex++) {
+        const evaluationResponse = await oThis._evaluateTransferDetails(
+          tokenAddressKindsForFunding[arrayIndex],
           tokenId,
           currentAddressBalances
         );
 
         if (evaluationResponse.isFailure()) {
-          //This means for given token Id token aux funder's balance is not enough. Thus moving on to next token id.
+          // This means for given token Id token aux funder's balance is not enough. Thus moving on to next token id.
           break;
         }
       }
@@ -240,17 +236,18 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
   }
 
   /**
+   * Evaluate transfer details.
    *
-   * @param addressKind
-   * @param tokenId
-   * @param currentAddressBalances
+   * @param {String} addressKind
+   * @param {String/Number} tokenId
+   * @param {Object} currentAddressBalances
    * @returns {*}
    * @private
    */
-  _evaluteTranferDetails(addressKind, tokenId, currentAddressBalances) {
+  async _evaluateTransferDetails(addressKind, tokenId, currentAddressBalances) {
     const oThis = this;
 
-    let tokenAddresses = oThis.tokenIdToKindToAddressesMap[tokenId],
+    const tokenAddresses = oThis.tokenIdToKindToAddressesMap[tokenId],
       tokenAuxFunderAddress = tokenAddresses[tokenAddressConstants.auxFunderAddressKind][0],
       tokenAuxFunderCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[tokenAuxFunderAddress]),
       addresses = tokenAddresses[addressKind],
@@ -258,7 +255,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
       addressMaxFundAmount = oThis._fetchMaxFundingAmountsInWei(addressKind);
 
     for (let index = 0; index < addresses.length; index++) {
-      let address = addresses[index],
+      const address = addresses[index],
         addressCurrentBalance = basicHelper.convertToBigNumber(currentAddressBalances[address]);
 
       logger.info('\n\nAddressKind:', addressKind);
@@ -268,14 +265,14 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
       logger.info('AddressMaxFundAmount:', addressMaxFundAmount.toString(10));
 
       if (addressCurrentBalance.lt(addressThresholdAmount)) {
-        let amountToTransferBN = addressMaxFundAmount.minus(addressCurrentBalance),
+        const amountToTransferBN = addressMaxFundAmount.minus(addressCurrentBalance),
           params = {
             fromAddress: tokenAuxFunderAddress,
             toAddress: address,
             amountInWei: amountToTransferBN.toString(10)
           };
         oThis.totalStPrimeToTransfer = oThis.totalStPrimeToTransfer.plus(amountToTransferBN);
-        //Checking if token aux funder has the balance to fund the given address.
+        // Checking if token aux funder has the balance to fund the given address.
         if (tokenAuxFunderCurrentBalance.gt(oThis.totalStPrimeToTransfer)) {
           oThis.transferDetails.push(params);
         } else {
@@ -284,10 +281,11 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
           logger.warn('addressKind tokenAuxFunder has low balance on chainId: ' + oThis.auxChainId);
           logger.warn('Address: ' + tokenAuxFunderAddress);
           logger.warn('TokenId: ' + tokenId);
-          logger.notify(
+          await basicHelper.notify(
             'e_f_btaf_acs_1',
-            'Low balance of addressKind tokenAuxFunder for tokenId: ' + tokenId,
-            'Address: ' + tokenAuxFunderAddress
+            `Low balance of addressKind tokenAuxFunder for tokenId: ${tokenId}, Address: ${tokenAuxFunderAddress}`,
+            {},
+            {}
           );
 
           return responseHelper.error({
@@ -298,6 +296,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
         }
       }
     }
+
     return responseHelper.successWithData({});
   }
 
@@ -309,7 +308,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
    * @private
    */
   _fetchMaxFundingAmountsInWei(addressKind) {
-    let auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
+    const auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
     return basicHelper
       .convertToWei(String(fundingConfig[addressKind].oneGWeiMinOSTPrimeAmount))
@@ -324,7 +323,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
    * @private
    */
   _fetchThresholdAmountsInWei(addressKind) {
-    let auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
+    const auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
     return basicHelper
       .convertToWei(String(fundingConfig[addressKind].thresholdAmount))

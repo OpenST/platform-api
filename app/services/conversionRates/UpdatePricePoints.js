@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Fetch OST Current price in given currency from coin market cap and set in price oracle.
  *
@@ -11,6 +10,10 @@ const requestPromise = require('request-promise'),
   exchangeUrl = 'https://api.coinmarketcap.com/v1/ticker/simple-token';
 
 const rootPrefix = '../../..',
+  SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  OstPricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
+  CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -19,11 +22,7 @@ const rootPrefix = '../../..',
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  OstPricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
-  CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate');
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
  * Class to update price points in currency conversion table.
@@ -63,15 +62,15 @@ class UpdatePricePoints {
     return oThis.asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
-      } else {
-        logger.error('app/services/conversionRates/UpdatePricePoints.js::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_cr_upp_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
       }
+      logger.error('app/services/conversionRates/UpdatePricePoints.js::perform::catch');
+      logger.error(error);
+
+      return responseHelper.error({
+        internal_error_identifier: 'a_s_cr_upp_1',
+        api_error_identifier: 'unhandled_catch_response',
+        debug_options: {}
+      });
     });
   }
 
@@ -103,22 +102,22 @@ class UpdatePricePoints {
    */
   async _fetchPricePointFromCoinMarketCapApi() {
     const oThis = this;
-    let url = exchangeUrl + '?convert=' + oThis.quoteCurrency;
+    const url = exchangeUrl + '?convert=' + oThis.quoteCurrency;
 
     // Make CoinMarketCap API call.
-    let response = await requestPromise(url);
+    const response = await requestPromise(url);
 
     try {
-      let ostValue = JSON.parse(response)[0];
+      const ostValue = JSON.parse(response)[0];
       logger.debug('OST Value From CoinMarketCap:', ostValue);
       if (!ostValue || ostValue.symbol !== conversionRateConstants.OST) {
-        logger.notify('a_s_cr_upp_3', 'Invalid OST Value', response);
+        await basicHelper.notify('a_s_cr_upp_3', 'Invalid OST Value', response, {});
 
         return;
       }
-      let pricePoint = ostValue['price_' + oThis.quoteCurrency.toLowerCase()];
+      const pricePoint = ostValue['price_' + oThis.quoteCurrency.toLowerCase()];
       if (!pricePoint || pricePoint < 0) {
-        logger.notify('a_s_cr_upp_4', 'Invalid OST Price', response);
+        await basicHelper.notify('a_s_cr_upp_4', 'Invalid OST Price', response, {});
 
         return;
       }
@@ -131,7 +130,7 @@ class UpdatePricePoints {
         status: conversionRateConstants.inProcess
       };
     } catch (err) {
-      logger.notify('a_s_cr_upp_5', 'Invalid Response from CoinMarket', response);
+      await basicHelper.notify('a_s_cr_upp_5', 'Invalid Response from CoinMarket', response, {});
     }
   }
 
@@ -146,7 +145,7 @@ class UpdatePricePoints {
     const oThis = this;
 
     // Insert current ost value in database
-    let insertResponse = await new CurrencyConversionRateModel()
+    const insertResponse = await new CurrencyConversionRateModel()
       .insert({
         chain_id: oThis.auxChainId,
         base_currency: conversionRateConstants.invertedBaseCurrencies[oThis.currentOstValue.baseCurrency],
@@ -159,6 +158,7 @@ class UpdatePricePoints {
 
     if (!insertResponse) {
       logger.error('Error while inserting data in table');
+
       return Promise.reject();
     }
 
@@ -175,7 +175,7 @@ class UpdatePricePoints {
   async _fetchAddress() {
     const oThis = this;
 
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -203,12 +203,12 @@ class UpdatePricePoints {
   async _setWeb3Instance() {
     const oThis = this;
 
-    let response = await chainConfigProvider.getFor([oThis.auxChainId]),
+    const response = await chainConfigProvider.getFor([oThis.auxChainId]),
       auxChainConfig = response[oThis.auxChainId];
 
-    let wsProviders = auxChainConfig.auxGeth.readWrite.wsProviders;
+    const wsProviders = auxChainConfig.auxGeth.readWrite.wsProviders;
 
-    let shuffledProviders = basicHelper.shuffleArray(wsProviders);
+    const shuffledProviders = basicHelper.shuffleArray(wsProviders);
 
     oThis.web3Instance = web3Provider.getInstance(shuffledProviders[0]).web3WsProvider;
   }
@@ -226,7 +226,7 @@ class UpdatePricePoints {
     logger.debug('Price Input for contract:' + oThis.currentOstValue.conversionRate);
     logger.debug('Quote Currency for contract:' + oThis.quoteCurrency);
 
-    let priceResponse = basicHelper.convertToWei(oThis.currentOstValue.conversionRate),
+    const priceResponse = basicHelper.convertToWei(oThis.currentOstValue.conversionRate),
       amountInWei = priceResponse.toString(10);
 
     logger.debug('Price Point in Wei for contract:' + amountInWei);
@@ -235,7 +235,7 @@ class UpdatePricePoints {
     oThis.gas = contractConstants.updatePricePointsGas;
 
     // Get transaction object.
-    let txResponse = new PriceOracleHelper(oThis.web3Instance).setPriceTx(
+    const txResponse = new PriceOracleHelper(oThis.web3Instance).setPriceTx(
       oThis.web3Instance,
       conversionRateConstants.OST,
       oThis.quoteCurrency,
@@ -256,7 +256,7 @@ class UpdatePricePoints {
       };
 
     // Submit transaction.
-    let submitTransactionResponse = await new SubmitTransaction({
+    const submitTransactionResponse = await new SubmitTransaction({
       chainId: oThis.auxChainId,
       txOptions: txParams,
       web3Instance: oThis.web3Instance,
@@ -288,12 +288,13 @@ class UpdatePricePoints {
     const oThis = this;
 
     // Update transaction hash
-    let updateTransactionResponse = await new CurrencyConversionRateModel().updateTransactionHash(
+    const updateTransactionResponse = await new CurrencyConversionRateModel().updateTransactionHash(
       oThis.dbRowId,
       oThis.setPricePointTxHash
     );
     if (!updateTransactionResponse) {
       logger.error('Error while updating transactionHash in table.');
+
       return Promise.reject();
     }
   }
@@ -308,53 +309,63 @@ class UpdatePricePoints {
   _compareContractPrice() {
     const oThis = this;
 
-    let chainId = oThis.auxChainId,
+    const chainId = oThis.auxChainId,
       dbRowId = oThis.dbRowId,
-      conversionRate = oThis.currentOstValue.conversionRate,
-      attemptCountForVerifyPriceInContract = 1;
+      conversionRate = oThis.currentOstValue.conversionRate;
+
+    let attemptCountForVerifyPriceInContract = 1;
 
     return new Promise(function(onResolve, onReject) {
-      let loopCompareContractPrice = async function() {
+      const loopCompareContractPrice = async function() {
         if (attemptCountForVerifyPriceInContract > oThis.maxRetryCountForVerifyPriceInContract) {
-          logger.notify('a_s_cr_upp_6', 'Something Is Wrong', {
-            dbRowId: dbRowId
-          });
+          await basicHelper.notify(
+            'a_s_cr_upp_6',
+            'Something Is Wrong',
+            {
+              dbRowId: dbRowId
+            },
+            {}
+          );
+
           return onReject(`dbRowId: ${dbRowId} maxRetryCountForVerifyPriceInContract reached`);
         }
 
-        let priceInDecimal = await new PriceOracleHelper().decimalPrice(
+        const priceInDecimal = await new PriceOracleHelper().decimalPrice(
           oThis.web3Instance,
           oThis.auxPriceOracleContractAddress
         );
 
         if (priceInDecimal.isFailure()) {
-          logger.notify('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal);
+          await basicHelper.notify('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal, {});
+
           return onResolve('error');
         } else if (priceInDecimal.isSuccess() && priceInDecimal.data.price == conversionRate) {
-          let queryResp = await new CurrencyConversionRateModel().updateStatus(dbRowId, conversionRateConstants.active);
+          const queryResp = await new CurrencyConversionRateModel().updateStatus(
+            dbRowId,
+            conversionRateConstants.active
+          );
           if (!queryResp) {
             return onResolve('Failed to update status.');
           }
 
           logger.win('Price point updated in contract.');
 
-          let clearCacheResponse = new OstPricePointsCache({ chainId: chainId }).clear();
+          const clearCacheResponse = new OstPricePointsCache({ chainId: chainId }).clear();
           if (!clearCacheResponse) {
             return onResolve('Failed to clear cache.');
           }
 
           return onResolve('success');
-        } else {
-          logger.step(
-            `dbRowId: ${dbRowId} attemptNo: ${attemptCountForVerifyPriceInContract} price received from contract: ${
-              priceInDecimal.data.price
-            } but expected was: ${conversionRate}. Waiting for it to match.`
-          );
-
-          attemptCountForVerifyPriceInContract += attemptCountForVerifyPriceInContract;
-
-          return setTimeout(loopCompareContractPrice, 10000);
         }
+        logger.step(
+          `dbRowId: ${dbRowId} attemptNo: ${attemptCountForVerifyPriceInContract} price received from contract: ${
+            priceInDecimal.data.price
+          } but expected was: ${conversionRate}. Waiting for it to match.`
+        );
+
+        attemptCountForVerifyPriceInContract += attemptCountForVerifyPriceInContract;
+
+        return setTimeout(loopCompareContractPrice, 10000);
       };
       loopCompareContractPrice();
     });
