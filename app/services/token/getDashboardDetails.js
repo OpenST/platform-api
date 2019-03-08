@@ -5,22 +5,23 @@
  * @module app/services/token/Detail
  */
 const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer,
   BigNumber = require('bignumber.js');
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
+  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  getUbtBalance = require(rootPrefix + '/lib/getBalance/Ubt'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  getUbtBalance = require(rootPrefix + '/lib/getBalance/Ubt'),
-  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
-  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
