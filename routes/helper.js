@@ -11,6 +11,7 @@ const rootPrefix = '..',
   ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
   ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
@@ -42,7 +43,7 @@ class RoutesHelper {
       if (responseHelper.isCustomResult(error)) {
         error.renderResponse(res, errorConfig);
       } else {
-        basicHelper.notify(errorCode, 'Something went wrong.', error, {});
+        emailNotifier.perform(errorCode, 'Something went wrong.', error, {});
         logger.error(errorCode, 'Something went wrong', error);
 
         responseHelper

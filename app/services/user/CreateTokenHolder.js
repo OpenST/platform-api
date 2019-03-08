@@ -11,6 +11,7 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -381,7 +382,7 @@ class CreateTokenHolder extends ServiceBase {
 
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
-      await basicHelper.notify(
+      await emailNotifier.perform(
         'a_s_u_cth_7',
         `Could not rollback user status back to created. TokenId: ${oThis.tokenId}, UserId: ${oThis.userId}`,
         {},
@@ -422,7 +423,7 @@ class CreateTokenHolder extends ServiceBase {
 
     if (deviceStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback device status back to registered. ');
-      await basicHelper.notify(
+      await emailNotifier.perform(
         'a_s_u_cth_8',
         `Could not rollback device status back to registered. TokenId: ${oThis.tokenId}, UserId: ${
           oThis.userId

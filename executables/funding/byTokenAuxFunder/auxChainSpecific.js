@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -281,7 +282,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
           logger.warn('addressKind tokenAuxFunder has low balance on chainId: ' + oThis.auxChainId);
           logger.warn('Address: ' + tokenAuxFunderAddress);
           logger.warn('TokenId: ' + tokenId);
-          await basicHelper.notify(
+          await emailNotifier.perform(
             'e_f_btaf_acs_1',
             `Low balance of addressKind tokenAuxFunder for tokenId: ${tokenId}, Address: ${tokenAuxFunderAddress}`,
             {},
