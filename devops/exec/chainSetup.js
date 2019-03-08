@@ -9,7 +9,7 @@ const rootPrefix = '../..',
   GenerateMasterInternalFunderAddress = require(rootPrefix +
     '/devops/utils/chainAddress/GenerateMasterInternalFunderAddress'),
   FundMasterInternalFunderAddress = require(rootPrefix + '/devops/utils/chainAddress/FundMasterInternalFunderAddress'),
-  ExceptProductionMain = require(rootPrefix + '/lib/setup/originChain/ExceptProductionMain'),
+  SetupSimpleToken = require(rootPrefix + '/lib/setup/originChain/SetupSimpleToken'),
   DevOpsCommonHelper = require(rootPrefix + '/devops/utils/Common');
 
 program
@@ -78,7 +78,7 @@ const Main = async function() {
       throw 'Either SA_ENVIRONMENT or SA_SUB_ENVIRONMENT is not set!';
     }
 
-    // Do this only for ExceptProductionMain
+    // Do this only for non-production-main env
     if (env === 'production' && subEnv === 'main') {
       throw 'This step is not allowed for production-main ENV. Either this has already done or ask Sunil! :)';
     }
@@ -87,7 +87,7 @@ const Main = async function() {
       handleError();
     }
 
-    performerObj = new ExceptProductionMain(program.chainId, program.ethOwnerPrivateKey);
+    performerObj = new SetupSimpleToken(program.chainId, program.ethOwnerPrivateKey);
   } else {
     return handleError();
   }
