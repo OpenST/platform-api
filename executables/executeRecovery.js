@@ -171,9 +171,8 @@ class ExecuteRecovery extends PublisherBase {
 
     await Promise.all(promisesArray);
 
+    logger.log('Recovery operations workflow initiated.');
     oThis.canExit = true;
-
-    logger.log('Execute recovery operations completed.');
   }
 }
 

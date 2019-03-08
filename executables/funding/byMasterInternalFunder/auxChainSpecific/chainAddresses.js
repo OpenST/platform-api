@@ -84,8 +84,6 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
     super(params);
 
     const oThis = this;
-
-    oThis.canExit = true;
   }
 
   /**
@@ -97,19 +95,6 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
    */
   get _cronKind() {
     return cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses;
-  }
-
-  /**
-   * Pending tasks done
-   *
-   * @return {Boolean}
-   *
-   * @private
-   */
-  _pendingTasksDone() {
-    const oThis = this;
-
-    return oThis.canExit;
   }
 
   /**

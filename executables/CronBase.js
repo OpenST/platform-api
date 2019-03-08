@@ -29,6 +29,8 @@ class CronBase {
 
     oThis.cronProcessId = params.cronProcessId;
 
+    oThis.stopPickingUpNewWork = false;
+
     oThis.attachHandlers(); // Attaching handlers from sigint handler.
   }
 
@@ -100,10 +102,6 @@ class CronBase {
     const oThis = this;
 
     oThis.stopPickingUpNewWork = true;
-    if (oThis.consumerTag) {
-      logger.info(':: :: Cancelling consumption on tag=====', oThis.consumerTag);
-      process.emit('CANCEL_CONSUME', oThis.consumerTag);
-    }
   }
 
   /**

@@ -33,6 +33,8 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    */
   constructor(params) {
     super(params);
+
+    oThis.canExit = true;
   }
 
   /**
@@ -296,6 +298,19 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     }
 
     return true;
+  }
+
+  /**
+   * Pending tasks done
+   *
+   * @return {Boolean}
+   *
+   * @private
+   */
+  _pendingTasksDone() {
+    const oThis = this;
+
+    return oThis.canExit;
   }
 }
 

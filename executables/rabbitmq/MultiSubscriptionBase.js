@@ -11,9 +11,7 @@ const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
-  cronProcessHandlerObject = new cronProcessHandler();
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 /**
  * Class for subscriber base.
@@ -281,43 +279,17 @@ class MultiSubscriptionBase extends CronBase {
   }
 
   /**
-   * Attach SIGINT/SIGTERM handlers to the current process.
-   */
-  attachHandlers() {
-    const oThis = this;
-
-    let handle = function() {
-      for (let topic in oThis.subscriptionTopicToDataMap) {
-        oThis._stopPickingUpNewTasks(topic);
-      }
-
-      if (oThis._pendingTasksDone()) {
-        logger.info(':: No pending tasks. Changing the status ');
-        cronProcessHandlerObject.stopProcess(oThis.cronProcessId).then(function() {
-          logger.info('Status and last_ended_at updated in table. Killing process.');
-
-          // Stop the process only after the entry has been updated in the table.
-          process.exit(1);
-        });
-      } else {
-        logger.info(':: There are pending tasks. Waiting for completion.');
-        setTimeout(handle, 1000);
-      }
-    };
-
-    process.on('SIGINT', handle);
-    process.on('SIGTERM', handle);
-  }
-
-  /**
    * Stops consumption upon invocation
    */
-  _stopPickingUpNewTasks(topic) {
+  _stopPickingUpNewTasks() {
     const oThis = this;
 
-    let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[topic];
+    // stopping consumption for all the topics
+    for (let topic in oThis.subscriptionTopicToDataMap) {
+      let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[topic];
 
-    rabbitmqSubscription.stopConsumption();
+      rabbitmqSubscription.stopConsumption();
+    }
   }
 
   /**

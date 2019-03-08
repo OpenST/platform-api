@@ -53,14 +53,20 @@ class ByTokenAuxFunderBaseToExTxWorkers extends ByTokenAuxFunderBase {
   async _startTransfer(tokenIds) {
     const oThis = this;
 
+    // TODO - introduce batching here
     for (let i = 0; i < tokenIds.length; i++) {
       let tokenId = tokenIds[i];
+
+      oThis.canExit = false;
+
       let fundExTxWorkerObject = new FundExTxWorker({
         tokenId: tokenId,
         chainId: oThis.auxChainId
       });
 
       let fundExTxWorkerResponse = await fundExTxWorkerObject.perform();
+
+      oThis.canExit = true;
 
       logger.info('fundExTxWorkerResponse for ', tokenId, ' ', fundExTxWorkerResponse);
     }

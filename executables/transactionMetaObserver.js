@@ -76,9 +76,9 @@ class TransactionMetaObserver extends CronBase {
       transactionMetaConst.invertedStatuses[transactionMetaConst.replacementTxUnderpricedStatus],
       transactionMetaConst.invertedStatuses[transactionMetaConst.submittedToGethStatus]
     ];
-    oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 50;
+    oThis.noOfRowsToProcess = oThis.noOfRowsToProcess || 5;
     oThis.maxRetry = oThis.maxRetry || 10;
-    oThis.canExit = false;
+    oThis.canExit = true;
 
     oThis.lockId = null;
     oThis.currentTime = null;
