@@ -124,7 +124,7 @@ const decodeJwt = function(req, res, next) {
   const jwtOnReject = function(err) {
     return responseHelper
       .error({
-        internal_error_identifier: 'a_2',
+        internal_error_identifier: 'a_1',
         api_error_identifier: 'invalid_or_expired_jwt_token',
         debug_options: {}
       })
@@ -133,12 +133,12 @@ const decodeJwt = function(req, res, next) {
 
   // Verify token
   Promise.resolve(jwtAuth.verifyToken(token, 'saasApi').then(jwtOnResolve, jwtOnReject)).catch(function(err) {
-    //TODO:ALPESH:  Decide whether notify required here.
-    logger.error('a_3', 'JWT Decide Failed', { token: token });
+    basicHelper.notify('a_2', 'JWT Decide Failed', { token: token }, {});
+    logger.error('a_2', 'JWT Decide Failed', { token: token });
 
     return responseHelper
       .error({
-        internal_error_identifier: 'a_3',
+        internal_error_identifier: 'a_2',
         api_error_identifier: 'something_went_wrong',
         debug_options: {}
       })
@@ -225,7 +225,7 @@ if (cluster.isMaster) {
 
   //  Called when all workers are disconnected and handles are closed.
   cluster.on('disconnect', function(worker) {
-    //TODO:- temp change (remove this and use notify)
+    basicHelper.notify('a_3', `[worker-${worker.id}] is disconnected`, {}, {});
     logger.error('a_3', `[worker-${worker.id}] is disconnected`);
     // when a worker disconnects, decrement the online worker count
     onlineWorker = onlineWorker - 1;
@@ -238,15 +238,15 @@ if (cluster.isMaster) {
       logger.info(`[worker-${worker.id}] voluntary exit. signal: ${signal}. code: ${code}`);
     } else {
       // restart worker as died unexpectedly
-      //TODO:- temp change (remove this and use notify)
+      basicHelper.notify(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`, {}, {});
       logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
       cluster.fork();
     }
   });
   // Exception caught
   process.on('uncaughtException', function(err) {
-    //TODO:- temp change (remove this and use notify)
-    logger.error('app_crash_1', 'app server exited unexpectedly. Reason: ', err);
+    basicHelper.notify('app_crash_1', 'App server exited unexpectedly.', err, {});
+    logger.error('app_crash_1', 'App server exited unexpectedly. Reason: ', err);
     process.exit(1);
   });
   // When someone try to kill the master process
@@ -344,11 +344,11 @@ if (cluster.isMaster) {
   // error handler
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    //TODO:- temp change (remove this and use notify)
+    basicHelper.notify('a_6', 'Something went wrong.', err, {});
     logger.error('a_6', 'Something went wrong', err);
     return responseHelper
       .error({
-        internal_error_identifier: 'a_6',
+        internal_error_identifier: 'a_7',
         api_error_identifier: 'something_went_wrong',
         debug_options: {}
       })
@@ -411,13 +411,13 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      //TODO:- temp change (remove this and use notify)
-      logger.error('a_7', bind + ' requires elevated privileges');
+      basicHelper.notify('a_8', `${bind} requires elevated privileges`, {}, {});
+      logger.error('a_8', bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      //TODO:- temp change (remove this and use notify)
-      logger.error('a_7', bind + ' is already in use');
+      basicHelper.notify('a_9', `${bind} is already in use`, {}, {});
+      logger.error('a_9', bind + ' is already in use');
       process.exit(1);
       break;
     default:

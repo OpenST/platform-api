@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This script will update price oracle price points using ost-price-oracle npm package.
  * This fetches OST Current price in given currency from coin market cap and sets it in price oracle.
@@ -19,7 +18,6 @@ const rootPrefix = '..',
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -109,7 +107,7 @@ class TransactionMetaObserver extends CronBase {
     if (!oThis.auxChainId) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'e_upp_1',
+          internal_error_identifier: 'e_tmo_1',
           api_error_identifier: 'something_went_wrong',
           debug_options: { auxChainId: oThis.auxChainId }
         })
@@ -152,13 +150,12 @@ class TransactionMetaObserver extends CronBase {
   }
 
   /**
-   * initializing variables.
-   *
+   * Initializing variables.
    */
   _initializeLoopVars() {
     const oThis = this;
 
-    let currentTimeMs = new Date().getTime();
+    const currentTimeMs = new Date().getTime();
     oThis.currentTime = Math.floor(currentTimeMs / 1000);
     oThis.lockId = parseFloat(currentTimeMs + '.' + cronProcessId);
 
@@ -189,6 +186,7 @@ class TransactionMetaObserver extends CronBase {
    * Get transactions using lock_id, to ensure locked rows to be processed here.
    *
    * @returns {Promise}
+   *
    * @private
    */
   async _getTransactionsToProcess() {
@@ -204,31 +202,31 @@ class TransactionMetaObserver extends CronBase {
    * Process transactions, and check whether to resubmit or mark fail or still wait.
    *
    * @returns {Promise}
-   * @private
    *
+   * @private
    */
   async _processPendingTransactions() {
     const oThis = this;
 
-    let promiseArray = [],
+    const promiseArray = [],
       transactionsGroup = {};
-    for (let i = 0; i < oThis.transactionsToProcess.length; i++) {
-      let txMeta = oThis.transactionsToProcess[i];
+    for (let index = 0; index < oThis.transactionsToProcess.length; index++) {
+      const txMeta = oThis.transactionsToProcess[index];
 
-      let txStatusString = transactionMetaConst.statuses[txMeta.status];
+      const txStatusString = transactionMetaConst.statuses[txMeta.status];
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
-      await emailNotifier.notify(
-        'e_tmo-' + txStatusString,
+      await basicHelper.notify(
+        'e_tmo_2-' + txStatusString,
         'transactionMetaObserver Observed error',
         {},
         { txMetaId: txMeta.id }
       );
     }
 
-    for (let txStatusString in transactionsGroup) {
-      let transactionsMetaRecords = transactionsGroup[txStatusString];
-      let params = {
+    for (const txStatusString in transactionsGroup) {
+      const transactionsMetaRecords = transactionsGroup[txStatusString];
+      const params = {
         auxChainId: oThis.auxChainId,
         lockId: oThis.lockId,
         transactionsMetaRecords: transactionsMetaRecords
