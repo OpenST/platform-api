@@ -81,7 +81,7 @@ NOTE: Copy the ETH funder private key for later use.
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/exceptProductionMain.js --originChainId 1000 --ethOwnerPrivateKey '0xabc___'
+    node devops/exec/chainSetup.js --setup-simple-token --chain-id 1000 --eth-owner-private-key '0xabc___'
 ```
 
 NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
