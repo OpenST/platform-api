@@ -8,8 +8,9 @@ const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
@@ -308,6 +309,17 @@ class MultiSubscriptionBase extends CronBase {
    */
   get ackRequired() {
     return 1;
+  }
+
+  /**
+   * Sequential executor
+   * @param messageParams
+   * @return {Promise<void>}
+   * @private
+   */
+  async _sequentialExecutor(messageParams) {
+    // Default behaviour - nothing to do.
+    return responseHelper.successWithData({});
   }
 
   /**

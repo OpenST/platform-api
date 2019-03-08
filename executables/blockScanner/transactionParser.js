@@ -451,16 +451,6 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Sequential executor
-   * @param messageParams
-   * @return {Promise<void>}
-   * @private
-   */
-  async _sequentialExecutor(messageParams) {
-    return responseHelper.successWithData({});
-  }
-
-  /**
    * This method verifies the blockHash received with the actual blockHash of
    * the passed blockNumber
    *

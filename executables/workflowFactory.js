@@ -236,16 +236,6 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
 
     return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
   }
-
-  /**
-   * Sequential executor
-   * @param messageParams
-   * @return {Promise<void>}
-   * @private
-   */
-  async _sequentialExecutor(messageParams) {
-    return responseHelper.successWithData({});
-  }
 }
 
 logger.step('Workflow Router Factory started.');
