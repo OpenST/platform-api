@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * Perform basic validations
  *
@@ -9,33 +7,38 @@
 const BigNumber = require('bignumber.js');
 
 const rootPrefix = '..',
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
+  base64Helper = require(rootPrefix + '/lib/base64Helper'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   apiErrorConfig = require(rootPrefix + '/config/apiParams/apiErrorConfig'),
   v2ParamErrorConfig = require(rootPrefix + '/config/apiParams/v2/errorConfig'),
-  base64Helper = require(rootPrefix + '/lib/base64Helper'),
-  internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  internalParamErrorConfig = require(rootPrefix + '/config/apiParams/internal/errorConfig');
 
-class BasicHelperKlass {
+/**
+ * Class for basic helper.
+ *
+ * @class BasicHelper
+ */
+class BasicHelper {
   /**
-   * Basic helper methods constructor
+   * Convert input to Weis.
    *
-   * @constructor
+   * @param {String/Number} num
    *
+   * @return {BigNumber}
    */
-  constructor() {}
-
   convertToWei(num) {
     return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(18));
   }
 
   /**
+   * Convert wei value to un wei (normal)
    *
-   * convert wei value to un wei (normal)
+   * @param {String} wei
    *
-   * @param wei
    * @return {BigNumber}
    */
   convertWeiToNormal(wei) {
@@ -73,7 +76,7 @@ class BasicHelperKlass {
    * @return {String}
    */
   getOriginMaxGasPriceMultiplierWithBuffer() {
-    let maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
+    const maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
       maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(1)).toString(10);
 
     return String(Number(maxGasValueInString) + coreConstants.ORIGIN_GAS_BUFFER);
@@ -86,7 +89,7 @@ class BasicHelperKlass {
    * @return {String}
    */
   getAuxMaxGasPriceMultiplierWithBuffer() {
-    let maxGasValueInBigNumber = this.convertToBigNumber(contractConstants.auxChainGasPrice),
+    const maxGasValueInBigNumber = this.convertToBigNumber(contractConstants.auxChainGasPrice),
       maxGasValueInString = maxGasValueInBigNumber.div(this.convertGweiToWei(1)).toString(10);
 
     return String(Number(maxGasValueInString) + coreConstants.AUX_GAS_BUFFER);
@@ -109,6 +112,7 @@ class BasicHelperKlass {
    */
   formatWeiToString(amountInWei) {
     const oThis = this;
+
     return oThis.convertToBigNumber(amountInWei).toString(10);
   }
 
@@ -145,6 +149,7 @@ class BasicHelperKlass {
     if (typeof address !== 'string') {
       return false;
     }
+
     return /^0x[0-9a-fA-F]{40}$/.test(address);
   }
 
@@ -159,6 +164,7 @@ class BasicHelperKlass {
     if (typeof address !== 'string') {
       return false;
     }
+
     return /^0x[0-9a-fA-F]{40}$/.test(address);
   }
 
@@ -173,6 +179,7 @@ class BasicHelperKlass {
     if (typeof txHash !== 'string') {
       return false;
     }
+
     return /^0x[0-9a-fA-F]{64}$/.test(txHash);
   }
 
@@ -185,8 +192,8 @@ class BasicHelperKlass {
    */
   shuffleArray(array) {
     for (let i = array.length - 1; i >= 0; i--) {
-      let j = Math.floor(Math.random() * (i + 1));
-      let temp = array[i];
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = array[i];
       array[i] = array[j];
       array[j] = temp;
     }
@@ -216,7 +223,7 @@ class BasicHelperKlass {
     } else if (apiVersion === apiVersions.general) {
       paramErrorConfig = {};
     } else {
-      throw 'unsupported API Version ' + apiVersion;
+      throw new Error(`Unsupported API Version ${apiVersion}`);
     }
 
     return {
@@ -237,7 +244,7 @@ class BasicHelperKlass {
   }
 
   /**
-   * check if sub environment is main
+   * Check if sub environment is main
    *
    * @return {Boolean}
    */
@@ -246,7 +253,7 @@ class BasicHelperKlass {
   }
 
   /**
-   * check if sub environment is main
+   * Check if sub environment is main
    *
    * @return {Boolean}
    */
@@ -255,7 +262,7 @@ class BasicHelperKlass {
   }
 
   /**
-   * check if sub environment is Sandbox
+   * Check if sub environment is Sandbox
    *
    * @return {Boolean}
    */
@@ -270,6 +277,7 @@ class BasicHelperKlass {
    */
   logDateFormat() {
     const d = new Date();
+
     return (
       d.getFullYear() +
       '-' +
@@ -304,8 +312,10 @@ class BasicHelperKlass {
    * @return {Boolean}
    */
   isEmptyObject(obj) {
-    for (let property in obj) {
-      if (obj.hasOwnProperty(property)) return false;
+    for (const property in obj) {
+      if (obj.hasOwnProperty(property)) {
+        return false;
+      }
     }
 
     return true;
@@ -320,6 +330,7 @@ class BasicHelperKlass {
   getRandomNumber(min, max) {
     min = Math.ceil(min);
     max = Math.floor(max);
+
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
@@ -349,9 +360,10 @@ class BasicHelperKlass {
    * @return {string}
    */
   computeConversionRateForContract(conversionRate) {
-    let conversionFactorFromDB = new BigNumber(conversionRate),
+    const conversionFactorFromDB = new BigNumber(conversionRate),
       conversionMultiplier = new BigNumber(coreConstants.CONVERSION_RATE_MULTIPLIER);
-    let conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
+    const conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
+
     return conversionRateForContractBigNumber.toString();
   }
 
@@ -386,7 +398,7 @@ class BasicHelperKlass {
   }
 
   /**
-   * promisify JSON parse
+   * Promisify JSON parse
    *
    * @return {Promise<void>}
    */
@@ -395,7 +407,7 @@ class BasicHelperKlass {
   }
 
   /**
-   * sanitize raw call data
+   * Sanitize raw call data
    *
    * @param rawCallData
    * @return {Promise<void>}
@@ -403,20 +415,20 @@ class BasicHelperKlass {
   async sanitizeRawCallData(rawCallData) {
     const oThis = this;
 
-    return oThis.promisifyJsonParse(rawCallData).catch(function() {
-      return Promise.reject(
+    return oThis.promisifyJsonParse(rawCallData).catch(() =>
+      Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'h_b_1',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata'],
           debug_options: {}
         })
-      );
-    });
+      )
+    );
   }
 
   /**
-   * sanitize meta property data
+   * Sanitize meta property data
    *
    * @param metaProperty
    * @return {Promise<void>}
@@ -424,16 +436,16 @@ class BasicHelperKlass {
   async sanitizeMetaPropertyData(metaProperty) {
     const oThis = this;
 
-    return oThis.promisifyJsonParse(metaProperty).catch(function() {
-      return Promise.reject(
+    return oThis.promisifyJsonParse(metaProperty).catch(() =>
+      Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'h_b_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_meta_property'],
           debug_options: {}
         })
-      );
-    });
+      )
+    );
   }
 
   /**
@@ -467,10 +479,24 @@ class BasicHelperKlass {
    * @returns {Promise<any>}
    */
   sleep(ms) {
-    return new Promise(function(resolve) {
+    return new Promise((resolve) => {
       setTimeout(resolve, ms);
     });
   }
+
+  /**
+   * Send notifier email.
+   *
+   * @param {String} code
+   * @param {String} msg
+   * @param {String/Object} errData
+   * @param {String/Object} debugData
+   *
+   * @return {Promise<void>}
+   */
+  async notify(code, msg, errData, debugData) {
+    await emailNotifier.perform(code, msg, errData, debugData);
+  }
 }
 
-module.exports = new BasicHelperKlass();
+module.exports = new BasicHelper();

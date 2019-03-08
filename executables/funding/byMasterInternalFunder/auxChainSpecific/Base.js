@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Base class for aux chain specific by chain owner funding crons.
  *
@@ -6,19 +5,18 @@
  */
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   TransferEth = require(rootPrefix + '/lib/transfer/Eth'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   GetEthBalance = require(rootPrefix + '/lib/getBalance/Eth'),
+  GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  fundingAmounts = require(rootPrefix + '/config/funding'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  fundingAmounts = require(rootPrefix + '/config/funding'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
 /**
  * Base class for aux chain specific by chain owner funding crons.
@@ -33,6 +31,8 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    */
   constructor(params) {
     super(params);
+
+    const oThis = this;
 
     oThis.canExit = true;
   }
@@ -98,7 +98,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -121,7 +121,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    * @private
    */
   async _sendFundsIfNeeded() {
-    throw '_sendFundsIfNeeded method should be implemented by the caller';
+    throw new Error('_sendFundsIfNeeded method should be implemented by the caller');
   }
 
   /**
@@ -135,8 +135,6 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    * @private
    */
   async _fetchStPrimeBalance(auxChainId, addresses) {
-    const oThis = this;
-
     // Fetch StPrime balance for addresses.
     const getStPrimeBalance = new GetStPrimeBalance({
       auxChainId: auxChainId,
@@ -176,8 +174,6 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    * @private
    */
   async _transferStPrime(auxChainId, transferDetails) {
-    const oThis = this;
-
     const transferStPrime = new TransferStPrimeBatch({
       auxChainId: auxChainId,
       transferDetails: transferDetails
@@ -212,13 +208,12 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    * @returns {Object}
    */
   calculateTokenAuxFunderStPrimeRequirement() {
-    const oThis = this;
-
     let maxBalanceToFund = basicHelper.convertToWei(String(0)),
-      thresholdBalance = basicHelper.convertToWei(String(0)),
-      tokenAuxFunderConfig = basicHelper.deepDup(fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas);
+      thresholdBalance = basicHelper.convertToWei(String(0));
 
-    for (let address in tokenAuxFunderConfig) {
+    const tokenAuxFunderConfig = basicHelper.deepDup(fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas);
+
+    for (const address in tokenAuxFunderConfig) {
       maxBalanceToFund = maxBalanceToFund.plus(
         basicHelper.convertToWei(String(tokenAuxFunderConfig[address].fundAmount))
       );
@@ -227,7 +222,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       );
     }
 
-    let calculation = {
+    const calculation = {
       [tokenAddressConstants.auxFunderAddressKind]: {
         maxBalanceToFundAtOneGwei: maxBalanceToFund.toString(10),
         thresholdBalanceAtOneGwei: thresholdBalance.toString(10)
@@ -248,18 +243,21 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
     const oThis = this;
 
     // Fetch eth balance
-    let mifAddressToBalanceMap = await oThis._fetchEthBalances([oThis.masterInternalFunderAddress]),
+    const mifAddressToBalanceMap = await oThis._fetchEthBalances([oThis.masterInternalFunderAddress]),
       mifBalance = basicHelper.convertToBigNumber(mifAddressToBalanceMap[oThis.masterInternalFunderAddress]);
 
     if (mifBalance.lt(amount)) {
-      //Create an alert
+      // Create an alert
       logger.warn(
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
       );
-      logger.notify(
+      await basicHelper.notify(
         'e_f_bmif_acs_1',
-        'Low balance of addressKind: ' + chainAddressConstants.masterInternalFunderKind + '. on chainId: ',
-        +oThis.originChainId + ' Address: ' + oThis.masterInternalFunderAddress
+        `Low balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
+          oThis.originChainId
+        }. Address: ${oThis.masterInternalFunderAddress}`,
+        {},
+        {}
       );
 
       return false;
@@ -271,27 +269,32 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
   /**
    * This function tells if the master internal funder st prime balance is greater than the given amount.
    *
-   * @param amount
+   * @param {String/Number} amount
+   *
    * @returns {Promise<boolean>}
+   *
    * @private
    */
   async _isMIFStPrimeBalanceGreaterThan(amount) {
     const oThis = this;
 
-    let mifAddressToBalanceMap = await oThis._fetchStPrimeBalance(oThis.auxChainId, [
+    const mifAddressToBalanceMap = await oThis._fetchStPrimeBalance(oThis.auxChainId, [
         oThis.masterInternalFunderAddress
       ]),
       mifBalance = basicHelper.convertToBigNumber(mifAddressToBalanceMap[oThis.masterInternalFunderAddress]);
 
     if (mifBalance.lt(amount)) {
-      //Create an alert
+      // Create an alert
       logger.warn(
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low st prime balance on chainId: ' + oThis.auxChainId
       );
-      logger.notify(
+      await basicHelper.notify(
         'e_f_bmif_acs_2',
-        'Low st prime balance of addressKind: ' + chainAddressConstants.masterInternalFunderKind + '. on chainId: ',
-        +oThis.auxChainId + ' Address: ' + oThis.masterInternalFunderAddress
+        `Low st prime balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
+          oThis.auxChainId
+        }. Address: ${oThis.masterInternalFunderAddress}`,
+        {},
+        {}
       );
 
       return false;

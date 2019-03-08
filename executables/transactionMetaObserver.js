@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This script will update price oracle price points using ost-price-oracle npm package.
  * This fetches OST Current price in given currency from coin market cap and sets it in price oracle.
@@ -27,7 +26,7 @@ const rootPrefix = '..',
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-program.on('--help', function() {
+program.on('--help', () => {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
@@ -152,13 +151,12 @@ class TransactionMetaObserver extends CronBase {
   }
 
   /**
-   * initializing variables.
-   *
+   * Initializing variables.
    */
   _initializeLoopVars() {
     const oThis = this;
 
-    let currentTimeMs = new Date().getTime();
+    const currentTimeMs = new Date().getTime();
     oThis.currentTime = Math.floor(currentTimeMs / 1000);
     oThis.lockId = parseFloat(currentTimeMs + '.' + cronProcessId);
 
@@ -189,6 +187,7 @@ class TransactionMetaObserver extends CronBase {
    * Get transactions using lock_id, to ensure locked rows to be processed here.
    *
    * @returns {Promise}
+   *
    * @private
    */
   async _getTransactionsToProcess() {
@@ -204,21 +203,21 @@ class TransactionMetaObserver extends CronBase {
    * Process transactions, and check whether to resubmit or mark fail or still wait.
    *
    * @returns {Promise}
-   * @private
    *
+   * @private
    */
   async _processPendingTransactions() {
     const oThis = this;
 
-    let promiseArray = [],
+    const promiseArray = [],
       transactionsGroup = {};
-    for (let i = 0; i < oThis.transactionsToProcess.length; i++) {
-      let txMeta = oThis.transactionsToProcess[i];
+    for (let index = 0; index < oThis.transactionsToProcess.length; index++) {
+      const txMeta = oThis.transactionsToProcess[index];
 
-      let txStatusString = transactionMetaConst.statuses[txMeta.status];
+      const txStatusString = transactionMetaConst.statuses[txMeta.status];
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
-      await emailNotifier.notify(
+      await emailNotifier.perform(
         'e_tmo-' + txStatusString,
         'transactionMetaObserver Observed error',
         {},
@@ -226,9 +225,9 @@ class TransactionMetaObserver extends CronBase {
       );
     }
 
-    for (let txStatusString in transactionsGroup) {
-      let transactionsMetaRecords = transactionsGroup[txStatusString];
-      let params = {
+    for (const txStatusString in transactionsGroup) {
+      const transactionsMetaRecords = transactionsGroup[txStatusString];
+      const params = {
         auxChainId: oThis.auxChainId,
         lockId: oThis.lockId,
         transactionsMetaRecords: transactionsMetaRecords
@@ -288,11 +287,11 @@ class TransactionMetaObserver extends CronBase {
 // Perform action
 new TransactionMetaObserver({ cronProcessId: cronProcessId })
   .perform()
-  .then(function() {
+  .then(() => {
     logger.step('** Exiting Process');
     process.emit('SIGINT');
   })
-  .catch(function(err) {
+  .catch((err) => {
     logger.error('** Exiting Process Due to Error.', err);
     process.emit('SIGINT');
   });
