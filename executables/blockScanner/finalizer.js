@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This code publishes blocks which are finalized so that aggregation can start
  *
@@ -44,16 +43,16 @@ if (!program.cronProcessId) {
 }
 
 /**
- * Class for Finalizer
+ * Class for Finalizer.
  *
- * @class
+ * @class Finalizer
  */
 class Finalizer extends PublisherBase {
   /**
    * Constructor for transaction parser
    *
-   * @param params {object} - params object
-   * @param params.cronProcessId {number} - cron_processes table id
+   * @param {Object} params: params object
+   * @param {Number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -158,8 +157,10 @@ class Finalizer extends PublisherBase {
   }
 
   /**
+   * Start finalizer.
    *
    * @return {*[]}
+   *
    * @private
    */
   async _startFinalizer() {
@@ -183,17 +184,22 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       if (waitTime > 2 * 30 * 5) {
-        logger.notify('finalizer_stuck', 'Finalizer is stuck for more than 5 minutes for chainId: ', +oThis.chainId);
+        await basicHelper.notify(
+          'finalizer_stuck',
+          `Finalizer is stuck for more than 5 minutes for chainId: ${oThis.chainId} `,
+          {},
+          {}
+        );
       }
 
-      let finalizer = new oThis.BlockScannerFinalizer({
+      const finalizer = new oThis.BlockScannerFinalizer({
         chainId: oThis.chainId,
         blockDelay: oThis.blockDelay
       });
 
-      let blockToProcess = await finalizer.getBlockToFinalize();
+      const blockToProcess = await finalizer.getBlockToFinalize();
 
-      let pendingTasks = await new BlockParserPendingTask().pendingBlockTasks(oThis.chainId, blockToProcess);
+      const pendingTasks = await new BlockParserPendingTask().pendingBlockTasks(oThis.chainId, blockToProcess);
       if (pendingTasks.length > 0) {
         logger.log('=== Transactions not yet completely parsed for block: ', blockToProcess);
         logger.log('=== Waiting for 2 secs');
@@ -201,25 +207,25 @@ class Finalizer extends PublisherBase {
         await basicHelper.sleep(2000);
       } else {
         waitTime = 0;
-        let validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
+        const validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
         if (validationResponse.isSuccess() && validationResponse.data.blockProcessable) {
           // Intersect pending transactions for Origin chain
           finalizer.currentBlockInfo.transactions = await oThis._filterOutUsingPendingTransaction(
             finalizer.currentBlockInfo.transactions
           );
-          let finalizerResponse = await finalizer.finalizeBlock();
+          const finalizerResponse = await finalizer.finalizeBlock();
           if (finalizerResponse.isFailure()) {
             logger.log('=== Finalization failed for block: ', blockToProcess);
             logger.log('=== Waiting for 2 secs');
             await basicHelper.sleep(2000);
           } else {
             if (finalizerResponse.data.processedBlock) {
-              let processedTransactionHashes = finalizerResponse.data.processedTransactions,
+              const processedTransactionHashes = finalizerResponse.data.processedTransactions,
                 processedBlockNumber = finalizerResponse.data.processedBlock;
 
               if (processedTransactionHashes.length > 0) {
                 if (oThis.isOriginChain) {
-                  let postTxFinalizeSteps = new PostTxFinalizeSteps({
+                  const postTxFinalizeSteps = new PostTxFinalizeSteps({
                     chainId: oThis.chainId,
                     blockNumber: processedBlockNumber,
                     transactionHashes: processedTransactionHashes
@@ -227,13 +233,13 @@ class Finalizer extends PublisherBase {
 
                   await postTxFinalizeSteps.perform();
                 } else {
-                  let txFinalizeDelegator = new TxFinalizeDelegator({
+                  const txFinalizeDelegator = new TxFinalizeDelegator({
                     auxChainId: oThis.chainId,
                     blockNumber: processedBlockNumber,
                     transactionHashes: processedTransactionHashes
                   });
 
-                  let txFinalizeDelegatorRsp = await txFinalizeDelegator.perform();
+                  const txFinalizeDelegatorRsp = await txFinalizeDelegator.perform();
 
                   if (txFinalizeDelegatorRsp.isFailure()) {
                     return Promise.reject(txFinalizeDelegatorRsp);
@@ -267,16 +273,16 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * updateLastProcessedBlock
+   * Update last processed block.
    *
    * @return {Promise<void>}
    */
   async _updateLastProcessedBlock(blockNumber) {
     const oThis = this;
 
-    let chainCronDataObj = new oThis.chainCronDataModel({});
+    const chainCronDataObj = new oThis.chainCronDataModel({});
 
-    let updateParams = {
+    const updateParams = {
       chainId: oThis.chainId,
       lastFinalizedBlock: blockNumber
     };
@@ -285,16 +291,18 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * _publishBlock
+   * Publish block for further processing.
    *
-   * @param blockNumber
+   * @param {String/Number} blockNumber
+   *
    * @return {Promise<void>}
+   *
    * @private
    */
   async _publishBlock(blockNumber) {
     const oThis = this;
 
-    let messageParams = {
+    const messageParams = {
       topics: oThis._topicsToPublish,
       publisher: oThis._publisher,
       message: {
@@ -306,20 +314,22 @@ class Finalizer extends PublisherBase {
       }
     };
 
-    let setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
+    const setToRMQ = await oThis.ostNotification.publishEvent.perform(messageParams);
 
     // If could not set to RMQ run in async.
     if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
       logger.error("====Couldn't publish the message to RMQ====");
+
       return Promise.reject({ err: "Couldn't publish block number" + blockNumber });
     }
     logger.log('====published block', blockNumber);
   }
 
   /**
-   * _topicsToPublish
+   * Topics to publish.
    *
    * @return {*[]}
+   *
    * @private
    */
   get _topicsToPublish() {
@@ -328,18 +338,35 @@ class Finalizer extends PublisherBase {
     return ['aggregator_' + oThis.chainId];
   }
 
+  /**
+   * Publisher.
+   *
+   * @return {String}
+   *
+   * @private
+   */
   get _publisher() {
-    const oThis = this;
-
     return 'OST';
   }
 
+  /**
+   * Message kind.
+   *
+   * @return {String}
+   *
+   * @private
+   */
   get _messageKind() {
-    const oThis = this;
-
     return 'background_job';
   }
 
+  /**
+   * Cron kind
+   *
+   * @return {String}
+   *
+   * @private
+   */
   get _cronKind() {
     return cronProcessesConstants.blockFinalizer;
   }
@@ -355,22 +382,26 @@ class Finalizer extends PublisherBase {
     const oThis = this;
 
     // If not origin chain, nothing to filter out.
-    if (!oThis.isOriginChain) return blockTransactions;
+    if (!oThis.isOriginChain) {
+      return blockTransactions;
+    }
 
-    let allTxHahes = blockTransactions,
+    const allTxHashes = blockTransactions,
       intersectedTxHashes = [];
 
     while (true) {
-      let batchedTxHashes = allTxHahes.splice(0, 50);
+      const batchedTxHashes = allTxHashes.splice(0, 50);
 
-      if (batchedTxHashes.length <= 0) break;
+      if (batchedTxHashes.length <= 0) {
+        break;
+      }
 
-      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
+      const pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
         chainId: oThis.chainId,
         transactionHashes: batchedTxHashes
       }).fetch();
 
-      for (let txHash in pendingTransactionRsp.data) {
+      for (const txHash in pendingTransactionRsp.data) {
         if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
           intersectedTxHashes.push(txHash);
         }
