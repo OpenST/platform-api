@@ -102,6 +102,8 @@ class CronBase {
   _stopPickingUpNewTasks() {
     const oThis = this;
 
+    logger.info(':: _stopPickingUpNewTasks called');
+
     oThis.stopPickingUpNewWork = true;
   }
 

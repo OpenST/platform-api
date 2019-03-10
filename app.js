@@ -14,6 +14,7 @@ const express = require('express'),
   http = require('http');
 
 const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   v2Routes = require(rootPrefix + '/routes/v2/index'),
   internalRoutes = require(rootPrefix + '/routes/internal/index'),
@@ -133,7 +134,7 @@ const decodeJwt = function(req, res, next) {
 
   // Verify token
   Promise.resolve(jwtAuth.verifyToken(token, 'saasApi').then(jwtOnResolve, jwtOnReject)).catch(function(err) {
-    basicHelper.notify('a_2', 'JWT Decide Failed', { token: token }, {});
+    emailNotifier.perform('a_2', 'JWT Decide Failed', { token: token }, {});
     logger.error('a_2', 'JWT Decide Failed', { token: token });
 
     return responseHelper
@@ -225,7 +226,7 @@ if (cluster.isMaster) {
 
   //  Called when all workers are disconnected and handles are closed.
   cluster.on('disconnect', function(worker) {
-    basicHelper.notify('a_3', `[worker-${worker.id}] is disconnected`, {}, {});
+    emailNotifier.perform('a_3', `[worker-${worker.id}] is disconnected`, {}, {});
     logger.error('a_3', `[worker-${worker.id}] is disconnected`);
     // when a worker disconnects, decrement the online worker count
     onlineWorker = onlineWorker - 1;
@@ -238,14 +239,14 @@ if (cluster.isMaster) {
       logger.info(`[worker-${worker.id}] voluntary exit. signal: ${signal}. code: ${code}`);
     } else {
       // restart worker as died unexpectedly
-      basicHelper.notify(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`, {}, {});
+      emailNotifier.perform(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`, {}, {});
       logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
       cluster.fork();
     }
   });
   // Exception caught
   process.on('uncaughtException', function(err) {
-    basicHelper.notify('app_crash_1', 'App server exited unexpectedly.', err, {});
+    emailNotifier.perform('app_crash_1', 'App server exited unexpectedly.', err, {});
     logger.error('app_crash_1', 'App server exited unexpectedly. Reason: ', err);
     process.exit(1);
   });
@@ -344,7 +345,7 @@ if (cluster.isMaster) {
   // error handler
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    basicHelper.notify('a_6', 'Something went wrong.', err, {});
+    emailNotifier.perform('a_6', 'Something went wrong.', err, {});
     logger.error('a_6', 'Something went wrong', err);
     return responseHelper
       .error({
@@ -411,12 +412,12 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      basicHelper.notify('a_8', `${bind} requires elevated privileges`, {}, {});
+      emailNotifier.perform('a_8', `${bind} requires elevated privileges`, {}, {});
       logger.error('a_8', bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      basicHelper.notify('a_9', `${bind} is already in use`, {}, {});
+      emailNotifier.perform('a_9', `${bind} is already in use`, {}, {});
       logger.error('a_9', bind + ' is already in use');
       process.exit(1);
       break;

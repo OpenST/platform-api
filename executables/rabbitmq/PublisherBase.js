@@ -38,6 +38,8 @@ class PublisherBase extends CronBase {
   _pendingTasksDone() {
     const oThis = this;
 
+    logger.info(':: _pendingTasksDone called');
+
     return oThis.canExit;
   }
 
