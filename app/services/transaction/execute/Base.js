@@ -281,7 +281,7 @@ class ExecuteTxBase extends ServiceBase {
     let userDetailsData = userDetailRsp.data;
 
     for (let i = 0; i < transferToAddresses.length; i++) {
-      let userDetail = userDetailsData[transferToAddresses[i]];
+      let userDetail = userDetailsData[basicHelper.sanitizeAddress(transferToAddresses[i])];
       if (!CommonValidators.validateObject(userDetail)) {
         return oThis._validationError('s_et_b_5', ['invalid_raw_calldata_parameter_address'], {
           transferToAddresses: transferToAddresses
