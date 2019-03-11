@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Cron to fund stPrime
  * by: Master Internal Funder
@@ -14,7 +13,6 @@ const program = require('commander');
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
@@ -44,7 +42,8 @@ if (!program.cronProcessId) {
 }
 
 // Declare variables.
-const auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
+const auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer(),
+  batchSize = 10;
 
 /**
  * Class to fund StPrime by chain owner to token funder addresses.
@@ -88,24 +87,25 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
 
     oThis.tokenFunderFundsConfig = tokenAuxFunderRequirement.perform();
 
-    let auxChainId = oThis.auxChainId;
+    const auxChainId = oThis.auxChainId;
 
     logger.step('** Starting auxChainId: ', auxChainId);
 
     logger.step(
       'Fetching chain specific token funder addresses for all clients and populating per token funding config'
     );
-    let perTokenFundingConfig = await oThis._createDuplicateTokenFundingConfigFor(auxChainId);
+    const perTokenFundingConfig = await oThis._createDuplicateTokenFundingConfigFor(auxChainId);
 
     if (!perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses) {
       logger.error('No token addresses found on chainId: ', auxChainId);
+
       return;
     }
 
-    let tokenAddresses = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses;
+    const tokenAddresses = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]].addresses;
 
     logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
-    let addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, tokenAddresses);
+    const addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, tokenAddresses);
 
     logger.step('Fund chain specific addresses with StPrime if needed');
     await oThis._checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap);
@@ -124,23 +124,23 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
     const oThis = this;
 
     // Fetch all addresses associated to auxChainId.
-    let perTokenFundingConfig = basicHelper.deepDup(oThis.tokenFunderFundsConfig);
+    const perTokenFundingConfig = basicHelper.deepDup(oThis.tokenFunderFundsConfig);
 
     logger.step('Fetching token addresses on auxChainId: ' + auxChainId);
 
-    let clientIds = await oThis._fetchClientsOnChain(auxChainId);
+    const clientIds = await oThis._fetchClientsOnChain(auxChainId);
 
     if (clientIds.length === 0) {
       return perTokenFundingConfig;
     }
 
-    let tokenIds = await oThis._fetchClientTokenIdsFor(clientIds);
+    const tokenIds = await oThis._fetchClientTokenIdsFor(clientIds);
 
     if (tokenIds.length === 0) {
       return perTokenFundingConfig;
     }
 
-    let tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds),
+    const tokenFunderAddresses = await oThis._fetchTokenFunderAddresses(tokenIds),
       tokenFunderAddressesLength = tokenFunderAddresses.length;
 
     if (tokenFunderAddressesLength === 0) {
@@ -167,17 +167,15 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
    * @private
    */
   async _fetchClientsOnChain(auxChainId) {
-    const oThis = this;
-
     // Step 1: Fetch all clientIds associated to auxChainId.
-    let chainClientIds = await new ClientConfigGroup()
+    const chainClientIds = await new ClientConfigGroup()
       .select('client_id')
       .where(['chain_id = (?)', auxChainId])
       .fire();
 
-    let clientIds = [];
+    const clientIds = [];
     for (let index = 0; index < chainClientIds.length; index++) {
-      let clientId = chainClientIds[index].client_id;
+      const clientId = chainClientIds[index].client_id;
 
       clientIds.push(clientId);
     }
@@ -195,10 +193,8 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
    * @private
    */
   async _fetchClientTokenIdsFor(clientIds) {
-    const oThis = this;
-
     // Step 2: Fetch all tokenIds associated to clientIds.
-    let clientTokenIds = await new TokenModel()
+    const clientTokenIds = await new TokenModel()
       .select('id')
       .where([
         'client_id IN (?) AND status = (?)',
@@ -207,9 +203,9 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       ])
       .fire();
 
-    let tokenIds = [];
+    const tokenIds = [];
     for (let index = 0; index < clientTokenIds.length; index++) {
-      let tokenId = clientTokenIds[index].id;
+      const tokenId = clientTokenIds[index].id;
 
       tokenIds.push(tokenId);
     }
@@ -219,7 +215,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
 
   /**
    * Fetch funder addresses for specific token ids.
-   *Todo: Introduce batching
+   *
    * @param {Array} tokenIds
    *
    * @return {Promise<Array>}
@@ -227,10 +223,8 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
    * @private
    */
   async _fetchTokenFunderAddresses(tokenIds) {
-    const oThis = this;
-
     // Step 3: Fetch aux funder addresses associated to tokenIds.
-    let tokenIdAuxFunderAddresses = await new TokenAddressModel()
+    const tokenIdAuxFunderAddresses = await new TokenAddressModel()
       .select('address')
       .where([
         'token_id IN (?) AND kind = (?) AND status = (?)',
@@ -257,15 +251,16 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
   async _checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap) {
     const oThis = this;
 
-    let transferDetails = [],
-      totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0),
+    const transferDetails = [],
       fundingAddressDetails = perTokenFundingConfig[[tokenAddressConstants.auxFunderAddressKind]],
       addressMaxAmountToFund = basicHelper
         .convertToBigNumber(String(fundingAddressDetails.maxBalanceToFundAtOneGwei))
         .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
-    for (let address in addressesToBalanceMap) {
-      let addressCurrentBalance = basicHelper.convertToBigNumber(addressesToBalanceMap[address]),
+    let totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0);
+
+    for (const address in addressesToBalanceMap) {
+      const addressCurrentBalance = basicHelper.convertToBigNumber(addressesToBalanceMap[address]),
         addressThresholdFund = basicHelper
           .convertToBigNumber(String(fundingAddressDetails.thresholdBalanceAtOneGwei))
           .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
@@ -276,9 +271,9 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       logger.log('Threshold amount ', addressThresholdFund.toString(10));
 
       if (addressCurrentBalance.lt(addressThresholdFund)) {
-        let amountToBeTransferredBN = addressMaxAmountToFund
+        const amountToBeTransferredBN = addressMaxAmountToFund
             .minus(addressCurrentBalance)
-            .plus(basicHelper.convertToWei(1)), //Adding some more buffer for its own gas consumption
+            .plus(basicHelper.convertToWei(1)), // Adding some more buffer for its own gas consumption
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,
@@ -292,18 +287,24 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
     }
 
     // Start transfer.
-    oThis.canExit = false;
-
-    // TODO - introduce batching here
-
     if (transferDetails.length > 0 && (await oThis._isMIFStPrimeBalanceGreaterThan(totalAmountToTransferFromMIF))) {
       logger.step('Transferring StPrime to token addresses on auxChainId: ' + auxChainId);
 
-      await oThis._transferStPrime(auxChainId, transferDetails);
+      while (transferDetails.length > 0) {
+        if (oThis.stopPickingUpNewWork) {
+          break;
+        } else {
+          oThis.canExit = false;
+        }
+
+        const currentBatch = transferDetails.splice(0, batchSize);
+
+        await oThis._transferStPrime(auxChainId, currentBatch);
+        oThis.canExit = true;
+      }
     } else {
       logger.step('No transfer performed on chainID: ', auxChainId);
     }
-    oThis.canExit = true;
   }
 }
 
