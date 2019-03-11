@@ -32,8 +32,8 @@ require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
 require(rootPrefix + '/app/services/transaction/execute/FromUser');
-require(rootPrefix + '/app/services/transaction/get/Transaction');
-require(rootPrefix + '/app/services/transaction/get/TransactionsList');
+require(rootPrefix + '/app/services/transaction/get/ById');
+require(rootPrefix + '/app/services/transaction/get/ByUserId');
 
 require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
 require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
@@ -409,8 +409,8 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
       formattedTransactions = [],
       metaPayload = new TransactionListMetaFormatter(serviceResponse.data).perform().data;
 
-    for (let txUuid in transactions) {
-      formattedTransactions.push(new TransactionFormatter(transactions[txUuid]).perform().data);
+    for (let i = 0; i < transactions.length; i++) {
+      formattedTransactions.push(new TransactionFormatter(transactions[i]).perform().data);
     }
 
     serviceResponse.data = {
