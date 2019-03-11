@@ -77,7 +77,7 @@ class ApiAuthentication {
         route: '/users/:user_id/balance/'
       },
       [apiName.getRecoveryOwner]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
       }
       // Note: - Urls should end with a slash. Add config above this.
