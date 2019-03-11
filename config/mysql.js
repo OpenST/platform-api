@@ -53,6 +53,13 @@ const mysqlConfig = {
         user: coreConstants.KIT_SAAS_MYSQL_USER,
         password: coreConstants.KIT_SAAS_MYSQL_PASSWORD
       }
+    },
+    cluster6: {
+      master: {
+        host: coreConstants.OST_INFRA_MYSQL_HOST,
+        user: coreConstants.OST_INFRA_MYSQL_USER,
+        password: coreConstants.OST_INFRA_MYSQL_PASSWORD
+      }
     }
   },
   databases: {}
@@ -72,5 +79,8 @@ mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreCo
 
 // kit_saas database
 mysqlConfig['databases']['kit_saas_' + coreConstants.environment] = ['cluster5'];
+
+// ost_infra database
+mysqlConfig['databases']['ost_infra'] = ['cluster6'];
 
 module.exports = mysqlConfig;
