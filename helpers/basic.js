@@ -45,6 +45,51 @@ class BasicHelper {
   }
 
   /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecessionOst(wei) {
+    return this.toPrecession(wei, 5);
+  }
+
+  /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecessionBT(wei) {
+    return this.toPrecession(wei, 5);
+  }
+
+  /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecessionFiat(wei) {
+    return this.toPrecession(wei, 2);
+  }
+
+  /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecession(wei, precession) {
+    let normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+    return normalValue.toFixed(precession, BigNumber.ROUND_HALF_UP).toString(10);
+  }
+
+  /**
    * Create a duplicate object
    *
    * @return {Object}
