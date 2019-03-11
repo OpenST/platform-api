@@ -3,6 +3,8 @@ export SA_ENVIRONMENT='development'
 export SA_SUB_ENVIRONMENT='sandbox'
 export DEVOPS_ENV_ID='dev1-sandbox';
 
+export DEVOPS_IP_ADDRESS='127.0.0.1';
+
 # Cache Engine
 export SA_ONLY_SHARED_CACHE_ENGINE='memcached'
 export SA_SHARED_MEMCACHE_SERVERS='127.0.0.1:11211'

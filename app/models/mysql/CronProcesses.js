@@ -6,7 +6,6 @@
  */
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
@@ -159,10 +158,12 @@ class CronProcessesModel extends ModelBaseKlass {
     params.newStatus = oThis.invertedStatuses[params.newStatus];
     params.kind = oThis.invertedKinds[params.kind];
 
-    const machineHostname = basicHelper.fetchHostnameOfMachine();
-
     return oThis
-      .update({ last_started_at: params.newLastStartTime, status: params.newStatus, ip_address: machineHostname })
+      .update({
+        last_started_at: params.newLastStartTime,
+        status: params.newStatus,
+        ip_address: coreConstants.IP_ADDRESS
+      })
       .where({ id: params.id })
       .fire();
   }
