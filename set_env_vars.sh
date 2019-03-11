@@ -6,6 +6,12 @@ export DEVOPS_ENV_ID='dev1-sandbox';
 export DEVOPS_IP_ADDRESS='127.0.0.1';
 export DEVOPS_APP_NAME='saas';
 
+# Pepo Campaigns Details
+export SA_CAMPAIGN_CLIENT_KEY="f395013cc8715f72ecef978248d933e6"
+export SA_CAMPAIGN_CLIENT_SECRET="818506e0d00c33f84099744461b41ac5"
+export SA_CAMPAIGN_BASE_URL="https://pepocampaigns.com/"
+export SA_CAMPAIGN_MASTER_LIST="5346"
+
 # Cache Engine
 export SA_ONLY_SHARED_CACHE_ENGINE='memcached'
 export SA_SHARED_MEMCACHE_SERVERS='127.0.0.1:11211'

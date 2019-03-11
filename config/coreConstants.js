@@ -308,6 +308,34 @@ class CoreConstants {
     return 1000000;
   }
 
+  // Constants related to Pepo Campaigns start here.
+
+  get PEPO_CAMPAIGN_API_KEY() {
+    return process.env.SA_CAMPAIGN_CLIENT_KEY;
+  }
+
+  get PEPO_CAMPAIGN_API_SECRET() {
+    return process.env.SA_CAMPAIGN_CLIENT_SECRET;
+  }
+
+  get PEPO_CAMPAIGN_BASE_URL() {
+    return process.env.SA_CAMPAIGN_BASE_URL;
+  }
+
+  get PEPO_CAMPAIGN_MASTER_LIST() {
+    return process.env.SA_CAMPAIGN_MASTER_LIST;
+  }
+
+  get PEPO_CAMPAIGN_VERSION() {
+    return 'v2';
+  }
+
+  get PEPO_CAMPAIGN_API_TIMEOUT() {
+    return 5;
+  }
+
+  // Constants related to Pepo Campaigns end here.
+
   /**
    * Batch delete retry count
    *
