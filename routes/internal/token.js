@@ -6,10 +6,11 @@ const rootPrefix = '../..',
 const router = express.Router();
 
 require(rootPrefix + '/app/services/token/StartMint');
+require(rootPrefix + '/app/services/token/getDashboardDetails');
 
 router.post('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
-  req.decodedParams.configStrategyRequired = false;
+  req.decodedParams.clientConfigStrategyRequired = false;
 
   Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/Deployment', 'r_it_1'));
 });
@@ -23,16 +24,23 @@ router.post('/mint', function(req, res, next) {
 
 router.get('/mint-details', function(req, res, next) {
   req.decodedParams.apiName = 'mintDetails';
-  req.decodedParams.configStrategyRequired = false;
+  req.decodedParams.clientConfigStrategyRequired = false;
 
   Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/Mint', 'r_it_3'));
 });
 
 router.get('/mint/grant', function(req, res, next) {
   req.decodedParams.apiName = 'grantEthOst';
-  req.decodedParams.configStrategyRequired = false;
+  req.decodedParams.clientConfigStrategyRequired = false;
 
   Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GrantEthOst', 'r_it_4'));
+});
+
+router.get('/get-dashboard', function(req, res, next) {
+  req.decodedParams.apiName = 'tokenDashboard';
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenDashboardDetail', 'r_it_4'));
 });
 
 module.exports = router;

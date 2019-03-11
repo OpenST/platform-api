@@ -92,7 +92,6 @@ class GetTransactionsList extends GetTransactionBase {
       }
       oThis.limit = oThis.limit || oThis._defaultPageLimit();
 
-      // TODO :: why 0??
       oThis.from = 0;
     }
 
@@ -155,8 +154,6 @@ class GetTransactionsList extends GetTransactionBase {
   /**
    * Get elastic search query.
    *
-   * @param tokenHolderAddress
-   *
    * @return Object <Service config>
    *
    * Eg finalConfig = {
@@ -170,9 +167,9 @@ class GetTransactionsList extends GetTransactionBase {
    *
    * @private
    **/
-  _getEsQueryObject(tokenHolderAddress) {
+  _getEsQueryObject() {
     const oThis = this,
-      addressQueryString = oThis._getUserAddressQueryString(tokenHolderAddress),
+      addressQueryString = oThis._getUserAddressQueryString(),
       statusQueryString = oThis._getStatusQueryString(),
       metaQueryString = oThis._getMetaQueryString(),
       queryFieldKey = metaQueryString ? 'fields' : 'default_field';
@@ -200,7 +197,7 @@ class GetTransactionsList extends GetTransactionBase {
 
     queryBody.query = esQuery;
 
-    logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
+    logger.debug('ES query for getting user transaction', oThis.tokenHolderAddress, queryObject);
 
     queryObject.size = oThis.limit;
     queryObject.from = oThis.from;
@@ -226,17 +223,18 @@ class GetTransactionsList extends GetTransactionBase {
   /**
    * Get user address string.
    *
-   * @param tokenHolderAddress
    * Eg ( f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 )
    *
    * @returns {String}
    *
    * @private
    */
-  _getUserAddressQueryString(tokenHolderAddress) {
+  _getUserAddressQueryString() {
+    const oThis = this;
+
     const address = [
-        ESConstants.formAddressPrefix + tokenHolderAddress,
-        ESConstants.toAddressPrefix + tokenHolderAddress
+        ESConstants.formAddressPrefix + oThis.tokenHolderAddress,
+        ESConstants.toAddressPrefix + oThis.tokenHolderAddress
       ],
       query = esQueryFormatter.getORQuery(address);
     return esQueryFormatter.getQuerySubString(query);

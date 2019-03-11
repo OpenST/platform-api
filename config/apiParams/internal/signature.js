@@ -5,7 +5,7 @@ const signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'signer',
@@ -27,7 +27,7 @@ const signature = {
     mandatory: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'staker_address',
@@ -35,7 +35,7 @@ const signature = {
       },
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -45,11 +45,11 @@ const signature = {
     mandatory: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
@@ -59,11 +59,11 @@ const signature = {
     mandatory: [
       {
         parameter: 'token_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'approve_transaction_hash',
@@ -93,7 +93,7 @@ const signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'total_gas_for_mint',
@@ -107,11 +107,25 @@ const signature = {
     mandatory: [
       {
         parameter: 'client_id',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroInteger'
       },
       {
         parameter: 'address',
         validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  tokenDashboard: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
       }
     ],
     optional: []
