@@ -7,10 +7,10 @@
 const program = require('commander');
 
 const rootPrefix = '../../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   FundExTxWorker = require(rootPrefix + '/lib/executeTransactionManagement/FundExTxWorker'),
-  ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base');
+  ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -48,23 +48,27 @@ class ByTokenAuxFunderBaseToExTxWorkers extends ByTokenAuxFunderBase {
    * Fund Ex Tx worker for each tokenId.
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _startTransfer(tokenIds) {
     const oThis = this;
 
-    // TODO - introduce batching here
-    for (let i = 0; i < tokenIds.length; i++) {
-      let tokenId = tokenIds[i];
+    for (let index = 0; index < tokenIds.length; index++) {
+      if (oThis.stopPickingUpNewWork) {
+        break;
+      }
+
+      const tokenId = tokenIds[index];
 
       oThis.canExit = false;
 
-      let fundExTxWorkerObject = new FundExTxWorker({
+      const fundExTxWorkerObject = new FundExTxWorker({
         tokenId: tokenId,
         chainId: oThis.auxChainId
       });
 
-      let fundExTxWorkerResponse = await fundExTxWorkerObject.perform();
+      const fundExTxWorkerResponse = await fundExTxWorkerObject.perform();
 
       oThis.canExit = true;
 
