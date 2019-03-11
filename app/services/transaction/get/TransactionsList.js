@@ -55,13 +55,6 @@ class GetTransactionsList extends GetTransactionBase {
     oThis.responseMetaData = {
       [pagination.nextPagePayloadKey]: {}
     };
-
-    logger.debug('== constructor start == ');
-    logger.debug('== oThis.status == ', JSON.stringify(oThis.status));
-    logger.debug('== oThis.metaProperty == ', JSON.stringify(oThis.metaProperty));
-    logger.debug('== oThis.limit == ', oThis.limit);
-    logger.debug('==  oThis.paginationIdentifier == ', oThis.paginationIdentifier);
-    logger.debug('== constructor end == ');
   }
 
   /**
@@ -89,9 +82,6 @@ class GetTransactionsList extends GetTransactionBase {
       });
     }
 
-    logger.debug('== _asyncPerform start == ');
-    logger.debug('== tokenHolderAddress == ', tokenHolderAddress);
-
     const serviceConfig = oThis._getServiceConfig(),
       service = new ESTransactionService(serviceConfig),
       esQuery = oThis._getElasticSearchQuery(tokenHolderAddress);
@@ -100,9 +90,6 @@ class GetTransactionsList extends GetTransactionBase {
     esQuery['from'] = oThis.from;
 
     let userTransactions = await service.search(esQuery);
-
-    logger.debug('== esQuery == ', esQuery);
-    logger.debug('== userTransactions == ', userTransactions);
 
     if (userTransactions.isSuccess() && userTransactions.data[oThis.auxChainId + '_transactions'].length !== 0) {
       oThis._setMeta(userTransactions.data);
@@ -117,8 +104,6 @@ class GetTransactionsList extends GetTransactionBase {
       }
     }
 
-    logger.debug('== _asyncPerform end == ');
-
     return oThis._formatApiResponse();
   }
 
@@ -132,11 +117,10 @@ class GetTransactionsList extends GetTransactionBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
-    logger.debug('== _validateAndSanitizeParams start == ');
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      logger.debug('== parsedPaginationParams == ', JSON.stringify(parsedPaginationParams));
+
       oThis.status = parsedPaginationParams.status; //override status
       oThis.metaProperty = parsedPaginationParams.meta_property; //override meta_property
       oThis.limit = parsedPaginationParams.limit; //override limit
@@ -164,11 +148,6 @@ class GetTransactionsList extends GetTransactionBase {
 
     // Validate status
     await oThis._validateAndSanitizeStatus();
-
-    logger.debug('== oThis.status == ', JSON.stringify(oThis.status));
-    logger.debug('== oThis.metaProperty == ', JSON.stringify(oThis.metaProperty));
-    logger.debug('== oThis.limit == ', oThis.limit);
-    logger.debug('== _validateAndSanitizeParams end == ');
 
     //Validate limit
     return oThis._validatePageSize();
@@ -201,10 +180,6 @@ class GetTransactionsList extends GetTransactionBase {
         oThis.integerStatuses.push(currStatusInt);
       }
     }
-
-    logger.debug('== _validateAndSanitizeStatus start == ');
-    logger.debug('== oThis.integerStatuses == ', JSON.stringify(oThis.integerStatuses));
-    logger.debug('== _validateAndSanitizeStatus end == ');
   }
 
   /**
@@ -254,8 +229,6 @@ class GetTransactionsList extends GetTransactionBase {
 
     queryBody['query'] = esQuery;
 
-    logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
-
     return queryObject;
   }
 
@@ -267,15 +240,9 @@ class GetTransactionsList extends GetTransactionBase {
   _setMeta(esResponseData) {
     const oThis = this;
 
-    logger.debug('== _setMeta start == ');
-    logger.debug('== esResponseData == ', JSON.stringify(esResponseData));
-    logger.debug('== pagination.hasNextPage == ', pagination.hasNextPage);
-    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', esResponseData.meta[pagination.hasNextPage]);
-
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
-      logger.debug('== pagination.nextPagePayloadKey == ', pagination.nextPagePayloadKey);
-      logger.debug('== esNextPagePayload == ', esNextPagePayload);
+
       oThis.responseMetaData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           from: esNextPagePayload.from,
@@ -286,10 +253,6 @@ class GetTransactionsList extends GetTransactionBase {
       };
     }
     oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
-
-    logger.debug('== pagination.getEsTotalRecordKey == ', JSON.stringify(pagination.getEsTotalRecordKey));
-    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', JSON.stringify(oThis.responseMetaData));
-    logger.debug('== _setMeta end == ');
   }
 
   /**
@@ -300,14 +263,11 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _formatApiResponse() {
     const oThis = this;
-    logger.debug('== _formatApiResponse start == ');
-    logger.debug('== oThis.transactionDetails == ', oThis.transactionDetails);
-    logger.debug('== oThis.responseMetaData == ', oThis.responseMetaData);
+
     return responseHelper.successWithData({
       [resultType.transactions]: oThis.transactionDetails,
       [resultType.meta]: oThis.responseMetaData
     });
-    logger.debug('== _formatApiResponse end == ');
   }
 
   /***
