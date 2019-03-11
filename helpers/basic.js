@@ -90,21 +90,6 @@ class BasicHelper {
   }
 
   /**
-   * Fetch hostname of machine.
-   *
-   * @return {*}
-   */
-  fetchHostnameOfMachine() {
-    const shell = require('shelljs'),
-      localSetupHelper = require(rootPrefix + '/tools/localSetup/helper');
-
-    const hostnameEntity = localSetupHelper.handleShellResponse(shell.exec('hostname')),
-      hostName = hostnameEntity.stdout;
-
-    return hostName.replace(/\n$/, '');
-  }
-
-  /**
    * Create a duplicate object
    *
    * @return {Object}

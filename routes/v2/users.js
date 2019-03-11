@@ -32,8 +32,8 @@ require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
 require(rootPrefix + '/app/services/transaction/execute/FromUser');
-require(rootPrefix + '/app/services/transaction/get/Transaction');
-require(rootPrefix + '/app/services/transaction/get/TransactionsList');
+require(rootPrefix + '/app/services/transaction/get/ById');
+require(rootPrefix + '/app/services/transaction/get/ByUserId');
 
 require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
 require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
@@ -376,7 +376,7 @@ router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functi
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v_u_11', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v2_u_16', null, dataFormatterFunc));
 });
 
 /* Get transaction by userId and transactionId */
@@ -396,7 +396,7 @@ router.get('/:user_id/transactions/:transaction_id', sanitizer.sanitizeDynamicUr
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v2_u_17', null, dataFormatterFunc));
 });
 
 router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -409,8 +409,8 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
       formattedTransactions = [],
       metaPayload = new TransactionListMetaFormatter(serviceResponse.data).perform().data;
 
-    for (let txUuid in transactions) {
-      formattedTransactions.push(new TransactionFormatter(transactions[txUuid]).perform().data);
+    for (let i = 0; i < transactions.length; i++) {
+      formattedTransactions.push(new TransactionFormatter(transactions[i]).perform().data);
     }
 
     serviceResponse.data = {
@@ -421,7 +421,7 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v_u_13', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v2_u_18', null, dataFormatterFunc)
   );
 });
 
@@ -439,7 +439,7 @@ router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v_u_14', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v2_u_19', null, dataFormatterFunc));
 });
 
 /* Get recovery owner by address */
@@ -464,7 +464,7 @@ router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.saniti
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_14', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v2_u_20', null, dataFormatterFunc)
   );
 });
 
@@ -481,7 +481,7 @@ router.post('/:user_id/devices/initiate-recovery', sanitizer.sanitizeDynamicUrlP
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_13', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v2_u_21', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -497,7 +497,7 @@ router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlPara
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v_u_14', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v2_u_22', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -516,7 +516,7 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v_u_15', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v2_u_23', null, dataFormatterFunc)
   );
 });
 

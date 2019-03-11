@@ -235,7 +235,7 @@ class GetSessionBase extends ServiceBase {
       new TokenHolderNonceKlass(params)
         .perform()
         .then(function(resp) {
-          logger.debug('Fetching nonce Done: ', resp);
+          logger.debug('Fetching nonce Done. SessionAddress:', sessionAddress, 'Data: ', resp);
           if (resp.isSuccess()) {
             oThis.sessionNonce[sessionAddress] = resp.data.nonce;
           }

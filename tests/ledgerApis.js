@@ -9,7 +9,7 @@ const StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByCh
 const strategyByChainHelperObj = new StrategyByChainHelper(2000);
 
 const coreConstants = require(rootPrefix + '/config/coreConstants');
-require(rootPrefix + '/app/services/transaction/get/TransactionsList');
+require(rootPrefix + '/app/services/transaction/get/ByUserId');
 
 const esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   ESTransactionService = esServices.services.transactions;
