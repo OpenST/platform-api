@@ -376,7 +376,7 @@ router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functi
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v_u_11', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v2_u_11', null, dataFormatterFunc));
 });
 
 /* Get transaction by userId and transactionId */
@@ -396,7 +396,7 @@ router.get('/:user_id/transactions/:transaction_id', sanitizer.sanitizeDynamicUr
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v_u_12', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v2_u_12', null, dataFormatterFunc));
 });
 
 router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -421,7 +421,7 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v_u_13', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v2_u_13', null, dataFormatterFunc)
   );
 });
 
@@ -439,7 +439,7 @@ router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v_u_14', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v2_u_14', null, dataFormatterFunc));
 });
 
 /* Get recovery owner by address */
@@ -464,7 +464,7 @@ router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.saniti
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v_u_14', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v2_u_14', null, dataFormatterFunc)
   );
 });
 
@@ -481,7 +481,7 @@ router.post('/:user_id/devices/initiate-recovery', sanitizer.sanitizeDynamicUrlP
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v_u_13', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v2_u_13', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -497,7 +497,7 @@ router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlPara
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v_u_14', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v2_u_14', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -516,7 +516,7 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v_u_15', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v2_u_15', null, dataFormatterFunc)
   );
 });
 
