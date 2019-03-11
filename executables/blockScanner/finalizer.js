@@ -18,6 +18,7 @@ const rootPrefix = '../..',
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   PostTxFinalizeSteps = require(rootPrefix + '/lib/transactions/PostTransactionFinalizeSteps'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
@@ -184,7 +185,7 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       if (waitTime > 2 * 30 * 5) {
-        await basicHelper.notify(
+        await emailNotifier.perform(
           'finalizer_stuck',
           `Finalizer is stuck for more than 5 minutes for chainId: ${oThis.chainId} `,
           {},

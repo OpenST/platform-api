@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   OstPricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -111,13 +112,13 @@ class UpdatePricePoints {
       const ostValue = JSON.parse(response)[0];
       logger.debug('OST Value From CoinMarketCap:', ostValue);
       if (!ostValue || ostValue.symbol !== conversionRateConstants.OST) {
-        await basicHelper.notify('a_s_cr_upp_3', 'Invalid OST Value', response, {});
+        await emailNotifier.perform('a_s_cr_upp_3', 'Invalid OST Value', response, {});
 
         return;
       }
       const pricePoint = ostValue['price_' + oThis.quoteCurrency.toLowerCase()];
       if (!pricePoint || pricePoint < 0) {
-        await basicHelper.notify('a_s_cr_upp_4', 'Invalid OST Price', response, {});
+        await emailNotifier.perform('a_s_cr_upp_4', 'Invalid OST Price', response, {});
 
         return;
       }
@@ -130,7 +131,7 @@ class UpdatePricePoints {
         status: conversionRateConstants.inProcess
       };
     } catch (err) {
-      await basicHelper.notify('a_s_cr_upp_5', 'Invalid Response from CoinMarket', response, {});
+      await emailNotifier.perform('a_s_cr_upp_5', 'Invalid Response from CoinMarket', response, {});
     }
   }
 
@@ -318,7 +319,7 @@ class UpdatePricePoints {
     return new Promise(function(onResolve, onReject) {
       const loopCompareContractPrice = async function() {
         if (attemptCountForVerifyPriceInContract > oThis.maxRetryCountForVerifyPriceInContract) {
-          await basicHelper.notify(
+          await emailNotifier.perform(
             'a_s_cr_upp_6',
             'Something Is Wrong',
             {
@@ -336,7 +337,7 @@ class UpdatePricePoints {
         );
 
         if (priceInDecimal.isFailure()) {
-          await basicHelper.notify('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal, {});
+          await emailNotifier.perform('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal, {});
 
           return onResolve('error');
         } else if (priceInDecimal.isSuccess() && priceInDecimal.data.price == conversionRate) {

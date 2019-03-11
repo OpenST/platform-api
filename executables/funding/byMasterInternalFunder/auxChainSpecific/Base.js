@@ -12,6 +12,7 @@ const rootPrefix = '../../../..',
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -253,7 +254,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       logger.warn(
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
       );
-      await basicHelper.notify(
+      await emailNotifier.perform(
         'e_f_bmif_acs_b_4',
         `Low balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
           oThis.originChainId
@@ -290,7 +291,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       logger.warn(
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low st prime balance on chainId: ' + oThis.auxChainId
       );
-      await basicHelper.notify(
+      await emailNotifier.perform(
         'e_f_bmif_acs_b_5',
         `Low st prime balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
           oThis.auxChainId

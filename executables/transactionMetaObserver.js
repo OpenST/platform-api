@@ -18,6 +18,7 @@ const rootPrefix = '..',
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  emailNotifier = require(rootPrefix + '/lib/notifier'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -145,7 +146,7 @@ class TransactionMetaObserver extends CronBase {
       oThis.canExit = true;
 
       logger.step('** Sleeping...');
-      await basicHelper.sleep(100);
+      await basicHelper.sleep(10 * 1000);
     }
   }
 
@@ -216,7 +217,7 @@ class TransactionMetaObserver extends CronBase {
       const txStatusString = transactionMetaConst.statuses[txMeta.status];
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
-      await basicHelper.notify(
+      await emailNotifier.perform(
         'e_tmo_2-' + txStatusString,
         'transactionMetaObserver Observed error',
         {},

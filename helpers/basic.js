@@ -7,7 +7,6 @@
 const BigNumber = require('bignumber.js');
 
 const rootPrefix = '..',
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   base64Helper = require(rootPrefix + '/lib/base64Helper'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -529,20 +528,6 @@ class BasicHelper {
     return new Promise(function(resolve) {
       setTimeout(resolve, ms);
     });
-  }
-
-  /**
-   * Send notifier email.
-   *
-   * @param {String} code
-   * @param {String} msg
-   * @param {String/Object} errData
-   * @param {String/Object} debugData
-   *
-   * @return {*}
-   */
-  notify(code, msg, errData, debugData) {
-    return emailNotifier.perform(code, msg, errData, debugData);
   }
 }
 
