@@ -77,6 +77,9 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     const oThis = this;
 
     oThis.canExit = true;
+    oThis.tokenIds = [];
+    oThis.transferDetails = [];
+    oThis.tokenIdToKindToAddressesMap = {};
   }
 
   /**
@@ -173,9 +176,6 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
       ])
       .fire();
 
-    oThis.tokenIds = [];
-    oThis.tokenIdToKindToAddressesMap = {};
-
     for (let index = 0; index < tokenIdAddresses.length; index++) {
       const tokenIdAddress = tokenIdAddresses[index],
         tokenId = tokenIdAddress.token_id,
@@ -205,8 +205,6 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
    */
   async _prepareTransferDetails(currentAddressBalances) {
     const oThis = this;
-
-    oThis.transferDetails = [];
 
     const tokenAddressKindsForFunding = [
       tokenAddressConstants.auxAdminAddressKind,
@@ -254,6 +252,8 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
       addresses = tokenAddresses[addressKind],
       addressThresholdAmount = oThis._fetchThresholdAmountsInWei(addressKind),
       addressMaxFundAmount = oThis._fetchMaxFundingAmountsInWei(addressKind);
+
+    if (!(addresses && addresses.length)) return responseHelper.successWithData({});
 
     for (let index = 0; index < addresses.length; index++) {
       const address = addresses[index],
