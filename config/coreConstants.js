@@ -204,6 +204,10 @@ class CoreConstants {
     return process.env.DEVOPS_IP_ADDRESS || '';
   }
 
+  get APP_NAME() {
+    return process.env.DEVOPS_APP_NAME || '';
+  }
+
   get MIN_ORIGIN_GAS_PRICE() {
     return process.env.SA_MIN_ORIGIN_GAS_PRICE;
   }
