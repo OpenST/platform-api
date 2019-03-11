@@ -1,6 +1,6 @@
 'use strict';
 /**
- * This service helps in fetching transactions of a user
+ * This service helps in fetching transactions of a user by user id.
  *
  * @module app/services/transaction/get/ByUserId
  */
@@ -36,6 +36,7 @@ class GetTransactionsList extends GetTransactionBase {
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
 
     oThis.status = params.status;
@@ -79,7 +80,7 @@ class GetTransactionsList extends GetTransactionBase {
         if (!CommonValidators.validateMetaPropertyArray(oThis.metaProperty)) {
           return Promise.reject(
             responseHelper.paramValidationError({
-              internal_error_identifier: 'a_s_t_g_tl_3',
+              internal_error_identifier: 'a_s_t_g_bu_1',
               api_error_identifier: 'invalid_api_params',
               params_error_identifiers: ['invalid_meta_property'],
               debug_options: {}
@@ -90,6 +91,8 @@ class GetTransactionsList extends GetTransactionBase {
         oThis.metaProperty = [];
       }
       oThis.limit = oThis.limit || oThis._defaultPageLimit();
+
+      // TODO :: why 0??
       oThis.from = 0;
     }
 
@@ -101,87 +104,11 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   * Status validations
    *
-   * @returns {Promise<void>}
    * @private
    */
-  async _validateAndSanitizeStatus() {
-    const oThis = this,
-      validStatuses = pendingTransactionConstant.invertedStatuses;
-
-    let currStatusInt;
-
-    for (let i = 0; i < oThis.status.length; i++) {
-      currStatusInt = validStatuses[oThis.status[i]];
-      if (!currStatusInt) {
-        return Promise.reject(
-          responseHelper.paramValidationError({
-            internal_error_identifier: 'a_s_t_g_tl_2',
-            api_error_identifier: 'invalid_api_params',
-            params_error_identifiers: ['invalid_status'],
-            debug_options: {}
-          })
-        );
-      } else {
-        oThis.integerStatuses.push(currStatusInt);
-      }
-    }
-  }
-
-  /**
-   * Get elastic search query.
-   *
-   * @input tokenHolderAddress
-   * @return Object <Service config>
-   *
-   * Eg finalConfig = {
-   *   query: {
-   *     query_string: {
-   *        default_field : "user_addresses_status" OR  fields: ['user_addresses_status', 'meta'] if meta present,
-   *        query: '( f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ) AND ( n=transaction_name AND t=user_to_user ) AND ( 0 OR 1 )'
-   *     }
-   *   }
-   * }
-   * @private
-   **/
-
-  _getEsQueryObject(tokenHolderAddress) {
-    const oThis = this,
-      addressQueryString = oThis._getUserAddressQueryString(tokenHolderAddress),
-      statusQueryString = oThis._getStatusQueryString(),
-      metaQueryString = oThis._getMetaQueryString(),
-      queryFieldKey = metaQueryString ? 'fields' : 'default_field';
-
-    let queryObject = oThis._getQueryObject(),
-      queryBody = queryObject['query']['query_string'],
-      esQueryVals = [addressQueryString],
-      esQuery;
-
-    if (queryFieldKey == 'fields') {
-      queryBody[queryFieldKey] = [ESConstants.userAddressesOutKey, ESConstants.metaOutKey];
-    } else {
-      queryBody[queryFieldKey] = ESConstants.userAddressesOutKey;
-    }
-
-    if (statusQueryString) {
-      esQueryVals.push(statusQueryString);
-    }
-
-    if (metaQueryString) {
-      esQueryVals.push(metaQueryString);
-    }
-
-    esQuery = esQueryFormatter.getAndQuery(esQueryVals);
-
-    queryBody['query'] = esQuery;
-
-    logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
-
-    queryObject.size = oThis.limit;
-    queryObject.from = oThis.from;
-
-    return queryObject;
+  _validateSearchResults() {
+    // Nothing to do.
   }
 
   /**
@@ -192,7 +119,6 @@ class GetTransactionsList extends GetTransactionBase {
   _setMeta() {
     const oThis = this,
       esResponseData = oThis.esSearchResponse.data;
-    console.log('esResponseData', esResponseData);
 
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
@@ -211,32 +137,82 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   *
-   * @private
-   */
-  _validateTransactionId() {
-    // Nothing to do.
-  }
-
-  /**
    * Format API response
    *
    * @return {*}
+   *
    * @private
    */
   _formatApiResponse() {
     const oThis = this;
 
     return responseHelper.successWithData({
-      [resultType.transactions]: oThis.transactionDetails,
+      [resultType.transactions]: oThis.txDetails,
       [resultType.meta]: oThis.responseMetaData
     });
+  }
+
+  /**
+   * Get elastic search query.
+   *
+   * @param tokenHolderAddress
+   *
+   * @return Object <Service config>
+   *
+   * Eg finalConfig = {
+   *   query: {
+   *     query_string: {
+   *        default_field : "user_addresses_status" OR  fields: ['user_addresses_status', 'meta'] if meta present,
+   *        query: '( f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 ) AND ( n=transaction_name AND t=user_to_user ) AND ( 0 OR 1 )'
+   *     }
+   *   }
+   * }
+   *
+   * @private
+   **/
+  _getEsQueryObject(tokenHolderAddress) {
+    const oThis = this,
+      addressQueryString = oThis._getUserAddressQueryString(tokenHolderAddress),
+      statusQueryString = oThis._getStatusQueryString(),
+      metaQueryString = oThis._getMetaQueryString(),
+      queryFieldKey = metaQueryString ? 'fields' : 'default_field';
+
+    let queryObject = oThis._getQueryObject(),
+      queryBody = queryObject['query']['query_string'],
+      esQueryVals = [addressQueryString],
+      esQuery;
+
+    if (queryFieldKey === 'fields') {
+      queryBody[queryFieldKey] = [ESConstants.userAddressesOutKey, ESConstants.metaOutKey];
+    } else {
+      queryBody[queryFieldKey] = ESConstants.userAddressesOutKey;
+    }
+
+    if (statusQueryString) {
+      esQueryVals.push(statusQueryString);
+    }
+
+    if (metaQueryString) {
+      esQueryVals.push(metaQueryString);
+    }
+
+    esQuery = esQueryFormatter.getAndQuery(esQueryVals);
+
+    queryBody.query = esQuery;
+
+    logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
+
+    queryObject.size = oThis.limit;
+    queryObject.from = oThis.from;
+
+    return queryObject;
   }
 
   /**
    * Get query object.
    *
    * @returns {{query: {query_string: {}}}}
+   *
    * @private
    */
   _getQueryObject() {
@@ -254,6 +230,8 @@ class GetTransactionsList extends GetTransactionBase {
    * Eg ( f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 )
    *
    * @returns {String}
+   *
+   * @private
    */
   _getUserAddressQueryString(tokenHolderAddress) {
     const address = [
@@ -268,6 +246,8 @@ class GetTransactionsList extends GetTransactionBase {
    * Get status query string.
    *
    * @returns {*}
+   *
+   * @private
    */
   _getStatusQueryString() {
     const oThis = this;
@@ -285,6 +265,7 @@ class GetTransactionsList extends GetTransactionBase {
    * @returns {*}
    * Eg ( ( n=transaction_name1 AND t=user_to_user1 AND d=details1) OR ( n=transaction_name2 AND t=user_to_user2 ))
    *
+   * @private
    */
   _getMetaQueryString() {
     const oThis = this;
@@ -320,6 +301,7 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _getMetaVals(meta) {
     if (!meta) return null;
+
     const nameKey = ESConstants.metaNameKey,
       typeKey = ESConstants.metaTypeKey,
       detailsKey = ESConstants.metaDetailsKey;
@@ -354,7 +336,7 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   * _defaultPageLimit
+   * Default page limit.
    *
    * @private
    */
@@ -363,7 +345,7 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   * _minPageLimit
+   * Minimum page limit.
    *
    * @private
    */
@@ -372,7 +354,7 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   * _maxPageLimit
+   * Maximum page limit.
    *
    * @private
    */
@@ -381,7 +363,7 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   * _currentPageLimit
+   * Current page limit.
    *
    * @private
    */
@@ -392,18 +374,34 @@ class GetTransactionsList extends GetTransactionBase {
   }
 
   /**
-   * Format API response
+   * Status validations
    *
-   * @return {*}
+   * @returns {Promise<void>}
+   *
    * @private
    */
-  _formatApiResponse() {
+  async _validateAndSanitizeStatus() {
     const oThis = this;
 
-    return responseHelper.successWithData({
-      [resultType.transactions]: oThis.txDetails,
-      [resultType.meta]: oThis.responseMetaData
-    });
+    if (!oThis.status.length) return;
+
+    const validStatuses = pendingTransactionConstant.invertedStatuses;
+
+    for (let i = 0; i < oThis.status.length; i++) {
+      let currStatusInt = validStatuses[oThis.status[i]];
+      if (!currStatusInt) {
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_t_g_bu_2',
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_status'],
+            debug_options: {}
+          })
+        );
+      } else {
+        oThis.integerStatuses.push(currStatusInt);
+      }
+    }
   }
 }
 

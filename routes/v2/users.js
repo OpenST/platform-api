@@ -405,11 +405,9 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let transactions = serviceResponse.data[resultType.transactions].data,
+    let transactions = serviceResponse.data[resultType.transactions],
       formattedTransactions = [],
       metaPayload = new TransactionListMetaFormatter(serviceResponse.data).perform().data;
-
-    console.log('transactions', transactions);
 
     for (let i = 0; i < transactions.length; i++) {
       formattedTransactions.push(new TransactionFormatter(transactions[i]).perform().data);

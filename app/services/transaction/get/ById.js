@@ -1,6 +1,6 @@
 'use strict';
 /**
- * This service helps in fetching transaction
+ * This service helps in fetching transaction by user id and transaction id.
  *
  * @module app/services/transaction/get/ById
  */
@@ -13,9 +13,6 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 const InstanceComposer = OSTBase.InstanceComposer;
-
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/transactions/GetTransactionDetails');
 
 /**
  * Class to Get transaction by transactionId and userId
@@ -38,11 +35,19 @@ class GetTransaction extends GetTransactionBase {
   }
 
   /**
+   *
+   * @private
+   */
+  _validateAndSanitizeParams() {
+    // Nothing to do.
+  }
+
+  /**
    * Validate transaction uuid.
    *
    * @private
    */
-  _validateTransactionId() {
+  async _validateSearchResults() {
     const oThis = this;
 
     let transactionDetailsData = oThis.esSearchResponse.data[oThis.auxChainId + '_transactions'];
@@ -56,7 +61,7 @@ class GetTransaction extends GetTransactionBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_t_g_t_2',
+          internal_error_identifier: 'a_s_t_g_bi_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['invalid_transaction_id'],
           debug_options: { esData: oThis.esSearchResponse }
@@ -66,9 +71,19 @@ class GetTransaction extends GetTransactionBase {
   }
 
   /**
+   * Set meta.
+   *
+   * @private
+   */
+  _setMeta() {
+    // Nothing to do.
+  }
+
+  /**
    * Format API response
    *
    * @return {*}
+   *
    * @private
    */
   _formatApiResponse() {
@@ -80,6 +95,7 @@ class GetTransaction extends GetTransactionBase {
 
   /**
    * Get ES query object
+   *
    * @returns {{query: {terms: {_id: *[]}}}}
    *
    * @private
@@ -93,23 +109,6 @@ class GetTransaction extends GetTransactionBase {
         }
       }
     };
-  }
-
-  /**
-   *
-   * @private
-   */
-  _validateAndSanitizeParams() {
-    // Nothing to do.
-  }
-
-  /**
-   * Set meta.
-   *
-   * @private
-   */
-  _setMeta() {
-    // Nothing to do.
   }
 }
 

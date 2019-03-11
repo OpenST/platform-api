@@ -49,6 +49,7 @@ class GetTransactionBase extends ServiceBase {
     oThis.configStrategyObj = null;
     oThis.auxChainId = null;
     oThis.tokenHolderAddress = null;
+    oThis.txDetails = [];
   }
 
   /**
@@ -65,16 +66,11 @@ class GetTransactionBase extends ServiceBase {
 
     await oThis._fetchUserFromCache();
 
-    let esService = new ESTransactionService(oThis.esConfig),
-      esQuery = oThis._getEsQueryObject();
+    await oThis._searchInEs();
 
-    oThis.esSearchResponse = await esService.search(esQuery);
-
-    oThis._validateTransactionId();
+    await oThis._validateSearchResults();
 
     oThis._setMeta();
-
-    logger.debug('User transactions from Elastic search ', oThis.esSearchResponse);
 
     await oThis._fetchTxDetails();
 
@@ -95,6 +91,7 @@ class GetTransactionBase extends ServiceBase {
    *               }
    *            }
    * @returns {*}
+   *
    * @private
    */
   _getEsConfig() {
@@ -106,34 +103,8 @@ class GetTransactionBase extends ServiceBase {
 
     oThis.auxChainId = configStrategy.auxChainId;
 
-    oThis.esConfig['chainId'] = oThis.auxChainId;
+    oThis.esConfig.chainId = oThis.auxChainId;
     oThis.esConfig[elasticSearchKey] = esConfig;
-  }
-
-  /***
-   * Config strategy
-   *
-   * @return {Object}
-   */
-  get _configStrategy() {
-    const oThis = this;
-
-    return oThis.ic().configStrategy;
-  }
-
-  /**
-   * Object of config strategy class
-   *
-   * @return {Object}
-   */
-  get _configStrategyObject() {
-    const oThis = this;
-
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
-
-    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
-
-    return oThis.configStrategyObj;
   }
 
   /**
@@ -162,7 +133,7 @@ class GetTransactionBase extends ServiceBase {
     if (basicHelper.isEmptyObject(userCacheResponseData) || !oThis.tokenHolderAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_t_g_t_1',
+          internal_error_identifier: 'a_s_t_g_b_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['invalid_user_id'],
           debug_options: {}
@@ -172,9 +143,28 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
-   * Fetch tx details
+   * Search in ES.
    *
    * @returns {Promise<void>}
+   *
+   * @private
+   */
+  async _searchInEs() {
+    const oThis = this;
+
+    let esService = new ESTransactionService(oThis.esConfig),
+      esQuery = oThis._getEsQueryObject();
+
+    oThis.esSearchResponse = await esService.search(esQuery);
+
+    logger.debug('User transactions from Elastic search ', oThis.esSearchResponse);
+  }
+
+  /**
+   * Fetch tx details.
+   *
+   * @returns {Promise<void>}
+   *
    * @private
    */
   async _fetchTxDetails() {
@@ -191,6 +181,36 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
+   * Config strategy
+   *
+   * @return {Object}
+   *
+   * @private
+   */
+  get _configStrategy() {
+    const oThis = this;
+
+    return oThis.ic().configStrategy;
+  }
+
+  /**
+   * Object of config strategy class
+   *
+   * @return {Object}
+   *
+   * @private
+   */
+  get _configStrategyObject() {
+    const oThis = this;
+
+    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
+    oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+
+    return oThis.configStrategyObj;
+  }
+
+  /**
    * Validate and sanitize params.
    *
    * @private
@@ -200,21 +220,11 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
-   * Get ES query object
-   * @returns {{query: {terms: {_id: *[]}}}}
+   * Validate search results.
    *
    * @private
    */
-  _getEsQueryObject() {
-    throw 'sub-class to implement.';
-  }
-
-  /**
-   * Validate transaction uuid.
-   *
-   * @private
-   */
-  _validateTransactionId() {
+  _validateSearchResults() {
     throw 'sub-class to implement.';
   }
 
@@ -233,6 +243,17 @@ class GetTransactionBase extends ServiceBase {
    * @private
    */
   _formatApiResponse() {
+    throw 'sub-class to implement.';
+  }
+
+  /**
+   * Get ES query object
+   *
+   * @returns {{query: {terms: {_id: *[]}}}}
+   *
+   * @private
+   */
+  _getEsQueryObject() {
     throw 'sub-class to implement.';
   }
 }
