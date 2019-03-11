@@ -2,30 +2,25 @@
 /**
  * This service helps in fetching transactions of a user
  *
- * @module app/services/transaction/get/TransactionsList
+ * @module app/services/transaction/get/ByUserId
  */
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
+  GetTransactionBase = require(rootPrefix + '/app/services/transaction/get/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  ESConstants = require(rootPrefix + '/lib/elasticsearch/config/constants'),
-  GetTransactionBase = require(rootPrefix + '/app/services/transaction/get/Base'),
-  GetTransactionDetails = require(rootPrefix + '/lib/transactions/GetTransactionDetails'),
   pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
-  esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
-  esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  ESTransactionService = esServices.services.transactions;
+  esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter');
 
-// Following require(s) for registering into instance composer
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/transactions/GetTransactionDetails');
+const InstanceComposer = OSTBase.InstanceComposer;
+
 /**
  * Class to Get User transactions
  *
@@ -55,75 +50,10 @@ class GetTransactionsList extends GetTransactionBase {
     oThis.responseMetaData = {
       [pagination.nextPagePayloadKey]: {}
     };
-
-    logger.debug('== constructor start == ');
-    logger.debug('== oThis.status == ', JSON.stringify(oThis.status));
-    logger.debug('== oThis.metaProperty == ', JSON.stringify(oThis.metaProperty));
-    logger.debug('== oThis.limit == ', oThis.limit);
-    logger.debug('==  oThis.paginationIdentifier == ', oThis.paginationIdentifier);
-    logger.debug('== constructor end == ');
   }
 
   /**
-   * Main performer method.
-   *
-   * @return {Promise<void>}
-   */
-  async _asyncPerform() {
-    const oThis = this;
-
-    // Parse pagination.
-    await oThis._validateAndSanitizeParams();
-
-    let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
-      userCacheResponse = await oThis._fetchUserFromCache(),
-      userCacheResponseData = userCacheResponse.data[oThis.userId],
-      tokenHolderAddress = userCacheResponseData.tokenHolderAddress;
-
-    if (basicHelper.isEmptyObject(userCacheResponseData) || !tokenHolderAddress) {
-      return responseHelper.paramValidationError({
-        internal_error_identifier: 'a_s_t_g_tl_1',
-        api_error_identifier: 'resource_not_found',
-        params_error_identifiers: ['invalid_user_id'],
-        debug_options: {}
-      });
-    }
-
-    logger.debug('== _asyncPerform start == ');
-    logger.debug('== tokenHolderAddress == ', tokenHolderAddress);
-
-    const serviceConfig = oThis._getServiceConfig(),
-      service = new ESTransactionService(serviceConfig),
-      esQuery = oThis._getElasticSearchQuery(tokenHolderAddress);
-
-    esQuery['size'] = oThis.limit;
-    esQuery['from'] = oThis.from;
-
-    let userTransactions = await service.search(esQuery);
-
-    logger.debug('== esQuery == ', esQuery);
-    logger.debug('== userTransactions == ', userTransactions);
-
-    if (userTransactions.isSuccess() && userTransactions.data[oThis.auxChainId + '_transactions'].length !== 0) {
-      oThis._setMeta(userTransactions.data);
-
-      let response = await new GetTransactionDetails({
-        chainId: oThis.auxChainId,
-        esSearchData: userTransactions
-      }).perform();
-
-      if (response.isSuccess()) {
-        oThis.transactionDetails = response.data;
-      }
-    }
-
-    logger.debug('== _asyncPerform end == ');
-
-    return oThis._formatApiResponse();
-  }
-
-  /**
-   * Validate and sanitize input parameters.
+   * Validate and sanitize parameters.
    *
    * @returns {*}
    *
@@ -132,19 +62,20 @@ class GetTransactionsList extends GetTransactionBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
-    logger.debug('== _validateAndSanitizeParams start == ');
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      logger.debug('== parsedPaginationParams == ', JSON.stringify(parsedPaginationParams));
+
       oThis.status = parsedPaginationParams.status; //override status
       oThis.metaProperty = parsedPaginationParams.meta_property; //override meta_property
       oThis.limit = parsedPaginationParams.limit; //override limit
       oThis.from = parsedPaginationParams.from; //override from
     } else {
       oThis.status = oThis.status || [];
+
       if (oThis.metaProperty) {
         oThis.metaProperty = await basicHelper.sanitizeMetaPropertyData(oThis.metaProperty);
+
         if (!CommonValidators.validateMetaPropertyArray(oThis.metaProperty)) {
           return Promise.reject(
             responseHelper.paramValidationError({
@@ -165,12 +96,7 @@ class GetTransactionsList extends GetTransactionBase {
     // Validate status
     await oThis._validateAndSanitizeStatus();
 
-    logger.debug('== oThis.status == ', JSON.stringify(oThis.status));
-    logger.debug('== oThis.metaProperty == ', JSON.stringify(oThis.metaProperty));
-    logger.debug('== oThis.limit == ', oThis.limit);
-    logger.debug('== _validateAndSanitizeParams end == ');
-
-    //Validate limit
+    // Validate limit
     return oThis._validatePageSize();
   }
 
@@ -201,10 +127,6 @@ class GetTransactionsList extends GetTransactionBase {
         oThis.integerStatuses.push(currStatusInt);
       }
     }
-
-    logger.debug('== _validateAndSanitizeStatus start == ');
-    logger.debug('== oThis.integerStatuses == ', JSON.stringify(oThis.integerStatuses));
-    logger.debug('== _validateAndSanitizeStatus end == ');
   }
 
   /**
@@ -224,14 +146,14 @@ class GetTransactionsList extends GetTransactionBase {
    * @private
    **/
 
-  _getElasticSearchQuery(tokenHolderAddress) {
+  _getEsQueryObject(tokenHolderAddress) {
     const oThis = this,
-      addressQueryString = oThis.getUserAddressQueryString(tokenHolderAddress),
-      statusQueryString = oThis.getStatusQueryString(),
-      metaQueryString = oThis.getMetaQueryString(),
+      addressQueryString = oThis._getUserAddressQueryString(tokenHolderAddress),
+      statusQueryString = oThis._getStatusQueryString(),
+      metaQueryString = oThis._getMetaQueryString(),
       queryFieldKey = metaQueryString ? 'fields' : 'default_field';
 
-    let queryObject = oThis.getQueryObject(),
+    let queryObject = oThis._getQueryObject(),
       queryBody = queryObject['query']['query_string'],
       esQueryVals = [addressQueryString],
       esQuery;
@@ -256,6 +178,9 @@ class GetTransactionsList extends GetTransactionBase {
 
     logger.debug('ES query for getting user transaction', tokenHolderAddress, queryObject);
 
+    queryObject.size = oThis.limit;
+    queryObject.from = oThis.from;
+
     return queryObject;
   }
 
@@ -264,18 +189,14 @@ class GetTransactionsList extends GetTransactionBase {
    *
    * @private
    */
-  _setMeta(esResponseData) {
-    const oThis = this;
-
-    logger.debug('== _setMeta start == ');
-    logger.debug('== esResponseData == ', JSON.stringify(esResponseData));
-    logger.debug('== pagination.hasNextPage == ', pagination.hasNextPage);
-    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', esResponseData.meta[pagination.hasNextPage]);
+  _setMeta() {
+    const oThis = this,
+      esResponseData = oThis.esSearchResponse.data;
+    console.log('esResponseData', esResponseData);
 
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
-      logger.debug('== pagination.nextPagePayloadKey == ', pagination.nextPagePayloadKey);
-      logger.debug('== esNextPagePayload == ', esNextPagePayload);
+
       oThis.responseMetaData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           from: esNextPagePayload.from,
@@ -285,11 +206,16 @@ class GetTransactionsList extends GetTransactionBase {
         }
       };
     }
-    oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
 
-    logger.debug('== pagination.getEsTotalRecordKey == ', JSON.stringify(pagination.getEsTotalRecordKey));
-    logger.debug('== esResponseData.meta[pagination.hasNextPage] == ', JSON.stringify(oThis.responseMetaData));
-    logger.debug('== _setMeta end == ');
+    oThis.responseMetaData[pagination.totalNoKey] = esResponseData.meta[pagination.getEsTotalRecordKey];
+  }
+
+  /**
+   *
+   * @private
+   */
+  _validateTransactionId() {
+    // Nothing to do.
   }
 
   /**
@@ -300,22 +226,20 @@ class GetTransactionsList extends GetTransactionBase {
    */
   _formatApiResponse() {
     const oThis = this;
-    logger.debug('== _formatApiResponse start == ');
-    logger.debug('== oThis.transactionDetails == ', oThis.transactionDetails);
-    logger.debug('== oThis.responseMetaData == ', oThis.responseMetaData);
+
     return responseHelper.successWithData({
       [resultType.transactions]: oThis.transactionDetails,
       [resultType.meta]: oThis.responseMetaData
     });
-    logger.debug('== _formatApiResponse end == ');
   }
 
-  /***
-   * getQueryObject
-   * @return {{query: {query_string: {}}}}
+  /**
+   * Get query object.
+   *
+   * @returns {{query: {query_string: {}}}}
+   * @private
    */
-
-  getQueryObject() {
+  _getQueryObject() {
     return {
       query: {
         query_string: {}
@@ -323,27 +247,29 @@ class GetTransactionsList extends GetTransactionBase {
     };
   }
 
-  /***
-   * getUserAddressQueryString
-   * @input tokenHolderAddress
-   * @return String
+  /**
+   * Get user address string.
+   *
+   * @param tokenHolderAddress
    * Eg ( f-0x4e13fc4e514ea40cb3783cfaa4d876d49034aa18 OR t-0x33533531C09EC51D6505EAeA4A17D7810aF1DcF5924A99 )
+   *
+   * @returns {String}
    */
-
-  getUserAddressQueryString(tokenHolderAddress) {
-    const oThis = this,
-      address = [ESConstants.formAddressPrefix + tokenHolderAddress, ESConstants.toAddressPrefix + tokenHolderAddress],
+  _getUserAddressQueryString(tokenHolderAddress) {
+    const address = [
+        ESConstants.formAddressPrefix + tokenHolderAddress,
+        ESConstants.toAddressPrefix + tokenHolderAddress
+      ],
       query = esQueryFormatter.getORQuery(address);
     return esQueryFormatter.getQuerySubString(query);
   }
 
-  /***
-   * getStatusQueryString
-   * @return String
-   * Eg ( 0 OR 1 )
+  /**
+   * Get status query string.
+   *
+   * @returns {*}
    */
-
-  getStatusQueryString() {
+  _getStatusQueryString() {
     const oThis = this;
 
     if (oThis.integerStatuses.length === 0) return null;
@@ -353,55 +279,48 @@ class GetTransactionsList extends GetTransactionBase {
     return esQueryFormatter.getQuerySubString(query);
   }
 
-  /***
-   * getMetaQueryString
-   * @return String
+  /**
+   * Get meta query string.
+   *
+   * @returns {*}
    * Eg ( ( n=transaction_name1 AND t=user_to_user1 AND d=details1) OR ( n=transaction_name2 AND t=user_to_user2 ))
+   *
    */
-
-  getMetaQueryString() {
+  _getMetaQueryString() {
     const oThis = this;
 
-    if (!oThis.metaProperty || oThis.metaProperty.length == 0) return null;
+    if (!oThis.metaProperty || oThis.metaProperty.length === 0) return null;
 
-    let ln = oThis.metaProperty.length,
-      cnt,
-      meta = oThis.metaProperty,
-      currMeta,
-      currMetaValues,
-      currMetaQuery,
-      metaQueries = [],
-      metaQueriesString;
+    let metaQueries = [];
 
-    for (cnt = 0; cnt < ln; cnt++) {
-      currMeta = meta[cnt];
-      currMetaValues = oThis.getMetaVals(currMeta);
+    for (let cnt = 0; cnt < oThis.metaProperty.length; cnt++) {
+      let currMeta = oThis.metaProperty[cnt],
+        currMetaValues = oThis._getMetaVals(currMeta);
       if (currMetaValues) {
-        currMetaQuery = esQueryFormatter.getAndQuery(currMetaValues);
+        let currMetaQuery = esQueryFormatter.getAndQuery(currMetaValues);
         currMetaQuery = esQueryFormatter.getQuerySubString(currMetaQuery);
         metaQueries.push(currMetaQuery);
       }
     }
 
-    if (metaQueries.length == 0) return null;
+    if (metaQueries.length === 0) return null;
 
-    metaQueriesString = esQueryFormatter.getORQuery(metaQueries);
+    let metaQueriesString = esQueryFormatter.getORQuery(metaQueries);
 
     return esQueryFormatter.getQuerySubString(metaQueriesString);
   }
 
-  /***
-   * getMetaVals
-   * @input Array[<Object>]
+  /**
+   * Get meta values.
+   *
+   * @param meta
    * Eg [ {n:name1 , t:type1, d:details1} , {n:name2 , t:type2, d:details2}]
-   * @return String
-   * Eg [ "n=name" ,  "t=type" , "d=details"]
+   *
+   * @returns {*}
    */
-
-  getMetaVals(meta) {
+  _getMetaVals(meta) {
     if (!meta) return null;
-    const oThis = this,
-      nameKey = ESConstants.metaNameKey,
+    const nameKey = ESConstants.metaNameKey,
       typeKey = ESConstants.metaTypeKey,
       detailsKey = ESConstants.metaDetailsKey;
 
@@ -409,26 +328,23 @@ class GetTransactionsList extends GetTransactionBase {
       type = meta['type'],
       details = meta['details'],
       separator = '=',
-      nameVal,
-      typeVal,
-      detailsVal,
       vals = [];
 
     if (name) {
       name = esQueryFormatter.getEscapedQuery(name);
-      nameVal = nameKey + separator + name;
+      let nameVal = nameKey + separator + name;
       vals.push(nameVal);
     }
 
     if (type) {
       type = esQueryFormatter.getEscapedQuery(type);
-      typeVal = typeKey + separator + type;
+      let typeVal = typeKey + separator + type;
       vals.push(typeVal);
     }
 
     if (details) {
       details = esQueryFormatter.getEscapedQuery(details);
-      detailsVal = detailsKey + separator + details;
+      let detailsVal = detailsKey + separator + details;
       vals.push(detailsVal);
     }
 
@@ -473,6 +389,21 @@ class GetTransactionsList extends GetTransactionBase {
     const oThis = this;
 
     return oThis.limit;
+  }
+
+  /**
+   * Format API response
+   *
+   * @return {*}
+   * @private
+   */
+  _formatApiResponse() {
+    const oThis = this;
+
+    return responseHelper.successWithData({
+      [resultType.transactions]: oThis.txDetails,
+      [resultType.meta]: oThis.responseMetaData
+    });
   }
 }
 
