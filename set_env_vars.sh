@@ -1,7 +1,7 @@
 # Core ENV Details
 export SA_ENVIRONMENT='development'
 export SA_SUB_ENVIRONMENT='sandbox'
-export SA_ENV_IDENTIFIER='mainnet_launch';
+export DEVOPS_ENV_ID='dev1-sandbox';
 
 # Cache Engine
 export SA_ONLY_SHARED_CACHE_ENGINE='memcached'
