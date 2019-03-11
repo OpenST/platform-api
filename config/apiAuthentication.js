@@ -79,6 +79,10 @@ class ApiAuthentication {
       [apiName.getRecoveryOwner]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
+      },
+      [apiName.userPendingRecovery]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/pending-recovery/'
       }
       // Note: - Urls should end with a slash. Add config above this.
     };

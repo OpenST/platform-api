@@ -787,6 +787,25 @@ const v2Signature = {
     ]
   },
 
+  [apiName.userPendingRecovery]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
+  },
+
   [apiName.initiateRecovery]: {
     mandatory: [
       {

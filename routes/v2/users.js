@@ -38,6 +38,7 @@ require(rootPrefix + '/app/services/transaction/get/TransactionsList');
 require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
 require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
 require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
+require(rootPrefix + '/app/services/user/recovery/GetPendingRecovery');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
@@ -129,6 +130,34 @@ router.post('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(re
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'CreateDevice', 'r_v2_u_4', null, dataFormatterFunc));
+});
+
+/* Get user pending recovery request */
+router.get('/:user_id/devices/pending-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.userPendingRecovery;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let devices = serviceResponse.data[resultType.devices],
+      formattedDevices = [],
+      buffer;
+
+    for (let deviceUuid in devices) {
+      buffer = devices[deviceUuid];
+      if (!CommonValidators.validateObject(buffer)) {
+        continue;
+      }
+      formattedDevices.push(await new DeviceFormatter(devices[deviceUuid]).perform().data);
+    }
+
+    serviceResponse.data = {
+      result_type: resultType.devices,
+      [resultType.devices]: formattedDevices
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetPendingRecovery', 'r_v2_u_16', null, dataFormatterFunc));
 });
 
 /* Get devices by userId */
