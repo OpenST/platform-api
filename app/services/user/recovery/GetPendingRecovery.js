@@ -15,7 +15,7 @@ const rootPrefix = '../../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
-  WorkflowModelKlass = require(rootPrefix + '/app/models/mysql/Workflow'),
+  WorkflowCacheKlass = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common');
@@ -142,14 +142,11 @@ class GetPendingRecovery extends ServiceBase {
           operation.kind ==
             recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind]
         ) {
-          const workflowDetails = await new WorkflowModelKlass()
-            .select('*')
-            .where({ id: operation.workflow_id })
-            .fire();
-          if (workflowDetails[0]) {
-            const workflow = workflowDetails[0];
+          const workflowDetails = await new WorkflowCacheKlass({ workflowId: operation.workflow_id }).fetch();
+          if (workflowDetails.data) {
+            const workflow = workflowDetails.data[operation.workflow_id];
 
-            oThis.pendingRecoveryParams = JSON.parse(workflow.request_params);
+            oThis.pendingRecoveryParams = JSON.parse(workflow.requestParams);
             break;
           }
         }
