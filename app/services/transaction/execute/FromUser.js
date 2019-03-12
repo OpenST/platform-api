@@ -149,7 +149,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         responseHelper.error({
           internal_error_identifier: 's_et_fu_3',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_signer_address'],
+          params_error_identifiers: ['invalid_signer'],
           debug_options: {
             messageHash: messageHash,
             signature: oThis.signature,
@@ -203,7 +203,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.sessionData = sessionFetchRsp.data[oThis.sessionKeyAddress];
 
     if (!oThis.sessionData) {
-      return oThis._validationError('s_et_b_7', ['invalid_signer_address'], {
+      return oThis._validationError('s_et_b_7', ['invalid_signer'], {
         sessionKeyAddress: oThis.sessionKeyAddress
       });
     }

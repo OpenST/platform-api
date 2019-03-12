@@ -7,47 +7,53 @@ const v2ErrorConfig = {
   invalid_api_signature_kind: {
     parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `Unsupported api signature kind`
+    message:
+      'Invalid parameter api_signature_kind. The 2 possible values are "OST1-HMAC-SHA256" and "OST1-Personal-Sign". Please inspect for what is being sent, rectify and re-submit.'
   },
   unsupported_api_signature_kind: {
     parameter: 'api_signature_kind',
     code: 'invalid',
-    message: `This api signature kind is not supported for this endpoint.`
+    message:
+      'Unsupported api_signature_kind. The 2 possible values are "OST1-HMAC-SHA256" and "OST1-Personal-Sign". Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_api_request_timestamp: {
     parameter: 'api_request_timestamp',
     code: 'invalid',
-    message: `Timestamp should be an integer of 10 digits`
+    message:
+      'Invalid parameter api_request_timestamp. This field accepts epoc timestamp in secs. Please inspect for what is being sent, rectify and re-submit.'
   },
   expired_api_request_timestamp: {
     parameter: 'api_request_timestamp',
     code: 'invalid',
-    message: `Request has expired, please sign again and send`
+    message:
+      'Timestamp expired: Given timestamp not within 100 secs of server time. Check your system time to reflect the current date & time and re-submit.'
   },
   invalid_api_key: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `Invalid API Key (Case Sensitive)`
+    message:
+      "The API Key is not entered correctly. Please inspect for what is being sent, verify it against the API KEY shown on developer's page in OSTKIT and re-submit."
   },
   expired_api_key: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `API Key has expired. Please contact support to create a fresh pair`
+    message: "API key is expired. Please get the active API KEY from Developer's page in OST KIT and re-try."
   },
   invalid_api_signature: {
     parameter: 'api_signature',
     code: 'invalid',
-    message: `Invalid api_signature`
+    message:
+      'Incorrectly formed API signature. For information on how to form the signature please visit  https://dev.ost.com/kit/docs/api/#authentication .  Please rectify and re-submit.'
   },
   invalid_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `Invalid user_id`
+    message: `Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.`
   },
   inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `User setup hasn't been started / not completed yet.`
+    message: "User setup hasn't been started not completed yet."
   },
   saas_inactive_user_id: {
     parameter: 'user_id',
@@ -57,32 +63,37 @@ const v2ErrorConfig = {
   user_not_found: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `User not found`
+    message: 'User not found. Please verify the parameter user_id is correct & valid Version 4 UUID and re-submit.'
   },
   session_not_found: {
     parameter: 'session_address',
     code: 'invalid',
-    message: `User session not found`
+    message:
+      "Session not found. The parameter session_address accepts data_type 'address' as input which holds a 20 byte value. Please inspect that a correct address is being sent and re-submit."
   },
   invalid_session_addresses: {
     parameter: 'session_addresses',
     code: 'invalid',
-    message: `Invalid session_addresses`
+    message:
+      "Invalid parameter session_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
   invalid_expiration_height: {
     parameter: 'expiration_height',
     code: 'invalid',
-    message: `Invalid expiration_height`
+    message:
+      'Invalid Block expiration height. Given block expiration height not beyond 1200 blocks from the current block height. You can fetch the current block height by sending a GET request to /chains endpoint. Visit https://dev.ost.com'
   },
   invalid_spending_limit: {
     parameter: 'spending_limit',
     code: 'invalid',
-    message: `Invalid spending_limit`
+    message:
+      'Invalid spending Limit. The amount of tokens to be transferred is limited by spending limit.  This field accepts values 0 and above. Please verify and re-submit.'
   },
   invalid_known_address_ids: {
     parameter: 'knownAddressIds',
     code: 'invalid',
-    message: `Invalid knownAddressIds`
+    message:
+      'This field accepts array of addresses. Please inspect either the array is well formed OR ensure known addresses match the session addresses. Verify and re-submit.'
   },
   invalid_request_path: {
     parameter: 'request_path',
@@ -94,7 +105,12 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid token id'
   },
-  invalid_signer_address: {
+  invalid_client_id: {
+    parameter: 'client_id',
+    code: 'invalid',
+    message: 'Invalid client id'
+  },
+  invalid_signer: {
     parameter: 'signer',
     code: 'invalid',
     message: 'Invalid address'
@@ -102,27 +118,32 @@ const v2ErrorConfig = {
   invalid_device_address: {
     parameter: 'device_address',
     code: 'invalid',
-    message: 'Invalid device_address.'
+    message:
+      "Invalid parameter device_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
   invalid_recovery_owner_address: {
     parameter: 'recovery_owner_address',
     code: 'invalid',
-    message: 'Invalid recovery_owner_address.'
+    message:
+      "Invalid parameter session_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
   ids_more_than_allowed_limit: {
     parameter: 'ids',
     code: 'invalid',
-    message: 'Ids cannot be more than max page limit.'
+    message:
+      'Max of 25 IDs as filters in an api request has been put in place to ensure the performance and reliability. No of IDs in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
   addresses_more_than_allowed_limit: {
     parameter: 'addresses',
     code: 'invalid',
-    message: 'Addresses cannot be more than max page limit.'
+    message:
+      'Max of 25 addresses as filters in an api request has been put in place to ensure the performance and reliability. No of addresses in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
   invalid_chain_id: {
     parameter: 'chain_id',
     code: 'invalid',
-    message: 'Invalid chain id'
+    message:
+      "Invalid parameter chain_id. You can get chain_id by sending a get request to 'tokens' endpoint. It is a positive integer value. Please inspect for what is being sent, rectify and re-submit."
   },
   price_point_not_available_chain_id: {
     parameter: 'chain_id',
@@ -132,12 +153,14 @@ const v2ErrorConfig = {
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
     code: 'invalid',
-    message: 'Either user does not exists or not allowed to be activated.'
+    message:
+      'Unable to activate the user. Inspect if a correct value is being sent in user_id field. If the problem persists contact support@ost.com.'
   },
   user_activation_failed_invalid_device: {
     parameter: 'device_address',
     code: 'invalid',
-    message: 'Either device not registered or not allowed to be authorized.'
+    message:
+      'Unable to activate the user. Inspect if correct value is being sent in the device_address field. It accepts datatype "address" and holds a 20 byte value. If the problem persists contact support@ost.com .'
   },
   user_activation_failed_invalid_recovery_owner_address: {
     parameter: 'device_address',
@@ -152,8 +175,7 @@ const v2ErrorConfig = {
   insufficient_funds: {
     parameter: 'signer',
     code: 'invalid',
-    message:
-      'The account executing the transaction or transfer does not have sufficient funds to complete the transaction or transfer.'
+    message: 'The transfer could not be completed because the associated account does not have sufficient balance.'
   },
   session_key_spending_limit_breached: {
     parameter: 'signer',
@@ -168,7 +190,8 @@ const v2ErrorConfig = {
   unauthorized_to_access_other_user_information: {
     parameter: 'user_id',
     code: 'invalid',
-    message: 'Unauthorized to access other user details.'
+    message:
+      'You are not authorized to access the data you are trying to fetch. Inspect if a correct value is being sent in user_id field. Please verify and re-submit.'
   },
   invalid_raw_calldata_method: {
     parameter: 'raw_calldata',
@@ -265,12 +288,12 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Device address is involved in other pending recovery operation.'
   },
-  old_device_address_not_authorized: {
+  invalid_old_device_address: {
     parameter: 'old_device_address',
     code: 'invalid',
     message: 'Old device address is either invalid or not Authorized.'
   },
-  new_device_address_not_registered: {
+  invalid_new_device_address: {
     parameter: 'new_device_address',
     code: 'invalid',
     message: 'New device address is either invalid or not Registered.'
@@ -280,7 +303,7 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'New device cannot be same as old.'
   },
-  same_new_and_old_recovery_owners: {
+  invalid_new_recovery_owner_address: {
     parameter: 'new_recovery_owner_address',
     code: 'invalid',
     message: 'Recovery owner cannot be same as old.'
@@ -290,25 +313,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid address'
   },
-  missing_transaction_id: {
-    parameter: 'transaction_id',
-    code: 'missing',
-    message: `Missing transaction_id`
-  },
-  missing_token_holder_address: {
-    parameter: 'tokenHolderAddress',
-    code: 'missing',
-    message: 'missing token holder address'
-  },
-  invalid_next_page_payload: {
-    parameter: 'next_page_payload',
-    code: 'invalid',
-    message: 'Invalid next page payload'
-  },
   invalid_limit: {
     parameter: 'limit',
     code: 'invalid',
-    message: 'Invalid limit'
+    message:
+      'A limit of 25 objects in an api request has been put in place to ensure the performance and reliability. Parameter limit possibly exceeds the threshold. Please verify and re-submit'
   },
   invalid_transaction_id: {
     parameter: 'transaction_id',
@@ -319,6 +328,104 @@ const v2ErrorConfig = {
     parameter: 'status',
     code: 'invalid',
     message: 'Invalid status'
+  },
+  invalid_ids: {
+    parameter: 'ids',
+    code: 'invalid',
+    message: 'Invalid ids'
+  },
+  invalid_api_signer_address: {
+    parameter: 'api_signer_address',
+    code: 'invalid',
+    message: 'Invalid api_signer_address'
+  },
+  invalid_device_name: {
+    parameter: 'device_name',
+    code: 'invalid',
+    message:
+      'Invalid parameter device_name. This field is set or changed by the device operating system. Please inspect for what is being sent, rectify and re-submit.'
+  },
+  missing_device_name: {
+    parameter: 'device_name',
+    code: 'missing',
+    message:
+      'Required parameter device_name is missing. When you register a device you include device name for it to be easily recognizible.  Please inspect for what is being sent, rectify and re-submit.'
+  },
+  invalid_device_uuid: {
+    parameter: 'device_uuid',
+    code: 'invalid',
+    message:
+      'Invalid parameter device_uuid. This field is set by the device operating system. Please inspect the api request for what is being sent, rectify and re-submit.'
+  },
+  invalid_addresses: {
+    parameter: 'addresses',
+    code: 'invalid',
+    message: 'Invalid addresses'
+  },
+  invalid_user_data: {
+    parameter: 'user_data',
+    code: 'invalid',
+    message: 'Invalid user_data'
+  },
+  invalid_value: {
+    parameter: 'value',
+    code: 'invalid',
+    message: 'Invalid value'
+  },
+  invalid_calldata: {
+    parameter: 'calldata',
+    code: 'invalid',
+    message: 'Invalid calldata'
+  },
+  invalid_operation: {
+    parameter: 'operation',
+    code: 'invalid',
+    message: 'Invalid operation'
+  },
+  invalid_safe_tx_gas: {
+    parameter: 'safe_tx_gas',
+    code: 'invalid',
+    message: 'Invalid safe_tx_gas'
+  },
+  invalid_data_gas: {
+    parameter: 'data_gas',
+    code: 'invalid',
+    message: 'Invalid data_gas'
+  },
+  invalid_gas_price: {
+    parameter: 'gas_price',
+    code: 'invalid',
+    message: 'Invalid gas_price'
+  },
+  invalid_gas_token: {
+    parameter: 'gas_token',
+    code: 'invalid',
+    message: 'Invalid gas_token'
+  },
+  invalid_refund_receiver: {
+    parameter: 'refund_receiver',
+    code: 'invalid',
+    message: 'Invalid refund_receiver'
+  },
+  invalid_signers: {
+    parameter: 'signers',
+    code: 'invalid',
+    message: 'Invalid signers'
+  },
+  invalid_nonce: {
+    parameter: 'nonce',
+    code: 'invalid',
+    message: 'Invalid nonce'
+  },
+  invalid_token_shard_details: {
+    parameter: 'token_shard_details',
+    code: 'invalid',
+    message: 'Invalid token_shard_details'
+  },
+  invalid_kind: {
+    parameter: 'kind',
+    code: 'invalid',
+    message: 'Invalid kind'
   }
 };
 

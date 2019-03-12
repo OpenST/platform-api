@@ -170,7 +170,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_ar_4',
           api_error_identifier: 'invalid_params',
-          params_error_identifiers: ['old_device_address_not_authorized'],
+          params_error_identifiers: ['invalid_old_device_address'],
           debug_options: {}
         })
       );
@@ -185,7 +185,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_ar_5',
           api_error_identifier: 'invalid_params',
-          params_error_identifiers: ['new_device_address_not_registered'],
+          params_error_identifiers: ['invalid_new_device_address'],
           debug_options: {}
         })
       );

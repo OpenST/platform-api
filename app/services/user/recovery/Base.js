@@ -171,7 +171,7 @@ class UserRecoveryBase extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_b_3',
           api_error_identifier: 'invalid_params',
-          params_error_identifiers: ['invalid_signer_address'],
+          params_error_identifiers: ['invalid_signer'],
           debug_options: {}
         })
       );

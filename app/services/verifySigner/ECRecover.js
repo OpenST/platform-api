@@ -73,7 +73,7 @@ class ECRecover {
         responseHelper.error({
           internal_error_identifier: 'a_s_vs_ecr_3',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_signer_address']
+          params_error_identifiers: ['invalid_signer']
         })
       );
     }
