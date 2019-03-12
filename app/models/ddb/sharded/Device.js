@@ -226,7 +226,18 @@ class Device extends Base {
         })
       );
     }
-    return oThis.batchGetItem(keyObjArray, 'walletAddress');
+
+    return oThis.batchGetItem(keyObjArray, 'walletAddress').catch(function(err) {
+      logger.error('==== Error', err);
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_d_s_d_4',
+          api_error_identifier: 'wallet_address_fetch_failed',
+          debug_options: { err: err, params: params }
+        })
+      );
+    });
   }
 
   /**
@@ -384,10 +395,22 @@ class Device extends Base {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
     }
 
-    let response = await oThis.ddbServiceObj.query(queryParams);
+    let response = await oThis.ddbServiceObj.query(queryParams).catch(function(err) {
+      logger.error('====Error', err);
+
+      return Promise.reject({
+        internal_error_identifier: 'a_m_d_s_d_3',
+        api_error_identifier: 'wallet_address_fetch_failed',
+        debug_options: { err: err.toString() }
+      });
+    });
 
     if (response.isFailure()) {
-      return Promise.reject(response);
+      return Promise.reject({
+        internal_error_identifier: 'a_m_d_s_d_3',
+        api_error_identifier: 'wallet_address_fetch_failed',
+        debug_options: {}
+      });
     }
 
     let walletAddresses = [];

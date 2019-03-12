@@ -183,7 +183,17 @@ class RecoveryOwner extends Base {
         })
       );
     }
-    return oThis.batchGetItem(keyObjArray, 'address');
+    return oThis.batchGetItem(keyObjArray, 'address').catch(function(err) {
+      logger.error('==== Error', err);
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_d_s_ro_1',
+          api_error_identifier: 'recovery_owner_detail_fetch_failed',
+          debug_options: { error: err }
+        })
+      );
+    });
   }
 
   /**

@@ -7,6 +7,7 @@
 const rootPrefix = '../../../..',
   OSTBase = require('@ostdotcom/base'),
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
@@ -198,7 +199,15 @@ class Shard extends Base {
     let response = await oThis.ddbServiceObj.scan(queryParams);
 
     if (response.isFailure()) {
-      return Promise.reject(response);
+      logger.error('==== Error', response.toHash());
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_d_s_1',
+          api_error_identifier: 'available_shard_fetch_failed',
+          debug_options: {}
+        })
+      );
     }
 
     if (!response.data.Items || !response.data.Items[0]) {

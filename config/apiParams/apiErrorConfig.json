@@ -293,5 +293,55 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Unable to update user status"
+  },
+  "wallet_address_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Wallet addresses fetch failed"
+  },
+  "device_details_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Device details fetch failed"
+  },
+  "device_status_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Device status update failed"
+  },
+  "recovery_owner_detail_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery owner detail fetch failed"
+  },
+  "available_shard_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Available shard fetch failed"
+  },
+  "insert_shard_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Shard insertion failed"
+  },
+  "shard_number_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Shard insertion failed"
+  },
+  "session_address_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Failed to fetch session addresses"
+  },
+  "session_details_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Failed to fetch session details"
+  },
+  "session_status_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Session status update failed"
   }
 }
