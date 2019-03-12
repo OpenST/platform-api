@@ -19,8 +19,6 @@ class ModelBase extends MysqlQueryBuilders {
 
     const oThis = this;
     oThis.dbName = params.dbName;
-
-    oThis.bitColumns = {};
   }
 
   /**
