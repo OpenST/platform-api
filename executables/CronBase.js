@@ -1,26 +1,26 @@
-'use strict';
 /**
+ * Class for sigint handler.
  *
  * @module executables/CronBase
  */
 const rootPrefix = '..',
+  CronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
+  cronProcessHandlerObject = new CronProcessHandler(),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  cronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
-  cronProcessHandlerObject = new cronProcessHandler(),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 /**
- * Class for sigint handler
+ * Class for sigint handler.
  *
  * This class has 2 responsibilities
  * 1. sigint handling
  * 2. cron processes table queries and validations
  *
- * @class
+ * @class CronBase
  */
 class CronBase {
   /**
-   * Constructor for sigint handler
+   * Constructor for sigint handler.
    *
    * @constructor
    */
@@ -45,6 +45,7 @@ class CronBase {
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
       logger.error('Error in executables/CronBase.js');
+
       return responseHelper.error({
         internal_error_identifier: 'e_bs_w_2',
         api_error_identifier: 'something_went_wrong',
@@ -74,7 +75,7 @@ class CronBase {
   attachHandlers() {
     const oThis = this;
 
-    let handle = function() {
+    const handle = function() {
       oThis._stopPickingUpNewTasks();
 
       if (oThis._pendingTasksDone()) {
@@ -116,17 +117,17 @@ class CronBase {
   async _validateCronProcess() {
     const oThis = this;
 
-    let response = await cronProcessHandlerObject.canStartProcess({
+    const response = await cronProcessHandlerObject.canStartProcess({
       id: oThis.cronProcessId, // Implicit string to int conversion.
       cronKind: oThis._cronKind
     });
 
     try {
       // Fetch params from the DB.
-      let cronParams = JSON.parse(response.data.params);
+      const cronParams = JSON.parse(response.data.params);
 
-      for (let k in cronParams) {
-        oThis[k] = cronParams[k];
+      for (const key in cronParams) {
+        oThis[key] = cronParams[key];
       }
     } catch (err) {
       logger.error('cronParams stored in INVALID format in the DB.');
@@ -142,19 +143,19 @@ class CronBase {
    * This function provides info whether the process has to exit.
    */
   _pendingTasksDone() {
-    throw '_pendingTasksDone method should be implemented by the caller for SIGINT handling';
+    throw new Error('Sub-class to implement.');
   }
 
   _start() {
-    throw 'sub class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   _validateAndSanitize() {
-    throw 'sub class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   get _cronKind() {
-    throw 'sub class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 }
 

@@ -196,8 +196,16 @@ class CoreConstants {
     return process.env.OST_WEB3_POOL_SIZE;
   }
 
-  get SA_ENV_IDENTIFIER() {
-    return process.env.SA_ENV_IDENTIFIER ? process.env.SA_ENV_IDENTIFIER : '';
+  get ENV_IDENTIFIER() {
+    return process.env.DEVOPS_ENV_ID ? process.env.DEVOPS_ENV_ID : '';
+  }
+
+  get IP_ADDRESS() {
+    return process.env.DEVOPS_IP_ADDRESS || '';
+  }
+
+  get APP_NAME() {
+    return process.env.DEVOPS_APP_NAME || '';
   }
 
   get MIN_ORIGIN_GAS_PRICE() {
