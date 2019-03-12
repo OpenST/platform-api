@@ -69,12 +69,16 @@ const assignParams = function(req, res, next) {
 
 const getRequestParams = function(req) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
-  if (req.method == 'POST') {
+  if (req.method === 'POST') {
     return req.body;
-  } else if (req.method == 'GET') {
+  } else if (req.method === 'GET') {
     return req.query;
+  } else {
+    return {};
   }
 };
+
+// validate api signature
 const validateApiSignature = function(req, res, next) {
   let inputParams = getRequestParams(req);
 
