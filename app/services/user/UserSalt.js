@@ -52,7 +52,7 @@ class GetUserSalt extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._fetchTokenDetails();
+    await oThis._validateTokenStatus();
 
     await oThis._fetchUser();
 

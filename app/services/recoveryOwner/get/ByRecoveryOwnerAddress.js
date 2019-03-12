@@ -54,9 +54,7 @@ class ByRecoveryOwnerAddress extends ServiceBase {
 
     oThis._sanitizeParams();
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
+    await oThis._validateTokenStatus();
 
     const returnData = await oThis._getRecoveryOwnerDataFromCache();
 
