@@ -260,6 +260,11 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid signature provided'
   },
+  device_involved_in_recovery_operation: {
+    parameter: 'raw_calldata',
+    code: 'invalid',
+    message: 'Device address is involved in other pending recovery operation.'
+  },
   old_device_address_not_authorized: {
     parameter: 'old_device_address',
     code: 'invalid',
