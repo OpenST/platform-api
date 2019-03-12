@@ -36,6 +36,10 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/'
       },
+      [apiName.userPendingRecovery]: {
+        supportedSignatureKinds: [apiSignature.personalSignKind],
+        route: '/users/:user_id/devices/pending-recovery/'
+      },
       [apiName.getUserDevices]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/devices/'
@@ -56,10 +60,6 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/sessions/:session_address/'
       },
-      // [apiName.getTokenHolder]: {
-      //   supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-      //   route: '/users/:user_id/token-holders/'
-      // },
       [apiName.getUserSalt]: {
         supportedSignatureKinds: [apiSignature.personalSignKind],
         route: '/users/:user_id/salts/'
@@ -79,10 +79,6 @@ class ApiAuthentication {
       [apiName.getRecoveryOwner]: {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
         route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
-      },
-      [apiName.userPendingRecovery]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/pending-recovery/'
       }
       // Note: - Urls should end with a slash. Add config above this.
     };
