@@ -75,14 +75,14 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
       },
       {
-        apiName: apiName.getUserDevice,
-        route: '/users/:user_id/devices/:device_address/',
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
-      },
-      {
         apiName: apiName.userPendingRecovery,
         route: '/users/:user_id/devices/pending-recovery/',
         supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserDevice,
+        route: '/users/:user_id/devices/:device_address/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
       },
       {
         apiName: apiName.getUserDeviceManager,

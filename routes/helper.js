@@ -83,7 +83,7 @@ class RoutesHelper {
       return responseHelper
         .error({
           internal_error_identifier: 'h_ap_1',
-          api_error_identifier: 'something_went_wrong',
+          api_error_identifier: 'unauthorized_api_request',
           debug_options: {
             app_validated_api_name: req.decodedParams.app_validated_api_name,
             apiName: req.decodedParams.apiName
