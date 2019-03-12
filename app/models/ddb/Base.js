@@ -639,6 +639,39 @@ class ModelBaseKlass {
   get propertiesToParse() {
     return {};
   }
+
+  /**
+   *
+   * @param {Object} params
+   *
+   * @param {Object} params.errorObject - External error object
+   * @param {String} params.internalErrorCode - Internal error code
+   * @param {String} params.apiErrorIdentifier - api error identifier
+   * @param {Object} params.debugOptions - debug options (optional)
+   *
+   * @returns {Object} responseHelper
+   * @private
+   */
+  _prepareErrorObject(params) {
+    const oThis = this;
+
+    let errorObject = params.errorObject;
+
+    let finalErrorObject = {
+      internal_error_identifier: params.internalErrorCode,
+      api_error_identifier: params.apiErrorIdentifier,
+      debugOptions: params.debugOptions || {}
+    };
+
+    logger.debug('Error: ', errorObject);
+    if (responseHelper.isCustomResult(errorObject)) {
+      finalErrorObject.internal_error_identifier = `${finalErrorObject.internal_error_identifier}:${
+        errorObject.internalErrorCode
+      }`;
+    }
+
+    return responseHelper.error(finalErrorObject);
+  }
 }
 
 module.exports = ModelBaseKlass;
