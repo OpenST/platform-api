@@ -170,7 +170,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   async _verifySessionSpendingLimit() {
     const oThis = this;
 
-    if (oThis.pessimisticDebitAmount.gte(new BigNumber(oThis.sessionData.spendingLimit))) {
+    if (oThis.pessimisticDebitAmount.gt(new BigNumber(oThis.sessionData.spendingLimit))) {
       return oThis._validationError('s_et_fu_4', ['session_key_spending_limit_breached'], {
         spendingLimit: basicHelper.formatWeiToString(oThis.sessionData.spendingLimit),
         pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
