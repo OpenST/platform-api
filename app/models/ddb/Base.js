@@ -663,7 +663,7 @@ class ModelBaseKlass {
       debugOptions: params.debugOptions || {}
     };
 
-    logger.debug('Error: ', errorObject);
+    logger.debug('Error: ', errorObject.getDebugData());
     if (responseHelper.isCustomResult(errorObject)) {
       finalErrorObject.internal_error_identifier = `${errorObject.internalErrorCode}:${
         finalErrorObject.internal_error_identifier
