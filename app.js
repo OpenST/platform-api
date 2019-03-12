@@ -90,6 +90,8 @@ const getRequestParams = function(req) {
     return req.body;
   } else if (req.method === 'GET') {
     return req.query;
+  } else {
+    return {};
   }
 };
 
