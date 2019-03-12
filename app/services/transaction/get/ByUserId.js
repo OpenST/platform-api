@@ -90,6 +90,7 @@ class GetTransactionsList extends GetTransactionBase {
       } else {
         oThis.metaProperty = [];
       }
+
       oThis.limit = oThis.limit || oThis._defaultPageLimit();
 
       oThis.from = 0;

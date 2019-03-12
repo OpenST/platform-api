@@ -143,29 +143,55 @@ class ExecuteTxBase extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    logger.debug('execute_tx_step_: 1');
+
     await oThis._validateAndSanitize();
+
+    logger.debug('execute_tx_step_: 2');
 
     await oThis._initializeVars();
 
+    logger.debug('execute_tx_step_: 3');
+
     await oThis._processExecutableData();
+
+    logger.debug('execute_tx_step_: 4');
 
     await oThis._setSessionAddress();
 
+    logger.debug('execute_tx_step_: 5');
+
     await oThis._setNonce();
+
+    logger.debug('execute_tx_step_: 6');
 
     await oThis._setExecutableTxData();
 
+    logger.debug('execute_tx_step_: 7');
+
     await oThis._setSignature();
+
+    logger.debug('execute_tx_step_: 8');
 
     await oThis._verifySessionSpendingLimit();
 
+    logger.debug('execute_tx_step_: 9');
+
     await oThis._createTransactionMeta();
+
+    logger.debug('execute_tx_step_: 10');
 
     await oThis._performPessimisticDebit();
 
+    logger.debug('execute_tx_step_: 11');
+
     await oThis._createPendingTransaction();
 
+    logger.debug('execute_tx_step_: 12');
+
     await oThis._publishToRMQ();
+
+    logger.debug('execute_tx_step_: 13');
 
     return Promise.resolve(
       responseHelper.successWithData({
