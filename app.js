@@ -6,7 +6,6 @@ const express = require('express'),
   path = require('path'),
   createNamespace = require('continuation-local-storage').createNamespace,
   morgan = require('morgan'),
-  cookieParser = require('cookie-parser'),
   bodyParser = require('body-parser'),
   helmet = require('helmet'),
   customUrlParser = require('url'),
@@ -63,6 +62,13 @@ const startRequestLogLine = function(req, res, next) {
   next();
 };
 
+/**
+ * Assign params
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 const assignParams = function(req, res, next) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
   // Also override any request params, related to signatures
@@ -72,14 +78,29 @@ const assignParams = function(req, res, next) {
   next();
 };
 
+/**
+ * Get request params
+ *
+ * @param req
+ * @return {*}
+ */
 const getRequestParams = function(req) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
-  if (req.method == 'POST') {
+  if (req.method === 'POST') {
     return req.body;
-  } else if (req.method == 'GET') {
+  } else if (req.method === 'GET') {
     return req.query;
   }
 };
+
+/**
+ * Validate API signature
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise|*|{$ref}|PromiseLike<T>|Promise<T>}
+ */
 const validateApiSignature = function(req, res, next) {
   let inputParams = getRequestParams(req);
 
@@ -101,6 +122,7 @@ const validateApiSignature = function(req, res, next) {
     }
   };
 
+  // Following line always gives resolution. In case this assumption changes, please add catch here.
   return new ValidateApiSignature({
     inputParams: inputParams,
     requestPath: customUrlParser.parse(req.originalUrl).pathname,
@@ -163,7 +185,7 @@ const appendRequestDebugInfo = function(req, res, next) {
   });
 };
 
-// check system service statuses and return error if they are down
+// In order to put Saas into maintenance, set systemServiceStatusesCache with saas_api_available = 0
 const checkSystemServiceStatuses = async function(req, res, next) {
   const statusRsp = await systemServiceStatusesCache.fetch();
   if (statusRsp.isSuccess && statusRsp.data && statusRsp.data['saas_api_available'] != 1) {
@@ -179,6 +201,12 @@ const checkSystemServiceStatuses = async function(req, res, next) {
   next();
 };
 
+/**
+ * Handle deprecated routes
+ * @param req
+ * @param res
+ * @param next
+ */
 const handleDepricatedRoutes = function(req, res, next) {
   return responseHelper
     .error({
@@ -189,16 +217,33 @@ const handleDepricatedRoutes = function(req, res, next) {
     .renderResponse(res, errorConfig);
 };
 
+/**
+ * Append internal version
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 const appendInternalVersion = function(req, res, next) {
   req.decodedParams.apiVersion = apiVersions.internal;
   next();
 };
 
+/**
+ * Append V2 version
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 const appendV2Version = function(req, res, next) {
   req.decodedParams.apiVersion = apiVersions.v2;
   next();
 };
 
+/**
+ * Kill master after online worker count reaches 0
+ */
 const killMasterIfAllWorkersDied = function() {
   if (onlineWorker === 0) {
     logger.log('Killing master as all workers are dead.');
@@ -292,8 +337,9 @@ if (cluster.isMaster) {
   // Node.js body parsing middleware.
   app.use(bodyParser.json());
 
+  // Parsing the URL-encoded data with the qs library (extended: true)
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(cookieParser());
+
   app.use(express.static(path.join(__dirname, 'public')));
 
   // Mark older routes as UNSUPPORTED_VERSION
@@ -309,7 +355,6 @@ if (cluster.isMaster) {
     The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
     Docs: https://www.npmjs.com/package/sanitize-html
   */
-
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
     startRequestLogLine,
