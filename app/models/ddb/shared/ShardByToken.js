@@ -200,12 +200,11 @@ class ShardByToken extends Base {
     }
 
     let response = await oThis.batchGetItem(keyObjArray, 'entityKind').catch(function(err) {
-      logger.error('==== Error', err);
-
-      return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_sbt_1',
-        api_error_identifier: 'shard_number_fetch_failed',
-        debug_options: { params: params, err: err }
+      return oThis._prepareErrorObject({
+        errorObject: err,
+        internalErrorCode: 'a_m_d_s_sbt_1',
+        apiErrorIdentifier: 'shard_number_fetch_failed',
+        debugOptions: { params: params, err: err }
       });
     });
 
