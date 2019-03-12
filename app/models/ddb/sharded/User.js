@@ -244,7 +244,15 @@ class User extends Base {
       );
     }
 
-    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
+    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns).catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_u_3',
+          apiErrorIdentifier: 'error_in_fetching_users'
+        })
+      );
+    });
   }
 
   /**
@@ -269,7 +277,15 @@ class User extends Base {
       );
     }
 
-    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns);
+    return oThis.batchGetItem(keyObjArray, 'userId', selectColumns).catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_u_5',
+          apiErrorIdentifier: 'error_in_fetching_user_salts'
+        })
+      );
+    });
   }
 
   /**
@@ -400,6 +416,14 @@ class User extends Base {
       });
     }
 
+    if (updateQueryResponse.isFailure()) {
+      oThis._prepareErrorObject({
+        errorObject: updateQueryResponse,
+        internalErrorCode: 'a_m_d_s_u_4',
+        apiErrorIdentifier: 'user_status_update_failed'
+      });
+    }
+
     // Clear cache
     await User.afterUpdate(oThis.ic(), { tokenId: tokenId, userId: userId, shardNumber: oThis.shardNumber });
 
@@ -517,7 +541,13 @@ class User extends Base {
     let response = await oThis.ddbServiceObj.query(queryParams);
 
     if (response.isFailure()) {
-      return Promise.reject(response);
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: response,
+          internalErrorCode: 'a_m_d_s_u_5',
+          apiErrorIdentifier: 'error_in_fetching_user_ids'
+        })
+      );
     }
 
     let row,

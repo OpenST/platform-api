@@ -303,7 +303,17 @@ class Balance extends Base {
         })
       );
     }
-    return oThis.batchGetItem(keyObjArray, 'tokenHolderAddress');
+    let batchGetResponse = await oThis.batchGetItem(keyObjArray, 'tokenHolderAddress').catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_dh_b_5',
+          apiErrorIdentifier: 'fetch_balance_failed'
+        })
+      );
+    });
+
+    return batchGetResponse;
   }
 
   /**

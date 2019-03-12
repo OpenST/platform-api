@@ -263,5 +263,35 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Data not found"
+  },
+  "error_in_fetching_users": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while fetching users."
+  },
+  "error_in_fetching_user_ids": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while fetching user ids."
+  },
+  "error_in_fetching_user_salts": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while fetching user salts."
+  },
+  "balance_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Balance update failed"
+  },
+  "fetch_balance_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Unable to fetch balance"
+  },
+  "user_status_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Unable to update user status"
   }
 }
