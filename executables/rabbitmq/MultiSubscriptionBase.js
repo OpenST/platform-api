@@ -51,13 +51,8 @@ class MultiSubscriptionBase extends CronBase {
 
     oThis.prefetchCount = parseInt(oThis.prefetchCount);
 
-    if (!CommonValidators.validateInteger(oThis.prefetchCount)) {
-      logger.error('Prefetch count is not an integer.');
-      process.emit('SIGINT');
-    }
-
-    if (oThis.prefetchCount < 0) {
-      logger.error('Prefetch count is invalid.');
+    if (!CommonValidators.validateNonZeroInteger(oThis.prefetchCount)) {
+      logger.error('Prefetch count is not a valid integer.');
       process.emit('SIGINT');
     }
 
