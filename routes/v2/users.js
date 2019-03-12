@@ -35,8 +35,8 @@ require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/get/ById');
 require(rootPrefix + '/app/services/transaction/get/ByUserId');
 
-require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
-require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
+require(rootPrefix + '/app/services/user/recovery/Initiate');
+require(rootPrefix + '/app/services/user/recovery/Abort');
 require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
 require(rootPrefix + '/app/services/user/recovery/GetPending');
 
