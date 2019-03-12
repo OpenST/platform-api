@@ -417,7 +417,7 @@ class User extends Base {
     }
 
     if (updateQueryResponse.isFailure()) {
-      oThis._prepareErrorObject({
+      return oThis._prepareErrorObject({
         errorObject: updateQueryResponse,
         internalErrorCode: 'a_m_d_s_u_4',
         apiErrorIdentifier: 'user_status_update_failed'

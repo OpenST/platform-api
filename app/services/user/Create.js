@@ -189,7 +189,7 @@ class Create extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_u_c_2',
-          api_error_identifier: 'something_went_wrong'
+          api_error_identifier: 'error_in_user_creation'
         })
       );
     }

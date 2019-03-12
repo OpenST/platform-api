@@ -228,13 +228,11 @@ class Device extends Base {
     }
 
     return oThis.batchGetItem(keyObjArray, 'walletAddress').catch(function(err) {
-      logger.error('==== Error', err);
-
       return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_m_d_s_d_4',
-          api_error_identifier: 'wallet_address_fetch_failed',
-          debug_options: { err: err, params: params }
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_d_2',
+          apiErrorIdentifier: 'device_details_fetch_failed'
         })
       );
     });
@@ -325,9 +323,17 @@ class Device extends Base {
 
     if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_d_2',
+        internal_error_identifier: 'a_m_d_s_d_3',
         api_error_identifier: 'conditional_check_failed',
         debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    if (updateQueryResponse.isFailure()) {
+      return oThis._prepareErrorObject({
+        errorObject: updateQueryResponse,
+        internalErrorCode: 'a_m_d_s_d_4',
+        apiErrorIdentifier: 'device_status_update_failed'
       });
     }
 
@@ -396,21 +402,24 @@ class Device extends Base {
     }
 
     let response = await oThis.ddbServiceObj.query(queryParams).catch(function(err) {
-      logger.error('====Error', err);
-
-      return Promise.reject({
-        internal_error_identifier: 'a_m_d_s_d_3',
-        api_error_identifier: 'wallet_address_fetch_failed',
-        debug_options: { err: err.toString() }
-      });
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_d_5',
+          apiErrorIdentifier: 'wallet_address_fetch_failed',
+          debugOptions: { err: err.toString() }
+        })
+      );
     });
 
     if (response.isFailure()) {
-      return Promise.reject({
-        internal_error_identifier: 'a_m_d_s_d_3',
-        api_error_identifier: 'wallet_address_fetch_failed',
-        debug_options: {}
-      });
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: response,
+          internalErrorCode: 'a_m_d_s_d_6',
+          apiErrorIdentifier: 'wallet_address_fetch_failed'
+        })
+      );
     }
 
     let walletAddresses = [];

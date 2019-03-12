@@ -338,5 +338,15 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Session status update failed"
+  },
+  "error_in_user_creation": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while creating user"
+  },
+  "error_in_deleting_session": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while deleting session"
   }
 }

@@ -186,13 +186,14 @@ class Session extends Base {
     }
 
     let response = await oThis.batchGetItem(keyObjArray, 'address').catch(function(err) {
-      logger.error('==== Error', err);
-
-      return Promise.reject({
-        internal_error_identifier: 'a_m_d_s_s_3',
-        api_error_identifier: 'session_details_fetch_failed',
-        debug_options: { params: params, err: err }
-      });
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_s_3',
+          apiErrorIdentifier: 'session_details_fetch_failed',
+          debugOptions: { params: params, err: err }
+        })
+      );
     });
 
     return response;
@@ -230,13 +231,14 @@ class Session extends Base {
     let response = await oThis.ddbServiceObj.query(queryParams);
 
     if (response.isFailure()) {
-      logger.error('==== Error', response.toHash());
-
-      return Promise.reject({
-        internal_error_identifier: 'a_m_d_s_s_2',
-        api_error_identifier: 'session_address_fetch_failed',
-        debug_options: { userId: userId }
-      });
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_s_2',
+          apiErrorIdentifier: 'session_address_fetch_failed',
+          debugOptions: { userId: userId }
+        })
+      );
     }
 
     let row,
@@ -347,12 +349,11 @@ class Session extends Base {
     }
 
     if (updateQueryResponse.isFailure()) {
-      logger.error('==== Error', updateQueryResponse.toHash());
-
-      return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_s_2',
-        api_error_identifier: 'session_status_update_failed',
-        debug_options: { userId: userId, address: sessionAddress }
+      return oThis._prepareErrorObject({
+        errorObject: updateQueryResponse,
+        internalErrorCode: 'a_m_d_s_s_2',
+        apiErrorIdentifier: 'session_status_update_failed',
+        debugOptions: { userId: userId, address: sessionAddress }
       });
     }
 

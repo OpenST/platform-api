@@ -199,13 +199,11 @@ class Shard extends Base {
     let response = await oThis.ddbServiceObj.scan(queryParams);
 
     if (response.isFailure()) {
-      logger.error('==== Error', response.toHash());
-
       return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_m_d_s_1',
-          api_error_identifier: 'available_shard_fetch_failed',
-          debug_options: {}
+        oThis._prepareErrorObject({
+          errorObject: response,
+          internalErrorCode: 'a_m_d_s_1',
+          apiErrorIdentifier: 'available_shard_fetch_failed'
         })
       );
     }
