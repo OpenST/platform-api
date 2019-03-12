@@ -614,6 +614,10 @@ const v2Signature = {
         validatorMethod: 'validateObject'
       },
       {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
+      },
+      {
         parameter: 'to',
         validatorMethod: 'validateEthAddress'
       },

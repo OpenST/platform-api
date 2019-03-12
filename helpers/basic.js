@@ -45,18 +45,48 @@ class BasicHelper {
   }
 
   /**
-   * Fetch hostname of machine.
    *
-   * @return {*}
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
    */
-  fetchHostnameOfMachine() {
-    const shell = require('shelljs'),
-      localSetupHelper = require(rootPrefix + '/tools/localSetup/helper');
+  toPrecessionOst(wei) {
+    return this.toPrecession(wei, 5);
+  }
 
-    const hostnameEntity = localSetupHelper.handleShellResponse(shell.exec('hostname')),
-      hostName = hostnameEntity.stdout;
+  /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecessionBT(wei) {
+    return this.toPrecession(wei, 5);
+  }
 
-    return hostName.replace(/\n$/, '');
+  /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecessionFiat(wei) {
+    return this.toPrecession(wei, 2);
+  }
+
+  /**
+   *
+   * convert wei value to un wei (normal)
+   *
+   * @param wei
+   * @return {BigNumber}
+   */
+  toPrecession(wei, precession) {
+    let normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+    return normalValue.toFixed(precession, BigNumber.ROUND_HALF_UP).toString(10);
   }
 
   /**

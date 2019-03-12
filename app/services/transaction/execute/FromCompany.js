@@ -19,9 +19,11 @@ const rootPrefix = '../../../..',
   NonceGetForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   AddressPrivateKeyCache = require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey');
 
 // Following require(s) for registering into instance composer
+require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/UserTransactionCount');
@@ -42,6 +44,8 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
    */
   constructor(params) {
     super(params);
+    const oThis = this;
+    oThis.tokenShardDetails = null;
   }
 
   /**
@@ -55,18 +59,41 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   }
 
   /**
-   *  Set sender token holder address
+   *
+   * set token shard details
    *
    * @private
    */
-  async _setTokenHolderAddress() {
+  async _setTokenShardDetails() {
+    const oThis = this;
+
+    let TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
+    let tokenShardNumbersCache = new TokenShardNumbersCache({
+      tokenId: oThis.tokenId
+    });
+
+    let response = await tokenShardNumbersCache.fetch();
+    if (response.isFailure()) {
+      return Promise.reject(response);
+    }
+    oThis.tokenShardDetails = response.data;
+  }
+
+  /**
+   *
+   * set user data for oThis.userId
+   *
+   * @private
+   */
+  async _setCurrentUserData() {
     const oThis = this;
 
     // fetch company users details
     let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUserDetailsCache({
         tokenId: oThis.tokenId,
-        userIds: [oThis.userId]
+        userIds: [oThis.userId],
+        shardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
       }),
       tokenUserDetailsCacheRsp = await tokenUserDetailsCacheObj.fetch();
 
@@ -75,34 +102,42 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       Promise.reject(tokenUserDetailsCacheRsp);
     }
 
-    let companyUserData = tokenUserDetailsCacheRsp.data[oThis.userId];
-
-    if (!CommonValidators.validateObject(companyUserData)) {
+    oThis.userData = tokenUserDetailsCacheRsp.data[oThis.userId];
+    if (!CommonValidators.validateObject(oThis.userData)) {
       return oThis._validationError('s_et_fc_1', ['invalid_user_id'], {
         userId: oThis.userId
       });
     }
+  }
 
-    if (companyUserData.kind !== tokenUserConstants.companyKind) {
+  /**
+   *  Set sender token holder address
+   *
+   * @private
+   */
+  async _setTokenHolderAddress() {
+    const oThis = this;
+
+    if (oThis.userData.kind !== tokenUserConstants.companyKind) {
       return oThis._validationError('s_et_fc_2', ['invalid_user_id'], {
-        userKind: companyUserData.kind
+        userKind: oThis.userData.kind
       });
     }
 
-    if (companyUserData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
+    if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
       return oThis._validationError('s_et_fc_3', ['saas_inactive_user_id'], {
-        saasApiStatus: companyUserData.saasApiStatus
+        saasApiStatus: oThis.userData.saasApiStatus
       });
     }
 
-    if (companyUserData.status !== tokenUserConstants.activatedStatus) {
+    if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
       return oThis._validationError('s_et_fc_4', ['inactive_user_id'], {
-        status: companyUserData.status
+        status: oThis.userData.status
       });
     }
 
-    oThis.tokenHolderAddress = companyUserData.tokenHolderAddress;
-    oThis.sessionShardNumber = companyUserData.sessionShardNumber;
+    oThis.tokenHolderAddress = oThis.userData.tokenHolderAddress;
+    oThis.sessionShardNumber = oThis.userData.sessionShardNumber;
   }
 
   /**
@@ -118,7 +153,8 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       userSessionAddressCache = new UserSessionAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
-        shardNumber: oThis.sessionShardNumber
+        shardNumber: oThis.sessionShardNumber,
+        page: 1
       }),
       userSessionAddressCacheResp = await userSessionAddressCache.fetch();
 

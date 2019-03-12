@@ -169,7 +169,6 @@ class MultiSubscriptionBase extends CronBase {
                   function(response) {
                     messageParams.fromAddress = response.data.address;
                     messageParams.fromAddressNonce = response.data.nonce;
-                    console.log('----------------------sequentialExecutorResponse-----', JSON.stringify(response));
 
                     if (response.isFailure()) {
                       return Promise.resolve({});

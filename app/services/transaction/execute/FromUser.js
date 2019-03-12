@@ -33,6 +33,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    *
    * @param {Object} params
    * @param {Object} params.user_data - data of user who signed this tx
+   * @param {Object} params.token_shard_details - token shard details
    * @param {Number} params.nonce
    * @param {Number} params.signature
    * @param {Number} params.signer
@@ -46,6 +47,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     oThis.userData = params.user_data;
+    oThis.tokenShardDetails = params.token_shard_details;
     oThis.sessionKeyNonce = params.nonce;
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
@@ -63,8 +65,6 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
-
-    // TODO - add validation for signature
 
     if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
       return oThis._validationError('s_et_fu_1', ['saas_inactive_user_id'], {
@@ -89,6 +89,26 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   _setTokenHolderAddress() {
     const oThis = this;
     oThis.tokenHolderAddress = oThis.userData.tokenHolderAddress;
+  }
+
+  /**
+   *
+   * set user data for oThis.userId
+   *
+   * @private
+   */
+  _setCurrentUserData() {
+    // do nothing as passed as params
+  }
+
+  /**
+   *
+   * set token shard details
+   *
+   * @private
+   */
+  _setTokenShardDetails() {
+    // do nothing as passed as params
   }
 
   /**

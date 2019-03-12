@@ -32,6 +32,8 @@ const rootPrefix = '../../../..',
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   ProcessTokenRuleExecutableData = require(rootPrefix +
@@ -100,6 +102,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.pendingTransactionInserted = null;
     oThis.transactionMetaId = null;
     oThis.token = null;
+    oThis.userData = null;
     oThis.pendingTransactionData = null;
     oThis.callPrefix = null;
     oThis.executableTxData = null;
@@ -140,29 +143,55 @@ class ExecuteTxBase extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    logger.debug('execute_tx_step_: 1');
+
     await oThis._validateAndSanitize();
+
+    logger.debug('execute_tx_step_: 2');
 
     await oThis._initializeVars();
 
+    logger.debug('execute_tx_step_: 3');
+
     await oThis._processExecutableData();
+
+    logger.debug('execute_tx_step_: 4');
 
     await oThis._setSessionAddress();
 
+    logger.debug('execute_tx_step_: 5');
+
     await oThis._setNonce();
+
+    logger.debug('execute_tx_step_: 6');
 
     await oThis._setExecutableTxData();
 
+    logger.debug('execute_tx_step_: 7');
+
     await oThis._setSignature();
+
+    logger.debug('execute_tx_step_: 8');
 
     await oThis._verifySessionSpendingLimit();
 
+    logger.debug('execute_tx_step_: 9');
+
     await oThis._createTransactionMeta();
+
+    logger.debug('execute_tx_step_: 10');
 
     await oThis._performPessimisticDebit();
 
+    logger.debug('execute_tx_step_: 11');
+
     await oThis._createPendingTransaction();
 
+    logger.debug('execute_tx_step_: 12');
+
     await oThis._publishToRMQ();
+
+    logger.debug('execute_tx_step_: 13');
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -196,6 +225,10 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     await oThis._setTokenAddresses();
+
+    await oThis._setTokenShardDetails();
+
+    await oThis._setCurrentUserData();
 
     await oThis._setTokenHolderAddress();
 
@@ -248,26 +281,43 @@ class ExecuteTxBase extends ServiceBase {
     oThis.estimatedTransfers = responseData.estimatedTransfers;
     oThis.gas = responseData.gas;
 
-    await oThis._setUserUuidsInEstimatedTransfers(responseData.affectedTokenHolderAddresses);
+    await oThis._setUserUuidsInEstimatedTransfers(responseData.transferToAddresses);
   }
 
   /**
    *
-   * @param {Array} affectedTokenHolderAddresses
+   * set user uuids
+   *
+   * @param {Array} transferToAddresses
    *
    * @private
    */
-  async _setUserUuidsInEstimatedTransfers(affectedTokenHolderAddresses) {
+  async _setUserUuidsInEstimatedTransfers(transferToAddresses) {
     const oThis = this;
     let UserDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
       userDetailRsp = await new UserDetailCache({
-        tokenHolderAddresses: affectedTokenHolderAddresses,
-        tokenId: oThis.tokenId
+        tokenId: oThis.tokenId,
+        tokenHolderAddresses: transferToAddresses,
+        shardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
       }).fetch();
     if (userDetailRsp.isFailure()) {
       return Promise.reject(userDetailRsp);
     }
+
     let userDetailsData = userDetailRsp.data;
+
+    //merge oThis.userId's data in user details
+    userDetailsData[oThis.userData['tokenHolderAddress']] = oThis.userData;
+
+    for (let i = 0; i < transferToAddresses.length; i++) {
+      let userDetail = userDetailsData[transferToAddresses[i]];
+      if (!CommonValidators.validateObject(userDetail)) {
+        return oThis._validationError('s_et_b_5', ['invalid_raw_calldata_parameter_address'], {
+          transferToAddresses: transferToAddresses
+        });
+      }
+    }
+
     for (let i = 0; i < oThis.estimatedTransfers.length; i++) {
       let estimatedTransfer = oThis.estimatedTransfers[i],
         fromUserData = userDetailsData[estimatedTransfer.fromAddress],
@@ -509,10 +559,12 @@ class ExecuteTxBase extends ServiceBase {
       });
     }
 
-    await new NonceForSession({
-      address: oThis.sessionKeyAddress,
-      chainId: oThis.auxChainId
-    }).clear();
+    if (oThis.sessionKeyAddress) {
+      await new NonceForSession({
+        address: oThis.sessionKeyAddress,
+        chainId: oThis.auxChainId
+      }).clear();
+    }
   }
 
   /**
@@ -653,11 +705,39 @@ class ExecuteTxBase extends ServiceBase {
     return oThis._configStrategyObject.auxChainId;
   }
 
+  /**
+   *
+   * set current user data
+   *
+   * @private
+   */
+  async _setCurrentUserData() {
+    throw 'subclass to implement';
+  }
+
+  /**
+   *
+   * set token holder address
+   *
+   * @private
+   */
   async _setTokenHolderAddress() {
     throw 'subclass to implement';
   }
 
   /**
+   *
+   * set token shard details
+   *
+   * @private
+   */
+  async _setTokenShardDetails() {
+    throw 'subclass to implement';
+  }
+
+  /**
+   *
+   * set session address wihch would sign this transaction
    *
    * @private
    */
@@ -667,20 +747,40 @@ class ExecuteTxBase extends ServiceBase {
 
   /**
    *
+   * set nonce
+   *
    * @private
    */
   async _setNonce() {
     throw 'subclass to implement';
   }
 
+  /**
+   *
+   * set signature
+   *
+   * @private
+   */
   async _setSignature() {
     throw 'subclass to implement';
   }
 
+  /**
+   *
+   * validate and sanitize params
+   *
+   * @private
+   */
   async _validateAndSanitize() {
     throw 'subclass to implement';
   }
 
+  /**
+   *
+   * verify session spending limit
+   *
+   * @private
+   */
   async _verifySessionSpendingLimit() {
     throw 'subclass to implement';
   }

@@ -115,6 +115,20 @@ const signature = {
       }
     ],
     optional: []
+  },
+
+  tokenDashboard: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
   }
 };
 
