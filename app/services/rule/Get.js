@@ -49,9 +49,7 @@ class GetRule extends ServiceBase {
     const oThis = this,
       tokenIdNamesArray = [];
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
+    await oThis._validateTokenStatus();
 
     let tokenRulesDetails = await new TokenRuleDetailsByTokenId({ tokenId: oThis.tokenId }).fetch(),
       tokenRulesData = tokenRulesDetails.data;

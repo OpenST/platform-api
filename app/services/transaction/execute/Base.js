@@ -217,12 +217,7 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    // fetch token details for client id
-    if (oThis.clientId && !oThis.token) {
-      logger.debug('oThis.clientId', oThis.clientId, oThis.token);
-      await oThis._fetchTokenDetails();
-      logger.debug('oThis.token', oThis.clientId, oThis.token);
-    }
+    await oThis._validateTokenStatus();
 
     await oThis._setTokenAddresses();
 

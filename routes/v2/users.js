@@ -27,7 +27,6 @@ require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/get/ById');
 require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
-require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
