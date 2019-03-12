@@ -57,9 +57,7 @@ class GetSessionBase extends ServiceBase {
 
     await oThis._validateAndSanitizeParams();
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
+    await oThis._validateTokenStatus();
 
     await oThis._fetchUserSessionShardNumber();
 

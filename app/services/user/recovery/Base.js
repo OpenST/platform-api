@@ -5,16 +5,16 @@
  */
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -300,28 +300,6 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Check if recovery operation can be performed or not.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _canPerformRecoveryOperation() {
-    throw new Error('Sub-class to implement.');
-  }
-
-  /**
-   * Validate input addresses with devices or recovery owners based on service.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _validateAddressStatuses() {
-    throw new Error('Sub-class to implement.');
-  }
-
-  /**
    * Fetch devices from cache.
    *
    * @returns {Promise<*>}
@@ -354,28 +332,6 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Perform recovery operation for user.
-   *
-   * @returns {Promise<Array>}
-   *
-   * @private
-   */
-  async _performRecoveryOperation() {
-    throw new Error('Sub-class to implement.');
-  }
-
-  /**
-   * Return required response as per the service.
-   *
-   * @returns {Promise<>}
-   *
-   * @private
-   */
-  async _returnResponse() {
-    throw new Error('Sub-class to implement.');
-  }
-
-  /**
    * Change Device statuses.
    *
    * @param {Object} statusMap
@@ -388,7 +344,7 @@ class UserRecoveryBase extends ServiceBase {
     const oThis = this,
       DeviceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceModel');
 
-    const promises = [],
+    const promiseArray = [],
       deviceEntities = [];
     let ddbQueryFailed = false;
 
@@ -397,7 +353,7 @@ class UserRecoveryBase extends ServiceBase {
         finalStatus = statusMap[address].final,
         deviceModelObj = new DeviceModel({ shardNumber: oThis.userData.deviceShardNumber });
 
-      promises.push(
+      promiseArray.push(
         new Promise(function(onResolve, onReject) {
           deviceModelObj
             .updateStatusFromInitialToFinal(oThis.userId, address, initialStatus, finalStatus)
@@ -417,7 +373,7 @@ class UserRecoveryBase extends ServiceBase {
       );
     }
 
-    await Promise.all(promises);
+    await Promise.all(promiseArray);
 
     // If ddb query is failed. Then reject initiate recovery request.
     if (ddbQueryFailed) {
@@ -472,6 +428,50 @@ class UserRecoveryBase extends ServiceBase {
     oThis.web3InstanceObj = web3Provider.getInstance(chainEndPoint).web3WsProvider;
 
     return oThis.web3InstanceObj;
+  }
+
+  /**
+   * Check if recovery operation can be performed or not.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _canPerformRecoveryOperation() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Validate input addresses with devices or recovery owners based on service.
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _validateAddressStatuses() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Perform recovery operation for user.
+   *
+   * @returns {Promise<Array>}
+   *
+   * @private
+   */
+  async _performRecoveryOperation() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Return required response as per the service.
+   *
+   * @returns {Promise<>}
+   *
+   * @private
+   */
+  async _returnResponse() {
+    throw new Error('Sub-class to implement.');
   }
 }
 

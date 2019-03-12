@@ -1,35 +1,36 @@
+'use strict';
 /**
- * This service initiates recovery procedure for user.
+ * This service abort existing recovery procedure for user.
  *
- * @module app/services/user/recovery/InitiateRecovery
+ * @module app/services/user/recovery/Abort
  */
 
 const OpenStJs = require('@openstfoundation/openst.js'),
-  OSTBase = require('@ostdotcom/base'),
-  RecoveryHelper = OpenStJs.Helpers.Recovery,
-  InstanceComposer = OSTBase.InstanceComposer;
+  OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  AbortRecoveryRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/abortRecovery/Router'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
-  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
-  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
-  InitRecoveryRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/initiateRecovery/Router');
+  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation');
 
+const RecoveryHelper = OpenStJs.Helpers.Recovery,
+  InstanceComposer = OSTBase.InstanceComposer;
 /**
- * Class to initiate recovery procedure for user.
+ * Class to abort existing recovery procedure for user.
  *
- * @class InitiateRecovery
+ * @class AbortRecovery
  */
-class InitiateRecovery extends UserRecoveryServiceBase {
+class AbortRecovery extends UserRecoveryServiceBase {
   /**
-   * Constructor to initiate recovery procedure for user.
+   * Constructor to abort existing recovery procedure for user.
    *
    * @param {Object} params
    * @param {Number} params.client_id
@@ -46,6 +47,10 @@ class InitiateRecovery extends UserRecoveryServiceBase {
    */
   constructor(params) {
     super(params);
+
+    const oThis = this;
+
+    oThis.initiateRecoveryOperationId = null;
   }
 
   /**
@@ -64,7 +69,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     if (oThis.oldDeviceAddress === oThis.newDeviceAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ir_1',
+          internal_error_identifier: 'a_s_u_r_ar_1',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['same_new_and_old_device_addresses'],
           debug_options: {}
@@ -86,11 +91,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     const oThis = this,
       recoveryHelperObj = new RecoveryHelper(oThis._web3Instance, oThis.recoveryContractAddress);
 
-    return recoveryHelperObj.getInitiateRecoveryData(
-      oThis.oldLinkedAddress,
-      oThis.oldDeviceAddress,
-      oThis.newDeviceAddress
-    );
+    return recoveryHelperObj.abortRecoveryData(oThis.oldLinkedAddress, oThis.oldDeviceAddress, oThis.newDeviceAddress);
   }
 
   /**
@@ -103,7 +104,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    // Fetch all recovery operations of user.
+    // Fetch all recovery operations of user
     const recoveryOperationObj = new RecoveryOperationModel(),
       recoveryOperations = await recoveryOperationObj.getPendingOperationsOfTokenUser(oThis.tokenId, oThis.userId);
 
@@ -116,7 +117,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       ) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 'a_s_u_r_ir_2',
+            internal_error_identifier: 'a_s_u_r_ar_2',
             api_error_identifier: 'another_recovery_operation_in_process',
             debug_options: {}
           })
@@ -128,19 +129,26 @@ class InitiateRecovery extends UserRecoveryServiceBase {
         operation.status ==
         recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.waitingForAdminActionStatus]
       ) {
-        return Promise.reject(
-          responseHelper.error({
-            internal_error_identifier: 'a_s_u_r_ir_3',
-            api_error_identifier: 'initiate_recovery_is_pending',
-            debug_options: {}
-          })
-        );
+        oThis.initiateRecoveryOperationId = operation.id;
       }
+    }
+
+    // If there is no pending initiate request then give error.
+    if (!oThis.initiateRecoveryOperationId) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_r_ar_3',
+          api_error_identifier: 'initiate_recovery_request_not_present',
+          debug_options: {}
+        })
+      );
     }
   }
 
   /**
-   * Validate input addresses with devices statuses
+   * Validate input addresses with device statuses
+   *
+   * @sets oThis.newDeviceAddressEntity
    *
    * @returns {Promise<never>}
    *
@@ -151,14 +159,16 @@ class InitiateRecovery extends UserRecoveryServiceBase {
 
     const devicesCacheResponse = await oThis._fetchDevices();
 
-    // Check if old device address is found or not and its status is authorized or not.
+    oThis.newDeviceAddressEntity = devicesCacheResponse[oThis.newDeviceAddress];
+
+    // Check if old device address is found or not and its status is revoking or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.oldDeviceAddress]) ||
-      devicesCacheResponse[oThis.oldDeviceAddress].status !== deviceConstants.authorizedStatus
+      devicesCacheResponse[oThis.oldDeviceAddress].status !== deviceConstants.revokingStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ir_4',
+          internal_error_identifier: 'a_s_u_r_ar_4',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['invalid_old_device_address'],
           debug_options: {}
@@ -166,14 +176,14 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       );
     }
 
-    // Check if new device address is found or not and its status is registered or not.
+    // Check if new device address is found or not and its status is recovering or not.
     if (
       !CommonValidators.validateObject(devicesCacheResponse[oThis.newDeviceAddress]) ||
-      devicesCacheResponse[oThis.newDeviceAddress].status !== deviceConstants.registeredStatus
+      devicesCacheResponse[oThis.newDeviceAddress].status !== deviceConstants.recoveringStatus
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_ir_5',
+          internal_error_identifier: 'a_s_u_r_ar_5',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['invalid_new_device_address'],
           debug_options: {}
@@ -185,8 +195,6 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   /**
    * Initiate recovery for user.
    *
-   * @sets oThis.newDeviceAddressEntity
-   *
    * @returns {Promise<never>}
    *
    * @private
@@ -194,41 +202,21 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   async _performRecoveryOperation() {
     const oThis = this;
 
-    // Change old device from authorized to Revoking
-    // New device from Registered to Authorizing
-    const statusMap = {
-      [oThis.oldDeviceAddress]: {
-        initial: deviceConstants.authorizedStatus,
-        final: deviceConstants.revokingStatus
-      },
-      [oThis.newDeviceAddress]: {
-        initial: deviceConstants.registeredStatus,
-        final: deviceConstants.recoveringStatus
-      }
-    };
-    const devicesInfo = await oThis._changeDeviceStatuses(statusMap);
-
-    for (let index = 0; index < devicesInfo.length; index++) {
-      if (devicesInfo[index].walletAddress === oThis.newDeviceAddress) {
-        oThis.newDeviceAddressEntity = devicesInfo[index];
-      }
-    }
-
     const recOperation = await new RecoveryOperationModel()
       .insert({
         token_id: oThis.tokenId,
         user_id: oThis.userId,
-        kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind],
+        kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.abortRecoveryByUserKind],
         status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
       })
       .fire();
 
-    // Start Initiate Recovery workflow
-    await oThis._startInitiateRecoveryWorkflow(recOperation.insertId);
+    // Start Abort Recovery workflow
+    await oThis._startAbortRecoveryWorkflow(recOperation.insertId);
   }
 
   /**
-   * Start initiate recovery workflow.
+   * Start abort recovery workflow.
    *
    * @param {String/Number} recoveryOperationId
    *
@@ -236,38 +224,38 @@ class InitiateRecovery extends UserRecoveryServiceBase {
    *
    * @private
    */
-  async _startInitiateRecoveryWorkflow(recoveryOperationId) {
+  async _startAbortRecoveryWorkflow(recoveryOperationId) {
     const oThis = this;
 
     const requestParams = {
         auxChainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
-        clientId: oThis.clientId,
         oldLinkedAddress: oThis.oldLinkedAddress,
         oldDeviceAddress: oThis.oldDeviceAddress,
         newDeviceAddress: oThis.newDeviceAddress,
         signature: oThis.signature,
         deviceShardNumber: oThis.deviceShardNumber,
         recoveryAddress: oThis.recoveryContractAddress,
-        recoveryOperationId: recoveryOperationId
+        recoveryOperationId: recoveryOperationId,
+        initiateRecoveryOperationId: oThis.initiateRecoveryOperationId
       },
       initParams = {
-        stepKind: workflowStepConstants.initiateRecoveryInit,
+        stepKind: workflowStepConstants.abortRecoveryByOwnerInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
         chainId: oThis.auxChainId,
-        topic: workflowTopicConstants.initiateRecovery,
+        topic: workflowTopicConstants.abortRecoveryByOwner,
         requestParams: requestParams
       };
 
-    const initRecoveryObj = new InitRecoveryRouter(initParams),
-      response = await initRecoveryObj.perform();
+    const abortRecoveryObj = new AbortRecoveryRouter(initParams),
+      response = await abortRecoveryObj.perform();
 
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_ir_6',
+          internal_error_identifier: 'a_s_u_r_ar_6',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
@@ -293,6 +281,6 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(InitiateRecovery, coreConstants.icNameSpace, 'InitiateRecovery');
+InstanceComposer.registerAsShadowableClass(AbortRecovery, coreConstants.icNameSpace, 'AbortRecovery');
 
 module.exports = {};

@@ -11,6 +11,7 @@ const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
@@ -97,6 +98,30 @@ class ServicesBaseKlass {
     oThis.token = response.data;
     oThis.tokenId = oThis.token.id;
     oThis.delayedRecoveryInterval = oThis.token.delayedRecoveryInterval;
+  }
+
+  /**
+   * Validate token status
+   *
+   * @returns {Promise<Void>}
+   * @private
+   */
+  async _validateTokenStatus() {
+    const oThis = this;
+
+    if (!oThis.token) {
+      await oThis._fetchTokenDetails();
+    }
+
+    if (!oThis.token || oThis.token.status != tokenConstants.invertedStatuses[tokenConstants.deploymentCompleted]) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_b_3',
+          api_error_identifier: 'token_not_setup',
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
