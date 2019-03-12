@@ -137,8 +137,6 @@ class GetPendingRecovery extends ServiceBase {
       oThis.userId
     );
 
-    if (!recoveryOperations.length) return;
-
     // There are pending recovery operations of user, so check for devices involved
     for (let index = 0; index < recoveryOperations.length; index++) {
       const operation = recoveryOperations[index];
