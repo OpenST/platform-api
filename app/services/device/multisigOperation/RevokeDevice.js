@@ -21,7 +21,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
   RevokeDeviceRouter = require(rootPrefix + '/lib/workflow/revokeDevice/Router'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   WorkflowModelKlass = require(rootPrefix + '/app/models/mysql/Workflow'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
@@ -208,7 +208,7 @@ class RevokeDevice extends Base {
   async _validatePendingRecoveryOfDeviceUser() {
     const oThis = this;
 
-    let recoveryOperations = await new RecoveryOperationModelKlass().getPendingOperationsOfTokenUser(
+    let recoveryOperations = await new RecoveryOperationModel().getPendingOperationsOfTokenUser(
       oThis.tokenId,
       oThis.userId
     );

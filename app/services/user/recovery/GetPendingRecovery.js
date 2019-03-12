@@ -14,7 +14,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   WorkflowCacheKlass = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -128,7 +128,7 @@ class GetPendingRecovery extends ServiceBase {
   async _fetchPendingRecoveryOperation() {
     const oThis = this;
 
-    let recoveryOperations = await new RecoveryOperationModelKlass().getPendingOperationsOfTokenUser(
+    let recoveryOperations = await new RecoveryOperationModel().getPendingOperationsOfTokenUser(
       oThis.tokenId,
       oThis.userId
     );
