@@ -61,12 +61,22 @@ class RevokeSession extends Base {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+    if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_rs_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    }
 
     let rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'revokeSession') {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_rs_1',
+          internal_error_identifier: 'a_s_s_mo_rs_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_method'],
           debug_options: {}
@@ -78,7 +88,7 @@ class RevokeSession extends Base {
     if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_rs_2',
+          internal_error_identifier: 'a_s_s_mo_rs_3',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
           debug_options: {}
@@ -104,7 +114,7 @@ class RevokeSession extends Base {
     if (!sesseionDetails || sesseionDetails.status !== sessionConstants.authorizedStatus) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_rs_3',
+          internal_error_identifier: 'a_s_s_mo_rs_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_session_address'],
           debug_options: {}
@@ -153,7 +163,7 @@ class RevokeSession extends Base {
     if (updateResponse.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_rs_4',
+          internal_error_identifier: 'a_s_s_mo_rs_5',
           api_error_identifier: 'could_not_proceed',
           debug_options: {}
         })
