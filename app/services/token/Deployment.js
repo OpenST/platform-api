@@ -83,7 +83,10 @@ class Deployment {
       return Promise.reject(tokenDeploymentResponse);
     }
 
-    await oThis._grantEthOst();
+    // Grant Eth only if its sandbox environment.
+    if (basicHelper.isSandboxSubEnvironment()) {
+      await oThis._grantEthOst();
+    }
 
     return tokenDeploymentResponse;
   }

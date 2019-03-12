@@ -18,7 +18,7 @@ const rootPrefix = '../../../..',
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
-  RecoveryOperationModelKlass = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
   InitRecoveryRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/initiateRecovery/Router');
 
@@ -104,7 +104,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
     const oThis = this;
 
     // Fetch all recovery operations of user.
-    const recoveryOperationObj = new RecoveryOperationModelKlass(),
+    const recoveryOperationObj = new RecoveryOperationModel(),
       recoveryOperations = await recoveryOperationObj.getPendingOperationsOfTokenUser(oThis.tokenId, oThis.userId);
 
     for (let index in recoveryOperations) {
@@ -214,7 +214,7 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       }
     }
 
-    const recOperation = await new RecoveryOperationModelKlass()
+    const recOperation = await new RecoveryOperationModel()
       .insert({
         token_id: oThis.tokenId,
         user_id: oThis.userId,

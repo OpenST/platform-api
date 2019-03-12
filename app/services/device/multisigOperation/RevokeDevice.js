@@ -21,12 +21,15 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
   RevokeDeviceRouter = require(rootPrefix + '/lib/workflow/revokeDevice/Router'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  WorkflowModelKlass = require(rootPrefix + '/app/models/mysql/Workflow'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
+require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
  * Class to revoke device multi sig operation
@@ -164,6 +167,8 @@ class RevokeDevice extends Base {
       );
     }
 
+    await oThis._validatePendingRecoveryOfDeviceUser();
+
     return responseHelper.successWithData({});
   }
 
@@ -192,6 +197,61 @@ class RevokeDevice extends Base {
     }
 
     return previousOwnersMapRsp.data[oThis.deviceAddressToRemove];
+  }
+
+  /**
+   * Validate Device address is part of some pending recovery operation of user.
+   *
+   * @returns {Promise<Void>}
+   * @private
+   */
+  async _validatePendingRecoveryOfDeviceUser() {
+    const oThis = this;
+
+    let recoveryOperations = await new RecoveryOperationModel().getPendingOperationsOfTokenUser(
+      oThis.tokenId,
+      oThis.userId
+    );
+
+    // There are pending recovery operations of user, so check for devices involved
+    if (recoveryOperations.length > 0) {
+      let workflowIds = [];
+      for (let index in recoveryOperations) {
+        const operation = recoveryOperations[index];
+        workflowIds.push(operation.workflow_id);
+      }
+      // Fetch workflow details of pending operations
+      let pendingWorkflowDetails = await new WorkflowModelKlass()
+        .select('*')
+        .where(['id IN (?)', workflowIds])
+        .fire();
+
+      for (let index in pendingWorkflowDetails) {
+        const workflow = pendingWorkflowDetails[index],
+          recoveryParams = JSON.parse(workflow.request_params);
+        // Check if addresses involved in recovery operation matches with device address which needs to be revoked.
+        if (
+          [recoveryParams.oldDeviceAddress, recoveryParams.oldLinkedAddress, recoveryParams.newDeviceAddress].includes(
+            oThis.deviceAddressToRemove
+          )
+        ) {
+          logger.error(
+            'Device ',
+            oThis.deviceAddressToRemove,
+            ' involved in recovery operation workflow ',
+            workflow.id
+          );
+          return Promise.reject(
+            responseHelper.paramValidationError({
+              internal_error_identifier: 'a_s_dm_mo_rd_8',
+              api_error_identifier: 'invalid_api_params',
+              params_error_identifiers: ['device_involved_in_recovery_operation'],
+              debug_options: {}
+            })
+          );
+        }
+      }
+    }
   }
 
   /**
