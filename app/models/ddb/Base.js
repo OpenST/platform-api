@@ -665,8 +665,8 @@ class ModelBaseKlass {
 
     logger.debug('Error: ', errorObject);
     if (responseHelper.isCustomResult(errorObject)) {
-      finalErrorObject.internal_error_identifier = `${finalErrorObject.internal_error_identifier}:${
-        errorObject.internalErrorCode
+      finalErrorObject.internal_error_identifier = `${errorObject.internalErrorCode}:${
+        finalErrorObject.internal_error_identifier
       }`;
     }
 

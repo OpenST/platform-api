@@ -216,7 +216,7 @@ class Balance extends Base {
       return Promise.reject(
         oThis._prepareErrorObject({
           errorObject: updateBalanceResponse,
-          internalErrorCode: 'a_m_d_dh_b_1',
+          internalErrorCode: `a_m_d_dh_b_1:${errorConstant.insufficientFunds}`,
           apiErrorIdentifier: apiErrorIdentifier,
           debugOptions: debugOptions
         })
