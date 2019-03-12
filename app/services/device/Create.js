@@ -82,7 +82,7 @@ class CreateDevice extends ServiceBase {
 
     oThis._sanitize();
 
-    await oThis._fetchTokenDetails();
+    await oThis._validateTokenStatus();
 
     return oThis._create();
   }
