@@ -41,6 +41,7 @@ class EmailServiceApiCallHook extends ModelBase {
    * @param {Integer} params.receiverEntityKind
    * @param {Integer} params.eventType
    * @param {Integer} params.customDescription
+   * @param {Integer} params.templateDetails
    *
    * @returns {*}
    */
@@ -56,18 +57,16 @@ class EmailServiceApiCallHook extends ModelBase {
       throw 'Mandatory parameters are missing. Expected an object with the following keys: {receiverEntityId, receiverEntityKind, eventType, customDescription }';
     }
 
-    let insertResponse = await oThis
+    return oThis
       .insert({
         receiver_entity_id: params.receiverEntityId,
         receiver_entity_kind: emailServiceConstants.getInvertedReceiverEntityKinds[params.receiverEntityKind],
         event_type: emailServiceConstants.getInvertedEventTypes[params.eventType],
-        execution_timestamp: params.executionTimestamp || Date.now(),
+        execution_timestamp: params.executionTimestamp || Math.floor(Date.now() / 1000),
         custom_description: params.customDescription || null,
-        params: params
+        params: JSON.stringify(params)
       })
       .fire();
-
-    return Promise.resolve(responseHelper.successWithData(insertResponse.insertId));
   }
 }
 
