@@ -26,7 +26,6 @@ class GatewayComposer {
     const oThis = this;
 
     oThis.tokenId = params.token_id;
-    oThis.stakerAddress = params.staker_address;
 
     oThis.responseData = {};
   }
