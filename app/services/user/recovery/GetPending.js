@@ -11,7 +11,6 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
-  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -24,6 +23,7 @@ const InstanceComposer = OSTBase.InstanceComposer;
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/lib/cacheManagement/chain/UserPendingRecoveryOperations');
 
 class GetPendingRecovery extends ServiceBase {
   /**
@@ -132,10 +132,11 @@ class GetPendingRecovery extends ServiceBase {
   async _fetchPendingRecoveryOperation() {
     const oThis = this;
 
-    let recoveryOperations = await new RecoveryOperationModel().getPendingOperationsOfTokenUser(
-      oThis.tokenId,
-      oThis.userId
-    );
+    let UserRecoveryOpsCache = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserPendingRecoveryOperations'),
+      recoveryOperationsResp = await new UserRecoveryOpsCache({ tokenId: oThis.tokenId, userId: oThis.userId }).fetch(),
+      recoveryOperations = recoveryOperationsResp.data.recoveryOperations || [];
 
     // There are pending recovery operations of user, so check for devices involved
     for (let index = 0; index < recoveryOperations.length; index++) {
