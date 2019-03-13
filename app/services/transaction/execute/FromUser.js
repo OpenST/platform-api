@@ -18,6 +18,7 @@ const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   signValidator = require(rootPrefix + '/lib/validators/Sign'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
@@ -65,15 +66,25 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+    if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_et_fu_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    }
 
     if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
-      return oThis._validationError('s_et_fu_1', ['saas_inactive_user_id'], {
+      return oThis._validationError('a_s_et_fu_2', ['saas_inactive_user_id'], {
         saasApiStatus: oThis.userData.saasApiStatus
       });
     }
 
     if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
-      return oThis._validationError('s_et_fu_2', ['inactive_user_id'], {
+      return oThis._validationError('a_s_et_fu_3', ['inactive_user_id'], {
         status: oThis.userData.status
       });
     }
@@ -147,7 +158,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     if (!signatureVerifyRsp.isValid) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_fu_3',
+          internal_error_identifier: 'a_s_et_fu_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_signer_address'],
           debug_options: {
@@ -170,8 +181,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   async _verifySessionSpendingLimit() {
     const oThis = this;
 
-    if (oThis.pessimisticDebitAmount.gte(new BigNumber(oThis.sessionData.spendingLimit))) {
-      return oThis._validationError('s_et_fu_4', ['session_key_spending_limit_breached'], {
+    if (oThis.pessimisticDebitAmount.gt(new BigNumber(oThis.sessionData.spendingLimit))) {
+      return oThis._validationError('a_s_et_fu_5', ['session_key_spending_limit_breached'], {
         spendingLimit: basicHelper.formatWeiToString(oThis.sessionData.spendingLimit),
         pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
       });
@@ -203,13 +214,13 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.sessionData = sessionFetchRsp.data[oThis.sessionKeyAddress];
 
     if (!oThis.sessionData) {
-      return oThis._validationError('s_et_b_7', ['invalid_signer_address'], {
+      return oThis._validationError('a_s_et_fu_6', ['invalid_signer_address'], {
         sessionKeyAddress: oThis.sessionKeyAddress
       });
     }
 
     if (oThis.sessionData.status !== sessionConstants.authorizedStatus) {
-      return oThis._validationError('s_et_b_8', ['session_key_not_authorized'], {
+      return oThis._validationError('a_s_et_fu_7', ['session_key_not_authorized'], {
         sessionData: oThis.sessionData
       });
     }

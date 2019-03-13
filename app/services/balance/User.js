@@ -68,9 +68,7 @@ class GetUserBalance extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
+    await oThis._validateTokenStatus();
 
     if (!oThis.tokenShardDetails) {
       await oThis._fetchTokenShardNumbers();

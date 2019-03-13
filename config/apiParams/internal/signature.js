@@ -97,7 +97,7 @@ const signature = {
       },
       {
         parameter: 'total_gas_for_mint',
-        validatorMethod: 'validateInteger'
+        validatorMethod: 'validateNonZeroWeiValue'
       }
     ],
     optional: []

@@ -8,6 +8,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '..',
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
   ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -75,21 +76,21 @@ class RoutesHelper {
     const oThis = this,
       errorConfig = basicHelper.fetchErrorConfig(req.decodedParams.apiVersion);
 
-    /*if (
+    if (
       req.decodedParams.app_validated_api_name != apiName.allInternalRoutes &&
       req.decodedParams.app_validated_api_name != req.decodedParams.apiName
     ) {
       return responseHelper
         .error({
           internal_error_identifier: 'h_ap_1',
-          api_error_identifier: 'something_went_wrong',
+          api_error_identifier: 'unauthorized_api_request',
           debug_options: {
             app_validated_api_name: req.decodedParams.app_validated_api_name,
             apiName: req.decodedParams.apiName
           }
         })
         .renderResponse(res, errorConfig);
-    }*/
+    }
 
     const apiParamsValidatorRsp = await new ApiParamsValidator({
       api_name: req.decodedParams.apiName,

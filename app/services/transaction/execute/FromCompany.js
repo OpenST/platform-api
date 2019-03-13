@@ -56,6 +56,17 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+
+    if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_et_fc_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
@@ -104,7 +115,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
 
     oThis.userData = tokenUserDetailsCacheRsp.data[oThis.userId];
     if (!CommonValidators.validateObject(oThis.userData)) {
-      return oThis._validationError('s_et_fc_1', ['invalid_user_id'], {
+      return oThis._validationError('a_s_et_fc_2', ['invalid_user_id'], {
         userId: oThis.userId
       });
     }
@@ -119,19 +130,19 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const oThis = this;
 
     if (oThis.userData.kind !== tokenUserConstants.companyKind) {
-      return oThis._validationError('s_et_fc_2', ['invalid_user_id'], {
+      return oThis._validationError('a_s_et_fc_3', ['invalid_user_id'], {
         userKind: oThis.userData.kind
       });
     }
 
     if (oThis.userData.saasApiStatus !== tokenUserConstants.saasApiActiveStatus) {
-      return oThis._validationError('s_et_fc_3', ['saas_inactive_user_id'], {
+      return oThis._validationError('a_s_et_fc_4', ['saas_inactive_user_id'], {
         saasApiStatus: oThis.userData.saasApiStatus
       });
     }
 
     if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
-      return oThis._validationError('s_et_fc_4', ['inactive_user_id'], {
+      return oThis._validationError('a_s_et_fc_5', ['inactive_user_id'], {
         status: oThis.userData.status
       });
     }
@@ -153,7 +164,8 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       userSessionAddressCache = new UserSessionAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
-        shardNumber: oThis.sessionShardNumber
+        shardNumber: oThis.sessionShardNumber,
+        page: 1
       }),
       userSessionAddressCacheResp = await userSessionAddressCache.fetch();
 
@@ -162,7 +174,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     }
 
     if (userSessionAddressCacheResp.data['addresses'].length === 0) {
-      return oThis._validationError('s_et_fc_5', ['session_not_found'], {
+      return oThis._validationError('a_s_et_fc_6', ['session_not_found'], {
         userId: oThis.userId
       });
     }
@@ -192,7 +204,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     }
 
     if (allowedSessionKeys.length === 0) {
-      return oThis._validationError('s_et_fc_6', ['session_key_spending_limit_breached'], {
+      return oThis._validationError('a_s_et_fc_7', ['session_key_spending_limit_breached'], {
         spendingLimit: basicHelper.formatWeiToString(sessionData.spendingLimit),
         pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
       });
@@ -281,7 +293,7 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
       sessionsByAddressCacheRsp = await sessionsByAddressCache.fetch();
 
     if (sessionsByAddressCacheRsp.isFailure()) {
-      return oThis._validationError('s_et_fc_7', ['invalid_session_addresses'], {
+      return oThis._validationError('a_s_et_fc_8', ['invalid_session_addresses'], {
         userId: oThis.userId
       });
     }

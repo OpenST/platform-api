@@ -6,12 +6,15 @@ const express = require('express'),
   path = require('path'),
   createNamespace = require('continuation-local-storage').createNamespace,
   morgan = require('morgan'),
-  cookieParser = require('cookie-parser'),
   bodyParser = require('body-parser'),
   helmet = require('helmet'),
   customUrlParser = require('url'),
   cluster = require('cluster'),
   http = require('http');
+
+let bind, port;
+
+let onlineWorker = 0;
 
 const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   emailNotifier = require(rootPrefix + '/lib/notifier'),
@@ -38,9 +41,10 @@ morgan.token('id', function getId(req) {
 });
 
 morgan.token('endTime', function getendTime(req) {
-  var hrTime = process.hrtime();
+  let hrTime = process.hrtime();
   return hrTime[0] * 1000 + hrTime[1] / 1000000;
 });
+
 morgan.token('endDateTime', function getEndDateTime(req) {
   return basicHelper.logDateFormat();
 });
@@ -58,6 +62,13 @@ const startRequestLogLine = function(req, res, next) {
   next();
 };
 
+/**
+ * Assign params
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 const assignParams = function(req, res, next) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
   // Also override any request params, related to signatures
@@ -67,14 +78,31 @@ const assignParams = function(req, res, next) {
   next();
 };
 
+/**
+ * Get request params
+ *
+ * @param req
+ * @return {*}
+ */
 const getRequestParams = function(req) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
-  if (req.method == 'POST') {
+  if (req.method === 'POST') {
     return req.body;
-  } else if (req.method == 'GET') {
+  } else if (req.method === 'GET') {
     return req.query;
+  } else {
+    return {};
   }
 };
+
+/**
+ * Validate API signature
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @return {Promise|*|{$ref}|PromiseLike<T>|Promise<T>}
+ */
 const validateApiSignature = function(req, res, next) {
   let inputParams = getRequestParams(req);
 
@@ -96,6 +124,7 @@ const validateApiSignature = function(req, res, next) {
     }
   };
 
+  // Following line always gives resolution. In case this assumption changes, please add catch here.
   return new ValidateApiSignature({
     inputParams: inputParams,
     requestPath: customUrlParser.parse(req.originalUrl).pathname,
@@ -107,10 +136,12 @@ const validateApiSignature = function(req, res, next) {
 
 // before action for verifying the jwt token and setting the decoded info in req obj
 const decodeJwt = function(req, res, next) {
-  if (req.method == 'POST') {
-    var token = req.body.token || '';
-  } else if (req.method == 'GET') {
-    var token = req.query.token || '';
+  let token;
+
+  if (req.method === 'POST') {
+    token = req.body.token || '';
+  } else if (req.method === 'GET') {
+    token = req.query.token || '';
   }
 
   // Set the decoded params in the re and call the next in control flow.
@@ -156,7 +187,7 @@ const appendRequestDebugInfo = function(req, res, next) {
   });
 };
 
-// check system service statuses and return error if they are down
+// In order to put Saas into maintenance, set systemServiceStatusesCache with saas_api_available = 0
 const checkSystemServiceStatuses = async function(req, res, next) {
   const statusRsp = await systemServiceStatusesCache.fetch();
   if (statusRsp.isSuccess && statusRsp.data && statusRsp.data['saas_api_available'] != 1) {
@@ -172,6 +203,12 @@ const checkSystemServiceStatuses = async function(req, res, next) {
   next();
 };
 
+/**
+ * Handle deprecated routes
+ * @param req
+ * @param res
+ * @param next
+ */
 const handleDepricatedRoutes = function(req, res, next) {
   return responseHelper
     .error({
@@ -182,18 +219,35 @@ const handleDepricatedRoutes = function(req, res, next) {
     .renderResponse(res, errorConfig);
 };
 
+/**
+ * Append internal version
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 const appendInternalVersion = function(req, res, next) {
   req.decodedParams.apiVersion = apiVersions.internal;
   next();
 };
 
+/**
+ * Append V2 version
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
 const appendV2Version = function(req, res, next) {
   req.decodedParams.apiVersion = apiVersions.v2;
   next();
 };
 
+/**
+ * Kill master after online worker count reaches 0
+ */
 const killMasterIfAllWorkersDied = function() {
-  if (onlineWorker == 0) {
+  if (onlineWorker === 0) {
     logger.log('Killing master as all workers are dead.');
     process.exit(1);
   }
@@ -205,9 +259,9 @@ if (cluster.isMaster) {
   process.title = 'Company Restful API node master';
 
   // Fork workers equal to number of CPUs
-  const numWorkers = process.env.OST_CACHING_ENGINE == 'none' ? 1 : process.env.WORKERS || require('os').cpus().length;
+  const numWorkers = process.env.OST_CACHING_ENGINE === 'none' ? 1 : process.env.WORKERS || require('os').cpus().length;
 
-  for (var i = 0; i < numWorkers; i++) {
+  for (let i = 0; i < numWorkers; i++) {
     // Spawn a new worker process.
     cluster.fork();
   }
@@ -216,7 +270,6 @@ if (cluster.isMaster) {
   cluster.on('listening', function(worker, address) {
     logger.info(`[worker-${worker.id} ] is listening to ${address.port}`);
   });
-  var onlineWorker = 0;
   // Worker came online. Will start listening shortly
   cluster.on('online', function(worker) {
     logger.info(`[worker-${worker.id}] is online`);
@@ -253,7 +306,7 @@ if (cluster.isMaster) {
   // When someone try to kill the master process
   // kill <master process id>
   process.on('SIGTERM', function() {
-    for (var id in cluster.workers) {
+    for (let id in cluster.workers) {
       cluster.workers[id].exitedAfterDisconnect = true;
     }
     setInterval(killMasterIfAllWorkersDied, 10);
@@ -270,8 +323,9 @@ if (cluster.isMaster) {
   // Create express application instance
   const app = express();
 
-  // Load custom middleware and set the worker id
+  // Add id and startTime to request
   app.use(customMiddleware({ worker_id: cluster.worker.id }));
+
   // Load Morgan
   app.use(
     morgan(
@@ -279,10 +333,15 @@ if (cluster.isMaster) {
     )
   );
 
+  // Helmet helps secure Express apps by setting various HTTP headers.
   app.use(helmet());
+
+  // Node.js body parsing middleware.
   app.use(bodyParser.json());
+
+  // Parsing the URL-encoded data with the qs library (extended: true)
   app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(cookieParser());
+
   app.use(express.static(path.join(__dirname, 'public')));
 
   // Mark older routes as UNSUPPORTED_VERSION
@@ -298,7 +357,6 @@ if (cluster.isMaster) {
     The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
     Docs: https://www.npmjs.com/package/sanitize-html
   */
-
   app.use(
     '/' + environmentInfo.urlPrefix + '/internal',
     startRequestLogLine,
@@ -360,22 +418,18 @@ if (cluster.isMaster) {
    * Get port from environment and store in Express.
    */
 
-  var port = normalizePort(process.env.PORT || '7001');
+  port = normalizePort(process.env.PORT || '7001');
   app.set('port', port);
 
-  /**
-   * Create HTTP server.
-   */
+  // Creating the server EventEmitter using the app request handler.
+  let server = http.createServer(app);
 
-  var server = http.createServer(app);
-
-  /**
-   * Listen on provided port, on all network interfaces.
-   */
-
-  server.listen(port, 443);
+  // Start listening to port
+  server.listen(port);
   server.on('error', onError);
-  server.on('listening', onListening);
+  server.on('listening', function() {
+    return onListening(server);
+  });
 }
 
 /**
@@ -383,7 +437,7 @@ if (cluster.isMaster) {
  */
 
 function normalizePort(val) {
-  var port = parseInt(val, 10);
+  port = parseInt(val, 10);
 
   if (isNaN(port)) {
     // named pipe
@@ -407,7 +461,7 @@ function onError(error) {
     throw error;
   }
 
-  let bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
@@ -430,7 +484,7 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening() {
+function onListening(server) {
   let addr = server.address();
-  var bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
 }

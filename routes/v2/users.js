@@ -27,7 +27,6 @@ require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/get/ById');
 require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
-require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
@@ -35,9 +34,10 @@ require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/get/ById');
 require(rootPrefix + '/app/services/transaction/get/ByUserId');
 
-require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
-require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
+require(rootPrefix + '/app/services/user/recovery/Initiate');
+require(rootPrefix + '/app/services/user/recovery/Abort');
 require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
+require(rootPrefix + '/app/services/user/recovery/GetPending');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');
@@ -129,6 +129,34 @@ router.post('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(re
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'CreateDevice', 'r_v2_u_4', null, dataFormatterFunc));
+});
+
+/* Get user pending recovery request */
+router.get('/:user_id/devices/pending-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.userPendingRecovery;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    let devices = serviceResponse.data[resultType.devices],
+      formattedDevices = [],
+      buffer;
+
+    for (let deviceUuid in devices) {
+      buffer = devices[deviceUuid];
+      if (!CommonValidators.validateObject(buffer)) {
+        continue;
+      }
+      formattedDevices.push(await new DeviceFormatter(devices[deviceUuid]).perform().data);
+    }
+
+    serviceResponse.data = {
+      result_type: resultType.devices,
+      [resultType.devices]: formattedDevices
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetPendingRecovery', 'r_v2_u_16', null, dataFormatterFunc));
 });
 
 /* Get devices by userId */

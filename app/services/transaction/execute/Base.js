@@ -143,29 +143,55 @@ class ExecuteTxBase extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    logger.debug('execute_tx_step_: 1');
+
     await oThis._validateAndSanitize();
+
+    logger.debug('execute_tx_step_: 2');
 
     await oThis._initializeVars();
 
+    logger.debug('execute_tx_step_: 3');
+
     await oThis._processExecutableData();
+
+    logger.debug('execute_tx_step_: 4');
 
     await oThis._setSessionAddress();
 
+    logger.debug('execute_tx_step_: 5');
+
     await oThis._setNonce();
+
+    logger.debug('execute_tx_step_: 6');
 
     await oThis._setExecutableTxData();
 
+    logger.debug('execute_tx_step_: 7');
+
     await oThis._setSignature();
+
+    logger.debug('execute_tx_step_: 8');
 
     await oThis._verifySessionSpendingLimit();
 
+    logger.debug('execute_tx_step_: 9');
+
     await oThis._createTransactionMeta();
+
+    logger.debug('execute_tx_step_: 10');
 
     await oThis._performPessimisticDebit();
 
+    logger.debug('execute_tx_step_: 11');
+
     await oThis._createPendingTransaction();
 
+    logger.debug('execute_tx_step_: 12');
+
     await oThis._publishToRMQ();
+
+    logger.debug('execute_tx_step_: 13');
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -191,12 +217,7 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setWeb3Instance();
 
-    // fetch token details for client id
-    if (oThis.clientId && !oThis.token) {
-      logger.debug('oThis.clientId', oThis.clientId, oThis.token);
-      await oThis._fetchTokenDetails();
-      logger.debug('oThis.token', oThis.clientId, oThis.token);
-    }
+    await oThis._validateTokenStatus();
 
     await oThis._setTokenAddresses();
 
@@ -327,9 +348,15 @@ class ExecuteTxBase extends ServiceBase {
     await balanceObj.updateBalance(balanceUpdateParams).catch(function(updateBalanceResponse) {
       logger.error(updateBalanceResponse);
       if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.insufficientFunds)) {
-        return oThis._validationError(`s_et_b_9:${updateBalanceResponse.internalErrorCode}`, ['insufficient_funds'], {
-          balanceUpdateParams: balanceUpdateParams
-        });
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: `s_et_b_9:${updateBalanceResponse.internalErrorCode}`,
+            api_error_identifier: 'insufficient_funds',
+            debug_options: {
+              balanceUpdateParams: balanceUpdateParams
+            }
+          })
+        );
       }
       return updateBalanceResponse;
     });

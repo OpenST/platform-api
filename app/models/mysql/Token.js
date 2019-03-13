@@ -14,12 +14,7 @@ const rootPrefix = '../../..',
 
 // Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
-  statuses = {
-    '1': tokenConstants.notDeployed,
-    '2': tokenConstants.deploymentStarted,
-    '3': tokenConstants.deploymentCompleted,
-    '4': tokenConstants.deploymentFailed
-  },
+  statuses = tokenConstants.statuses,
   invertedStatuses = util.invert(statuses);
 
 /**

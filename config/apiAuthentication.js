@@ -4,179 +4,225 @@ const rootPrefix = '..',
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName');
 
-let getRequestConfig, getRequestRegexes, postRequestConfig, postRequestRegexes;
+let getRequestConfigData, getRequestRegexes, postRequestConfigData, postRequestRegexes;
 
 class ApiAuthentication {
-  get getRequestConfig() {
-    if (getRequestConfig) {
-      return getRequestConfig;
-    }
-    getRequestConfig = {
-      [apiName.getChain]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/chains/:chain_id/'
-      },
-      [apiName.getPricePoints]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/chains/:chain_id/price-points/'
-      },
-      [apiName.getToken]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/tokens/'
-      },
-      [apiName.getRules]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/rules/'
-      },
-      [apiName.getUserList]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
-        route: '/users/'
-      },
-      [apiName.getUser]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/'
-      },
-      [apiName.getUserDevices]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/'
-      },
-      [apiName.getUserDevice]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/:device_address/'
-      },
-      [apiName.getUserDeviceManager]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/device-managers/'
-      },
-      [apiName.getUserSessions]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
-        route: '/users/:user_id/sessions/'
-      },
-      [apiName.getUserSession]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/sessions/:session_address/'
-      },
-      // [apiName.getTokenHolder]: {
-      //   supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-      //   route: '/users/:user_id/token-holders/'
-      // },
-      [apiName.getUserSalt]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/salts/'
-      },
-      [apiName.getTransaction]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/transactions/:transaction_id/'
-      },
-      [apiName.getUserTransactions]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/transactions/'
-      },
-      [apiName.getUserBalance]: {
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind],
-        route: '/users/:user_id/balance/'
-      },
-      [apiName.getRecoveryOwner]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/recovery-owners/:recovery_owner_address/'
-      }
-      // Note: - Urls should end with a slash. Add config above this.
-    };
-    return getRequestConfig;
-  }
-
-  get postRequestConfig() {
-    if (postRequestConfig) {
-      return postRequestConfig;
-    }
-    postRequestConfig = {
-      [apiName.createUser]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
-        route: '/users/'
-      },
-      [apiName.activateUser]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind],
-        route: '/users/:user_id/activate-user/'
-      },
-      [apiName.createUserDevice]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
-        route: '/users/:user_id/devices/'
-      },
-      [apiName.postAuthorizeDevice]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/authorize/'
-      },
-      [apiName.postRevokeDevice]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/revoke/'
-      },
-      [apiName.postAuthorizeSession]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/sessions/authorize/'
-      },
-      [apiName.postRevokeSession]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/sessions/revoke/'
-      },
-      [apiName.executeTransactionFromUser]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/transactions/'
-      },
-      [apiName.executeTransactionFromCompany]: {
-        supportedSignatureKinds: [apiSignature.hmacKind],
-        route: '/users/:user_id/transactions/'
-      },
-      [apiName.initiateRecovery]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/initiate-recovery/'
-      },
-      [apiName.abortRecovery]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/devices/abort-recovery/'
-      },
-      [apiName.resetRecoveryOwner]: {
-        supportedSignatureKinds: [apiSignature.personalSignKind],
-        route: '/users/:user_id/recovery-owners/'
-      }
-      // Note: - Urls should end with a slash. Add config above this.
-    };
-    return postRequestConfig;
-  }
-
+  /**
+   * get requests regexes & config
+   * @return {Array}
+   */
   get getRequestsDataExtractionRegex() {
     const oThis = this;
     if (getRequestRegexes) {
       return getRequestRegexes;
     }
-    getRequestRegexes = oThis.dataExtractionRegexGenerator(oThis.getRequestConfig);
+    getRequestRegexes = oThis._dataExtractionRegexGenerator(oThis._getRequestConfig);
     return getRequestRegexes;
   }
 
+  /**
+   * post requests regexes & config
+   * @return {Array}
+   */
   get postRequestsDataExtractionRegex() {
     const oThis = this;
     if (postRequestRegexes) {
       return postRequestRegexes;
     }
-    postRequestRegexes = oThis.dataExtractionRegexGenerator(oThis.postRequestConfig);
+    postRequestRegexes = oThis._dataExtractionRegexGenerator(oThis._postRequestConfig);
     return postRequestRegexes;
   }
 
-  dataExtractionRegexGenerator(globalConfig) {
+  get _getRequestConfig() {
+    if (getRequestConfigData) {
+      return getRequestConfigData;
+    }
+
+    getRequestConfigData = [
+      {
+        apiName: apiName.getChain,
+        route: '/chains/:chain_id/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getPricePoints,
+        route: '/chains/:chain_id/price-points/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getToken,
+        route: '/tokens/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getRules,
+        route: '/rules/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserList,
+        route: '/users/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.getUser,
+        route: '/users/:user_id/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserDevices,
+        route: '/users/:user_id/devices/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.userPendingRecovery,
+        route: '/users/:user_id/devices/pending-recovery/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserDevice,
+        route: '/users/:user_id/devices/:device_address/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserDeviceManager,
+        route: '/users/:user_id/device-managers/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserSessions,
+        route: '/users/:user_id/sessions/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.getUserSession,
+        route: '/users/:user_id/sessions/:session_address/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserSalt,
+        route: '/users/:user_id/salts/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getTransaction,
+        route: '/users/:user_id/transactions/:transaction_id/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserTransactions,
+        route: '/users/:user_id/transactions/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getUserBalance,
+        route: '/users/:user_id/balance/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getRecoveryOwner,
+        route: '/users/:user_id/recovery-owners/:recovery_owner_address/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      }
+      // Note: - Urls should end with a slash. Add config above this.
+    ];
+    return getRequestConfigData;
+  }
+
+  get _postRequestConfig() {
+    if (postRequestConfigData) {
+      return postRequestConfigData;
+    }
+    postRequestConfigData = [
+      {
+        apiName: apiName.createUser,
+        route: '/users/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.activateUser,
+        route: '/users/:user_id/activate-user/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.createUserDevice,
+        route: '/users/:user_id/devices/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.postAuthorizeDevice,
+        route: '/users/:user_id/devices/authorize/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.postRevokeDevice,
+        route: '/users/:user_id/devices/revoke/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.initiateRecovery,
+        route: '/users/:user_id/devices/initiate-recovery/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.abortRecovery,
+        route: '/users/:user_id/devices/abort-recovery/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.postAuthorizeSession,
+        route: '/users/:user_id/sessions/authorize/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.postRevokeSession,
+        route: '/users/:user_id/sessions/revoke/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.executeTransactionFromUser,
+        route: '/users/:user_id/transactions/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.executeTransactionFromCompany,
+        route: '/users/:user_id/transactions/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.resetRecoveryOwner,
+        route: '/users/:user_id/recovery-owners/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      }
+      // Note: - Urls should end with a slash. Add config above this.
+    ];
+    return postRequestConfigData;
+  }
+
+  /**
+   *
+   * from the config passed create data which would be used for regex matches later
+   *
+   * @param globalConfig
+   * @return {Array}
+   */
+  _dataExtractionRegexGenerator(globalConfig) {
     let config,
       buffer,
-      regexes = {};
+      regexes = [];
 
-    for (let apiName in globalConfig) {
-      config = globalConfig[apiName];
+    for (let apiIndex = 0; apiIndex < globalConfig.length; apiIndex++) {
+      config = globalConfig[apiIndex];
 
       buffer = {
-        apiName: apiName,
-        supportedSignatureKinds: config['supportedSignatureKinds'],
+        apiName: config.apiName,
+        url: config.route,
+        supportedSignatureKinds: config.supportedSignatureKinds,
         regExMatches: ['url'],
-        regExUrl: '^' + config['route'].replace('/', '/') + '$'
+        regExUrl: '^' + config.route + '$'
       };
 
-      let dynamicVariables = config['route'].match(RegExp(':([^/]+)', 'gi')) || [];
+      let dynamicVariables = config.route.match(RegExp(':([^/]+)', 'gi')) || [];
 
       for (let i = 0; i < dynamicVariables.length; i++) {
         buffer.regExMatches.push(dynamicVariables[i].replace(':', ''));
@@ -185,9 +231,7 @@ class ApiAuthentication {
 
       buffer.regExUrl = new RegExp(buffer.regExUrl, 'i');
 
-      regexes[config['route']] = regexes[config['route']] || [];
-
-      regexes[config['route']].push(buffer);
+      regexes.push(buffer);
     }
 
     return regexes;

@@ -64,11 +64,22 @@ class AuthorizeDevice extends Base {
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
 
+    if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_ad_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    }
+
     let rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'addOwnerWithThreshold') {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_1',
+          internal_error_identifier: 'a_s_dm_mo_ad_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_method'],
           debug_options: {}
@@ -80,7 +91,7 @@ class AuthorizeDevice extends Base {
     if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_2',
+          internal_error_identifier: 'a_s_dm_mo_ad_3',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
           debug_options: {}
@@ -91,7 +102,7 @@ class AuthorizeDevice extends Base {
     if (Number(rawCallDataParameters[1]) !== 1) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_3',
+          internal_error_identifier: 'a_s_dm_mo_ad_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_threshold'],
           debug_options: {}
@@ -122,7 +133,7 @@ class AuthorizeDevice extends Base {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_4',
+          internal_error_identifier: 'a_s_dm_mo_ad_5',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_signer'],
           debug_options: {}
@@ -136,7 +147,7 @@ class AuthorizeDevice extends Base {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_ad_5',
+          internal_error_identifier: 'a_s_dm_mo_ad_6',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_device_address'],
           debug_options: {}

@@ -1,23 +1,35 @@
 'use strict';
-
+/**
+ * @file - Model for api_credentials table
+ */
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   kms = require(rootPrefix + '/lib/globalConstant/kms'),
-  encryptionPurpose = kms.clientValidationPurpose,
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  coreConstants = require(rootPrefix + '/config/coreConstants');
+
+const encryptionPurpose = kms.clientValidationPurpose;
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
-class ApiCredential extends ModelBase {
+class ApiCredentialModel extends ModelBase {
+  /**
+   * API Credentials model
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
+
     const oThis = this;
+
     oThis.tableName = 'api_credentials';
   }
 
   /***
+   * Fetch credentials for API key
    *
-   * @param apiKey
+   * @param apiKey {string} - API key
+   *
    * @return {Object}
    */
   fetchByApiKey(apiKey) {
@@ -28,9 +40,14 @@ class ApiCredential extends ModelBase {
       .fire();
   }
 
+  /**
+   * Encryption purpose
+   *
+   * @return {string}
+   */
   static get encryptionPurpose() {
     return encryptionPurpose;
   }
 }
 
-module.exports = ApiCredential;
+module.exports = ApiCredentialModel;
