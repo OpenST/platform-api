@@ -174,12 +174,6 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'invalid executable_data'
   },
-  insufficient_funds: {
-    parameter: 'signer',
-    code: 'invalid',
-    message:
-      'The account executing the transaction or transfer does not have sufficient funds to complete the transaction or transfer.'
-  },
   session_key_spending_limit_breached: {
     parameter: 'signer',
     code: 'invalid',
