@@ -544,7 +544,7 @@ class User extends Base {
       return Promise.reject(
         oThis._prepareErrorObject({
           errorObject: response,
-          internalErrorCode: 'a_m_d_s_u_5',
+          internalErrorCode: 'a_m_d_s_u_6',
           apiErrorIdentifier: 'error_in_fetching_user_ids'
         })
       );
