@@ -348,9 +348,15 @@ class ExecuteTxBase extends ServiceBase {
     await balanceObj.updateBalance(balanceUpdateParams).catch(function(updateBalanceResponse) {
       logger.error(updateBalanceResponse);
       if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.insufficientFunds)) {
-        return oThis._validationError(`s_et_b_9:${updateBalanceResponse.internalErrorCode}`, ['insufficient_funds'], {
-          balanceUpdateParams: balanceUpdateParams
-        });
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: `s_et_b_9:${updateBalanceResponse.internalErrorCode}`,
+            api_error_identifier: 'insufficient_funds',
+            debug_options: {
+              balanceUpdateParams: balanceUpdateParams
+            }
+          })
+        );
       }
       return updateBalanceResponse;
     });
