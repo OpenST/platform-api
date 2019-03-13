@@ -25,10 +25,16 @@
 ```
     * All the parameters are mandatory parameters.
 
-* Create Aux DDB Tables (Run the addChain service and pass all the necessary parameters):
+
+* Create Shared Aux DDB Tables (To be run ONLY FOR THE FIRST AUX CHAIN BEING SETUP)
 ```bash
     source set_env_vars.sh
     node executables/setup/blockScanner/initialSetup.js --chainId 2000
+```
+
+* Create Sharded Aux DDB Tables (Run the addChain service and pass all the necessary parameters):
+```bash
+    source set_env_vars.sh
     node executables/setup/blockScanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2
 ```
     * Mandatory parameters: chainId, networkId

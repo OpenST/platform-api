@@ -284,7 +284,10 @@ class TransactionParser extends MultiSubscriptionBase {
       }
     }
 
-    await oThis._updateStatusesInDb(txHashList, transactionReceiptMap);
+    await oThis._updateStatusesInDb(txHashList, transactionReceiptMap).catch(function(error) {
+      // as we have code in finalizer to check and update statuses (if needed) we ignore any errors from here and proceed
+      logger.error('_updateStatusesInDb failed in transactionParser', error);
+    });
 
     // If token transfer parsing not needed, ACK RMQ
     if (!tokenParserNeeded) {
@@ -306,8 +309,6 @@ class TransactionParser extends MultiSubscriptionBase {
 
     if (tokenTransferParserResponse.isSuccess()) {
       // Token transfer parser was successful.
-      // TODO: Add dirty balances entry in MySQL.
-      // TODO: Chainable
       logger.debug('------unAckCount -> ', oThis.unAckCount);
     } else {
       // If token transfer parsing failed.
@@ -537,11 +538,15 @@ class TransactionParser extends MultiSubscriptionBase {
         blockTimestamp: transactionReceipt.blockTimestamp
       };
 
-      promiseArray.push(pendingTransactionObj.update(updateParams));
+      promiseArray.push(
+        pendingTransactionObj.update(updateParams).catch(function(error) {
+          // as we have code in finalizer to check and update status (if needed) we ignore any errors from here and proceed
+          logger.error('_updateStatuseInDb failed in transactionParser', error);
+        })
+      );
 
-      if (promiseArray.length == TX_BATCH_SIZE) {
+      if (promiseArray.length === TX_BATCH_SIZE) {
         await Promise.all(promiseArray);
-
         promiseArray = [];
       }
     }
