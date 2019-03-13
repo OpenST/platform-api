@@ -197,7 +197,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     for (let i = 0; i < ubtbalances.length; i++) {
       let ubtbalance = ubtbalances[i];
-      new BigNumber(oThis.tokenHoldersBalance).plus(ubtbalance);
+      oThis.tokenHoldersBalance = new BigNumber(oThis.tokenHoldersBalance).plus(ubtbalance);
     }
   }
 
