@@ -29,6 +29,31 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: `Invalid API Key (Case Sensitive)`
   },
+  invalid_api_key_for_inactive_user: {
+    parameter: 'api_key',
+    code: 'invalid',
+    message: `This user has been marked as inactive.`
+  },
+  invalid_api_key_for_device_address: {
+    parameter: 'api_key',
+    code: 'invalid',
+    message: `This device has not been registered.`
+  },
+  invalid_api_key_for_revoked_device: {
+    parameter: 'api_key',
+    code: 'invalid',
+    message: `This device has been revoked.`
+  },
+  invalid_api_key_for_signer_address: {
+    parameter: 'api_key',
+    code: 'invalid',
+    message: `Invalid Api signer address.`
+  },
+  invalid_api_key_for_not_deployed_token: {
+    parameter: 'api_key',
+    code: 'invalid',
+    message: `Token Setup has not been completed.`
+  },
   expired_api_key: {
     parameter: 'api_key',
     code: 'invalid',

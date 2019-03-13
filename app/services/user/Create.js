@@ -58,9 +58,7 @@ class Create extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
+    await oThis._validateTokenStatus();
 
     oThis.userId = uuidV4();
 

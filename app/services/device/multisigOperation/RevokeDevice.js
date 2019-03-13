@@ -69,12 +69,22 @@ class RevokeDevice extends Base {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
-
-    let rawCallDataMethod = oThis.rawCalldata.method;
-    if (rawCallDataMethod != 'removeOwner') {
+    if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_mo_rd_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    }
+
+    let rawCallDataMethod = oThis.rawCalldata.method;
+    if (rawCallDataMethod !== 'removeOwner') {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_rd_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_method'],
           debug_options: {}
@@ -90,7 +100,7 @@ class RevokeDevice extends Base {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_rd_2',
+          internal_error_identifier: 'a_s_dm_mo_rd_3',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
           debug_options: {}
@@ -101,7 +111,7 @@ class RevokeDevice extends Base {
     if (Number(rawCallDataParameters[2]) !== 1) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_rd_3',
+          internal_error_identifier: 'a_s_dm_mo_rd_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_threshold'],
           debug_options: {}
@@ -132,7 +142,7 @@ class RevokeDevice extends Base {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_rd_4',
+          internal_error_identifier: 'a_s_dm_mo_rd_5',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_signer'],
           debug_options: {}
@@ -146,7 +156,7 @@ class RevokeDevice extends Base {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_rd_5',
+          internal_error_identifier: 'a_s_dm_mo_rd_6',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_device_address'],
           debug_options: {}
@@ -159,7 +169,7 @@ class RevokeDevice extends Base {
     if (previousDeviceAddress !== oThis.previousDeviceAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_dm_mo_rd_6',
+          internal_error_identifier: 'a_s_dm_mo_rd_7',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_device_address'],
           debug_options: {}
@@ -189,7 +199,7 @@ class RevokeDevice extends Base {
       logger.error('Error in fetching linked addresses');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_dm_mo_rd_7',
+          internal_error_identifier: 'a_s_dm_mo_rd_8',
           api_error_identifier: 'cache_issue',
           debug_options: {}
         })
@@ -243,7 +253,7 @@ class RevokeDevice extends Base {
           );
           return Promise.reject(
             responseHelper.paramValidationError({
-              internal_error_identifier: 'a_s_dm_mo_rd_8',
+              internal_error_identifier: 'a_s_dm_mo_rd_9',
               api_error_identifier: 'invalid_api_params',
               params_error_identifiers: ['device_involved_in_recovery_operation'],
               debug_options: {}

@@ -27,7 +27,6 @@ require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/get/ById');
 require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
-require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
@@ -35,10 +34,10 @@ require(rootPrefix + '/app/services/transaction/execute/FromUser');
 require(rootPrefix + '/app/services/transaction/get/ById');
 require(rootPrefix + '/app/services/transaction/get/ByUserId');
 
-require(rootPrefix + '/app/services/user/recovery/InitiateRecovery');
-require(rootPrefix + '/app/services/user/recovery/AbortRecovery');
+require(rootPrefix + '/app/services/user/recovery/Initiate');
+require(rootPrefix + '/app/services/user/recovery/Abort');
 require(rootPrefix + '/app/services/user/recovery/ResetRecoveryOwner');
-require(rootPrefix + '/app/services/user/recovery/GetPendingRecovery');
+require(rootPrefix + '/app/services/user/recovery/GetPending');
 
 require(rootPrefix + '/app/services/device/Create');
 require(rootPrefix + '/app/services/device/get/ByUserId');

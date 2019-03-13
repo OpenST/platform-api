@@ -65,12 +65,22 @@ class AuthorizeSession extends Base {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+    if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_as_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata'],
+          debug_options: {}
+        })
+      );
+    }
 
     let rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'authorizeSession') {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_as_1',
+          internal_error_identifier: 'a_s_s_mo_as_2',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_method'],
           debug_options: {}
@@ -82,7 +92,7 @@ class AuthorizeSession extends Base {
     if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_as_2',
+          internal_error_identifier: 'a_s_s_mo_as_3',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
           debug_options: {}
@@ -93,7 +103,7 @@ class AuthorizeSession extends Base {
     if (!CommonValidators.validateNonZeroWeiValue(rawCallDataParameters[1])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_as_3',
+          internal_error_identifier: 'a_s_s_mo_as_4',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_spending_limit'],
           debug_options: {}
@@ -104,7 +114,7 @@ class AuthorizeSession extends Base {
     if (!CommonValidators.validateNonZeroInteger(rawCallDataParameters[2])) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_as_4',
+          internal_error_identifier: 'a_s_s_mo_as_5',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_expiration_height'],
           debug_options: {}
@@ -138,7 +148,7 @@ class AuthorizeSession extends Base {
     if (oThis.expirationHeight < blockHeight + coreConstants.BUFFER_BLOCK_HEIGHT) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_as_5',
+          internal_error_identifier: 'a_s_s_mo_as_6',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_expiration_height'],
           debug_options: {}

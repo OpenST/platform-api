@@ -2,23 +2,24 @@
 /**
  * This service fetches recovery request of user which is waiting for admin action.
  *
- * @module app/services/user/recovery/GetPendingRecovery
+ * @module app/services/user/recovery/GetPending
  */
 
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
-  WorkflowCacheKlass = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
-  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common');
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation');
+
+const InstanceComposer = OSTBase.InstanceComposer;
 
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
@@ -55,13 +56,13 @@ class GetPendingRecovery extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    if (!oThis.tokenId) {
-      await oThis._fetchTokenDetails();
-    }
+    await oThis._validateTokenStatus();
 
     await oThis._getUserDetailsFromCache();
 
     await oThis._fetchPendingRecoveryOperation();
+
+    await oThis._fetchDevicesExtendedDetails();
 
     return oThis._formatApiResponse();
   }
@@ -84,6 +85,7 @@ class GetPendingRecovery extends ServiceBase {
 
     if (tokenUserDetailsCacheRsp.isFailure()) {
       logger.error('Could not fetched token user details.');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_r_gpr_1',
@@ -93,9 +95,10 @@ class GetPendingRecovery extends ServiceBase {
       );
     }
 
-    const details = tokenUserDetailsCacheRsp.data[oThis.userId];
+    const userData = tokenUserDetailsCacheRsp.data[oThis.userId];
 
-    if (!CommonValidators.validateObject(details)) {
+    // error out if user data not fetched.
+    if (!CommonValidators.validateObject(userData)) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_gpr_2',
@@ -106,7 +109,8 @@ class GetPendingRecovery extends ServiceBase {
       );
     }
 
-    if (details.status != tokenUserConstants.activatedStatus) {
+    // check if user is activated, otherwise error out.
+    if (userData.status !== tokenUserConstants.activatedStatus) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_r_gpr_3',
@@ -116,7 +120,7 @@ class GetPendingRecovery extends ServiceBase {
       );
     }
 
-    oThis.userData = details;
+    oThis.userData = userData;
   }
 
   /**
@@ -134,23 +138,33 @@ class GetPendingRecovery extends ServiceBase {
     );
 
     // There are pending recovery operations of user, so check for devices involved
-    if (recoveryOperations.length > 0) {
-      for (let index in recoveryOperations) {
-        const operation = recoveryOperations[index];
-        if (
-          operation.workflow_id &&
-          operation.kind ==
-            recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind]
-        ) {
-          const workflowDetails = await new WorkflowCacheKlass({ workflowId: operation.workflow_id }).fetch();
-          if (workflowDetails.data) {
-            const workflow = workflowDetails.data[operation.workflow_id];
+    for (let index = 0; index < recoveryOperations.length; index++) {
+      const operation = recoveryOperations[index];
 
-            oThis.pendingRecoveryParams = JSON.parse(workflow.requestParams);
-            break;
-          }
+      // There can be only one recovery operation with status initiateRecoveryByUserKind. Fetch it.
+      if (
+        operation.workflow_id &&
+        operation.kind ==
+          recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind]
+      ) {
+        const workflowDetailsFetchResponse = await new WorkflowCache({ workflowId: operation.workflow_id }).fetch();
+        if (workflowDetailsFetchResponse.data) {
+          const workflow = workflowDetailsFetchResponse.data[operation.workflow_id];
+
+          oThis.pendingRecoveryParams = JSON.parse(workflow.requestParams);
+          break;
         }
       }
+    }
+
+    if (!oThis.pendingRecoveryParams) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_r_gpr_4',
+          api_error_identifier: 'initiate_recovery_request_not_present',
+          debug_options: {}
+        })
+      );
     }
   }
 
@@ -170,10 +184,9 @@ class GetPendingRecovery extends ServiceBase {
         tokenId: oThis.tokenId,
         walletAddresses: [oThis.pendingRecoveryParams.oldDeviceAddress, oThis.pendingRecoveryParams.newDeviceAddress],
         shardNumber: oThis.userData.deviceShardNumber
-      }),
-      response = await deviceDetailCache.fetch();
+      });
 
-    return response;
+    return deviceDetailCache.fetch();
   }
 
   /**
@@ -234,26 +247,12 @@ class GetPendingRecovery extends ServiceBase {
    * @returns {Promise<*>}
    * @private
    */
-  async _formatApiResponse() {
+  _formatApiResponse() {
     const oThis = this;
 
-    if (!oThis.pendingRecoveryParams) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_gpr_4',
-          api_error_identifier: 'initiate_recovery_request_not_present',
-          debug_options: {}
-        })
-      );
-    }
-
-    await oThis._fetchDevicesExtendedDetails();
-
-    return Promise.resolve(
-      responseHelper.successWithData({
-        [resultType.devices]: oThis.deviceDetails
-      })
-    );
+    return responseHelper.successWithData({
+      [resultType.devices]: oThis.deviceDetails
+    });
   }
 }
 

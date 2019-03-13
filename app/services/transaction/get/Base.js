@@ -62,6 +62,8 @@ class GetTransactionBase extends ServiceBase {
 
     await oThis._validateAndSanitizeParams();
 
+    await oThis._validateTokenStatus();
+
     await oThis._getEsConfig();
 
     await oThis._fetchUserFromCache();
@@ -114,8 +116,6 @@ class GetTransactionBase extends ServiceBase {
    */
   async _fetchUserFromCache() {
     const oThis = this;
-
-    await oThis._fetchTokenDetails();
 
     let instanceComposer = new InstanceComposer(oThis._configStrategy);
 

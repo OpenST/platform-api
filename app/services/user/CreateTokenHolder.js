@@ -83,7 +83,7 @@ class CreateTokenHolder extends ServiceBase {
     const fetchCacheRsp = await oThis._fetchClientConfigStrategy(oThis.clientId);
     oThis.auxChainId = fetchCacheRsp.data[oThis.clientId].chainId;
 
-    await oThis._fetchTokenDetails();
+    await oThis._validateTokenStatus();
 
     await oThis._fetchTokenUsersShards();
 
