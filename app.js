@@ -199,7 +199,7 @@ const checkSystemServiceStatuses = async function(req, res, next) {
       })
       .renderResponse(res, errorConfig);
   }
-
+  logger.debug('completed checking checkSystemServiceStatuses');
   next();
 };
 
