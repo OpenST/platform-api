@@ -37,11 +37,11 @@ class EmailServiceApiCallHook extends ModelBase {
    * This method inserts an entry in the table.
    *
    * @param {Object} params
-   * @param {Integer} params.receiverEntityId
-   * @param {Integer} params.receiverEntityKind
+   * @param {Integer} params.receiverEntityId - mail receiver id
+   * @param {Integer} params.receiverEntityKind - mail receiver kind
    * @param {Integer} params.eventType
    * @param {Integer} params.customDescription
-   * @param {Integer} params.templateDetails
+   * @param {Integer} params.templateParams - template name and tempalate vars for email
    *
    * @returns {*}
    */
@@ -54,7 +54,7 @@ class EmailServiceApiCallHook extends ModelBase {
       !params.hasOwnProperty('receiverEntityKind') ||
       !params.hasOwnProperty('eventType')
     ) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {receiverEntityId, receiverEntityKind, eventType, customDescription }';
+      throw 'Mandatory parameters are missing. Expected an object with the following keys: {receiverEntityId, receiverEntityKind, eventType }';
     }
 
     return oThis
@@ -64,7 +64,7 @@ class EmailServiceApiCallHook extends ModelBase {
         event_type: emailServiceConstants.getInvertedEventTypes[params.eventType],
         execution_timestamp: params.executionTimestamp || Math.floor(Date.now() / 1000),
         custom_description: params.customDescription || null,
-        params: JSON.stringify(params)
+        params: JSON.stringify(params.templateParams)
       })
       .fire();
   }
