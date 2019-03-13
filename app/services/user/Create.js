@@ -58,7 +58,11 @@ class Create extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateTokenStatus();
+    // For company user kind creation avoid validating token.
+    // NOTE: For normal user creation this check will not bypass since we have mandatorily sent user as kind from routes.
+    if (oThis.kind != tokenUserConstants.companyKind) {
+      await oThis._validateTokenStatus();
+    }
 
     oThis.userId = uuidV4();
 
