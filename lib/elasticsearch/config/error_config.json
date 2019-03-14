@@ -3,7 +3,7 @@
     "something_went_wrong": {
       "http_code": "500",
       "code": "INTERNAL_SERVER_ERROR",
-      "message": "Something went wrong."
+      "message": "This usually is a temporary error. Check on the gitter forum in case others are facing similar problem or try again later. If the problem persists log a ticket on help.ost.com"
     },
     "unhandled_catch_response": {
       "http_code": "500",
@@ -13,7 +13,7 @@
     "internal_server_error": {
       "http_code": "500",
       "code": "INTERNAL_SERVER_ERROR",
-      "message": "Something went wrong."
+      "message": "This usually is a temporary error. Check on the gitter forum in case others are facing similar problem or try again later. If the problem persists log a ticket on help.ost.com"
     },
     "invalid_params": {
       "http_code": "400",

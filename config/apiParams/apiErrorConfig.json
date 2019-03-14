@@ -7,22 +7,22 @@
   "unauthorized_api_request": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "We could not authenticate the request. Please review your credentials and authentication method."
+    "message": "Access denied due to invalid credentials. Please inspect if you are using a valid API Key and Secret to send the request. You can verify the API Key against the one shown on developer's page in OSTKIT and re-submit."
   },
   "unauthorized_for_main_env": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "Not authorized to access main env."
+    "message": "You do not have the permission to switch to production environment. Please wait while your account is being whitelisted."
   },
   "invalid_or_expired_jwt_token": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "We could not authenticate the request. Please review your credentials and authentication method."
+    "message": "Invalid or expired JWT Token. The token usually expires due to a long running browser session. Please inspect for what is being sent, rectify and re-submit."
   },
   "client_api_credentials_expired": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "We could not authenticate the request. Please review your credentials and authentication method."
+    "message": "Access denied due to using expired API key and secret. You can check the active API Key and secret on developer's page in OSTKIT."
   },
   "unauthorized_for_company_uuid": {
     "http_code": "401",
@@ -32,17 +32,17 @@
   "api_under_maintenance": {
     "http_code": "503",
     "code": "SERVICE_UNAVAILABLE",
-    "message": ""
+    "message": "Sorry, we are down for maintaince. We'l be back up and running as soon as possible"
   },
   "resource_not_found": {
     "http_code": "404",
     "code": "NOT_FOUND",
-    "message": "The requested resource could not be located."
+    "message": "Resource not found. Please check the resource identifier passed in the URL is valid and try again."
   },
   "unsupported_routes": {
     "http_code": "410",
     "code": "UNSUPPORTED_VERSION",
-    "message": "Unsupported version of the API is being requested upon."
+    "message": "Unsupported API version. Please make sure a supported API version is included in API endpoint and try again."
   },
   "something_went_wrong": {
     "http_code": "500",
@@ -72,17 +72,17 @@
   "insufficient_funds": {
     "http_code": "422",
     "code": "INSUFFICIENT_FUNDS",
-    "message": "The account executing the transaction or transfer does not have sufficient funds to complete the transaction or transfer."
+    "message": "The transfer could not be completed because the associated account does not have sufficient balance."
   },
   "insufficient_gas": {
     "http_code": "422",
     "code": "INSUFFICIENT_GAS",
-    "message": "The account executing the transaction or transfer does not have sufficient gas(stPrime)."
+    "message": "The transfer could not be completed because the gas required to complete the transfer was not sufficient ."
   },
   "invalid_branded_token": {
     "http_code": "400",
     "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
+    "message": "Invalid Token name. Min 3 characters or numbers and Max 4. No special characters allowed."
   },
   "duplicate_entry": {
     "http_code": "422",
@@ -92,12 +92,12 @@
   "token_not_setup": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Token not setup."
+    "message": "The token setup is not completed. The process takes several minutes. You can check the status via OST KIT interface. If the state persists contact support@ost.com"
   },
-  "address_invalid": {
+  "invalid_address": {
     "http_code": "400",
     "code": "BAD_REQUEST",
-    "message": "At least one parameter is invalid or missing. See \"err.error_data\" array for more details."
+    "message": "Invalid parameter address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
   "cache_issue": {
     "http_code": "422",
@@ -128,11 +128,6 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The request was good, but nevertheless could not be processed."
-  },
-  "blank_addresses": {
-    "http_code": "400",
-    "code": "BAD_REQUEST",
-    "message": "blank addresses"
   },
   "no_data_found": {
     "http_code": "422",
@@ -187,7 +182,7 @@
   "route_prohibited_in_main": {
     "http_code": "403",
     "code": "REQUEST_FORBIDDEN",
-    "message": "The request is prohibited in the Main Environment."
+    "message": "You do not have the permission to access this API endpoint in production environment."
   },
   "action_prohibited_in_prod_main": {
     "http_code": "403",
@@ -217,7 +212,7 @@
   "user_activation_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "User activation failed"
+    "message": "The User activation could not be completed. Please do ...!! ??"
   },
   "action_not_performed_contact_support": {
     "http_code": "422",
@@ -263,5 +258,95 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Data not found"
+  },
+  "error_in_fetching_users": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while fetching users."
+  },
+  "error_in_fetching_user_ids": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while fetching user ids."
+  },
+  "error_in_fetching_user_salts": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while fetching user salts."
+  },
+  "balance_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Balance update failed"
+  },
+  "fetch_balance_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Unable to fetch balance"
+  },
+  "user_status_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Unable to update user status"
+  },
+  "wallet_address_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Wallet addresses fetch failed"
+  },
+  "device_details_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Device details fetch failed"
+  },
+  "device_status_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Device status update failed"
+  },
+  "recovery_owner_detail_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery owner detail fetch failed"
+  },
+  "available_shard_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Available shard fetch failed"
+  },
+  "insert_shard_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Shard insertion failed"
+  },
+  "shard_number_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Shard insertion failed"
+  },
+  "session_address_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Failed to fetch session addresses"
+  },
+  "session_details_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Failed to fetch session details"
+  },
+  "session_status_update_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Session status update failed"
+  },
+  "error_in_user_creation": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while creating user"
+  },
+  "error_in_deleting_session": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while deleting session"
   }
 }

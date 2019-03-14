@@ -184,7 +184,19 @@ class Session extends Base {
         })
       );
     }
-    return oThis.batchGetItem(keyObjArray, 'address');
+
+    let response = await oThis.batchGetItem(keyObjArray, 'address').catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_s_3',
+          apiErrorIdentifier: 'session_details_fetch_failed',
+          debugOptions: { params: params, err: err }
+        })
+      );
+    });
+
+    return response;
   }
 
   /**
@@ -219,7 +231,14 @@ class Session extends Base {
     let response = await oThis.ddbServiceObj.query(queryParams);
 
     if (response.isFailure()) {
-      return Promise.reject(response);
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_s_2',
+          apiErrorIdentifier: 'session_address_fetch_failed',
+          debugOptions: { userId: userId }
+        })
+      );
     }
 
     let row,
@@ -326,6 +345,15 @@ class Session extends Base {
         internal_error_identifier: 'a_m_d_s_s_1',
         api_error_identifier: 'conditional_check_failed',
         debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    if (updateQueryResponse.isFailure()) {
+      return oThis._prepareErrorObject({
+        errorObject: updateQueryResponse,
+        internalErrorCode: 'a_m_d_s_s_2',
+        apiErrorIdentifier: 'session_status_update_failed',
+        debugOptions: { userId: userId, address: sessionAddress }
       });
     }
 
