@@ -74,6 +74,9 @@ mysqlConfig['databases']['kit_saas_' + coreConstants.subEnvironment + '_' + core
 // saas_big_subenv database
 mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
 
+// siege database
+mysqlConfig['databases']['siege_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
+
 // config_subenv database
 mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster4'];
 
