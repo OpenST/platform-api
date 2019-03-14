@@ -150,8 +150,8 @@ Granter address gets ETH and OST in this step.
 
 ### Create `ost_infra` database and `error_logs` table.
 ```bash
-   node lib/errorLogs/createOstInfraDatabase.js
-   node lib/errorLogs/createErrorLogsTable.js
+   node executables/oneTimers/createOstInfraDatabase.js
+   node executables/oneTimers/createErrorLogsTable.js
 ```
 
 ### Run block-scanner crons and factory
