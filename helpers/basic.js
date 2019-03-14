@@ -472,7 +472,7 @@ class BasicHelper {
         responseHelper.paramValidationError({
           internal_error_identifier: 'h_b_2',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_meta_property'],
+          params_error_identifiers: ['invalid_meta_properties'],
           debug_options: {}
         })
       );

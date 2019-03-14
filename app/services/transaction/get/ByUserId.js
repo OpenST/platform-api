@@ -30,18 +30,20 @@ class GetTransactionsList extends GetTransactionBase {
   /**
    * Constructor for execute transaction
    *
-   * @param params
+   * @param {Object} params
+   * @param {Integer} params.limit - limit
+   * @param {Array} params.statuses - statuses
+   * @param {Array} params.meta_properties - meta_properties
    *
-   * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
 
-    oThis.status = params.status;
+    oThis.status = params.statuses;
     oThis.limit = params.limit;
-    oThis.metaProperty = params.meta_property;
+    oThis.metaProperty = params.meta_properties;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
     oThis.auxChainId = null;
@@ -82,7 +84,7 @@ class GetTransactionsList extends GetTransactionBase {
             responseHelper.paramValidationError({
               internal_error_identifier: 'a_s_t_g_bu_1',
               api_error_identifier: 'invalid_api_params',
-              params_error_identifiers: ['invalid_meta_property'],
+              params_error_identifiers: ['invalid_meta_properties'],
               debug_options: {}
             })
           );
@@ -393,7 +395,7 @@ class GetTransactionsList extends GetTransactionBase {
           responseHelper.paramValidationError({
             internal_error_identifier: 'a_s_t_g_bu_2',
             api_error_identifier: 'invalid_api_params',
-            params_error_identifiers: ['invalid_status'],
+            params_error_identifiers: ['invalid_statuses'],
             debug_options: {}
           })
         );
