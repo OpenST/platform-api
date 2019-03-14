@@ -21,6 +21,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   RevokeSessionRouter = require(rootPrefix + '/lib/workflow/revokeSession/Router'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -202,7 +203,8 @@ class RevokeSession extends Base {
         signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         sessionShardNumber: oThis.sessionShardNumber,
-        multisigAddress: oThis.multisigProxyAddress
+        multisigAddress: oThis.multisigProxyAddress,
+        userShardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
       },
       revokeSessionInitParams = {
         stepKind: workflowStepConstants.revokeSessionInit,

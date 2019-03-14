@@ -21,6 +21,7 @@ const rootPrefix = '../../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   AuthorizeSessionRouter = require(rootPrefix + '/lib/workflow/authorizeSession/Router'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -230,7 +231,8 @@ class AuthorizeSession extends Base {
         signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         sessionShardNumber: oThis.sessionShardNumber,
-        multisigAddress: oThis.multisigProxyAddress
+        multisigAddress: oThis.multisigProxyAddress,
+        userShardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
       },
       authorizeSessionInitParams = {
         stepKind: workflowStepConstants.authorizeSessionInit,
