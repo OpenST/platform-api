@@ -199,10 +199,10 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid raw_calldata'
   },
-  invalid_meta_property: {
-    parameter: 'meta_property',
+  invalid_meta_properties: {
+    parameter: 'meta_properties',
     code: 'invalid',
-    message: 'Invalid meta_property'
+    message: 'Invalid meta_properties'
   },
   invalid_raw_calldata_parameter_address: {
     parameter: 'raw_calldata',
@@ -334,10 +334,10 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid transaction id'
   },
-  invalid_status: {
-    parameter: 'status',
+  invalid_statuses: {
+    parameter: 'statuses',
     code: 'invalid',
-    message: 'Invalid status'
+    message: 'Invalid statuses'
   }
 };
 
