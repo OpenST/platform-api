@@ -39,7 +39,7 @@ source set_env_vars.sh
 
 * Clear cache.
 ```bash
-node  executables/flush/sharedMemcached.js
+node executables/flush/sharedMemcached.js
 ```
 
 ## [Only Development] Start Dynamo DB
