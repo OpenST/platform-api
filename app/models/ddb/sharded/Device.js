@@ -226,7 +226,16 @@ class Device extends Base {
         })
       );
     }
-    return oThis.batchGetItem(keyObjArray, 'walletAddress');
+
+    return oThis.batchGetItem(keyObjArray, 'walletAddress').catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_d_2',
+          apiErrorIdentifier: 'device_details_fetch_failed'
+        })
+      );
+    });
   }
 
   /**
@@ -314,9 +323,17 @@ class Device extends Base {
 
     if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
-        internal_error_identifier: 'a_m_d_s_d_2',
+        internal_error_identifier: 'a_m_d_s_d_3',
         api_error_identifier: 'conditional_check_failed',
         debug_options: { error: updateQueryResponse.toHash() }
+      });
+    }
+
+    if (updateQueryResponse.isFailure()) {
+      return oThis._prepareErrorObject({
+        errorObject: updateQueryResponse,
+        internalErrorCode: 'a_m_d_s_d_4',
+        apiErrorIdentifier: 'device_status_update_failed'
       });
     }
 
@@ -384,10 +401,25 @@ class Device extends Base {
       queryParams['ExclusiveStartKey'] = lastEvaluatedKey;
     }
 
-    let response = await oThis.ddbServiceObj.query(queryParams);
+    let response = await oThis.ddbServiceObj.query(queryParams).catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_s_d_5',
+          apiErrorIdentifier: 'wallet_address_fetch_failed',
+          debugOptions: { err: err.toString() }
+        })
+      );
+    });
 
     if (response.isFailure()) {
-      return Promise.reject(response);
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: response,
+          internalErrorCode: 'a_m_d_s_d_6',
+          apiErrorIdentifier: 'wallet_address_fetch_failed'
+        })
+      );
     }
 
     let walletAddresses = [];

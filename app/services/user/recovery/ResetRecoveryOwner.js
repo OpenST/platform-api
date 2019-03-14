@@ -73,7 +73,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_ro_1',
           api_error_identifier: 'invalid_params',
-          params_error_identifiers: ['same_new_and_old_recovery_owners'],
+          params_error_identifiers: ['invalid_new_recovery_owner_address'],
           debug_options: {}
         })
       );

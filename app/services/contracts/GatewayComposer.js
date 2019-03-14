@@ -26,7 +26,6 @@ class GatewayComposer {
     const oThis = this;
 
     oThis.tokenId = params.token_id;
-    oThis.stakerAddress = params.staker_address;
 
     oThis.responseData = {};
   }
@@ -62,8 +61,6 @@ class GatewayComposer {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis._validateAndSanitize();
-
     await oThis.getGatewayComposerContractAddress();
 
     await oThis.getGatewayContractAddress();
@@ -75,25 +72,6 @@ class GatewayComposer {
     await oThis.getStakerNonceFromGateway();
 
     return responseHelper.successWithData(oThis.responseData);
-  }
-
-  /**
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _validateAndSanitize() {
-    const oThis = this;
-
-    if (!basicHelper.isEthAddressValid(oThis.stakerAddress)) {
-      logger.error('Staker address is not passed or wrong in input parameters.');
-
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_c_gc_3',
-        api_error_identifier: 'invalid_params',
-        debug_options: {}
-      });
-    }
   }
 
   /**
