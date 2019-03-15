@@ -555,7 +555,7 @@ class TransactionParser extends MultiSubscriptionBase {
       await Promise.all(promiseArray);
     }
 
-    // Release lock and mark tx meta status
+    // mark tx meta status
     if (receiptSuccessTxHashes.length > 0) {
       await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
