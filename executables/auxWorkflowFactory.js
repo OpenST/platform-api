@@ -196,6 +196,9 @@ class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
         const AbortRecoveryByRecoveryControllerRouter = require(rootPrefix +
           '/lib/workflow/deviceRecovery/byRecoveryController/abortRecovery/Router');
         return new AbortRecoveryByRecoveryControllerRouter(msgParams).perform();
+      case workflowTopicConstant.logoutSession:
+        const logoutSessionRouter = require(rootPrefix + '/lib/workflow/logoutSessions/Router');
+        return new logoutSessionRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];

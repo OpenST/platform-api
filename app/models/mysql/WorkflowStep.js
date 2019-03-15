@@ -172,6 +172,10 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '220': workflowStepConstants.revokeSessionVerifyTransaction,
     '221': workflowStepConstants.rollbackRevokeSessionTransaction,
 
+    '222': workflowStepConstants.logoutSessionInit,
+    '223': workflowStepConstants.logoutSessionPerformTransaction,
+    '224': workflowStepConstants.logoutSessionVerifyTransaction,
+
     '300': workflowStepConstants.initiateRecoveryInit,
     '301': workflowStepConstants.initiateRecoveryPerformTransaction,
     '302': workflowStepConstants.initiateRecoveryVerifyTransaction,
