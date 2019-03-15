@@ -39,6 +39,7 @@ class RevokeSession extends Base {
   /**
    *
    * @param {Object} params
+   * @param {Array} params.token_shard_details
    * @param {Object} params.raw_calldata -
    * @param {String} params.raw_calldata.method - possible value revokeSession
    * @param {Array} params.raw_calldata.parameters -

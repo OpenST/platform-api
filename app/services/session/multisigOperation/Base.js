@@ -51,6 +51,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
    * @param {String} params.signatures - Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
    * @param {Array} params.signers - array of authorized device addresses who signed this transaction
    * @param {String/Number} params.nonce - multisig contract nonce
+   * @param {Array} params.token_shard_details
    *
    * @constructor
    */
@@ -64,6 +65,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     oThis.sessionShardNumber = params.user_data.sessionShardNumber;
     oThis.multisigProxyAddress = params.user_data.multisigAddress;
     oThis.tokenHolderProxyAddress = params.user_data.tokenHolderAddress;
+    oThis.tokenShardDetails = params.token_shard_details;
 
     oThis.to = params.to;
     oThis.value = params.value;
