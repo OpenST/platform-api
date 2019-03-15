@@ -72,7 +72,7 @@ class ApiAuthentication {
       {
         apiName: apiName.getTokenHolder,
         route: '/users/:user_id/token-holder/',
-        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+        supportedSignatureKinds: [apiSignature.personalSignKind]
       },
       {
         apiName: apiName.getUserDevices,
@@ -182,6 +182,11 @@ class ApiAuthentication {
       {
         apiName: apiName.postRevokeSession,
         route: '/users/:user_id/sessions/revoke/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.postLogoutSessions,
+        route: '/users/:user_id/token-holder/logout/',
         supportedSignatureKinds: [apiSignature.personalSignKind]
       },
       {

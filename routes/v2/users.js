@@ -53,6 +53,7 @@ require(rootPrefix + '/app/services/session/get/ByAddress');
 require(rootPrefix + '/app/services/session/get/ByUserId');
 require(rootPrefix + '/app/services/session/multisigOperation/AuthorizeSession');
 require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
+require(rootPrefix + '/app/services/session/multisigOperation/Logout');
 
 require(rootPrefix + '/app/services/recoveryOwner/get/ByRecoveryOwnerAddress');
 
@@ -131,6 +132,23 @@ router.get('/:user_id/token-holder', sanitizer.sanitizeDynamicUrlParams, functio
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_v2_u_17', null, dataFormatterFunc));
+});
+
+/* Logout All sessions of user */
+router.post('/:user_id/token-holder/logout', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.postLogoutSessions;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.user_id = req.params.user_id;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = await new TokenHolderFormatter(serviceResponse.data[resultType.tokenHolder]).perform();
+    serviceResponse.data = {
+      result_type: resultType.tokenHolder,
+      [resultType.tokenHolder]: formattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'SessionsLogout', 'r_v2_u_18', null, dataFormatterFunc));
 });
 
 /* Create device for user*/
