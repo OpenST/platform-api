@@ -104,12 +104,8 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    // Fetch all recovery operations of user
-    const recoveryOperationObj = new RecoveryOperationModel(),
-      recoveryOperations = await recoveryOperationObj.getPendingOperationsOfTokenUser(oThis.tokenId, oThis.userId);
-
-    for (let index in recoveryOperations) {
-      const operation = recoveryOperations[index];
+    for (let index in oThis.userPendingRecoveryOperations) {
+      const operation = oThis.userPendingRecoveryOperations[index];
 
       // Another in progress operation is present.
       if (

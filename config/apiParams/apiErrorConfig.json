@@ -249,6 +249,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Recovery for this user was never initiated."
   },
+  "user_recovery_pending": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "User's recovery request is pending. Please try other operations after sometime."
+  },
   "device_pin_already_used": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",

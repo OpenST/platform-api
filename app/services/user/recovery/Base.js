@@ -22,6 +22,7 @@ require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
+require(rootPrefix + '/lib/cacheManagement/chain/UserPendingRecoveryOperations');
 
 /**
  * Class for user recovery operations.
@@ -68,6 +69,7 @@ class UserRecoveryBase extends ServiceBase {
     oThis.web3InstanceObj = null;
     oThis.configStrategyObj = null;
     oThis.newDeviceAddressEntity = {};
+    oThis.userPendingRecoveryOperations = [];
   }
 
   /**
@@ -85,6 +87,8 @@ class UserRecoveryBase extends ServiceBase {
     await oThis._fetchUserDetails();
 
     await oThis._basicValidations();
+
+    await oThis._fetchUserPendingRecoveryOperations();
 
     await oThis._canPerformRecoveryOperation();
 
@@ -223,6 +227,33 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
+   * Fetch pending recovery operations of user if any.
+   *
+   * @returns {Promise<Void>}
+   * @private
+   */
+  async _fetchUserPendingRecoveryOperations() {
+    const oThis = this;
+
+    let UserRecoveryOpsCache = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserPendingRecoveryOperations'),
+      recoveryOperationsResp = await new UserRecoveryOpsCache({ tokenId: oThis.tokenId, userId: oThis.userId }).fetch();
+
+    if (recoveryOperationsResp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_u_r_b_6',
+          api_error_identifier: 'cache_issue',
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.userPendingRecoveryOperations = recoveryOperationsResp.data.recoveryOperations || [];
+  }
+
+  /**
    * Get typed data.
    *
    * @return {TypedData}
@@ -248,7 +279,7 @@ class UserRecoveryBase extends ServiceBase {
     if (!CommonValidators.validateObject(linkedAddressesMap)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_6',
+          internal_error_identifier: 'a_s_u_r_b_7',
           api_error_identifier: 'could_not_proceed',
           debug_options: {}
         })
@@ -262,7 +293,7 @@ class UserRecoveryBase extends ServiceBase {
     ) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_b_7',
+          internal_error_identifier: 'a_s_u_r_b_8',
           api_error_identifier: 'invalid_params',
           params_error_identifiers: ['invalid_old_linked_address'],
           debug_options: {}
@@ -289,7 +320,7 @@ class UserRecoveryBase extends ServiceBase {
       logger.error('Error in fetching linked addresses');
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_8',
+          internal_error_identifier: 'a_s_u_r_b_9',
           api_error_identifier: 'cache_issue',
           debug_options: {}
         })
@@ -321,7 +352,7 @@ class UserRecoveryBase extends ServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_9',
+          internal_error_identifier: 'a_s_u_r_b_10',
           api_error_identifier: 'cache_issue',
           debug_options: {}
         })
@@ -379,7 +410,7 @@ class UserRecoveryBase extends ServiceBase {
     if (ddbQueryFailed) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_u_r_b_10',
+          internal_error_identifier: 'a_s_u_r_b_11',
           api_error_identifier: 'action_not_performed_contact_support',
           debug_options: {}
         })
