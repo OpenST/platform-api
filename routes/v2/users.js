@@ -194,7 +194,7 @@ router.get('/:user_id/devices/:device_address', sanitizer.sanitizeDynamicUrlPara
   req.decodedParams.apiName = apiName.getUserDevice;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
-  req.decodedParams.address = req.params.device_address;
+  req.decodedParams.device_address = req.params.device_address;
 
   const dataFormatterFunc = async function(serviceResponse) {
     let device = serviceResponse.data[resultType.device],
@@ -243,7 +243,7 @@ router.get('/:user_id/sessions/:session_address', sanitizer.sanitizeDynamicUrlPa
   req.decodedParams.apiName = apiName.getUserSession;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.user_id = req.params.user_id;
-  req.decodedParams.address = req.params.session_address;
+  req.decodedParams.session_address = req.params.session_address;
 
   const dataFormatterFunc = async function(serviceResponse) {
     let session = serviceResponse.data[resultType.session],

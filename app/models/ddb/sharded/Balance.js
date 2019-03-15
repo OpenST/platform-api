@@ -207,22 +207,30 @@ class Balance extends Base {
     }
 
     const updateResponse = await oThis.ddbServiceObj.updateItem(balanceParams).catch(function(updateBalanceResponse) {
+      let debugOptions = { totalUnsettledDebits: totalUnsettledDebits };
+      let apiErrorIdentifier = 'balance_update_failed';
+
       if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
-        return Promise.reject(
-          responseHelper.error({
-            internal_error_identifier: `a_m_d_dh_b_1:${errorConstant.insufficientFunds}`,
-            api_error_identifier: 'something_went_wrong',
-            debug_options: {
-              totalUnsettledDebits: totalUnsettledDebits
-            }
-          })
-        );
+        apiErrorIdentifier = 'insufficient_funds';
       }
-      return updateBalanceResponse;
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: updateBalanceResponse,
+          internalErrorCode: `a_m_d_dh_b_1:${errorConstant.insufficientFunds}`,
+          apiErrorIdentifier: apiErrorIdentifier,
+          debugOptions: debugOptions
+        })
+      );
     });
 
     if (updateResponse.isFailure()) {
-      return Promise.reject(updateResponse);
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: updateResponse,
+          internalErrorCode: 'a_m_d_dh_b_3',
+          apiErrorIdentifier: 'balance_update_failed'
+        })
+      );
     }
 
     let methodInstance = oThis.subClass['afterUpdate'];
@@ -295,7 +303,17 @@ class Balance extends Base {
         })
       );
     }
-    return oThis.batchGetItem(keyObjArray, 'tokenHolderAddress');
+    let batchGetResponse = await oThis.batchGetItem(keyObjArray, 'tokenHolderAddress').catch(function(err) {
+      return Promise.reject(
+        oThis._prepareErrorObject({
+          errorObject: err,
+          internalErrorCode: 'a_m_d_dh_b_5',
+          apiErrorIdentifier: 'fetch_balance_failed'
+        })
+      );
+    });
+
+    return batchGetResponse;
   }
 
   /**
