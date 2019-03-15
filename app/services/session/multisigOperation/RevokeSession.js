@@ -21,6 +21,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   RevokeSessionRouter = require(rootPrefix + '/lib/workflow/revokeSession/Router'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
@@ -109,13 +110,23 @@ class RevokeSession extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
+    if (oThis.userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_s_mo_rs_5',
+          api_error_identifier: 'token_holder_not_active',
+          debug_options: {}
+        })
+      );
+    }
+
     let sessionDetailsRsp = await super._fetchSessionDetails(oThis.sessionKey),
       sesseionDetails = sessionDetailsRsp.data[oThis.sessionKey];
 
     if (!sesseionDetails || sesseionDetails.status !== sessionConstants.authorizedStatus) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_rs_4',
+          internal_error_identifier: 'a_s_s_mo_rs_5',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['unauthorized_session_address'],
           debug_options: {}
@@ -164,7 +175,7 @@ class RevokeSession extends Base {
     if (updateResponse.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_mo_rs_5',
+          internal_error_identifier: 'a_s_s_mo_rs_6',
           api_error_identifier: 'could_not_proceed',
           debug_options: {}
         })

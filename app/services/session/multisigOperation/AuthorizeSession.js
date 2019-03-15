@@ -22,6 +22,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   AuthorizeSessionRouter = require(rootPrefix + '/lib/workflow/authorizeSession/Router'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -137,6 +138,16 @@ class AuthorizeSession extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
+    if (oThis.userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_s_mo_as_6',
+          api_error_identifier: 'token_holder_not_active',
+          debug_options: {}
+        })
+      );
+    }
+
     let chainDetailsObj = new ChainDetails({ chain_id: oThis._configStrategyObject.auxChainId }),
       chainDetailsRsp = await chainDetailsObj.perform();
 
@@ -149,7 +160,7 @@ class AuthorizeSession extends Base {
     if (oThis.expirationHeight < blockHeight + coreConstants.BUFFER_BLOCK_HEIGHT) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_s_mo_as_6',
+          internal_error_identifier: 'a_s_s_mo_as_7',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_raw_calldata_parameter_expiration_height'],
           debug_options: {}
