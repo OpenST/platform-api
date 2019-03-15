@@ -11,6 +11,7 @@ const rootPrefix = '../../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   ServiceBase = require(rootPrefix + '/app/services/Base');
 
 // Following require(s) for registering into instance composer
@@ -93,6 +94,16 @@ class GetSessionBase extends ServiceBase {
           internal_error_identifier: 'a_s_s_g_b_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['user_not_found'],
+          debug_options: {}
+        })
+      );
+    }
+
+    if (userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_s_g_b_2',
+          api_error_identifier: 'token_holder_not_active',
           debug_options: {}
         })
       );
@@ -199,7 +210,7 @@ class GetSessionBase extends ServiceBase {
     if (response.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_s_g_b_2',
+          internal_error_identifier: 'a_s_s_g_b_3',
           api_error_identifier: 'something_went_wrong',
           debug_options: {}
         })

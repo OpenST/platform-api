@@ -53,6 +53,7 @@ class User extends Base {
       kind: 'ki',
       salt: 'ss',
       tokenHolderAddress: 'tha',
+      tokenHolderStatus: 'ths',
       multisigAddress: 'ma',
       recoveryOwnerAddress: 'roa',
       recoveryAddress: 'ra',
@@ -88,6 +89,7 @@ class User extends Base {
       ki: 'N',
       ss: 'S',
       tha: 'S',
+      ths: 'N',
       ma: 'S',
       roa: 'S',
       ra: 'S',
@@ -224,6 +226,7 @@ class User extends Base {
         'userId',
         'kind',
         'tokenHolderAddress',
+        'tokenHolderStatus',
         'multisigAddress',
         'recoveryOwnerAddress',
         'recoveryAddress',
@@ -484,6 +487,9 @@ class User extends Base {
     if (params['status']) {
       params['status'] = tokenUserConstants.invertedStatuses[params['status']];
     }
+    if (params['tokenHolderStatus']) {
+      params['tokenHolderStatus'] = tokenUserConstants.invertedTokenHolderStatuses[params['tokenHolderStatus']];
+    }
     if (!params['updatedTimestamp']) {
       params['updatedTimestamp'] = basicHelper.getCurrentTimestampInSeconds().toString();
     }
@@ -506,6 +512,10 @@ class User extends Base {
       dbRow['saasApiStatus'] =
         tokenUserConstants.saasApiStatuses[dbRow['saasApiStatus']] || tokenUserConstants.saasApiActiveStatus;
     }
+    if (dbRow.hasOwnProperty('tokenHolderStatus')) {
+      dbRow['tokenHolderStatus'] = tokenUserConstants.tokenHolderStatuses[dbRow['tokenHolderStatus']];
+    }
+    dbRow['tokenHolderStatus'] = dbRow['tokenHolderStatus'] || tokenUserConstants.tokenHolderActiveStatus;
     return dbRow;
   }
 
