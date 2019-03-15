@@ -348,5 +348,50 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Error while deleting session"
+  },
+  "invalid_ost_value": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "OST value is invalid."
+  },
+  "invalid_ost_price": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "OST price is invalid."
+  },
+  "invalid_cmc_response": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "Response from CoinMarketCap is invalid."
+  },
+  "price_point_not_set": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "Price point not set as maxRetryCountForVerifyPriceInContract reached."
+  },
+  "invalid_contract_price_point": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while getting price from contract."
+  },
+  "transaction_meta_observer_pending_transaction": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Transaction meta observer faced an error."
+  },
+  "finalizer_stuck": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Finalizer stuck for a long time."
+  },
+  "low_balance_master_internal_funder": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Low balance of master internal funder."
+  },
+  "low_balance": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Low balance of address."
   }
 }

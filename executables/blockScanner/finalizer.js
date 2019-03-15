@@ -13,15 +13,17 @@ const program = require('commander');
 const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   TxFinalizeDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   PostTxFinalizeSteps = require(rootPrefix + '/lib/transactions/PostTransactionFinalizeSteps'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -185,12 +187,13 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       if (waitTime > 2 * 30 * 5) {
-        await emailNotifier.perform(
-          'finalizer_stuck',
-          `Finalizer is stuck for more than 5 minutes for chainId: ${oThis.chainId} `,
-          {},
-          {}
-        );
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'finalizer_stuck',
+          api_error_identifier: 'finalizer_stuck',
+          debug_options: { waitTime: waitTime, chainId: oThis.chainId }
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
       }
 
       const finalizer = new oThis.BlockScannerFinalizer({

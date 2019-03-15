@@ -17,17 +17,18 @@ const rootPrefix = '../..',
   NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
@@ -223,15 +224,13 @@ class TransactionParser extends MultiSubscriptionBase {
     // Block hash of block number passed and block hash received from params don't match.
     if (!blockVerified) {
       logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
-      await emailNotifier.perform(
-        'e_bs_tp_4',
-        `Hash of block number: ${blockNumber} does not match the blockHash: ${blockHash}`,
-        {},
-        {
-          blockNumber: blockNumber,
-          blockHash: blockHash
-        }
-      );
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'block_hash_dont_match:e_bs_tp_4',
+        api_error_identifier: 'finalizer_stuck',
+        debug_options: { blockNumber: blockNumber, blockHash: blockHash }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
       logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
       return;
@@ -245,7 +244,7 @@ class TransactionParser extends MultiSubscriptionBase {
 
     // If transaction parser returns error, then delete the task from table and ACK RMQ
     if (!transactionParserResponse.isSuccess()) {
-      // Delete block parser pensing task if transaction parser took it.
+      // Delete block parser pending task if transaction parser took it.
       new BlockParserPendingTaskModel().deleteTask(taskId);
 
       // Transaction parsing response was unsuccessful.

@@ -16,14 +16,15 @@ const rootPrefix = '../../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   GetEthBalance = require(rootPrefix + '/lib/getBalance/Eth'),
   GetOstBalance = require(rootPrefix + '/lib/getBalance/Ost'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   grantConstants = require(rootPrefix + '/lib/globalConstant/grant'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   environmentInfoConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo');
@@ -364,15 +365,14 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       logger.warn(
         'addressKind ' + oThis.masterInternalFunderAddress + ' has low balance on chainId: ' + oThis.originChainId
       );
-      await emailNotifier.perform(
-        'e_f_bmif_ocs_3',
-        `Low balance of addressKind: ${chainAddressConstants.masterInternalFunderKind} on chainId: ${
-          oThis.originChainId
-        }.
-         Address: ${oThis.masterInternalFunderAddress}`,
-        {},
-        {}
-      );
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'low_balance_master_internal_funder:e_f_bmif_ocs_3',
+        api_error_identifier: 'low_balance_master_internal_funder',
+        debug_options: { address: oThis.masterInternalFunderAddress, chainId: oThis.originChainId }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
       return false;
     }
@@ -446,12 +446,13 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     const oThis = this;
 
     logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
-    await emailNotifier.perform(
-      'e_f_bmif_ocs_4',
-      `Low balance of ${currency} addressKind: ${addressKind} on chainId: ${oThis.originChainId}. Address: ${address}`,
-      {},
-      {}
-    );
+    const errorObject = responseHelper.error({
+      internal_error_identifier: 'low_balance:e_f_bmif_ocs_4',
+      api_error_identifier: 'low_balance',
+      debug_options: { currency: currency, addressKind: addressKind, address: address, chainId: oThis.originChainId }
+    });
+
+    await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
   }
 }
 
