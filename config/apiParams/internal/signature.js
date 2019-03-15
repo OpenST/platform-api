@@ -30,6 +30,10 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
+        parameter: 'staker_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
         parameter: 'client_id',
         validatorMethod: 'validateNonZeroInteger'
       }

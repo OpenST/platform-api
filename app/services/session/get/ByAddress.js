@@ -25,13 +25,13 @@ const InstanceComposer = OSTBase.InstanceComposer;
 class GetSessionByAddress extends GetSessionBase {
   /**
    * @param {object} params
-   * @param {String} params.address - Session address.
+   * @param {String} params.session_address - Session address.
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
-    oThis.address = params.address;
+    oThis.address = params.session_address;
   }
 
   /**

@@ -25,7 +25,7 @@ class GetDeviceByAddress extends GetDeviceBase {
   /**
    * Constructor to get devices data by userId and wallet address.
    *
-   * @param {String} params.address: Wallet address
+   * @param {String} params.device_address: Wallet address
    *
    * @constructor
    */
@@ -34,7 +34,7 @@ class GetDeviceByAddress extends GetDeviceBase {
 
     const oThis = this;
 
-    oThis.address = params.address;
+    oThis.address = params.device_address;
   }
 
   /**

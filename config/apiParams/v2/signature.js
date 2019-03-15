@@ -234,7 +234,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'address',
+        parameter: 'device_address',
         validatorMethod: 'validateEthAddress'
       }
     ],
@@ -288,7 +288,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'address',
+        parameter: 'session_address',
         validatorMethod: 'validateEthAddress'
       }
     ],
@@ -599,6 +599,76 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.postLogoutSessions]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_data',
+        validatorMethod: 'validateObject'
+      },
+      {
+        parameter: 'to',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'value',
+        validatorMethod: 'validateZeroWeiValue'
+      },
+      {
+        parameter: 'calldata',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'raw_calldata',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'operation',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'safe_tx_gas',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'data_gas',
+        validatorMethod: 'validateZeroInteger'
+      },
+      {
+        parameter: 'gas_price',
+        validatorMethod: 'validateZeroWeiValue'
+      },
+      {
+        parameter: 'gas_token',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'refund_receiver',
+        validatorMethod: 'validateZeroEthAddress'
+      },
+      {
+        parameter: 'signatures',
+        validatorMethod: 'validateHexString'
+      },
+      {
+        parameter: 'signers',
+        validatorMethod: 'validateEthAddressArray'
+      },
+      {
+        parameter: 'nonce',
+        validatorMethod: 'validateNonNegativeInteger'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.executeTransactionFromUser]: {
     mandatory: [
       {
@@ -719,7 +789,7 @@ const v2Signature = {
     ],
     optional: [
       {
-        parameter: 'status',
+        parameter: 'statuses',
         validatorMethod: 'validateStringArray'
       },
       {
@@ -727,7 +797,7 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'meta_property',
+        parameter: 'meta_properties',
         validatorMethod: 'validateString'
       },
       {

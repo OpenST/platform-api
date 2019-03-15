@@ -117,6 +117,18 @@ class CoreConstants {
     return process.env.SA_KIT_SAAS_MYSQL_PASSWORD;
   }
 
+  get KIT_SAAS_BIG_SUBENV_MYSQL_HOST() {
+    return process.env.SA_KIT_SAAS_BIG_SUBENV_MYSQL_HOST;
+  }
+
+  get KIT_SAAS_BIG_SUBENV_MYSQL_USER() {
+    return process.env.SA_KIT_SAAS_BIG_SUBENV_MYSQL_USER;
+  }
+
+  get KIT_SAAS_BIG_SUBENV_MYSQL_PASSWORD() {
+    return process.env.SA_KIT_SAAS_BIG_SUBENV_MYSQL_PASSWORD;
+  }
+
   get OST_INFRA_MYSQL_HOST() {
     return process.env.SA_OST_INFRA_MYSQL_HOST;
   }

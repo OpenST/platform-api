@@ -89,6 +89,12 @@ class ExecuteTxFromUser extends ExecuteTxBase {
       });
     }
 
+    if (oThis.userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
+      return oThis._validationError('a_s_et_fu_4', ['token_holder_not_active'], {
+        status: oThis.userData.tokenHolderStatus
+      });
+    }
+
     await oThis._validateAndSanitizeSessionKeyAddress();
   }
 
@@ -158,7 +164,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     if (!signatureVerifyRsp.isValid) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_et_fu_4',
+          internal_error_identifier: 'a_s_et_fu_5',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_signer_address'],
           debug_options: {
@@ -182,7 +188,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     if (oThis.pessimisticDebitAmount.gt(new BigNumber(oThis.sessionData.spendingLimit))) {
-      return oThis._validationError('a_s_et_fu_5', ['session_key_spending_limit_breached'], {
+      return oThis._validationError('a_s_et_fu_6', ['session_key_spending_limit_breached'], {
         spendingLimit: basicHelper.formatWeiToString(oThis.sessionData.spendingLimit),
         pessimisticDebitAmount: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
       });
@@ -214,13 +220,13 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.sessionData = sessionFetchRsp.data[oThis.sessionKeyAddress];
 
     if (!oThis.sessionData) {
-      return oThis._validationError('a_s_et_fu_6', ['invalid_signer_address'], {
+      return oThis._validationError('a_s_et_fu_7', ['invalid_signer_address'], {
         sessionKeyAddress: oThis.sessionKeyAddress
       });
     }
 
     if (oThis.sessionData.status !== sessionConstants.authorizedStatus) {
-      return oThis._validationError('a_s_et_fu_7', ['session_key_not_authorized'], {
+      return oThis._validationError('a_s_et_fu_8', ['session_key_not_authorized'], {
         sessionData: oThis.sessionData
       });
     }

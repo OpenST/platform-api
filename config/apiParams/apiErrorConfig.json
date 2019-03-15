@@ -224,6 +224,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "User not activated."
   },
+  "token_holder_not_active": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Token Holder is either logging out or already logged out."
+  },
   "another_recovery_operation_in_process": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
