@@ -557,7 +557,7 @@ class TransactionParser extends MultiSubscriptionBase {
 
     // Release lock and mark tx meta status
     if (receiptSuccessTxHashes.length > 0) {
-      await new TransactionMeta().releaseLockAndMarkStatus({
+      await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
         receiptStatus: transactionMetaConst.successReceiptStatus,
         transactionHashes: receiptSuccessTxHashes,
@@ -566,7 +566,7 @@ class TransactionParser extends MultiSubscriptionBase {
     }
 
     if (receiptFailureTxHashes.length > 0) {
-      await new TransactionMeta().releaseLockAndMarkStatus({
+      await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
         receiptStatus: transactionMetaConst.failureReceiptStatus,
         transactionHashes: receiptFailureTxHashes,

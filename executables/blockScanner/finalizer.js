@@ -234,6 +234,7 @@ class Finalizer extends PublisherBase {
 
                   await postTxFinalizeSteps.perform();
                 } else {
+                  console.log('finalizer', oThis.chainId, processedBlockNumber, processedTransactionHashes);
                   const txFinalizeDelegator = new TxFinalizeDelegator({
                     auxChainId: oThis.chainId,
                     blockNumber: processedBlockNumber,

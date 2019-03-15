@@ -468,6 +468,7 @@ class ExecuteTxBase extends ServiceBase {
       sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
+      kind: pendingTransactionConstants.executeRuleKind,
       toBeSyncedInEs: 1,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
@@ -475,7 +476,7 @@ class ExecuteTxBase extends ServiceBase {
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
     }
-
+    logger.debug('inserted inTxMeta with id: ', oThis.transactionUuid);
     oThis.pendingTransactionInserted = 1;
     oThis.pendingTransactionData = insertRsp.data;
   }
@@ -552,7 +553,7 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     if (oThis.transactionMetaId) {
-      await new TransactionMetaModel().releaseLockAndMarkStatus({
+      await new TransactionMetaModel().updateRecordsByReleasingLock({
         status: oThis.failureStatusToUpdateInTxMeta || transactionMetaConst.finalFailedStatus,
         receiptStatus: transactionMetaConst.failureReceiptStatus,
         id: oThis.transactionMetaId,

@@ -63,7 +63,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
       chainId: oThis.chainId,
       gas: contractConstants.deployStPrimeGas
     };
-
+    console.log('txOptions', txOptions);
     let helperObj = new SetupSTPrimeBase.STPrimeSetupHelper(oThis._web3Instance),
       deployerResponse = await helperObj
         .deploy(oThis.simpleTokenAddress, oThis.organizationAddress, txOptions)
