@@ -19,6 +19,7 @@ const rootPrefix = '../../../..',
   signValidator = require(rootPrefix + '/lib/validators/Sign'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
@@ -94,6 +95,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         status: oThis.userData.tokenHolderStatus
       });
     }
+
+    await oThis._validatePendingRecoveryOperation();
 
     await oThis._validateAndSanitizeSessionKeyAddress();
   }
@@ -196,6 +199,28 @@ class ExecuteTxFromUser extends ExecuteTxBase {
   }
 
   /**
+   * Validate any pending recovery operation of user.
+   *
+   * @returns {Promise}
+   * @private
+   */
+  async _validatePendingRecoveryOperation() {
+    const oThis = this;
+
+    let recoveryOperationsResp = await new UserRecoveryOperationsCache({
+        tokenId: oThis.tokenId,
+        userId: oThis.userId
+      }).fetch(),
+      recoveryOperations = recoveryOperationsResp.data.recoveryOperations || [];
+
+    if (recoveryOperations.length > 0) {
+      return oThis._validationError('a_s_et_fu_7', ['user_recovery_pending'], {
+        userId: oThis.userId
+      });
+    }
+  }
+
+  /**
    * Validate and sanitize session key address
    *
    * @private
@@ -220,13 +245,13 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.sessionData = sessionFetchRsp.data[oThis.sessionKeyAddress];
 
     if (!oThis.sessionData) {
-      return oThis._validationError('a_s_et_fu_7', ['invalid_signer_address'], {
+      return oThis._validationError('a_s_et_fu_8', ['invalid_signer_address'], {
         sessionKeyAddress: oThis.sessionKeyAddress
       });
     }
 
     if (oThis.sessionData.status !== sessionConstants.authorizedStatus) {
-      return oThis._validationError('a_s_et_fu_8', ['session_key_not_authorized'], {
+      return oThis._validationError('a_s_et_fu_9', ['session_key_not_authorized'], {
         sessionData: oThis.sessionData
       });
     }

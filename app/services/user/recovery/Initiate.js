@@ -210,14 +210,12 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       }
     }
 
-    const recOperation = await new RecoveryOperationModel()
-      .insert({
-        token_id: oThis.tokenId,
-        user_id: oThis.userId,
-        kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind],
-        status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
-      })
-      .fire();
+    const recOperation = await new RecoveryOperationModel().insertOperation({
+      token_id: oThis.tokenId,
+      user_id: oThis.userId,
+      kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind],
+      status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
+    });
 
     // Start Initiate Recovery workflow
     await oThis._startInitiateRecoveryWorkflow(recOperation.insertId);

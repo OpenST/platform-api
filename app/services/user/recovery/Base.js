@@ -15,6 +15,7 @@ const rootPrefix = '../../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -22,7 +23,6 @@ require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chain/UserPendingRecoveryOperations');
 
 /**
  * Class for user recovery operations.
@@ -235,10 +235,10 @@ class UserRecoveryBase extends ServiceBase {
   async _fetchUserPendingRecoveryOperations() {
     const oThis = this;
 
-    let UserRecoveryOpsCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'UserPendingRecoveryOperations'),
-      recoveryOperationsResp = await new UserRecoveryOpsCache({ tokenId: oThis.tokenId, userId: oThis.userId }).fetch();
+    let recoveryOperationsResp = await new UserRecoveryOperationsCache({
+      tokenId: oThis.tokenId,
+      userId: oThis.userId
+    }).fetch();
 
     if (recoveryOperationsResp.isFailure()) {
       return Promise.reject(
