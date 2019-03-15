@@ -507,12 +507,15 @@ class User extends Base {
    */
   _sanitizeRowFromDynamo(dbRow) {
     dbRow['status'] = tokenUserConstants.statuses[dbRow['status']];
-    dbRow['tokenHolderStatus'] = tokenUserConstants.tokenHolderStatuses[dbRow['tokenHolderStatus']];
     dbRow['kind'] = tokenUserConstants.kinds[dbRow['kind']];
     if (dbRow.hasOwnProperty('saasApiStatus')) {
       dbRow['saasApiStatus'] =
         tokenUserConstants.saasApiStatuses[dbRow['saasApiStatus']] || tokenUserConstants.saasApiActiveStatus;
     }
+    if (dbRow.hasOwnProperty('tokenHolderStatus')) {
+      dbRow['tokenHolderStatus'] = tokenUserConstants.tokenHolderStatuses[dbRow['tokenHolderStatus']];
+    }
+    dbRow['tokenHolderStatus'] = dbRow['tokenHolderStatus'] || tokenUserConstants.tokenHolderActiveStatus;
     return dbRow;
   }
 

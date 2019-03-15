@@ -6,6 +6,7 @@ const rootPrefix = '../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
+  TokenHolderFormatter = require(rootPrefix + '/lib/formatter/entity/TokenHolder'),
   BalanceFormatter = require(rootPrefix + '/lib/formatter/entity/Balance'),
   UserListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserList'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -27,6 +28,7 @@ require(rootPrefix + '/app/services/user/Create');
 require(rootPrefix + '/app/services/user/get/ById');
 require(rootPrefix + '/app/services/user/get/ByTokenId');
 require(rootPrefix + '/app/services/user/CreateTokenHolder');
+require(rootPrefix + '/app/services/user/GetTokenHolder');
 require(rootPrefix + '/app/services/user/UserSalt');
 require(rootPrefix + '/app/services/balance/User');
 require(rootPrefix + '/app/services/transaction/execute/FromCompany');
@@ -112,6 +114,23 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   };
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetUserList', 'r_v2_u_3', null, dataFormatterFunc));
+});
+
+/* Get Token Holder of user */
+router.get('/:user_id/token-holder', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.getTokenHolder;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const formattedRsp = await new TokenHolderFormatter(serviceResponse.data[resultType.tokenHolder]).perform();
+    serviceResponse.data = {
+      result_type: resultType.tokenHolder,
+      [resultType.tokenHolder]: formattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_v2_u_17', null, dataFormatterFunc));
 });
 
 /* Create device for user*/

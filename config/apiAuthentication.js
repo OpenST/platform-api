@@ -70,6 +70,11 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
       },
       {
+        apiName: apiName.getTokenHolder,
+        route: '/users/:user_id/token-holder/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
         apiName: apiName.getUserDevices,
         route: '/users/:user_id/devices/',
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
