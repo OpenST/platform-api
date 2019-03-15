@@ -21,8 +21,8 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
   RevokeDeviceRouter = require(rootPrefix + '/lib/workflow/revokeDevice/Router'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   WorkflowModelKlass = require(rootPrefix + '/app/models/mysql/Workflow'),
+  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -218,10 +218,11 @@ class RevokeDevice extends Base {
   async _validatePendingRecoveryOfDeviceUser() {
     const oThis = this;
 
-    let recoveryOperations = await new RecoveryOperationModel().getPendingOperationsOfTokenUser(
-      oThis.tokenId,
-      oThis.userId
-    );
+    let recoveryOperationsResp = await new UserRecoveryOperationsCache({
+        tokenId: oThis.tokenId,
+        userId: oThis.userId
+      }).fetch(),
+      recoveryOperations = recoveryOperationsResp.data.recoveryOperations || [];
 
     // There are pending recovery operations of user, so check for devices involved
     if (recoveryOperations.length > 0) {

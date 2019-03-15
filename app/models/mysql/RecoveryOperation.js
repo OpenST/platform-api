@@ -53,6 +53,57 @@ class RecoveryOperation extends ModelBase {
       .where(['token_id=? AND user_id=? AND status IN (?)', tokenId, userId, pendingStatuses])
       .fire();
   }
+
+  /**
+   * Insert recovery operation row in DB
+   *
+   * @param insertParams
+   * @returns {Promise<any>}
+   */
+  async insertOperation(insertParams) {
+    const oThis = this;
+
+    let insertRsp = await oThis.insert(insertParams).fire();
+
+    await RecoveryOperation.flushCache(insertParams.token_id, insertParams.user_id);
+
+    return insertRsp;
+  }
+
+  /**
+   * Update recovery operation
+   *
+   * @param id
+   * @param updateParams
+   * @returns {Promise<any>}
+   */
+  async updateRecoveryOperation(id, updateParams) {
+    const oThis = this;
+
+    let updateResp = await oThis
+      .update(updateParams)
+      .where({ id: id })
+      .fire();
+
+    await RecoveryOperation.flushCache(updateParams.token_id, updateParams.user_id);
+
+    return updateResp;
+  }
+
+  /**
+   * Flush cache
+   *
+   * @param tokenId
+   * @param userId
+   */
+  static flushCache(tokenId, userId) {
+    const PendingRecoveryCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations');
+
+    new PendingRecoveryCache({
+      tokenId: tokenId,
+      userId: userId
+    }).clear();
+  }
 }
 
 module.exports = RecoveryOperation;
