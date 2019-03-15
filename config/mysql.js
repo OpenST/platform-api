@@ -53,6 +53,13 @@ const mysqlConfig = {
         user: coreConstants.KIT_SAAS_MYSQL_USER,
         password: coreConstants.KIT_SAAS_MYSQL_PASSWORD
       }
+    },
+    cluster6: {
+      master: {
+        host: coreConstants.KIT_SAAS_BIG_SUBENV_MYSQL_HOST,
+        user: coreConstants.KIT_SAAS_BIG_SUBENV_MYSQL_USER,
+        password: coreConstants.KIT_SAAS_BIG_SUBENV_MYSQL_PASSWORD
+      }
     }
   },
   databases: {}
@@ -67,10 +74,18 @@ mysqlConfig['databases']['kit_saas_' + coreConstants.subEnvironment + '_' + core
 // saas_big_subenv database
 mysqlConfig['databases']['saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
 
+// siege database
+mysqlConfig['databases']['siege_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster3'];
+
 // config_subenv database
 mysqlConfig['databases']['config_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = ['cluster4'];
 
 // kit_saas database
 mysqlConfig['databases']['kit_saas_' + coreConstants.environment] = ['cluster5'];
+
+// kit_saas_big database
+mysqlConfig['databases']['kit_saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
+  'cluster6'
+];
 
 module.exports = mysqlConfig;

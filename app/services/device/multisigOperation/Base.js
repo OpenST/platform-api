@@ -123,7 +123,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_dm_mo_b_1',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_signer_address'],
+          params_error_identifiers: ['invalid_signer'],
           debug_options: {}
         })
       );

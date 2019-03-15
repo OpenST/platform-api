@@ -234,7 +234,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'address',
+        parameter: 'device_address',
         validatorMethod: 'validateEthAddress'
       }
     ],
@@ -288,7 +288,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'address',
+        parameter: 'session_address',
         validatorMethod: 'validateEthAddress'
       }
     ],
@@ -719,7 +719,7 @@ const v2Signature = {
     ],
     optional: [
       {
-        parameter: 'status',
+        parameter: 'statuses',
         validatorMethod: 'validateStringArray'
       },
       {
@@ -727,7 +727,7 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'meta_property',
+        parameter: 'meta_properties',
         validatorMethod: 'validateString'
       },
       {
