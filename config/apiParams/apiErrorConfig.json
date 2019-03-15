@@ -389,7 +389,12 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Finalizer stuck for a long time."
   },
-  "low_balance_master_internal_funder": {
+  "low_eth_balance_master_internal_funder": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Low balance of master internal funder."
+  },
+  "low_st_prime_balance_master_internal_funder": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Low balance of master internal funder."
@@ -398,5 +403,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Low balance of address."
+  },
+  "jwt_decide_failed": {
+    "http_code": "500",
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "JWT decision failed.."
   }
 }

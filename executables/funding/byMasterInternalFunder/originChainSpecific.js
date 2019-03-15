@@ -367,8 +367,8 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       );
 
       const errorObject = responseHelper.error({
-        internal_error_identifier: 'low_balance_master_internal_funder:e_f_bmif_ocs_3',
-        api_error_identifier: 'low_balance_master_internal_funder',
+        internal_error_identifier: 'low_eth_balance_master_internal_funder:e_f_bmif_ocs_3',
+        api_error_identifier: 'low_eth_balance_master_internal_funder',
         debug_options: { address: oThis.masterInternalFunderAddress, chainId: oThis.originChainId }
       });
 
