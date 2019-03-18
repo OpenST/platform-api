@@ -84,13 +84,9 @@ class SubEnvSpecificCronSeeder {
    * @return {Promise<*>}
    */
   async insertCronProcessesMonitorEntry() {
-    return new InsertCrons()
-      .perform(cronProcessConstants.cronProcessesMonitor, {
-        chainId: 0
-      })
-      .then(function(insertId) {
-        logger.log('InsertId: ', insertId);
-      });
+    return new InsertCrons().perform(cronProcessConstants.cronProcessesMonitor, {}).then(function(insertId) {
+      logger.log('InsertId: ', insertId);
+    });
   }
 }
 

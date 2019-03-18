@@ -62,11 +62,11 @@ class CronProcessesMonitorExecutable extends CronBase {
 
     let cronKindToRestartTimeMap = {
       [cronProcessesConstants.continuousCronsType]: {
-        [cronProcessesConstants.blockParser]: cronProcessesConstants.blockParserRestartTimeout,
-        [cronProcessesConstants.transactionParser]: cronProcessesConstants.transactionParserRestartTimeout,
-        [cronProcessesConstants.blockFinalizer]: cronProcessesConstants.finalizerRestartTimeout,
-        [cronProcessesConstants.economyAggregator]: cronProcessesConstants.aggregatorRestartTimeout,
-        [cronProcessesConstants.balanceSettler]: cronProcessesConstants.balanceSettlerRestartTimeout,
+        [cronProcessesConstants.blockParser]: cronProcessesConstants.blockParserRestartInterval,
+        [cronProcessesConstants.transactionParser]: cronProcessesConstants.transactionParserRestartInterval,
+        [cronProcessesConstants.blockFinalizer]: cronProcessesConstants.finalizerRestartInterval,
+        [cronProcessesConstants.economyAggregator]: cronProcessesConstants.aggregatorRestartInterval,
+        [cronProcessesConstants.balanceSettler]: cronProcessesConstants.balanceSettlerRestartInterval,
         [cronProcessesConstants.workflowWorker]: cronProcessesConstants.workflowFactoryRestartInterval,
         [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.auxWorkflowFactoryRestartInterval,
         [cronProcessesConstants.emailNotifier]: cronProcessesConstants.notifierRestartInterval
@@ -78,7 +78,7 @@ class CronProcessesMonitorExecutable extends CronBase {
       existingCronsLength = existingCrons.length;
 
     // check last running time for continuous crons
-    for (let index = 0; index < existingCronsLength; index += 1) {
+    for (let index = 0; index < existingCronsLength; index++) {
       const cronEntity = existingCrons[index];
 
       if (cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronEntity.kind_name]) {
@@ -113,9 +113,10 @@ class CronProcessesMonitorExecutable extends CronBase {
   }
 
   /**
-   *
    * This function provides info whether the process has to exit.
-   * @returns {string}
+   *
+   * @returns {Boolean}
+   *
    * @private
    */
   _pendingTasksDone() {
@@ -128,13 +129,12 @@ class CronProcessesMonitorExecutable extends CronBase {
    *
    * @private
    */
-  _validateAndSanitize() {
-    return;
-  }
+  _validateAndSanitize() {}
 
   /**
    *
-   * @returns {string}
+   * @returns {String}
+   *
    * @private
    */
   get _cronKind() {
@@ -147,11 +147,11 @@ const cronProcessesMonitor = new CronProcessesMonitorExecutable();
 cronProcessesMonitor
   .perform()
   .then(function() {
-    logger.step('** Exiting Process');
+    logger.step('** Exiting process');
     logger.info('Cron last run at: ', Date.now());
     process.emit('SIGINT');
   })
   .catch(function(err) {
-    logger.error('** Exiting Process Due to Error.', err);
+    logger.error('** Exiting process due to Error: ', err);
     process.emit('SIGINT');
   });
