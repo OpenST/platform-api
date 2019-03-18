@@ -84,7 +84,7 @@ class SiegeInitialization {
     await oThis._generateRequiredAddress();
 
     //Clear all old entries for given token id
-    await oThis._clearOldEntries();
+    //await oThis._clearOldEntries(); //Todo: Temp
 
     //Inserting userUuids and respective addresses in db
     console.log('-------------------->Inserting data in db');
@@ -93,6 +93,9 @@ class SiegeInitialization {
     //Start Siege
     console.log('-------------------->Starting siege');
     await oThis._startSiege();
+
+    console.log('-------------------->Clear improper entries');
+    await oThis._clearImproperEntries();
   }
 
   async _getTokenData() {
@@ -336,6 +339,22 @@ class SiegeInitialization {
         );
       });
     });
+  }
+
+  /**
+   * Deletes entries whose token holder address is NULL
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _clearImproperEntries() {
+    let oThis = this,
+      siegeUsersObj = new SiegeUsersModel(),
+      deleteRsp = await siegeUsersObj
+        .delete()
+        .where(['token_id = ? AND token_holder_contract_address IS NULL', oThis.tokenId])
+        .fire();
+
+    return Promise.resolve();
   }
 }
 
