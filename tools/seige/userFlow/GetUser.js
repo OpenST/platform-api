@@ -24,6 +24,7 @@ class GetUser {
         });
       });
 
+    console.log('====userdata', userdata);
     return responseHelper.successWithData(userdata.data);
   }
 }
