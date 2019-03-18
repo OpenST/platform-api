@@ -18,6 +18,7 @@
     "@ostdotcom/storage": "1.0.3-beta.2",
     "@ostdotcom/ost-dynamic-gas-price": "0.9.1-beta.1",
     "@ostdotcom/ost-price-oracle": "1.0.5-beta.10",
+    "@ostdotcom/ost-sdk-js": "git@github.com:ostdotcom/ost-sdk-js.git#develop",
     "abi-decoder": "1.2.0",
     "aws-sdk": "2.373.0",
     "elasticsearch": "15.0.0",
