@@ -16,7 +16,7 @@ class GetTokenDetails {
       }),
       afterTimeStamp = Date.now();
 
-    console.log('Time taken by Get Token Details: ', afterTimeStamp - beforeTimeStamp);
+    console.log('Time taken by Get Token Details: ', afterTimeStamp - beforeTimeStamp, 'ms');
 
     return tokenData.data;
   }
