@@ -6,7 +6,7 @@
  * @module app/services/session/multisigOperation/Base
  */
 
-const OpenSTJs = require('@openstfoundation/openst.js'),
+const OpenSTJs = require('@openst/openst.js'),
   GnosisSafeHelper = OpenSTJs.Helpers.GnosisSafe;
 
 const rootPrefix = '../../../..',

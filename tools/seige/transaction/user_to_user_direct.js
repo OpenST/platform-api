@@ -10,7 +10,7 @@ const rootPrefix = '../../..',
 
 const https = require('https'),
   OSTSDK = require('@ostdotcom/ost-sdk-js'),
-  OpenstJs = require('@openstfoundation/openst.js'),
+  OpenstJs = require('@openst/openst.js'),
   Web3 = require('web3'),
   OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;

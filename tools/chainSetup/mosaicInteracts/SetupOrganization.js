@@ -10,7 +10,7 @@ const rootPrefix = '../../..',
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicJs = require('@openstfoundation/mosaic.js');
+  MosaicJs = require('@openst/mosaic.js');
 
 /**
  *
