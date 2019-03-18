@@ -84,7 +84,7 @@ class CronBase {
      */
     const sendNotification = function() {
       const errorObject = responseHelper.error({
-        internal_error_identifier: oThis._cronKind + ' :cron_stuck:e_bs_w_2',
+        internal_error_identifier: oThis._cronKind + ':cron_stuck:e_bs_w_2',
         api_error_identifier: 'cron_stuck',
         debug_options: {
           cronProcessId: oThis.cronProcessId,
