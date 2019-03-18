@@ -1,14 +1,14 @@
 'use strict';
 
-const API_END_POINT = 'http://localhost:7001/testnet/v2/',
-  BATCH_SIZE = 5,
+const API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
+  BATCH_SIZE = 25,
   POLLING_INTERVAL = 5000, //5 secs
-  NUMBER_OF_USERS = 5,
+  NUMBER_OF_USERS = 100,
   CREDENTIALS_ARRAY = [
     {
-      apiKey: '43538ea77d5473371dbdfb8e773341f7',
-      apiSecret: '85217ad39713c51123f73a843df491218f50e997173d1c702be813451a3afb48',
-      apiEndPoint: 'http://localhost:7001/testnet/v2/'
+      apiKey: '7cc96ecdaf395f5dcfc005a9df31e798',
+      apiSecret: '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+      apiEndPoint: 'https://s6-api.stagingost.com/mainnet/v2'
     }
   ];
 
@@ -21,7 +21,8 @@ const rootPrefix = '.',
   GetDevice = require(rootPrefix + '/tools/seige/userFlow/GetDevice'),
   ActivateUser = require(rootPrefix + '/tools/seige/userFlow/ActivateUser'),
   RegisterDevice = require(rootPrefix + '/tools/seige/userFlow/RegisterDevice'),
-  SiegeUsersModel = require(rootPrefix + '/app/models/mysql/SiegeUser');
+  SiegeUsersModel = require(rootPrefix + '/app/models/mysql/SiegeUser'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 class SiegeInitialization {
   /**
@@ -223,8 +224,15 @@ class SiegeInitialization {
 
     //Start Polling to fetch user status
     console.log('****Initiated Poll****');
-    let userData = await oThis._pollForUserStatus(userUuid, 'ACTIVATED'),
-      tokenHolderAddress = userData.user.token_holder_address;
+    let userDataRsp = await oThis._pollForUserStatus(userUuid, 'ACTIVATED');
+
+    if (userDataRsp.isFailure()) {
+      return Promise.resolve(userDataRsp);
+    }
+
+    let userData = userDataRsp.data;
+
+    let tokenHolderAddress = userData.user.token_holder_address;
 
     //Save token holder in db
     let siegeUsersObj = new SiegeUsersModel(),
@@ -287,12 +295,18 @@ class SiegeInitialization {
     return new Promise(async function(onResolve, onReject) {
       const _getUserData = async function(userUuid) {
         let getUserDataObj = new GetUser({ ostObj: oThis.ostObj, userUuid: userUuid }),
-          userData = await getUserDataObj.perform();
+          userDataRsp = await getUserDataObj.perform();
+
+        if (userDataRsp.isFailure()) {
+          onResolve(userData);
+        }
+
+        let userData = userDataRsp.data;
 
         console.log('.');
 
         if (userData.user.status == status) {
-          return onResolve(userData);
+          return onResolve(responseHelper.successWithData(userData));
         } else {
           setTimeout(async function() {
             _getUserData(userUuid);
