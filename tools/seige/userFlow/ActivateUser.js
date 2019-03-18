@@ -47,7 +47,7 @@ class ActivateUser {
       }),
       afterTimeStamp = Date.now();
 
-    console.log('Time take for activate user: ', afterTimeStamp - beforeTimeStamp);
+    console.log('Time taken for activate user: ', afterTimeStamp - beforeTimeStamp, 'ms');
 
     return response;
   }

@@ -1,7 +1,7 @@
 'use strict';
 
 const API_END_POINT = 'http://localhost:7001/testnet/v2/',
-  BATCH_SIZE = 20,
+  BATCH_SIZE = 2,
   POLLING_INTERVAL = 5000, //5 secs
   NUMBER_OF_USERS = 5,
   CREDENTIALS_ARRAY = [
@@ -82,6 +82,9 @@ class SiegeInitialization {
     console.log('-------------------->Generating required addresses');
     await oThis._generateRequiredAddress();
 
+    //Clear all old entries for given token id
+    await oThis._clearOldEntries();
+
     //Inserting userUuids and respective addresses in db
     console.log('-------------------->Inserting data in db');
     await oThis._insertAddressesInDB();
@@ -121,6 +124,22 @@ class SiegeInitialization {
       generateRequiredAddressObj = new GenerateRequiredAddresses({ userIdsArray: oThis.userIdsArray });
 
     oThis.requiredAddressesHash = await generateRequiredAddressObj.perform();
+  }
+
+  /**
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _clearOldEntries() {
+    let oThis = this,
+      siegeUsersObj = new SiegeUsersModel(),
+      deleteRsp = await siegeUsersObj
+        .delete()
+        .where(['id > 0 AND token_id = ?', oThis.tokenId])
+        .fire();
+
+    return Promise.resolve();
   }
 
   /**
@@ -188,7 +207,7 @@ class SiegeInitialization {
       sessionAddress = addressesData.sessionAddress;
 
     //Register Device
-    console.log('-------------------->Registering device for user: ', userUuid);
+    console.log('****Registering Device****');
     await oThis._registerDevice(userUuid, deviceAddress);
 
     //Activate User
@@ -199,12 +218,22 @@ class SiegeInitialization {
       apiSignerPrivateKey: deviceAddressPrivateKey,
       sessionAddress: sessionAddress
     };
-    console.log('-------------------->Activating user: ', userUuid);
+    console.log('****Activating User****');
     await oThis._activateUser(paramsForActivateUser);
 
     //Start Polling to fetch user status
-    console.log('-------------------->Initiated poll for status');
-    await oThis._pollForUserStatus(userUuid, 'ACTIVATED');
+    console.log('****Initiated Poll****');
+    let userData = await oThis._pollForUserStatus(userUuid, 'ACTIVATED'),
+      tokenHolderAddress = userData.user.token_holder_address;
+
+    //Save token holder in db
+    let siegeUsersObj = new SiegeUsersModel(),
+      insertRsp = siegeUsersObj
+        .update({ token_holder_contract_address: tokenHolderAddress })
+        .where(['user_uuid = ?', userUuid])
+        .fire();
+
+    return Promise.resolve();
   }
 
   /**
@@ -222,8 +251,6 @@ class SiegeInitialization {
         ostObj: oThis.ostObj
       }),
       deviceData = await registerDeviceObj.perform();
-
-    console.log('DeviceData:', deviceData);
   }
 
   /**
@@ -245,8 +272,6 @@ class SiegeInitialization {
         apiEndPoint: API_END_POINT
       }),
       activateUserRsp = await activateUserObj.perform();
-
-    console.log('UserData', activateUserRsp);
   }
 
   /**
@@ -264,7 +289,7 @@ class SiegeInitialization {
         let getUserDataObj = new GetUser({ ostObj: oThis.ostObj, userUuid: userUuid }),
           userData = await getUserDataObj.perform();
 
-        console.log('UserData', userData);
+        console.log('.');
 
         if (userData.user.status == status) {
           return onResolve(userData);
@@ -293,5 +318,8 @@ class SiegeInitialization {
 }
 
 new SiegeInitialization().perform(CREDENTIALS_ARRAY).then(function() {
-  process.emit('SIGINT');
+  setTimeout(function() {
+    console.log('********** DONE ************');
+    process.exit(0);
+  }, 5000);
 });

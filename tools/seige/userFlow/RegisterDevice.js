@@ -36,7 +36,7 @@ class RegisterDevice {
         }),
       afterTimeStamp = Date.now();
 
-    console.log('Time take for register device: ', afterTimeStamp - beforeTimeStamp);
+    console.log('Time taken for register device: ', afterTimeStamp - beforeTimeStamp, 'ms');
 
     return deviceData;
   }
