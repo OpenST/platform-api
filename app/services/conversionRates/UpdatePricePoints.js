@@ -116,7 +116,7 @@ class UpdatePricePoints {
         const errorObject = responseHelper.error({
           internal_error_identifier: 'invalid_ost_value:a_s_cr_upp_3',
           api_error_identifier: 'invalid_ost_value',
-          debug_options: {}
+          debug_options: { ostValue: ostValue }
         });
 
         await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
@@ -128,7 +128,7 @@ class UpdatePricePoints {
         const errorObject = responseHelper.error({
           internal_error_identifier: 'invalid_ost_price:a_s_cr_upp_4',
           api_error_identifier: 'invalid_ost_price',
-          debug_options: {}
+          debug_options: { pricePoint: pricePoint }
         });
 
         await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
@@ -147,7 +147,7 @@ class UpdatePricePoints {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'invalid_cmc_response:a_s_cr_upp_5',
         api_error_identifier: 'invalid_cmc_response',
-        debug_options: {}
+        debug_options: { cmcResponse: response }
       });
 
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
