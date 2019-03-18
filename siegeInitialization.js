@@ -1,13 +1,13 @@
 'use strict';
 
 const API_END_POINT = 'http://localhost:7001/testnet/v2/',
-  BATCH_SIZE = 2,
+  BATCH_SIZE = 5,
   POLLING_INTERVAL = 5000, //5 secs
   NUMBER_OF_USERS = 5,
   CREDENTIALS_ARRAY = [
     {
-      apiKey: 'b6db0c79b84d488df6e282a1d948f2ac',
-      apiSecret: 'c6936ef19b03b34076a50ba1af92e1b60b573a1e0602b2d800fb7ba35fe5e392',
+      apiKey: '43538ea77d5473371dbdfb8e773341f7',
+      apiSecret: '85217ad39713c51123f73a843df491218f50e997173d1c702be813451a3afb48',
       apiEndPoint: 'http://localhost:7001/testnet/v2/'
     }
   ];

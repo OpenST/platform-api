@@ -4,7 +4,6 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner'),
   GetTokenDetails = require(rootPrefix + '/tools/seige/userFlow/GetTokenDetails'),
   SiegeUser = require(rootPrefix + '/app/models/mysql/SiegeUser');
@@ -16,15 +15,18 @@ const https = require('https'),
   OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-// TODO: Change these constants when you run
-const API_KEY = '5f052a34a0f7292b2e44d51d4482fa3a',
-  API_SECRET = 'fd75a2a05ce1325243db1416a8e00d0e6c39d8c5f9f5693e167b435f1501ffea',
-  API_END_POINT = 'http://localhost:7001/testnet/v2/',
-  TOKEN_RULE_ADDRESS = '0xb102717289cb805bdab41c804eb6ed023f638f3e',
-  PARALLEL_TRANSACTIONS = 2,
-  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3;
+require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
-let maxIteration = 100;
+// TODO: Change these constants when you run
+const API_KEY = '43538ea77d5473371dbdfb8e773341f7',
+  API_SECRET = '85217ad39713c51123f73a843df491218f50e997173d1c702be813451a3afb48',
+  API_END_POINT = 'http://kit.developmentost.com:7001/testnet/v2/',
+  TOKEN_RULE_ADDRESS = '0x2148e3f3256c96b21efe94d2e75afeb5bd207fc2',
+  MAX_NO_OF_SENDERS = 2, // regardless of this number, it can not exceed half of users generated.
+  PARALLEL_TRANSACTIONS = 4, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
+
+let maxIteration = 2;
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
@@ -62,7 +64,7 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
-      .limit(PARALLEL_TRANSACTIONS * 2)
+      .limit(MAX_NO_OF_SENDERS * 2)
       .fire();
     let addIndex = basicHelper.shuffleArray([0, 1])[0];
 
@@ -90,7 +92,7 @@ class TransactionSiege {
       tokenDetails = await getTokenDetailsObj.perform();
 
     oThis.tokenId = tokenDetails.token.id;
-    oThis.auxChainId = tokenDetails.auxiliary_chains[0].chain_id;
+    oThis.auxChainId = tokenDetails.token.auxiliary_chains[0].chain_id;
   }
 
   async _getSessionKeyNonce() {
@@ -159,7 +161,8 @@ class TransactionSiege {
             calldata: oThis.calldata,
             signature: vrs.signature,
             signer: sessionAddress,
-            nonce: oThis.sessionNonceMap[senderUuid]
+            nonce: oThis.sessionNonceMap[senderUuid],
+            i: i + '-' + maxIteration
           },
           resource = `/users/${senderUuid}/transactions`;
 
@@ -174,7 +177,7 @@ class TransactionSiege {
             })
         );
 
-        if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == oThis.senderUuids.length) {
+        if (i % PARALLEL_TRANSACTIONS == 0 || i + 1 == oThis.senderUuids.length) {
           await Promise.all(promiseArray);
           promiseArray = [];
         }
@@ -214,9 +217,9 @@ class TransactionSiege {
       data: oThis.calldata,
       nonce: oThis.sessionNonceMap[senderUuid],
       callPrefix: tokenHolder.getTokenHolderExecuteRuleCallPrefix(),
-      value: 0,
-      gasPrice: contractConstants.auxChainGasPrice
-      //gas: 0  //TODO: Gas Dhundh lo..
+      value: '0x0',
+      gasPrice: 0,
+      gas: '0'
     };
 
     return ephemeralKeyObj.signEIP1077Transaction(transaction);
