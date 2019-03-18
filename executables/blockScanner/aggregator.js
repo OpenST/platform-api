@@ -255,4 +255,4 @@ new Aggregator({ cronProcessId: +program.cronProcessId }).perform();
 setInterval(function() {
   logger.info('Ending the process.');
   process.emit('SIGINT');
-}, 30 * 60 * 1000);
+}, cronProcessesConstants.aggregatorRestartTimeout);
