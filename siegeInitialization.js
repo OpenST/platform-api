@@ -298,7 +298,7 @@ class SiegeInitialization {
           userDataRsp = await getUserDataObj.perform();
 
         if (userDataRsp.isFailure()) {
-          onResolve(userData);
+          return onResolve(userData);
         }
 
         let userData = userDataRsp.data;
