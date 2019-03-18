@@ -541,7 +541,7 @@ class TransactionParser extends MultiSubscriptionBase {
       promiseArray.push(
         pendingTransactionObj.update(updateParams).catch(function(error) {
           // as we have code in finalizer to check and update status (if needed) we ignore any errors from here and proceed
-          logger.error('_updateStatuseInDb failed in transactionParser', error);
+          logger.error('_updateStatuseInDb failed in transactionParser', updateParams, error);
         })
       );
 
