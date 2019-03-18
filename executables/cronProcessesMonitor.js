@@ -79,22 +79,31 @@ class CronProcessesMonitorExecutable extends CronBase {
 
     // check last running time for continuous crons
     for (let index = 0; index < existingCronsLength; index += 1) {
-      const cronEntity = existingCrons[index],
-        lastEndedAtInSecs = Math.floor(new Date(cronProcess.last_ended_at).getTime() / 1000),
-        restartIntervalForCron =
-          cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronEntity.kind_name];
+      const cronEntity = existingCrons[index];
 
-      if (lastEndedAtInSecs > restartIntervalForCron) {
-        const errorObject = responseHelper.error({
-          internal_error_identifier: 'cron_stuck:e_cpm_1',
-          api_error_identifier: 'cron_stuck',
-          debug_options: {
-            cronId: cronEntity.id,
-            cronKind: cronEntity.kind_name,
-            lastEndTimeFromCron: cronEntity.last_ended_at
-          }
-        });
-        createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      if (cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronEntity.kind_name]) {
+        let lastEndedAtInSecs = Math.floor(new Date(cronEntity.last_ended_at).getTime() / 1000),
+          currentTimeInSecs = Math.floor(new Date().getTime() / 1000),
+          restartIntervalForCron =
+            cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronEntity.kind_name];
+
+        logger.debug('lastEndedAtInSecs------', lastEndedAtInSecs);
+        logger.debug('currentTimeInSecs-------', currentTimeInSecs);
+        logger.debug('(lastEndedAtInSecs - currentTimeInSecs)-------', lastEndedAtInSecs - currentTimeInSecs);
+        logger.debug('restartIntervalForCron---', restartIntervalForCron);
+
+        if (lastEndedAtInSecs - currentTimeInSecs > restartIntervalForCron) {
+          const errorObject = responseHelper.error({
+            internal_error_identifier: 'cron_stuck:e_cpm_1',
+            api_error_identifier: 'cron_stuck',
+            debug_options: {
+              cronId: cronEntity.id,
+              cronKind: cronEntity.kind_name,
+              lastEndTimeFromCron: cronEntity.last_ended_at
+            }
+          });
+          createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+        }
       }
     }
 
