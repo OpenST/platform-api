@@ -8,16 +8,16 @@ const https = require('https'),
   Web3 = require('web3'),
   web3 = new Web3();
 
-const API_KEY = '43538ea77d5473371dbdfb8e773341f7',
-  API_SECRET = '85217ad39713c51123f73a843df491218f50e997173d1c702be813451a3afb48',
-  API_END_POINT = 'http://kit.developmentost.com:7001/testnet/v2/',
-  TOKEN_RULE_ADDRESS = '0x2148e3f3256c96b21efe94d2e75afeb5bd207fc2',
+const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
+  API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
+  TOKEN_RULE_ADDRESS = '0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
   COMPANY_UUID = 'caf774d4-82e4-4bc7-a620-bdca52ac4ef5',
   maxConnectionObjects = 4;
 
 let maxIteration = 10,
   NO_OF_USERS_COVERAGE = 5,
-  PARALLEL_TRANSACTIONS = 2,
+  PARALLEL_TRANSACTIONS = 2, // TODO: Company has 10 session addresses. So using 8.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1,
   receiverTokenHolders = [];
 
