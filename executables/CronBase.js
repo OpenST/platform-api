@@ -7,6 +7,9 @@ const rootPrefix = '..',
   CronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   cronProcessHandlerObject = new CronProcessHandler(),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 /**
@@ -47,7 +50,7 @@ class CronBase {
       logger.error('Error in executables/CronBase.js');
 
       return responseHelper.error({
-        internal_error_identifier: 'e_bs_w_2',
+        internal_error_identifier: 'e_bs_w_1',
         api_error_identifier: 'something_went_wrong',
         debug_options: err
       });
@@ -74,6 +77,24 @@ class CronBase {
    */
   attachHandlers() {
     const oThis = this;
+
+    /*
+      send error notification function
+      if cron doesn't stop after 60 secs of receiving SIGINT, send error notification
+     */
+    const sendNotification = function() {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: oThis._cronKind + ' :cron_stuck:e_bs_w_2',
+        api_error_identifier: 'cron_stuck',
+        debug_options: {
+          cronProcessId: oThis.cronProcessId,
+          cronName: oThis._cronKind
+        }
+      });
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+    };
+
+    setTimeout(sendNotification, 60000);
 
     const handle = function() {
       oThis._stopPickingUpNewTasks();

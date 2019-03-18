@@ -394,6 +394,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Finalizer stuck for a long time."
   },
+  "cron_stuck": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Cron stuck for a long time."
+  },
   "low_eth_balance_master_internal_funder": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
