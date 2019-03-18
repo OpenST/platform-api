@@ -3,6 +3,10 @@
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner'),
+  GetTokenDetails = require(rootPrefix + '/tools/seige/userFlow/GetTokenDetails'),
   SiegeUser = require(rootPrefix + '/app/models/mysql/SiegeUser');
 
 const https = require('https'),
@@ -13,35 +17,30 @@ const https = require('https'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 // TODO: Change these constants when you run
-const API_KEY = '',
-  API_SECRET = '',
-  API_END_POINT = '',
-  CHAIN_ID = 2000,
-  TOKEN_ID = 12345,
-  TOKEN_RULE_ADDRESS = '',
+const API_KEY = '5f052a34a0f7292b2e44d51d4482fa3a',
+  API_SECRET = 'fd75a2a05ce1325243db1416a8e00d0e6c39d8c5f9f5693e167b435f1501ffea',
+  API_END_POINT = 'http://localhost:7001/testnet/v2/',
+  TOKEN_RULE_ADDRESS = '0xb102717289cb805bdab41c804eb6ed023f638f3e',
   PARALLEL_TRANSACTIONS = 2,
-  PER_SDK_LIMIT = 30,
-  USER_SHARD_NUMBER = 1,
-  RECEIVER_COUNT = 500;
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3;
+
+let maxIteration = 100;
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
 https.globalAgent.maxSockets = 100;
 
-let sdkLimit = 10,
-  senders = [],
-  receiverTokenHolders = [],
-  sessionAddressMap = {},
-  tokenShardDetails = {
-    user: USER_SHARD_NUMBER
-  };
-
 class TransactionSiege {
   constructor() {
     const oThis = this;
 
-    oThis.userDataMap = {};
+    oThis.tokenId = null;
+    oThis.auxChainId = null;
+    oThis.siegeData = {};
     oThis.sessionNonceMap = {};
+    oThis.receiverTokenHolders = [];
+    oThis.senderUuids = [];
+    oThis.sessionAddressMap = {};
   }
 
   async perform() {
@@ -49,78 +48,11 @@ class TransactionSiege {
 
     await oThis._init();
 
-    await oThis._getUserData();
+    await oThis._getTokenData();
 
     await oThis._getSessionKeyNonce();
 
-    let count = 0;
-
-    oThis.promiseArray = [];
-
-    while (sdkLimit--) {
-      let perSdkLimit = PER_SDK_LIMIT,
-        ostObj = new OSTSDK({
-          apiKey: API_KEY,
-          apiSecret: API_SECRET,
-          apiEndpoint: API_END_POINT,
-          config: { timeout: 100 }
-        }),
-        transactionsService = ostObj.services.transactions;
-
-      while (perSdkLimit > 0) {
-        for (let i = 0; i < senders.length; i++) {
-          if (count % PARALLEL_TRANSACTIONS == 0 || perSdkLimit == 0) {
-            await Promise.all(oThis.promiseArray);
-
-            console.log('===== Done with', PARALLEL_TRANSACTIONS, '=== transactions');
-            oThis.promiseArray = [];
-          }
-
-          let senderId = senders[i],
-            receiverTokenHolder = receiverTokenHolders[i],
-            sessionAddress = sessionAddressMap[senderId];
-
-          let params = {
-            receiver: receiverTokenHolder,
-            index: i,
-            nonce: oThis.sessionNonceMap[sessionAddress],
-            senderTokenHolder: oThis.userDataMap[senderId].tokenHolderAddress,
-            sessionPrivateKey: oThis.siegeData[senderId].session_pk
-          };
-
-          let vrs = await oThis._signEIP1077Transaction(params);
-
-          let executeParams = {
-            user_data: oThis.userDataMap[senderId],
-            token_shard_details: tokenShardDetails,
-            to: TOKEN_RULE_ADDRESS,
-            raw_calldata: oThis.raw_calldata,
-            signature: vrs.signature,
-            signer: sessionAddress,
-            nonce: oThis.sessionNonceMap[sessionAddress]
-          };
-
-          oThis.promiseArray.push(
-            transactionsService
-              .execute(executeParams)
-              .then(function(resp) {
-                oThis.sessionNonceMap[senderId] = oThis.sessionNonceMap[senderId] + 1;
-              })
-              .catch(function(err) {
-                console.error('====Transaction failed from user:', senderId);
-              })
-          );
-
-          count++;
-          perSdkLimit--;
-        }
-
-        if (count % PARALLEL_TRANSACTIONS == 0 || perSdkLimit == 0) {
-          await Promise.all(oThis.promiseArray);
-          oThis.promiseArray = [];
-        }
-      }
-    }
+    await oThis.runExecuteTransaction();
   }
 
   async _init() {
@@ -128,75 +60,65 @@ class TransactionSiege {
 
     let siegeUser = new SiegeUser();
 
-    let Rows = await siegeUser.select('*').fire();
+    let Rows = await siegeUser
+      .select('*')
+      .limit(PARALLEL_TRANSACTIONS * 2)
+      .fire();
+    let addIndex = basicHelper.shuffleArray([0, 1])[0];
 
-    oThis.siegeData = {};
-
-    let count = 0;
     for (let i = 0; i < Rows.length; i++) {
       oThis.siegeData[Rows[i].user_uuid] = Rows[i];
 
-      if (count > RECEIVER_COUNT) {
-        receiverTokenHolders.push(Rows[i].token_holder_contract_address);
+      if ((i + addIndex) % 2) {
+        oThis.receiverTokenHolders.push(Rows[i].token_holder_contract_address);
       } else {
-        senders.push(Rows[i].user_uuid);
+        oThis.senderUuids.push(Rows[i].user_uuid);
       }
     }
-  }
 
-  async _getUserData() {
-    const oThis = this;
-
-    let ostObj = new OSTSDK({
+    oThis.ostObj = new OSTSDK({
       apiKey: API_KEY,
       apiSecret: API_SECRET,
       apiEndpoint: API_END_POINT,
       config: { timeout: 100 }
     });
+  }
 
-    let userService = ostObj.services.users;
+  async _getTokenData() {
+    let oThis = this,
+      getTokenDetailsObj = new GetTokenDetails({ ostObj: oThis.ostObj }),
+      tokenDetails = await getTokenDetailsObj.perform();
 
-    for (let i = 0; i < senders.length; ) {
-      let ids = senders.slice(i, i + 10);
-
-      let response = await userService.getList({
-        ids: ids,
-        limit: 10
-      });
-
-      if (response.isFailure()) {
-        return Promise.reject(response);
-      }
-
-      Object.assign(oThis.userDataMap, response.data);
-    }
+    oThis.tokenId = tokenDetails.token.id;
+    oThis.auxChainId = tokenDetails.auxiliary_chains[0].chain_id;
   }
 
   async _getSessionKeyNonce() {
     const oThis = this;
 
-    let configStrategyHelper = new ConfigStrategyHelper(CHAIN_ID, 0),
+    let configStrategyHelper = new ConfigStrategyHelper(oThis.auxChainId, 0),
       configRsp = await configStrategyHelper.getComplete(),
       config = configRsp.data,
       ic = new InstanceComposer(config);
 
     let promiseArray = [];
 
-    oThis.wsProvider = config.auxGeth.readOnly.wsProviders[0];
+    oThis.wsProviders = config.auxGeth.readOnly.wsProviders;
 
-    for (let i = 0; i < senders.length; i++) {
+    for (let i = 0; i < oThis.senderUuids.length; i++) {
       let params = {
-          auxChainId: CHAIN_ID,
-          tokenId: TOKEN_ID,
-          userId: senders[i],
-          sessionAddress: oThis.siegeData[senders[i]].session_address,
-          web3Providers: config.auxGeth.readOnly.wsProviders
+          auxChainId: oThis.auxChainId,
+          tokenId: oThis.tokenId,
+          userId: oThis.senderUuids[i],
+          sessionAddress: oThis.siegeData[oThis.senderUuids[i]].session_address,
+          web3Providers: config.auxGeth.readOnly.wsProviders,
+          chainWsProviders: config.auxGeth.readOnly.wsProviders
         },
         TokenHolderContractNonce = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenHolderNonce');
 
       promiseArray.push(
         new TokenHolderContractNonce(params).perform().then(function(resp) {
-          oThis.sessionNonceMap[senders[i]] = resp.data.nonce;
+          oThis.sessionNonceMap[oThis.senderUuids[i]] = resp.data.nonce;
         })
       );
     }
@@ -204,20 +126,82 @@ class TransactionSiege {
     await Promise.all(promiseArray);
   }
 
+  async runExecuteTransaction() {
+    const oThis = this;
+
+    while (maxIteration--) {
+      let promiseArray = [];
+
+      for (let i = 0; i < oThis.senderUuids.length; i++) {
+        let senderUuid = oThis.senderUuids[i],
+          senderDetails = oThis.siegeData[senderUuid],
+          sessionAddress = senderDetails.session_address,
+          transferTos = oThis.receiverTokenHolders.slice(i, i + NO_OF_TRANSFERS_IN_EACH_TRANSACTION);
+
+        let params = {
+          transferTos: transferTos,
+          senderUuid: senderUuid
+        };
+
+        let vrs = await oThis._signEIP1077Transaction(params);
+
+        let requestObj = new RequestKlass({
+            tokenId: oThis.tokenId,
+            walletAddress: senderDetails.device_address,
+            apiSignerAddress: senderDetails.device_address,
+            apiSignerPrivateKey: senderDetails.device_pk,
+            apiEndpoint: API_END_POINT,
+            userUuid: senderUuid
+          }),
+          queryParams = {
+            to: TOKEN_RULE_ADDRESS,
+            raw_calldata: oThis.raw_calldata,
+            calldata: oThis.calldata,
+            signature: vrs.signature,
+            signer: sessionAddress,
+            nonce: oThis.sessionNonceMap[senderUuid]
+          },
+          resource = `/users/${senderUuid}/transactions`;
+
+        promiseArray.push(
+          requestObj
+            .post(resource, queryParams)
+            .then(function(response) {
+              oThis.sessionNonceMap[senderUuid] = oThis.sessionNonceMap[senderUuid] + 1;
+            })
+            .catch(function(err) {
+              console.log(JSON.stringify(err));
+            })
+        );
+
+        if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == oThis.senderUuids.length) {
+          await Promise.all(promiseArray);
+          promiseArray = [];
+        }
+      }
+    }
+  }
+
   _signEIP1077Transaction(params) {
     const oThis = this;
 
     let TokenHolder = OpenstJs.Helpers.TokenHolder,
       TokenRules = OpenstJs.Helpers.TokenRules,
-      web3 = new Web3(oThis.wsProvider),
+      web3 = new Web3(oThis.wsProviders[0]), //TODO: use random of providers.
+      senderUuid = params.senderUuid,
+      senderDetails = oThis.siegeData[senderUuid],
       tokenRulesAddress = web3.utils.toChecksumAddress(TOKEN_RULE_ADDRESS),
-      tokenHolderSender = web3.utils.toChecksumAddress(params.senderTokenHolder),
-      transferTos = receiverTokenHolders.slice(params.index, params.index + 3),
-      transferAmounts = ['1', '1', '1'],
-      ephemeralKeyObj = web3.eth.accounts.wallet.add(params.sessionPrivateKey),
+      tokenHolderSender = web3.utils.toChecksumAddress(senderDetails.token_holder_contract_address),
+      transferTos = params.transferTos,
+      transferAmounts = [],
+      ephemeralKeyObj = web3.eth.accounts.wallet.add(senderDetails.session_pk),
       tokenRulesObject = new TokenRules(tokenRulesAddress, web3),
-      tokenHolder = new TokenHolder(web3, tokenHolderSender),
-      directTransferExecutable = tokenRulesObject.getDirectTransferExecutableData(transferTos, transferAmounts);
+      tokenHolder = new TokenHolder(web3, tokenHolderSender);
+
+    for (let j = 0; j < transferTos.length; j++) {
+      transferAmounts.push('1');
+    }
+    oThis.calldata = tokenRulesObject.getDirectTransferExecutableData(transferTos, transferAmounts);
 
     oThis.raw_calldata = JSON.stringify({
       method: 'directTransfers',
@@ -227,12 +211,12 @@ class TransactionSiege {
     let transaction = {
       from: tokenHolderSender,
       to: tokenRulesAddress,
-      data: directTransferExecutable,
-      nonce: params.nonce,
+      data: oThis.calldata,
+      nonce: oThis.sessionNonceMap[senderUuid],
       callPrefix: tokenHolder.getTokenHolderExecuteRuleCallPrefix(),
       value: 0,
-      gasPrice: 0,
-      gas: 0
+      gasPrice: contractConstants.auxChainGasPrice
+      //gas: 0  //TODO: Gas Dhundh lo..
     };
 
     return ephemeralKeyObj.signEIP1077Transaction(transaction);

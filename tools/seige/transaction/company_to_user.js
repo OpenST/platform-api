@@ -8,10 +8,10 @@ const https = require('https'),
   Web3 = require('web3'),
   web3 = new Web3();
 
-const API_KEY = '',
-  API_SECRET = '',
-  API_END_POINT = '',
-  TOKEN_RULE_ADDRESS = '',
+const API_KEY = '5f052a34a0f7292b2e44d51d4482fa3a',
+  API_SECRET = 'fd75a2a05ce1325243db1416a8e00d0e6c39d8c5f9f5693e167b435f1501ffea',
+  API_END_POINT = 'http://localhost:7001/testnet/v2/',
+  TOKEN_RULE_ADDRESS = '0xb102717289cb805bdab41c804eb6ed023f638f3e',
   maxConnectionObjects = 20,
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
   PARALLEL_TRANSACTIONS = 20;
@@ -30,6 +30,30 @@ class TransactionSiege {
     const oThis = this;
 
     await oThis._init();
+
+    await oThis.runExecuteTransaction();
+  }
+
+  async _init() {
+    const oThis = this;
+
+    let siegeUser = new SiegeUser();
+
+    let Rows = await siegeUser
+      .select('*')
+      .limit(PARALLEL_TRANSACTIONS)
+      .fire();
+
+    for (let i = 0; i < Rows.length; i++) {
+      receiverTokenHolders.push(Rows[i].token_holder_contract_address);
+    }
+
+    // TODO: Santhosh. temp hard coding.
+    receiverTokenHolders = ['0xa2d0f82b04cd4f8d7ae4dfb4851c8acafae5378d'];
+  }
+
+  async runExecuteTransaction() {
+    const oThis = this;
 
     for (let i = 0; i < receiverTokenHolders.length; i++) {
       receiverTokenHolders[i] = web3.utils.toChecksumAddress(receiverTokenHolders[i]);
@@ -78,26 +102,11 @@ class TransactionSiege {
         );
 
         if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == receiverTokenHolders.length) {
-          await Promise.all(oThis.promiseArray);
+          await Promise.all(promiseArray);
           promiseArray = [];
         }
       }
     }
-  }
-
-  async _init() {
-    const oThis = this;
-
-    let siegeUser = new SiegeUser();
-
-    let Rows = await siegeUser.select('*').fire();
-
-    for (let i = 0; i < Rows.length; i++) {
-      receiverTokenHolders.push(Rows[i].token_holder_contract_address);
-    }
-
-    // TODO: Santhosh. temp hard coding.
-    receiverTokenHolders = [''];
   }
 }
 
