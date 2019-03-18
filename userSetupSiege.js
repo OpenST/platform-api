@@ -220,7 +220,7 @@ class SiegeInitialization {
     let userData = await oThis._pollForUserStatus(userUuid, 'ACTIVATED'),
       tokenHolderAddress = userData.user.token_holder_address;
 
-    console.log('****User activates*****');
+    console.log('****User activated*****');
 
     return Promise.resolve();
   }
