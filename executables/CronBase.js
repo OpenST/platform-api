@@ -5,12 +5,11 @@
  */
 const rootPrefix = '..',
   CronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   cronProcessHandlerObject = new CronProcessHandler(),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
-  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
 /**
  * Class for sigint handler.
