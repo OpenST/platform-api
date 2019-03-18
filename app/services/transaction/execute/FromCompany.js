@@ -26,7 +26,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chain/UserTransactionCount');
+require(rootPrefix + '/lib/cacheManagement/chain/CompanySessionTransactionCount');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 
 /**
@@ -312,14 +312,16 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
     const oThis = this;
 
     let indexFromCache = 0,
-      UserTransactionCount = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserTransactionCount'),
-      userTransactionCount = new UserTransactionCount({
+      CompanySessionTransactionCount = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'CompanySessionTransactionCount'),
+      companySessionTransactionCount = new CompanySessionTransactionCount({
         tokenId: oThis.tokenId
       }),
-      userTransactionCountTxCacheRsp = await userTransactionCount.fetch();
+      csTrxCountCacheRsp = await companySessionTransactionCount.fetch();
 
-    if (userTransactionCountTxCacheRsp.isSuccess() && userTransactionCountTxCacheRsp.data) {
-      indexFromCache = userTransactionCountTxCacheRsp.data;
+    if (csTrxCountCacheRsp.isSuccess() && csTrxCountCacheRsp.data) {
+      indexFromCache = csTrxCountCacheRsp.data;
     }
 
     let indexToSelect = indexFromCache % sessionKeys.length;

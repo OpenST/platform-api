@@ -103,12 +103,8 @@ class InitiateRecovery extends UserRecoveryServiceBase {
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    // Fetch all recovery operations of user.
-    const recoveryOperationObj = new RecoveryOperationModel(),
-      recoveryOperations = await recoveryOperationObj.getPendingOperationsOfTokenUser(oThis.tokenId, oThis.userId);
-
-    for (let index in recoveryOperations) {
-      const operation = recoveryOperations[index];
+    for (let index in oThis.userPendingRecoveryOperations) {
+      const operation = oThis.userPendingRecoveryOperations[index];
 
       // Another in progress operation is present.
       if (
@@ -214,14 +210,12 @@ class InitiateRecovery extends UserRecoveryServiceBase {
       }
     }
 
-    const recOperation = await new RecoveryOperationModel()
-      .insert({
-        token_id: oThis.tokenId,
-        user_id: oThis.userId,
-        kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind],
-        status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
-      })
-      .fire();
+    const recOperation = await new RecoveryOperationModel().insertOperation({
+      token_id: oThis.tokenId,
+      user_id: oThis.userId,
+      kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.initiateRecoveryByUserKind],
+      status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
+    });
 
     // Start Initiate Recovery workflow
     await oThis._startInitiateRecoveryWorkflow(recOperation.insertId);

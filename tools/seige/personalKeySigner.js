@@ -5,13 +5,12 @@
  *
  * @module lib/request
  */
-const queryString = require('query-string'),
+const queryString = require('qs'),
   https = require('https'),
   http = require('http'),
   url = require('url');
 
-const rootPrefix = '..',
-  validate = require(rootPrefix + '/lib/validate'),
+const rootPrefix = '../..',
   version = require(rootPrefix + '/package.json').version,
   httpUserAgent = 'ost-sdk-js ' + version;
 
@@ -28,9 +27,11 @@ let DEBUG = 'true' === process.env.OST_SDK_DEBUG;
  * @private @static
  */
 function signQueryParams(resource, queryParams, requestParams) {
-  console.log('resource', resource);
-  console.log('queryParams', queryParams);
-  console.log('requestParams', requestParams);
+  if (DEBUG) {
+    console.log('resource', resource);
+    console.log('queryParams', queryParams);
+    console.log('requestParams', requestParams);
+  }
 
   let stringToSign = `${resource}?${queryParams}`;
 
@@ -40,10 +41,29 @@ function signQueryParams(resource, queryParams, requestParams) {
 
   return (
     queryParams +
-    '&signature=' +
+    '&api_signature=' +
     web3.eth.accounts.wallet[requestParams.apiSignerAddress].sign(stringToSign)['signature']
   );
 }
+
+const _alphabeticalSort = function(a, b) {
+  try {
+    let resultForInt = a - b;
+    if (isNaN(resultForInt)) {
+      return a.localeCompare(b);
+    } else {
+      if (resultForInt < 0) {
+        return -1;
+      } else if (resultForInt > 0) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+  } catch (err) {
+    return a.localeCompare(b);
+  }
+};
 
 /**
  * Request Manager constructor
@@ -53,22 +73,12 @@ function signQueryParams(resource, queryParams, requestParams) {
  * @param {string} params.walletAddress
  * @param {string} params.apiSignerAddress
  * @param {string} params.apiEndpoint - version specific api endpoint
+ * @param {string} params.apiSignerPrivateKey -
  *
  * @constructor
  */
 const RequestKlass = function(params) {
   const oThis = this;
-
-  // Validate token_id key
-  if (!validate.isPresent(params.tokenId)) {
-    throw new Error('tokenId not present.');
-  } else if (!validate.isPresent(params.walletAddress)) {
-    throw new Error('Api key not present.');
-  } else if (!validate.isPresent(params.apiSignerAddress)) {
-    throw new Error('Api key not present.');
-  }
-
-  console.log('params', params);
 
   oThis.apiEndpoint = params.apiEndpoint.replace(/\/$/, '');
 
@@ -78,10 +88,13 @@ const RequestKlass = function(params) {
     queryParams.token_id = params.tokenId;
     queryParams.wallet_address = params.walletAddress;
     queryParams.api_signer_address = params.apiSignerAddress;
-    queryParams.signature_kind = 'OST1-PS';
-    queryParams.request_timestamp = Math.round(new Date().getTime() / 1000);
+    queryParams.api_signature_kind = 'OST1-PS';
+    queryParams.api_request_timestamp = Math.round(new Date().getTime() / 1000);
+    queryParams.api_key = `${params.tokenId}.${params.userUuid}.${params.walletAddress}.${params.apiSignerAddress}`;
 
-    let formattedParams = queryString.stringify(queryParams, { arrayFormat: 'bracket' }).replace(/%20/g, '+');
+    let formattedParams = queryString
+      .stringify(queryParams, { arrayFormat: 'brackets', sort: _alphabeticalSort })
+      .replace(/%20/g, '+');
 
     return signQueryParams(resource, formattedParams, params);
   };
@@ -172,7 +185,7 @@ RequestKlass.prototype = {
       }
     };
 
-    if (requestType === 'GET' && validate.isPresent(requestData)) {
+    if (requestType === 'GET') {
       options.path = options.path + '?' + requestData;
     }
 
@@ -219,7 +232,7 @@ RequestKlass.prototype = {
       });
 
       //write data to server
-      if (requestType === 'POST' && validate.isPresent(requestData)) {
+      if (requestType === 'POST') {
         request.write(requestData);
       }
       request.end();
@@ -235,7 +248,7 @@ RequestKlass.prototype = {
    * @private
    */
   _parseResponse: function(responseData, response) {
-    if (!validate.isPresent(responseData) || (response || {}).statusCode != 200) {
+    if ((response || {}).statusCode != 200) {
       switch ((response || {}).statusCode) {
         case 400:
           responseData =

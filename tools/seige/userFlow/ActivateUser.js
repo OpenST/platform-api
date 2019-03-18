@@ -40,15 +40,14 @@ class ActivateUser {
         expiration_height: oThis.expirationHeight,
         spending_limit: oThis.spendingLimit
       },
-      resource = `/users/${oThis.userUuid}/activate-user`;
+      resource = `/users/${oThis.userUuid}/activate-user`,
+      beforeTimeStamp = Date.now(),
+      response = await requestObj.post(resource, queryParams).catch(function(err) {
+        console.log(JSON.stringify(err));
+      }),
+      afterTimeStamp = Date.now();
 
-    console.log('---->requestObj', requestObj);
-    console.log('---->queryParams', queryParams);
-    console.log('---->resource', resource);
-
-    let response = await requestObj.post(resource, queryParams).catch(function(err) {
-      console.log(JSON.stringify(err));
-    });
+    console.log('Time take for activate user: ', afterTimeStamp - beforeTimeStamp);
 
     return response;
   }
