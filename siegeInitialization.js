@@ -298,23 +298,43 @@ class SiegeInitialization {
           userDataRsp = await getUserDataObj.perform();
 
         if (userDataRsp.isFailure()) {
-          return onResolve(userData);
+          console.log('Failure:', userDataRsp);
+          return onResolve(userDataRsp);
         }
 
         let userData = userDataRsp.data;
 
         console.log('.');
 
+        console.log('userData', userData);
         if (userData.user.status == status) {
           return onResolve(responseHelper.successWithData(userData));
         } else {
           setTimeout(async function() {
-            _getUserData(userUuid);
+            _getUserData(userUuid).catch(function(err) {
+              console.log(' In catch block of _getUserData 1', err);
+              return onResolve(
+                responseHelper.error({
+                  internal_error_identifier: 'r_si_1',
+                  api_error_identifier: 'something_went_wrong',
+                  debug_options: { err: err }
+                })
+              );
+            });
           }, POLLING_INTERVAL);
         }
       };
 
-      _getUserData(userUuid);
+      _getUserData(userUuid).catch(function(err) {
+        console.log(' In catch block of _getUserData 2', err);
+        return onResolve(
+          responseHelper.error({
+            internal_error_identifier: 'r_si_2',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: { err: err }
+          })
+        );
+      });
     });
   }
 }
