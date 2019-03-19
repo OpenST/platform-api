@@ -78,8 +78,8 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 
     // aux Price Oracle workers
     [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
-      fundAmount: '0.002496',
-      thresholdAmount: '0.001248'
+      fundAmount: '0.00384',
+      thresholdAmount: '0.00192'
     },
 
     // facilitator
