@@ -63,6 +63,7 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
+      .where(['token_holder_contract_address IS NOT NULL'])
       .limit(NO_OF_USERS_COVERAGE)
       .fire();
 
