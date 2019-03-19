@@ -170,11 +170,6 @@ class CoreConstants {
     return process.env.SA_INTERNAL_API_SECRET_KEY;
   }
 
-  // SHA256 details
-  get GENERIC_SHA_KEY() {
-    return process.env.SA_GENERIC_SHA_KEY;
-  }
-
   // Cache data key
   get CACHE_SHA_KEY() {
     return process.env.SA_CACHE_DATA_SHA_KEY;
