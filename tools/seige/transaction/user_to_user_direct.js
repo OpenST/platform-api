@@ -48,9 +48,9 @@ class TransactionSiege {
   async perform() {
     const oThis = this;
 
-    await oThis._init();
-
     await oThis._getTokenData();
+
+    await oThis._init();
 
     await oThis._getSessionKeyNonce();
 
@@ -77,18 +77,18 @@ class TransactionSiege {
         oThis.senderUuids.push(Rows[i].user_uuid);
       }
     }
-
-    oThis.ostObj = new OSTSDK({
-      apiKey: API_KEY,
-      apiSecret: API_SECRET,
-      apiEndpoint: API_END_POINT,
-      config: { timeout: 100 }
-    });
   }
 
   async _getTokenData() {
-    let oThis = this,
-      getTokenDetailsObj = new GetTokenDetails({ ostObj: oThis.ostObj }),
+    const oThis = this;
+
+    let ostObj = new OSTSDK({
+        apiKey: API_KEY,
+        apiSecret: API_SECRET,
+        apiEndpoint: API_END_POINT,
+        config: { timeout: 100 }
+      }),
+      getTokenDetailsObj = new GetTokenDetails({ ostObj: ostObj }),
       tokenDetails = await getTokenDetailsObj.perform();
 
     oThis.tokenId = tokenDetails.token.id;
