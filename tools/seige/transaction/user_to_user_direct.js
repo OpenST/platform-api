@@ -111,8 +111,8 @@ class TransactionSiege {
       getTokenDetailsObj = new GetTokenDetails({ ostObj: ostObj }),
       tokenDetails = await getTokenDetailsObj.perform();
 
-    oThis.tokenId = tokenDetails.token.id;
-    oThis.auxChainId = tokenDetails.token.auxiliary_chains[0].chain_id;
+    oThis.tokenId = tokenDetails.data.token.id;
+    oThis.auxChainId = tokenDetails.data.token.auxiliary_chains[0].chain_id;
   }
 
   async _getSessionKeyNonce() {
