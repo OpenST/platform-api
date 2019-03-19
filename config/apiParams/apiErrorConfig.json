@@ -438,5 +438,55 @@
     "http_code": "500",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Workflow failed."
+  },
+  "initiated_recovery_mail_failure": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Could not send mail for initiated recovery of clientId."
+  },
+  "cache_not_set": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error in setting cache."
+  },
+  "worker_disconnected": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Worker got disconnected."
+  },
+  "worker_died_restarting": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Worker restarting died."
+  },
+  "app_server_crash": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "App server crashed unexpectedly."
+  },
+  "elevated_privilege_required": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Elevated privileges are required for operation."
+  },
+  "port_in_use": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The port is already in use."
+  },
+  "invalid_chain_id": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Chain Id is invalid."
+  },
+  "block_parser_stuck": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Block parser stuck for a long time."
+  },
+  "block_hash_dont_match": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Hash of block number does not match the available block hash."
   }
 }
