@@ -9,7 +9,7 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '..',
   ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
