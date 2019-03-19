@@ -213,7 +213,7 @@ class Finalizer extends PublisherBase {
       if (waitTime > 2 * 30 * 5) {
         // 5 minutes.
         const errorObject = responseHelper.error({
-          internal_error_identifier: 'finalizer_stuck:e_bs_f_2',
+          internal_error_identifier: 'finalizer_stuck:e_bs_f_3',
           api_error_identifier: 'finalizer_stuck',
           debug_options: { waitTime: waitTime, chainId: oThis.chainId }
         });
