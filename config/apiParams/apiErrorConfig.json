@@ -402,12 +402,12 @@
   "low_eth_balance_master_internal_funder": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Low balance of master internal funder."
+    "message": "Low Eth balance of master internal funder."
   },
   "low_st_prime_balance_master_internal_funder": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Low balance of master internal funder."
+    "message": "Low StPrime balance of master internal funder."
   },
   "low_balance": {
     "http_code": "422",
@@ -457,7 +457,7 @@
   "worker_died_restarting": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Worker restarting died."
+    "message": "Worker died. Restarting."
   },
   "app_server_crash": {
     "http_code": "422",
