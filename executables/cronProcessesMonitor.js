@@ -13,6 +13,7 @@ const rootPrefix = '..',
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
@@ -124,16 +125,18 @@ class CronProcessesMonitorExecutable extends CronBase {
         lastStartedAtInMSecs = Math.floor(new Date(cronEntity.last_started_at).getTime()),
         lastEndedAtInMSecs = Math.floor(new Date(cronEntity.last_ended_at).getTime());
 
-      logger.info(
-        '--------------Monitoring cron parameters for : [',
-        cronEntity.id,
-        cronKind,
-        '] on machine: ',
-        cronEntity.ip_address
-      );
+      logger.info('*** Monitoring cron: [', cronEntity.id, cronKind, '] on machine: ', cronEntity.ip_address);
       logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
-      logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
-      logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
+      logger.debug('lastStartedAtInMSecs: ', lastStartedAtInMSecs);
+      logger.debug('lastEndedAtInMSecs: ', lastEndedAtInMSecs);
+
+      if (
+        CommonValidators.validateZeroInteger(lastEndedAtInMSecs) &&
+        CommonValidators.validateZeroInteger(lastStartedAtInMSecs)
+      ) {
+        logger.debug('This cron was never started yet.');
+        continue;
+      }
 
       const invertedRunningStatus = new CronProcessModel().invertedStatuses[cronProcessesConstants.runningStatus],
         invertedStoppedStatus = new CronProcessModel().invertedStatuses[cronProcessesConstants.stoppedStatus];
@@ -141,7 +144,7 @@ class CronProcessesMonitorExecutable extends CronBase {
       if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronKind]) {
         const restartIntervalForCron =
           oThis.cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronKind];
-        logger.debug('restartIntervalForCron---', restartIntervalForCron);
+        logger.debug('restartIntervalForCron: ', restartIntervalForCron);
 
         // Check last ended time for continuous crons.
         // if last running instance ended before specified offset, notify
