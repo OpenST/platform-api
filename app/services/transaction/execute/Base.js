@@ -358,7 +358,8 @@ class ExecuteTxBase extends ServiceBase {
           })
         );
       }
-      return updateBalanceResponse;
+      logger.error('updateBalance error in app/services/transaction/execute/Base', updateBalanceResponse);
+      return Promise.reject(updateBalanceResponse);
     });
 
     oThis.pessimisticAmountDebitted = true;
