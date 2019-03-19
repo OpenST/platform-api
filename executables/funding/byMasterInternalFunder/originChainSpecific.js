@@ -16,7 +16,7 @@ const rootPrefix = '../../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   GetEthBalance = require(rootPrefix + '/lib/getBalance/Eth'),
   GetOstBalance = require(rootPrefix + '/lib/getBalance/Ost'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
@@ -86,7 +86,7 @@ const alertConfig = {
 /**
  * Class to fund eth by chain owner.
  *
- * @class
+ * @class FundByMasterInternalFunderOriginChainSpecific
  */
 class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   /**
@@ -118,7 +118,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   }
 
   /**
-   * Validate and sanitize
+   * Validate and sanitize.
    *
    * @return {Promise<never>}
    *
@@ -139,7 +139,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   }
 
   /**
-   * Pending tasks done
+   * Pending tasks done.
    *
    * @return {Boolean}
    *
@@ -180,7 +180,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   }
 
   /**
-   * This function populates alert config
+   * This function populates alert config.
    *
    * @returns {Object}
    */
@@ -416,7 +416,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   }
 
   /**
-   * Fetches OST balance of a given address
+   * Fetches OST balance of a given address.
    *
    * @param {String} address
    *
@@ -434,7 +434,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   }
 
   /**
-   * This function performs notification of an error condition
+   * This function performs notification of an error condition.
    *
    * @param {String} addressKind
    * @param {String} address
