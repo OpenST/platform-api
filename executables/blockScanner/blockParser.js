@@ -50,9 +50,10 @@ if (!program.cronProcessId) {
 const FAILURE_CODE = -1,
   MAX_TXS_PER_WORKER = 60,
   MIN_TXS_PER_WORKER = 10,
-  BLOCKS_OFFSET = 5;
+  BLOCKS_OFFSET = 20;
 
-let parserStuckForBlocks = 0;
+let parserStuckForBlocks = 0,
+  notifierCalled = false;
 
 /**
  * Class for Block parser
@@ -282,8 +283,6 @@ class BlockParserExecutable extends PublisherBase {
   async parseBlocks() {
     const oThis = this;
 
-    console.log('======here was called-----');
-
     while (true) {
       // Break out of loop if endBlockNumber was passed and has been reached OR stopPickingUpNewWork is set
       if ((oThis.endBlockNumber >= 0 && oThis.blockToProcess > oThis.endBlockNumber) || oThis.stopPickingUpNewWork) {
@@ -305,11 +304,8 @@ class BlockParserExecutable extends PublisherBase {
 
       let blockParserResponse = await blockParser.perform();
 
-      console.log('====blockParserResponse======', blockParserResponse);
-
       if (!blockParserResponse.isSuccess()) {
         parserStuckForBlocks++;
-        console.log('=======Inside isFailure()-===parserStuckForBlocks====', parserStuckForBlocks);
         // If blockParser returns an error then sleep for 10 ms and try again.
         await basicHelper.sleep(10);
         oThis.canExit = true;
@@ -326,13 +322,11 @@ class BlockParserExecutable extends PublisherBase {
       let wasNewBlockParsed = currentBlock && currentBlock !== nextBlockToProcess;
 
       if (wasNewBlockParsed) {
-        console.log('=======Inside wasNewBlockParsed-===parserStuckForBlocks====', parserStuckForBlocks);
         parserStuckForBlocks = 0;
         // If the block contains transactions, distribute those transactions.
         await oThis._distributeTransactions(rawCurrentBlock, nodesWithBlock);
         await basicHelper.sleep(10);
       } else {
-        console.log('=======Inside else-===parserStuckForBlocks====', parserStuckForBlocks);
         parserStuckForBlocks++;
         // Sleep for higher time, assuming new block will be there to parse.
         await basicHelper.sleep(oThis.blockGenerationTime * 1000);
@@ -340,10 +334,8 @@ class BlockParserExecutable extends PublisherBase {
 
       oThis.blockToProcess = nextBlockToProcess;
 
-      console.log('BLOCKS_OFFSET----', BLOCKS_OFFSET);
-      console.log('parserStuckForBlocks----', parserStuckForBlocks);
-
-      if (oThis.intentionalBlockDelay + BLOCKS_OFFSET <= parserStuckForBlocks) {
+      // We need to call notifier only once.
+      if (!notifierCalled && oThis.intentionalBlockDelay + BLOCKS_OFFSET <= parserStuckForBlocks) {
         const errorObject = responseHelper.error({
           internal_error_identifier: 'block_parser_stuck:e_bs_bp_2',
           api_error_identifier: 'block_parser_stuck',
@@ -351,6 +343,8 @@ class BlockParserExecutable extends PublisherBase {
         });
 
         await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+        notifierCalled = true;
       }
 
       oThis.canExit = true;

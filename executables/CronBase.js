@@ -110,6 +110,7 @@ class CronBase {
     const handle = function() {
       oThis._stopPickingUpNewTasks();
 
+      // We need to call notifier only once.
       if (!notifierCalled) {
         setTimeout(sendNotification, 60000);
         notifierCalled = true;
