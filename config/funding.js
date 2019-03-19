@@ -10,8 +10,8 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
   originGas: {
     // origin deployer
     [chainAddressConstants.originDeployerKind]: {
-      fundAmount: '0.2621',
-      thresholdAmount: '0.1381'
+      fundAmount: '0.2941',
+      thresholdAmount: '0.1541'
     },
 
     // origin anchor owner
@@ -78,8 +78,8 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 
     // aux Price Oracle workers
     [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
-      fundAmount: '0.00384',
-      thresholdAmount: '0.00192'
+      fundAmount: '0.002496',
+      thresholdAmount: '0.001248'
     },
 
     // facilitator
@@ -101,8 +101,8 @@ fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
 
     // token aux workers
     [tokenAddressConstants.auxWorkerAddressKind]: {
-      fundAmount: '0.7066',
-      thresholdAmount: '0.3533'
+      fundAmount: '0.7078',
+      thresholdAmount: '0.3539'
     },
 
     // token ExTx workers
