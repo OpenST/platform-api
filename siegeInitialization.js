@@ -101,8 +101,14 @@ class SiegeInitialization {
   async _getTokenData() {
     let oThis = this,
       getTokenDetailsObj = new GetTokenDetails({ ostObj: oThis.ostObj }),
-      tokenDetails = await getTokenDetailsObj.perform();
+      tokenDetailsRsp = await getTokenDetailsObj.perform();
 
+    if (tokenDetailsRsp.isFailure()) {
+      console.log('Error in Get token details API', tokenDetailsRsp);
+      return Promise.reject(tokenDetailsRsp);
+    }
+
+    let tokenDetails = tokenDetailsRsp.data;
     oThis.tokenId = tokenDetails.token.id;
   }
 
