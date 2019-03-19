@@ -12,7 +12,7 @@ const program = require('commander');
 const rootPrefix = '../../..',
   GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -241,7 +241,9 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
    * @param {String} addressKind
    * @param {String/Number} tokenId
    * @param {Object} currentAddressBalances
+   *
    * @returns {*}
+   *
    * @private
    */
   async _evaluateTransferDetails(addressKind, tokenId, currentAddressBalances) {
@@ -307,8 +309,10 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
   /**
    * Fetches max transfer amount of given address kind from config.
    *
-   * @param addressKind
+   * @param {String} addressKind
+   *
    * @returns {BigNumber}
+   *
    * @private
    */
   _fetchMaxFundingAmountsInWei(addressKind) {
@@ -322,8 +326,10 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
   /**
    * Fetches threshold amount of given address kind from config.
    *
-   * @param addressKind
+   * @param {String} addressKind
+   *
    * @returns {BigNumber}
+   *
    * @private
    */
   _fetchThresholdAmountsInWei(addressKind) {
