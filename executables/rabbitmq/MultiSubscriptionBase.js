@@ -159,7 +159,7 @@ class MultiSubscriptionBase extends CronBase {
               try {
                 messageParams = JSON.parse(params);
               } catch (err) {
-                logger.error('--------Parsing failed--------------params-----', JSON.stringify(params));
+                logger.error('--------Parsing failed--------------params-----', params);
                 return Promise.resolve({});
               }
 

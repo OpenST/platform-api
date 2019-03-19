@@ -90,6 +90,14 @@ class ConfigStrategyObject {
       ruleId: {
         shortName: 'rid',
         dataType: 'N'
+      },
+      tokenId: {
+        shortName: 'ti',
+        dataType: 'N'
+      },
+      kind: {
+        shortName: 'kd',
+        dataType: 'N'
       }
     };
   }
@@ -138,6 +146,10 @@ class ConfigStrategyObject {
       },
       tokenId: {
         shortName: 'ti',
+        dataType: 'N'
+      },
+      kind: {
+        shortName: 'kd',
         dataType: 'N'
       },
       blockNumber: {
