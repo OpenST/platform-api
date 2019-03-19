@@ -17,7 +17,7 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
-const OFFSET_TIME_IN_SEC = 5 * 60;
+const OFFSET_TIME_IN_MSEC = 5 * 60 * 1000;
 
 const usageDemo = function() {
   logger.log('Usage: ', 'node executables/cronProcessesMonitor.js cronProcessId');
@@ -72,13 +72,13 @@ class CronProcessesMonitorExecutable extends CronBase {
 
     oThis.cronKindToRestartTimeMap = {
       [cronProcessesConstants.continuousCronsType]: {
-        [cronProcessesConstants.blockParser]: cronProcessesConstants.blockParserRestartInterval,
-        [cronProcessesConstants.transactionParser]: cronProcessesConstants.transactionParserRestartInterval,
-        [cronProcessesConstants.blockFinalizer]: cronProcessesConstants.finalizerRestartInterval,
-        [cronProcessesConstants.economyAggregator]: cronProcessesConstants.aggregatorRestartInterval,
-        [cronProcessesConstants.balanceSettler]: cronProcessesConstants.balanceSettlerRestartInterval,
-        [cronProcessesConstants.workflowWorker]: cronProcessesConstants.workflowFactoryRestartInterval,
-        [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.auxWorkflowFactoryRestartInterval
+        [cronProcessesConstants.blockParser]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.transactionParser]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.blockFinalizer]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.economyAggregator]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.balanceSettler]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.workflowWorker]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.continuousCronRestartInterval
       },
       // Restart interval time for periodic crons should match with devops- cron config file
       [cronProcessesConstants.periodicCronsType]: {
@@ -120,40 +120,57 @@ class CronProcessesMonitorExecutable extends CronBase {
     for (let index = 0; index < existingCronsLength; index++) {
       const cronEntity = existingCrons[index],
         cronKind = cronEntity.kind_name,
-        currentTimeInSecs = Math.floor(new Date().getTime() / 1000),
-        lastStartedAtInSecs = Math.floor(new Date(cronEntity.last_started_at).getTime() / 1000),
-        lastEndedAtInSecs = Math.floor(new Date(cronEntity.last_ended_at).getTime() / 1000);
+        currentTimeInMSecs = Math.floor(new Date().getTime()),
+        lastStartedAtInMSecs = Math.floor(new Date(cronEntity.last_started_at).getTime()),
+        lastEndedAtInMSecs = Math.floor(new Date(cronEntity.last_ended_at).getTime());
 
-      logger.info('--------------checking for cron: ', cronKind, ' on machine: ', cronEntity.ip_address);
-      logger.debug('lastStartedAtInSecs: ', lastStartedAtInSecs);
-      logger.debug('lastEndedAtInSecs: ', lastEndedAtInSecs);
+      logger.info(
+        '--------------Monitoring cron parameters for : [',
+        cronEntity.id,
+        cronKind,
+        '] on machine: ',
+        cronEntity.ip_address
+      );
+      logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
+      logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
+      logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
+
+      const invertedRunningStatus = new CronProcessModel().invertedStatuses[cronProcessesConstants.runningStatus],
+        invertedStoppedStatus = new CronProcessModel().invertedStatuses[cronProcessesConstants.stoppedStatus];
 
       if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronKind]) {
         const restartIntervalForCron =
           oThis.cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronKind];
         logger.debug('restartIntervalForCron---', restartIntervalForCron);
 
-        logger.debug('(currentTimeInSecs - lastEndedAtInSecs)-------', currentTimeInSecs - lastEndedAtInSecs);
-        logger.debug(
-          '(lastStartedAtInSecs + restartIntervalForCron)-------',
-          restartIntervalForCron + lastStartedAtInSecs
-        );
-
-        // Check last running time and last start time for continuous crons.
+        // Check last ended time for continuous crons.
+        // if last running instance ended before specified offset, notify
         if (
-          currentTimeInSecs - lastEndedAtInSecs > restartIntervalForCron + OFFSET_TIME_IN_SEC ||
-          lastStartedAtInSecs + restartIntervalForCron > currentTimeInSecs - OFFSET_TIME_IN_SEC
+          +cronEntity.status === +invertedStoppedStatus &&
+          currentTimeInMSecs - lastEndedAtInMSecs > OFFSET_TIME_IN_MSEC
         ) {
-          const errorObject = responseHelper.error({
-            internal_error_identifier: cronKind + ':cron_stuck:e_cpm_1',
-            api_error_identifier: 'cron_stuck',
-            debug_options: {
+          let errorIdentifierStr = `${cronKind}:cron_stuck:e_cpm_1`,
+            debugOptions = {
               cronId: cronEntity.id,
               cronKind: cronKind,
               lastEndTimeFromCron: cronEntity.last_ended_at
-            }
-          });
-          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+            };
+          await oThis._notify(errorIdentifierStr, debugOptions);
+        }
+
+        // Check last started time for continuous crons.
+        // if currently running instance has wrong last started at time, notify [very rare case]
+        if (
+          +cronEntity.status === +invertedRunningStatus &&
+          currentTimeInMSecs - lastStartedAtInMSecs > OFFSET_TIME_IN_MSEC + restartIntervalForCron
+        ) {
+          let errorIdentifierStr = cronKind + ':cron_stuck:e_cpm_2',
+            debugOptions = {
+              cronId: cronEntity.id,
+              cronKind: cronKind,
+              lastEndTimeFromCron: cronEntity.last_started_at
+            };
+          await oThis._notify(errorIdentifierStr, debugOptions);
         }
       }
 
@@ -162,30 +179,57 @@ class CronProcessesMonitorExecutable extends CronBase {
           oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind];
         logger.debug('restartIntervalForCron---', restartIntervalForCron);
 
-        logger.debug('(currentTimeInSecs - lastEndedAtInSecs)-------', currentTimeInSecs - lastEndedAtInSecs);
-        logger.debug(
-          '(lastStartedAtInSecs + restartIntervalForCron)-------',
-          restartIntervalForCron + lastStartedAtInSecs
-        );
-
-        // Check last running time and last start time for periodic crons.
+        // Check last ended time for periodic crons.
+        // if last running instance ended before specified offset, notify
         if (
-          currentTimeInSecs - lastEndedAtInSecs > restartIntervalForCron + OFFSET_TIME_IN_SEC ||
-          lastStartedAtInSecs + restartIntervalForCron > currentTimeInSecs - OFFSET_TIME_IN_SEC
+          +cronEntity.status === +invertedStoppedStatus &&
+          currentTimeInMSecs - lastEndedAtInMSecs > OFFSET_TIME_IN_MSEC + restartIntervalForCron
         ) {
-          const errorObject = responseHelper.error({
-            internal_error_identifier: cronKind + ':cron_stuck:e_cpm_2',
-            api_error_identifier: 'cron_stuck',
-            debug_options: {
+          let errorIdentifierStr = cronKind + ':cron_stuck:e_cpm_3',
+            debugOptions = {
               cronId: cronEntity.id,
               cronKind: cronKind,
               lastEndTimeFromCron: cronEntity.last_ended_at
-            }
-          });
-          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+            };
+          await oThis._notify(errorIdentifierStr, debugOptions);
+        }
+        // Check last started time for periodic crons.
+        // if currently running instance has wrong last started at time, notify [very rare case]
+        if (
+          +cronEntity.status === +invertedRunningStatus &&
+          currentTimeInMSecs - lastStartedAtInMSecs > OFFSET_TIME_IN_MSEC + restartIntervalForCron
+        ) {
+          let errorIdentifierStr = cronKind + ':cron_stuck:e_cpm_4',
+            debugOptions = {
+              cronId: cronEntity.id,
+              cronKind: cronKind,
+              lastEndTimeFromCron: cronEntity.last_started_at
+            };
+          await oThis._notify(errorIdentifierStr, debugOptions);
         }
       }
     }
+  }
+
+  /**
+   * Insert entry in error_logs table.
+   *
+   * @param {String} errorIdentifier: errorIdentifier
+   * @param {Object} debugOptions:  debugOptions
+   *
+   * @returns {Promise<void>}
+   *
+   * @private
+   */
+  async _notify(errorIdentifier, debugOptions) {
+    const oThis = this;
+
+    const errorObject = responseHelper.error({
+      internal_error_identifier: errorIdentifier,
+      api_error_identifier: 'cron_stuck',
+      debug_options: debugOptions
+    });
+    await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
   }
 
   /**
