@@ -1,5 +1,7 @@
 'use strict';
 
+const program = require('commander');
+
 const rootPrefix = '../../..',
   SiegeUser = require(rootPrefix + '/app/models/mysql/SiegeUser');
 
@@ -8,14 +10,32 @@ const https = require('https'),
   Web3 = require('web3'),
   web3 = new Web3();
 
-const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
-  API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+program
+  .option('--apiKey <apiKey>', 'API KEY')
+  .option('--apiSecret <apiSecret>', 'API Secret')
+  .option('--tokenRulesAddress <tokenRulesAddress>', 'tokenRulesAddress')
+  .option('--companyUuid <companyUuid>', 'tokenRulesAddress')
+  .parse(process.argv);
+
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log(
+    '    node tools/seige/transaction/company_to_user.js --apiKey <> --apiSecret <> --tokenRulesAddress <> --companyUuid <>'
+  );
+  logger.log('');
+  logger.log('');
+});
+
+const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
+  API_SECRET = program.apiSecret, //'38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+  TOKEN_RULE_ADDRESS = program.tokenRulesAddress, //'0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
+  COMPANY_UUID = program.companyUuid, //'f65aa896-232b-4d62-b326-e8a38e207469',
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
-  TOKEN_RULE_ADDRESS = '0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
-  COMPANY_UUID = 'f65aa896-232b-4d62-b326-e8a38e207469',
   maxConnectionObjects = 4;
 
-let maxIteration = 10,
+let maxIteration = 1,
   NO_OF_USERS_COVERAGE = 5,
   PARALLEL_TRANSACTIONS = 2, // TODO: Company has 10 session addresses. So using 8.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1,

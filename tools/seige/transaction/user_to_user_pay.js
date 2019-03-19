@@ -1,5 +1,7 @@
 'use strict';
 
+const program = require('commander');
+
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -17,11 +19,28 @@ const https = require('https'),
 
 require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
+program
+  .option('--apiKey <apiKey>', 'API KEY')
+  .option('--apiSecret <apiSecret>', 'API Secret')
+  .option('--pricerRulesAddress <pricerRulesAddress>', 'pricerRulesAddress')
+  .parse(process.argv);
+
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log(
+    '    node tools/seige/transaction/user_to_user_pay.js --apiKey <> --apiSecret <> --pricerRulesAddress <> '
+  );
+  logger.log('');
+  logger.log('');
+});
+
 // TODO: Change these constants when you run
-const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
-  API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+const API_KEY = program.apiKey,
+  API_SECRET = program.apiSecret,
+  PRICER_RULE_ADDRESS = program.pricerRulesAddress, //'0xef1cd3adcf1989d1e2ca79c5b13951268194b795',
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2/',
-  PRICER_RULE_ADDRESS = '0xef1cd3adcf1989d1e2ca79c5b13951268194b795',
   OST_TO_USD_IN_WEI = '226969000000000000',
   MAX_NO_OF_SENDERS = 2, // regardless of this number, it can not exceed half of users generated.
   PARALLEL_TRANSACTIONS = 2, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
