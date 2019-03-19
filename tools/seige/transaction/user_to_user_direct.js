@@ -1,5 +1,7 @@
 'use strict';
 
+const program = require('commander');
+
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -17,11 +19,27 @@ const https = require('https'),
 
 require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
-// TODO: Change these constants when you run
-const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
-  API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
-  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2/',
-  TOKEN_RULE_ADDRESS = '0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
+program
+  .option('--apiKey <apiKey>', 'API KEY')
+  .option('--apiSecret <apiSecret>', 'API Secret')
+  .option('--tokenRulesAddress <tokenRulesAddress>', 'tokenRulesAddress')
+  .parse(process.argv);
+
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log(
+    '    node tools/seige/transaction/user_to_user_direct.js --apiKey <> --apiSecret <> --tokenRulesAddress <> '
+  );
+  logger.log('');
+  logger.log('');
+});
+
+const API_KEY = program.apiKey,
+  API_SECRET = program.apiSecret,
+  TOKEN_RULE_ADDRESS = program.tokenRulesAddress,
+  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   MAX_NO_OF_SENDERS = 2, // regardless of this number, it can not exceed half of users generated.
   PARALLEL_TRANSACTIONS = 2, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
@@ -93,8 +111,8 @@ class TransactionSiege {
       getTokenDetailsObj = new GetTokenDetails({ ostObj: ostObj }),
       tokenDetails = await getTokenDetailsObj.perform();
 
-    oThis.tokenId = tokenDetails.token.id;
-    oThis.auxChainId = tokenDetails.token.auxiliary_chains[0].chain_id;
+    oThis.tokenId = tokenDetails.data.token.id;
+    oThis.auxChainId = tokenDetails.data.token.auxiliary_chains[0].chain_id;
   }
 
   async _getSessionKeyNonce() {
