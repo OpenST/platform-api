@@ -184,7 +184,7 @@ class CronProcessesMonitorExecutable extends CronBase {
       if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind]) {
         const restartIntervalForCron =
           oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind];
-        logger.debug('restartIntervalForCron---', restartIntervalForCron);
+        logger.debug('restartIntervalForCron: ', restartIntervalForCron);
 
         // Check last ended time for periodic crons.
         // If last running instance ended before specified offset, notify.
