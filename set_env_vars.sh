@@ -62,6 +62,8 @@ export SA_CACHE_DATA_SHA_KEY='066f7e6e833db143afee3dbafc888bcf'
 # Web3 pool size
 export OST_WEB3_POOL_SIZE=10
 
+export OST_DEGUG_ENABLED=1
+
 # Aux and Origin Gas Prices
 export SA_MIN_ORIGIN_GAS_PRICE='0xBA43B7400';
 export SA_MAX_ORIGIN_GAS_PRICE='0x174876E800';

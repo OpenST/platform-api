@@ -524,6 +524,10 @@ const v2Signature = {
       {
         parameter: 'nonce',
         validatorMethod: 'validateNonNegativeInteger'
+      },
+      {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
       }
     ],
     optional: []
@@ -594,6 +598,10 @@ const v2Signature = {
       {
         parameter: 'nonce',
         validatorMethod: 'validateNonNegativeInteger'
+      },
+      {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
       }
     ],
     optional: []
@@ -664,6 +672,10 @@ const v2Signature = {
       {
         parameter: 'nonce',
         validatorMethod: 'validateNonNegativeInteger'
+      },
+      {
+        parameter: 'token_shard_details',
+        validatorMethod: 'validateObject'
       }
     ],
     optional: []

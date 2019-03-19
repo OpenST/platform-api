@@ -92,7 +92,7 @@
   "token_not_setup": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "The token setup is not completed. The process takes several minutes. You can check the status via OST KIT interface. If the state persists contact support@ost.com"
+    "message": "The token setup is not completed. The process takes several minutes. You can check the status via OST Platform interface. If the state persists contact support@ost.com"
   },
   "invalid_address": {
     "http_code": "400",

@@ -1,6 +1,6 @@
 'use strict';
 
-const MosaicJs = require('@openstfoundation/mosaic.js');
+const MosaicJs = require('@openst/mosaic.js');
 
 const rootPrefix = '../..',
   CoreBins = require(rootPrefix + '/config/CoreBins'),

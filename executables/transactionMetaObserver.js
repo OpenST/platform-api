@@ -2,7 +2,7 @@
  * This script will update price oracle price points using ost-price-oracle npm package.
  * This fetches OST Current price in given currency from coin market cap and sets it in price oracle.
  *
- * Usage: node executables/UpdatePricePoints.js --cronProcessId 13
+ * Usage: node executables/transactionMetaObserver.js --cronProcessId 41
  *
  * @module executables/UpdatePricePoints
  *

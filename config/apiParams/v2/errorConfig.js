@@ -62,7 +62,7 @@ const v2ErrorConfig = {
   expired_api_key: {
     parameter: 'api_key',
     code: 'invalid',
-    message: "API key is expired. Please get the active API KEY from Developer's page in OST KIT and re-try."
+    message: "API key is expired. Please get the active API KEY from Developer's page in OST Platform and re-try."
   },
   invalid_api_signature: {
     parameter: 'api_signature',

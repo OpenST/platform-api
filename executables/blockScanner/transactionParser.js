@@ -540,7 +540,7 @@ class TransactionParser extends MultiSubscriptionBase {
       promiseArray.push(
         pendingTransactionObj.update(updateParams).catch(function(error) {
           // as we have code in finalizer to check and update status (if needed) we ignore any errors from here and proceed
-          logger.error('_updateStatuseInDb failed in transactionParser', error);
+          logger.error('_updateStatuseInDb failed in transactionParser', updateParams, error);
         })
       );
 
@@ -554,9 +554,9 @@ class TransactionParser extends MultiSubscriptionBase {
       await Promise.all(promiseArray);
     }
 
-    // Release lock and mark tx meta status
+    // mark tx meta status
     if (receiptSuccessTxHashes.length > 0) {
-      await new TransactionMeta().releaseLockAndMarkStatus({
+      await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
         receiptStatus: transactionMetaConst.successReceiptStatus,
         transactionHashes: receiptSuccessTxHashes,
@@ -565,7 +565,7 @@ class TransactionParser extends MultiSubscriptionBase {
     }
 
     if (receiptFailureTxHashes.length > 0) {
-      await new TransactionMeta().releaseLockAndMarkStatus({
+      await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
         receiptStatus: transactionMetaConst.failureReceiptStatus,
         transactionHashes: receiptFailureTxHashes,

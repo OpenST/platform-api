@@ -6,7 +6,7 @@
  */
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
-  MosaicJs = require('@openstfoundation/mosaic.js');
+  MosaicJs = require('@openst/mosaic.js');
 
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),

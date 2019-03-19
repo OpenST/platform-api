@@ -3,6 +3,7 @@
 const program = require('commander');
 
 const rootPrefix = '../../..',
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SiegeUser = require(rootPrefix + '/app/models/mysql/SiegeUser');
 
 const https = require('https'),

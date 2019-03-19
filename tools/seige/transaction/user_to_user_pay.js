@@ -4,6 +4,7 @@ const program = require('commander');
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
@@ -12,7 +13,7 @@ const rootPrefix = '../../..',
 
 const https = require('https'),
   OSTSDK = require('@ostdotcom/ost-sdk-js'),
-  OpenstJs = require('@openstfoundation/openst.js'),
+  OpenstJs = require('@openst/openst.js'),
   Web3 = require('web3'),
   OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
