@@ -18,13 +18,13 @@ const https = require('https'),
 require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
 // TODO: Change these constants when you run
-const API_KEY = '43538ea77d5473371dbdfb8e773341f7',
-  API_SECRET = '85217ad39713c51123f73a843df491218f50e997173d1c702be813451a3afb48',
-  API_END_POINT = 'http://kit.developmentost.com:7001/testnet/v2/',
-  PRICER_RULE_ADDRESS = '0x2148e3f3256c96b21efe94d2e75afeb5bd207fc2',
-  OST_TO_USD_IN_WEI = '22463000000000000',
+const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
+  API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2/',
+  PRICER_RULE_ADDRESS = '0xef1cd3adcf1989d1e2ca79c5b13951268194b795',
+  OST_TO_USD_IN_WEI = '226969000000000000',
   MAX_NO_OF_SENDERS = 2, // regardless of this number, it can not exceed half of users generated.
-  PARALLEL_TRANSACTIONS = 4, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
+  PARALLEL_TRANSACTIONS = 2, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
 
 let maxIteration = 2;
@@ -65,7 +65,8 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
-      .where('token_id')
+      .where({ token_id: oThis.tokenId })
+      .where(['token_holder_contract_address IS NOT NULL'])
       .limit(MAX_NO_OF_SENDERS * 2)
       .fire();
     let addIndex = basicHelper.shuffleArray([0, 1])[0];
@@ -92,6 +93,8 @@ class TransactionSiege {
       }),
       getTokenDetailsObj = new GetTokenDetails({ ostObj: ostObj }),
       tokenDetails = await getTokenDetailsObj.perform();
+
+    tokenDetails = tokenDetails.data;
 
     oThis.tokenId = tokenDetails.token.id;
     oThis.auxChainId = tokenDetails.token.auxiliary_chains[0].chain_id;

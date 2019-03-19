@@ -102,7 +102,7 @@ class TransactionSiege {
           })
         );
 
-        if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == receiverTokenHolders.length) {
+        if (i % PARALLEL_TRANSACTIONS == 0 || i + 1 == receiverTokenHolders.length) {
           await Promise.all(promiseArray);
           promiseArray = [];
         }
