@@ -3,10 +3,12 @@
  * It selects entry from table and compares the last ending time of the entry with restart time interval
  * And sends the error notification
  *
- * Example: node executables/cronProcessesMonitor.js 27
+ * Example: node executables/cronProcessesMonitor.js --cronProcessId 27
  *
  * @module executables/cronProcessesMonitor
  */
+
+const program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
@@ -20,19 +22,21 @@ const rootPrefix = '..',
 
 const OFFSET_TIME_IN_MSEC = 5 * 60 * 1000;
 
-const usageDemo = function() {
-  logger.log('Usage: ', 'node executables/cronProcessesMonitor.js cronProcessId');
-  logger.log('* cronProcessId is used for proper handling of cron.');
-};
+program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-// Declare variables.
-const args = process.argv,
-  cronProcessId = parseInt(args[2]);
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log('    node executables/cronProcessesMonitor.js --cronProcessId 27');
+  logger.log('');
+  logger.log('');
+});
 
-// Validate and sanitize the command line arguments.
+const cronProcessId = +program.cronProcessId;
+
 if (!cronProcessId) {
-  logger.error('Cron Process id NOT passed in the arguments.');
-  usageDemo();
+  program.help();
   process.exit(1);
 }
 
@@ -45,7 +49,8 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * Constructor for cron processes monitor.
    *
-   * @augments CronBase
+   * @param {Object} params
+   * @param {Number} params.cronProcessId
    *
    * @constructor
    */
@@ -265,7 +270,7 @@ class CronProcessesMonitorExecutable extends CronBase {
   }
 }
 
-const cronProcessesMonitor = new CronProcessesMonitorExecutable();
+const cronProcessesMonitor = new CronProcessesMonitorExecutable({ cronProcessId: +program.cronProcessId });
 
 cronProcessesMonitor
   .perform()
