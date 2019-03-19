@@ -10,7 +10,7 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -386,7 +386,10 @@ class CreateTokenHolder extends ServiceBase {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'user_status_rollback_failed:a_s_u_cth_7',
         api_error_identifier: 'action_not_performed_contact_support',
-        debug_options: { userStatusRollbackResponse: userStatusRollbackResponse }
+        debug_options: {
+          tokenId: oThis.tokenId,
+          userId: oThis.userId
+        }
       });
 
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
@@ -428,7 +431,11 @@ class CreateTokenHolder extends ServiceBase {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'device_status_rollback_failed:a_s_u_cth_8',
         api_error_identifier: 'action_not_performed_contact_support',
-        debug_options: { deviceStatusRollbackResponse: deviceStatusRollbackResponse }
+        debug_options: {
+          tokenId: oThis.tokenId,
+          walletAddress: oThis.deviceAddress,
+          userId: oThis.userId
+        }
       });
 
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);

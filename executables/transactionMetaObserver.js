@@ -13,7 +13,7 @@ const program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
