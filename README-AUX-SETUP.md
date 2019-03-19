@@ -245,6 +245,12 @@ And add it to tables using following script.
     node executables/stateRootSync/auxToOrigin.js --cronProcessId 25
 ```
 
+### Start balance Verifier
+* Start balance verifier
+```bash
+    source set_env_vars.sh
+    node executables/balanceVerifier.js --cronProcessId 28
+```
 ###### ALWAYS AT THE END
 ### Open up config group for allocation
 ```js
