@@ -4,6 +4,7 @@ const program = require('commander');
 
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner'),
