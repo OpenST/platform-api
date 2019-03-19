@@ -257,4 +257,4 @@ new BalanceSettler({ cronProcessId: +program.cronProcessId }).perform();
 setInterval(function() {
   logger.info('Ending the process.');
   process.emit('SIGINT');
-}, cronProcessesConstants.balanceSettlerRestartInterval);
+}, cronProcessesConstants.continuousCronRestartInterval);

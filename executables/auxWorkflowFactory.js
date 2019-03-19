@@ -266,4 +266,4 @@ new AuxWorkflowRouterFactory({ cronProcessId: +program.cronProcessId }).perform(
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, cronProcessesConstants.auxWorkflowFactoryRestartInterval);
+}, cronProcessesConstants.continuousCronRestartInterval);
