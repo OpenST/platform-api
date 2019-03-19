@@ -120,7 +120,7 @@ class TransactionSiege {
 
       promiseArray.push(
         new TokenHolderContractNonce(params).perform().then(function(resp) {
-          oThis.sessionNonceMap[oThis.senderUuids[i]] = resp.data.nonce;
+          oThis.sessionNonceMap[oThis.senderUuids[i]] = parseInt(resp.data.nonce);
         })
       );
     }

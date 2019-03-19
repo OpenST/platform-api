@@ -97,7 +97,7 @@ class TransactionSiege {
         };
 
         promiseArray.push(
-          await transactionsService.execute(executeParams).catch(function(err) {
+          transactionsService.execute(executeParams).catch(function(err) {
             console.error('====Transaction failed from user:', receiverTokenHolders);
           })
         );
