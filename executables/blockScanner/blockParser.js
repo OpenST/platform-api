@@ -200,7 +200,7 @@ class BlockParserExecutable extends PublisherBase {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'something_went_wrong:e_bs_bp_1',
         api_error_identifier: 'something_went_wrong',
-        debug_options: { error: chainExists }
+        debug_options: {}
       });
 
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);

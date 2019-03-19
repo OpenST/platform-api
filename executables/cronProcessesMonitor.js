@@ -1,29 +1,26 @@
-'use strict';
 /**
  * This periodic cron monitors the cron processes table.
  * It selects entry from table and compares the last ending time of the entry with restart time interval
  * And sends the error notification
  *
- *
- * Example: executables/cronProcessesMonitor.js 27
+ * Example: node executables/cronProcessesMonitor.js 27
  *
  * @module executables/cronProcessesMonitor
  */
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
-  CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
 const OFFSET_TIME_IN_SEC = 5 * 60;
 
 const usageDemo = function() {
-  logger.log('Usage:', 'node executables/cronProcessesMonitor.js cronProcessId');
+  logger.log('Usage: ', 'node executables/cronProcessesMonitor.js cronProcessId');
   logger.log('* cronProcessId is used for proper handling of cron.');
 };
 
@@ -38,15 +35,26 @@ if (!cronProcessId) {
   process.exit(1);
 }
 
+/**
+ * Class for cron processes monitor.
+ *
+ * @class CronProcessesMonitorExecutable
+ */
 class CronProcessesMonitorExecutable extends CronBase {
   /**
+   * Constructor for cron processes monitor.
+   *
+   * @augments CronBase
    *
    * @constructor
    */
   constructor() {
-    let params = { cronProcessId: cronProcessId };
+    const params = { cronProcessId: cronProcessId };
+
     super(params);
+
     const oThis = this;
+
     oThis.canExit = true;
   }
 
@@ -72,7 +80,7 @@ class CronProcessesMonitorExecutable extends CronBase {
         [cronProcessesConstants.workflowWorker]: cronProcessesConstants.workflowFactoryRestartInterval,
         [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.auxWorkflowFactoryRestartInterval
       },
-      //restart interval time for periodic crons should match with devops- cron config file
+      // Restart interval time for periodic crons should match with devops- cron config file
       [cronProcessesConstants.periodicCronsType]: {
         [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses]: 5 * 60 * 1000,
         [cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific]: 5 * 60 * 1000,
@@ -97,9 +105,10 @@ class CronProcessesMonitorExecutable extends CronBase {
   }
 
   /**
-   * _monitor cron processes
+   * Monitor cron processes.
    *
    * @returns {Promise<void>}
+   *
    * @private
    */
   async _monitor() {
@@ -120,7 +129,7 @@ class CronProcessesMonitorExecutable extends CronBase {
       logger.debug('lastEndedAtInSecs: ', lastEndedAtInSecs);
 
       if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronKind]) {
-        let restartIntervalForCron =
+        const restartIntervalForCron =
           oThis.cronKindToRestartTimeMap[cronProcessesConstants.continuousCronsType][cronKind];
         logger.debug('restartIntervalForCron---', restartIntervalForCron);
 
@@ -130,7 +139,7 @@ class CronProcessesMonitorExecutable extends CronBase {
           restartIntervalForCron + lastStartedAtInSecs
         );
 
-        // check last running time and last start time for continuous crons
+        // Check last running time and last start time for continuous crons.
         if (
           currentTimeInSecs - lastEndedAtInSecs > restartIntervalForCron + OFFSET_TIME_IN_SEC ||
           lastStartedAtInSecs + restartIntervalForCron > currentTimeInSecs - OFFSET_TIME_IN_SEC
@@ -149,7 +158,8 @@ class CronProcessesMonitorExecutable extends CronBase {
       }
 
       if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind]) {
-        let restartIntervalForCron = oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind];
+        const restartIntervalForCron =
+          oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind];
         logger.debug('restartIntervalForCron---', restartIntervalForCron);
 
         logger.debug('(currentTimeInSecs - lastEndedAtInSecs)-------', currentTimeInSecs - lastEndedAtInSecs);
@@ -158,7 +168,7 @@ class CronProcessesMonitorExecutable extends CronBase {
           restartIntervalForCron + lastStartedAtInSecs
         );
 
-        // check last running time and last start time for periodic crons
+        // Check last running time and last start time for periodic crons.
         if (
           currentTimeInSecs - lastEndedAtInSecs > restartIntervalForCron + OFFSET_TIME_IN_SEC ||
           lastStartedAtInSecs + restartIntervalForCron > currentTimeInSecs - OFFSET_TIME_IN_SEC
@@ -192,12 +202,14 @@ class CronProcessesMonitorExecutable extends CronBase {
   }
 
   /**
+   * Run validations on input parameters.
    *
    * @private
    */
   _validateAndSanitize() {}
 
   /**
+   * Get cron kind.
    *
    * @returns {String}
    *
