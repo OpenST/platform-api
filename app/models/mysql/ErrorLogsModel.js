@@ -1,10 +1,10 @@
 /**
  * Model for error logs table.
  *
- * @module lib/errorLogs/ErrorLogsModel
+ * @module app/models/mysql/ErrorLogsModel
  */
 
-const rootPrefix = '../..',
+const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base');
 
 const dbName = 'ost_infra';
