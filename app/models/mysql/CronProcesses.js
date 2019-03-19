@@ -33,7 +33,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '19': cronProcessesConstants.executeRecovery,
     '20': cronProcessesConstants.originToAuxStateRootSync,
     '21': cronProcessesConstants.auxToOriginStateRootSync,
-    '22': cronProcessesConstants.transactionErrorHandler
+    '22': cronProcessesConstants.transactionErrorHandler,
+    '23': cronProcessesConstants.cronProcessesMonitor
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
