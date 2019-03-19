@@ -1,6 +1,6 @@
 'use strict';
 
-const OpenSTJs = require('@openstfoundation/openst.js');
+const OpenSTJs = require('@openst/openst.js');
 
 const rootPrefix = '../..',
   RuleModel = require(rootPrefix + '/app/models/mysql/Rule'),

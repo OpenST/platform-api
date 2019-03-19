@@ -7,10 +7,10 @@
     "pre-commit": "lint-staged"
   },
   "dependencies": {
-    "@openstfoundation/brandedtoken.js": "0.10.0-alpha.1",
+    "@openst/brandedtoken.js": "https://github.com/OpenST/brandedtoken.js.git#release-0.10",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
-    "@openstfoundation/mosaic.js": "0.10.0-beta.4",
-    "@openstfoundation/openst.js": "0.10.0-alpha.5",
+    "@openst/mosaic.js": "https://github.com/OpenST/mosaic.js.git#release-0.10",
+    "@openst/openst.js": "https://github.com/OpenST/openst.js.git#develop",
     "@ostdotcom/base": "1.0.0-beta.1",
     "@ostdotcom/ost-block-scanner": "1.0.0-beta.16",
     "@ostdotcom/cache": "1.0.6-beta.14",
