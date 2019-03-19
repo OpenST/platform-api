@@ -48,9 +48,17 @@ class CronBase {
       // If asyncPerform fails, run the below catch block.
       logger.error('Error in executables/CronBase.js');
 
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'unhandled_catch_response:e_cb_1',
+        api_error_identifier: 'unhandled_catch_response',
+        debug_options: {}
+      });
+
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
       return responseHelper.error({
-        internal_error_identifier: 'e_bs_w_1',
-        api_error_identifier: 'something_went_wrong',
+        internal_error_identifier: 'e_cb_2',
+        api_error_identifier: 'unhandled_catch_response',
         debug_options: err
       });
     });
@@ -85,7 +93,7 @@ class CronBase {
      */
     const sendNotification = async function() {
       const errorObject = responseHelper.error({
-        internal_error_identifier: oThis._cronKind + ':cron_stuck:e_bs_w_2',
+        internal_error_identifier: `${oThis._cronKind}:cron_stuck:e_cb_3`,
         api_error_identifier: 'cron_stuck',
         debug_options: {
           cronProcessId: oThis.cronProcessId,
@@ -102,7 +110,7 @@ class CronBase {
       oThis._stopPickingUpNewTasks();
 
       if (!notifierCalled) {
-        setTimeout(sendNotification, 10000);
+        setTimeout(sendNotification, 60000);
         notifierCalled = true;
       }
 
