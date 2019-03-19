@@ -12,10 +12,10 @@ const program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
@@ -28,7 +28,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/cronProcessesMonitor.js --cronProcessId 27');
+  logger.log('    node executables/cronProcessesMonitor.js --cronProcessId 3');
   logger.log('');
   logger.log('');
 });
@@ -49,8 +49,7 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * Constructor for cron processes monitor.
    *
-   * @param {Object} params
-   * @param {Number} params.cronProcessId
+   * @augments CronBase
    *
    * @constructor
    */
@@ -126,9 +125,9 @@ class CronProcessesMonitorExecutable extends CronBase {
     for (let index = 0; index < existingCronsLength; index++) {
       const cronEntity = existingCrons[index],
         cronKind = cronEntity.kind_name,
-        currentTimeInMSecs = Math.floor(new Date().getTime()),
-        lastStartedAtInMSecs = Math.floor(new Date(cronEntity.last_started_at).getTime()),
-        lastEndedAtInMSecs = Math.floor(new Date(cronEntity.last_ended_at).getTime());
+        currentTimeInMSecs = new Date().getTime(),
+        lastStartedAtInMSecs = new Date(cronEntity.last_started_at).getTime(),
+        lastEndedAtInMSecs = new Date(cronEntity.last_ended_at).getTime();
 
       logger.info('*** Monitoring cron: [', cronEntity.id, cronKind, '] on machine: ', cronEntity.ip_address);
       logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
