@@ -77,11 +77,13 @@ class CronBase {
   attachHandlers() {
     const oThis = this;
 
-    /*
-      send error notification function
-      if cron doesn't stop after 60 secs of receiving SIGINT, send error notification
+    let notifierCalled = false;
+
+    /**
+     * Send error notification function.
+     * If cron doesn't stop after 60 secs of receiving SIGINT, send error notification.
      */
-    const sendNotification = function() {
+    const sendNotification = async function() {
       const errorObject = responseHelper.error({
         internal_error_identifier: oThis._cronKind + ':cron_stuck:e_bs_w_2',
         api_error_identifier: 'cron_stuck',
@@ -90,13 +92,19 @@ class CronBase {
           cronName: oThis._cronKind
         }
       });
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
     };
 
-    setTimeout(sendNotification, 60000);
-
+    /**
+     * Handler for SIGINT and SIGTERM signals.
+     */
     const handle = function() {
       oThis._stopPickingUpNewTasks();
+
+      if (!notifierCalled) {
+        setTimeout(sendNotification, 10000);
+        notifierCalled = true;
+      }
 
       if (oThis._pendingTasksDone()) {
         logger.info(':: No pending tasks. Changing the status ');
