@@ -65,7 +65,8 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
-      .where('token_id')
+      .where({ token_id: oThis.tokenId })
+      .where(['token_holder_contract_address IS NOT NULL'])
       .limit(MAX_NO_OF_SENDERS * 2)
       .fire();
     let addIndex = basicHelper.shuffleArray([0, 1])[0];
