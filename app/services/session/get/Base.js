@@ -99,16 +99,6 @@ class GetSessionBase extends ServiceBase {
       );
     }
 
-    if (userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_s_g_b_2',
-          api_error_identifier: 'token_holder_not_active',
-          debug_options: {}
-        })
-      );
-    }
-
     oThis.sessionShardNumber = userData.sessionShardNumber;
   }
 
