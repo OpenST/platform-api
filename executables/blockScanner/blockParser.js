@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * Transaction parser processes.
@@ -194,13 +192,28 @@ class BlockParserExecutable extends PublisherBase {
 
     // Get ChainModel.
     const ChainModel = blockScannerObj.model.Chain,
-      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
+      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId),
+      chainIdBooleanValidation = CommonValidators.validateBoolean(chainExists);
 
-    if (!chainExists || chainExists.isFailure()) {
+    // If response from checkIfChainIdExists is not a boolean, that means error object is returned.
+    if (!chainIdBooleanValidation) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'something_went_wrong:e_bs_bp_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: { error: chainExists }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+      process.emit('SIGINT');
+    }
+
+    // If response from checkIfChainIdExists is true or false, we make further checks.
+    if (chainIdBooleanValidation && !chainExists) {
       logger.error('ChainId does not exist in the chains table.');
 
       const errorObject = responseHelper.error({
-        internal_error_identifier: 'invalid_chain_id:e_bs_bp_1',
+        internal_error_identifier: 'invalid_chain_id:e_bs_bp_2',
         api_error_identifier: 'invalid_chain_id',
         debug_options: {}
       });
