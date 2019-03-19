@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This script will update price oracle price points using ost-price-oracle npm package.
  * This fetches OST Current price in given currency from coin market cap and sets it in price oracle.
@@ -140,6 +139,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
 
     if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
       logger.error('Please pass a valid quote currency.');
+
       return Promise.reject();
     }
   }
