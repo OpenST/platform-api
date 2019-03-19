@@ -12,7 +12,7 @@ const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
   API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   TOKEN_RULE_ADDRESS = '0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
-  COMPANY_UUID = 'caf774d4-82e4-4bc7-a620-bdca52ac4ef5',
+  COMPANY_UUID = 'f65aa896-232b-4d62-b326-e8a38e207469',
   maxConnectionObjects = 4;
 
 let maxIteration = 10,
