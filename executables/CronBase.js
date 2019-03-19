@@ -55,6 +55,7 @@ class CronBase {
       });
 
       createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      oThis.canExit = true;
 
       return responseHelper.error({
         internal_error_identifier: 'e_cb_2',
