@@ -3,7 +3,7 @@
 
 const rootPrefix = '../../..';
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 5;
 
 class CreateUsers {
   constructor(params) {
@@ -18,14 +18,18 @@ class CreateUsers {
       userService = oThis.ostObj.services.users;
 
     let promiseArray = [],
-      userUuidsArray = [];
+      userUuidsArray = [],
+      beforeTimeStamp = Date.now();
 
     for (let i = 0; i < oThis.numberOfUsers; i++) {
+      let beforeTimeStamp = Date.now();
       promiseArray.push(
         userService
           .create({ i: i })
           .then(function(res) {
             userUuidsArray.push(res.data.user.id);
+            let afterTimeStamp = Date.now();
+            console.log('Time taken by Create Users: ', afterTimeStamp - beforeTimeStamp, 'ms');
           })
           .catch(function(err) {
             console.log(JSON.stringify(err));
@@ -35,6 +39,7 @@ class CreateUsers {
       if (promiseArray.length >= BATCH_SIZE || oThis.numberOfUsers === i + 1) {
         await Promise.all(promiseArray);
         promiseArray = [];
+        beforeTimeStamp = Date.now();
       }
     }
 

@@ -1,11 +1,11 @@
 'use strict';
 
 const abiDecoder = require('abi-decoder'),
-  MosaicJs = require('@openstfoundation/mosaic.js'),
-  OpenSTJs = require('@openstfoundation/openst.js'),
+  MosaicJs = require('@openst/mosaic.js'),
+  OpenSTJs = require('@openst/openst.js'),
   mosaicJsAbiBinProvider = new MosaicJs.AbiBinProvider(),
   OpenSTJsAbiBinProvider = new OpenSTJs.AbiBinProvider(),
-  BrandedToken = require('@openstfoundation/brandedtoken.js'),
+  BrandedToken = require('@openst/brandedtoken.js'),
   brandedTokenAbiBinProvider = new BrandedToken.AbiBinProvider(),
   web3 = require('web3');
 

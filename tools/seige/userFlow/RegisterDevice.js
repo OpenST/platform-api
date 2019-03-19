@@ -22,6 +22,7 @@ class RegisterDevice {
   async perform() {
     let oThis = this,
       deviceService = oThis.ostObj.services.devices,
+      beforeTimeStamp = Date.now(),
       deviceData = await deviceService
         .create({
           user_id: oThis.userUuid,
@@ -32,7 +33,10 @@ class RegisterDevice {
         })
         .catch(function(err) {
           console.log(JSON.stringify(err));
-        });
+        }),
+      afterTimeStamp = Date.now();
+
+    console.log('Time taken for register device: ', afterTimeStamp - beforeTimeStamp, 'ms');
 
     return deviceData;
   }

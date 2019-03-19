@@ -8,15 +8,17 @@ const https = require('https'),
   Web3 = require('web3'),
   web3 = new Web3();
 
-const API_KEY = '',
-  API_SECRET = '',
-  API_END_POINT = '',
-  TOKEN_RULE_ADDRESS = '',
-  maxConnectionObjects = 20,
-  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
-  PARALLEL_TRANSACTIONS = 20;
+const API_KEY = '7cc96ecdaf395f5dcfc005a9df31e798',
+  API_SECRET = '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
+  TOKEN_RULE_ADDRESS = '0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
+  COMPANY_UUID = 'caf774d4-82e4-4bc7-a620-bdca52ac4ef5',
+  maxConnectionObjects = 4;
 
-let maxIteration = 100,
+let maxIteration = 10,
+  NO_OF_USERS_COVERAGE = 5,
+  PARALLEL_TRANSACTIONS = 2, // TODO: Company has 10 session addresses. So using 8.
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1,
   receiverTokenHolders = [];
 
 https.globalAgent.keepAlive = true;
@@ -30,6 +32,27 @@ class TransactionSiege {
     const oThis = this;
 
     await oThis._init();
+
+    await oThis.runExecuteTransaction();
+  }
+
+  async _init() {
+    const oThis = this;
+
+    let siegeUser = new SiegeUser();
+
+    let Rows = await siegeUser
+      .select('*')
+      .limit(NO_OF_USERS_COVERAGE)
+      .fire();
+
+    for (let i = 0; i < Rows.length; i++) {
+      receiverTokenHolders.push(Rows[i].token_holder_contract_address);
+    }
+  }
+
+  async runExecuteTransaction() {
+    const oThis = this;
 
     for (let i = 0; i < receiverTokenHolders.length; i++) {
       receiverTokenHolders[i] = web3.utils.toChecksumAddress(receiverTokenHolders[i]);
@@ -67,8 +90,10 @@ class TransactionSiege {
         });
 
         let executeParams = {
+          user_id: COMPANY_UUID,
           to: TOKEN_RULE_ADDRESS,
-          raw_calldata: raw_calldata
+          raw_calldata: raw_calldata,
+          i: i + '-' + maxIteration
         };
 
         promiseArray.push(
@@ -78,26 +103,11 @@ class TransactionSiege {
         );
 
         if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == receiverTokenHolders.length) {
-          await Promise.all(oThis.promiseArray);
+          await Promise.all(promiseArray);
           promiseArray = [];
         }
       }
     }
-  }
-
-  async _init() {
-    const oThis = this;
-
-    let siegeUser = new SiegeUser();
-
-    let Rows = await siegeUser.select('*').fire();
-
-    for (let i = 0; i < Rows.length; i++) {
-      receiverTokenHolders.push(Rows[i].token_holder_contract_address);
-    }
-
-    // TODO: Santhosh. temp hard coding.
-    receiverTokenHolders = [''];
   }
 }
 
