@@ -129,7 +129,7 @@ class Finalizer extends PublisherBase {
     const ChainModel = blockScannerObj.model.Chain,
       chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
 
-    if (chainExists.isFailure()) {
+    if (!chainExists || chainExists.isFailure()) {
       logger.error('ChainId does not exist in the chains table.');
 
       const errorObject = responseHelper.error({

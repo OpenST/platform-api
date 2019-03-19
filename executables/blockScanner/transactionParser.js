@@ -15,9 +15,9 @@ const program = require('commander');
 
 const rootPrefix = '../..',
   NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
@@ -57,8 +57,8 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Constructor for transaction parser
    *
-   * @param params {object} - params object
-   * @param params.cronProcessId {number} - cron_processes table id
+   * @param {Object} params
+   * @param {Number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -226,7 +226,7 @@ class TransactionParser extends MultiSubscriptionBase {
       logger.error('Hash of block number: ', blockNumber, ' does not match the blockHash: ', blockHash, '.');
       const errorObject = responseHelper.error({
         internal_error_identifier: 'block_hash_dont_match:e_bs_tp_4',
-        api_error_identifier: 'finalizer_stuck',
+        api_error_identifier: 'block_hash_dont_match',
         debug_options: { blockNumber: blockNumber, blockHash: blockHash }
       });
 
