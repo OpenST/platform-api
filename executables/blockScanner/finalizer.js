@@ -12,8 +12,8 @@ const program = require('commander');
 
 const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/errorLogs/ErrorLogsConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   TxFinalizeDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
@@ -129,8 +129,17 @@ class Finalizer extends PublisherBase {
     const ChainModel = blockScannerObj.model.Chain,
       chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
 
-    if (!chainExists) {
+    if (chainExists.isFailure()) {
       logger.error('ChainId does not exist in the chains table.');
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'invalid_chain_id:e_bs_f_1',
+        api_error_identifier: 'invalid_chain_id',
+        debug_options: {}
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
       process.emit('SIGINT');
     }
 
@@ -179,7 +188,7 @@ class Finalizer extends PublisherBase {
 
     let waitTime = 0;
     while (true) {
-      // SIGINT Received
+      // SIGINT received.
       if (oThis.stopPickingUpNewWork) {
         oThis.canExit = true;
         break;
@@ -187,8 +196,9 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       if (waitTime > 2 * 30 * 5) {
+        // 5 minutes.
         const errorObject = responseHelper.error({
-          internal_error_identifier: 'finalizer_stuck',
+          internal_error_identifier: 'finalizer_stuck:e_bs_f_2',
           api_error_identifier: 'finalizer_stuck',
           debug_options: { waitTime: waitTime, chainId: oThis.chainId }
         });
