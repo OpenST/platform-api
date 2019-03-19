@@ -65,14 +65,12 @@ class BalanceVerifier extends CronBase {
 
     let BalanceVerifier = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceVerifier');
 
-    console.log('timeStamp', oThis.timeStamp);
-
     let balanceVerifierObj = new BalanceVerifier({
       timeStamp: oThis.timeStamp
     });
 
     let balanceVerifierResponse = await balanceVerifierObj.perform();
-    console.log('balanceVerifierResponse', balanceVerifierResponse.data);
+
     if (balanceVerifierResponse.isSuccess()) {
       let cronParams = {
           auxChainId: oThis.auxChainId,
