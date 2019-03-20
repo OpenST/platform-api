@@ -42,7 +42,6 @@ const API_KEY = program.apiKey,
   TOKEN_RULE_ADDRESS = program.tokenRulesAddress,
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   MAX_NO_OF_SENDERS = 250, // regardless of this number, it can not exceed half of users generated.
-  //PARALLEL_TRANSACTIONS = 20, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
 
 let maxIteration = 4;
