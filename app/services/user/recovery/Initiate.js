@@ -4,7 +4,7 @@
  * @module app/services/user/recovery/Initiate
  */
 
-const OpenStJs = require('@openstfoundation/openst.js'),
+const OpenStJs = require('@openst/openst.js'),
   OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../../..',

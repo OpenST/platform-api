@@ -2,7 +2,8 @@
 //This class will register the user
 //OP:
 
-const rootPrefix = '../../..';
+const rootPrefix = '../../..',
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 const uuidV4 = require('uuid/v4');
 
@@ -38,7 +39,16 @@ class RegisterDevice {
 
     console.log('Time taken for register device: ', afterTimeStamp - beforeTimeStamp, 'ms');
 
-    return deviceData;
+    if (deviceData['success']) {
+      return responseHelper.successWithData(deviceData.data);
+    } else {
+      console.log('Error in api call', deviceData);
+      return responseHelper.error({
+        internal_error_identifier: 't_s_uf_rd_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: { API: 'RegisterDevice' }
+      });
+    }
   }
 }
 

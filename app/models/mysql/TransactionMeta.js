@@ -91,16 +91,54 @@ class TransactionMetaModel extends ModelBase {
   }
 
   /**
-   * Release lock and mark status
    *
-   * @return {*|void}
+   * without Releasing lock update record (s)
+   *
+   * @param params data to be updated
+   *
+   * @return {Promise}
    */
-  releaseLockAndMarkStatus(params) {
+  updateRecordsWithoutReleasingLock(params) {
+    const oThis = this;
+
+    let queryObj = oThis._generateUpdateQueryObj(params, false);
+
+    return queryObj.fire();
+  }
+
+  /**
+   * Release lock and update record (s)
+   *
+   * @param params data to be updated
+   *
+   * @return {Promise}
+   */
+  updateRecordsByReleasingLock(params) {
+    const oThis = this;
+
+    let queryObj = oThis._generateUpdateQueryObj(params, true);
+
+    return queryObj.fire();
+  }
+
+  /**
+   *
+   * @param params
+   * @param releaseLock
+   *
+   * @private
+   *
+   * @return {Object<self>|*}
+   */
+  _generateUpdateQueryObj(params, releaseLock) {
     const oThis = this,
       dataToUpdate = {
-        lock_id: null,
         status: transactionMetaConst.invertedStatuses[params.status]
       };
+
+    if (releaseLock) {
+      dataToUpdate.lock_id = null;
+    }
 
     if (params.transactionHash) {
       dataToUpdate.transaction_hash = params.transactionHash;
@@ -149,7 +187,7 @@ class TransactionMetaModel extends ModelBase {
       throw 'no param for where clause';
     }
 
-    return queryObj.fire();
+    return queryObj;
   }
 
   /**

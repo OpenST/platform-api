@@ -5,7 +5,7 @@
  * @module /tools/chainSetup/mosaicInteracts/SetCoAnchor
  */
 
-const MosaicJs = require('@openstfoundation/mosaic.js');
+const MosaicJs = require('@openst/mosaic.js');
 
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),

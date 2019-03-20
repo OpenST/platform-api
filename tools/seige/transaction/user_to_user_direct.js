@@ -1,30 +1,51 @@
 'use strict';
 
+const program = require('commander');
+
 const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner'),
   GetTokenDetails = require(rootPrefix + '/tools/seige/userFlow/GetTokenDetails'),
   SiegeUser = require(rootPrefix + '/app/models/mysql/SiegeUser');
 
 const https = require('https'),
   OSTSDK = require('@ostdotcom/ost-sdk-js'),
-  OpenstJs = require('@openstfoundation/openst.js'),
+  OpenstJs = require('@openst/openst.js'),
   Web3 = require('web3'),
   OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-// TODO: Change these constants when you run
-const API_KEY = '5f052a34a0f7292b2e44d51d4482fa3a',
-  API_SECRET = 'fd75a2a05ce1325243db1416a8e00d0e6c39d8c5f9f5693e167b435f1501ffea',
-  API_END_POINT = 'http://localhost:7001/testnet/v2/',
-  TOKEN_RULE_ADDRESS = '0xb102717289cb805bdab41c804eb6ed023f638f3e',
-  PARALLEL_TRANSACTIONS = 2,
-  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3;
+require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
-let maxIteration = 100;
+program
+  .option('--apiKey <apiKey>', 'API KEY')
+  .option('--apiSecret <apiSecret>', 'API Secret')
+  .option('--tokenRulesAddress <tokenRulesAddress>', 'tokenRulesAddress')
+  .parse(process.argv);
+
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log(
+    '    node tools/seige/transaction/user_to_user_direct.js --apiKey <> --apiSecret <> --tokenRulesAddress <> '
+  );
+  logger.log('');
+  logger.log('');
+});
+
+const API_KEY = program.apiKey,
+  API_SECRET = program.apiSecret,
+  TOKEN_RULE_ADDRESS = program.tokenRulesAddress,
+  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
+  MAX_NO_OF_SENDERS = 2, // regardless of this number, it can not exceed half of users generated.
+  PARALLEL_TRANSACTIONS = 2, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
+
+let maxIteration = 10;
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
@@ -46,9 +67,9 @@ class TransactionSiege {
   async perform() {
     const oThis = this;
 
-    await oThis._init();
-
     await oThis._getTokenData();
+
+    await oThis._init();
 
     await oThis._getSessionKeyNonce();
 
@@ -62,7 +83,9 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
-      .limit(PARALLEL_TRANSACTIONS * 2)
+      .where({ token_id: oThis.tokenId })
+      .where(['token_holder_contract_address IS NOT NULL'])
+      .limit(MAX_NO_OF_SENDERS * 2)
       .fire();
     let addIndex = basicHelper.shuffleArray([0, 1])[0];
 
@@ -75,22 +98,22 @@ class TransactionSiege {
         oThis.senderUuids.push(Rows[i].user_uuid);
       }
     }
-
-    oThis.ostObj = new OSTSDK({
-      apiKey: API_KEY,
-      apiSecret: API_SECRET,
-      apiEndpoint: API_END_POINT,
-      config: { timeout: 100 }
-    });
   }
 
   async _getTokenData() {
-    let oThis = this,
-      getTokenDetailsObj = new GetTokenDetails({ ostObj: oThis.ostObj }),
+    const oThis = this;
+
+    let ostObj = new OSTSDK({
+        apiKey: API_KEY,
+        apiSecret: API_SECRET,
+        apiEndpoint: API_END_POINT,
+        config: { timeout: 100 }
+      }),
+      getTokenDetailsObj = new GetTokenDetails({ ostObj: ostObj }),
       tokenDetails = await getTokenDetailsObj.perform();
 
-    oThis.tokenId = tokenDetails.token.id;
-    oThis.auxChainId = tokenDetails.auxiliary_chains[0].chain_id;
+    oThis.tokenId = tokenDetails.data.token.id;
+    oThis.auxChainId = tokenDetails.data.token.auxiliary_chains[0].chain_id;
   }
 
   async _getSessionKeyNonce() {
@@ -118,7 +141,7 @@ class TransactionSiege {
 
       promiseArray.push(
         new TokenHolderContractNonce(params).perform().then(function(resp) {
-          oThis.sessionNonceMap[oThis.senderUuids[i]] = resp.data.nonce;
+          oThis.sessionNonceMap[oThis.senderUuids[i]] = parseInt(resp.data.nonce);
         })
       );
     }
@@ -159,7 +182,8 @@ class TransactionSiege {
             calldata: oThis.calldata,
             signature: vrs.signature,
             signer: sessionAddress,
-            nonce: oThis.sessionNonceMap[senderUuid]
+            nonce: oThis.sessionNonceMap[senderUuid],
+            i: i + '-' + maxIteration
           },
           resource = `/users/${senderUuid}/transactions`;
 
@@ -174,7 +198,7 @@ class TransactionSiege {
             })
         );
 
-        if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == oThis.senderUuids.length) {
+        if (i % PARALLEL_TRANSACTIONS == 0 || i + 1 == oThis.senderUuids.length) {
           await Promise.all(promiseArray);
           promiseArray = [];
         }
@@ -214,9 +238,9 @@ class TransactionSiege {
       data: oThis.calldata,
       nonce: oThis.sessionNonceMap[senderUuid],
       callPrefix: tokenHolder.getTokenHolderExecuteRuleCallPrefix(),
-      value: 0,
-      gasPrice: contractConstants.auxChainGasPrice
-      //gas: 0  //TODO: Gas Dhundh lo..
+      value: '0x0',
+      gasPrice: 0,
+      gas: '0'
     };
 
     return ephemeralKeyObj.signEIP1077Transaction(transaction);

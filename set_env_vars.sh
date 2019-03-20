@@ -52,11 +52,12 @@ export SA_CONFIG_STRATEGY_KMS_ID='eab8148d-fd9f-451d-9eb9-16c115645635'
 export SA_INTERNAL_API_SECRET_KEY='1somethingsarebetterkeptinenvironemntvariables'
 
 # SHA256 details
-export SA_GENERIC_SHA_KEY='9fa6baa9f1ab7a805b80721b65d34964170b1494'
 export SA_CACHE_DATA_SHA_KEY='066f7e6e833db143afee3dbafc888bcf'
 
 # Web3 pool size
 export OST_WEB3_POOL_SIZE=10
+
+export OST_DEGUG_ENABLED=1
 
 # Aux and Origin Gas Prices
 export SA_MIN_ORIGIN_GAS_PRICE='0xBA43B7400';

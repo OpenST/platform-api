@@ -1,6 +1,9 @@
 'use strict';
 
+const program = require('commander');
+
 const rootPrefix = '../../..',
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   SiegeUser = require(rootPrefix + '/app/models/mysql/SiegeUser');
 
 const https = require('https'),
@@ -8,15 +11,35 @@ const https = require('https'),
   Web3 = require('web3'),
   web3 = new Web3();
 
-const API_KEY = '5f052a34a0f7292b2e44d51d4482fa3a',
-  API_SECRET = 'fd75a2a05ce1325243db1416a8e00d0e6c39d8c5f9f5693e167b435f1501ffea',
-  API_END_POINT = 'http://localhost:7001/testnet/v2/',
-  TOKEN_RULE_ADDRESS = '0xb102717289cb805bdab41c804eb6ed023f638f3e',
-  maxConnectionObjects = 20,
-  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
-  PARALLEL_TRANSACTIONS = 20;
+program
+  .option('--apiKey <apiKey>', 'API KEY')
+  .option('--apiSecret <apiSecret>', 'API Secret')
+  .option('--tokenRulesAddress <tokenRulesAddress>', 'tokenRulesAddress')
+  .option('--companyUuid <companyUuid>', 'tokenRulesAddress')
+  .parse(process.argv);
 
-let maxIteration = 100,
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log(
+    '    node tools/seige/transaction/company_to_user.js --apiKey <> --apiSecret <> --tokenRulesAddress <> --companyUuid <>'
+  );
+  logger.log('');
+  logger.log('');
+});
+
+const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
+  API_SECRET = program.apiSecret, //'38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+  TOKEN_RULE_ADDRESS = program.tokenRulesAddress, //'0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
+  COMPANY_UUID = program.companyUuid, //'f65aa896-232b-4d62-b326-e8a38e207469',
+  API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
+  maxConnectionObjects = 4;
+
+let maxIteration = 1,
+  NO_OF_USERS_COVERAGE = 5,
+  PARALLEL_TRANSACTIONS = 2, // TODO: Company has 10 session addresses. So using 8.
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1,
   receiverTokenHolders = [];
 
 https.globalAgent.keepAlive = true;
@@ -41,15 +64,13 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
-      .limit(PARALLEL_TRANSACTIONS)
+      .where(['token_holder_contract_address IS NOT NULL'])
+      .limit(NO_OF_USERS_COVERAGE)
       .fire();
 
     for (let i = 0; i < Rows.length; i++) {
       receiverTokenHolders.push(Rows[i].token_holder_contract_address);
     }
-
-    // TODO: Santhosh. temp hard coding.
-    receiverTokenHolders = ['0xa2d0f82b04cd4f8d7ae4dfb4851c8acafae5378d'];
   }
 
   async runExecuteTransaction() {
@@ -91,17 +112,19 @@ class TransactionSiege {
         });
 
         let executeParams = {
+          user_id: COMPANY_UUID,
           to: TOKEN_RULE_ADDRESS,
-          raw_calldata: raw_calldata
+          raw_calldata: raw_calldata,
+          i: i + '-' + maxIteration
         };
 
         promiseArray.push(
-          await transactionsService.execute(executeParams).catch(function(err) {
+          transactionsService.execute(executeParams).catch(function(err) {
             console.error('====Transaction failed from user:', receiverTokenHolders);
           })
         );
 
-        if (i % PARALLEL_TRANSACTIONS == 0 || i - 1 == receiverTokenHolders.length) {
+        if (i % PARALLEL_TRANSACTIONS == 0 || i + 1 == receiverTokenHolders.length) {
           await Promise.all(promiseArray);
           promiseArray = [];
         }

@@ -193,7 +193,7 @@ class ConfigStrategyModel extends ModelBase {
       configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.dynamoApiSecret;
       configStrategyHash[kinds[strategyKind]].autoScaling.apiSecret = decryptedJsonObj.dynamoAutoscalingApiSecret;
     } else if (kinds[strategyKind] == configStrategyConstants.elasticSearch) {
-      configStrategyHash[kinds[strategyKind]].secretKey = decryptedJsonObj.esSecretKey;
+      configStrategyHash[kinds[strategyKind]].apiSecret = decryptedJsonObj.esSecretKey;
     } else if (
       kinds[strategyKind] == configStrategyConstants.rabbitmq ||
       kinds[strategyKind] == configStrategyConstants.globalRabbitmq ||
@@ -440,9 +440,9 @@ class ConfigStrategyModel extends ModelBase {
       hashToEncrypt['dynamoAutoscalingApiSecret'] = dynamoAutoscalingApiSecret;
       encryptedKeysFound = true;
     } else if (strategyKindName == configStrategyConstants.elasticSearch) {
-      let esSecretKey = hashNotToEncrypt[strategyKindName].secretKey;
+      let esSecretKey = hashNotToEncrypt[strategyKindName].apiSecret;
 
-      hashNotToEncrypt[strategyKindName].secretKey = '{{esSecretKey}}';
+      hashNotToEncrypt[strategyKindName].apiSecret = '{{apiSecret}}';
       hashToEncrypt['esSecretKey'] = esSecretKey;
       encryptedKeysFound = true;
     } else if (

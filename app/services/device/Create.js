@@ -54,6 +54,7 @@ class CreateDevice extends ServiceBase {
    *
    * @returns {Promise<void>}
    */
+  // TODO - why not use service base perform
   perform() {
     const oThis = this;
 

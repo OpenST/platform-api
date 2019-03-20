@@ -2,7 +2,8 @@
 //IP: uuid: device address, session address, and respective keys,
 
 const rootPrefix = '../../..',
-  RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner');
+  RequestKlass = require(rootPrefix + '/tools/seige/personalKeySigner'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 const uuidV4 = require('uuid/v4');
 
@@ -49,7 +50,16 @@ class ActivateUser {
 
     console.log('Time taken for activate user: ', afterTimeStamp - beforeTimeStamp, 'ms');
 
-    return response;
+    if (response['success']) {
+      return responseHelper.successWithData(response.data);
+    } else {
+      console.log('Error in api call', response);
+      return responseHelper.error({
+        internal_error_identifier: 't_s_uf_au_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: { API: 'ActivateUser' }
+      });
+    }
   }
 }
 
