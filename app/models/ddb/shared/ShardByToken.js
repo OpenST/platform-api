@@ -208,6 +208,8 @@ class ShardByToken extends Base {
       });
     });
 
+    // TODO - response success is not checked. why?
+
     let result = {};
 
     for (let i = 0; i < params.entityKinds.length; i++) {

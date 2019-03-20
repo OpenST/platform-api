@@ -38,6 +38,7 @@ class AuthorizeSession extends Base {
   /**
    *
    * @param {Object} params
+   * @param {Array} params.token_shard_details
    * @param {Object} params.raw_calldata -
    * @param {String} params.raw_calldata.method - possible value authorizeSession
    * @param {Array} params.raw_calldata.parameters -
@@ -138,7 +139,8 @@ class AuthorizeSession extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
-    if (oThis.userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
+    // If session is logging out then don't allow authorizing new session.
+    if (oThis.userData.tokenHolderStatus === tokenUserConstants.tokenHolderLoggingOutStatus) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_s_mo_as_6',

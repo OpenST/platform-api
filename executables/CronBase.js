@@ -5,9 +5,11 @@
  */
 const rootPrefix = '..',
   CronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   cronProcessHandlerObject = new CronProcessHandler(),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
 /**
  * Class for sigint handler.
@@ -46,9 +48,18 @@ class CronBase {
       // If asyncPerform fails, run the below catch block.
       logger.error('Error in executables/CronBase.js');
 
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'unhandled_catch_response:e_cb_1',
+        api_error_identifier: 'unhandled_catch_response',
+        debug_options: {}
+      });
+
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      oThis.canExit = true;
+
       return responseHelper.error({
-        internal_error_identifier: 'e_bs_w_2',
-        api_error_identifier: 'something_went_wrong',
+        internal_error_identifier: 'e_cb_2',
+        api_error_identifier: 'unhandled_catch_response',
         debug_options: err
       });
     });
@@ -75,8 +86,35 @@ class CronBase {
   attachHandlers() {
     const oThis = this;
 
+    let notifierCalled = false;
+
+    /**
+     * Send error notification function.
+     * If cron doesn't stop after 60 secs of receiving SIGINT, send error notification.
+     */
+    const sendNotification = async function() {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: `${oThis._cronKind}:cron_stuck:e_cb_3`,
+        api_error_identifier: 'cron_stuck',
+        debug_options: {
+          cronProcessId: oThis.cronProcessId,
+          cronName: oThis._cronKind
+        }
+      });
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+    };
+
+    /**
+     * Handler for SIGINT and SIGTERM signals.
+     */
     const handle = function() {
       oThis._stopPickingUpNewTasks();
+
+      // We need to call notifier only once.
+      if (!notifierCalled) {
+        setTimeout(sendNotification, 60000);
+        notifierCalled = true;
+      }
 
       if (oThis._pendingTasksDone()) {
         logger.info(':: No pending tasks. Changing the status ');

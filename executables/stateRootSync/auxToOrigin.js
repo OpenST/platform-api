@@ -62,4 +62,4 @@ new StateRootSyncFromAuxToOrigin({ cronProcessId: +program.cronProcessId }).perf
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, 10 * 60 * 1000);
+}, cronProcessesConstants.stateRootSyncCronsRestartInterval);

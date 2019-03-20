@@ -12,16 +12,18 @@ const program = require('commander');
 
 const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   TxFinalizeDelegator = require(rootPrefix + '/lib/transactions/finalizer/Delegator'),
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   PostTxFinalizeSteps = require(rootPrefix + '/lib/transactions/PostTransactionFinalizeSteps'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -125,10 +127,34 @@ class Finalizer extends PublisherBase {
 
     // Get ChainModel.
     const ChainModel = blockScannerObj.model.Chain,
-      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
+      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId),
+      chainIdBooleanValidation = CommonValidators.validateBoolean(chainExists);
 
-    if (!chainExists) {
+    // If response from checkIfChainIdExists is not a boolean, that means error object is returned.
+    if (!chainIdBooleanValidation) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'something_went_wrong:e_bs_f_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: {}
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+      process.emit('SIGINT');
+    }
+
+    // If response from checkIfChainIdExists is true or false, we make further checks.
+    if (chainIdBooleanValidation && !chainExists) {
       logger.error('ChainId does not exist in the chains table.');
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'invalid_chain_id:e_bs_f_2',
+        api_error_identifier: 'invalid_chain_id',
+        debug_options: {}
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
       process.emit('SIGINT');
     }
 
@@ -177,7 +203,7 @@ class Finalizer extends PublisherBase {
 
     let waitTime = 0;
     while (true) {
-      // SIGINT Received
+      // SIGINT received.
       if (oThis.stopPickingUpNewWork) {
         oThis.canExit = true;
         break;
@@ -185,12 +211,14 @@ class Finalizer extends PublisherBase {
 
       oThis.canExit = false;
       if (waitTime > 2 * 30 * 5) {
-        await emailNotifier.perform(
-          'finalizer_stuck',
-          `Finalizer is stuck for more than 5 minutes for chainId: ${oThis.chainId} `,
-          {},
-          {}
-        );
+        // 5 minutes.
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'finalizer_stuck:e_bs_f_3',
+          api_error_identifier: 'finalizer_stuck',
+          debug_options: { waitTime: waitTime, chainId: oThis.chainId }
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
       }
 
       const finalizer = new oThis.BlockScannerFinalizer({
@@ -420,4 +448,4 @@ new Finalizer({ cronProcessId: +program.cronProcessId }).perform();
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, 30 * 60 * 1000);
+}, cronProcessesConstants.continuousCronRestartInterval);

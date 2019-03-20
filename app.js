@@ -17,7 +17,8 @@ let bind, port;
 let onlineWorker = 0;
 
 const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   v2Routes = require(rootPrefix + '/routes/v2/index'),
   internalRoutes = require(rootPrefix + '/routes/internal/index'),
@@ -165,7 +166,12 @@ const decodeJwt = function(req, res, next) {
 
   // Verify token
   Promise.resolve(jwtAuth.verifyToken(token, 'saasApi').then(jwtOnResolve, jwtOnReject)).catch(function(err) {
-    emailNotifier.perform('a_2', 'JWT Decide Failed', { token: token }, {});
+    const errorObject = responseHelper.error({
+      internal_error_identifier: 'jwt_decide_failed:a_2',
+      api_error_identifier: 'jwt_decide_failed',
+      debug_options: { token: token }
+    });
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
     logger.error('a_2', 'JWT Decide Failed', { token: token });
 
     return responseHelper
@@ -279,7 +285,12 @@ if (cluster.isMaster) {
 
   //  Called when all workers are disconnected and handles are closed.
   cluster.on('disconnect', function(worker) {
-    emailNotifier.perform('a_3', `[worker-${worker.id}] is disconnected`, {}, {});
+    const errorObject = responseHelper.error({
+      internal_error_identifier: 'worker_disconnected:a_3',
+      api_error_identifier: 'worker_disconnected',
+      debug_options: { worker: worker.id }
+    });
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
     logger.error('a_3', `[worker-${worker.id}] is disconnected`);
     // when a worker disconnects, decrement the online worker count
     onlineWorker = onlineWorker - 1;
@@ -291,15 +302,25 @@ if (cluster.isMaster) {
       // don't restart worker as voluntary exit
       logger.info(`[worker-${worker.id}] voluntary exit. signal: ${signal}. code: ${code}`);
     } else {
-      // restart worker as died unexpectedly
-      emailNotifier.perform(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`, {}, {});
+      // Restart worker as died unexpectedly
+      const errorObject = responseHelper.error({
+        internal_error_identifier: `worker_died_restarting:${code}`,
+        api_error_identifier: 'worker_died_restarting',
+        debug_options: { worker: worker.id, code: code, signal: signal }
+      });
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
       logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
       cluster.fork();
     }
   });
   // Exception caught
   process.on('uncaughtException', function(err) {
-    emailNotifier.perform('app_crash_1', 'App server exited unexpectedly.', err, {});
+    const errorObject = responseHelper.error({
+      internal_error_identifier: `app_server_crash:app_crash_1`,
+      api_error_identifier: 'app_server_crash',
+      debug_options: { err: err }
+    });
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
     logger.error('app_crash_1', 'App server exited unexpectedly. Reason: ', err);
     process.exit(1);
   });
@@ -403,11 +424,16 @@ if (cluster.isMaster) {
   // error handler
   app.use(function(err, req, res, next) {
     // set locals, only providing error in development
-    emailNotifier.perform('a_6', 'Something went wrong.', err, {});
+    const errorObject = responseHelper.error({
+      internal_error_identifier: `a_6`,
+      api_error_identifier: 'something_went_wrong',
+      debug_options: { err: err }
+    });
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     logger.error('a_6', 'Something went wrong', err);
     return responseHelper
       .error({
-        internal_error_identifier: 'a_7',
+        internal_error_identifier: 'a_6',
         api_error_identifier: 'something_went_wrong',
         debug_options: {}
       })
@@ -465,16 +491,28 @@ function onError(error) {
 
   // handle specific listen errors with friendly messages
   switch (error.code) {
-    case 'EACCES':
-      emailNotifier.perform('a_8', `${bind} requires elevated privileges`, {}, {});
-      logger.error('a_8', bind + ' requires elevated privileges');
+    case 'EACCES': {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: `elevated_privilege_required:a_7`,
+        api_error_identifier: 'elevated_privilege_required',
+        debug_options: { port: bind }
+      });
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      logger.error('a_7', bind + ' requires elevated privileges');
       process.exit(1);
       break;
-    case 'EADDRINUSE':
-      emailNotifier.perform('a_9', `${bind} is already in use`, {}, {});
-      logger.error('a_9', bind + ' is already in use');
+    }
+    case 'EADDRINUSE': {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: `port_in_use:a_8`,
+        api_error_identifier: 'port_in_use',
+        debug_options: { port: bind }
+      });
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      logger.error('a_8', bind + ' is already in use');
       process.exit(1);
       break;
+    }
     default:
       throw error;
   }

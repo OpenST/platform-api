@@ -129,6 +129,18 @@ class CoreConstants {
     return process.env.SA_KIT_SAAS_BIG_SUBENV_MYSQL_PASSWORD;
   }
 
+  get OST_INFRA_MYSQL_HOST() {
+    return process.env.SA_OST_INFRA_MYSQL_HOST;
+  }
+
+  get OST_INFRA_MYSQL_USER() {
+    return process.env.SA_OST_INFRA_MYSQL_USER;
+  }
+
+  get OST_INFRA_MYSQL_PASSWORD() {
+    return process.env.SA_OST_INFRA_MYSQL_PASSWORD;
+  }
+
   get KMS_AWS_ACCESS_KEY() {
     return process.env.SA_KMS_AWS_ACCESS_KEY;
   }
@@ -170,11 +182,6 @@ class CoreConstants {
     return process.env.SA_INTERNAL_API_SECRET_KEY;
   }
 
-  // SHA256 details
-  get GENERIC_SHA_KEY() {
-    return process.env.SA_GENERIC_SHA_KEY;
-  }
-
   // Cache data key
   get CACHE_SHA_KEY() {
     return process.env.SA_CACHE_DATA_SHA_KEY;
@@ -182,10 +189,6 @@ class CoreConstants {
 
   get DEBUG_ENABLED() {
     return process.env.OST_DEBUG_ENABLED;
-  }
-
-  get NOTIFIER_POSTFIX() {
-    return 'saas-api';
   }
 
   get SHARED_MEMCACHE_KEY_PREFIX() {

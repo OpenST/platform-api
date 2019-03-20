@@ -7,7 +7,7 @@
  */
 
 const uuidv4 = require('uuid/v4'),
-  OpenSTJs = require('@openstfoundation/openst.js'),
+  OpenSTJs = require('@openst/openst.js'),
   TokenHolderHelper = OpenSTJs.Helpers.TokenHolder;
 
 const rootPrefix = '../../../..',
@@ -116,6 +116,7 @@ class ExecuteTxBase extends ServiceBase {
   perform() {
     const oThis = this;
 
+    // TODO - use perform from service base
     return oThis._asyncPerform().catch(async function(err) {
       let customError;
       if (responseHelper.isCustomResult(err)) {
@@ -358,7 +359,8 @@ class ExecuteTxBase extends ServiceBase {
           })
         );
       }
-      return updateBalanceResponse;
+      logger.error('updateBalance error in app/services/transaction/execute/Base', updateBalanceResponse);
+      return Promise.reject(updateBalanceResponse);
     });
 
     oThis.pessimisticAmountDebitted = true;
@@ -468,6 +470,7 @@ class ExecuteTxBase extends ServiceBase {
       sessionKeyAddress: oThis.sessionKeyAddress,
       status: pendingTransactionConstants.createdStatus,
       tokenId: oThis.tokenId,
+      kind: pendingTransactionConstants.executeRuleKind,
       toBeSyncedInEs: 1,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
@@ -475,7 +478,7 @@ class ExecuteTxBase extends ServiceBase {
     if (insertRsp.isFailure()) {
       return Promise.reject(insertRsp);
     }
-
+    logger.debug('inserted inTxMeta with id: ', oThis.transactionUuid);
     oThis.pendingTransactionInserted = 1;
     oThis.pendingTransactionData = insertRsp.data;
   }
@@ -552,7 +555,7 @@ class ExecuteTxBase extends ServiceBase {
     }
 
     if (oThis.transactionMetaId) {
-      await new TransactionMetaModel().releaseLockAndMarkStatus({
+      await new TransactionMetaModel().updateRecordsByReleasingLock({
         status: oThis.failureStatusToUpdateInTxMeta || transactionMetaConst.finalFailedStatus,
         receiptStatus: transactionMetaConst.failureReceiptStatus,
         id: oThis.transactionMetaId,

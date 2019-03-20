@@ -29,7 +29,7 @@ class CreateUsers {
           .then(function(res) {
             userUuidsArray.push(res.data.user.id);
             let afterTimeStamp = Date.now();
-            console.log('Time taken by Create Users: ', afterTimeStamp - beforeTimeStamp);
+            console.log('Time taken by Create Users: ', afterTimeStamp - beforeTimeStamp, 'ms');
           })
           .catch(function(err) {
             console.log(JSON.stringify(err));

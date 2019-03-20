@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * This code acts as a master process to block scanner, which delegates the transactions from a block to
  * Transaction parser processes.
@@ -15,15 +13,18 @@ const program = require('commander');
 
 const rootPrefix = '../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   web3InteractFactory = require(rootPrefix + '/lib/providers/web3'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
@@ -45,9 +46,14 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
+// Declare variables.
 const FAILURE_CODE = -1,
   MAX_TXS_PER_WORKER = 60,
-  MIN_TXS_PER_WORKER = 10;
+  MIN_TXS_PER_WORKER = 10,
+  BLOCKS_OFFSET = 20;
+
+let parserStuckForBlocks = 0,
+  notifierCalled = false;
 
 /**
  * Class for Block parser
@@ -60,6 +66,8 @@ class BlockParserExecutable extends PublisherBase {
    *
    * @param {Object} params
    * @param {Number} params.cronProcessId: cron_processes table id
+   *
+   * @augments PublisherBase
    *
    * @constructor
    */
@@ -75,12 +83,13 @@ class BlockParserExecutable extends PublisherBase {
    * Start cron related processing
    *
    * @return {Promise<void>}
+   *
    * @private
    */
   async _start() {
     const oThis = this;
 
-    // Fetch config strategy
+    // Fetch config strategy.
     await oThis._fetchConfigStrategy();
 
     // Get blockScanner object.
@@ -143,6 +152,7 @@ class BlockParserExecutable extends PublisherBase {
    * Fetch config strategy and set isOriginChain, wsProviders and blockGenerationTime in oThis.
    *
    * @return {Promise<void>}
+   *
    * @private
    */
   async _fetchConfigStrategy() {
@@ -186,10 +196,34 @@ class BlockParserExecutable extends PublisherBase {
 
     // Get ChainModel.
     const ChainModel = blockScannerObj.model.Chain,
-      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId);
+      chainExists = await new ChainModel({}).checkIfChainIdExists(oThis.chainId),
+      chainIdBooleanValidation = CommonValidators.validateBoolean(chainExists);
 
-    if (!chainExists) {
+    // If response from checkIfChainIdExists is not a boolean, that means error object is returned.
+    if (!chainIdBooleanValidation) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'something_went_wrong:e_bs_bp_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: {}
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+      process.emit('SIGINT');
+    }
+
+    // If response from checkIfChainIdExists is true or false, we make further checks.
+    if (chainIdBooleanValidation && !chainExists) {
       logger.error('ChainId does not exist in the chains table.');
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'invalid_chain_id:e_bs_bp_2',
+        api_error_identifier: 'invalid_chain_id',
+        debug_options: {}
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
       process.emit('SIGINT');
     }
 
@@ -250,7 +284,7 @@ class BlockParserExecutable extends PublisherBase {
     const oThis = this;
 
     while (true) {
-      // break out of loop if endBlockNumber was passed and has been reached OR stopPickingUpNewWork is set
+      // Break out of loop if endBlockNumber was passed and has been reached OR stopPickingUpNewWork is set
       if ((oThis.endBlockNumber >= 0 && oThis.blockToProcess > oThis.endBlockNumber) || oThis.stopPickingUpNewWork) {
         oThis.canExit = true;
         break;
@@ -271,6 +305,7 @@ class BlockParserExecutable extends PublisherBase {
       let blockParserResponse = await blockParser.perform();
 
       if (!blockParserResponse.isSuccess()) {
+        parserStuckForBlocks++;
         // If blockParser returns an error then sleep for 10 ms and try again.
         await basicHelper.sleep(10);
         oThis.canExit = true;
@@ -287,15 +322,31 @@ class BlockParserExecutable extends PublisherBase {
       let wasNewBlockParsed = currentBlock && currentBlock !== nextBlockToProcess;
 
       if (wasNewBlockParsed) {
+        parserStuckForBlocks = 0;
         // If the block contains transactions, distribute those transactions.
         await oThis._distributeTransactions(rawCurrentBlock, nodesWithBlock);
         await basicHelper.sleep(10);
       } else {
+        parserStuckForBlocks++;
         // Sleep for higher time, assuming new block will be there to parse.
         await basicHelper.sleep(oThis.blockGenerationTime * 1000);
       }
 
       oThis.blockToProcess = nextBlockToProcess;
+
+      // We need to call notifier only once.
+      if (!notifierCalled && oThis.intentionalBlockDelay + BLOCKS_OFFSET <= parserStuckForBlocks) {
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'block_parser_stuck:e_bs_bp_2',
+          api_error_identifier: 'block_parser_stuck',
+          debug_options: {}
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+        notifierCalled = true;
+      }
+
       oThis.canExit = true;
     }
   }
@@ -497,4 +548,4 @@ new BlockParserExecutable({ cronProcessId: +program.cronProcessId }).perform();
 setInterval(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, 30 * 60 * 1000);
+}, cronProcessesConstants.continuousCronRestartInterval);
