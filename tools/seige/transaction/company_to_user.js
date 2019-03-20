@@ -37,14 +37,14 @@ const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
   maxConnectionObjects = 4;
 
 let maxIteration = 1,
-  NO_OF_USERS_COVERAGE = 5,
-  PARALLEL_TRANSACTIONS = 2, // TODO: Company has 10 session addresses. So using 8.
-  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1,
+  NO_OF_USERS_COVERAGE = 2000,
+  PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses. So using 8.
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
   receiverTokenHolders = [];
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
-https.globalAgent.maxSockets = 100;
+https.globalAgent.maxSockets = 10;
 
 class TransactionSiege {
   constructor() {}
@@ -103,7 +103,7 @@ class TransactionSiege {
         if (transferTos.length <= 0) continue;
 
         for (let j = 0; j < transferTos.length; j++) {
-          transferAmounts.push('1');
+          transferAmounts.push('10000');
         }
 
         let raw_calldata = JSON.stringify({

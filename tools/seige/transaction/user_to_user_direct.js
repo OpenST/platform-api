@@ -41,15 +41,15 @@ const API_KEY = program.apiKey,
   API_SECRET = program.apiSecret,
   TOKEN_RULE_ADDRESS = program.tokenRulesAddress,
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
-  MAX_NO_OF_SENDERS = 2, // regardless of this number, it can not exceed half of users generated.
-  PARALLEL_TRANSACTIONS = 2, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
+  MAX_NO_OF_SENDERS = 250, // regardless of this number, it can not exceed half of users generated.
+  //PARALLEL_TRANSACTIONS = 20, // regardless of this number, it can not exceed MAX_NO_OF_SENDERS
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
 
-let maxIteration = 10;
+let maxIteration = 4;
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
-https.globalAgent.maxSockets = 100;
+https.globalAgent.maxSockets = 10;
 
 class TransactionSiege {
   constructor() {
@@ -73,6 +73,8 @@ class TransactionSiege {
 
     await oThis._getSessionKeyNonce();
 
+    await oThis.generateSignatures();
+
     await oThis.runExecuteTransaction();
   }
 
@@ -91,6 +93,9 @@ class TransactionSiege {
 
     for (let i = 0; i < Rows.length; i++) {
       oThis.siegeData[Rows[i].user_uuid] = Rows[i];
+      oThis.siegeData[Rows[i].user_uuid].signatures = [];
+      oThis.siegeData[Rows[i].user_uuid].requestObj = null;
+      oThis.siegeData[Rows[i].user_uuid].requestDetails = [];
 
       if ((i + addIndex) % 2) {
         oThis.receiverTokenHolders.push(Rows[i].token_holder_contract_address);
@@ -149,61 +154,80 @@ class TransactionSiege {
     await Promise.all(promiseArray);
   }
 
-  async runExecuteTransaction() {
+  async generateSignatures() {
     const oThis = this;
 
-    while (maxIteration--) {
-      let promiseArray = [];
+    let timeNow = Date.now(),
+      iterationCount = 0;
 
+    console.log('--------starting Signatures Generation at ', timeNow);
+
+    while (iterationCount++ < maxIteration) {
       for (let i = 0; i < oThis.senderUuids.length; i++) {
         let senderUuid = oThis.senderUuids[i],
-          senderDetails = oThis.siegeData[senderUuid],
-          sessionAddress = senderDetails.session_address,
-          transferTos = oThis.receiverTokenHolders.slice(i, i + NO_OF_TRANSFERS_IN_EACH_TRANSACTION);
+          transferTos = oThis.receiverTokenHolders.slice(i, i + NO_OF_TRANSFERS_IN_EACH_TRANSACTION),
+          sessionNonce = oThis.sessionNonceMap[senderUuid];
 
         let params = {
           transferTos: transferTos,
-          senderUuid: senderUuid
+          senderUuid: senderUuid,
+          sessionNonce: sessionNonce
         };
 
-        let vrs = await oThis._signEIP1077Transaction(params);
+        let eipTimeNow = Date.now();
 
-        let requestObj = new RequestKlass({
-            tokenId: oThis.tokenId,
-            walletAddress: senderDetails.device_address,
-            apiSignerAddress: senderDetails.device_address,
-            apiSignerPrivateKey: senderDetails.device_pk,
-            apiEndpoint: API_END_POINT,
-            userUuid: senderUuid
-          }),
-          queryParams = {
-            to: TOKEN_RULE_ADDRESS,
-            raw_calldata: oThis.raw_calldata,
-            calldata: oThis.calldata,
-            signature: vrs.signature,
-            signer: sessionAddress,
-            nonce: oThis.sessionNonceMap[senderUuid],
-            i: i + '-' + maxIteration
-          },
-          resource = `/users/${senderUuid}/transactions`;
+        let signatureDetails = oThis._signEIP1077Transaction(params);
 
-        promiseArray.push(
-          requestObj
-            .post(resource, queryParams)
-            .then(function(response) {
-              oThis.sessionNonceMap[senderUuid] = oThis.sessionNonceMap[senderUuid] + 1;
-            })
-            .catch(function(err) {
-              console.log(JSON.stringify(err));
-            })
-        );
+        oThis.generateRequestDetails({
+          senderUuid: senderUuid,
+          signature: signatureDetails.signature,
+          calldata: signatureDetails.calldata,
+          raw_calldata: signatureDetails.raw_calldata,
+          sessionNonce: sessionNonce,
+          randNo: i + '-' + maxIteration
+        });
 
-        if (i % PARALLEL_TRANSACTIONS == 0 || i + 1 == oThis.senderUuids.length) {
-          await Promise.all(promiseArray);
-          promiseArray = [];
-        }
+        console.log('--------complete Signing in ms: ', Date.now() - eipTimeNow);
+        oThis.sessionNonceMap[senderUuid] = oThis.sessionNonceMap[senderUuid] + 1;
       }
     }
+    console.log('\n\n------------------------ Completion of Signatures Generation at ', Date.now() - timeNow);
+  }
+
+  async generateRequestDetails(params) {
+    const oThis = this;
+    let senderUuid = params.senderUuid,
+      senderDetails = oThis.siegeData[senderUuid];
+
+    if (!senderDetails.requestObj) {
+      senderDetails.requestObj = new RequestKlass({
+        tokenId: oThis.tokenId,
+        walletAddress: senderDetails.device_address,
+        apiSignerAddress: senderDetails.device_address,
+        apiSignerPrivateKey: senderDetails.device_pk,
+        apiEndpoint: API_END_POINT,
+        userUuid: senderUuid
+      });
+    }
+
+    let queryParams = {
+        to: TOKEN_RULE_ADDRESS,
+        raw_calldata: params.raw_calldata,
+        calldata: params.calldata,
+        signature: params.signature,
+        signer: senderDetails.session_address,
+        nonce: params.sessionNonce,
+        i: params.randNo
+      },
+      resource = `/users/${senderUuid}/transactions`;
+
+    let requestData = senderDetails.requestObj._formatQueryParams(resource, queryParams);
+
+    oThis.siegeData[senderUuid].requestDetails.push({
+      resource: resource,
+      queryParams: queryParams,
+      requestData: requestData
+    });
   }
 
   _signEIP1077Transaction(params) {
@@ -225,9 +249,9 @@ class TransactionSiege {
     for (let j = 0; j < transferTos.length; j++) {
       transferAmounts.push('1');
     }
-    oThis.calldata = tokenRulesObject.getDirectTransferExecutableData(transferTos, transferAmounts);
+    let calldata = tokenRulesObject.getDirectTransferExecutableData(transferTos, transferAmounts);
 
-    oThis.raw_calldata = JSON.stringify({
+    let raw_calldata = JSON.stringify({
       method: 'directTransfers',
       parameters: [transferTos, transferAmounts]
     });
@@ -235,15 +259,53 @@ class TransactionSiege {
     let transaction = {
       from: tokenHolderSender,
       to: tokenRulesAddress,
-      data: oThis.calldata,
-      nonce: oThis.sessionNonceMap[senderUuid],
+      data: calldata,
+      nonce: params.sessionNonce,
       callPrefix: tokenHolder.getTokenHolderExecuteRuleCallPrefix(),
       value: '0x0',
       gasPrice: 0,
       gas: '0'
     };
 
-    return ephemeralKeyObj.signEIP1077Transaction(transaction);
+    let vrs = ephemeralKeyObj.signEIP1077Transaction(transaction);
+    return {
+      signature: vrs.signature,
+      calldata: calldata,
+      raw_calldata: raw_calldata
+    };
+  }
+
+  async runExecuteTransaction() {
+    const oThis = this;
+
+    let iterationCount = 0;
+    let timeNow = Date.now(),
+      promiseArray = [];
+    console.log('\n\n\n ------------------------starting Transaction at ', timeNow);
+    while (iterationCount++ < maxIteration) {
+      for (let i = 0; i < oThis.senderUuids.length; i++) {
+        let senderUuid = oThis.senderUuids[i],
+          senderDetails = oThis.siegeData[senderUuid],
+          requestDetails = senderDetails.requestDetails;
+        console.log('----------0000------------------', senderUuid, iterationCount);
+
+        let requestDetail = requestDetails.shift();
+        let requestObj = senderDetails.requestObj;
+
+        promiseArray.push(
+          requestObj
+            ._send('POST', requestDetail.resource, requestDetail.queryParams, requestDetail.requestData)
+            .then(function(response) {
+              //console.log('transaction for uuid', senderUuid, response)
+            })
+            .catch(function(err) {
+              console.log('transaction Failed for uuid', senderUuid, JSON.stringify(err));
+            })
+        );
+      }
+    }
+    console.log('--------complete Transaction in ms: ', Date.now() - timeNow);
+    await Promise.all(promiseArray);
   }
 }
 

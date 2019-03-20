@@ -144,55 +144,55 @@ class ExecuteTxBase extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    logger.debug('execute_tx_step_: 1');
+    logger.debug('execute_tx_step_: 1', oThis.transactionUuid);
 
     await oThis._validateAndSanitize();
 
-    logger.debug('execute_tx_step_: 2');
+    logger.debug('execute_tx_step_: 2', oThis.transactionUuid);
 
     await oThis._initializeVars();
 
-    logger.debug('execute_tx_step_: 3');
+    logger.debug('execute_tx_step_: 3', oThis.transactionUuid);
 
     await oThis._processExecutableData();
 
-    logger.debug('execute_tx_step_: 4');
+    logger.debug('execute_tx_step_: 4', oThis.transactionUuid);
 
     await oThis._setSessionAddress();
 
-    logger.debug('execute_tx_step_: 5');
+    logger.debug('execute_tx_step_: 5', oThis.transactionUuid);
 
     await oThis._setNonce();
 
-    logger.debug('execute_tx_step_: 6');
+    logger.debug('execute_tx_step_: 6', oThis.transactionUuid);
 
     await oThis._setExecutableTxData();
 
-    logger.debug('execute_tx_step_: 7');
+    logger.debug('execute_tx_step_: 7', oThis.transactionUuid);
 
     await oThis._setSignature();
 
-    logger.debug('execute_tx_step_: 8');
+    logger.debug('execute_tx_step_: 8', oThis.transactionUuid);
 
     await oThis._verifySessionSpendingLimit();
 
-    logger.debug('execute_tx_step_: 9');
+    logger.debug('execute_tx_step_: 9', oThis.transactionUuid);
 
     await oThis._createTransactionMeta();
 
-    logger.debug('execute_tx_step_: 10');
+    logger.debug('execute_tx_step_: 10', oThis.transactionUuid);
 
     await oThis._performPessimisticDebit();
 
-    logger.debug('execute_tx_step_: 11');
+    logger.debug('execute_tx_step_: 11', oThis.transactionUuid);
 
     await oThis._createPendingTransaction();
 
-    logger.debug('execute_tx_step_: 12');
+    logger.debug('execute_tx_step_: 12', oThis.transactionUuid);
 
     await oThis._publishToRMQ();
 
-    logger.debug('execute_tx_step_: 13');
+    logger.debug('execute_tx_step_: 13', oThis.transactionUuid);
 
     return Promise.resolve(
       responseHelper.successWithData({
