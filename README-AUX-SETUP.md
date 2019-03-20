@@ -176,6 +176,12 @@ And add it to tables using following script.
     sh ~/openst-setup/bin/aux-2000/aux-chain-2000.sh
 ```
 
+## Run Aggregator
+```bash
+  source set_env_vars.sh
+  node executables/blockScanner/aggregator.js --cronProcessId 11
+```
+
 ### Funding crons
 
 * Fund by sealer aux chain specific

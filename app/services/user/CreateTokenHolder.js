@@ -392,7 +392,7 @@ class CreateTokenHolder extends ServiceBase {
         }
       });
 
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
 
       return Promise.reject(
         responseHelper.error({
@@ -433,12 +433,12 @@ class CreateTokenHolder extends ServiceBase {
         api_error_identifier: 'action_not_performed_contact_support',
         debug_options: {
           tokenId: oThis.tokenId,
-          walletAddress: oThis.deviceAddress,
+          deviceAddress: oThis.deviceAddress,
           userId: oThis.userId
         }
       });
 
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
 
       return Promise.reject(
         responseHelper.error({
