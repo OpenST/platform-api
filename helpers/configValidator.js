@@ -198,8 +198,8 @@ class ConfigurationHelper {
           return true;
         }
 
-        let oSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'mn_' : 'tn_';
-        let oDdbTablePrefix = coreConstants.environmentShort + '_' + oSubEnvPrefix;
+        let oSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'm_' : 's_';
+        let oDdbTablePrefix = 'pd_' + oSubEnvPrefix + 'o_';
         if (oDdbTablePrefix !== entityValue) {
           logger.error('originDdbTablePrefix should be of format', oDdbTablePrefix);
           return false;
@@ -212,8 +212,8 @@ class ConfigurationHelper {
           return true;
         }
 
-        let aSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'ma_' : 'sb_';
-        let aDdbTablePrefix = coreConstants.environmentShort + '_' + aSubEnvPrefix;
+        let aSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'm_' : 's_';
+        let aDdbTablePrefix = 'pd_' + aSubEnvPrefix + 'a_';
         if (aDdbTablePrefix !== entityValue) {
           logger.error('auxDdbTablePrefix should be of format', aDdbTablePrefix);
           return false;
@@ -226,8 +226,8 @@ class ConfigurationHelper {
           return true;
         }
 
-        let SubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'm_' : 's_';
-        let subEnvDdbTablePrefix = coreConstants.environmentShort + '_' + SubEnvPrefix;
+        let subEnvPrefix = basicHelper.isMainSubEnvironment() ? 'm_' : 's_';
+        let subEnvDdbTablePrefix = 'pd_' + subEnvPrefix;
         if (subEnvDdbTablePrefix !== entityValue) {
           logger.error('auxDdbTablePrefix should be of format', subEnvDdbTablePrefix);
           return false;
