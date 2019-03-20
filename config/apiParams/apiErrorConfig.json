@@ -389,6 +389,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Transaction meta observer faced an error."
   },
+  "balance_verifier_balance_mismatch": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Balance mismatch occurred while verifying balances."
+  },
   "finalizer_stuck": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
