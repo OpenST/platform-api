@@ -292,7 +292,7 @@
   "fetch_balance_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Failed to fetch balance. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later.""
+    "message": "Failed to fetch balance. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "user_status_update_failed": {
     "http_code": "422",
