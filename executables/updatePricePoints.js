@@ -13,11 +13,11 @@ const program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  UpdatePricePoints = require(rootPrefix + '/app/services/conversionRates/UpdatePricePoints'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
-  UpdatePricePoints = require(rootPrefix + '/app/services/conversionRates/UpdatePricePoints');
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -38,11 +38,11 @@ if (!program.cronProcessId) {
 /**
  * Class to update price oracle price points periodically.
  *
- * @class
+ * @class UpdatePriceOraclePricePoints
  */
 class UpdatePriceOraclePricePoints extends CronBase {
   /**
-   * Class to update price oracle price points periodically.
+   * Constructor to update price oracle price points periodically.
    *
    * @param {Object} params
    * @param {Number} params.cronProcessId
@@ -140,7 +140,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
     if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
       logger.error('Please pass a valid quote currency.');
 
-      return Promise.reject();
+      return Promise.reject(new Error('Please pass a valid quote currency.'));
     }
   }
 
