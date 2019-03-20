@@ -8,9 +8,9 @@
 
 const fs = require('fs'),
   path = require('path'),
-  MosaicJs = require('@openstfoundation/mosaic.js'),
-  BrandedToken = require('@openstfoundation/brandedtoken.js'),
-  OpenSTJs = require('@openstfoundation/openst.js');
+  MosaicJs = require('@openst/mosaic.js'),
+  BrandedToken = require('@openst/brandedtoken.js'),
+  OpenSTJs = require('@openst/openst.js');
 
 const rootPrefix = '..',
   contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName'),

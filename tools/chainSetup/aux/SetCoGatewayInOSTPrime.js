@@ -5,7 +5,7 @@
  * @module tools/chainSetup/aux/SetCoGatewayInOSTPrime
  */
 const rootPrefix = '../../..',
-  MosaicJs = require('@openstfoundation/mosaic.js'),
+  MosaicJs = require('@openst/mosaic.js'),
   OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
   responseHelper = require(rootPrefix + '/lib/formatter/response'),

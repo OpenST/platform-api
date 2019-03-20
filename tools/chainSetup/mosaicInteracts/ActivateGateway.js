@@ -9,7 +9,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  MosaicJs = require('@openstfoundation/mosaic.js');
+  MosaicJs = require('@openst/mosaic.js');
 
 /**
  *

@@ -1,14 +1,14 @@
 'use strict';
 
-const API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
-  BATCH_SIZE = 25,
+const API_END_POINT = 'http://localhost:7001/testnet/v2/',
+  BATCH_SIZE = 2,
   POLLING_INTERVAL = 5000, //5 secs
-  NUMBER_OF_USERS = 100,
+  NUMBER_OF_USERS = 5,
   CREDENTIALS_ARRAY = [
     {
-      apiKey: '7cc96ecdaf395f5dcfc005a9df31e798',
-      apiSecret: '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
-      apiEndPoint: 'https://s6-api.stagingost.com/mainnet/v2'
+      apiKey: 'b6db0c79b84d488df6e282a1d948f2ac',
+      apiSecret: 'c6936ef19b03b34076a50ba1af92e1b60b573a1e0602b2d800fb7ba35fe5e392',
+      apiEndPoint: 'http://localhost:7001/testnet/v2/'
     }
   ];
 
@@ -20,9 +20,9 @@ const rootPrefix = '.',
   GetUser = require(rootPrefix + '/tools/seige/userFlow/GetUser'),
   GetDevice = require(rootPrefix + '/tools/seige/userFlow/GetDevice'),
   ActivateUser = require(rootPrefix + '/tools/seige/userFlow/ActivateUser'),
+  AuthorizeDevice = require(rootPrefix + '/tools/seige/userFlow/AuthorizeDevice'),
   RegisterDevice = require(rootPrefix + '/tools/seige/userFlow/RegisterDevice'),
-  SiegeUsersModel = require(rootPrefix + '/app/models/mysql/SiegeUser'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  SiegeUsersModel = require(rootPrefix + '/app/models/mysql/SiegeUser');
 
 class SiegeInitialization {
   /**
@@ -83,32 +83,16 @@ class SiegeInitialization {
     console.log('-------------------->Generating required addresses');
     await oThis._generateRequiredAddress();
 
-    //Clear all old entries for given token id
-    //await oThis._clearOldEntries(); //Todo: Temp
-
-    //Inserting userUuids and respective addresses in db
-    console.log('-------------------->Inserting data in db');
-    await oThis._insertAddressesInDB();
-
     //Start Siege
     console.log('-------------------->Starting siege');
     await oThis._startSiege();
-
-    console.log('-------------------->Clear improper entries');
-    await oThis._clearImproperEntries();
   }
 
   async _getTokenData() {
     let oThis = this,
       getTokenDetailsObj = new GetTokenDetails({ ostObj: oThis.ostObj }),
-      tokenDetailsRsp = await getTokenDetailsObj.perform();
+      tokenDetails = await getTokenDetailsObj.perform();
 
-    if (tokenDetailsRsp.isFailure()) {
-      console.log('Error in Get token details API', tokenDetailsRsp);
-      return Promise.reject(tokenDetailsRsp);
-    }
-
-    let tokenDetails = tokenDetailsRsp.data;
     oThis.tokenId = tokenDetails.token.id;
   }
 
@@ -233,22 +217,10 @@ class SiegeInitialization {
 
     //Start Polling to fetch user status
     console.log('****Initiated Poll****');
-    let userDataRsp = await oThis._pollForUserStatus(userUuid, 'ACTIVATED');
+    let userData = await oThis._pollForUserStatus(userUuid, 'ACTIVATED'),
+      tokenHolderAddress = userData.user.token_holder_address;
 
-    if (userDataRsp.isFailure()) {
-      return Promise.resolve(userDataRsp);
-    }
-
-    let userData = userDataRsp.data;
-
-    let tokenHolderAddress = userData.user.token_holder_address;
-
-    //Save token holder in db
-    let siegeUsersObj = new SiegeUsersModel(),
-      insertRsp = siegeUsersObj
-        .update({ token_holder_contract_address: tokenHolderAddress })
-        .where(['user_uuid = ?', userUuid])
-        .fire();
+    console.log('****User activated*****');
 
     return Promise.resolve();
   }
@@ -304,63 +276,21 @@ class SiegeInitialization {
     return new Promise(async function(onResolve, onReject) {
       const _getUserData = async function(userUuid) {
         let getUserDataObj = new GetUser({ ostObj: oThis.ostObj, userUuid: userUuid }),
-          userDataRsp = await getUserDataObj.perform();
-
-        if (userDataRsp.isFailure()) {
-          console.log('Failure:', userDataRsp);
-          return onResolve(userDataRsp);
-        }
-
-        let userData = userDataRsp.data;
+          userData = await getUserDataObj.perform();
 
         console.log('.');
 
-        console.log('userData', userData);
         if (userData.user.status == status) {
-          return onResolve(responseHelper.successWithData(userData));
+          return onResolve(userData);
         } else {
           setTimeout(async function() {
-            _getUserData(userUuid).catch(function(err) {
-              console.log(' In catch block of _getUserData 1', err);
-              return onResolve(
-                responseHelper.error({
-                  internal_error_identifier: 'r_si_1',
-                  api_error_identifier: 'something_went_wrong',
-                  debug_options: { err: err }
-                })
-              );
-            });
+            _getUserData(userUuid);
           }, POLLING_INTERVAL);
         }
       };
 
-      _getUserData(userUuid).catch(function(err) {
-        console.log(' In catch block of _getUserData 2', err);
-        return onResolve(
-          responseHelper.error({
-            internal_error_identifier: 'r_si_2',
-            api_error_identifier: 'something_went_wrong',
-            debug_options: { err: err }
-          })
-        );
-      });
+      _getUserData(userUuid);
     });
-  }
-
-  /**
-   * Deletes entries whose token holder address is NULL
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _clearImproperEntries() {
-    let oThis = this,
-      siegeUsersObj = new SiegeUsersModel(),
-      deleteRsp = await siegeUsersObj
-        .delete()
-        .where(['token_id = ? AND token_holder_contract_address IS NULL', oThis.tokenId])
-        .fire();
-
-    return Promise.resolve();
   }
 }
 
