@@ -1,7 +1,8 @@
-'use strict';
-
-const rootPrefix = '../../..',
-  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
+/**
+ * Module to define error config for API v2 errors.
+ *
+ * @module config/apiParams/v2/errorConfig
+ */
 
 const v2ErrorConfig = {
   invalid_api_signature_kind: {
@@ -37,27 +38,27 @@ const v2ErrorConfig = {
   invalid_api_key_for_inactive_user: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `This user has been marked as inactive.`
+    message: 'This user has been marked as inactive.'
   },
   invalid_api_key_for_device_address: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `This device has not been registered.`
+    message: 'This device has not been registered.'
   },
   invalid_api_key_for_revoked_device: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `This device has been revoked.`
+    message: 'This device has been revoked.'
   },
   invalid_api_key_for_signer_address: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `Invalid Api signer address.`
+    message: 'Invalid Api signer address.'
   },
   invalid_api_key_for_not_deployed_token: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `Token Setup has not been completed.`
+    message: 'Token Setup has not been completed.'
   },
   expired_api_key: {
     parameter: 'api_key',
@@ -73,7 +74,8 @@ const v2ErrorConfig = {
   invalid_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.`
+    message:
+      'Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.'
   },
   inactive_user_id: {
     parameter: 'user_id',
@@ -84,7 +86,8 @@ const v2ErrorConfig = {
   saas_inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `The user status is inactive. Please ensure user's wallet is setup properly on the user's device. Visit https://dev.ost.com/kit/docs/api for details on user wallet creation flow.`
+    message:
+      "The user status is inactive. Please ensure user's wallet is setup properly on the user's device. Visit https://dev.ost.com/kit/docs/api for details on user wallet creation flow."
   },
   user_not_found: {
     parameter: 'user_id',
@@ -125,7 +128,7 @@ const v2ErrorConfig = {
   invalid_request_path: {
     parameter: 'request_path',
     code: 'invalid',
-    message: `Invalid request path`
+    message: 'Invalid request path'
   },
   invalid_token_id: {
     parameter: 'token_id',
