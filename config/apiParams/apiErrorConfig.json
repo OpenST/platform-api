@@ -32,7 +32,7 @@
   "api_under_maintenance": {
     "http_code": "503",
     "code": "SERVICE_UNAVAILABLE",
-    "message": "Sorry, we are down for maintaince. We'l be back up and running as soon as possible"
+    "message": "Sorry, we are down for maintaince. We'll be back up and running as soon as possible"
   },
   "resource_not_found": {
     "http_code": "404",
