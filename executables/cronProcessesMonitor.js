@@ -179,9 +179,7 @@ class CronProcessesMonitorExecutable extends CronBase {
             };
           await oThis._notify(errorIdentifierStr, debugOptions);
         }
-      }
-
-      if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind]) {
+      } else if (oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind]) {
         const restartIntervalForCron =
           oThis.cronKindToRestartTimeMap[cronProcessesConstants.periodicCronsType][cronKind];
         logger.debug('restartIntervalForCron: ', restartIntervalForCron);
