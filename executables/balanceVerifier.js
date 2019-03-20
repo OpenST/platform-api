@@ -69,6 +69,7 @@ class BalanceVerifier extends CronBase {
       timeStamp: oThis.timeStamp
     });
 
+    oThis.canExit = false;
     let balanceVerifierResponse = await balanceVerifierObj.perform();
 
     if (balanceVerifierResponse.isSuccess()) {
@@ -87,6 +88,7 @@ class BalanceVerifier extends CronBase {
         })
         .fire();
     }
+    oThis.canExit = true;
   }
 
   /**
@@ -120,7 +122,6 @@ const balanceVerifier = new BalanceVerifier({ cronProcessId: +program.cronProces
 
 balanceVerifier.perform().then(async function() {
   setTimeout(function() {
-    //Call StopProcess of CronProcessHandler
     process.emit('SIGINT');
-  }, 100000); //To kill the process after 5 seconds expecting that the cache will be set by then.
+  }, 10000);
 });
