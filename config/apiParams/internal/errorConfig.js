@@ -20,7 +20,7 @@ const errorConfig = {
     parameter: 'message_to_sign',
     code: 'invalid',
     message:
-      'Invalid parameter message_to_sign. Please ensure the input is well formed or visit https://dev.ost.com/kit/docs/api for details on accepted datatypes for API parameters.'
+      'Invalid parameter message_to_sign. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_token_id: {
     parameter: 'token_id',
@@ -31,25 +31,25 @@ const errorConfig = {
     parameter: 'client_id',
     code: 'invalid',
     message:
-      'Invalid parameter client_id. Please ensure the input is well formed or visit https://dev.ost.com/kit/docs/api for details on accepted datatypes for API parameters.'
+      'Invalid parameter client_id. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_approve_transaction_hash: {
     parameter: 'approve_transaction_hash',
     code: 'invalid',
     message:
-      'Invalid parameter approve_transaction_hash. Please ensure the input is well formed or visit https://dev.ost.com/kit/docs/api for details on accepted datatypes for API parameters.'
+      'Invalid parameter approve_transaction_hash. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_request_stake_transaction_hash: {
     parameter: 'request_stake_transaction_hash',
     code: 'invalid',
     message:
-      'Invalid parameter request_stake_transaction_hash. Please ensure the input is well formed or visit https://dev.ost.com/kit/docs/api for details on accepted datatypes for API parameters.'
+      'Invalid parameter request_stake_transaction_hash. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_staker_address: {
     parameter: 'staker_address',
     code: 'invalid',
     message:
-      'Invalid parameter staker_address. Please ensure the input is well formed or visit https://dev.ost.com/kit/docs/api for details on accepted datatypes for API parameters.'
+      'Invalid parameter staker_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_fe_ost_to_stake: {
     parameter: 'fe_ost_to_stake',
