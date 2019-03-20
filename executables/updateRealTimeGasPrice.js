@@ -95,19 +95,20 @@ class UpdateRealTimeGasPrice extends CronBase {
 
       if (gasPriceToBeSubmittedBN.lt(minGasPriceBN)) {
         gasPriceToBeSubmittedHex = '0x' + minGasPriceBN.toString(16);
-        originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
+        await originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
       } else if (gasPriceToBeSubmittedBN.lt(maxGasPriceBN)) {
         gasPriceToBeSubmittedHex = '0x' + gasPriceToBeSubmittedBN.toString(16);
-        originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
+        await originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
       } else {
         gasPriceToBeSubmittedHex = '0x' + maxGasPriceBN.toString(16);
-        originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
+        await originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
       }
+      oThis.canExit = true;
       logger.info('Origin chain gas price cache is set to:', gasPriceToBeSubmittedHex);
       return responseHelper.successWithData(gasPriceToBeSubmittedHex);
     }
 
-    logger.info('Origin chain gas price cache is not set');
+    logger.info('Origin chain gas price cache is not set', estimatedGasPriceFloat, chainIdInternal);
     oThis.canExit = true;
 
     return responseHelper.successWithData({});
