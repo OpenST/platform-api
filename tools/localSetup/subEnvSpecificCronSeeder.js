@@ -24,8 +24,8 @@ class SubEnvSpecificCronSeeder {
     const oThis = this;
 
     await oThis.insertWorkflowWorkerEntry();
-    await oThis.insertEmailNotifierEntry();
     await oThis.insertUpdateRealtimeGasPriceEntry();
+    await oThis.insertCronProcessesMonitorEntry();
   }
 
   /**
@@ -36,23 +36,6 @@ class SubEnvSpecificCronSeeder {
   async insertWorkflowWorkerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.workflowWorker, {
-        prefetchCount: 5,
-        chainId: 0,
-        sequenceNumber: 1
-      })
-      .then(function(insertId) {
-        logger.log('InsertId: ', insertId);
-      });
-  }
-
-  /**
-   * Insert emailNotifier cron entry.
-   *
-   * @return {Promise<*>}
-   */
-  async insertEmailNotifierEntry() {
-    return new InsertCrons()
-      .perform(cronProcessConstants.emailNotifier, {
         prefetchCount: 5,
         chainId: 0,
         sequenceNumber: 1
@@ -75,6 +58,17 @@ class SubEnvSpecificCronSeeder {
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
       });
+  }
+
+  /**
+   * Insert Cron Processes Monitor cron entry.
+   *
+   * @return {Promise<*>}
+   */
+  async insertCronProcessesMonitorEntry() {
+    return new InsertCrons().perform(cronProcessConstants.cronProcessesMonitor, {}).then(function(insertId) {
+      logger.log('InsertId: ', insertId);
+    });
   }
 }
 

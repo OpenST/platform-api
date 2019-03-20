@@ -10,13 +10,14 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   UserSetupRouter = require(rootPrefix + '/lib/workflow/userSetup/Router'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
@@ -382,12 +383,16 @@ class CreateTokenHolder extends ServiceBase {
 
     if (userStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback user status back to created. ');
-      await emailNotifier.perform(
-        'a_s_u_cth_7',
-        `Could not rollback user status back to created. TokenId: ${oThis.tokenId}, UserId: ${oThis.userId}`,
-        {},
-        { userStatusRollbackResponse: userStatusRollbackResponse }
-      );
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'user_status_rollback_failed:a_s_u_cth_7',
+        api_error_identifier: 'action_not_performed_contact_support',
+        debug_options: {
+          tokenId: oThis.tokenId,
+          userId: oThis.userId
+        }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
 
       return Promise.reject(
         responseHelper.error({
@@ -423,14 +428,17 @@ class CreateTokenHolder extends ServiceBase {
 
     if (deviceStatusRollbackResponse.isFailure()) {
       logger.error('Could not rollback device status back to registered. ');
-      await emailNotifier.perform(
-        'a_s_u_cth_8',
-        `Could not rollback device status back to registered. TokenId: ${oThis.tokenId}, UserId: ${
-          oThis.userId
-        }, Device address: ${oThis.deviceAddress}`,
-        {},
-        { deviceStatusRollbackResponse: deviceStatusRollbackResponse }
-      );
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'device_status_rollback_failed:a_s_u_cth_8',
+        api_error_identifier: 'action_not_performed_contact_support',
+        debug_options: {
+          tokenId: oThis.tokenId,
+          deviceAddress: oThis.deviceAddress,
+          userId: oThis.userId
+        }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
 
       return Promise.reject(
         responseHelper.error({

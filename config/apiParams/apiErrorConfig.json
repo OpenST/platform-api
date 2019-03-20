@@ -272,17 +272,17 @@
   "error_in_fetching_users": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Error while fetching users."
+    "message": "Failed to fetch userIds. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "error_in_fetching_user_ids": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Error while fetching user ids."
+    "message": "Failed to fetch user_ids. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "error_in_fetching_user_salts": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Error while fetching user salts."
+    "message": "Failed to fetch user_salts. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "balance_update_failed": {
     "http_code": "422",
@@ -292,62 +292,62 @@
   "fetch_balance_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Unable to fetch balance"
+    "message": "Failed to fetch balance. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later.""
   },
   "user_status_update_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Unable to update user status"
+    "message": "User status update operation failed and the user has been rolledback to previous state. Verify the request being sent and re-start the operation."
   },
   "wallet_address_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Wallet addresses fetch failed"
+    "message": "Failed to fetch wallet_address. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "device_details_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Device details fetch failed"
+    "message": "Failed to fetch device_details. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "device_status_update_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Device status update failed"
+    "message": "Device status update operation failed and the device has been rolledback to previous state. Verify the request being sent and re-start the operation."
   },
   "recovery_owner_detail_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Recovery owner detail fetch failed"
+    "message": "Failed to fetch recovery_owner. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "available_shard_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Available shard fetch failed"
+    "message": "Failed to fetch available_shard. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
-  "insert_shard_failed": {
+  "add_session_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Shard insertion failed"
+    "message": "Unable to add the session."
   },
   "shard_number_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Shard insertion failed"
+    "message": "Failed to fetch shard_number. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "session_address_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Failed to fetch session addresses"
+    "message": "Failed to fetch session_address. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "session_details_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Failed to fetch session details"
+    "message": "Failed to fetch session_details. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "session_status_update_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Session status update failed"
+    "message": "Session status update operation failed and the session has been rolledback to previous state. Verify the request being sent and re-start the operation."
   },
   "error_in_user_creation": {
     "http_code": "422",
@@ -358,5 +358,140 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Error while deleting session"
+  },
+  "invalid_ost_value": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "OST value is invalid."
+  },
+  "invalid_ost_price": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "OST price is invalid."
+  },
+  "invalid_cmc_response": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "Response from CoinMarketCap is invalid."
+  },
+  "price_point_not_set": {
+    "http_code": "422",
+    "code": "BAD_REQUEST",
+    "message": "Price point not set as maxRetryCountForVerifyPriceInContract reached."
+  },
+  "invalid_contract_price_point": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error while getting price from contract."
+  },
+  "transaction_meta_observer_pending_transaction": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Transaction meta observer faced an error."
+  },
+  "balance_verifier_balance_mismatch": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Balance mismatch occurred while verifying balances."
+  },
+  "finalizer_stuck": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Finalizer stuck for a long time."
+  },
+  "cron_stuck": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Cron stuck for a long time."
+  },
+  "low_eth_balance_master_internal_funder": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Low Eth balance of master internal funder."
+  },
+  "low_st_prime_balance_master_internal_funder": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Low StPrime balance of master internal funder."
+  },
+  "low_balance": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Low balance of address."
+  },
+  "jwt_decide_failed": {
+    "http_code": "500",
+    "code": "INTERNAL_SERVER_ERROR",
+    "message": "JWT decision failed."
+  },
+  "recovery_operation_not_performed": {
+    "http_code": "500",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery operation was not performed."
+  },
+  "recovery_owner_status_not_updated": {
+    "http_code": "500",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery owner addresses statuses was not updated."
+  },
+  "user_recovery_owner_not_updated": {
+    "http_code": "500",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Could not update user with new recovery owner address."
+  },
+  "workflow_failed": {
+    "http_code": "500",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Workflow failed."
+  },
+  "initiated_recovery_mail_failure": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Could not send mail for initiated recovery of clientId."
+  },
+  "cache_not_set": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Error in setting cache."
+  },
+  "worker_disconnected": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Worker got disconnected."
+  },
+  "worker_died_restarting": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Worker died. Restarting."
+  },
+  "app_server_crash": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "App server crashed unexpectedly."
+  },
+  "elevated_privilege_required": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Elevated privileges are required for operation."
+  },
+  "port_in_use": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The port is already in use."
+  },
+  "invalid_chain_id": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Chain Id is invalid."
+  },
+  "block_parser_stuck": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Block parser stuck for a long time."
+  },
+  "block_hash_dont_match": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Hash of block number does not match the available block hash."
   }
 }

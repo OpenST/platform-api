@@ -21,6 +21,7 @@ const rootPrefix = '../../..',
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
+// TODO - use service base
 class GatewayComposer {
   constructor(params) {
     const oThis = this;

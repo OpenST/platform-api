@@ -10,18 +10,19 @@ const requestPromise = require('request-promise'),
   exchangeUrl = 'https://api.coinmarketcap.com/v1/ticker/simple-token';
 
 const rootPrefix = '../../..',
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   OstPricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
@@ -30,6 +31,7 @@ const rootPrefix = '../../..',
  *
  * @class
  */
+// TODO: use service base
 class UpdatePricePoints {
   /**
    * Fetch OST Current price
@@ -112,13 +114,25 @@ class UpdatePricePoints {
       const ostValue = JSON.parse(response)[0];
       logger.debug('OST Value From CoinMarketCap:', ostValue);
       if (!ostValue || ostValue.symbol !== conversionRateConstants.OST) {
-        await emailNotifier.perform('a_s_cr_upp_3', 'Invalid OST Value', response, {});
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'invalid_ost_value:a_s_cr_upp_3',
+          api_error_identifier: 'invalid_ost_value',
+          debug_options: { ostValue: ostValue }
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
         return;
       }
       const pricePoint = ostValue['price_' + oThis.quoteCurrency.toLowerCase()];
       if (!pricePoint || pricePoint < 0) {
-        await emailNotifier.perform('a_s_cr_upp_4', 'Invalid OST Price', response, {});
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'invalid_ost_price:a_s_cr_upp_4',
+          api_error_identifier: 'invalid_ost_price',
+          debug_options: { pricePoint: pricePoint }
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
         return;
       }
@@ -131,7 +145,13 @@ class UpdatePricePoints {
         status: conversionRateConstants.inProcess
       };
     } catch (err) {
-      await emailNotifier.perform('a_s_cr_upp_5', 'Invalid Response from CoinMarket', response, {});
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'invalid_cmc_response:a_s_cr_upp_5',
+        api_error_identifier: 'invalid_cmc_response',
+        debug_options: { cmcResponse: response }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
     }
   }
 
@@ -319,14 +339,13 @@ class UpdatePricePoints {
     return new Promise(function(onResolve, onReject) {
       const loopCompareContractPrice = async function() {
         if (attemptCountForVerifyPriceInContract > oThis.maxRetryCountForVerifyPriceInContract) {
-          await emailNotifier.perform(
-            'a_s_cr_upp_6',
-            'Something Is Wrong',
-            {
-              dbRowId: dbRowId
-            },
-            {}
-          );
+          const errorObject = responseHelper.error({
+            internal_error_identifier: 'price_point_not_set:a_s_cr_upp_6',
+            api_error_identifier: 'price_point_not_set',
+            debug_options: { dbRowId: dbRowId }
+          });
+
+          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
           return onReject(`dbRowId: ${dbRowId} maxRetryCountForVerifyPriceInContract reached`);
         }
@@ -337,7 +356,13 @@ class UpdatePricePoints {
         );
 
         if (priceInDecimal.isFailure()) {
-          await emailNotifier.perform('a_s_cr_upp_7', 'Error while getting price from contract.', priceInDecimal, {});
+          const errorObject = responseHelper.error({
+            internal_error_identifier: 'invalid_contract_price_point:a_s_cr_upp_7',
+            api_error_identifier: 'invalid_contract_price_point',
+            debug_options: { priceInDecimal: priceInDecimal }
+          });
+
+          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
           return onResolve('error');
         } else if (priceInDecimal.isSuccess() && priceInDecimal.data.price == conversionRate) {

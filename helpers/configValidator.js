@@ -200,7 +200,7 @@ class ConfigurationHelper {
 
         let oSubEnvPrefix = basicHelper.isMainSubEnvironment() ? 'mn_' : 'tn_';
         let oDdbTablePrefix = coreConstants.environmentShort + '_' + oSubEnvPrefix;
-        if (oDdbTablePrefix == entityValue) {
+        if (oDdbTablePrefix !== entityValue) {
           logger.error('originDdbTablePrefix should be of format', oDdbTablePrefix);
           return false;
         }

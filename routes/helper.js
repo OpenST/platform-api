@@ -8,14 +8,15 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '..',
-  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   ApiParamsValidator = require(rootPrefix + '/lib/validators/ApiParams'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
 /**
  * Class for routes helper.
@@ -44,7 +45,12 @@ class RoutesHelper {
       if (responseHelper.isCustomResult(error)) {
         error.renderResponse(res, errorConfig);
       } else {
-        emailNotifier.perform(errorCode, 'Something went wrong.', error, {});
+        const errorObject = responseHelper.error({
+          internal_error_identifier: `unhandled_catch_response:r_h:${errorCode}`,
+          api_error_identifier: 'unhandled_catch_response',
+          debug_options: {}
+        });
+        createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
         logger.error(errorCode, 'Something went wrong', error);
 
         responseHelper
