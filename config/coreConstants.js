@@ -191,10 +191,6 @@ class CoreConstants {
     return process.env.OST_DEBUG_ENABLED;
   }
 
-  get NOTIFIER_POSTFIX() {
-    return 'saas-api';
-  }
-
   get SHARED_MEMCACHE_KEY_PREFIX() {
     return 'sa_';
   }
