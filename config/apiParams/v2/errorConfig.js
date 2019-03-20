@@ -1,7 +1,8 @@
-'use strict';
-
-const rootPrefix = '../../..',
-  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
+/**
+ * Module to define error config for API v2 errors.
+ *
+ * @module config/apiParams/v2/errorConfig
+ */
 
 const v2ErrorConfig = {
   invalid_api_signature_kind: {
@@ -37,27 +38,27 @@ const v2ErrorConfig = {
   invalid_api_key_for_inactive_user: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `This user has been marked as inactive.`
+    message: 'This user has been marked as inactive.'
   },
   invalid_api_key_for_device_address: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `This device has not been registered.`
+    message: 'This device has not been registered.'
   },
   invalid_api_key_for_revoked_device: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `This device has been revoked.`
+    message: 'This device has been revoked.'
   },
   invalid_api_key_for_signer_address: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `Invalid Api signer address.`
+    message: 'Invalid Api signer address.'
   },
   invalid_api_key_for_not_deployed_token: {
     parameter: 'api_key',
     code: 'invalid',
-    message: `Token Setup has not been completed.`
+    message: 'Token Setup has not been completed.'
   },
   expired_api_key: {
     parameter: 'api_key',
@@ -68,27 +69,31 @@ const v2ErrorConfig = {
     parameter: 'api_signature',
     code: 'invalid',
     message:
-      'Incorrectly formed API signature. For information on how to form the signature please visit  https://dev.ost.com/kit/docs/api/#authentication .  Please rectify and re-submit.'
+      'Incorrectly formed API signature. For information on how to form the signature please visit  https://dev.ost.com/platform/docs/api/#authentication .  Please rectify and re-submit.'
   },
   invalid_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.`
+    message:
+      'Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.'
   },
   inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: "User setup hasn't been started not completed yet."
+    message:
+      "The user status is inactive. Please ensure user's wallet is setup properly on the user's device. Visit https://dev.ost.com/platform/docs/api for details on user wallet creation flow."
   },
   saas_inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: `user_id is suspended. Please contact support`
+    message:
+      "The user status is inactive. Please ensure user's wallet is setup properly on the user's device. Visit https://dev.ost.com/platform/docs/api for details on user wallet creation flow."
   },
   user_not_found: {
     parameter: 'user_id',
     code: 'invalid',
-    message: 'User not found. Please verify the parameter user_id is correct & valid Version 4 UUID and re-submit.'
+    message:
+      'Unable to find this user in your economy. Inspect if a correct value is being sent in user_id field and re-submit the request.'
   },
   session_not_found: {
     parameter: 'session_address',
@@ -123,7 +128,7 @@ const v2ErrorConfig = {
   invalid_request_path: {
     parameter: 'request_path',
     code: 'invalid',
-    message: `Invalid request path`
+    message: 'Invalid request path'
   },
   invalid_token_id: {
     parameter: 'token_id',
@@ -133,7 +138,8 @@ const v2ErrorConfig = {
   invalid_client_id: {
     parameter: 'client_id',
     code: 'invalid',
-    message: 'Invalid client id'
+    message:
+      'Invalid parameter client_id. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_signer: {
     parameter: 'signer',
@@ -173,7 +179,8 @@ const v2ErrorConfig = {
   price_point_not_available_chain_id: {
     parameter: 'chain_id',
     code: 'invalid',
-    message: 'Price point is not available for this chain id.'
+    message:
+      'Failed to fetch price_point. This means price point integration server is not available, its a temporary problem. Please re-submit the request a bit later.'
   },
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
@@ -190,12 +197,13 @@ const v2ErrorConfig = {
   user_activation_failed_invalid_recovery_owner_address: {
     parameter: 'device_address',
     code: 'invalid',
-    message: 'Either recovery owner address already exists or is not allowed to be authorized.'
+    message:
+      "The user status has not been 'ACTIVATED' as the Recovery Owner Address verification failed. Please inspect for what is being sent, rectify and re-submit."
   },
   invalid_executable_data: {
     parameter: 'executable_data',
     code: 'invalid',
-    message: 'invalid executable_data'
+    message: 'Invalid executable_data. Please inspect for what is being sent, rectify and re-submit.'
   },
   insufficient_funds: {
     parameter: 'signer',
@@ -205,12 +213,14 @@ const v2ErrorConfig = {
   session_key_spending_limit_breached: {
     parameter: 'signer',
     code: 'invalid',
-    message: 'The session key being used is not authorised for this big amount.'
+    message:
+      'The tokens being transferred are above the spending limit. Reduce the number of tokens to be transferred and re-submit the request.'
   },
   session_key_not_authorized: {
     parameter: 'signer',
     code: 'invalid',
-    message: 'The session key being used is not authorised'
+    message:
+      'Transaction failed as it was signed by an unauthorized session key. Please inspect if you are using an active session key to send the request.'
   },
   unauthorized_to_access_other_user_information: {
     parameter: 'user_id',
@@ -221,12 +231,14 @@ const v2ErrorConfig = {
   invalid_raw_calldata_method: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid method in raw_calldata'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid raw_calldata'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_meta_properties: {
     parameter: 'meta_properties',
@@ -236,47 +248,56 @@ const v2ErrorConfig = {
   invalid_raw_calldata_parameter_address: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid address in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata_parameter_amount: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid amounts in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata_pay_currency_code: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid Pay Currency Code in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata_ost_to_usd_value: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid Ost To Usd Conversion Rate in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata_parameter_threshold: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid threshold in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata_parameter_spending_limit: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid spending limit in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   invalid_raw_calldata_parameter_expiration_height: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Invalid expiration height in raw_calldata parameters'
+    message:
+      'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
   unauthorized_signer: {
     parameter: 'signer',
     code: 'invalid',
-    message: 'Signer address is not valid to perform this action.'
+    message:
+      'Access denied due to api signer. Please inspect if you are using a valid API signer Key and re-submit the request.'
   },
   unauthorized_device_address: {
     parameter: 'raw_calldata',
     code: 'invalid',
-    message: 'Mentioned action cannot be performed on device address in raw_calldata.'
+    message:
+      'Operation failed due to unauthorized device address. Please inspect if you are using device address of the device registered with the user to send the request.'
   },
   unauthorized_session_address: {
     parameter: 'raw_calldata',
@@ -286,27 +307,30 @@ const v2ErrorConfig = {
   unauthorized_user_id: {
     parameter: 'user_id',
     code: 'invalid',
-    message: 'User is not valid to perform this action.'
+    message:
+      'Operation failed due to unauthorized user id. Please inspect if you are sending a valid user id registered with the user to send the request.'
   },
   invalid_to: {
     parameter: 'to',
     code: 'invalid',
-    message: 'Invalid to address'
+    message: 'Invalid to. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_user_to_fetch_linked_address: {
     parameter: 'user_id',
     code: 'invalid',
-    message: 'Invalid user to fetch linked address for device address'
+    message: 'Invalid user_id. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_signatures: {
     parameter: 'signatures',
     code: 'invalid',
-    message: 'Invalid signature provided'
+    message:
+      'Invalid parameter signatures. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_signature: {
     parameter: 'signature',
     code: 'invalid',
-    message: 'Invalid signature provided'
+    message:
+      'Incorrectly formed signature. For information on how to form the signature please visit  https://dev.ost.com/platform/docs/api/#authentication.'
   },
   device_involved_in_recovery_operation: {
     parameter: 'raw_calldata',
@@ -316,27 +340,32 @@ const v2ErrorConfig = {
   invalid_old_device_address: {
     parameter: 'old_device_address',
     code: 'invalid',
-    message: 'Old device address is either invalid or not Authorized.'
+    message:
+      'Invalid parameter invalid_old_device_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_new_device_address: {
     parameter: 'new_device_address',
     code: 'invalid',
-    message: 'New device address is either invalid or not Registered.'
+    message:
+      'Invalid parameter new_device_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   same_new_and_old_device_addresses: {
     parameter: 'new_device_address',
     code: 'invalid',
-    message: 'New device cannot be same as old.'
+    message:
+      'New user device address on which wallet recovery is to be initiated should not be same as the old device address.'
   },
   invalid_new_recovery_owner_address: {
     parameter: 'new_recovery_owner_address',
     code: 'invalid',
-    message: 'Recovery owner cannot be same as old.'
+    message:
+      'Invalid parameter new_recovery_owner_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_old_linked_address: {
     parameter: 'old_linked_address',
     code: 'invalid',
-    message: 'Invalid address'
+    message:
+      'Invalid parameter old_linked_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_limit: {
     parameter: 'limit',
@@ -347,7 +376,8 @@ const v2ErrorConfig = {
   invalid_transaction_id: {
     parameter: 'transaction_id',
     code: 'invalid',
-    message: 'Invalid transaction id'
+    message:
+      'Invalid parameter transaction_id. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_statuses: {
     parameter: 'statuses',
@@ -390,62 +420,68 @@ const v2ErrorConfig = {
   invalid_user_data: {
     parameter: 'user_data',
     code: 'invalid',
-    message: 'Invalid user_data'
+    message: 'Invalid user_data. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_value: {
     parameter: 'value',
     code: 'invalid',
-    message: 'Invalid value'
+    message: 'Invalid value. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_calldata: {
     parameter: 'calldata',
     code: 'invalid',
-    message: 'Invalid calldata'
+    message:
+      'Invalid parameter calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_operation: {
     parameter: 'operation',
     code: 'invalid',
-    message: 'Invalid operation'
+    message:
+      'Invalid parameter operation. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_safe_tx_gas: {
     parameter: 'safe_tx_gas',
     code: 'invalid',
-    message: 'Invalid safe_tx_gas'
+    message: 'Invalid safe_tx_gas. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_data_gas: {
     parameter: 'data_gas',
     code: 'invalid',
-    message: 'Invalid data_gas'
+    message: 'Invalid data_gas. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_gas_price: {
     parameter: 'gas_price',
     code: 'invalid',
-    message: 'Invalid gas_price'
+    message:
+      'Invalid parameter gas_price. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_gas_token: {
     parameter: 'gas_token',
     code: 'invalid',
-    message: 'Invalid gas_token'
+    message:
+      'Invalid parameter gas_token. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_refund_receiver: {
     parameter: 'refund_receiver',
     code: 'invalid',
-    message: 'Invalid refund_receiver'
+    message: 'Invalid refund_receiver. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_signers: {
     parameter: 'signers',
     code: 'invalid',
-    message: 'Invalid signers'
+    message:
+      'Invalid parameter invalid_signers. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_nonce: {
     parameter: 'nonce',
     code: 'invalid',
-    message: 'Invalid nonce'
+    message:
+      'Invalid parameter nonce. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
   invalid_token_shard_details: {
     parameter: 'token_shard_details',
     code: 'invalid',
-    message: 'Invalid token_shard_details'
+    message: 'Invalid token_shard_details. Please inspect for what is being sent, rectify and re-submit.'
   },
   invalid_kind: {
     parameter: 'kind',

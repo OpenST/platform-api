@@ -272,17 +272,17 @@
   "error_in_fetching_users": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Error while fetching users."
+    "message": "Failed to fetch userIds. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "error_in_fetching_user_ids": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Error while fetching user ids."
+    "message": "Failed to fetch user_ids. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "error_in_fetching_user_salts": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Error while fetching user salts."
+    "message": "Failed to fetch user_salts. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "balance_update_failed": {
     "http_code": "422",
@@ -292,62 +292,62 @@
   "fetch_balance_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Unable to fetch balance"
+    "message": "Failed to fetch balance. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later.""
   },
   "user_status_update_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Unable to update user status"
+    "message": "User status update operation failed and the user has been rolledback to previous state. Verify the request being sent and re-start the operation."
   },
   "wallet_address_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Wallet addresses fetch failed"
+    "message": "Failed to fetch wallet_address. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "device_details_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Device details fetch failed"
+    "message": "Failed to fetch device_details. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "device_status_update_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Device status update failed"
+    "message": "Device status update operation failed and the device has been rolledback to previous state. Verify the request being sent and re-start the operation."
   },
   "recovery_owner_detail_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Recovery owner detail fetch failed"
+    "message": "Failed to fetch recovery_owner. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "available_shard_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Available shard fetch failed"
+    "message": "Failed to fetch available_shard. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
-  "insert_shard_failed": {
+  "add_session_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Shard insertion failed"
+    "message": "Unable to add the session."
   },
   "shard_number_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Shard insertion failed"
+    "message": "Failed to fetch shard_number. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "session_address_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Failed to fetch session addresses"
+    "message": "Failed to fetch session_address. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "session_details_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Failed to fetch session details"
+    "message": "Failed to fetch session_details. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
   "session_status_update_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Session status update failed"
+    "message": "Session status update operation failed and the session has been rolledback to previous state. Verify the request being sent and re-start the operation."
   },
   "error_in_user_creation": {
     "http_code": "422",
