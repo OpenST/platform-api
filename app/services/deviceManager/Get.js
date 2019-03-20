@@ -130,6 +130,7 @@ class Get extends ServiceBase {
         }
       })
       .catch(function(err) {
+        // TODO - why??
         logger.error(err);
       });
   }

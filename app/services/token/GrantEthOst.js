@@ -42,7 +42,7 @@ class GrantEthOst {
    */
   perform() {
     const oThis = this;
-
+    //TODO - use perform from service base
     return oThis.asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
