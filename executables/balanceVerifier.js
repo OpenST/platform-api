@@ -1,16 +1,17 @@
-'use strict';
 /**
  * This executable is used to verify balances.
  *
  * @module executables/balanceVerifier
  */
 
+const program = require('commander'),
+  OSTBase = require('@ostdotcom/base');
+
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   CronProcessesModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  program = require('commander'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
@@ -31,17 +32,22 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+const InstanceComposer = OSTBase.InstanceComposer;
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/BalanceVerifier');
 
+/**
+ * Class for balance verifier executable.
+ *
+ * @class BalanceVerifier
+ */
 class BalanceVerifier extends CronBase {
   /**
+   * Constructor for balance verifier executable.
    *
-   * @param {object} params
-   * @param {Number} params.cronProcessId  - cron_processes table id
+   * @param {Object} params
+   * @param {Number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -51,6 +57,13 @@ class BalanceVerifier extends CronBase {
     oThis.canExit = true;
   }
 
+  /**
+   * Start the executable.
+   *
+   * @returns {Promise<void>}
+   *
+   * @private
+   */
   async _start() {
     const oThis = this,
       strategyByChainHelperObj = new StrategyByChainHelper(oThis.auxChainId),
@@ -63,17 +76,16 @@ class BalanceVerifier extends CronBase {
 
     oThis.ic = new InstanceComposer(configStrategyResp.data);
 
-    let BalanceVerifier = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceVerifier');
-
-    let balanceVerifierObj = new BalanceVerifier({
-      timeStamp: oThis.timeStamp
-    });
+    const BalanceVerifier = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceVerifier'),
+      balanceVerifierObj = new BalanceVerifier({
+        timeStamp: oThis.timeStamp
+      });
 
     oThis.canExit = false;
-    let balanceVerifierResponse = await balanceVerifierObj.perform();
+    const balanceVerifierResponse = await balanceVerifierObj.perform();
 
     if (balanceVerifierResponse.isSuccess()) {
-      let cronParams = {
+      const cronParams = {
           auxChainId: oThis.auxChainId,
           timeStamp: balanceVerifierResponse.data.timeStamp
         },
@@ -92,10 +104,9 @@ class BalanceVerifier extends CronBase {
   }
 
   /**
-   *
    * This function provides info whether the process has to exit.
    *
-   * @returns {string}
+   * @returns {Boolean}
    *
    * @private
    */
@@ -106,6 +117,7 @@ class BalanceVerifier extends CronBase {
   }
 
   /**
+   * Validate and sanitize.
    *
    * @private
    */
@@ -113,6 +125,13 @@ class BalanceVerifier extends CronBase {
     return;
   }
 
+  /**
+   * Get cron kind.
+   *
+   * @returns {String}
+   *
+   * @private
+   */
   get _cronKind() {
     return cronProcessesConstants.balanceVerifier;
   }
