@@ -50,6 +50,7 @@ class Deployment {
    * @return {Promise<>}
    */
   perform() {
+    // TODO - use perform from servicebase
     const oThis = this;
 
     return oThis.asyncPerform().catch(function(error) {

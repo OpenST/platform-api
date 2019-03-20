@@ -116,6 +116,7 @@ class ExecuteTxBase extends ServiceBase {
   perform() {
     const oThis = this;
 
+    // TODO - use perform from service base
     return oThis._asyncPerform().catch(async function(err) {
       let customError;
       if (responseHelper.isCustomResult(err)) {

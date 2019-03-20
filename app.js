@@ -171,7 +171,7 @@ const decodeJwt = function(req, res, next) {
       api_error_identifier: 'jwt_decide_failed',
       debug_options: { token: token }
     });
-    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     logger.error('a_2', 'JWT Decide Failed', { token: token });
 
     return responseHelper
@@ -290,7 +290,7 @@ if (cluster.isMaster) {
       api_error_identifier: 'worker_disconnected',
       debug_options: { worker: worker.id }
     });
-    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     logger.error('a_3', `[worker-${worker.id}] is disconnected`);
     // when a worker disconnects, decrement the online worker count
     onlineWorker = onlineWorker - 1;
@@ -308,7 +308,7 @@ if (cluster.isMaster) {
         api_error_identifier: 'worker_died_restarting',
         debug_options: { worker: worker.id, code: code, signal: signal }
       });
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
       logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
       cluster.fork();
     }

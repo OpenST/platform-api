@@ -31,6 +31,7 @@ const rootPrefix = '../../..',
  *
  * @class
  */
+// TODO: use service base
 class UpdatePricePoints {
   /**
    * Fetch OST Current price

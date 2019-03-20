@@ -144,7 +144,7 @@ class Finalizer extends PublisherBase {
     }
 
     // If response from checkIfChainIdExists is true or false, we make further checks.
-    if (chainIdBooleanValidation && !chainExists) {
+    if (!chainExists) {
       logger.error('ChainId does not exist in the chains table.');
 
       const errorObject = responseHelper.error({
