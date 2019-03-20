@@ -46,7 +46,7 @@ class CronBase {
 
     return oThis.asyncPerform().catch(function(err) {
       // If asyncPerform fails, run the below catch block.
-      logger.error('Error in executables/CronBase.js');
+      logger.error('Error in executables/CronBase.js: ', err);
 
       const errorObject = responseHelper.error({
         internal_error_identifier: 'unhandled_catch_response:e_cb_1',
