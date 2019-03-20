@@ -13,14 +13,15 @@ const program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   QueuedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/queuedHandler'),
   SubmittedHandlerKlass = require(rootPrefix + '/lib/transactions/errorHandlers/submittedHandler'),
   MarkFailAndRollbackBalanceKlass = require(rootPrefix + '/lib/transactions/errorHandlers/markFailAndRollbackBalance'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  emailNotifier = require(rootPrefix + '/lib/notifier'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta');
 
@@ -217,12 +218,14 @@ class TransactionMetaObserver extends CronBase {
       const txStatusString = transactionMetaConst.statuses[txMeta.status];
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
-      await emailNotifier.perform(
-        'e_tmo_2-' + txStatusString,
-        'transactionMetaObserver Observed error',
-        {},
-        { txMetaId: txMeta.id }
-      );
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'transaction_meta_observer_pending_transaction:e_tmo_2:' + txStatusString,
+        api_error_identifier: 'transaction_meta_observer_pending_transaction',
+        debug_options: { txMetaId: txMeta.id }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     }
 
     for (const txStatusString in transactionsGroup) {
