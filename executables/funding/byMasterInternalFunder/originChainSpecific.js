@@ -398,7 +398,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
           currency = 'Eth';
 
         if (addressCurrentBalance.lt(addressEthRequirement) && alertConfigDetails.alertRequired) {
-          await oThis._notify(addressKind, address, currency);
+          await oThis._notify(addressKind, address, currency, addressEthRequirement);
         }
       }
 
@@ -409,7 +409,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
           currency = 'OST';
 
         if (addressCurrentOstBalanceBN.lt(addressOstRequirement) && alertConfigDetails.alertRequired) {
-          await oThis._notify(addressKind, address, currency);
+          await oThis._notify(addressKind, address, currency, addressOstRequirement);
         }
       }
     }
@@ -439,17 +439,24 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
    * @param {String} addressKind
    * @param {String} address
    * @param {String} currency
+   * @param {String} addressRequirement
    *
    * @private
    */
-  async _notify(addressKind, address, currency) {
+  async _notify(addressKind, address, currency, addressRequirement) {
     const oThis = this;
 
     logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
     const errorObject = responseHelper.error({
       internal_error_identifier: 'low_balance:e_f_bmif_ocs_4',
       api_error_identifier: 'low_balance',
-      debug_options: { currency: currency, addressKind: addressKind, address: address, chainId: oThis.originChainId }
+      debug_options: {
+        currency: currency,
+        addressKind: addressKind,
+        address: address,
+        chainId: oThis.originChainId,
+        addressRequirement: addressRequirement
+      }
     });
 
     await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
