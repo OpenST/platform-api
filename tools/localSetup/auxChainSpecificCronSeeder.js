@@ -42,7 +42,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertStateRootSyncFromOriginToAux();
     await oThis.insertStateRootSyncFromAuxToOrigin();
     await oThis.insertTransactionErrorHandlerEntry();
-    await oThis.insertTBalanceVerifierEntry();
+    await oThis.insertBalanceVerifierEntry();
   }
 
   /**
@@ -322,6 +322,11 @@ class AuxChainSpecificCronSeeder {
       });
   }
 
+  /**
+   * Insert execute recovery cron entry.
+   *
+   * @returns {Promise<void>}
+   */
   async insertExecuteRecoveryEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.executeRecovery, {
@@ -332,6 +337,11 @@ class AuxChainSpecificCronSeeder {
       });
   }
 
+  /**
+   * Insert transaction error handler cron entry.
+   *
+   * @returns {Promise<void>}
+   */
   async insertTransactionErrorHandlerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.transactionErrorHandler, {
@@ -345,11 +355,16 @@ class AuxChainSpecificCronSeeder {
       });
   }
 
-  async insertTBalanceVerifierEntry() {
+  /**
+   * Insert balance verifier cron entry.
+   *
+   * @returns {Promise<void>}
+   */
+  async insertBalanceVerifierEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.balanceVerifier, {
         auxChainId: 2000,
-        timeStamp: 1552982847
+        timeStamp: Math.floor(Date.now() / 1000)
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
