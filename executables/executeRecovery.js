@@ -8,13 +8,13 @@ const program = require('commander');
 
 const rootPrefix = '..',
   ChainDetails = require(rootPrefix + '/app/services/chain/Get'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
-  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
   ProcessRecoveryRequest = require(rootPrefix +
-    '/lib/deviceRecovery/byRecoveryController/executeRecovery/ProcessRecoveryRequest');
+    '/lib/deviceRecovery/byRecoveryController/executeRecovery/ProcessRecoveryRequest'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
@@ -30,7 +30,7 @@ program.on('--help', function() {
   logger.log('');
 });
 
-let cronProcessId = +program.cronProcessId;
+const cronProcessId = +program.cronProcessId;
 if (!cronProcessId) {
   program.help();
   process.exit(1);

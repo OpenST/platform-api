@@ -42,6 +42,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertStateRootSyncFromOriginToAux();
     await oThis.insertStateRootSyncFromAuxToOrigin();
     await oThis.insertTransactionErrorHandlerEntry();
+    await oThis.insertTBalanceVerifierEntry();
   }
 
   /**
@@ -338,6 +339,17 @@ class AuxChainSpecificCronSeeder {
         noOfRowsToProcess: 5,
         maxRetry: 100,
         sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  async insertTBalanceVerifierEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.balanceVerifier, {
+        auxChainId: 2000,
+        timeStamp: 1552982847
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

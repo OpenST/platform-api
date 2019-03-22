@@ -169,10 +169,12 @@ RequestKlass.prototype = {
    *
    * @private
    */
-  _send: function(requestType, resource, queryParams) {
+  _send: function(requestType, resource, queryParams, requestData) {
     const oThis = this,
-      parsedURL = oThis._parseURL(resource),
+      parsedURL = oThis._parseURL(resource);
+    if (null == requestData) {
       requestData = oThis._formatQueryParams(resource, queryParams);
+    }
 
     const options = {
       host: parsedURL.hostname,
@@ -195,47 +197,57 @@ RequestKlass.prototype = {
       console.log('requestData \n', requestData);
     }
 
-    return new Promise(async function(onResolve, onReject) {
-      var chunkedResponseData = '';
+    var onResolve, onReject;
+    var chunkedResponseData = '';
 
-      var request = (parsedURL.protocol === 'https:' ? https : http).request(options, function(response) {
-        response.setEncoding('utf8');
+    var request = (parsedURL.protocol === 'https:' ? https : http).request(options, function(response) {
+      response.setEncoding('utf8');
 
-        response.on('data', function(chunk) {
-          chunkedResponseData += chunk;
-        });
-
-        response.on('end', function() {
-          var parsedResponse = oThis._parseResponse(chunkedResponseData, response);
-          if (DEBUG) {
-            console.log('parsedResponse \n', JSON.stringify(parsedResponse));
-            console.log('------------------------------');
-          }
-
-          if (parsedResponse.success) {
-            onResolve(parsedResponse);
-          } else {
-            onReject(parsedResponse);
-          }
-        });
+      response.on('data', function(chunk) {
+        chunkedResponseData += chunk;
       });
 
-      request.on('error', function(e) {
-        console.error('OST-SDK: Request error');
-        console.error(e);
-        var parsedResponse = oThis._parseResponse(e);
+      response.on('end', function() {
+        var parsedResponse = oThis._parseResponse(chunkedResponseData, response);
+        if (DEBUG) {
+          console.log('parsedResponse \n', JSON.stringify(parsedResponse));
+          console.log('------------------------------');
+        }
+
         if (parsedResponse.success) {
-          onResolve(parsedResponse);
+          onResolve && onResolve(parsedResponse);
         } else {
-          onReject(parsedResponse);
+          onReject && onReject(parsedResponse);
         }
       });
+    });
 
-      //write data to server
-      if (requestType === 'POST') {
-        request.write(requestData);
+    request.on('error', function(e) {
+      console.error('OST-SDK: Request error');
+      console.error(e);
+      var parsedResponse = oThis._parseResponse(e);
+      if (parsedResponse.success) {
+        onResolve && onResolve(parsedResponse);
+        if (!onResolve) {
+          console.log('No onResolve');
+        }
+      } else {
+        onReject && onReject(parsedResponse);
+        if (!onReject) {
+          console.log('No onReject');
+        }
       }
-      request.end();
+    });
+
+    //write data to server
+    if (requestType === 'POST') {
+      request.write(requestData);
+    }
+    request.end();
+
+    return new Promise(function(_onResolve, _onReject) {
+      onResolve = _onResolve;
+      onReject = _onReject;
     });
   },
 

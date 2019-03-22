@@ -58,9 +58,7 @@ class StateRootSyncFromOriginToAux extends StateRootSyncBase {
   }
 }
 
-new StateRootSyncFromOriginToAux({ cronProcessId: +program.cronProcessId }).perform();
-
-setInterval(function() {
+new StateRootSyncFromOriginToAux({ cronProcessId: +program.cronProcessId }).perform().then(function() {
   logger.info('Ending the process. Sending SIGINT.');
   process.emit('SIGINT');
-}, 10 * 60 * 1000);
+});

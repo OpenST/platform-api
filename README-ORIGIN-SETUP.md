@@ -101,7 +101,7 @@ Granter address gets ETH and OST in this step.
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
     - For non-development environment, use [MyEtherWallet](https://www.myetherwallet.com/#send-transaction), to fund address with OST.
-    - otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
+    - Otherwise, run following script to fund chain owner with OSTs (pass ST Owner private key in parameter)
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey '0xabc___'
@@ -146,6 +146,12 @@ Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
     node executables/oneTimers/insertInDDBForOriginHighestBlock.js
+```
+
+### [Only Development] Create `ost_infra` database and `error_logs` table.
+```bash
+   node executables/oneTimers/createOstInfraDatabase.js
+   node executables/oneTimers/createErrorLogsTable.js
 ```
 
 ### Run block-scanner crons and factory
