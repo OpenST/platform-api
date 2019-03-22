@@ -142,7 +142,8 @@ class ExecuteTxBase extends ServiceBase {
    * @return {Promise<any>}
    */
   async _asyncPerform() {
-    const oThis = this;
+    const oThis = this,
+      timeNow = Date.now();
 
     logger.debug('execute_tx_step_: 1', oThis.transactionUuid);
 
@@ -192,7 +193,7 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._publishToRMQ();
 
-    logger.debug('execute_tx_step_: 13', oThis.transactionUuid);
+    logger.debug('Final_Step_execute_tx_step_: 13', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
 
     return Promise.resolve(
       responseHelper.successWithData({
