@@ -175,6 +175,10 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
         const BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router');
         return new BtStakeAndMintRouter(msgParams).perform();
 
+      case workflowTopicConstant.stPrimeRedeemAndUnstake:
+        const stPrimeRedeemRouter = require(rootPrefix + '/lib/workflow/redeemAndUnstake/stPrime/Router');
+        return new stPrimeRedeemRouter(msgParams).perform();
+
       case workflowTopicConstant.grantEthOst:
         const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
         return new GrantEthOstRouter(msgParams).perform();

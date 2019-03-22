@@ -196,7 +196,25 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 
     '312': workflowStepConstants.abortRecoveryByRecoveryControllerInit,
     '313': workflowStepConstants.abortRecoveryByRecoveryControllerPerformTransaction,
-    '314': workflowStepConstants.abortRecoveryByRecoveryControllerVerifyTransaction
+    '314': workflowStepConstants.abortRecoveryByRecoveryControllerVerifyTransaction,
+
+    '321': workflowStepConstants.stPrimeRedeemAndUnstakeInit,
+    '322': workflowStepConstants.stPrimeWrapAsBT,
+    '323': workflowStepConstants.stPrimeApproveCoGateway,
+    '324': workflowStepConstants.stPrimeRedeem,
+    '325': workflowStepConstants.fetchRedeemIntentMessageHash,
+    '326': workflowStepConstants.proveCoGatewayOnGateway,
+    '327': workflowStepConstants.confirmRedeemIntent,
+    '328': workflowStepConstants.progressRedeem,
+    '329': workflowStepConstants.progressUnstake,
+
+    '341': workflowStepConstants.checkWrapStPrimeStatus,
+    '342': workflowStepConstants.checkApproveCoGatewayStatus,
+    '343': workflowStepConstants.checkRedeemStatus,
+    '344': workflowStepConstants.checkProveCoGatewayStatus,
+    '345': workflowStepConstants.checkConfirmRedeemStatus,
+    '346': workflowStepConstants.checkProgressRedeemStatus,
+    '347': workflowStepConstants.checkProgressUnstakeStatus
   },
   invertedKinds = util.invert(kinds);
 
