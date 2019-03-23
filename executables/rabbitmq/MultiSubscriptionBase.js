@@ -9,19 +9,21 @@ const OSTBase = require('@ostdotcom/base');
 const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 /**
- * Class for subscriber base.
+ * Class for multi subscription base.
  *
- * @class
+ * @class MultiSubscriptionBase
  */
 class MultiSubscriptionBase extends CronBase {
   /**
-   * Constructor for subscriber base
+   * Constructor for multi subscription base.
    *
    * @param {Object} params
    * @param {Number} params.cronProcessId
@@ -76,7 +78,7 @@ class MultiSubscriptionBase extends CronBase {
 
     let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[subscriptionTopic];
 
-    // trying to ensure that there is only one _PromiseQueueManager;
+    // Trying to ensure that there is only one _PromiseQueueManager.
     if (rabbitmqSubscription.promiseQueueManager) return rabbitmqSubscription.promiseQueueManager;
 
     let qm = new OSTBase.OSTPromise.QueueManager(
@@ -87,15 +89,43 @@ class MultiSubscriptionBase extends CronBase {
         oThis._promiseExecutor(...args);
       },
       {
-        name: oThis._processNamePrefix + '_promise_queue_manager',
+        name: `${oThis._processNamePrefix}_promise_queue_manager`,
         timeoutInMilliSecs: oThis.timeoutInMilliSecs,
-        rejectPromiseOnTimeout: true
+        rejectPromiseOnTimeout: true,
+        onPromiseTimedout: function(promiseContext) {
+          return oThis._onPromiseTimedout(promiseContext);
+        }
       }
     );
 
     rabbitmqSubscription.setPromiseQueueManager(qm);
 
     return rabbitmqSubscription.promiseQueueManager;
+  }
+
+  /**
+   * Callback to be executed in case of promise time out.
+   *
+   * @param {Object} promiseContext
+   *
+   * @private
+   */
+  _onPromiseTimedout(promiseContext) {
+    const oThis = this;
+
+    logger.error(`${oThis._processNamePrefix}_promise_queue_manager:: a promise has timed out.`);
+
+    const errorObject = responseHelper.error({
+      internal_error_identifier: 'promise_timedout:e_r_msb_1',
+      api_error_identifier: 'promise_timedout',
+      debug_options: {
+        cronProcessId: oThis.cronProcessId,
+        cronName: oThis._cronKind,
+        executorParams: promiseContext.executorParams
+      }
+    });
+
+    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
   }
 
   /**
@@ -222,7 +252,7 @@ class MultiSubscriptionBase extends CronBase {
       .catch(function(error) {
         oThis._decrementUnAck(messageParams);
         logger.error(
-          'e_r_csb_w_1',
+          'e_r_msb_2',
           'Error in process message from rmq. unAckCount ->',
           oThis._getUnAck(messageParams),
           'Error: ',
