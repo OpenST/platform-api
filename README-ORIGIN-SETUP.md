@@ -46,7 +46,27 @@
     node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
 ```
 
-* Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
+* [Only Development] Get ETH funder private key
+```js
+let address = '0x123___'; // master internal funder address
+let rootPrefix = '.';
+addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
+addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
+```
+NOTE: Copy the ETH funder private key for later use.
+
+* [Only Development] Setup Origin GETH and fund necessary addresses.	
+```bash	
+    source set_env_vars.sh	
+    node tools/localSetup/origin/setupGeth.js --originChainId 3	
+```
+
+* [Only Development] Start Origin GETH with this script.	
+```bash	
+    sh ~/openst-setup/bin/origin-3/origin-chain-3.sh	
+```
+
+* [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0a___' --amount 10

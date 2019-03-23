@@ -86,8 +86,8 @@
       },
       "chainId": 3,
       "client": "geth",
-      "blockGenerationTime": 15,
-      "finalizeAfterBlocks": 6
+      "blockGenerationTime": 1,
+      "finalizeAfterBlocks": 24
     },
     "constants": {
       "originChainId": 3,

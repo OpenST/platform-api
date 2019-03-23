@@ -3,6 +3,8 @@ export SA_ENVIRONMENT='development'
 export SA_SUB_ENVIRONMENT='sandbox'
 export DEVOPS_ENV_ID='dev1-sandbox';
 
+export OST_DEBUG_ENABLED='1';
+
 export DEVOPS_IP_ADDRESS='127.0.0.1';
 export DEVOPS_APP_NAME='saas';
 
@@ -60,8 +62,6 @@ export SA_CACHE_DATA_SHA_KEY='066f7e6e833db143afee3dbafc888bcf'
 
 # Web3 pool size
 export OST_WEB3_POOL_SIZE=10
-
-export OST_DEGUG_ENABLED=1
 
 # Aux and Origin Gas Prices
 export SA_MIN_ORIGIN_GAS_PRICE='0x2540BE400';
