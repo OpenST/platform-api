@@ -17,7 +17,7 @@ program.on('--help', () => {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log(' node executables/setup/blockScanner/initialSetup.js --chainId 1000');
+  logger.log(' node executables/setup/blockScanner/initialSetup.js --chainId 3');
   logger.log('');
   logger.log('');
 });

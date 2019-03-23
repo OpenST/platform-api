@@ -28,12 +28,12 @@
 * Create Tables
 ```bash
     source set_env_vars.sh
-    node executables/setup/blockScanner/initialSetup.js --chainId 1000
+    node executables/setup/blockScanner/initialSetup.js --chainId 3
 ```
 
 ## Create sharded tables for Origin Block Scanner DDB
 ```bash
-    node executables/setup/blockScanner/addChain.js --chainId 1000 --networkId 1000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2 
+    node executables/setup/blockScanner/addChain.js --chainId 3 --networkId 3 --blockShardCount 1 --transactionShardCount 1 --economyAddressShardCount 2 
 ```
 
 ## Origin Chain Setup
@@ -43,30 +43,10 @@
 * Generate master internal funder address for this ENV
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 1000
+    node devops/exec/chainSetup.js --generate-master-internal-funder-address --chain-id 3
 ```
 
-* [Only Development] Get ETH funder private key
-```js
-let address = '0x0a___'; // master internal funder address
-let rootPrefix = '.';
-addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
-addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
-```
-NOTE: Copy the ETH funder private key for later use.
-
-* [Only Development] Setup Origin GETH and fund necessary addresses.
-```bash
-    source set_env_vars.sh
-    node tools/localSetup/origin/setupGeth.js --originChainId 1000
-```
-
-* [Only Development] Start Origin GETH with this script.
-```bash
-    sh ~/openst-setup/bin/origin-1000/origin-chain-1000.sh
-```
-
-* [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
+* Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0a___' --amount 10
@@ -75,13 +55,13 @@ NOTE: Copy the ETH funder private key for later use.
 * Generate origin address and fund them
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 1000
+    node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
 ```
 
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --setup-simple-token --chain-id 1000 --eth-owner-private-key '0xabc___'
+    node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
 
 NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
@@ -110,7 +90,7 @@ Granter address gets ETH and OST in this step.
 * Setup Origin Contracts
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/contracts.js --originChainId 1000
+    node executables/setup/origin/contracts.js --originChainId 3
 ```
 
 #### [Only DevOps] NOTE: Revert SA_DEFAULT_ORIGIN_GAS_PRICE gas price

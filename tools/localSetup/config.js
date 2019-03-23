@@ -2,13 +2,13 @@ const setupConfig = {
   chains: {
     origin: {
       chainId: {
-        value: 1000
+        value: 3
       },
       gethPort: {
         value: 30310
       },
       networkId: {
-        value: 1000
+        value: 3
       }
     },
     aux: {

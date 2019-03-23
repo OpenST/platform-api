@@ -35,10 +35,10 @@
 * Create Sharded Aux DDB Tables (Run the addChain service and pass all the necessary parameters):
 ```bash
     source set_env_vars.sh
-    node executables/setup/blockScanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyShardCount 2 --economyAddressShardCount 2
+    node executables/setup/blockScanner/addChain.js --chainId 2000 --networkId 2000 --blockShardCount 1 --transactionShardCount 1 --economyAddressShardCount 2
 ```
     * Mandatory parameters: chainId, networkId
-    * Optional parameters (defaults to 1): blockShardCount, economyShardCount, economyAddressShardCount, transactionShardCount
+    * Optional parameters (defaults to 1): blockShardCount, transactionShardCount, economyAddressShardCount
 
 
 ## Auxiliary Chain Setup
@@ -52,7 +52,7 @@
 * [Only Development] Setup Aux GETH and necessary addresses.
 ```bash
     source set_env_vars.sh
-    node tools/localSetup/aux/setupGeth.js --originChainId 1000 --auxChainId 2000
+    node tools/localSetup/aux/setupGeth.js --originChainId 3 --auxChainId 2000
 ```
 
 * [Only Development] Start AUX GETH (with Zero Gas Price) with this script.
@@ -75,7 +75,7 @@ And add it to tables using following script.
 * Setup Aux Contracts
 ```bash
     source set_env_vars.sh
-    node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000
+    node executables/setup/aux/contracts.js --originChainId 3 --auxChainId 2000
 ```
 
 * Verifier script for auxiliary chain setup
@@ -139,13 +139,13 @@ And add it to tables using following script.
                 stepKind: 'stPrimeStakeAndMintInit',
                 taskStatus: 'taskReadyToStart',
                 clientId: 0,
-                chainId: 1000,
+                chainId: 3,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
                     stakerAddress: '0xf5f8f91830fba42229478838e73ef35d3b98e0da', 
-                    originChainId: 1000, 
+                    originChainId: 3, 
                     auxChainId: 2000, 
-                    sourceChainId: 1000,
+                    sourceChainId: 3,
                     destinationChainId: 2000,
                     facilitator: '0xf5f8f91830fba42229478838e73ef35d3b98e0da', 
                     amountToStake: '1000000000000000000000000', 
@@ -164,7 +164,7 @@ And add it to tables using following script.
               stepKind: '', //step kind of row from where it need to restart
               taskStatus: 'taskReadyToStart',
               clientId: 0,
-              chainId: 1000,
+              chainId: 3,
               topic: 'workflow.stPrimeStakeAndMint',
               workflowId: , //Workflow id
               currentStepId: //Id of table from where it need to restart

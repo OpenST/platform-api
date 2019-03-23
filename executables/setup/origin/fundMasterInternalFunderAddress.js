@@ -12,7 +12,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey 1000');
+  logger.log('    node executables/setup/origin/fundMasterInternalFunderAddress.js --stOwnerPrivateKey 0xA34...');
   logger.log('');
   logger.log('');
 });

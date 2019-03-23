@@ -117,7 +117,7 @@ class AuxChainSpecificCronSeeder {
   async insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses, {
-        originChainId: 1000,
+        originChainId: 3,
         auxChainId: 2000
       })
       .then(function(insertId) {
@@ -133,7 +133,7 @@ class AuxChainSpecificCronSeeder {
   async insertFundBySealerAuxChainSpecificEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundBySealerAuxChainSpecific, {
-        originChainId: 1000,
+        originChainId: 3,
         auxChainId: 2000
       })
       .then(function(insertId) {
@@ -149,7 +149,7 @@ class AuxChainSpecificCronSeeder {
   async insertFundByTokenAuxFunderAuxChainSpecificEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundByTokenAuxFunderAuxChainSpecific, {
-        originChainId: 1000,
+        originChainId: 3,
         auxChainId: 2000
       })
       .then(function(insertId) {
@@ -180,7 +180,7 @@ class AuxChainSpecificCronSeeder {
   async insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses, {
-        originChainId: 1000,
+        originChainId: 3,
         auxChainId: 2000
       })
       .then(function(insertId) {
@@ -196,7 +196,7 @@ class AuxChainSpecificCronSeeder {
   async insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses, {
-        originChainId: 1000,
+        originChainId: 3,
         auxChainId: 2000
       })
       .then(function(insertId) {
@@ -265,7 +265,7 @@ class AuxChainSpecificCronSeeder {
   async insertFundByTokenAuxFunderToExTxWorkersEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundByTokenAuxFunderToExTxWorkers, {
-        originChainId: 1000,
+        originChainId: 3,
         auxChainId: 2000
       })
       .then(function(insertId) {
@@ -299,7 +299,7 @@ class AuxChainSpecificCronSeeder {
     return new InsertCrons()
       .perform(cronProcessConstants.originToAuxStateRootSync, {
         auxChainId: 2000,
-        originChainId: 1000
+        originChainId: 3
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
@@ -315,7 +315,7 @@ class AuxChainSpecificCronSeeder {
     return new InsertCrons()
       .perform(cronProcessConstants.auxToOriginStateRootSync, {
         auxChainId: 2000,
-        originChainId: 1000
+        originChainId: 3
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

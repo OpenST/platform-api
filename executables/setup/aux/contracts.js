@@ -15,7 +15,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/setup/aux/contracts.js --originChainId 1000 --auxChainId 2000');
+  logger.log('    node executables/setup/aux/contracts.js --originChainId 3 --auxChainId 2000');
   logger.log('');
   logger.log('');
 });

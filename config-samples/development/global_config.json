@@ -65,32 +65,32 @@
     },
     "originGeth": {
       "readOnly": {
-        "rpcProvider": "http://127.0.0.1:8545",
-        "wsProvider": "ws://127.0.0.1:8546",
+        "rpcProvider": "http://ropsten.developmentost.com:8545",
+        "wsProvider": "ws://ropsten.developmentost.com:8546",
         "rpcProviders": [
-          "http://127.0.0.1:8545"
+          "http://ropsten.developmentost.com:8545"
         ],
         "wsProviders": [
-          "ws://127.0.0.1:8546"
+          "ws://ropsten.developmentost.com:8546"
         ]
       },
       "readWrite": {
-        "rpcProvider": "http://127.0.0.1:8545",
-        "wsProvider": "ws://127.0.0.1:8546",
+        "rpcProvider": "http://ropsten.developmentost.com:8545",
+        "wsProvider": "ws://ropsten.developmentost.com:8546",
         "rpcProviders": [
-          "http://127.0.0.1:8545"
+          "http://ropsten.developmentost.com:8545"
         ],
         "wsProviders": [
-          "ws://127.0.0.1:8546"
+          "ws://ropsten.developmentost.com:8546"
         ]
       },
-      "chainId": 1000,
+      "chainId": 3,
       "client": "geth",
       "blockGenerationTime": 15,
-      "finalizeAfterBlocks": 8
+      "finalizeAfterBlocks": 6
     },
     "constants": {
-      "originChainId": 1000,
+      "originChainId": 3,
       "originDdbTablePrefix": "de_s_o_",
       "auxDdbTablePrefix": "de_s_a_",
       "subEnvDdbTablePrefix": "de_s_"
