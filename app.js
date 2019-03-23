@@ -267,6 +267,10 @@ if (cluster.isMaster) {
   // Fork workers equal to number of CPUs
   const numWorkers = process.env.OST_CACHING_ENGINE === 'none' ? 1 : process.env.WORKERS || require('os').cpus().length;
 
+  //. Rachin: Potential problem here. 
+  //    Fork should be the last thing that should be done.
+  //.   First all event handlers should be registered.
+  //.   To do for validation: Check if onlineWorker count changes changes. 
   for (let i = 0; i < numWorkers; i++) {
     // Spawn a new worker process.
     cluster.fork();
@@ -284,6 +288,7 @@ if (cluster.isMaster) {
   });
 
   //  Called when all workers are disconnected and handles are closed.
+  //. Rachin: Change above comment to 'called when the specific worker has disconnected.'
   cluster.on('disconnect', function(worker) {
     const errorObject = responseHelper.error({
       internal_error_identifier: 'worker_disconnected:a_3',
@@ -314,6 +319,7 @@ if (cluster.isMaster) {
     }
   });
   // Exception caught
+  // Rachin: Should the workers try to die gracefully ?
   process.on('uncaughtException', function(err) {
     const errorObject = responseHelper.error({
       internal_error_identifier: `app_server_crash:app_crash_1`,
@@ -324,6 +330,7 @@ if (cluster.isMaster) {
     logger.error('app_crash_1', 'App server exited unexpectedly. Reason: ', err);
     process.exit(1);
   });
+
   // When someone try to kill the master process
   // kill <master process id>
   process.on('SIGTERM', function() {
@@ -331,6 +338,7 @@ if (cluster.isMaster) {
       cluster.workers[id].exitedAfterDisconnect = true;
     }
     setInterval(killMasterIfAllWorkersDied, 10);
+    // Rachin: will calling disconnect method also trigger 'disconnect' event on cluster?
     cluster.disconnect(function() {
       logger.info('Master received SIGTERM. Killing/disconnecting it.');
     });
