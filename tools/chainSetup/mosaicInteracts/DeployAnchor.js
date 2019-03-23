@@ -10,7 +10,8 @@ const MosaicJs = require('@openst/mosaic.js');
 const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base');
+  Base = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/Base'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3');
 
 /**
  *
@@ -21,11 +22,13 @@ class DeployAnchor extends Base {
    * Constructor
    *
    * @param {Object} params
-   * @param {Number} params.chainId - chain id on which this is to be performed
-   * @param {String} params.signerAddress - address who signs Tx
-   * @param {String} params.chainEndpoint - url to connect to chain
+   * @param {Number} params.chainId - chain id on which Anchor is to be deployed
+   * @param {Number} params.remoteChainId - chain id of the remote chain, whose state root is to be committed
+   * @param {String} params.signerAddress - address who deploys Anchor
+   * @param {String} params.chainEndpoint - url to connect to chain on which deployment is to be done
+   * @param {String} params.remoteChainEndpoint - remote chain endpoint
    * @param {String} params.gasPrice -  gas price to use
-   * @param {String} params.organizationAddress - organization address for this contract
+   * @param {String} params.organizationAddress - organization contract address for this contract, deployed on chain id
    * @param {Number} params.gas: required gas for tx
    *
    * @constructor
@@ -35,24 +38,25 @@ class DeployAnchor extends Base {
 
     const oThis = this;
 
-    oThis.organizationAddress = params['organizationAddress'];
+    oThis.remoteChainEndpoint = params.remoteChainEndpoint;
+    oThis.remoteChainId = params.remoteChainId;
+    oThis.organizationAddress = params.organizationAddress;
 
-    oThis.maxStateRoots = 100; //TODO: Change later
+    oThis.maxStateRoots = 100;
 
-    oThis.latestBlock = null;
+    oThis.remoteChainLatestBlock = null;
   }
 
   /**
+   * Async Perform
    *
-   * async perform
-   *
-   * @return {Promise<result>}
-   *
+   * @return {Promise<any>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._fetchLatestBlock();
+    await oThis._fetchRemoteChainLatestBlock();
 
     let nonceRsp = await oThis._fetchNonce(),
       signerKey = await oThis._fetchSignerKey();
@@ -69,12 +73,12 @@ class DeployAnchor extends Base {
 
     logger.debug('txOptions-------', txOptions);
 
-    let anchorHelperObj = new DeployAnchor.AnchorHelper(oThis._web3Instance),
+    let anchorHelperObj = new MosaicJs.ChainSetup.AnchorHelper(oThis._web3Instance),
       deployRsp = await anchorHelperObj
         .deploy(
           oThis.remoteChainId,
-          oThis.latestBlock.number,
-          oThis.latestBlock.stateRoot,
+          oThis.remoteChainLatestBlock.number,
+          oThis.remoteChainLatestBlock.stateRoot,
           oThis.maxStateRoots,
           oThis.organizationAddress,
           txOptions
@@ -101,17 +105,18 @@ class DeployAnchor extends Base {
     return Promise.resolve(deployRsp);
   }
 
-  /***
+  /**
+   * Fetch remote chain latest block from remote chain
    *
+   * @return {Promise<void>}
    * @private
    */
-  async _fetchLatestBlock() {
+  async _fetchRemoteChainLatestBlock() {
     const oThis = this;
-    oThis.latestBlock = await oThis._web3Instance.eth.getBlock('latest');
-  }
 
-  static get AnchorHelper() {
-    return MosaicJs.ChainSetup.AnchorHelper;
+    let remoteChainWeb3Instance = web3Provider.getInstance(oThis.remoteChainEndpoint).web3WsProvider;
+
+    oThis.remoteChainLatestBlock = await remoteChainWeb3Instance.eth.getBlock('latest');
   }
 }
 

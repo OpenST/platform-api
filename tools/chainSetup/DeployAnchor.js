@@ -90,6 +90,7 @@ class DeployAnchor {
       remoteChainId: oThis.remoteChainId,
       signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
+      remoteChainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.remoteChainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       organizationAddress: oThis.organizationAddress,
       gas: contractConstants.deployAnchorGas
