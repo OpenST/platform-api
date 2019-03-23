@@ -493,5 +493,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Hash of block number does not match the available block hash."
+  },
+  "promise_timedout": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "A promise has timed out."
   }
 }

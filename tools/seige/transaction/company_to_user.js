@@ -112,10 +112,29 @@ class TransactionSiege {
           parameters: [transferTos, transferAmounts]
         });
 
+        let metaType = 'company_to_user';
+
+        if (i % 3 === 0) {
+          metaType = 'company_to_user';
+        } else if (i % 3 === 1) {
+          metaType = 'user_to_user';
+        } else {
+          metaType = 'user_to_company';
+        }
+
+        let name = 'TestName' + (i % 50);
+
+        let metaPropertyParams = {
+          name: name,
+          type: metaType,
+          details: 'seize test data'
+        };
+
         let executeParams = {
           user_id: COMPANY_UUID,
           to: TOKEN_RULE_ADDRESS,
           raw_calldata: raw_calldata,
+          meta_property: metaPropertyParams,
           i: i + '-' + maxIteration
         };
 
