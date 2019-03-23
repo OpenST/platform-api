@@ -5,9 +5,10 @@
  */
 
 const rootPrefix = '../../..',
-  ModelBase = require(rootPrefix + '/app/models/mysql/Base');
+  ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants');
 
-const dbName = 'ost_infra';
+const dbName = 'ost_infra_' + coreConstants.environment;
 
 /**
  * Class for error logs model.

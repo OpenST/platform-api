@@ -14,7 +14,7 @@ const connection = mysql.createConnection({
   host: coreConstants.OST_INFRA_MYSQL_HOST,
   user: coreConstants.OST_INFRA_MYSQL_USER,
   password: coreConstants.OST_INFRA_MYSQL_PASSWORD,
-  database: 'ost_infra'
+  database: 'ost_infra_' + coreConstants.environment
 });
 
 // Connect to the MySQL server.
