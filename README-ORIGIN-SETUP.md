@@ -40,6 +40,11 @@
 
 #### [Only DevOps] NOTE: Make sure you review SA_DEFAULT_ORIGIN_GAS_PRICE gas price from https://ethgasstation.info/txPoolReport.php, as dynamic gas price cron is not yet active.
 
+* [Only Development] Add `127.0.0.1    ropsten.developmentost.com` in hosts files 
+```bash
+    sudo vim /etc/hosts
+```
+
 * Generate master internal funder address for this ENV
 ```bash
     source set_env_vars.sh

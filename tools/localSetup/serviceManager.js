@@ -218,7 +218,7 @@ class ServiceManager {
       chainFolder +
       ' --port ' +
       chainPort +
-      ' --nodiscover --rpc --rpcapi eth,net,web3,personal,txpool --wsapi eth,net,web3,personal,txpool --rpcport ' +
+      ' --nodiscover --rpcvhosts "*" --rpc --rpcapi eth,net,web3,personal,txpool --wsapi eth,net,web3,personal,txpool --rpcport ' +
       rpcPort +
       ' --rpcaddr ' +
       rpcHost +

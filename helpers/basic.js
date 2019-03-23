@@ -510,6 +510,7 @@ class BasicHelper {
    * @returns {Promise<any>}
    */
   sleep(ms) {
+    console.log('Sleeping for ', ms, ' ms');
     return new Promise(function(resolve) {
       setTimeout(resolve, ms);
     });

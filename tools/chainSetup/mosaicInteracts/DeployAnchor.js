@@ -71,7 +71,14 @@ class DeployAnchor extends Base {
       gas: oThis.gas
     };
 
-    logger.debug('txOptions-------', txOptions);
+    logger.info('Deploy Anchor Params', [
+      oThis.remoteChainId,
+      oThis.remoteChainLatestBlock.number,
+      oThis.remoteChainLatestBlock.stateRoot,
+      oThis.maxStateRoots,
+      oThis.organizationAddress,
+      txOptions
+    ]);
 
     let anchorHelperObj = new MosaicJs.ChainSetup.AnchorHelper(oThis._web3Instance),
       deployRsp = await anchorHelperObj
