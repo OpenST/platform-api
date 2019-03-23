@@ -22,7 +22,7 @@ connection.connect(function(error) {
     return console.error('Error: ' + error.message);
   }
 
-  connection.query('CREATE DATABASE ost_infra', function(err) {
+  connection.query(`CREATE DATABASE ost_infra_${coreConstants.environment}`, function(err) {
     if (err) {
       throw err;
     }

@@ -233,7 +233,7 @@ class Session extends Base {
     if (response.isFailure()) {
       return Promise.reject(
         oThis._prepareErrorObject({
-          errorObject: err,
+          errorObject: response,
           internalErrorCode: 'a_m_d_s_s_2',
           apiErrorIdentifier: 'session_address_fetch_failed',
           debugOptions: { userId: userId }
@@ -399,17 +399,27 @@ class Session extends Base {
   /**
    * afterUpdate - Method to implement any after update actions
    *
+   * @param ic
+   * @param params
+   * @param params.userId
+   * @param params.addresses - Array - Session addresses optional parameter
+   * @param params.address - Single address - optional parameter
+   *
    * @return {Promise<void>}
    */
   static async afterUpdate(ic, params) {
-    require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
-    let SessionsByAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
-      sessionsByAddressCache = new SessionsByAddressCache({
-        userId: params.userId,
-        addresses: [params.address]
-      });
+    let sessionAddresses = params.addresses || [params.address];
 
-    await sessionsByAddressCache.clear();
+    if (sessionAddresses.length) {
+      require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
+      let SessionsByAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
+        sessionsByAddressCache = new SessionsByAddressCache({
+          userId: params.userId,
+          addresses: sessionAddresses
+        });
+
+      await sessionsByAddressCache.clear();
+    }
 
     require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
     let UserSessionAddressCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'UserSessionAddressCache'),

@@ -89,8 +89,7 @@ class MultiSubscriptionBase extends CronBase {
       {
         name: oThis._processNamePrefix + '_promise_queue_manager',
         timeoutInMilliSecs: oThis.timeoutInMilliSecs,
-        maxZombieCount: Math.round(oThis.prefetchCount * 0.25),
-        onMaxZombieCountReached: oThis._onMaxZombieCountReached
+        rejectPromiseOnTimeout: true
       }
     );
 

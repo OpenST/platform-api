@@ -96,6 +96,6 @@ mysqlConfig['databases']['kit_saas_big_' + coreConstants.subEnvironment + '_' + 
 ];
 
 // ost_infra database
-mysqlConfig['databases']['ost_infra'] = ['cluster7'];
+mysqlConfig['databases']['ost_infra_' + coreConstants.environment] = ['cluster7'];
 
 module.exports = mysqlConfig;
