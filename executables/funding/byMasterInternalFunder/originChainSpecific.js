@@ -203,9 +203,9 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       );
     }
 
-    oThis.alertConfig[chainAddressConstants.masterInternalFunderKind].minEthRequirement = maxEthBalanceToFund.mul(
-      basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)
-    );
+    oThis.alertConfig[chainAddressConstants.masterInternalFunderKind].minEthRequirement = maxEthBalanceToFund
+      .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
+      .mul(basicHelper.convertToBigNumber(0.6));
 
     const granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei),
       granterOstRequirement = basicHelper.convertToBigNumber(grantConstants.grantOstValueInWei);
