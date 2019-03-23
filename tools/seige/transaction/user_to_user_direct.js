@@ -283,7 +283,7 @@ class TransactionSiege {
           .post(resource, queryParams)
           .then(function(response) {
             oThis.sessionNonceMap[senderUuid] = oThis.sessionNonceMap[senderUuid] + 1;
-            console.log('transaction passed for uuid', senderUuid, JSON.stringify(response));
+            //console.log('transaction passed for uuid', senderUuid, JSON.stringify(response));
           })
           .catch(function(err) {
             console.log('transaction Failed for uuid', senderUuid, JSON.stringify(err));

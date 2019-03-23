@@ -38,7 +38,7 @@ const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
 
 let maxIteration = 1000,
   NO_OF_USERS_COVERAGE = 2000,
-  PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses. So using 8.
+  PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
   receiverTokenHolders = [],
   sigintReceived = 0;
