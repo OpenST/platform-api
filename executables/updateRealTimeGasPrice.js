@@ -74,11 +74,13 @@ class UpdateRealTimeGasPrice extends CronBase {
 
     // Declare variables.
     let estimatedGasPriceFloat = 0,
+      oneGWei = new BigNumber('1000000000'),
+      defaultGasPriceGWei = new BigNumber(coreConstants.DEFAULT_ORIGIN_GAS_PRICE).div(oneGWei).toNumber(10),
       originChainGasPriceCacheObj = new originChainGasPriceCacheKlass(),
       retryCount = 10;
 
     while (retryCount > 0 && estimatedGasPriceFloat === 0) {
-      estimatedGasPriceFloat = await dynamicGasPriceProvider.dynamicGasPrice.get(chainIdInternal);
+      estimatedGasPriceFloat = await dynamicGasPriceProvider.dynamicGasPrice.get(chainIdInternal, defaultGasPriceGWei);
       retryCount = retryCount - 1;
     }
     // All constants will be stored in Gwei.
@@ -86,7 +88,7 @@ class UpdateRealTimeGasPrice extends CronBase {
       let estimatedGasPrice = Math.ceil(estimatedGasPriceFloat),
         gasPriceToBeSubmittedHex = null,
         estimatedGasPriceBN = new BigNumber(estimatedGasPrice),
-        estimatedGasPriceBNInWei = estimatedGasPriceBN.mul(1000000000);
+        estimatedGasPriceBNInWei = estimatedGasPriceBN.mul(oneGWei);
 
       let minGasPriceBN = new BigNumber(coreConstants.MIN_ORIGIN_GAS_PRICE),
         maxGasPriceBN = new BigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
@@ -96,11 +98,11 @@ class UpdateRealTimeGasPrice extends CronBase {
       if (gasPriceToBeSubmittedBN.lt(minGasPriceBN)) {
         gasPriceToBeSubmittedHex = '0x' + minGasPriceBN.toString(16);
         await originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
-      } else if (gasPriceToBeSubmittedBN.lt(maxGasPriceBN)) {
-        gasPriceToBeSubmittedHex = '0x' + gasPriceToBeSubmittedBN.toString(16);
+      } else if (gasPriceToBeSubmittedBN.gt(maxGasPriceBN)) {
+        gasPriceToBeSubmittedHex = '0x' + maxGasPriceBN.toString(16);
         await originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
       } else {
-        gasPriceToBeSubmittedHex = '0x' + maxGasPriceBN.toString(16);
+        gasPriceToBeSubmittedHex = '0x' + gasPriceToBeSubmittedBN.toString(16);
         await originChainGasPriceCacheObj._setCache(gasPriceToBeSubmittedHex);
       }
       oThis.canExit = true;
