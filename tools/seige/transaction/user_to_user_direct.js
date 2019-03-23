@@ -41,10 +41,12 @@ const API_KEY = program.apiKey,
   API_SECRET = program.apiSecret,
   TOKEN_RULE_ADDRESS = program.tokenRulesAddress,
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
-  MAX_NO_OF_SENDERS = 250, // regardless of this number, it can not exceed half of users generated.
-  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 1;
+  MAX_NO_OF_SENDERS = 500, // regardless of this number, it can not exceed half of users generated.
+  PARALLEL_TRANSACTION = 50,
+  NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3;
 
-let maxIteration = 4;
+let maxIteration = 20,
+  sigintReceived = 0; // maxIteration * (MAX_NO_OF_SENDERS / PARALLEL_TRANSACTION)
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
@@ -72,7 +74,7 @@ class TransactionSiege {
 
     await oThis._getSessionKeyNonce();
 
-    await oThis.generateSignatures();
+    //await oThis.generateSignatures();
 
     await oThis.runExecuteTransaction();
   }
@@ -229,6 +231,76 @@ class TransactionSiege {
     });
   }
 
+  async runExecuteTransaction() {
+    const oThis = this;
+
+    let iterationCount = 0;
+    let timeNow = Date.now(),
+      reqBatchNumber = 0,
+      promiseArray = [];
+    console.log('\n\n\n ------------------------starting Transaction at ', timeNow);
+
+    while (iterationCount++ < maxIteration) {
+      for (let i = 0; i < oThis.senderUuids.length; i++) {
+        let senderUuid = oThis.senderUuids[i],
+          senderDetails = oThis.siegeData[senderUuid],
+          transferTos = oThis.receiverTokenHolders.slice(i, i + NO_OF_TRANSFERS_IN_EACH_TRANSACTION),
+          sessionNonce = oThis.sessionNonceMap[senderUuid];
+
+        if (!senderDetails.requestObj) {
+          senderDetails.requestObj = new RequestKlass({
+            tokenId: oThis.tokenId,
+            walletAddress: senderDetails.device_address,
+            apiSignerAddress: senderDetails.device_address,
+            apiSignerPrivateKey: senderDetails.device_pk,
+            apiEndpoint: API_END_POINT,
+            userUuid: senderUuid
+          });
+        }
+
+        let signParams = {
+          transferTos: transferTos,
+          senderUuid: senderUuid,
+          sessionNonce: sessionNonce
+        };
+
+        let signatureDetails = oThis._signEIP1077Transaction(signParams);
+
+        let queryParams = {
+            to: TOKEN_RULE_ADDRESS,
+            raw_calldata: signatureDetails.raw_calldata,
+            calldata: signatureDetails.calldata,
+            signature: signatureDetails.signature,
+            signer: senderDetails.session_address,
+            nonce: sessionNonce,
+            i: i + '-' + maxIteration
+          },
+          resource = `/users/${senderUuid}/transactions`;
+
+        let requestObj = senderDetails.requestObj;
+
+        let promise = requestObj
+          .post(resource, queryParams)
+          .then(function(response) {
+            oThis.sessionNonceMap[senderUuid] = oThis.sessionNonceMap[senderUuid] + 1;
+            //console.log('transaction passed for uuid', senderUuid, JSON.stringify(response));
+          })
+          .catch(function(err) {
+            console.log('transaction Failed for uuid', senderUuid, JSON.stringify(err));
+          });
+
+        promiseArray.push(promise);
+        if (i % PARALLEL_TRANSACTION == 0 || i + 1 == oThis.senderUuids.length) {
+          await Promise.all(promiseArray);
+          console.log('Request batch number ', ++reqBatchNumber);
+        }
+        if (sigintReceived) break;
+      }
+      if (sigintReceived) break;
+    }
+    console.log('--------complete Transaction in ms: ', Date.now() - timeNow);
+  }
+
   _signEIP1077Transaction(params) {
     const oThis = this;
 
@@ -273,40 +345,14 @@ class TransactionSiege {
       raw_calldata: raw_calldata
     };
   }
-
-  async runExecuteTransaction() {
-    const oThis = this;
-
-    let iterationCount = 0;
-    let timeNow = Date.now(),
-      promiseArray = [];
-    console.log('\n\n\n ------------------------starting Transaction at ', timeNow);
-    while (iterationCount++ < maxIteration) {
-      for (let i = 0; i < oThis.senderUuids.length; i++) {
-        let senderUuid = oThis.senderUuids[i],
-          senderDetails = oThis.siegeData[senderUuid],
-          requestDetails = senderDetails.requestDetails;
-        console.log('----------0000------------------', senderUuid, iterationCount);
-
-        let requestDetail = requestDetails.shift();
-        let requestObj = senderDetails.requestObj;
-
-        promiseArray.push(
-          requestObj
-            ._send('POST', requestDetail.resource, requestDetail.queryParams, requestDetail.requestData)
-            .then(function(response) {
-              //console.log('transaction for uuid', senderUuid, response)
-            })
-            .catch(function(err) {
-              console.log('transaction Failed for uuid', senderUuid, JSON.stringify(err));
-            })
-        );
-      }
-    }
-    console.log('--------complete Transaction in ms: ', Date.now() - timeNow);
-    await Promise.all(promiseArray);
-  }
 }
+
+function handle() {
+  logger.info('======= Sigint received =======');
+  sigintReceived = 1;
+}
+process.on('SIGINT', handle);
+process.on('SIGTERM', handle);
 
 let transactionSiege = new TransactionSiege();
 

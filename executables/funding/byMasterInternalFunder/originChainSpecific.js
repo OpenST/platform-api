@@ -253,6 +253,11 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
 
     // Populate Address in alert config
     for (const addressKind in oThis.alertConfig) {
+      // On production main, granter address is not present. Following is fix for the same.
+      if (!chainAddressesRsp.data[addressKind]) {
+        logger.log('skipping addressKind', addressKind);
+        continue;
+      }
       oThis.alertConfig[addressKind].address = chainAddressesRsp.data[addressKind].address;
       oThis.AdddressesToKindMap[oThis.alertConfig[addressKind].address] = addressKind;
     }
@@ -391,6 +396,12 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     for (const addressKind in oThis.alertConfig) {
       const alertConfigDetails = oThis.alertConfig[addressKind],
         address = alertConfigDetails.address;
+
+      // On production main, granter address is not present. Following is fix for the same.
+      if (!address) {
+        logger.info('skipping for address kind', addressKind);
+        continue;
+      }
 
       if (alertConfigDetails.minEthRequirement) {
         const addressEthRequirement = alertConfigDetails.minEthRequirement,

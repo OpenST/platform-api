@@ -51,7 +51,10 @@ class CronBase {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'unhandled_catch_response:e_cb_1',
         api_error_identifier: 'unhandled_catch_response',
-        debug_options: {}
+        debug_options: {
+          cronProcessId: oThis.cronProcessId,
+          cronName: oThis._cronKind
+        }
       });
 
       createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);

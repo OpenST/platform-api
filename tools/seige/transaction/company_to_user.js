@@ -36,11 +36,12 @@ const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   maxConnectionObjects = 4;
 
-let maxIteration = 1,
+let maxIteration = 1000,
   NO_OF_USERS_COVERAGE = 2000,
-  PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses. So using 8.
+  PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
-  receiverTokenHolders = [];
+  receiverTokenHolders = [],
+  sigintReceived = 0;
 
 https.globalAgent.keepAlive = true;
 https.globalAgent.keepAliveMsecs = 60 * 10000;
@@ -128,10 +129,19 @@ class TransactionSiege {
           await Promise.all(promiseArray);
           promiseArray = [];
         }
+        if (sigintReceived) break;
       }
+      if (sigintReceived) break;
     }
   }
 }
+
+function handle() {
+  logger.info('======= Sigint received =======');
+  sigintReceived = 1;
+}
+process.on('SIGINT', handle);
+process.on('SIGTERM', handle);
 
 let transactionSiege = new TransactionSiege();
 
