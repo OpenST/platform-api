@@ -233,7 +233,7 @@ class Session extends Base {
     if (response.isFailure()) {
       return Promise.reject(
         oThis._prepareErrorObject({
-          errorObject: err,
+          errorObject: response,
           internalErrorCode: 'a_m_d_s_s_2',
           apiErrorIdentifier: 'session_address_fetch_failed',
           debugOptions: { userId: userId }
