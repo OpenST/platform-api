@@ -91,7 +91,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     }
 
     if (oThis.userData.tokenHolderStatus !== tokenUserConstants.tokenHolderActiveStatus) {
-      return oThis._validationError('a_s_et_fu_4', ['token_holder_not_active'], {
+      return oThis._validationError('a_s_et_fu_4', ['invalid_signer'], {
         status: oThis.userData.tokenHolderStatus
       });
     }
