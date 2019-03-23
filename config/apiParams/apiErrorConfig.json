@@ -498,5 +498,15 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "A promise has timed out."
+  },
+  "dynamic_gas_price_threshold_exceeded": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Dynamic gas price exceeds threshold."
+  },
+  "dynamic_gas_price_zero": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Dynamic gas price zero."
   }
 }

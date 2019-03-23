@@ -18,13 +18,15 @@ const BigNumber = require('bignumber.js'),
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  CronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainIdConst = require(rootPrefix + '/lib/globalConstant/chainId'),
   localChainConfig = require(rootPrefix + '/tools/localSetup/config'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   environmentConst = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
-  CronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   originChainGasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 const usageDemo = function() {
@@ -43,8 +45,16 @@ if (!cronProcessId) {
   process.exit(1);
 }
 
+/**
+ * Class for update real time gas price cron.
+ *
+ * @class UpdateRealTimeGasPrice
+ */
 class UpdateRealTimeGasPrice extends CronBase {
   /**
+   * Constructor for update real time gas price cron.
+   *
+   * @augments CronBase
    *
    * @constructor
    */
@@ -83,6 +93,35 @@ class UpdateRealTimeGasPrice extends CronBase {
       estimatedGasPriceFloat = await dynamicGasPriceProvider.dynamicGasPrice.get(chainIdInternal, defaultGasPriceGWei);
       retryCount = retryCount - 1;
     }
+
+    // If estimated gas price is zero, this means none of the services used to fetch gas prices work. Send an alert in this scenario.
+    if (estimatedGasPriceFloat == 0) {
+      logger.error('e_urtgp_1', 'Dynamic gas price zero from services.');
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'dynamic_gas_price_zero:e_urtgp_1',
+        api_error_identifier: 'dynamic_gas_price_zero',
+        debug_options: {
+          estimatedGasPrice: estimatedGasPriceFloat,
+          threshold: defaultGasPriceGWei
+        }
+      });
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+    }
+
+    // If estimated gas price is greater than threshold, send an alert in this scenario.
+    if (estimatedGasPriceFloat > defaultGasPriceGWei) {
+      logger.error('e_urtgp_2', 'Dynamic gas price is greater than threshold.');
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'dynamic_gas_price_threshold_exceeded:e_urtgp_2',
+        api_error_identifier: 'dynamic_gas_price_threshold_exceeded',
+        debug_options: {
+          estimatedGasPrice: estimatedGasPriceFloat,
+          threshold: defaultGasPriceGWei
+        }
+      });
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+    }
+
     // All constants will be stored in Gwei.
     if (estimatedGasPriceFloat > 0) {
       let estimatedGasPrice = Math.ceil(estimatedGasPriceFloat),
@@ -117,9 +156,10 @@ class UpdateRealTimeGasPrice extends CronBase {
   }
 
   /**
-   *
    * This function provides info whether the process has to exit.
-   * @returns {string}
+   *
+   * @returns {Boolean}
+   *
    * @private
    */
   _pendingTasksDone() {
@@ -129,6 +169,7 @@ class UpdateRealTimeGasPrice extends CronBase {
   }
 
   /**
+   * Validate and sanitize.
    *
    * @private
    */
@@ -137,8 +178,10 @@ class UpdateRealTimeGasPrice extends CronBase {
   }
 
   /**
+   * Get cron kind.
    *
-   * @returns {string}
+   * @returns {String}
+   *
    * @private
    */
   get _cronKind() {
