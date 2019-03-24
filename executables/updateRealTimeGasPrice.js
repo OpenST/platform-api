@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This script will update the gas price using ost-dynamic-gas-price package.
  * This fetches an estimated gas price for which Transaction could get mined in less than 5 minutes.
@@ -9,39 +8,40 @@
  * Command Line Parameters Description:
  * processLockId is used for ensuring that no other process with the same processLockId can run on a given machine.
  *
- * Example: node executables/updateRealtimeGasPrice.js 1
+ * Example: node executables/updateRealTimeGasPrice.js --cronProcessId 2
  *
  * @module executables/updateRealtimeGasPrice
  */
-const BigNumber = require('bignumber.js'),
+const program = require('commander'),
+  BigNumber = require('bignumber.js'),
   dynamicGasPriceProvider = require('@ostdotcom/ost-dynamic-gas-price');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   CronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  OriginChainGasPriceCache = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainIdConst = require(rootPrefix + '/lib/globalConstant/chainId'),
   localChainConfig = require(rootPrefix + '/tools/localSetup/config'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
-  environmentConst = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
-  originChainGasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
+  environmentConst = require(rootPrefix + '/lib/globalConstant/environmentInfo');
 
-const usageDemo = function() {
-  logger.log('Usage:', 'node executables/updateRealtimeGasPrice.js cronProcessId');
-  logger.log('* cronProcessId is used for proper handling of cron.');
-};
+program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
-// Declare variables.
-const args = process.argv,
-  cronProcessId = parseInt(args[2]);
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log('    node executables/updateRealTimeGasPrice.js --cronProcessId 2');
+  logger.log('');
+  logger.log('');
+});
 
-// Validate and sanitize the command line arguments.
-if (!cronProcessId) {
-  logger.error('Cron Process id NOT passed in the arguments.');
-  usageDemo();
+if (!program.cronProcessId) {
+  program.help();
   process.exit(1);
 }
 
@@ -54,14 +54,18 @@ class UpdateRealTimeGasPrice extends CronBase {
   /**
    * Constructor for update real time gas price cron.
    *
+   * @param {Object} params
+   * @param {Number} params.cronProcessId
+   *
    * @augments CronBase
    *
    * @constructor
    */
-  constructor() {
-    let params = { cronProcessId: cronProcessId };
+  constructor(params) {
     super(params);
+
     const oThis = this;
+
     oThis.canExit = true;
   }
 
@@ -86,12 +90,12 @@ class UpdateRealTimeGasPrice extends CronBase {
     let estimatedGasPriceFloat = 0,
       oneGWei = new BigNumber('1000000000'),
       defaultGasPriceGWei = new BigNumber(coreConstants.DEFAULT_ORIGIN_GAS_PRICE).div(oneGWei).toNumber(10),
-      originChainGasPriceCacheObj = new originChainGasPriceCacheKlass(),
+      originChainGasPriceCacheObj = new OriginChainGasPriceCache(),
       retryCount = 10;
 
     while (retryCount > 0 && estimatedGasPriceFloat === 0) {
       estimatedGasPriceFloat = await dynamicGasPriceProvider.dynamicGasPrice.get(chainIdInternal, defaultGasPriceGWei);
-      retryCount = retryCount - 1;
+      retryCount -= 1;
     }
 
     // If estimated gas price is zero, this means none of the services used to fetch gas prices work. Send an alert in this scenario.
@@ -146,10 +150,13 @@ class UpdateRealTimeGasPrice extends CronBase {
       }
       oThis.canExit = true;
       logger.info('Origin chain gas price cache is set to:', gasPriceToBeSubmittedHex);
+
       return responseHelper.successWithData(gasPriceToBeSubmittedHex);
     }
 
-    logger.info('Origin chain gas price cache is not set', estimatedGasPriceFloat, chainIdInternal);
+    logger.error(
+      `Origin chain gas price cache is not set. Estimated gas price: ${estimatedGasPriceFloat}. Chain Id: ${chainIdInternal}`
+    );
     oThis.canExit = true;
 
     return responseHelper.successWithData({});
@@ -189,12 +196,15 @@ class UpdateRealTimeGasPrice extends CronBase {
   }
 }
 
-const UpdateRealTimeGasPriceObj = new UpdateRealTimeGasPrice();
-
-UpdateRealTimeGasPriceObj.perform().then(async function() {
-  logger.info('Cron last run at: ', Date.now());
-  setTimeout(function() {
-    //Call StopProcess of CronProcessHandler
+// Perform action
+new UpdateRealTimeGasPrice({ cronProcessId: +program.cronProcessId })
+  .perform()
+  .then(function() {
+    setTimeout(function() {
+      // Call StopProcess of CronProcessHandler.
+      process.emit('SIGINT');
+    }, 5000); // To kill the process after 5 seconds expecting that the cache will be set by then.
+  })
+  .catch(function() {
     process.emit('SIGINT');
-  }, 5000); //To kill the process after 5 seconds expecting that the cache will be set by then.
-});
+  });
