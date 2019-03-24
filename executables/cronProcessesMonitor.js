@@ -99,7 +99,7 @@ class CronProcessesMonitorExecutable extends CronBase {
         [cronProcessesConstants.auxToOriginStateRootSync]: 1 * 24 * 60 * 60 * 1000,
         [cronProcessesConstants.updatePriceOraclePricePoints]: 55 * 60 * 1000,
         [cronProcessesConstants.executeRecovery]: 10 * 60 * 1000,
-        [cronProcessesConstants.updateRealtimeGasPrice]: 10 * 60 * 1000 // TODO: Find this later.
+        [cronProcessesConstants.updateRealtimeGasPrice]: 5 * 60 * 1000
       }
     };
 
