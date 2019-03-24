@@ -6,8 +6,8 @@ const API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   NUMBER_OF_USERS = 100,
   CREDENTIALS_ARRAY = [
     {
-      apiKey: '7cc96ecdaf395f5dcfc005a9df31e798',
-      apiSecret: '38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
+      apiKey: '20dbb1a1592df45adf1bcb38ad51e6ee',
+      apiSecret: '302c2841a45ed81395d815d29b0011b61cc2f51717545f2bfe52e776fcc4b604',
       apiEndPoint: 'https://s6-api.stagingost.com/mainnet/v2'
     }
   ];

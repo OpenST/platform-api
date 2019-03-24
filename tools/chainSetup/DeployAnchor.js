@@ -90,6 +90,7 @@ class DeployAnchor {
       remoteChainId: oThis.remoteChainId,
       signerAddress: oThis.signerAddress,
       chainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.chainId, 'readWrite'),
+      remoteChainEndpoint: oThis._configStrategyObject.chainWsProvider(oThis.remoteChainId, 'readWrite'),
       gasPrice: oThis.gasPrice,
       organizationAddress: oThis.organizationAddress,
       gas: contractConstants.deployAnchorGas
@@ -135,8 +136,8 @@ class DeployAnchor {
         break;
       case coreConstants.auxChainKind:
         oThis.chainId = oThis._configStrategyObject.auxChainId;
-        oThis.remoteChainId = oThis._configStrategyObject.originChainId;
         oThis.anchorKind = chainAddressConstants.auxAnchorContractKind;
+        oThis.remoteChainId = oThis._configStrategyObject.originChainId;
         oThis.gasPrice = contractConstants.zeroGasPrice;
         oThis.associatedAuxChainId = oThis.chainId;
         oThis.deployerKind = chainAddressConstants.auxDeployerKind;

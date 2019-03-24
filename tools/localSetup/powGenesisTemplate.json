@@ -6,7 +6,7 @@
     "eip155Block": 3,
     "eip158Block": 3,
     "byzantiumBlock": 4,
-    "chainId": 1000
+    "chainId": 3
   },
   "gasLimit": "0x989680",
   "difficulty": "0x1",

@@ -205,36 +205,6 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
   }
 
   /**
-   * This function calculates token funder's st prime requirement.
-   *
-   * @returns {Object}
-   */
-  calculateTokenAuxFunderStPrimeRequirement() {
-    let maxBalanceToFund = basicHelper.convertToWei(String(0)),
-      thresholdBalance = basicHelper.convertToWei(String(0));
-
-    const tokenAuxFunderConfig = basicHelper.deepDup(fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas);
-
-    for (const address in tokenAuxFunderConfig) {
-      maxBalanceToFund = maxBalanceToFund.plus(
-        basicHelper.convertToWei(String(tokenAuxFunderConfig[address].fundAmount))
-      );
-      thresholdBalance = thresholdBalance.plus(
-        basicHelper.convertToWei(String(tokenAuxFunderConfig[address].thresholdAmount))
-      );
-    }
-
-    const calculation = {
-      [tokenAddressConstants.auxFunderAddressKind]: {
-        maxBalanceToFundAtOneGwei: maxBalanceToFund.toString(10),
-        thresholdBalanceAtOneGwei: thresholdBalance.toString(10)
-      }
-    };
-
-    return calculation;
-  }
-
-  /**
    * This function tells if the master internal funder eth balance is greater than the given amount.
    *
    * @param amount

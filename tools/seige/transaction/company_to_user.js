@@ -16,6 +16,7 @@ program
   .option('--apiSecret <apiSecret>', 'API Secret')
   .option('--tokenRulesAddress <tokenRulesAddress>', 'tokenRulesAddress')
   .option('--companyUuid <companyUuid>', 'tokenRulesAddress')
+  .option('--tokenId <tokenId>', 'tokenId')
   .parse(process.argv);
 
 program.on('--help', function() {
@@ -33,10 +34,11 @@ const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
   API_SECRET = program.apiSecret, //'38f6a48c63b5b4decbc8e56b29499e2c77ad14ae1cb16f4432369ffdfccb0bbf',
   TOKEN_RULE_ADDRESS = program.tokenRulesAddress, //'0xbfd29a0f8d56bee16a68c5156e496f032ede28e9',
   COMPANY_UUID = program.companyUuid, //'f65aa896-232b-4d62-b326-e8a38e207469',
+  tokenId = program.tokenId,
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   maxConnectionObjects = 4;
 
-let maxIteration = 1000,
+let maxIteration = 100,
   NO_OF_USERS_COVERAGE = 2000,
   PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
@@ -65,7 +67,7 @@ class TransactionSiege {
 
     let Rows = await siegeUser
       .select('*')
-      .where(['token_holder_contract_address IS NOT NULL'])
+      .where(['token_id=? AND token_holder_contract_address IS NOT NULL', tokenId])
       .limit(NO_OF_USERS_COVERAGE)
       .fire();
 
@@ -112,10 +114,29 @@ class TransactionSiege {
           parameters: [transferTos, transferAmounts]
         });
 
+        let metaType = 'company_to_user';
+
+        if (i % 3 === 0) {
+          metaType = 'company_to_user';
+        } else if (i % 3 === 1) {
+          metaType = 'user_to_user';
+        } else {
+          metaType = 'user_to_company';
+        }
+
+        let name = 'TestName' + (i % 50);
+
+        let metaPropertyParams = {
+          name: name,
+          type: metaType,
+          details: 'seize test data'
+        };
+
         let executeParams = {
           user_id: COMPANY_UUID,
           to: TOKEN_RULE_ADDRESS,
           raw_calldata: raw_calldata,
+          meta_property: metaPropertyParams,
           i: i + '-' + maxIteration
         };
 

@@ -73,6 +73,7 @@ class StateRootSyncBase extends CronBase {
 
     oThis.canExit = false;
 
+    //Rachin: do not await on _setChainId
     logger.step('Set source and destination chainIds');
     await oThis._setChainId();
 
@@ -92,6 +93,7 @@ class StateRootSyncBase extends CronBase {
    *
    * @private
    */
+   // Rachin: Should this be set chainIds?
   _setChainId() {
     throw 'sub class to implement.';
   }
