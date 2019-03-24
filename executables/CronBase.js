@@ -45,6 +45,10 @@ class CronBase {
     const oThis = this;
 
     return oThis.asyncPerform().catch(function(err) {
+      oThis.canExit = true;
+
+      logger.log('Marked can exit as true in cron Base catch block.');
+
       // If asyncPerform fails, run the below catch block.
       logger.error('Error in executables/CronBase.js: ', err);
 
@@ -58,7 +62,6 @@ class CronBase {
       });
 
       createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-      oThis.canExit = true;
 
       return responseHelper.error({
         internal_error_identifier: 'e_cb_2',
@@ -131,14 +134,13 @@ class CronBase {
           // Rachin: Why exit code 1? The pending tasks are done. Right?
           process.exit(1);
         });
-
       } else {
         logger.info(':: There are pending tasks. Waiting for completion.');
         // Rachin: Consider breaking this function into 2 parts:
         // a. One that is signal handler which:
         //    1. _stopPickingUpNewTasks
         //    2. schedules sendNotification
-        // b. The other that is a recursive method which verifies _pendingTasksDone.    
+        // b. The other that is a recursive method which verifies _pendingTasksDone.
         setTimeout(handle, 1000);
       }
     };
