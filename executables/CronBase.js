@@ -111,6 +111,7 @@ class CronBase {
      * Handler for SIGINT and SIGTERM signals.
      */
     const handle = function() {
+      // Rachin: Does this need to be called more than once?
       oThis._stopPickingUpNewTasks();
 
       // We need to call notifier only once.
@@ -121,14 +122,23 @@ class CronBase {
 
       if (oThis._pendingTasksDone()) {
         logger.info(':: No pending tasks. Changing the status ');
+
+        //Rachin: What will happen if stopProcess thorws an exception?
         cronProcessHandlerObject.stopProcess(oThis.cronProcessId).then(function() {
           logger.info('Status and last_ended_at updated in table. Killing process.');
 
           // Stop the process only after the entry has been updated in the table.
+          // Rachin: Why exit code 1? The pending tasks are done. Right?
           process.exit(1);
         });
+
       } else {
         logger.info(':: There are pending tasks. Waiting for completion.');
+        // Rachin: Consider breaking this function into 2 parts:
+        // a. One that is signal handler which:
+        //    1. _stopPickingUpNewTasks
+        //    2. schedules sendNotification
+        // b. The other that is a recursive method which verifies _pendingTasksDone.    
         setTimeout(handle, 1000);
       }
     };
