@@ -149,6 +149,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     let economyDetails = cacheResponse.data[oThis.economyContractAddress];
 
+    // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecession needs wei value.
     oThis.totalSupplyInWei = economyDetails.totalSupply;
     oThis.totalVolumeInWei = basicHelper.convertToWei(economyDetails.totalVolume);
   }
