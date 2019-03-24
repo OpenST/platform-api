@@ -150,7 +150,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     let economyDetails = cacheResponse.data[oThis.economyContractAddress];
 
     oThis.totalSupplyInWei = economyDetails.totalSupply;
-    oThis.totalVolumeInWei = economyDetails.totalVolume;
+    oThis.totalVolumeInWei = basicHelper.convertToWei(economyDetails.totalVolume);
   }
 
   /**
