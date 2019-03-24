@@ -37,7 +37,7 @@ class OriginChainSpecificCronSeeder {
   async insertBlockParserEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.blockParser, {
-        chainId: 1000,
+        chainId: 3,
         intentionalBlockDelay: 0
       })
       .then(function(insertId) {
@@ -53,7 +53,7 @@ class OriginChainSpecificCronSeeder {
   async insertTransactionParserEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.transactionParser, {
-        chainId: 1000,
+        chainId: 3,
         prefetchCount: 5,
         sequenceNumber: 1
       })
@@ -70,7 +70,7 @@ class OriginChainSpecificCronSeeder {
   async insertBlockFinalizerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.blockFinalizer, {
-        chainId: 1000
+        chainId: 3
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
@@ -85,7 +85,7 @@ class OriginChainSpecificCronSeeder {
   async insertFundByMasterInternalFunderOriginChainSpecificEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.fundByMasterInternalFunderOriginChainSpecific, {
-        originChainId: 1000
+        originChainId: 3
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

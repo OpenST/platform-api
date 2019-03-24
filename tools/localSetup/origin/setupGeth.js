@@ -12,7 +12,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node tools/localSetup/origin/setupGeth.js --originChainId 1000');
+  logger.log('    node tools/localSetup/origin/setupGeth.js --originChainId 3');
   logger.log('');
   logger.log('');
 });

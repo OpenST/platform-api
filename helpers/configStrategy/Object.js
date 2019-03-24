@@ -26,36 +26,211 @@ class ConfigStrategyObject {
     oThis.configStrategy = configStrategy;
   }
 
+  /**
+   * GETH related methods / properties - START
+   */
+  originChainConfig() {
+    const oThis = this;
+    return oThis.configStrategy[configStrategyConstants.originGeth];
+  }
+
+  auxChainConfig() {
+    const oThis = this;
+    return oThis.configStrategy[configStrategyConstants.auxGeth];
+  }
+
+  isOriginChain(chainId) {
+    const oThis = this;
+
+    if (!oThis.originChainConfig()) return false;
+
+    return oThis.originChainId == chainId;
+  }
+
+  isAuxChain(chainId) {
+    const oThis = this;
+
+    if (!oThis.auxChainConfig()) return false;
+
+    return oThis.auxChainId == chainId;
+  }
+
   get originChainId() {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth].chainId;
+    return oThis.originChainConfig().chainId;
   }
 
   get auxChainId() {
     const oThis = this;
-    return (oThis.configStrategy[configStrategyConstants.auxGeth] || {}).chainId;
+    return oThis.auxChainConfig().chainId;
   }
 
   get originChainClient() {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth].client;
+    return oThis.originChainConfig().client;
   }
 
   get auxChainClient() {
     const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth].client;
+    return oThis.auxChainConfig().client;
   }
+
+  originChainWsProviders(intent) {
+    const oThis = this;
+    let wsProviders = oThis.originChainConfig()[intent].wsProviders;
+    return basicHelper.shuffleArray(wsProviders);
+  }
+
+  auxChainWsProviders(intent) {
+    const oThis = this;
+    let wsProviders = oThis.auxChainConfig()[intent].wsProviders;
+    return basicHelper.shuffleArray(wsProviders);
+  }
+
+  originChainRpcProviders(intent) {
+    const oThis = this;
+    return oThis.originChainConfig()[intent].rpcProviders;
+  }
+
+  auxChainRpcProviders(intent) {
+    const oThis = this;
+    return oThis.auxChainConfig()[intent].rpcProviders;
+  }
+
+  originChainWsProvider(intent) {
+    const oThis = this;
+
+    let providers = oThis.originChainWsProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
+  }
+
+  auxChainWsProvider(intent) {
+    const oThis = this;
+
+    let providers = oThis.auxChainWsProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
+  }
+
+  originChainRpcProvider(intent) {
+    const oThis = this;
+
+    let providers = oThis.originChainRpcProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
+  }
+
+  auxChainRpcProvider(intent) {
+    const oThis = this;
+
+    let providers = oThis.auxChainRpcProviders(intent),
+      shuffledProviders = basicHelper.shuffleArray(providers);
+
+    return shuffledProviders[0];
+  }
+
+  originFinalizeAfterBlocks() {
+    const oThis = this;
+    return oThis.originChainConfig().finalizeAfterBlocks;
+  }
+
+  auxFinalizeAfterBlocks() {
+    const oThis = this;
+    return oThis.auxChainConfig().finalizeAfterBlocks;
+  }
+
+  chainRpcProviders(chainId, intent) {
+    const oThis = this;
+    if (oThis.isAuxChain(chainId)) {
+      return oThis.auxChainRpcProviders(intent);
+    } else if (oThis.isOriginChain(chainId)) {
+      return oThis.originChainRpcProviders(intent);
+    } else {
+      throw 'Chain rpc providers not found for chain id: ' + chainId;
+    }
+  }
+
+  chainWsProviders(chainId, intent) {
+    const oThis = this;
+    if (oThis.isAuxChain(chainId)) {
+      return oThis.auxChainWsProviders(intent);
+    } else if (oThis.isOriginChain(chainId)) {
+      return oThis.originChainWsProviders(intent);
+    } else {
+      throw 'Chain ws providers not found for chain id: ' + chainId;
+    }
+  }
+
+  chainRpcProvider(chainId, intent) {
+    const oThis = this;
+    if (oThis.isAuxChain(chainId)) {
+      return oThis.auxChainRpcProvider(intent);
+    } else if (oThis.isOriginChain(chainId)) {
+      return oThis.originChainRpcProvider(intent);
+    } else {
+      throw 'Chain rpc provider not found for chain id: ' + chainId;
+    }
+  }
+
+  chainWsProvider(chainId, intent) {
+    const oThis = this;
+    if (oThis.isAuxChain(chainId)) {
+      return oThis.auxChainWsProvider(intent);
+    } else if (oThis.isOriginChain(chainId)) {
+      return oThis.originChainWsProvider(intent);
+    } else {
+      throw 'Chain ws provider not found for chain id: ' + chainId;
+    }
+  }
+
+  chainKind(chainId) {
+    const oThis = this;
+    if (oThis.isAuxChain(chainId)) {
+      return oThis.auxChainClient;
+    } else if (oThis.isOriginChain(chainId)) {
+      return oThis.originChainClient;
+    } else {
+      throw 'Chain kind not found for chain id: ' + chainId;
+    }
+  }
+
+  chainClient(chainId) {
+    const oThis = this;
+    if (oThis.isAuxChain(chainId)) {
+      return oThis.auxChainClient;
+    } else if (oThis.isOriginChain(chainId)) {
+      return oThis.originChainClient;
+    } else {
+      throw 'Chain client not found for chain id: ' + chainId;
+    }
+  }
+
+  /**
+   * GETH related methods / properties - END
+   */
 
   get elasticSearchConfig() {
     const oThis = this;
     return oThis.configStrategy[configStrategyConstants.elasticSearch];
   }
 
+  get extraStorageColumnsForOriginDdb() {
+    const oThis = this;
+    return {
+      pendingTransactions: oThis.pendingTransactionsExtraConfig,
+      transactions: oThis.transactionsExtraConfig
+    };
+  }
+
   extraStorageColumnsForDdb(chainId) {
     const oThis = this;
-    if (oThis.auxChainId == chainId) {
+    if (oThis.isAuxChain(chainId)) {
       return oThis.extraStorageColumnsForAuxDdb;
-    } else if (oThis.originChainId == chainId) {
+    } else if (oThis.isOriginChain(chainId)) {
       return oThis.extraStorageColumnsForOriginDdb;
     } else {
       return {};
@@ -171,142 +346,12 @@ class ConfigStrategyObject {
     };
   }
 
-  get extraStorageColumnsForOriginDdb() {
-    const oThis = this;
-    return {
-      pendingTransactions: oThis.pendingTransactionsExtraConfig,
-      transactions: oThis.transactionsExtraConfig
-    };
-  }
-
   get subEnvDdbTablePrefix() {
     const oThis = this;
     return oThis.configStrategy[configStrategyConstants.constants].subEnvDdbTablePrefix;
   }
 
   get esConfig() {}
-
-  originChainWsProviders(intent) {
-    const oThis = this;
-    let wsProviders = oThis.configStrategy[configStrategyConstants.originGeth][intent].wsProviders;
-    return basicHelper.shuffleArray(wsProviders);
-  }
-
-  auxChainWsProviders(intent) {
-    const oThis = this;
-    let wsProviders = oThis.configStrategy[configStrategyConstants.auxGeth][intent].wsProviders;
-    return basicHelper.shuffleArray(wsProviders);
-  }
-
-  originChainRpcProviders(intent) {
-    const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth][intent].rpcProviders;
-  }
-
-  auxChainRpcProviders(intent) {
-    const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth][intent].rpcProviders;
-  }
-
-  originChainWsProvider(intent) {
-    const oThis = this;
-
-    let providers = oThis.originChainWsProviders(intent),
-      shuffledProviders = basicHelper.shuffleArray(providers);
-
-    return shuffledProviders[0];
-  }
-
-  auxChainWsProvider(intent) {
-    const oThis = this;
-
-    let providers = oThis.auxChainWsProviders(intent),
-      shuffledProviders = basicHelper.shuffleArray(providers);
-
-    return shuffledProviders[0];
-  }
-
-  originChainRpcProvider(intent) {
-    const oThis = this;
-
-    let providers = oThis.originChainRpcProviders(intent),
-      shuffledProviders = basicHelper.shuffleArray(providers);
-
-    return shuffledProviders[0];
-  }
-
-  auxChainRpcProvider(intent) {
-    const oThis = this;
-
-    let providers = oThis.auxChainRpcProviders(intent),
-      shuffledProviders = basicHelper.shuffleArray(providers);
-
-    return shuffledProviders[0];
-  }
-
-  originFinalizeAfterBlocks() {
-    const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.originGeth].finalizeAfterBlocks;
-  }
-
-  auxFinalizeAfterBlocks() {
-    const oThis = this;
-    return oThis.configStrategy[configStrategyConstants.auxGeth].finalizeAfterBlocks;
-  }
-
-  chainRpcProviders(chainId, intent) {
-    const oThis = this;
-    if (oThis.auxChainId == chainId) {
-      return oThis.auxChainRpcProviders(intent);
-    } else {
-      return oThis.originChainRpcProviders(intent);
-    }
-  }
-
-  chainWsProviders(chainId, intent) {
-    const oThis = this;
-    if (oThis.auxChainId == chainId) {
-      return oThis.auxChainWsProviders(intent);
-    } else {
-      return oThis.originChainWsProviders(intent);
-    }
-  }
-
-  chainRpcProvider(chainId, intent) {
-    const oThis = this;
-    if (oThis.auxChainId == chainId) {
-      return oThis.auxChainRpcProvider(intent);
-    } else {
-      return oThis.originChainRpcProvider(intent);
-    }
-  }
-
-  chainWsProvider(chainId, intent) {
-    const oThis = this;
-    if (oThis.auxChainId == chainId) {
-      return oThis.auxChainWsProvider(intent);
-    } else {
-      return oThis.originChainWsProvider(intent);
-    }
-  }
-
-  chainKind(chainId) {
-    const oThis = this;
-    if (oThis.auxChainId == chainId) {
-      return oThis.auxChainClient;
-    } else {
-      return oThis.originChainClient;
-    }
-  }
-
-  chainClient(chainId) {
-    const oThis = this;
-    if (oThis.auxChainId == chainId) {
-      return oThis.auxChainClient;
-    } else {
-      return oThis.originChainClient;
-    }
-  }
 }
 
 module.exports = ConfigStrategyObject;

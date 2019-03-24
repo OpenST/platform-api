@@ -15,7 +15,6 @@ program
   .option('--chainId <chainId>', 'Chain id')
   .option('--networkId <networkId>', 'Network id')
   .option('--blockShardCount [blockShardCount]>', 'Number of block shards to be created')
-  .option('--economyShardCount [economyShardCount]>', 'Number of economy shards to be created')
   .option('--economyAddressShardCount [economyAddressShardCount]', 'Number of economy address shards to be created')
   .option('--transactionShardCount [transactionShardCount]', 'Number of transaction shards to be created')
   .parse(process.argv);
@@ -25,7 +24,7 @@ program.on('--help', () => {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/setup/blockScanner/addChain.js --chainId 1000 --networkId 1 --blockShardCount 2 --economyShardCount 2 --economyAddressShardCount 2 --transactionShardCount 2'
+    '    node executables/setup/blockScanner/addChain.js --chainId 3 --networkId 3 --blockShardCount 1 --transactionShardCount 1 --economyAddressShardCount 2'
   );
   logger.log('');
   logger.log('');
