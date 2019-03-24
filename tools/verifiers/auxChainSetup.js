@@ -200,6 +200,9 @@ class AuxChainSetup {
     ).web3WsProvider;
     oThis.originChainId = originReadWriteConfig.chainId;
 
+    if (oThis.originChainId == oThis.auxChainId)
+      return Promise.reject('Origin chain id cannot be same as aux chain id.');
+
     let auxReadWriteConfig = configForChain[configStrategyConstants.gethReadWrite];
     oThis.auxWeb3Instance = web3Provider.getInstance(auxReadWriteConfig.wsProvider).web3WsProvider;
     oThis.verifiersHelper = new VerifiersHelper(oThis.auxWeb3Instance);
@@ -357,16 +360,19 @@ class AuxChainSetup {
 
     let verifierHelperObj = null,
       remoteChainId = null,
-      coAnchorAddress = null;
+      coAnchorAddress = null,
+      remoteWeb3Instance = null;
 
     if (anchorKind === chainAddressConstants.originAnchorContractKind) {
       verifierHelperObj = new VerifiersHelper(oThis.originWeb3Instance);
       remoteChainId = parseInt(oThis.auxChainId);
       coAnchorAddress = oThis.auxAnchorContractAddress;
+      remoteWeb3Instance = oThis.auxWeb3Instance;
     } else {
       verifierHelperObj = new VerifiersHelper(oThis.auxWeb3Instance);
       remoteChainId = parseInt(oThis.originChainId);
       coAnchorAddress = oThis.originAnchorContractAddress;
+      remoteWeb3Instance = oThis.originWeb3Instance;
     }
 
     let dbAnchorOrganizationAddress = null,
@@ -398,25 +404,35 @@ class AuxChainSetup {
       return Promise.reject();
     }
 
-    let organizationContractObj = await verifierHelperObj.getContractObj('Anchor', dbAnchorContractAddress);
+    let anchorContractObj = await verifierHelperObj.getContractObj('Anchor', dbAnchorContractAddress);
 
     logger.log('* Validating the anchor organization address.');
-    let chainOrganizationAddress = await organizationContractObj.methods.organization().call({});
+    let chainOrganizationAddress = await anchorContractObj.methods.organization().call({});
     if (chainOrganizationAddress.toLowerCase() !== dbAnchorOrganizationAddress.toLowerCase()) {
       logger.error('Deployment verification of anchor organization failed.');
       Promise.reject();
     }
 
     logger.log('* Validating the co-anchor address.');
-    let chainCoAnchor = await organizationContractObj.methods.coAnchor().call({});
+    let chainCoAnchor = await anchorContractObj.methods.coAnchor().call({});
     if (coAnchorAddress.toLowerCase() !== chainCoAnchor.toLowerCase()) {
       logger.error('Deployment verification co-anchor address failed.');
       Promise.reject();
     }
 
-    let chainRemoteChainId = await organizationContractObj.methods.getRemoteChainId().call({});
+    logger.log('* Validating the remote chain id.');
+    let chainRemoteChainId = await anchorContractObj.methods.getRemoteChainId().call({});
     if (parseInt(chainRemoteChainId) !== remoteChainId) {
       logger.error('Deployment verification of RemoteChainId parameter failed.');
+      Promise.reject();
+    }
+
+    let contractLatestStateRootBlockHeight = await anchorContractObj.methods.getLatestStateRootBlockHeight().call({});
+    let committedStateRoot = await anchorContractObj.methods.getStateRoot(contractLatestStateRootBlockHeight).call({});
+
+    let remoteChainBlock = await remoteWeb3Instance.eth.getBlock(contractLatestStateRootBlockHeight);
+    if (remoteChainBlock.stateRoot !== committedStateRoot) {
+      logger.error('Committed state root mis-match found for', anchorKind);
       Promise.reject();
     }
   }

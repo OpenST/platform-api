@@ -55,7 +55,7 @@ asso.perform().then(console.log);
 
 require('./lib/setup/economy/VerifySetup');
 EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
-asso = new EconomySetupVerifier({originChainId:1000, auxChainId: 2000, tokenId: 1000});
+asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1000});
 asso.perform().then(console.log);
 
 
@@ -204,7 +204,7 @@ require(rootPrefix + '/lib/setup/economy/VerifySetup.js')
 
 EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace,'EconomySetupVerifier');
 
-a = new EconomySetupVerifier({tokenId: 1004, originChainId: 1000, auxChainId: 2000})
+a = new EconomySetupVerifier({tokenId: 1004, originChainId: 3, auxChainId: 2000})
 
 a.perform().then(console.log)
 
@@ -252,14 +252,14 @@ auxAdmin = '0x48803484991537a70aa376b4239029cd7787a37b';
 originDeployer = '0x70e339ffeb9cef3e19fae77e87ac23ee8876820b';
 
 auxChainId = 2000;
-originChainId = 1000;
+originChainId = 3;
 
 a = require('./lib/getBalance/Eth');
 b = new a({originChainId: originChainId, addresses: [chainOwner, originDeployer, facilitator]});
 b.perform().then(console.log);
 
 a = require('./lib/getBalance/Ost');
-b = new a({originChainId: 1000, addresses: ['0x51f79cc09a4d3464e52a686292c6e9e371095b4b']});
+b = new a({originChainId: 3, addresses: ['0x51f79cc09a4d3464e52a686292c6e9e371095b4b']});
 b.perform().then(console.log);
 
 a = require('./lib/getBalance/StPrime');
