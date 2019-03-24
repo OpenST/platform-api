@@ -113,8 +113,8 @@ fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
 
     // token user multisig worker
     [tokenAddressConstants.tokenUserOpsWorkerKind]: {
-      fundAmount: '13.5941',
-      thresholdAmount: '6.79705'
+      fundAmount: '14.1661',
+      thresholdAmount: '7.08305'
     },
 
     // recovery controller
