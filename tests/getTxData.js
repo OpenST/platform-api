@@ -15,6 +15,7 @@ const EIP20GatewayAbi = mosaicJsAbiBinProvider.getABI('EIP20Gateway'),
   TokenHolderAbi = OpenSTJsAbiBinProvider.getABI('TokenHolder'),
   GatewayComposerAbi = brandedTokenAbiBinProvider.getABI('GatewayComposer'),
   BrandedTokenAbi = brandedTokenAbiBinProvider.getABI('BrandedToken'),
+  CoGatewayAbi = brandedTokenAbiBinProvider.getABI('CoGatewayUtilityTokenInterface'),
   UtilityBrandedTokenAbi = brandedTokenAbiBinProvider.getABI('UtilityBrandedToken'),
   DelayedRecoveryModuleAbi = OpenSTJsAbiBinProvider.getABI('DelayedRecoveryModule'),
   UserWalletFactoryAbi = OpenSTJsAbiBinProvider.getABI('UserWalletFactory'),
@@ -28,6 +29,7 @@ abiDecoder.addABI(TokenHolderAbi);
 abiDecoder.addABI(GatewayComposerAbi);
 abiDecoder.addABI(BrandedTokenAbi);
 abiDecoder.addABI(UtilityBrandedTokenAbi);
+abiDecoder.addABI(CoGatewayAbi);
 
 abiDecoder.addABI(DelayedRecoveryModuleAbi);
 abiDecoder.addABI(UserWalletFactoryAbi);
