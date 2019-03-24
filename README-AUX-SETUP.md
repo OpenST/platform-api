@@ -93,7 +93,7 @@ And add it to tables using following script.
    
 ## Run block-scanner crons and aggregator
 
-* Run Aggregator
+* Run Aggregator. This is done only to initialize the queue.
 ```bash
     source set_env_vars.sh
     node executables/blockScanner/aggregator.js --cronProcessId 11

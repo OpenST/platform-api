@@ -68,7 +68,7 @@ NOTE: Copy the ETH funder private key for later use.
 
 * [Only Development] Start Origin GETH with this script.	
 ```bash	
-    sh ~/openst-setup/bin/origin-3/origin-chain-3.sh	
+    sh ~/openst-setup/bin/origin-3/origin-chain-3.sh
 ```
 
 * [Only DevOps] Fund master internal funder address (EXCEPT PRODUCTION MAIN ENV)
@@ -189,5 +189,5 @@ Granter address gets ETH and OST in this step.
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7 //TODO-FUNDING: Wrong addresses funded here?
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7
 ```
