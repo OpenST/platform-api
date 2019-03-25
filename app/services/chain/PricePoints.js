@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This service fetches price points
  *
@@ -6,33 +5,36 @@
  */
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint');
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig');
 
 /**
- * Class for Price Points Get API
+ * Class for Price Points Get API.
  *
- * @class
+ * @class PricePointsGet
  */
 class PricePointsGet extends ServiceBase {
   /**
+   * Constructor for Price Points Get API.
+   *
    * @param {Object} params
    * @param {Number/String} params.chain_id: chain Id
    *
-   * @param params
    * @constructor
    */
   constructor(params) {
     super();
+
     const oThis = this;
+
     oThis.chainId = params.chain_id;
   }
 
   /**
-   * asyncPerform
+   * AsyncPerform
    *
    * @return {Promise<any>}
    */
@@ -48,6 +50,7 @@ class PricePointsGet extends ServiceBase {
    * Validate params
    *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _validateParams() {
@@ -61,14 +64,16 @@ class PricePointsGet extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_c_pp_1',
           api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['price_point_not_available_chain_id'],
+          params_error_identifiers: ['price_point_not_available_for_chain_id'],
           debug_options: {}
         })
       );
     }
 
-    // check if it is auxChainId or not. We are not specifically checking the
-    // auxChainId value because if chainConfig has the 'auxGeth' property, the chainId will obviously be the same.
+    /*
+    Check if it is auxChainId or not. We are not specifically checking the auxChainId value 
+    because if chainConfig has the 'auxGeth' property, the chainId will obviously be the same.
+     */
     if (!chainConfig.hasOwnProperty('auxGeth')) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -87,12 +92,13 @@ class PricePointsGet extends ServiceBase {
    * This function fetches price points for a particular chainId
    *
    * @returns {Promise<*>}
+   *
    * @private
    */
   async _fetchPricePointsData() {
     const oThis = this;
 
-    let pricePointsCacheObj = new PricePointsCache({ chainId: oThis.chainId }),
+    const pricePointsCacheObj = new PricePointsCache({ chainId: oThis.chainId }),
       pricePointsResponse = await pricePointsCacheObj.fetch();
 
     if (pricePointsResponse.isFailure()) {
@@ -105,7 +111,7 @@ class PricePointsGet extends ServiceBase {
       );
     }
 
-    let pricePointData = pricePointsResponse.data;
+    const pricePointData = pricePointsResponse.data;
     pricePointData.decimals = contractConstants.requiredPriceOracleDecimals;
 
     logger.debug('Price points data: ', pricePointData);
