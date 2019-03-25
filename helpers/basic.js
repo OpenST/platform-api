@@ -273,12 +273,30 @@ class BasicHelper {
   }
 
   /**
-   * Check if sub environment is main
+   * Check if environment is production
    *
    * @return {Boolean}
    */
   isProduction() {
     return coreConstants.environment == 'production';
+  }
+
+  /**
+   * Check if environment is staging
+   *
+   * @return {Boolean}
+   */
+  isStaging() {
+    return coreConstants.environment == 'staging';
+  }
+
+  /**
+   * Check if environment is development
+   *
+   * @return {Boolean}
+   */
+  isDevelopment() {
+    return coreConstants.environment == 'development';
   }
 
   /**
