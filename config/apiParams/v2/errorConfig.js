@@ -176,11 +176,11 @@ const v2ErrorConfig = {
     message:
       "Invalid parameter chain_id. You can get chain_id by sending a get request to 'tokens' endpoint. It is a positive integer value. Please inspect for what is being sent, rectify and re-submit."
   },
-  price_point_not_available_chain_id: {
+  price_point_not_available_for_chain_id: {
     parameter: 'chain_id',
     code: 'invalid',
     message:
-      'Failed to fetch price_point. This means price point integration server is not available, its a temporary problem. Please re-submit the request a bit later.'
+      'Failed to fetch price_point. You are trying to fetch the price point for the origin chain. Please pass auxiliary chain ID.'
   },
   user_activation_failed_invalid_user: {
     parameter: 'user_id',
