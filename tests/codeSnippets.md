@@ -266,6 +266,10 @@ a = require('./lib/getBalance/StPrime');
 b = new a({auxChainId: 2000, addresses: ['0x9b8497f476ca8c285f69c911f2fc6fb727d5c9c9']});
 b.perform().then(console.log);
 
+a = require('./lib/getBalance/Ubt');
+b = new a({auxChainId: 1407, tokenId: 1003, addresses: ['0x8bfca77079bbb3da3fb4293c64de3b9010c3948b']});
+b.perform().then(console.log);
+
 a = require('./lib/transfer/Eth');
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]});
 b.perform().then(console.log);
