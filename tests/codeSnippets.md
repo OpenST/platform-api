@@ -295,3 +295,38 @@ new KnownAddressModel().getByAddressesSecure(['0xb12e2ab242cb324f61db62a026d1f62
 managedAddress = managedAddresses[0];
 
 ```
+
+### BT Redeem and Unstake.
+```bash
+    source set_env_vars.sh
+    > node
+        // BT Redeem and unstake
+    
+        // beneficiary -> masterInternalFunderKind
+        // facilitator -> Inter chain facilitator
+        // redeemerAddress -> Company token holder address
+        // userId -> Company user
+        params = {
+                        stepKind: 'btRedeemAndUnstakeInit',
+                        taskStatus: 'taskReadyToStart',
+                        clientId: 10001,
+                        chainId: 2000,
+                        topic: 'workflow.btRedeemAndUnstake',
+                        requestParams: {
+                            redeemerAddress: '0x37f8129f6ced0345f26343515c0a7957be1cadf2', 
+                            originChainId: 1000, 
+                            auxChainId: 2000, 
+                            sourceChainId: 2000,
+                            destinationChainId: 1000,
+                            facilitator: '0x044335da398285b663323d718801d2b5d8afc83f', 
+                            amountToRedeem: '100000000000000000000', 
+                            beneficiary: '0x044335da398285b663323d718801d2b5d8afc83f',
+                            userId: '35b216b3-88be-4711-8335-de5b26533fdb',
+                            tokenId: 1001
+                        }
+                }
+                btRedeemRouterK = require('./lib/workflow/redeemAndUnstake/brandToken/Router')
+                btRedeemRouter = new btRedeemRouterK(params)
+           
+                btRedeemRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
+```
