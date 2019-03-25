@@ -208,6 +208,10 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '328': workflowStepConstants.progressRedeem,
     '329': workflowStepConstants.progressUnstake,
 
+    '331': workflowStepConstants.btRedeemAndUnstakeInit,
+    '332': workflowStepConstants.executeBTRedemption,
+    '333': workflowStepConstants.checkExecuteBTRedemptionStatus,
+
     '341': workflowStepConstants.checkWrapStPrimeStatus,
     '342': workflowStepConstants.checkApproveCoGatewayStatus,
     '343': workflowStepConstants.checkRedeemStatus,

@@ -36,7 +36,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '15': workflowConstants.executeRecoveryKind,
     '16': workflowConstants.abortRecoveryByRecoveryControllerKind,
     '17': workflowConstants.logoutSessionsKind,
-    '18': workflowConstants.stPrimeRedeemAndUnstakeKind
+    '18': workflowConstants.stPrimeRedeemAndUnstakeKind,
+    '19': workflowConstants.btRedeemAndUnstakeKind
   },
   invertedStatuses = util.invert(statuses),
   invertedKinds = util.invert(kinds);
