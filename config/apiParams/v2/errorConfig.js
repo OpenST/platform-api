@@ -156,7 +156,7 @@ const v2ErrorConfig = {
     parameter: 'recovery_owner_address',
     code: 'invalid',
     message:
-      "Invalid parameter session_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
+      "Invalid parameter recovery_owner_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
   ids_more_than_allowed_limit: {
     parameter: 'ids',
