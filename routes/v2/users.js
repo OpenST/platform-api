@@ -176,15 +176,14 @@ router.get('/:user_id/devices/pending-recovery', sanitizer.sanitizeDynamicUrlPar
 
   const dataFormatterFunc = async function(serviceResponse) {
     let devices = serviceResponse.data[resultType.devices],
-      formattedDevices = [],
-      buffer;
+      formattedDevices = [];
 
-    for (let deviceUuid in devices) {
-      buffer = devices[deviceUuid];
-      if (!CommonValidators.validateObject(buffer)) {
+    for (let i = 0; i < devices.length; i++) {
+      let deviceData = devices[i];
+      if (!CommonValidators.validateObject(deviceData)) {
         continue;
       }
-      formattedDevices.push(await new DeviceFormatter(devices[deviceUuid]).perform().data);
+      formattedDevices.push(await new DeviceFormatter(deviceData).perform().data);
     }
 
     serviceResponse.data = {
@@ -205,15 +204,14 @@ router.get('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(req
   const dataFormatterFunc = async function(serviceResponse) {
     let devices = serviceResponse.data[resultType.devices],
       formattedDevices = [],
-      buffer,
       metaPayload = new DeviceListMetaFormatter(serviceResponse.data).perform().data;
 
-    for (let deviceUuid in devices) {
-      buffer = devices[deviceUuid];
-      if (!CommonValidators.validateObject(buffer)) {
+    for (let i = 0; i < devices.length; i++) {
+      let device = devices[i];
+      if (!CommonValidators.validateObject(device)) {
         continue;
       }
-      formattedDevices.push(await new DeviceFormatter(devices[deviceUuid]).perform().data);
+      formattedDevices.push(await new DeviceFormatter(device).perform().data);
     }
 
     serviceResponse.data = {
