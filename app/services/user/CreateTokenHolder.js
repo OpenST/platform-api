@@ -261,7 +261,7 @@ class CreateTokenHolder extends ServiceBase {
       deviceConstants.authorizingStatus
     );
 
-    if (deviceStatusUpdateResponse.isFailure() || !deviceStatusUpdateResponse.data.deviceUuid) {
+    if (deviceStatusUpdateResponse.isFailure()) {
       logger.error('Could not update device status from registered to authorising.');
 
       return Promise.reject(
