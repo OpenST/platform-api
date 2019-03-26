@@ -1,6 +1,6 @@
 'use strict';
 
-const API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
+const API_END_POINT = 'http://kit.developmentost.com:7001/testnet/v2',
   BATCH_SIZE = 25,
   POLLING_INTERVAL = 5000, //5 secs
   NUMBER_OF_USERS = 100,
@@ -8,7 +8,7 @@ const API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
     {
       apiKey: '20dbb1a1592df45adf1bcb38ad51e6ee',
       apiSecret: '302c2841a45ed81395d815d29b0011b61cc2f51717545f2bfe52e776fcc4b604',
-      apiEndPoint: 'https://s6-api.stagingost.com/mainnet/v2'
+      apiEndPoint: API_END_POINT
     }
   ];
 
