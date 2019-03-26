@@ -121,6 +121,7 @@ class GetTransactionsList extends GetTransactionBase {
   _setMeta() {
     const oThis = this,
       esResponseData = oThis.esSearchResponse.data;
+    // TODO: @Anagha Handle oThis.esSearchResponse.isFailure()
 
     if (esResponseData.meta[pagination.hasNextPage]) {
       let esNextPagePayload = esResponseData.meta[pagination.nextPagePayloadKey] || {};
@@ -220,9 +221,11 @@ class GetTransactionsList extends GetTransactionBase {
       query: {
         query_string: {}
       },
-      "sort": [{
-        "created_at": "desc"
-      }]
+      sort: [
+        {
+          created_at: 'desc'
+        }
+      ]
     };
   }
 
