@@ -34,7 +34,7 @@ class RetryWorkflowStep {
         workflow_id: rowToDuplicate.workflow_id,
         kind: rowToDuplicate.kind,
         status: 1,
-        request_params: rowToDuplicate.request_params,
+        request_params: null,
         unique_hash: rowToDuplicate.unique_hash
       })
       .fire();
