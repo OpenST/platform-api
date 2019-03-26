@@ -220,9 +220,11 @@ class GetTransactionsList extends GetTransactionBase {
       query: {
         query_string: {}
       },
-      "sort": [{
-        "created_at": "desc"
-      }]
+      sort: [
+        {
+          created_at: 'desc'
+        }
+      ]
     };
   }
 
