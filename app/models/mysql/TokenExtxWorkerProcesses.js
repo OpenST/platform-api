@@ -2,7 +2,7 @@
 /**
  * This is model for workflow_setup table.
  *
- * @module app/models/mysql/WorkflowStep
+ * @module app/models/mysql/TokenExtxWorkerProcesses
  */
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),

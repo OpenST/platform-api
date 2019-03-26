@@ -179,6 +179,7 @@ class StartMint {
       .where({
         client_id: clientId
       })
+      .where('unique_hash is NOT NULL')
       .order_by('created_at DESC')
       .limit(1);
   }
