@@ -32,8 +32,6 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
  * @param {String} params.user_id - uuid
  * @param {String} params.address
  * @param {String} params.api_signer_address
- * @param {String} params.device_name
- * @param {String} params.device_uuid
  */
 class CreateDevice extends ServiceBase {
   constructor(params) {
@@ -45,8 +43,6 @@ class CreateDevice extends ServiceBase {
     oThis.userId = params.user_id;
     oThis.walletAddress = params.address;
     oThis.personalSignAddress = params.api_signer_address;
-    oThis.deviceName = params.device_name;
-    oThis.deviceUuid = params.device_uuid;
   }
 
   /**
@@ -130,8 +126,6 @@ class CreateDevice extends ServiceBase {
         userId: oThis.userId,
         walletAddress: oThis.walletAddress,
         personalSignAddress: oThis.personalSignAddress,
-        deviceUuid: oThis.deviceUuid,
-        deviceName: oThis.deviceName,
         status: deviceConstants.registeredStatus,
         updatedTimestamp: Math.floor(new Date().getTime() / 1000)
       };

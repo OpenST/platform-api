@@ -31,7 +31,7 @@ asso.perform().then(console.log);
 
 require('./app/services/device/Create');
 CreateDevice = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateDevice');
-asso = new CreateDevice({client_id:1, user_id: '61e7a797-f7e4-4760-bd6d-2516b6b1e7ff', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c', device_name: 'sdsdsds', device_uuid: 'dsdsdsds'});
+asso = new CreateDevice({client_id:1, user_id: '61e7a797-f7e4-4760-bd6d-2516b6b1e7ff', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c'});
 asso.perform().then(console.log);
 
 require('./app/services/user/CreateTokenHolder');

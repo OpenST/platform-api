@@ -46,8 +46,6 @@ class Device extends Base {
       userId: 'uid',
       walletAddress: 'wa',
       personalSignAddress: 'psa',
-      deviceUuid: 'du',
-      deviceName: 'dn',
       status: 'sts',
       updatedTimestamp: 'uts'
     };
@@ -72,8 +70,6 @@ class Device extends Base {
       uid: 'S',
       wa: 'S',
       psa: 'S',
-      du: 'S',
-      dn: 'S',
       sts: 'N',
       uts: 'N'
     };
@@ -154,8 +150,6 @@ class Device extends Base {
    * @param {String} params.userId
    * @param {String} params.walletAddress
    * @param {String} params.personalSignAddress
-   * @param {String} params.deviceUuid
-   * @param {String} params.deviceName
    * @param {Number} params.status
    * @param {Number} params.updatedTimestamp
    *

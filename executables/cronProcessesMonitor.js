@@ -129,17 +129,18 @@ class CronProcessesMonitorExecutable extends CronBase {
         currentTimeInMSecs = new Date().getTime(),
         lastStartedAtInMSecs = new Date(cronEntity.last_started_at).getTime(),
         lastEndedAtInMSecs = new Date(cronEntity.last_ended_at).getTime();
-
+      
       logger.info('*** Monitoring cron: [', cronEntity.id, cronKind, '] on machine: ', cronEntity.ip_address);
       logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
       logger.debug('lastStartedAtInMSecs: ', lastStartedAtInMSecs);
       logger.debug('lastEndedAtInMSecs: ', lastEndedAtInMSecs);
 
       if (
-        CommonValidators.validateZeroInteger(lastEndedAtInMSecs) &&
+        CommonValidators.validateZeroInteger(lastEndedAtInMSecs) ||
         CommonValidators.validateZeroInteger(lastStartedAtInMSecs)
       ) {
-        logger.debug('This cron was never started yet.');
+        // For the first time devops will start all the crons by hand.
+        logger.info('This cron was never started or never ended.');
         continue;
       }
 
