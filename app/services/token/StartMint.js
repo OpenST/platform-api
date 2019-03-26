@@ -16,7 +16,6 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  WorkflowStepsModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
 
@@ -162,25 +161,6 @@ class StartMint {
     else {
       oThis.chainId = fetchCacheRsp.data[oThis.clientId].chainId;
     }
-  }
-
-  /**
-   * Fetch latest workflow details for the client.
-   *
-   * @param {String/Number} clientId
-   *
-   * @return {Promise<*>}
-   *
-   * @private
-   */
-  async _fetchWorkflowDetails(clientId) {
-    return new WorkflowStepsModel()
-      .select('*')
-      .where({
-        client_id: clientId
-      })
-      .order_by('created_at DESC')
-      .limit(1);
   }
 
   /**
