@@ -28,7 +28,7 @@ class RetryWorkflowStep {
       .where(['id >= ?', rowToDuplicate.id])
       .fire();
 
-    // Insert entry for retry
+    // Insert workflow step entry for retry with queued status
     await new WorkflowStepModel()
       .insert({
         workflow_id: rowToDuplicate.workflow_id,
@@ -39,7 +39,7 @@ class RetryWorkflowStep {
       })
       .fire();
 
-    // Update workflow status
+    // Update workflow status to processing
     await new WorkflowModel()
       .update({ status: 1 })
       .where({
