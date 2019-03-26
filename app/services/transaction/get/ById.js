@@ -50,7 +50,6 @@ class GetTransaction extends GetTransactionBase {
   async _validateSearchResults() {
     const oThis = this;
 
-    // TODO: @Anagha Handle oThis.esSearchResponse.isFailure()
     let transactionDetailsData = oThis.esSearchResponse.data[oThis.auxChainId + '_transactions'];
 
     // NOTE: Here tokenHolder address should be present in data coming from es,
