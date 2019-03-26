@@ -14,8 +14,6 @@ class RegisterDevice {
     oThis.userUuid = params.userUuid;
     oThis.deviceAddress = params.deviceAddress;
     oThis.apiSignerAddress = params.deviceAddress;
-    oThis.deviceUuid = uuidV4();
-    oThis.deviceName = 'Iphone 9';
 
     oThis.ostObj = params.ostObj;
   }
@@ -28,9 +26,7 @@ class RegisterDevice {
         .create({
           user_id: oThis.userUuid,
           address: oThis.deviceAddress,
-          api_signer_address: oThis.apiSignerAddress,
-          device_uuid: oThis.deviceUuid,
-          device_name: oThis.deviceName
+          api_signer_address: oThis.apiSignerAddress
         })
         .catch(function(err) {
           console.log(JSON.stringify(err));
