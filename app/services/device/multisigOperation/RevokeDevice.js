@@ -315,7 +315,8 @@ class RevokeDevice extends Base {
         signer: oThis.signer,
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         deviceShardNumber: oThis.deviceShardNumber,
-        multisigAddress: oThis.multisigAddress
+        multisigAddress: oThis.multisigAddress,
+        deviceNonce: oThis.nonce
       },
       revokeDeviceInitParams = {
         stepKind: workflowStepConstants.revokeDeviceInit,
