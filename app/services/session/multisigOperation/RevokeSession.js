@@ -216,7 +216,8 @@ class RevokeSession extends Base {
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         sessionShardNumber: oThis.sessionShardNumber,
         multisigAddress: oThis.multisigProxyAddress,
-        userShardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
+        userShardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind],
+        deviceNonce: oThis.nonce
       },
       revokeSessionInitParams = {
         stepKind: workflowStepConstants.revokeSessionInit,
