@@ -224,6 +224,7 @@ class WorkflowStep extends ModelBase {
   }
 
   get invertedStatuses() {
+    invertedStatuses[workflowStepConstants.retriedStatus] = null;
     return invertedStatuses;
   }
 
