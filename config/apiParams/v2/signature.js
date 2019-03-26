@@ -179,14 +179,6 @@ const v2Signature = {
       {
         parameter: 'api_signer_address',
         validatorMethod: 'validateEthAddress'
-      },
-      {
-        parameter: 'device_name',
-        validatorMethod: 'validateString'
-      },
-      {
-        parameter: 'device_uuid',
-        validatorMethod: 'validateString'
       }
     ],
     optional: []

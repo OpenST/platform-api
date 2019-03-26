@@ -156,7 +156,7 @@ const v2ErrorConfig = {
     parameter: 'recovery_owner_address',
     code: 'invalid',
     message:
-      "Invalid parameter session_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
+      "Invalid parameter recovery_owner_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
   ids_more_than_allowed_limit: {
     parameter: 'ids',
@@ -393,24 +393,6 @@ const v2ErrorConfig = {
     parameter: 'api_signer_address',
     code: 'invalid',
     message: 'Invalid api_signer_address'
-  },
-  invalid_device_name: {
-    parameter: 'device_name',
-    code: 'invalid',
-    message:
-      'Invalid parameter device_name. This field is set or changed by the device operating system. Please inspect for what is being sent, rectify and re-submit.'
-  },
-  missing_device_name: {
-    parameter: 'device_name',
-    code: 'missing',
-    message:
-      'Required parameter device_name is missing. When you register a device you include device name for it to be easily recognizible.  Please inspect for what is being sent, rectify and re-submit.'
-  },
-  invalid_device_uuid: {
-    parameter: 'device_uuid',
-    code: 'invalid',
-    message:
-      'Invalid parameter device_uuid. This field is set by the device operating system. Please inspect the api request for what is being sent, rectify and re-submit.'
   },
   invalid_addresses: {
     parameter: 'addresses',
