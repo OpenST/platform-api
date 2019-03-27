@@ -21,6 +21,9 @@ class RetryWorkflowStep {
 
     rowToDuplicate = rowToDuplicate[0];
 
+    let workflowStepsObj = new WorkflowStepModel(),
+      workflowObj = new WorkflowModel();
+
     // Update all workflow entries above this id
     await new WorkflowStepModel()
       .update({ status: null, unique_hash: null })
@@ -33,7 +36,7 @@ class RetryWorkflowStep {
       .insert({
         workflow_id: rowToDuplicate.workflow_id,
         kind: rowToDuplicate.kind,
-        status: 1,
+        status: workflowStepsObj.invertedStatuses[workflowStepsObj.queuedStatus],
         request_params: null,
         unique_hash: rowToDuplicate.unique_hash
       })
@@ -41,7 +44,7 @@ class RetryWorkflowStep {
 
     // Update workflow status to processing
     await new WorkflowModel()
-      .update({ status: 1 })
+      .update({ status: workflowObj.invertedStatuses[workflowObj.inProgressStatus] })
       .where({
         id: rowToDuplicate.workflow_id
       })
