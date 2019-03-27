@@ -200,7 +200,8 @@ class SessionsLogout extends Base {
         chainEndpoint: oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite),
         multisigAddress: oThis.multisigProxyAddress,
         sessionShardNumber: oThis.userData.sessionShardNumber,
-        userShardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
+        userShardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind],
+        deviceNonce: oThis.nonce
       },
       logoutInitParams = {
         stepKind: workflowStepConstants.logoutSessionInit,

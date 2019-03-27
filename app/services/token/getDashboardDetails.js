@@ -196,8 +196,8 @@ class GetTokenDashboardDetail extends ServiceBase {
       addresses: oThis.companyTokenHolderAddresses
     }).perform();
 
-    for (let i = 0; i < ubtbalances.length; i++) {
-      let ubtbalance = ubtbalances[i];
+    for (let tha in ubtbalances) {
+      let ubtbalance = ubtbalances[tha];
       oThis.tokenHoldersBalance = new BigNumber(oThis.tokenHoldersBalance).plus(ubtbalance);
     }
   }
@@ -240,7 +240,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     let totalSupply = basicHelper.toPrecessionBT(oThis.totalSupplyInWei),
       totalSupplyDollar = oThis.getBtToDollar(oThis.totalSupplyInWei),
       totalVolume = basicHelper.toPrecessionBT(oThis.totalVolumeInWei),
-      totalVolumeDollar = oThis.getBtToDollar(oThis.totalVolumeInWei),
+      totalVolumeDollar = oThis.getOstToDollar(oThis.totalVolumeInWei),
       circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalance),
       circulatingSupply = basicHelper.toPrecessionBT(circulatingSupplyInWei),
       circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei);
@@ -268,6 +268,19 @@ class GetTokenDashboardDetail extends ServiceBase {
     let oneOstIsHowManyBtFactor = oThis.token.conversionFactor;
 
     let totalOstInWei = new BigNumber(amountinWei).div(oneOstIsHowManyBtFactor);
+
+    return oThis.getOstToDollar(totalOstInWei);
+  }
+
+  /**
+   *
+   *
+   * @param amountinWei
+   * @returns {string}
+   */
+  getOstToDollar(totalOstInWei) {
+    const oThis = this;
+
     let inUSD = new BigNumber(totalOstInWei).mul(oThis.ostIsHowManyUSD);
 
     return basicHelper.toPrecessionFiat(inUSD);
