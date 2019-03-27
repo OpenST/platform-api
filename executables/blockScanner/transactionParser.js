@@ -230,6 +230,9 @@ class TransactionParser extends MultiSubscriptionBase {
         debug_options: { blockNumber: blockNumber, blockHash: blockHash }
       });
 
+      // Delete block parser pending task if block hash is not verified.
+      await new BlockParserPendingTaskModel().deleteTask(taskId);
+
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
       logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
@@ -245,7 +248,7 @@ class TransactionParser extends MultiSubscriptionBase {
     // If transaction parser returns error, then delete the task from table and ACK RMQ
     if (!transactionParserResponse.isSuccess()) {
       // Delete block parser pending task if transaction parser took it.
-      new BlockParserPendingTaskModel().deleteTask(taskId);
+      await new BlockParserPendingTaskModel().deleteTask(taskId);
 
       // Transaction parsing response was unsuccessful.
 
@@ -292,6 +295,10 @@ class TransactionParser extends MultiSubscriptionBase {
     if (!tokenParserNeeded) {
       logger.log('Token transfer parsing not needed.');
       logger.debug('------unAckCount -> ', oThis.unAckCount);
+
+      // Delete block parser pending task if token parser is not needed.
+      await new BlockParserPendingTaskModel().deleteTask(taskId);
+
       // ACK RMQ.
       return;
     }
@@ -304,7 +311,7 @@ class TransactionParser extends MultiSubscriptionBase {
     ).perform();
 
     // Delete block parser pending task if transaction parser is done.
-    new BlockParserPendingTaskModel().deleteTask(taskId);
+    await new BlockParserPendingTaskModel().deleteTask(taskId);
 
     if (tokenTransferParserResponse.isSuccess()) {
       // Token transfer parser was successful.
