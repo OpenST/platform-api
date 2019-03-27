@@ -513,5 +513,10 @@
     "http_code": "500",
     "code": "INTERNAL_SERVER_ERROR",
     "message": "Transaction search service is down."
+  },
+  "rmq_publish_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "RMQ Publish failed."
   }
 }
