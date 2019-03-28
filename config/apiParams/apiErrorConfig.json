@@ -7,7 +7,7 @@
   "unauthorized_api_request": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "Access denied due to invalid credentials. Please inspect if you are using a valid API Key and Secret to send the request. You can verify the API Key against the one shown on developer's page in OSTKIT and re-submit."
+    "message": "Access denied due to invalid credentials. Please inspect if you are using a valid API Key and Secret to send the request. You can verify the API Key against the one shown on developer's page in OST Platform and re-submit."
   },
   "unauthorized_for_main_env": {
     "http_code": "401",
@@ -22,7 +22,7 @@
   "client_api_credentials_expired": {
     "http_code": "401",
     "code": "UNAUTHORIZED",
-    "message": "Access denied due to using expired API key and secret. You can check the active API Key and secret on developer's page in OSTKIT."
+    "message": "Access denied due to using expired API key and secret. You can check the active API Key and secret on developer's page in OST Platform."
   },
   "unauthorized_for_company_uuid": {
     "http_code": "401",
