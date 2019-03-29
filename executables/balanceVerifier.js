@@ -76,31 +76,45 @@ class BalanceVerifier extends CronBase {
 
     oThis.ic = new InstanceComposer(configStrategyResp.data);
 
-    const BalanceVerifier = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceVerifier'),
-      balanceVerifierObj = new BalanceVerifier({
+    const BalanceVerifier = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceVerifier');
+
+    while (true) {
+      if (oThis.stopPickingUpNewWork) {
+        oThis.canExit = true;
+        break;
+      }
+
+      oThis.canExit = false;
+
+      let balanceVerifierObj = new BalanceVerifier({
         timeStamp: oThis.timeStamp
       });
+      const balanceVerifierResponse = await balanceVerifierObj.perform();
 
-    oThis.canExit = false;
-    const balanceVerifierResponse = await balanceVerifierObj.perform();
+      if (balanceVerifierResponse.isSuccess()) {
+        const cronParams = {
+            auxChainId: oThis.auxChainId,
+            timeStamp: balanceVerifierResponse.data.timeStamp
+          },
+          stringifiedCronParams = JSON.stringify(cronParams);
 
-    if (balanceVerifierResponse.isSuccess()) {
-      const cronParams = {
-          auxChainId: oThis.auxChainId,
-          timeStamp: balanceVerifierResponse.data.timeStamp
-        },
-        stringifiedCronParams = JSON.stringify(cronParams);
+        await new CronProcessesModel()
+          .update({
+            params: stringifiedCronParams
+          })
+          .where({
+            id: oThis.cronProcessId
+          })
+          .fire();
 
-      await new CronProcessesModel()
-        .update({
-          params: stringifiedCronParams
-        })
-        .where({
-          id: oThis.cronProcessId
-        })
-        .fire();
+        // Stop if current batch gets less transactions.
+        if (balanceVerifierResponse.noOfTxFound < 1000) {
+          break;
+        }
+      }
+
+      oThis.canExit = true;
     }
-    oThis.canExit = true;
   }
 
   /**
