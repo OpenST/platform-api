@@ -1,7 +1,7 @@
 # Saas API
 Saas API layer.
 
-* Kit API Setup
+* Platform API Setup
   Instructions are published at: https://github.com/OpenSTFoundation/kit-api/blob/master/README.md
 
 * Requirements

@@ -131,7 +131,7 @@ router.get('/:user_id/token-holder', sanitizer.sanitizeDynamicUrlParams, functio
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_v2_u_17', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_v2_u_25', null, dataFormatterFunc));
 });
 
 /* Logout All sessions of user */
@@ -192,7 +192,7 @@ router.get('/:user_id/devices/pending-recovery', sanitizer.sanitizeDynamicUrlPar
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetPendingRecovery', 'r_v2_u_16', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetPendingRecovery', 'r_v2_u_26', null, dataFormatterFunc));
 });
 
 /* Get devices by userId */
@@ -484,7 +484,7 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v2_u_18', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v2_u_24', null, dataFormatterFunc)
   );
 });
 

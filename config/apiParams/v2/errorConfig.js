@@ -33,7 +33,7 @@ const v2ErrorConfig = {
     parameter: 'api_key',
     code: 'invalid',
     message:
-      "The API Key is not entered correctly. Please inspect for what is being sent, verify it against the API KEY shown on developer's page in OSTKIT and re-submit."
+      "The API Key is not entered correctly. Please inspect for what is being sent, verify it against the API KEY shown on developer's page in OST Platform and re-submit."
   },
   invalid_api_key_for_inactive_user: {
     parameter: 'api_key',

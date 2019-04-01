@@ -9,13 +9,15 @@ const OSTBase = require('@ostdotcom/base');
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const InstanceComposer = OSTBase.InstanceComposer,
   ESTransactionService = esServices.services.transactions;
@@ -156,6 +158,23 @@ class GetTransactionBase extends ServiceBase {
       esQuery = oThis._getEsQueryObject();
 
     oThis.esSearchResponse = await esService.search(esQuery);
+
+    if (oThis.esSearchResponse.isFailure()) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'elastic_search_service_down:a_s_t_g_b_2',
+        api_error_identifier: 'elastic_search_service_down',
+        debug_options: {}
+      });
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_g_b_2',
+          api_error_identifier: 'elastic_search_service_down',
+          debug_options: {}
+        })
+      );
+    }
 
     logger.debug('User transactions from Elastic search ', oThis.esSearchResponse);
   }
