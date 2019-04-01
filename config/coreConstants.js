@@ -141,6 +141,26 @@ class CoreConstants {
     return process.env.SA_OST_INFRA_MYSQL_PASSWORD;
   }
 
+  get OST_INFRA_MYSQL_DB() {
+    return process.env.SA_OST_INFRA_MYSQL_DB;
+  }
+
+  get OST_ANALYTICS_MYSQL_HOST() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_HOST;
+  }
+
+  get OST_ANALYTICS_MYSQL_USER() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_USER;
+  }
+
+  get OST_ANALYTICS_MYSQL_PASSWORD() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_PASSWORD;
+  }
+
+  get OST_ANALYTICS_MYSQL_DB() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_DB;
+  }
+
   get KMS_AWS_ACCESS_KEY() {
     return process.env.SA_KMS_AWS_ACCESS_KEY;
   }
