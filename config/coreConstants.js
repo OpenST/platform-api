@@ -319,6 +319,35 @@ class CoreConstants {
   get batchDeleteRetryCount() {
     return 10;
   }
+
+  /**
+   * S3 AWS config
+   */
+  get S3_AWS_ACCESS_KEY() {
+    return process.env.SA_S3_AWS_ACCESS_KEY;
+  }
+
+  get S3_AWS_SECRET_KEY() {
+    return process.env.SA_S3_AWS_SECRET_KEY;
+  }
+
+  get S3_AWS_REGION() {
+    return process.env.SA_S3_AWS_REGION;
+  }
+
+  get S3_AWS_MASTER_FOLDER() {
+    return process.env.SA_S3_AWS_MASTER_FOLDER;
+  }
+
+  get S3_ANALYTICS_BUCKET() {
+    return process.env.SA_S3_ANALYTICS_BUCKET;
+  }
+
+  get S3_ANALYTICS_GRAPH_FOLDER() {
+    const oThis = this;
+
+    return oThis.S3_AWS_MASTER_FOLDER + '/' + process.env.SA_S3_ANALYTICS_GRAPH_FOLDER;
+  }
 }
 
 module.exports = new CoreConstants();
