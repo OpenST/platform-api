@@ -65,7 +65,7 @@ export SA_S3_AWS_ACCESS_KEY='AKIAIG7G5KJ53INDY36A'
 export SA_S3_AWS_SECRET_KEY='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'
 export SA_S3_AWS_REGION='us-east-1'
 export SA_S3_AWS_MASTER_FOLDER='d-sandbox'
-export SA_S3_ANALYTICS_BUCKET='analytics.stagingost.com'
+export SA_S3_ANALYTICS_BUCKET='graphs.stagingost.com'
 export SA_S3_ANALYTICS_GRAPH_FOLDER='graphs'
 
 # JWT details
