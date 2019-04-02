@@ -317,6 +317,41 @@ class Balance extends Base {
   }
 
   /**
+   * Forcefully correct the balance of a particular user
+   *
+   * @param params
+   * @param params.tokenHolderAddress - token holder address for which balance has to be updated
+   * @param params.erc20Address - token contract address
+   * @param params.blockChainUnsettledDebits - blockchain unsettled debits to be updated
+   * @param params.blockChainSettledBalance - blockchain settled balance to be updated
+   * @param params.pessimisticSettledBalance - pessimistic settled balance to be updated
+   *
+   * @return {Promise<void>}
+   */
+  async forceCorrectBalance(params) {
+    const oThis = this;
+
+    const balanceParams = {
+      TableName: oThis.tableName(),
+      Key: oThis._keyObj(params),
+      UpdateExpression: 'SET #busd = :busd, #bsb = :bsb, #psb = :psb',
+      ExpressionAttributeNames: {
+        '#busd': oThis.shortNameFor('blockChainUnsettleDebits'),
+        '#bsb': oThis.shortNameFor('blockChainSettledBalance'),
+        '#psb': oThis.shortNameFor('pessimisticSettledBalance')
+      },
+      ExpressionAttributeValues: {
+        ':busd': { N: params.blockChainUnsettledDebits },
+        ':bsb': { N: params.blockChainSettledBalance },
+        ':psb': { N: params.pessimisticSettledBalance }
+      },
+      ReturnValues: 'NONE'
+    };
+
+    await oThis.ddbServiceObj.updateItem(balanceParams); // TODO: Might have to do error handling
+  }
+
+  /**
    * Method to perform extra formatting
    * @param dbRow
    * @return {*}
