@@ -147,7 +147,7 @@ class TransactionMetaObserver extends CronBase {
       oThis.canExit = true;
 
       logger.step('** Sleeping...');
-      await basicHelper.sleep(10 * 1000);
+      await basicHelper.sleep(1 * 1000);
     }
   }
 

@@ -1,6 +1,7 @@
 'use strict';
 
-const API_END_POINT = 'https://api.ost.com/testnet/v2/',
+//const API_END_POINT = 'https://api.ost.com/testnet/v2/',
+const API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2/',
   BATCH_SIZE = 25,
   POLLING_INTERVAL = 5000, //5 secs
   NUMBER_OF_USERS = 4,
