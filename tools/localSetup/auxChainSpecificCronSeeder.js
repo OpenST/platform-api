@@ -43,6 +43,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertStateRootSyncFromAuxToOrigin();
     await oThis.insertTransactionErrorHandlerEntry();
     await oThis.insertBalanceVerifierEntry();
+    await oThis.insertGenerateGraphEntry();
   }
 
   /**
@@ -365,6 +366,21 @@ class AuxChainSpecificCronSeeder {
       .perform(cronProcessConstants.balanceVerifier, {
         auxChainId: 2000,
         timeStamp: Math.floor(Date.now() / 1000)
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert generate graph cron entry.
+   *
+   * @returns {Promise<void>}
+   */
+  async insertGenerateGraphEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.generateGraph, {
+        auxChainId: 2000
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

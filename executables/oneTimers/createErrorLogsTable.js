@@ -1,7 +1,7 @@
 /**
  * Module for creating error_logs table.
  *
- * @module lib/errorLogs/createErrorLogsTable
+ * @module executables/oneTimers/createErrorLogsTable
  */
 
 const mysql = require('mysql');
@@ -14,7 +14,7 @@ const connection = mysql.createConnection({
   host: coreConstants.OST_INFRA_MYSQL_HOST,
   user: coreConstants.OST_INFRA_MYSQL_USER,
   password: coreConstants.OST_INFRA_MYSQL_PASSWORD,
-  database: 'ost_infra_' + coreConstants.environment
+  database: coreConstants.OST_INFRA_MYSQL_DB
 });
 
 // Connect to the MySQL server.

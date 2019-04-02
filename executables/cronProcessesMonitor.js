@@ -83,7 +83,8 @@ class CronProcessesMonitorExecutable extends CronBase {
         [cronProcessesConstants.economyAggregator]: cronProcessesConstants.continuousCronRestartInterval,
         [cronProcessesConstants.balanceSettler]: cronProcessesConstants.continuousCronRestartInterval,
         [cronProcessesConstants.workflowWorker]: cronProcessesConstants.continuousCronRestartInterval,
-        [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.continuousCronRestartInterval
+        [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.continuousCronRestartInterval,
+        [cronProcessesConstants.generateGraph]: cronProcessesConstants.continuousCronRestartInterval
       },
       // Restart interval time for periodic crons should match with devops- cron config file
       [cronProcessesConstants.periodicCronsType]: {
@@ -129,7 +130,7 @@ class CronProcessesMonitorExecutable extends CronBase {
         currentTimeInMSecs = new Date().getTime(),
         lastStartedAtInMSecs = new Date(cronEntity.last_started_at).getTime(),
         lastEndedAtInMSecs = new Date(cronEntity.last_ended_at).getTime();
-      
+
       logger.info('*** Monitoring cron: [', cronEntity.id, cronKind, '] on machine: ', cronEntity.ip_address);
       logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
       logger.debug('lastStartedAtInMSecs: ', lastStartedAtInMSecs);
