@@ -242,20 +242,9 @@ class TransactionMetaObserver extends CronBase {
       };
 
       if (transactionsMetaRecords && transactionsMetaRecords.length > 0) {
-        if (
-          txStatusString == transactionMetaConst.queuedStatus ||
-          txStatusString == transactionMetaConst.submissionInProcessStatus ||
-          txStatusString == transactionMetaConst.gethDownStatus ||
-          txStatusString == transactionMetaConst.gethOutOfSyncStatus
-        ) {
+        if (transactionMetaConst.mapOfStatusesForRollingBackBalances[txStatusString]) {
           promiseArray.push(new QueuedHandlerKlass(params).perform());
-        } else if (
-          txStatusString == transactionMetaConst.rollBackBalanceStatus ||
-          txStatusString == transactionMetaConst.unknownGethSubmissionErrorStatus ||
-          txStatusString == transactionMetaConst.insufficientGasStatus ||
-          txStatusString == transactionMetaConst.nonceTooLowStatus ||
-          txStatusString == transactionMetaConst.replacementTxUnderpricedStatus
-        ) {
+        } else if (transactionMetaConst.mapOfStatusesForResubmittingOrRollingBackBalances[txStatusString]) {
           promiseArray.push(new MarkFailAndRollbackBalanceKlass(params).perform());
         } else if (txStatusString == transactionMetaConst.submittedToGethStatus) {
           promiseArray.push(new SubmittedHandlerKlass(params).perform());
