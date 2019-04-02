@@ -337,12 +337,9 @@ class BlockParserExecutable extends PublisherBase {
       // We need to call notifier only once.
       if (!notifierCalled && oThis.intentionalBlockDelay + BLOCKS_OFFSET <= parserStuckForBlocks) {
         const errorObject = responseHelper.error({
-          internal_error_identifier: 'block_parser_stuck:e_bs_bp_3',
-          api_error_identifier: 'block_parser_stuck',
-          debug_options: {
-            parserStuckForBlocks: parserStuckForBlocks,
-            blockToProcess: oThis.blockToProcess
-          }
+          internal_error_identifier: 'no_new_block_from_geth:e_bs_bp_3',
+          api_error_identifier: 'no_new_block_from_geth',
+          debug_options: {}
         });
 
         await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
