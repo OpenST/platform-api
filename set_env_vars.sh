@@ -42,6 +42,12 @@ export SA_KIT_SAAS_BIG_SUBENV_MYSQL_PASSWORD='root'
 export SA_OST_INFRA_MYSQL_HOST='127.0.0.1'
 export SA_OST_INFRA_MYSQL_USER='root'
 export SA_OST_INFRA_MYSQL_PASSWORD='root'
+export SA_OST_INFRA_MYSQL_DB='ost_infra_development'
+
+export SA_OST_ANALYTICS_MYSQL_HOST='127.0.0.1'
+export SA_OST_ANALYTICS_MYSQL_USER='root'
+export SA_OST_ANALYTICS_MYSQL_PASSWORD='root'
+export SA_OST_ANALYTICS_MYSQL_DB='ost_analytics_sandbox_development'
 
 # AWS-KMS details
 export SA_KMS_AWS_ACCESS_KEY='AKIAJUDRALNURKAVS5IQ'
@@ -53,6 +59,14 @@ export SA_KNOWN_ADDRESS_KMS_ARN='arn:aws:kms:us-east-1:604850698061:key'
 export SA_KNOWN_ADDRESS_KMS_ID='eab8148d-fd9f-451d-9eb9-16c115645635'
 export SA_CONFIG_STRATEGY_KMS_ARN='arn:aws:kms:us-east-1:604850698061:key'
 export SA_CONFIG_STRATEGY_KMS_ID='eab8148d-fd9f-451d-9eb9-16c115645635'
+
+# S3 config details
+export SA_S3_AWS_ACCESS_KEY='AKIAIG7G5KJ53INDY36A'
+export SA_S3_AWS_SECRET_KEY='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'
+export SA_S3_AWS_REGION='us-east-1'
+export SA_S3_AWS_MASTER_FOLDER='d-sandbox'
+export SA_S3_ANALYTICS_BUCKET='graphs.stagingost.com'
+export SA_S3_ANALYTICS_GRAPH_FOLDER='graphs'
 
 # JWT details
 export SA_INTERNAL_API_SECRET_KEY='1somethingsarebetterkeptinenvironemntvariables'
