@@ -159,6 +159,13 @@ Granter address gets ETH and OST in this step.
    node executables/oneTimers/createErrorLogsTable.js
 ```
 
+### [Only Development] Create `ost_analytics` database and `transaction_by_type_graph` and `transaction_by_type_graph` table.
+```bash
+   node executables/oneTimers/createOstAnalyticsDatabase.js
+   node executables/oneTimers/createTransactionByNameGraphTable.js
+   node executables/oneTimers/createTransactionByTypeGraphTable.js
+```
+
 ### Run block-scanner crons and factory
 
 * Start Workflow router factory
