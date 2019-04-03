@@ -131,9 +131,6 @@ class RevokeDevice extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
-    logger.debug('Device Address To Remove: ', oThis.deviceAddressToRemove);
-    logger.debug('Signer address: ', oThis.signer);
-
     if (oThis.deviceAddressToRemove === oThis.signer) {
       return Promise.reject(
         responseHelper.paramValidationError({
