@@ -368,7 +368,6 @@ class GenerateGraph extends CronBase {
    * @returns {Promise<void>}
    */
   async uploadOnS3(filePath, body) {
-    logger.debug('body-----', body);
     const paramsForS3Upload = {
         bucket: coreConstants.S3_ANALYTICS_BUCKET,
         filePath: filePath,
