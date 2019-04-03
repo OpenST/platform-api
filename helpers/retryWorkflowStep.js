@@ -10,6 +10,7 @@ const rootPrefix = '..',
   WorkflowStepModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowStepId = process.argv[2];
 
 // Workflow kind to router file path map
@@ -82,7 +83,7 @@ class RetryWorkflowStep {
       .insert({
         workflow_id: rowToDuplicate.workflow_id,
         kind: rowToDuplicate.kind,
-        status: workflowStepsObj.invertedStatuses[workflowStepsObj.queuedStatus],
+        status: workflowStepsObj.invertedStatuses[workflowStepConstants.queuedStatus],
         request_params: null,
         unique_hash: rowToDuplicate.unique_hash
       })
@@ -153,8 +154,6 @@ class RetryWorkflowStep {
       workflowId: params.workflowId,
       currentStepId: params.stepId
     };
-
-    console.log('====workflowParams', workflowParams);
 
     let Workflow = require(rootPrefix + '/' + workflowKindToRouterPathMap[workflowModel.kinds[workflowKind]]),
       workflowObj = new Workflow(workflowParams);
