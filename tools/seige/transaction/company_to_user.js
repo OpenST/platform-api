@@ -39,8 +39,8 @@ const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
   maxConnectionObjects = 4;
 
 let maxIteration = 100,
-  NO_OF_USERS_COVERAGE = 2000,
-  PARALLEL_TRANSACTIONS = 10, // TODO: Company has 10 session addresses.
+  NO_OF_USERS_COVERAGE = 500,
+  PARALLEL_TRANSACTIONS = 25, // TODO: Company has 10 session addresses.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
   receiverTokenHolders = [],
   sigintReceived = 0;
@@ -142,7 +142,7 @@ class TransactionSiege {
 
         promiseArray.push(
           transactionsService.execute(executeParams).catch(function(err) {
-            console.error('====Transaction failed from user:', receiverTokenHolders);
+            console.error('====Transaction failed from user:', executeParams);
           })
         );
 
