@@ -1,8 +1,9 @@
 /**
- * Class for sigint handler.
+ * Module for sigint handler.
  *
  * @module executables/CronBase
  */
+
 const rootPrefix = '..',
   CronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
