@@ -243,9 +243,9 @@ class TransactionMetaObserver extends CronBase {
 
       if (transactionsMetaRecords && transactionsMetaRecords.length > 0) {
         if (transactionMetaConst.mapOfStatusesForRollingBackBalances[txStatusString]) {
-          promiseArray.push(new QueuedHandlerKlass(params).perform());
-        } else if (transactionMetaConst.mapOfStatusesForResubmittingOrRollingBackBalances[txStatusString]) {
           promiseArray.push(new MarkFailAndRollbackBalanceKlass(params).perform());
+        } else if (transactionMetaConst.mapOfStatusesForResubmittingOrRollingBackBalances[txStatusString]) {
+          promiseArray.push(new QueuedHandlerKlass(params).perform());
         } else if (txStatusString == transactionMetaConst.submittedToGethStatus) {
           promiseArray.push(new SubmittedHandlerKlass(params).perform());
         }
