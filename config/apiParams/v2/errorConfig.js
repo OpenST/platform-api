@@ -152,6 +152,12 @@ const v2ErrorConfig = {
     message:
       "Invalid parameter device_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
+  invalid_device_address_to_remove: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message:
+      'Invalid parameter device_address. Signer address and device address can not be same. Please make sure they are different.'
+  },
   invalid_recovery_owner_address: {
     parameter: 'recovery_owner_address',
     code: 'invalid',
