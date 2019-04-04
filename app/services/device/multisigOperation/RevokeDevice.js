@@ -131,6 +131,17 @@ class RevokeDevice extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
+    if (oThis.deviceAddressToRemove === oThis.signer) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_dm_mo_rd_10',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_device_address_to_remove'],
+          debug_options: {}
+        })
+      );
+    }
+
     let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddressToRemove, oThis.signer]);
 
     let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddressToRemove],
