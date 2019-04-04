@@ -1,6 +1,7 @@
 const BigNumber = require('bignumber.js');
 
 const rootPrefix = '../..',
+  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   TokenAddressesModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
@@ -19,6 +20,8 @@ class RemoveStakeMintAndRedeemFromVolume {
     await oThis.fetchRelevantWorkflows();
 
     oThis.createTokenIdMapping();
+
+    await oThis.fetchConversionFactor();
 
     await oThis.fetchUbtAddress();
 
@@ -66,6 +69,27 @@ class RemoveStakeMintAndRedeemFromVolume {
         workflowKind == btStakeAndMintInvertedKind
           ? oThis.tokenIdMapping[requestParams.tokenId].amount.plus(new BigNumber(responseData.amountMinted))
           : oThis.tokenIdMapping[requestParams.tokenId].amount.minus(new BigNumber(requestParams.amountToRedeem));
+    }
+  }
+
+  /**
+   * Fetch conversion factor of economy.
+   *
+   * @return {Promise<void>}
+   */
+  async fetchConversionFactor() {
+    const oThis = this;
+
+    const tokenIds = Object.keys(oThis.tokenIdMapping);
+
+    const conversionFactors = await new TokenModel()
+      .select('*')
+      .where(['id IN (?)', tokenIds])
+      .fire();
+
+    for (let index = 0; index < conversionFactors.length; index++) {
+      const conversionFactorEntity = conversionFactors[index];
+      oThis.tokenIdMapping[conversionFactorEntity.id].conversionFactor = conversionFactorEntity.conversion_factor;
     }
   }
 
@@ -122,13 +146,27 @@ class RemoveStakeMintAndRedeemFromVolume {
 
       for (const tokenId in oThis.tokenIdMapping) {
         const tokenEntity = oThis.tokenIdMapping[tokenId];
+
+        // Current volume in OST.
         oThis.tokenIdMapping[tokenId].currentVolume = cacheResponse.data[tokenEntity.ubtAddress].totalVolume;
+
+        // Volume to be subtracted in BT.
         oThis.tokenIdMapping[tokenId].amount = oThis.tokenIdMapping[tokenId].amount.div(
           new BigNumber(conversionFactor)
         );
-        oThis.tokenIdMapping[tokenId].finalVolume =
-          oThis.tokenIdMapping[tokenId].currentVolume - oThis.tokenIdMapping[tokenId].amount;
+        // Volume to be subtracted in OST.
+        oThis.tokenIdMapping[tokenId].amount = oThis.tokenIdMapping[tokenId].amount.div(
+          new BigNumber(oThis.tokenIdMapping[tokenId].conversionFactor)
+        );
+
+        // 5 digits after decimal.
+        oThis.tokenIdMapping[tokenId].amount = oThis.tokenIdMapping[tokenId].amount.toFixed(5);
+
+        oThis.tokenIdMapping[tokenId].finalVolume = new BigNumber(oThis.tokenIdMapping[tokenId].currentVolume).minus(
+          oThis.tokenIdMapping[tokenId].amount
+        );
       }
+
       console.log('===oThis.tokenIdMapping====', JSON.stringify(oThis.tokenIdMapping));
       console.log('===oThis.chainIdToUbtMapping====', JSON.stringify(oThis.chainIdToUbtMapping));
     }
@@ -169,7 +207,7 @@ class RemoveStakeMintAndRedeemFromVolume {
                 '#updatedTimestamp': economyModelObject.shortNameFor('updatedTimestamp')
               },
               ExpressionAttributeValues: {
-                ':finalVolume': { N: tokenEntity.finalVolume.toString() },
+                ':finalVolume': { N: tokenEntity.finalVolume.toFixed(5).toString(10) },
                 ':updatedTimestamp': { N: Math.floor(new Date().getTime() / 1000).toString() }
               },
               ReturnValues: 'NONE'
@@ -192,10 +230,6 @@ class RemoveStakeMintAndRedeemFromVolume {
         await economyCache.clear();
       }
     }
-  }
-
-  updateVolumeAmount() {
-    const oThis = this;
   }
 }
 
