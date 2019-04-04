@@ -68,7 +68,7 @@ class RemoveStakeMintAndRedeemFromVolume {
       oThis.tokenIdMapping[requestParams.tokenId].amount =
         workflowKind == btStakeAndMintInvertedKind
           ? oThis.tokenIdMapping[requestParams.tokenId].amount.plus(new BigNumber(responseData.amountMinted))
-          : oThis.tokenIdMapping[requestParams.tokenId].amount.minus(new BigNumber(requestParams.amountToRedeem));
+          : oThis.tokenIdMapping[requestParams.tokenId].amount.plus(new BigNumber(requestParams.amountToRedeem));
     }
   }
 
@@ -147,6 +147,15 @@ class RemoveStakeMintAndRedeemFromVolume {
       for (const tokenId in oThis.tokenIdMapping) {
         const tokenEntity = oThis.tokenIdMapping[tokenId];
 
+        if (tokenEntity.chainId != chainId) {
+          continue;
+        }
+
+        if (!cacheResponse.data[tokenEntity.ubtAddress]) {
+          console.log('==========Error==========', tokenEntity);
+          continue;
+        }
+
         // Current volume in OST.
         oThis.tokenIdMapping[tokenId].currentVolume = cacheResponse.data[tokenEntity.ubtAddress].totalVolume;
 
@@ -165,6 +174,10 @@ class RemoveStakeMintAndRedeemFromVolume {
         oThis.tokenIdMapping[tokenId].finalVolume = new BigNumber(oThis.tokenIdMapping[tokenId].currentVolume).minus(
           oThis.tokenIdMapping[tokenId].amount
         );
+
+        if (oThis.tokenIdMapping[tokenId].finalVolume.lt(new BigNumber(0))) {
+          console.log('Error for this token entity. ', tokenEntity);
+        }
       }
 
       console.log('===oThis.tokenIdMapping====', JSON.stringify(oThis.tokenIdMapping));
@@ -198,6 +211,11 @@ class RemoveStakeMintAndRedeemFromVolume {
           const tokenEntity = oThis.tokenIdMapping[tokenId];
 
           if (tokenEntity.ubtAddress === economyAddr) {
+            if (tokenEntity.finalVolume.lt(new BigNumber(0))) {
+              console.log('Error for this token entity. ', tokenEntity);
+              tokenEntity.finalVolume = new BigNumber(0);
+              console.log('Error for this token entity. 123', tokenEntity);
+            }
             const updateParams = {
               TableName: economyModelObject.tableName(),
               Key: economyModelObject._keyObj({ contractAddress: economyAddr, chainId: chainId }),
