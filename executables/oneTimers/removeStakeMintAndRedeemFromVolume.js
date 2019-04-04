@@ -42,7 +42,7 @@ class RemoveStakeMintAndRedeemFromVolume {
       .select('*')
       .where([
         'kind IN (?) AND status = (?)',
-        [btStakeAndMintInvertedKind, btRedeemAndUnstakeInvertedKind],
+        [btRedeemAndUnstakeInvertedKind],
         new WorkflowModel().invertedStatuses[workflowConstants.completedStatus]
       ])
       .fire();
@@ -65,10 +65,9 @@ class RemoveStakeMintAndRedeemFromVolume {
         amount: new BigNumber(0)
       };
 
-      oThis.tokenIdMapping[requestParams.tokenId].amount =
-        workflowKind == btStakeAndMintInvertedKind
-          ? oThis.tokenIdMapping[requestParams.tokenId].amount.plus(new BigNumber(responseData.amountMinted))
-          : oThis.tokenIdMapping[requestParams.tokenId].amount.plus(new BigNumber(requestParams.amountToRedeem));
+      oThis.tokenIdMapping[requestParams.tokenId].amount = oThis.tokenIdMapping[requestParams.tokenId].amount.plus(
+        new BigNumber(requestParams.amountToRedeem).mul(new BigNumber(2))
+      );
     }
   }
 
