@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Cron to fund stPrime by sealer addresses.
  *
@@ -7,16 +6,15 @@
 const program = require('commander');
 
 const rootPrefix = '../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
+  TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  GetStPrimeBalance = require(rootPrefix + '/lib/getBalance/StPrime'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -35,13 +33,15 @@ if (!program.cronProcessId) {
 }
 
 /**
- * Class to fund eth by chain owner.
+ * Class to give back funds from sealer.
  *
- * @class
+ * @class FundBySealerAuxChainSpecific
  */
 class FundBySealerAuxChainSpecific extends CronBase {
   /**
-   * Constructor
+   * Constructor to give back funds from sealer.
+   *
+   * @augments CronBase
    *
    * @constructor
    */
@@ -139,7 +139,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -210,7 +210,7 @@ class FundBySealerAuxChainSpecific extends CronBase {
     const oThis = this;
 
     // Fetch all addresses associated to auxChainId.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -222,11 +222,12 @@ class FundBySealerAuxChainSpecific extends CronBase {
       );
     }
 
-    let sealerAddresses = [],
+    const sealerAddresses = [],
       sealerAddressEntities = chainAddressesRsp.data[chainAddressConstants.auxSealerKind];
 
-    if (!sealerAddressEntities || sealerAddressEntities.length == 0) {
+    if (!sealerAddressEntities || sealerAddressEntities.length === 0) {
       logger.error('No sealer present for aux chain id: ', oThis.auxChainId);
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_f_bs_acs_5',
@@ -257,8 +258,8 @@ class FundBySealerAuxChainSpecific extends CronBase {
     // Fetch addresses from map.
     const sealerAddresses = oThis.kindToAddressMap[chainAddressConstants.auxSealerKind];
 
-    for (let i = 0; i < sealerAddresses.length; i++) {
-      let sealerAddress = sealerAddresses[i];
+    for (let index = 0; index < sealerAddresses.length; index++) {
+      const sealerAddress = sealerAddresses[index];
 
       const sealerAddressBalance = currentAddressBalances[sealerAddress];
 
