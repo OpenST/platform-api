@@ -97,6 +97,7 @@ class TransactionSiege {
     while (maxIteration--) {
       let promiseArray = [];
 
+      console.log('in iteration', maxIteration);
       for (let i = 0; i < receiverTokenHolders.length; i++) {
         let transferTos = receiverTokenHolders.slice(i, i + NO_OF_TRANSFERS_IN_EACH_TRANSACTION),
           transferAmounts = [],
