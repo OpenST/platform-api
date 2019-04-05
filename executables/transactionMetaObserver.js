@@ -216,21 +216,19 @@ class TransactionMetaObserver extends CronBase {
     const oThis = this;
 
     const promiseArray = [],
+      txStatusStringMetaIdsMap = {},
       transactionsGroup = {};
+
     for (let index = 0; index < oThis.transactionsToProcess.length; index++) {
       const txMeta = oThis.transactionsToProcess[index];
 
       const txStatusString = transactionMetaConst.statuses[txMeta.status];
+
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
 
-      const errorObject = responseHelper.error({
-        internal_error_identifier: 'transaction_meta_observer_pending_transaction:e_tmo_2:' + txStatusString,
-        api_error_identifier: 'transaction_meta_observer_pending_transaction',
-        debug_options: { txMetaId: txMeta.id }
-      });
-
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
+      txStatusStringMetaIdsMap[txStatusString] = txStatusStringMetaIdsMap[txStatusString] || [];
+      txStatusStringMetaIdsMap[txStatusString].push(txMeta.id);
     }
 
     for (const txStatusString in transactionsGroup) {
@@ -250,6 +248,14 @@ class TransactionMetaObserver extends CronBase {
           promiseArray.push(new SubmittedHandlerKlass(params).perform());
         }
       }
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'transaction_meta_observer_pending_transaction:e_tmo_2:' + txStatusString,
+        api_error_identifier: 'transaction_meta_observer_pending_transaction',
+        debug_options: { txMetaIds: txStatusStringMetaIdsMap[txStatusString] }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     }
 
     await Promise.all(promiseArray);
