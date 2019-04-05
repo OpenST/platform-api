@@ -33,7 +33,7 @@ const v2ErrorConfig = {
     parameter: 'api_key',
     code: 'invalid',
     message:
-      "The API Key is not entered correctly. Please inspect for what is being sent, verify it against the API KEY shown on developer's page in OSTKIT and re-submit."
+      "The API Key is not entered correctly. Please inspect for what is being sent, verify it against the API KEY shown on developer's page in OST Platform and re-submit."
   },
   invalid_api_key_for_inactive_user: {
     parameter: 'api_key',
@@ -151,6 +151,12 @@ const v2ErrorConfig = {
     code: 'invalid',
     message:
       "Invalid parameter device_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
+  },
+  invalid_device_address_to_remove: {
+    parameter: 'device_address',
+    code: 'invalid',
+    message:
+      'Invalid parameter device_address. Signer address and device address can not be same. Please make sure they are different.'
   },
   invalid_recovery_owner_address: {
     parameter: 'recovery_owner_address',

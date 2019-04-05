@@ -1,7 +1,7 @@
 /**
  * Module for creating ost_infra database.
  *
- * @module lib/errorLogs/createOstInfraDatabase
+ * @module executables/oneTimers/createOstInfraDatabase
  */
 
 const mysql = require('mysql');
@@ -22,7 +22,7 @@ connection.connect(function(error) {
     return console.error('Error: ' + error.message);
   }
 
-  connection.query(`CREATE DATABASE ost_infra_${coreConstants.environment}`, function(err) {
+  connection.query(`CREATE DATABASE ${coreConstants.OST_INFRA_MYSQL_DB}`, function(err) {
     if (err) {
       throw err;
     }

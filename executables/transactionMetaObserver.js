@@ -157,9 +157,14 @@ class TransactionMetaObserver extends CronBase {
   _initializeLoopVars() {
     const oThis = this;
 
-    const currentTimeMs = new Date().getTime();
+    const currentTimeMs = new Date().getTime(),
+      randomNumber = basicHelper.getRandomNumber(10000000000000, 99999999999999),
+      // NOTE: as we have prefetch > 1 it is very IMPORTANT to add this random no. here
+      // to avoid same lock id being used for multiple queries
+      lockIdPrefix = currentTimeMs + randomNumber;
+
     oThis.currentTime = Math.floor(currentTimeMs / 1000);
-    oThis.lockId = parseFloat(currentTimeMs + '.' + cronProcessId);
+    oThis.lockId = parseFloat(lockIdPrefix + '.' + cronProcessId);
 
     oThis.transactionsToProcess = [];
   }

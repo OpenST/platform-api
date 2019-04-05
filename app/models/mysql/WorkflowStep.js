@@ -57,6 +57,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '31': workflowStepConstants.verifySetInternalActorForOwnerInUBT,
     '32': workflowStepConstants.verifyEconomySetup,
     '33': workflowStepConstants.assignShards,
+    '86': workflowStepConstants.sendTokenSetupSuccessEmail,
+    '87': workflowStepConstants.sendTokenSetupErrorEmail,
 
     '34': workflowStepConstants.deployTokenRules,
     '35': workflowStepConstants.saveTokenRules,
@@ -95,6 +97,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '65': workflowStepConstants.confirmStakeIntent,
     '66': workflowStepConstants.progressStake,
     '67': workflowStepConstants.progressMint,
+    '88': workflowStepConstants.sendStakeAndMintSuccessEmail,
+    '89': workflowStepConstants.sendStakeAndMintErrorEmail,
 
     '70': workflowStepConstants.btStakeAndMintInit,
     '71': workflowStepConstants.approveGatewayComposerTrx,

@@ -333,6 +333,8 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
    * @private
    */
   async _commandMessageProcessor(messageParams) {
+    const oThis = this;
+
     let commandProcessorResponse = await new CommandMessageProcessor({
       auxChainId: oThis.auxChainId,
       commandMessage: messageParams.message.payload
@@ -358,7 +360,8 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
     if (commandProcessorResponse.data.shouldStartTxQueConsume === 1) {
       await oThis._startSubscriptionFor(oThis.exTxTopicName);
     } else if (commandProcessorResponse.data.shouldStopTxQueConsume === 1) {
-      oThis._stopPickingUpNewTasks(oThis.exTxTopicName);
+      let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[oThis.exTxTopicName];
+      rabbitmqSubscription.stopConsumption();
     }
   }
 }

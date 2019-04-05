@@ -308,7 +308,7 @@ class ExecuteTxBase extends ServiceBase {
 
     for (let i = 0; i < transferToAddresses.length; i++) {
       let userDetail = userDetailsData[transferToAddresses[i]];
-      if (!CommonValidators.validateObject(userDetail)) {
+      if (!CommonValidators.validateObject(userDetail) || userDetail.tokenId != oThis.tokenId) {
         return oThis._validationError('s_et_b_5', ['invalid_raw_calldata_parameter_address'], {
           transferToAddresses: transferToAddresses
         });
