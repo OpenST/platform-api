@@ -131,7 +131,13 @@ class CronProcessesMonitorExecutable extends CronBase {
         lastStartedAtInMSecs = new Date(cronEntity.last_started_at).getTime(),
         lastEndedAtInMSecs = new Date(cronEntity.last_ended_at).getTime();
 
-      logger.info('*** Monitoring cron: [', cronEntity.id, cronKind, '] on machine: ', cronEntity.ip_address);
+      logger.info(
+        '*** Executing monitoring tasks for cron: [',
+        cronEntity.id,
+        cronKind,
+        '] on machine: ',
+        cronEntity.ip_address
+      );
       logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
       logger.debug('lastStartedAtInMSecs: ', lastStartedAtInMSecs);
       logger.debug('lastEndedAtInMSecs: ', lastEndedAtInMSecs);
@@ -159,13 +165,13 @@ class CronProcessesMonitorExecutable extends CronBase {
           +cronEntity.status === +invertedStoppedStatus &&
           currentTimeInMSecs - lastEndedAtInMSecs > OFFSET_TIME_IN_MSEC
         ) {
-          const errorIdentifierStr = `${cronKind}:cron_stuck:e_cpm_1`,
+          const errorIdentifierStr = `${cronKind}:cron_stopped:e_cpm_1`,
             debugOptions = {
               cronId: cronEntity.id,
               cronKind: cronKind,
               lastEndTimeFromCron: cronEntity.last_ended_at
             };
-          await oThis._notify(errorIdentifierStr, debugOptions);
+          await oThis._notifyStopState(errorIdentifierStr, debugOptions);
         }
 
         // Check last started time for continuous crons.
@@ -193,13 +199,13 @@ class CronProcessesMonitorExecutable extends CronBase {
           +cronEntity.status === +invertedStoppedStatus &&
           currentTimeInMSecs - lastEndedAtInMSecs > OFFSET_TIME_IN_MSEC + restartIntervalForCron
         ) {
-          const errorIdentifierStr = `${cronKind}:cron_stuck:e_cpm_3`,
+          const errorIdentifierStr = `${cronKind}:cron_stopped:e_cpm_3`,
             debugOptions = {
               cronId: cronEntity.id,
               cronKind: cronKind,
               lastEndTimeFromCron: cronEntity.last_ended_at
             };
-          await oThis._notify(errorIdentifierStr, debugOptions);
+          await oThis._notifyStopState(errorIdentifierStr, debugOptions);
         }
         // Check last started time for periodic crons.
         // If currently running instance has wrong last started at time, notify [very rare case].
@@ -233,6 +239,25 @@ class CronProcessesMonitorExecutable extends CronBase {
     const errorObject = responseHelper.error({
       internal_error_identifier: errorIdentifier,
       api_error_identifier: 'cron_stuck',
+      debug_options: debugOptions
+    });
+    await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+  }
+
+  /**
+   * Insert entry in error_logs table for stop state.
+   *
+   * @param {String} errorIdentifier: errorIdentifier
+   * @param {Object} debugOptions:  debugOptions
+   *
+   * @returns {Promise<void>}
+   *
+   * @private
+   */
+  async _notifyStopState(errorIdentifier, debugOptions) {
+    const errorObject = responseHelper.error({
+      internal_error_identifier: errorIdentifier,
+      api_error_identifier: 'cron_stopped',
       debug_options: debugOptions
     });
     await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
