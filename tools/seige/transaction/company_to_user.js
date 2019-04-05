@@ -107,7 +107,7 @@ class TransactionSiege {
         if (transferTos.length <= 0) continue;
 
         for (let j = 0; j < transferTos.length; j++) {
-          transferAmounts.push('10000');
+          transferAmounts.push('1');
         }
 
         let raw_calldata = JSON.stringify({

@@ -141,6 +141,26 @@ class CoreConstants {
     return process.env.SA_OST_INFRA_MYSQL_PASSWORD;
   }
 
+  get OST_INFRA_MYSQL_DB() {
+    return process.env.SA_OST_INFRA_MYSQL_DB;
+  }
+
+  get OST_ANALYTICS_MYSQL_HOST() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_HOST;
+  }
+
+  get OST_ANALYTICS_MYSQL_USER() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_USER;
+  }
+
+  get OST_ANALYTICS_MYSQL_PASSWORD() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_PASSWORD;
+  }
+
+  get OST_ANALYTICS_MYSQL_DB() {
+    return process.env.SA_OST_ANALYTICS_MYSQL_DB;
+  }
+
   get KMS_AWS_ACCESS_KEY() {
     return process.env.SA_KMS_AWS_ACCESS_KEY;
   }
@@ -318,6 +338,35 @@ class CoreConstants {
    */
   get batchDeleteRetryCount() {
     return 10;
+  }
+
+  /**
+   * S3 AWS config
+   */
+  get S3_AWS_ACCESS_KEY() {
+    return process.env.SA_S3_AWS_ACCESS_KEY;
+  }
+
+  get S3_AWS_SECRET_KEY() {
+    return process.env.SA_S3_AWS_SECRET_KEY;
+  }
+
+  get S3_AWS_REGION() {
+    return process.env.SA_S3_AWS_REGION;
+  }
+
+  get S3_AWS_MASTER_FOLDER() {
+    return process.env.SA_S3_AWS_MASTER_FOLDER;
+  }
+
+  get S3_ANALYTICS_BUCKET() {
+    return process.env.SA_S3_ANALYTICS_BUCKET;
+  }
+
+  get S3_ANALYTICS_GRAPH_FOLDER() {
+    const oThis = this;
+
+    return oThis.S3_AWS_MASTER_FOLDER + '/' + process.env.SA_S3_ANALYTICS_GRAPH_FOLDER;
   }
 }
 

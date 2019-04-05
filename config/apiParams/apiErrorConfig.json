@@ -484,10 +484,10 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Chain Id is invalid."
   },
-  "block_parser_stuck": {
+  "no_new_block_from_geth": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Block parser stuck for a long time."
+    "message": "No new block from Geth, block parser waiting for new blocks."
   },
   "block_hash_dont_match": {
     "http_code": "422",

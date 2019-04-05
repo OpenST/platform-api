@@ -107,6 +107,11 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
     logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
     const addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, tokenAddresses);
 
+    logger.step('Check if master internal funder has some threshold amount of balance.');
+    let stPrimeForOneSetup = oThis._checkThresholdAmountForMif();
+    logger.debug('Threshold balance', stPrimeForOneSetup);
+    await oThis._isMIFStPrimeBalanceGreaterThan(stPrimeForOneSetup);
+
     logger.step('Fund chain specific addresses with StPrime if needed');
     await oThis._checkEligibilityAndTransferFunds(auxChainId, perTokenFundingConfig, addressesToBalanceMap);
   }
