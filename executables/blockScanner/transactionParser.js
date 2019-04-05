@@ -240,7 +240,7 @@ class TransactionParser extends MultiSubscriptionBase {
       // Delete block parser pending task if block hash is not verified.
       await new BlockParserPendingTaskModel().deleteTask(taskId);
 
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
       logger.debug('------unAckCount -> ', oThis.unAckCount);
 
       // ACK RMQ.
