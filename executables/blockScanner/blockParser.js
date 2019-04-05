@@ -56,16 +56,16 @@ let parserStuckForBlocks = 0,
   notifierCalled = false;
 
 /**
- * Class for Block parser
+ * Class for block parser.
  *
- * @class
+ * @class BlockParserExecutable
  */
 class BlockParserExecutable extends PublisherBase {
   /**
-   * Constructor for transaction parser
+   * Constructor for block parser.
    *
-   * @param {Object} params
-   * @param {Number} params.cronProcessId: cron_processes table id
+   * @param {object} params
+   * @param {number} params.cronProcessId: cron_processes table id
    *
    * @augments PublisherBase
    *
@@ -80,10 +80,9 @@ class BlockParserExecutable extends PublisherBase {
   }
 
   /**
-   * Start cron related processing
+   * Start cron related processing.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _start() {
@@ -152,24 +151,23 @@ class BlockParserExecutable extends PublisherBase {
    * Fetch config strategy and set isOriginChain, wsProviders and blockGenerationTime in oThis.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _fetchConfigStrategy() {
     const oThis = this;
 
-    // Fetch config strategy for chain id
+    // Fetch config strategy for chain id.
     const strategyByChainHelperObj = new StrategyByChainHelper(oThis.chainId),
       configStrategyResp = await strategyByChainHelperObj.getComplete();
 
-    // If config strategy not found, then emit SIGINT
+    // If config strategy not found, then emit SIGINT.
     if (configStrategyResp.isFailure()) {
       logger.error('Could not fetch configStrategy. Exiting the process.');
       process.emit('SIGINT');
     }
     const configStrategy = configStrategyResp.data;
 
-    // Check if it is origin chain
+    // Check if it is origin chain.
     oThis.isOriginChain = configStrategy[configStrategyConstants.originGeth].chainId == oThis.chainId;
 
     // Fetching wsProviders for _warmUpWeb3Pool method.
@@ -188,7 +186,6 @@ class BlockParserExecutable extends PublisherBase {
    * sets some variables as well.
    *
    * @private
-   *
    * @returns {Promise<void>}
    */
   async _validateChainId(blockScannerObj) {
@@ -232,17 +229,16 @@ class BlockParserExecutable extends PublisherBase {
 
   /**
    * Warm up web3 pool.
-   *
    * @returns {Promise<void>}
    */
   async _warmUpWeb3Pool() {
     const oThis = this;
 
-    let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
+    const web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
 
     for (let index = 0; index < oThis.wsProviders.length; index++) {
-      let provider = oThis.wsProviders[index];
-      for (let i = 0; i < web3PoolSize; i++) {
+      const provider = oThis.wsProviders[index];
+      for (let web3PoolIndex = 0; web3PoolIndex < web3PoolSize; web3PoolIndex++) {
         web3InteractFactory.getInstance(provider);
       }
     }
@@ -253,8 +249,7 @@ class BlockParserExecutable extends PublisherBase {
   /**
    * Initializes block parser service and blockToProcess.
    *
-   * @param {Object} blockScannerObj
-   *
+   * @param {object} blockScannerObj
    * @private
    */
   _initializeBlockParser(blockScannerObj) {
@@ -291,7 +286,7 @@ class BlockParserExecutable extends PublisherBase {
       }
       oThis.canExit = false;
 
-      let blockParserOptions = {
+      const blockParserOptions = {
         blockDelay: oThis.intentionalBlockDelay
       };
 
@@ -300,26 +295,27 @@ class BlockParserExecutable extends PublisherBase {
         blockParserOptions.blockToProcess = oThis.blockToProcess;
       }
 
-      let blockParser = new oThis.BlockParser(oThis.chainId, blockParserOptions);
+      const blockParser = new oThis.BlockParser(oThis.chainId, blockParserOptions);
 
-      let blockParserResponse = await blockParser.perform();
+      const blockParserResponse = await blockParser.perform();
 
       if (!blockParserResponse.isSuccess()) {
         parserStuckForBlocks++;
         // If blockParser returns an error then sleep for 10 ms and try again.
         await basicHelper.sleep(10);
         oThis.canExit = true;
+
         return;
       }
 
       // Load the obtained block level data into variables
-      let blockParserData = blockParserResponse.data,
+      const blockParserData = blockParserResponse.data,
         rawCurrentBlock = blockParserData.rawCurrentBlock || {},
         nodesWithBlock = blockParserData.nodesWithBlock,
         currentBlock = blockParserData.currentBlock,
         nextBlockToProcess = blockParserData.nextBlockToProcess;
 
-      let wasNewBlockParsed = currentBlock && currentBlock !== nextBlockToProcess;
+      const wasNewBlockParsed = currentBlock && currentBlock !== nextBlockToProcess;
 
       if (wasNewBlockParsed) {
         parserStuckForBlocks = 0;
@@ -354,20 +350,23 @@ class BlockParserExecutable extends PublisherBase {
   /**
    * This method distributes the transactions to transaction parser workers.
    *
-   * @param {Object} rawCurrentBlock
-   * @param {Array} nodesWithBlock
+   * @param {object} rawCurrentBlock
+   * @param {array} nodesWithBlock
    *
    * @returns {Promise<number>}
+   * @private
    */
   async _distributeTransactions(rawCurrentBlock, nodesWithBlock) {
     const oThis = this;
 
-    let transactions = rawCurrentBlock.transactions || [];
+    const transactions = rawCurrentBlock.transactions || [];
 
-    // if no transactions present, nothing to do;
-    if (transactions.length === 0) return;
+    // If no transactions present, nothing to do.
+    if (transactions.length === 0) {
+      return;
+    }
 
-    let blockHash = rawCurrentBlock.hash,
+    const blockHash = rawCurrentBlock.hash,
       blockNumber = rawCurrentBlock.number,
       filteredTxHashes = await oThis._filterOutUsingPendingTransaction(transactions),
       filteredTxCount = filteredTxHashes.length;
@@ -382,7 +381,9 @@ class BlockParserExecutable extends PublisherBase {
     );
 
     // If no transactions filtered, then nothing to do.
-    if (filteredTxCount.length === 0) return;
+    if (filteredTxCount.length === 0) {
+      return;
+    }
 
     let perBatchCount = filteredTxCount / nodesWithBlock.length,
       offset = 0;
@@ -399,15 +400,17 @@ class BlockParserExecutable extends PublisherBase {
     let loopCount = 0;
 
     while (loopCount < noOfBatches) {
-      let batchedTxHashes = filteredTxHashes.slice(offset, offset + perBatchCount);
-      offset = offset + perBatchCount;
+      const batchedTxHashes = filteredTxHashes.slice(offset, offset + perBatchCount);
+      offset += perBatchCount;
 
-      if (batchedTxHashes.length === 0) break;
+      if (batchedTxHashes.length === 0) {
+        break;
+      }
 
-      let blockParserTaskModel = new BlockParserPendingTaskModel(),
+      const blockParserTaskModel = new BlockParserPendingTaskModel(),
         insertedRecord = await blockParserTaskModel.insertTask(oThis.chainId, blockNumber, batchedTxHashes);
 
-      let messageParams = {
+      const messageParams = {
         topics: oThis._topicsToPublish,
         publisher: oThis._publisher,
         message: {
@@ -421,12 +424,13 @@ class BlockParserExecutable extends PublisherBase {
         }
       };
 
-      let ostNotification = await oThis._getRabbitmqInstance(),
+      const ostNotification = await oThis._getRabbitmqInstance(),
         publishToRmq = await ostNotification.publishEvent.perform(messageParams);
 
       // If could not set to RMQ run in async.
       if (publishToRmq.isFailure() || publishToRmq.data.publishedToRmq === 0) {
         logger.error("====Couldn't publish the message to RMQ====");
+
         return FAILURE_CODE;
       }
 
@@ -437,7 +441,7 @@ class BlockParserExecutable extends PublisherBase {
   }
 
   /**
-   * Fetch @ostdotcom/notification instance
+   * Fetch notification instance.
    *
    * @return {*}
    * @private
@@ -445,7 +449,7 @@ class BlockParserExecutable extends PublisherBase {
   _getRabbitmqInstance() {
     const oThis = this;
 
-    let rabbitParams = {
+    const rabbitParams = {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons
     };
@@ -455,7 +459,7 @@ class BlockParserExecutable extends PublisherBase {
     if (oThis.isOriginChain) {
       rabbitKind = rabbitmqConstant.originRabbitmqKind;
     } else {
-      rabbitParams['auxChainId'] = oThis.chainId;
+      rabbitParams.auxChainId = oThis.chainId;
       rabbitKind = rabbitmqConstant.auxRabbitmqKind;
     }
 
@@ -465,7 +469,7 @@ class BlockParserExecutable extends PublisherBase {
   /**
    * Filter out using pending transactions.
    *
-   * @param {Array} blockTransactions
+   * @param {array} blockTransactions
    *
    * @returns {Promise<Array>}
    */
@@ -473,22 +477,26 @@ class BlockParserExecutable extends PublisherBase {
     const oThis = this;
 
     // If not origin chain, nothing to filter out.
-    if (!oThis.isOriginChain) return blockTransactions;
+    if (!oThis.isOriginChain) {
+      return blockTransactions;
+    }
 
-    let allTxHahes = blockTransactions,
+    const allTxHashes = blockTransactions,
       intersectedTxHashes = [];
 
     while (true) {
-      let batchedTxHashes = allTxHahes.splice(0, 50);
+      const batchedTxHashes = allTxHashes.splice(0, 50);
 
-      if (batchedTxHashes.length <= 0) break;
+      if (batchedTxHashes.length <= 0) {
+        break;
+      }
 
-      let pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
+      const pendingTransactionRsp = await new oThis.PendingTransactionByHashCache({
         chainId: oThis.chainId,
         transactionHashes: batchedTxHashes
       }).fetch();
 
-      for (let txHash in pendingTransactionRsp.data) {
+      for (const txHash in pendingTransactionRsp.data) {
         if (CommonValidators.validateObject(pendingTransactionRsp.data[txHash])) {
           intersectedTxHashes.push(txHash);
         }
@@ -499,7 +507,7 @@ class BlockParserExecutable extends PublisherBase {
   }
 
   /**
-   * topics to publish
+   * Topics to publish.
    *
    * @return {*[]}
    * @private
@@ -507,11 +515,11 @@ class BlockParserExecutable extends PublisherBase {
   get _topicsToPublish() {
     const oThis = this;
 
-    return ['transaction_parser_' + oThis.chainId];
+    return [`transaction_parser_${oThis.chainId}`];
   }
 
   /**
-   * Publisher
+   * Publisher.
    *
    * @return {string}
    * @private
@@ -521,7 +529,7 @@ class BlockParserExecutable extends PublisherBase {
   }
 
   /**
-   * Message Kind
+   * Message Kind.
    *
    * @return {string}
    * @private
@@ -531,7 +539,7 @@ class BlockParserExecutable extends PublisherBase {
   }
 
   /**
-   * Cron Kind
+   * Cron Kind.
    *
    * @return {string}
    * @private

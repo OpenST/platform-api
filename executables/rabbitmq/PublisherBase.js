@@ -1,39 +1,52 @@
-'use strict';
+/**
+ * Module for publisher base.
+ *
+ * @module executables/rabbitmq/PublisherBase
+ */
 
 const rootPrefix = '../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   CronBase = require(rootPrefix + '/executables/CronBase');
 
+/**
+ * Class for publisher base.
+ *
+ * @class PublisherBase
+ */
 class PublisherBase extends CronBase {
   /**
-   * Publisher base constructor
+   * Constructor for publisher base.
    *
-   * @param {Object} params
-   * @param {Number} params.cronProcessId
+   * @param {object} params
+   * @param {number} params.cronProcessId
+   *
+   * @augments CronBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
   }
 
   /**
-   * _validateAndSanitize
+   * Validate and sanitize.
    *
    * @private
    */
   _validateAndSanitize() {
     const oThis = this;
 
-    logger.step('common validations done.');
+    logger.step('Common validations done.');
 
     oThis._specificValidations();
 
-    logger.step('specific validations done.');
+    logger.step('Specific validations done.');
   }
 
   /**
    * This function checks if there are any pending tasks left or not.
    *
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   _pendingTasksDone() {
     const oThis = this;
@@ -44,14 +57,15 @@ class PublisherBase extends CronBase {
   }
 
   get _topicsToPublish() {
-    throw 'sub class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   get _publisher() {
-    throw 'sub class to implement.';
+    throw new Error('Sub-class to implement.');
   }
+
   get _messageKind() {
-    throw 'sub class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 }
 

@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This code acts as a worker process for block scanner, which takes the transactions from block parser
  * and processes them.
@@ -35,6 +34,7 @@ const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction');
 
+// Declare variables.
 const TX_BATCH_SIZE = 20;
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -53,12 +53,19 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
+/**
+ * Class for transaction parser.
+ *
+ * @class TransactionParser
+ */
 class TransactionParser extends MultiSubscriptionBase {
   /**
-   * Constructor for transaction parser
+   * Constructor for transaction parser.
    *
-   * @param {Object} params
-   * @param {Number} params.cronProcessId: cron_processes table id
+   * @augments MultiSubscriptionBase
+   *
+   * @param {object} params
+   * @param {number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -67,7 +74,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * process name prefix
+   * Process name prefix.
    *
    * @returns {string}
    * @private
@@ -77,7 +84,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Topics to subscribe
+   * Topics to subscribe.
    *
    * @returns {*[]}
    *
@@ -90,7 +97,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * queue name
+   * Queue name.
    *
    * @returns {string}
    * @private
@@ -102,7 +109,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Specific validations apart from common validations
+   * Specific validations apart from common validations.
    *
    * @private
    */
@@ -121,7 +128,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Cron kind
+   * Cron kind.
    *
    * @return {string}
    * @private
@@ -131,7 +138,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Warm up web3 pool before init
+   * Warm up web3 pool before init.
    *
    * @returns {Promise<void>}
    */
@@ -142,7 +149,7 @@ class TransactionParser extends MultiSubscriptionBase {
     await oThis._fetchConfigStrategy();
 
     // Get blockScanner object.
-    let blockScanner = await blockScannerProvider.getInstance([oThis.chainId]);
+    const blockScanner = await blockScannerProvider.getInstance([oThis.chainId]);
 
     // Validate whether chainId exists in the chains table.
     await oThis._validateChainId(blockScanner);
@@ -160,21 +167,20 @@ class TransactionParser extends MultiSubscriptionBase {
    * @returns {{}}
    * @private
    */
-
   _prepareSubscriptionData() {
     const oThis = this;
 
-    let rabbitParams = {
+    const rabbitParams = {
       topic: oThis._topicsToSubscribe[0],
       queue: oThis._queueName,
       prefetchCount: oThis.prefetchCount
     };
 
     if (oThis.isOriginChain) {
-      rabbitParams['rabbitmqKind'] = rabbitmqConstants.originRabbitmqKind;
+      rabbitParams.rabbitmqKind = rabbitmqConstants.originRabbitmqKind;
     } else {
-      rabbitParams['auxChainId'] = oThis.chainId;
-      rabbitParams['rabbitmqKind'] = rabbitmqConstants.auxRabbitmqKind;
+      rabbitParams.auxChainId = oThis.chainId;
+      rabbitParams.rabbitmqKind = rabbitmqConstants.auxRabbitmqKind;
     }
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]] = new RabbitmqSubscription(rabbitParams);
@@ -183,7 +189,7 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * This method calls the transaction parser and token transfer parser services as needed.
    *
-   * @param {String} messageParams
+   * @param {string} messageParams
    *
    * @returns {Promise<*>}
    */
@@ -196,7 +202,7 @@ class TransactionParser extends MultiSubscriptionBase {
       nodes = payload.nodes;
 
     // Fetch Task from table
-    let blockParserTaskModel = new BlockParserPendingTaskModel(),
+    const blockParserTaskModel = new BlockParserPendingTaskModel(),
       blockParserTasks = await blockParserTaskModel.fetchTask(taskId);
 
     if (blockParserTasks.length <= 0) {
@@ -208,6 +214,7 @@ class TransactionParser extends MultiSubscriptionBase {
         'Could not fetch details for pending task: ',
         taskId
       );
+
       // ACK RMQ.
       return;
     }
@@ -235,12 +242,13 @@ class TransactionParser extends MultiSubscriptionBase {
 
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
       logger.debug('------unAckCount -> ', oThis.unAckCount);
+
       // ACK RMQ.
       return;
     }
 
     // Create object of transaction parser.
-    let transactionParser = new oThis.TransactionParser(chainId, rawBlock, transactionHashes, nodes);
+    const transactionParser = new oThis.TransactionParser(chainId, rawBlock, transactionHashes, nodes);
 
     // Start transaction parser service.
     const transactionParserResponse = await transactionParser.perform();
@@ -265,20 +273,20 @@ class TransactionParser extends MultiSubscriptionBase {
     }
 
     // Fetch data from transaction parser response.
-    let transactionReceiptMap = transactionParserResponse.data.transactionReceiptMap || {},
+    const transactionReceiptMap = transactionParserResponse.data.transactionReceiptMap || {},
       unprocessedItems = transactionParserResponse.data.unprocessedTransactions || [],
       processedReceipts = {};
 
-    let unprocessedItemsMap = {},
-      tokenParserNeeded = false;
+    const unprocessedItemsMap = {};
+    let tokenParserNeeded = false;
 
     for (let index = 0; index < unprocessedItems.length; index++) {
       unprocessedItemsMap[unprocessedItems[index]] = 1;
     }
 
-    let txHashList = [];
+    const txHashList = [];
 
-    for (let txHash in transactionReceiptMap) {
+    for (const txHash in transactionReceiptMap) {
       if (!unprocessedItemsMap[txHash] && transactionReceiptMap[txHash]) {
         txHashList.push(txHash);
         processedReceipts[txHash] = transactionReceiptMap[txHash];
@@ -287,7 +295,7 @@ class TransactionParser extends MultiSubscriptionBase {
     }
 
     await oThis._updateStatusesInDb(txHashList, transactionReceiptMap).catch(function(error) {
-      // as we have code in finalizer to check and update statuses (if needed) we ignore any errors from here and proceed
+      // As we have code in finalizer to check and update statuses (if needed) we ignore any errors from here and proceed.
       logger.error('_updateStatusesInDb failed in transactionParser', error);
     });
 
@@ -382,6 +390,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
+   * Initialize transaction parser object.
    *
    * @param blockScannerObj
    * @private
@@ -401,11 +410,11 @@ class TransactionParser extends MultiSubscriptionBase {
   async _warmUpWeb3Pool() {
     const oThis = this;
 
-    let web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
+    const web3PoolSize = coreConstants.OST_WEB3_POOL_SIZE;
 
     for (let index = 0; index < oThis.wsProviders.length; index++) {
-      let provider = oThis.wsProviders[index];
-      for (let i = 0; i < web3PoolSize; i++) {
+      const provider = oThis.wsProviders[index];
+      for (let web3PoolIndex = 0; web3PoolIndex < web3PoolSize; web3PoolIndex++) {
         web3InteractFactory.getInstance(provider);
       }
     }
@@ -414,7 +423,7 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Start subscription
+   * Start subscription.
    *
    * @return {Promise<void>}
    * @private
@@ -426,12 +435,11 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * Increment Unack count
+   * Increment Unack count.
    *
-   * @param messageParams
    * @private
    */
-  _incrementUnAck(messageParams) {
+  _incrementUnAck() {
     const oThis = this;
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
@@ -442,10 +450,9 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Decrement Unack count
    *
-   * @param messageParams
    * @private
    */
-  _decrementUnAck(messageParams) {
+  _decrementUnAck() {
     const oThis = this;
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
@@ -456,11 +463,10 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Get Unack count.
    *
-   * @param messageParams
    * @returns {number}
    * @private
    */
-  _getUnAck(messageParams) {
+  _getUnAck() {
     const oThis = this;
 
     return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
@@ -468,19 +474,16 @@ class TransactionParser extends MultiSubscriptionBase {
 
   /**
    * This method verifies the blockHash received with the actual blockHash of
-   * the passed blockNumber
+   * the passed blockNumber.
    *
-   * @param {Number} blockNumber
-   * @param {String} blockHash
-   * @param {Array} nodes
+   * @param {number} blockNumber
+   * @param {string} blockHash
+   * @param {array} nodes
    *
    * @returns {Promise<Boolean>}
-   *
    * @private
    */
   async _verifyBlockNumberAndBlockHash(blockNumber, blockHash, nodes) {
-    const oThis = this;
-
     const web3Interact = web3InteractFactory.getInstance(nodes[0]),
       rawBlock = await web3Interact.getBlock(blockNumber);
 
@@ -495,35 +498,36 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
-   * update statuses in pending tx and tx meta
+   * Update statuses in pending tx and tx meta.
    *
-   * @param txHashes
-   * @param transactionReceiptMap
+   * @param {array} txHashes
+   * @param {object} transactionReceiptMap
+   *
    * @return {Promise<void>}
    * @private
    */
   async _updateStatusesInDb(txHashes, transactionReceiptMap) {
     const oThis = this;
 
-    let pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
+    const pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
     let fetchPendingTxResp = await new FetchPendingTxData(oThis.chainId, txHashes, false).perform();
     if (fetchPendingTxResp.isFailure()) {
       return fetchPendingTxResp;
     }
     fetchPendingTxResp = fetchPendingTxResp.data;
 
-    let promiseArray = [],
-      receiptSuccessTxHashes = [],
+    const receiptSuccessTxHashes = [],
       receiptFailureTxHashes = [],
       flushNonceCacheForSessionAddresses = [];
+    let promiseArray = [];
 
-    // Update Pending tx
-    for (let pendingTxUuid in fetchPendingTxResp) {
-      let pendingTxData = fetchPendingTxResp[pendingTxUuid],
-        transactionHash = pendingTxData['transactionHash'],
+    // Update Pending tx.
+    for (const pendingTxUuid in fetchPendingTxResp) {
+      const pendingTxData = fetchPendingTxResp[pendingTxUuid],
+        transactionHash = pendingTxData.transactionHash,
         transactionReceipt = transactionReceiptMap[transactionHash];
 
-      let transactionStatus = transactionReceipt.status == '0x0' || transactionReceipt.status === false ? false : true;
+      const transactionStatus = !(transactionReceipt.status == '0x0' || transactionReceipt.status === false);
       if (transactionStatus) {
         receiptSuccessTxHashes.push(transactionHash);
       } else {
@@ -533,11 +537,11 @@ class TransactionParser extends MultiSubscriptionBase {
         }
       }
 
-      let updateParams = {
+      const updateParams = {
         chainId: oThis.chainId,
         transactionUuid: pendingTxData.transactionUuid,
         status:
-          transactionStatus & transactionReceipt.internalStatus
+          transactionStatus && transactionReceipt.internalStatus
             ? pendingTransactionConstants.minedStatus
             : pendingTransactionConstants.failedStatus,
         blockNumber: transactionReceipt.blockNumber,
@@ -546,8 +550,8 @@ class TransactionParser extends MultiSubscriptionBase {
 
       promiseArray.push(
         pendingTransactionObj.update(updateParams).catch(function(error) {
-          // as we have code in finalizer to check and update status (if needed) we ignore any errors from here and proceed
-          logger.error('_updateStatuseInDb failed in transactionParser', updateParams, error);
+          // As we have code in finalizer to check and update status (if needed) we ignore any errors from here and proceed
+          logger.error('_updateStatusesInDb failed in transactionParser', updateParams, error);
         })
       );
 
@@ -561,7 +565,7 @@ class TransactionParser extends MultiSubscriptionBase {
       await Promise.all(promiseArray);
     }
 
-    // mark tx meta status
+    // Mark tx meta status as success.
     if (receiptSuccessTxHashes.length > 0) {
       await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
@@ -571,6 +575,7 @@ class TransactionParser extends MultiSubscriptionBase {
       });
     }
 
+    // Mark tx meta status as failure.
     if (receiptFailureTxHashes.length > 0) {
       await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
@@ -587,24 +592,26 @@ class TransactionParser extends MultiSubscriptionBase {
   }
 
   /**
+   * Flush nonce cache.
    *
-   * @param addresses
+   * @param {array} addresses
    * @private
    */
   async _flushNonceCacheForSessionAddresses(addresses) {
     const oThis = this;
 
-    let promises = [];
+    const promises = [];
 
     if (!oThis.chainId) {
-      console.error('_flushNonceCacheForSessionAddresses chainIdNotFound TransactionParser');
+      logger.error('_flushNonceCacheForSessionAddresses chainIdNotFound TransactionParser');
+
       return;
     }
 
-    for (let i = 0; i < addresses.length; i++) {
+    for (let index = 0; index < addresses.length; index++) {
       promises.push(
         new NonceForSession({
-          address: addresses[i],
+          address: addresses[index],
           chainId: oThis.chainId
         }).clear()
       );
