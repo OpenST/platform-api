@@ -108,7 +108,8 @@ class BalanceVerifier extends CronBase {
           .fire();
 
         // Stop if current batch gets less transactions.
-        if (balanceVerifierResponse.noOfTxFound < 1000) {
+        if (balanceVerifierResponse.data.noOfTxFound < 1000) {
+          oThis.canExit = true;
           break;
         }
       }
