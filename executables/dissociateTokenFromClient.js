@@ -17,6 +17,7 @@ const BigNumber = require('bignumber.js'),
   program = require('commander');
 
 const rootPrefix = '..',
+  fundingAmounts = require(rootPrefix + '/config/funding'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -92,7 +93,7 @@ class DissociateTokenFromClient {
         logger.error(`${__filename}::perform::catch`);
         logger.error(error);
         return responseHelper.error({
-          internal_error_identifier: 'e_dl_1',
+          internal_error_identifier: 'e_dtfc_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: {}
         });
@@ -120,6 +121,76 @@ class DissociateTokenFromClient {
     await oThis._transferSTPrimeToMasterInternalFunder();
 
     return Promise.resolve(responseHelper.successWithData('Done with success.'));
+  }
+
+  /**
+   * Set Addresses.
+   * Fetch aux funder and master internal funder address.
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _setAddresses() {
+    const oThis = this;
+
+    let tokenAddressCacheResponse = await new TokenAddressCache({
+      tokenId: oThis.tokenId
+    }).fetch();
+
+    if (tokenAddressCacheResponse.isFailure()) {
+      logger.error('Could not fetched token address details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_dtfc_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            tokenId: oThis.tokenId
+          }
+        })
+      );
+    }
+
+    let tokenAddressesMap = tokenAddressCacheResponse.data;
+
+    oThis.auxFunder = tokenAddressesMap[tokenAddressConstants.auxFunderAddressKind];
+
+    logger.debug('auxFunder------------', oThis.auxFunder);
+
+    // This array contains address kinds with ST Prime balances.
+    let tokenAddressKinds = Object.keys(fundingAmounts[tokenAddressConstants.auxFunderAddressKind].auxGas);
+
+    for (let i = 0; i < tokenAddressKinds.length; i++) {
+      // push addresses with ST Prime to tokenAddresses array
+      let addressKindToCheck = tokenAddressKinds[i];
+
+      if (!CommonValidators.validateArray(tokenAddressesMap[addressKindToCheck])) {
+        // it is not an array, its an unique address
+        oThis.tokenAddresses.push(tokenAddressesMap[addressKindToCheck]);
+      } else {
+        // its an array, so we have to push array elements into tokenAddresses array.
+        let array = tokenAddressesMap[addressKindToCheck];
+        oThis.tokenAddresses.push(...array);
+      }
+    }
+
+    logger.debug('tokenAddresses------------', oThis.tokenAddresses);
+
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
+
+    if (chainAddressesRsp.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_dtfc_3',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            tokenId: oThis.tokenId
+          }
+        })
+      );
+    }
+
+    oThis.masterInternalFunder = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
   }
 
   /**
@@ -163,17 +234,6 @@ class DissociateTokenFromClient {
   async _updateWorkflowsTable() {
     const oThis = this;
 
-    let queryRsp = await new WorkflowModel()
-        .select('id')
-        .where({
-          client_id: oThis.clientId,
-          kind: new WorkflowModel().invertedKinds[workflowConstants.tokenDeployKind]
-        })
-        .fire(),
-      workflowId = queryRsp[0].id;
-
-    logger.debug('clientId------------', oThis.clientId);
-
     await new WorkflowModel()
       .update({
         unique_hash: null
@@ -184,79 +244,20 @@ class DissociateTokenFromClient {
       })
       .fire();
 
-    // Clear workflow cache.
-    await WorkflowModel.flushCache({ clientId: oThis.clientId, workflowId: workflowId });
+    let queryRsp = await new WorkflowModel()
+      .select('id')
+      .where({
+        client_id: oThis.clientId,
+        kind: new WorkflowModel().invertedKinds[workflowConstants.tokenDeployKind]
+      })
+      .fire();
+
+    for (let i = 0; i < queryRsp.length; i++) {
+      // Clear workflow cache.
+      await WorkflowModel.flushCache({ clientId: oThis.clientId, workflowId: queryRsp[i].id });
+    }
 
     logger.info('*** De-association done: Workflows table ');
-  }
-
-  /**
-   * Set Addresses.
-   * Fetch aux funder and master internal funder address.
-   *
-   * @returns {Promise<never>}
-   * @private
-   */
-  async _setAddresses() {
-    const oThis = this;
-
-    let tokenAddressCacheResponse = await new TokenAddressCache({
-      tokenId: oThis.tokenId
-    }).fetch();
-
-    if (tokenAddressCacheResponse.isFailure()) {
-      logger.error('Could not fetched token address details.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_dl_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            tokenId: oThis.tokenId
-          }
-        })
-      );
-    }
-
-    let tokenAddressesMap = tokenAddressCacheResponse.data;
-
-    oThis.auxFunder = tokenAddressesMap[tokenAddressConstants.auxFunderAddressKind];
-
-    logger.debug('auxFunder------------', oThis.auxFunder);
-
-    for (let i = 0; i < oThis.tokenAddressKinds.length; i++) {
-      // push addresses with ST Prime to tokenAddresses array
-      let addressKindToCheck = oThis.tokenAddressKinds[i];
-
-      if (!CommonValidators.validateArray(tokenAddressesMap[addressKindToCheck])) {
-        // it is not an array, its an unique address
-        oThis.tokenAddresses.push(tokenAddressesMap[addressKindToCheck]);
-      } else {
-        // its an array, so we have to push array elements into tokenAddresses array.
-        let array = tokenAddressesMap[addressKindToCheck];
-        oThis.tokenAddresses.push(...array);
-      }
-    }
-
-    logger.debug('tokenAddresses------------', oThis.tokenAddresses);
-
-    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
-
-    if (chainAddressesRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_dl_3',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            tokenId: oThis.tokenId
-          }
-        })
-      );
-    }
-
-    oThis.masterInternalFunder = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
-
-    logger.debug('masterInternalFunder------------', oThis.masterInternalFunder);
   }
 
   /**
@@ -346,22 +347,6 @@ class DissociateTokenFromClient {
       ]
     });
     return transferStPrime.perform();
-  }
-
-  /**
-   * This array contains address kinds with ST Prime balances.
-   *
-   * @returns {*[]}
-   */
-  get tokenAddressKinds() {
-    const oThis = this;
-    return [
-      tokenAddressConstants.auxAdminAddressKind,
-      tokenAddressConstants.auxWorkerAddressKind,
-      tokenAddressConstants.txWorkerAddressKind,
-      tokenAddressConstants.tokenUserOpsWorkerKind,
-      tokenAddressConstants.recoveryControllerAddressKind
-    ];
   }
 }
 
