@@ -265,8 +265,7 @@ if (cluster.isMaster) {
   process.title = 'Company Restful API node master';
 
   // Fork workers equal to number of CPUs
-  const numWorkers =
-    process.env.OST_CACHING_ENGINE === 'none' ? 1 : process.env.WORKERS || require('os').cpus().length * 2;
+  const numWorkers = process.env.OST_CACHING_ENGINE === 'none' ? 1 : process.env.WORKERS || require('os').cpus().length;
 
   //. Rachin: Potential problem here.
   //    Fork should be the last thing that should be done.
