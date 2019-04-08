@@ -27,7 +27,7 @@ class TransactionByTypeGraph extends ModelBase {
   constructor() {
     super({ dbName: dbName });
     const oThis = this;
-    oThis.tableName = 'transaction_by_type_graph';
+    oThis.tableName = 'aux_transaction_by_type_graph';
   }
 }
 
