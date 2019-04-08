@@ -98,6 +98,7 @@ class BalanceVerifier extends CronBase {
           },
           stringifiedCronParams = JSON.stringify(cronParams);
 
+        oThis.timeStamp = balanceVerifierResponse.data.timeStamp;
         await new CronProcessesModel()
           .update({
             params: stringifiedCronParams
