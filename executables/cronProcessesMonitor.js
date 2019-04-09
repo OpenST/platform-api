@@ -99,7 +99,8 @@ class CronProcessesMonitorExecutable extends CronBase {
         [cronProcessesConstants.auxToOriginStateRootSync]: 1 * 24 * 60 * 60 * 1000,
         [cronProcessesConstants.updatePriceOraclePricePoints]: 55 * 60 * 1000,
         [cronProcessesConstants.executeRecovery]: 10 * 60 * 1000,
-        [cronProcessesConstants.updateRealtimeGasPrice]: 5 * 60 * 1000
+        [cronProcessesConstants.updateRealtimeGasPrice]: 5 * 60 * 1000,
+        [cronProcessesConstants.balanceVerifier]: 5 * 60 * 1000
       }
     };
 
@@ -129,7 +130,7 @@ class CronProcessesMonitorExecutable extends CronBase {
         currentTimeInMSecs = new Date().getTime(),
         lastStartedAtInMSecs = new Date(cronEntity.last_started_at).getTime(),
         lastEndedAtInMSecs = new Date(cronEntity.last_ended_at).getTime();
-      
+
       logger.info('*** Monitoring cron: [', cronEntity.id, cronKind, '] on machine: ', cronEntity.ip_address);
       logger.debug('currentTimeInMSecs: ', currentTimeInMSecs);
       logger.debug('lastStartedAtInMSecs: ', lastStartedAtInMSecs);
