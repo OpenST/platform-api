@@ -38,7 +38,7 @@ const API_KEY = program.apiKey, //'7cc96ecdaf395f5dcfc005a9df31e798',
   API_END_POINT = 'https://s6-api.stagingost.com/mainnet/v2',
   maxConnectionObjects = 4;
 
-let maxIteration = 100,
+let maxIteration = 1000,
   NO_OF_USERS_COVERAGE = 500,
   PARALLEL_TRANSACTIONS = 300, //Company has 10 session addresses.
   NO_OF_TRANSFERS_IN_EACH_TRANSACTION = 3,
