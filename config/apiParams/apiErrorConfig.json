@@ -397,12 +397,22 @@
   "finalizer_stuck": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Finalizer stuck for a long time."
+    "message": "Finalizer stuck due to Pending tasks of Transaction parser."
+  },
+  "finalization_failed_for_block": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Finalization failed for block."
   },
   "cron_stuck": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Cron stuck for a long time."
+  },
+  "cron_stopped": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Cron is in stopped state for at least one interval."
   },
   "low_eth_balance_master_internal_funder": {
     "http_code": "422",

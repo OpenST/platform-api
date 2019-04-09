@@ -1,19 +1,18 @@
-'use strict';
 /**
  * Factory class for workflowRouter.
  *
  * @module executables/workflowFactory
  */
+
 const program = require('commander');
 
 const rootPrefix = '..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
-  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -34,16 +33,16 @@ if (!program.cronProcessId) {
 /**
  * Class for workflow router factory.
  *
- * @class
+ * @class WorkflowRouterFactory
  */
 class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Constructor for workflow router factory.
    *
-   * @augments SubscriberBase
+   * @augments MultiSubscriptionBase
    *
-   * @param {Object} params: params object
-   * @param {Number} params.cronProcessId: cron_processes table id
+   * @param {object} params: params object
+   * @param {number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -54,8 +53,7 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Process name prefix
    *
-   * @returns {String}
-   *
+   * @returns {string}
    * @private
    */
   get _processNamePrefix() {
@@ -66,7 +64,6 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
    * Topics to subscribe
    *
    * @returns {*[]}
-   *
    * @private
    */
   get _topicsToSubscribe() {
@@ -74,10 +71,9 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   }
 
   /**
-   * Queue name
+   * Queue name.
    *
-   * @returns {String}
-   *
+   * @returns {string}
    * @private
    */
   get _queueName() {
@@ -87,8 +83,7 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Specific validations
    *
-   * @returns {Boolean}
-   *
+   * @returns {boolean}
    * @private
    */
   _specificValidations() {
@@ -97,10 +92,9 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   }
 
   /**
-   * Cron kind
+   * Cron kind.
    *
-   * @returns {String}
-   *
+   * @returns {string}
    * @private
    */
   get _cronKind() {
@@ -108,7 +102,7 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   }
 
   /**
-   * Steps to do before subscribe
+   * Steps to do before subscribe.
    *
    * @return {Promise<boolean>}
    * @private
@@ -123,7 +117,6 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
    * @returns {{}}
    * @private
    */
-
   _prepareSubscriptionData() {
     const oThis = this;
 
@@ -136,64 +129,79 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   }
 
   /**
-   * Process message
+   * Process message.
    *
-   * @param {Object} messageParams
-   * @param {String} messageParams.stepKind: Which step to execute in router
-   * @param {Number} messageParams.currentStepId: id of process parent
-   * @param {Number} messageParams.parentStepId: id of process parent
-   * @param {String} messageParams.status
-   * @param {Object} messageParams.payload
+   * @param {object} messageParams
+   * @param {string} messageParams.stepKind: Which step to execute in router
+   * @param {number} messageParams.currentStepId: id of process parent
+   * @param {number} messageParams.parentStepId: id of process parent
+   * @param {string} messageParams.status
+   * @param {object} messageParams.payload
    *
    * @returns {Promise<>}
    *
    * @private
    */
   async _processMessage(messageParams) {
-    const oThis = this;
-
-    // identify which file/function to initiate to execute task of specific kind.
+    // Identify which file/function to initiate to execute task of specific kind.
     // Query in workflow_steps to get details pf parent id in message params
-    let msgParams = messageParams.message.payload;
+    const msgParams = messageParams.message.payload;
     msgParams.topic = messageParams.topics[0];
 
     switch (msgParams.topic) {
-      case workflowTopicConstant.test:
+      case workflowTopicConstant.test: {
         const testProcessRouter = require(rootPrefix + '/lib/workflow/test/Router');
+
         return new testProcessRouter(msgParams).perform();
-      case workflowTopicConstant.stateRootSync:
+      }
+
+      case workflowTopicConstant.stateRootSync: {
         const stateRootSyncRouter = require(rootPrefix + '/lib/workflow/stateRootSync/Router');
+
         return new stateRootSyncRouter(msgParams).perform();
-      case workflowTopicConstant.economySetup:
+      }
+
+      case workflowTopicConstant.economySetup: {
         const EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router');
+
         return new EconomySetupRouter(msgParams).perform();
-      case workflowTopicConstant.stPrimeStakeAndMint:
+      }
+
+      case workflowTopicConstant.stPrimeStakeAndMint: {
         const stPrimeRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/stPrime/Router');
+
         return new stPrimeRouter(msgParams).perform();
+      }
 
-      case workflowTopicConstant.btStakeAndMint:
+      case workflowTopicConstant.btStakeAndMint: {
         const BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router');
-        return new BtStakeAndMintRouter(msgParams).perform();
 
-      case workflowTopicConstant.stPrimeRedeemAndUnstake:
+        return new BtStakeAndMintRouter(msgParams).perform();
+      }
+
+      case workflowTopicConstant.stPrimeRedeemAndUnstake: {
         const stPrimeRedeemRouter = require(rootPrefix + '/lib/workflow/redeemAndUnstake/stPrime/Router');
         return new stPrimeRedeemRouter(msgParams).perform();
+      }
 
-      case workflowTopicConstant.btRedeemAndUnstake:
+      case workflowTopicConstant.btRedeemAndUnstake: {
         const BTRedeemRouter = require(rootPrefix + '/lib/workflow/redeemAndUnstake/brandToken/Router');
         return new BTRedeemRouter(msgParams).perform();
+      }
 
-      case workflowTopicConstant.grantEthOst:
+      case workflowTopicConstant.grantEthOst: {
         const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
+
         return new GrantEthOstRouter(msgParams).perform();
+      }
 
       default:
-        throw 'Unsupported workflow topic ' + messageParams.topics[0];
+        throw new Error(`Unsupported workflow topic ${messageParams.topics[0]}`);
     }
   }
 
   /**
-   * Start subscription
+   * Start subscription.
    *
    * @return {Promise<void>}
    * @private
@@ -205,12 +213,11 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   }
 
   /**
-   * Increment Unack count
+   * Increment Unack count.
    *
-   * @param messageParams
    * @private
    */
-  _incrementUnAck(messageParams) {
+  _incrementUnAck() {
     const oThis = this;
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
@@ -221,10 +228,9 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Decrement Unack count
    *
-   * @param messageParams
    * @private
    */
-  _decrementUnAck(messageParams) {
+  _decrementUnAck() {
     const oThis = this;
 
     oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
@@ -235,11 +241,10 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Get Unack count.
    *
-   * @param messageParams
    * @returns {number}
    * @private
    */
-  _getUnAck(messageParams) {
+  _getUnAck() {
     const oThis = this;
 
     return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;

@@ -1,6 +1,7 @@
 const BigNumber = require('bignumber.js');
 
 const rootPrefix = '../..',
+  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   TokenAddressesModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
@@ -19,6 +20,8 @@ class RemoveStakeMintAndRedeemFromVolume {
     await oThis.fetchRelevantWorkflows();
 
     oThis.createTokenIdMapping();
+
+    await oThis.fetchConversionFactor();
 
     await oThis.fetchUbtAddress();
 
@@ -39,7 +42,7 @@ class RemoveStakeMintAndRedeemFromVolume {
       .select('*')
       .where([
         'kind IN (?) AND status = (?)',
-        [btStakeAndMintInvertedKind, btRedeemAndUnstakeInvertedKind],
+        [btRedeemAndUnstakeInvertedKind],
         new WorkflowModel().invertedStatuses[workflowConstants.completedStatus]
       ])
       .fire();
@@ -62,10 +65,30 @@ class RemoveStakeMintAndRedeemFromVolume {
         amount: new BigNumber(0)
       };
 
-      oThis.tokenIdMapping[requestParams.tokenId].amount =
-        workflowKind == btStakeAndMintInvertedKind
-          ? oThis.tokenIdMapping[requestParams.tokenId].amount.plus(new BigNumber(responseData.amountMinted))
-          : oThis.tokenIdMapping[requestParams.tokenId].amount.minus(new BigNumber(requestParams.amountToRedeem));
+      oThis.tokenIdMapping[requestParams.tokenId].amount = oThis.tokenIdMapping[requestParams.tokenId].amount.plus(
+        new BigNumber(requestParams.amountToRedeem).mul(new BigNumber(2))
+      );
+    }
+  }
+
+  /**
+   * Fetch conversion factor of economy.
+   *
+   * @return {Promise<void>}
+   */
+  async fetchConversionFactor() {
+    const oThis = this;
+
+    const tokenIds = Object.keys(oThis.tokenIdMapping);
+
+    const conversionFactors = await new TokenModel()
+      .select('*')
+      .where(['id IN (?)', tokenIds])
+      .fire();
+
+    for (let index = 0; index < conversionFactors.length; index++) {
+      const conversionFactorEntity = conversionFactors[index];
+      oThis.tokenIdMapping[conversionFactorEntity.id].conversionFactor = conversionFactorEntity.conversion_factor;
     }
   }
 
@@ -122,13 +145,40 @@ class RemoveStakeMintAndRedeemFromVolume {
 
       for (const tokenId in oThis.tokenIdMapping) {
         const tokenEntity = oThis.tokenIdMapping[tokenId];
+
+        if (tokenEntity.chainId != chainId) {
+          continue;
+        }
+
+        if (!cacheResponse.data[tokenEntity.ubtAddress]) {
+          console.log('==========Error==========', tokenEntity);
+          continue;
+        }
+
+        // Current volume in OST.
         oThis.tokenIdMapping[tokenId].currentVolume = cacheResponse.data[tokenEntity.ubtAddress].totalVolume;
+
+        // Volume to be subtracted in BT.
         oThis.tokenIdMapping[tokenId].amount = oThis.tokenIdMapping[tokenId].amount.div(
           new BigNumber(conversionFactor)
         );
-        oThis.tokenIdMapping[tokenId].finalVolume =
-          oThis.tokenIdMapping[tokenId].currentVolume - oThis.tokenIdMapping[tokenId].amount;
+        // Volume to be subtracted in OST.
+        oThis.tokenIdMapping[tokenId].amount = oThis.tokenIdMapping[tokenId].amount.div(
+          new BigNumber(oThis.tokenIdMapping[tokenId].conversionFactor)
+        );
+
+        // 5 digits after decimal.
+        oThis.tokenIdMapping[tokenId].amount = oThis.tokenIdMapping[tokenId].amount.toFixed(5);
+
+        oThis.tokenIdMapping[tokenId].finalVolume = new BigNumber(oThis.tokenIdMapping[tokenId].currentVolume).minus(
+          oThis.tokenIdMapping[tokenId].amount
+        );
+
+        if (oThis.tokenIdMapping[tokenId].finalVolume.lt(new BigNumber(0))) {
+          console.log('Error for this token entity. ', tokenEntity);
+        }
       }
+
       console.log('===oThis.tokenIdMapping====', JSON.stringify(oThis.tokenIdMapping));
       console.log('===oThis.chainIdToUbtMapping====', JSON.stringify(oThis.chainIdToUbtMapping));
     }
@@ -160,6 +210,11 @@ class RemoveStakeMintAndRedeemFromVolume {
           const tokenEntity = oThis.tokenIdMapping[tokenId];
 
           if (tokenEntity.ubtAddress === economyAddr) {
+            if (tokenEntity.finalVolume.lt(new BigNumber(0))) {
+              console.log('Error for this token entity. ', tokenEntity);
+              tokenEntity.finalVolume = new BigNumber(0);
+              console.log('Error for this token entity. 123', tokenEntity);
+            }
             const updateParams = {
               TableName: economyModelObject.tableName(),
               Key: economyModelObject._keyObj({ contractAddress: economyAddr, chainId: chainId }),
@@ -169,7 +224,7 @@ class RemoveStakeMintAndRedeemFromVolume {
                 '#updatedTimestamp': economyModelObject.shortNameFor('updatedTimestamp')
               },
               ExpressionAttributeValues: {
-                ':finalVolume': { N: tokenEntity.finalVolume.toString() },
+                ':finalVolume': { N: tokenEntity.finalVolume.toFixed(5).toString(10) },
                 ':updatedTimestamp': { N: Math.floor(new Date().getTime() / 1000).toString() }
               },
               ReturnValues: 'NONE'
@@ -192,10 +247,6 @@ class RemoveStakeMintAndRedeemFromVolume {
         await economyCache.clear();
       }
     }
-  }
-
-  updateVolumeAmount() {
-    const oThis = this;
   }
 }
 

@@ -48,6 +48,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     oThis.totalSupplyInWei = 0;
     oThis.totalVolumeInWei = 0;
     oThis.tokenHoldersBalance = 0;
+    oThis.totalTokenHolders = 0;
 
     oThis.companyTokenHolderAddresses = [];
     oThis.auxChainId = null;
@@ -152,6 +153,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecession needs wei value.
     oThis.totalSupplyInWei = economyDetails.totalSupply;
     oThis.totalVolumeInWei = basicHelper.convertToWei(economyDetails.totalVolume);
+    oThis.economyUsers = economyDetails.totalTokenHolders; //total economy users
   }
 
   /**
@@ -243,7 +245,8 @@ class GetTokenDashboardDetail extends ServiceBase {
       totalVolumeDollar = oThis.getOstToDollar(oThis.totalVolumeInWei),
       circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalance),
       circulatingSupply = basicHelper.toPrecessionBT(circulatingSupplyInWei),
-      circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei);
+      circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei),
+      economyUsers = oThis.economyUsers;
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -252,7 +255,8 @@ class GetTokenDashboardDetail extends ServiceBase {
         totalVolume: totalVolume,
         totalVolumeDollar: totalVolumeDollar,
         circulatingSupply: circulatingSupply,
-        circulatingSupplyDollar: circulatingSupplyDollar
+        circulatingSupplyDollar: circulatingSupplyDollar,
+        economyUsers: economyUsers
       })
     );
   }

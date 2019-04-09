@@ -12,21 +12,21 @@ const program = require('commander');
 
 const rootPrefix = '..',
   S3Upload = require(rootPrefix + '/lib/s3/UploadBody'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
+  TotalTransactionsGraph = require(rootPrefix + '/lib/analytics/graph/TotalTransactions'),
+  TransactionsByNameGraph = require(rootPrefix + '/lib/analytics/graph/TransactionsByName'),
+  TransactionsByTypeGraph = require(rootPrefix + '/lib/analytics/graph/TransactionsByType'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  TotalTransactionsGraph = require(rootPrefix + '/lib/analytics/graph/TotalTransactions'),
-  TransactionsByNameGraph = require(rootPrefix + '/lib/analytics/graph/TransactionsByName'),
-  TransactionsByTypeGraph = require(rootPrefix + '/lib/analytics/graph/TransactionsByType'),
-  graphConstants = require(rootPrefix + '/lib/globalConstant/graphConstants');
+  graphConstants = require(rootPrefix + '/lib/globalConstant/graphConstants'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 const BATCH_SIZE = 5;
 
@@ -71,10 +71,9 @@ class GenerateGraph extends CronBase {
   }
 
   /**
-   * Cron kind
+   * Cron kind.
    *
    * @return {String}
-   *
    * @private
    */
   get _cronKind() {
@@ -82,10 +81,9 @@ class GenerateGraph extends CronBase {
   }
 
   /**
-   * Validate and sanitize
+   * Validate and sanitize.
    *
    * @return {Promise<*>}
-   *
    * @private
    */
   async _validateAndSanitize() {
@@ -103,10 +101,9 @@ class GenerateGraph extends CronBase {
   }
 
   /**
-   * Pending tasks done
+   * Pending tasks done.
    *
-   * @return {Boolean}
-   *
+   * @return {boolean}
    * @private
    */
   _pendingTasksDone() {
@@ -120,7 +117,6 @@ class GenerateGraph extends CronBase {
    * NOTE: Let oThis.canExit be always true. As it's just a read only cron and not that important.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _start() {
@@ -131,17 +127,17 @@ class GenerateGraph extends CronBase {
     while (true) {
       logger.step('Fetching all token ids for chain id: ', oThis.auxChainId, ' iteration number:', iterationNumber);
 
-      let tokenIds = await oThis._fetchActiveTokenIds(),
-        totalTokenIds = tokenIds.length,
-        promiseArray = [];
+      const tokenIds = await oThis._fetchActiveTokenIds(),
+        totalTokenIds = tokenIds.length;
+      let promiseArray = [];
 
       logger.log('Token Ids: ', tokenIds);
 
-      for (let i = 0; i < totalTokenIds; i++) {
-        logger.log('Processing token id: ', tokenIds[i]);
-        promiseArray.push(oThis._performPerTokenOperation(tokenIds[i]));
+      for (let index = 0; index < totalTokenIds; index++) {
+        logger.log('Processing token id: ', tokenIds[index]);
+        promiseArray.push(oThis._performPerTokenOperation(tokenIds[index]));
 
-        if (promiseArray.length >= BATCH_SIZE || totalTokenIds === i + 1) {
+        if (promiseArray.length >= BATCH_SIZE || totalTokenIds === index + 1) {
           await Promise.all(promiseArray);
           promiseArray = [];
         }
@@ -165,6 +161,7 @@ class GenerateGraph extends CronBase {
 
     if (clientIds.length === 0) {
       logger.warn('No client ids are present for given chainId: ', oThis.auxChainId);
+
       return [];
     }
 
@@ -172,6 +169,7 @@ class GenerateGraph extends CronBase {
 
     if (tokenIds.length === 0) {
       logger.warn('No active token ids present for given chainId: ', oThis.auxChainId);
+
       return [];
     }
 
@@ -181,9 +179,9 @@ class GenerateGraph extends CronBase {
   /**
    * Fetch all client ids on specific chain.
    *
-   * @param {Number} auxChainId
-   * @return {Promise<Array>}
+   * @param {number} auxChainId
    *
+   * @return {Promise<Array>}
    * @private
    */
   async _fetchClientsOnChain(auxChainId) {
@@ -206,9 +204,9 @@ class GenerateGraph extends CronBase {
   /**
    * Fetch token ids for specific clients.
    *
-   * @param {Array} clientIds
-   * @return {Promise<Array>}
+   * @param {array} clientIds
    *
+   * @return {Promise<Array>}
    * @private
    */
   async _fetchClientTokenIdsFor(clientIds) {
@@ -235,8 +233,8 @@ class GenerateGraph extends CronBase {
    * Performs all operations which are to be done for one tokenId.
    *
    * @param {number} tokenId
-   * @returns {Promise<void>}
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _performPerTokenOperation(tokenId) {
@@ -244,7 +242,7 @@ class GenerateGraph extends CronBase {
       currentTimestamp = Date.now();
 
     for (let index = 0; index < graphConstants.allDurationTypes.length; index++) {
-      let durationType = graphConstants.allDurationTypes[index];
+      const durationType = graphConstants.allDurationTypes[index];
 
       logger.step('Preparing TotalTransactions graph for token id: ', tokenId, ' duration:', durationType);
       await oThis._fetchAndUploadTotalTransactionsGraphData(tokenId, durationType, currentTimestamp);
@@ -265,7 +263,6 @@ class GenerateGraph extends CronBase {
    * @param {number} currentTimestamp
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _fetchAndUploadTotalTransactionsGraphData(tokenId, durationType, currentTimestamp) {
@@ -277,13 +274,13 @@ class GenerateGraph extends CronBase {
         currentTimestamp: currentTimestamp
       };
 
-    let totalTransactionsGraphObj = new TotalTransactionsGraph(params),
+    const totalTransactionsGraphObj = new TotalTransactionsGraph(params),
       responseData = await totalTransactionsGraphObj.perform();
 
     logger.info('TotalTransactions data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      let s3FilePath =
+      const s3FilePath =
         coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/total-transactions-by-' + durationType + '.json';
       await oThis.uploadOnS3(s3FilePath, responseData);
     } else {
@@ -299,7 +296,6 @@ class GenerateGraph extends CronBase {
    * @param {number} currentTimestamp
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _fetchAndUploadTransactionsByTypeGraphData(tokenId, durationType, currentTimestamp) {
@@ -311,13 +307,13 @@ class GenerateGraph extends CronBase {
         currentTimestamp: currentTimestamp
       };
 
-    let transactionByTypeGraphObj = new TransactionsByTypeGraph(params),
+    const transactionByTypeGraphObj = new TransactionsByTypeGraph(params),
       responseData = await transactionByTypeGraphObj.perform();
 
     logger.info('TransactionsByType data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      let s3FilePath =
+      const s3FilePath =
         coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-type-by-' + durationType + '.json';
       await oThis.uploadOnS3(s3FilePath, responseData);
     } else {
@@ -333,7 +329,6 @@ class GenerateGraph extends CronBase {
    * @param {number} currentTimestamp
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _fetchAndUploadTransactionsByNameGraphData(tokenId, durationType, currentTimestamp) {
@@ -345,13 +340,13 @@ class GenerateGraph extends CronBase {
         currentTimestamp: currentTimestamp
       };
 
-    let transactionByNameGraphObj = new TransactionsByNameGraph(params),
+    const transactionByNameGraphObj = new TransactionsByNameGraph(params),
       responseData = await transactionByNameGraphObj.perform();
 
     logger.info('TransactionsByName data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      let s3FilePath =
+      const s3FilePath =
         coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-name-by-' + durationType + '.json';
       await oThis.uploadOnS3(s3FilePath, responseData);
     } else {
@@ -362,8 +357,8 @@ class GenerateGraph extends CronBase {
   /**
    * Function which uploads data to S3.
    *
-   * @param filePath
-   * @param body
+   * @param {string} filePath
+   * @param {object} body
    *
    * @returns {Promise<void>}
    */
@@ -384,7 +379,7 @@ class GenerateGraph extends CronBase {
       })
       .catch(function(err) {
         logger.error('File upload failed. Reason: ', err);
-        //alert
+        // Alert
       });
   }
 }
