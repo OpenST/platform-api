@@ -101,6 +101,26 @@ class Workflow extends ModelBase {
       .where({ id: id })
       .fire();
   }
+
+  /***
+   * Flush cache
+   *
+   * @param {object} params
+   *
+   * @returns {Promise<*>}
+   */
+  static async flushCache(params) {
+    const WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow');
+
+    await new WorkflowCache({
+      workflowId: params.workflowId
+    }).clear();
+
+    const WorkflowByClientCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowByClient');
+    await new WorkflowByClientCache({
+      clientId: params.clientId
+    }).clear();
+  }
 }
 
 module.exports = Workflow;
