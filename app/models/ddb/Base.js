@@ -521,7 +521,7 @@ class ModelBaseKlass {
       let shortName = oThis.shortNameFor(key);
 
       // Add key data type
-      if (oThis.shortNameToDataType[shortName] != 'BOOL') {
+      if (oThis.shortNameToDataType[shortName] !== 'BOOL') {
         value = { [oThis.shortNameToDataType[shortName]]: value.toString() };
       } else {
         value = { [oThis.shortNameToDataType[shortName]]: value };
