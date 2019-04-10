@@ -56,7 +56,7 @@ class UpdateStakeCurrencyTableAndIdInTokensTable {
   async updateStContractAddressInStakeCurrencies() {
     const oThis = this;
 
-    oThis.insertId = await new UpdateStakeCurrenciesTable().perform();
+    oThis.insertId = await new UpdateStakeCurrenciesTable(oThis.stContractAddress).perform();
   }
 
   /**
