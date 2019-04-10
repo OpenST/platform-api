@@ -8,9 +8,9 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 // Following require(s) for registering into instance composer.
