@@ -45,6 +45,17 @@ class CoreAbis {
   }
 
   /**
+   * Returns genericERC20 ABI.
+   *
+   * @return {*}
+   */
+  static get genericErc20() {
+    if (nameToAbiMap['genericErc20']) return nameToAbiMap['genericErc20'];
+    nameToAbiMap['genericErc20'] = parseFile(rootPrefix + '/contracts/abi/GenericERC20.abi', 'utf8');
+    return nameToAbiMap['genericErc20'];
+  }
+
+  /**
    * Get abi
    *
    * @param contractName
