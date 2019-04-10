@@ -63,6 +63,8 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     await oThis._insertIntoChainAddress(deployerResponse);
 
+    await oThis._insertInStakeCurrencies(deployerResponse);
+
     return deployerResponse;
   }
 
@@ -130,6 +132,18 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     // Clear chain address cache.
     await new ChainAddressCache({ associatedAuxChainId: 0 }).clear();
+  }
+
+  /**
+   * Create SimpleToken entry in stake currencies table.
+   *
+   * @param {object} deployerResponse
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _insertInStakeCurrencies(deployerResponse) {
+    await new UpdateStakeCurrenciesTable(deployerResponse.data.contractAddress).perform();
   }
 }
 
