@@ -103,6 +103,33 @@ class StakeCurrency extends ModelBase {
 
     return responseHelper.successWithData(StakeCurrency._formatDbData(dbRow[0]));
   }
+
+  /**
+   * Fetch stake currency details by stakeCurrencyId.
+   *
+   * @param {array<string/number>} stakeCurrencyIds
+   *
+   * @return {Promise<any>}
+   */
+  async fetchStakeCurrenciesByIds(stakeCurrencyIds) {
+    const oThis = this,
+      response = {};
+
+    const dbRows = await oThis
+      .select('*')
+      .where([' id IN (?)', stakeCurrencyIds])
+      .fire();
+
+    if (dbRows.length === 0) {
+      return responseHelper.successWithData({});
+    }
+
+    for (let index = 0; index < dbRows.length; index++) {
+      response[dbRows[index].id] = StakeCurrency._formatDbData(dbRows[index]);
+    }
+
+    return responseHelper.successWithData(response);
+  }
 }
 
 module.exports = StakeCurrency;
