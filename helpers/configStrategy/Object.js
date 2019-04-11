@@ -249,6 +249,10 @@ class ConfigStrategyObject {
         gatewayContractAddress: {
           shortName: 'gwca',
           dataType: 'S'
+        },
+        baseCurrencyContractAddress: {
+          shortName: 'bcca',
+          dataType: 'S'
         }
       },
       pendingTransactions: oThis.pendingTransactionsExtraConfig,
