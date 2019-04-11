@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Cron to fund stPrime by chainOwner to chain specific addresses.
  *
@@ -13,16 +12,15 @@
 const program = require('commander');
 
 const rootPrefix = '../../../..',
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  AuxChainSpecificFundingCronBase = require(rootPrefix +
+    '/executables/funding/byMasterInternalFunder/auxChainSpecific/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  AuxChainSpecificFundingCronBase = require(rootPrefix +
-    '/executables/funding/byMasterInternalFunder/auxChainSpecific/Base');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -84,8 +82,6 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
    */
   constructor(params) {
     super(params);
-
-    const oThis = this;
   }
 
   /**
@@ -109,7 +105,7 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
   async _sendFundsIfNeeded() {
     const oThis = this;
 
-    let auxChainId = oThis.auxChainId;
+    const auxChainId = oThis.auxChainId;
 
     logger.step('Re-initiating variables for auxChainId: ' + auxChainId);
     let perChainFundingConfig = null;
@@ -118,24 +114,25 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
     logger.step('Fetching chain specific addresses and populating funding config');
     perChainFundingConfig = await oThis._createDuplicateChainFundingConfigFor(auxChainId);
 
-    let addresses = Object.keys(oThis.addressesToKindMap);
+    const addresses = Object.keys(oThis.addressesToKindMap);
 
     if (addresses.length === 0) {
       logger.error('No chain addresses found on auxChainId: ', auxChainId);
+
       return;
     }
 
     logger.step('Fetching balances for chain addresses on auxChainId: ' + auxChainId);
-    let addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, addresses);
+    const addressesToBalanceMap = await oThis._fetchStPrimeBalance(auxChainId, addresses);
 
-    for (let address in addressesToBalanceMap) {
-      let balance = addressesToBalanceMap[address],
+    for (const address in addressesToBalanceMap) {
+      const balance = addressesToBalanceMap[address],
         addressKind = oThis.addressesToKindMap[address];
       perChainFundingConfig[addressKind].balance = balance;
     }
 
     logger.step('Check if master internal funder has some threshold amount of balance.');
-    let stPrimeForOneSetup = oThis._checkThresholdAmountForMif();
+    const stPrimeForOneSetup = oThis._checkThresholdAmountForMif();
     logger.debug('Threshold balance', stPrimeForOneSetup);
     await oThis._isMIFStPrimeBalanceGreaterThan(stPrimeForOneSetup);
 
@@ -155,13 +152,13 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
   async _createDuplicateChainFundingConfigFor(auxChainId) {
     const oThis = this;
 
-    let perChainFundingConfig = basicHelper.deepDup(stPrimeFundingPerChainConfig);
+    const perChainFundingConfig = basicHelper.deepDup(stPrimeFundingPerChainConfig);
 
     logger.step('Fetching addresses on auxChainId: ' + auxChainId);
-    let chainAddressesRsp = await oThis._fetchAddressesForChain(auxChainId);
+    const chainAddressesRsp = await oThis._fetchAddressesForChain(auxChainId);
 
     // Populate Address in fund config
-    for (let addressKind in perChainFundingConfig) {
+    for (const addressKind in perChainFundingConfig) {
       let address = null;
       if (!chainAddressesRsp.data[addressKind]) {
         logger.error('** Address not found for addressKind: ', addressKind, ' on aux chain Id: ', auxChainId);
@@ -189,10 +186,8 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
    * @private
    */
   async _fetchAddressesForChain(auxChainId) {
-    const oThis = this;
-
     // Fetch all addresses associated to auxChainId.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -220,11 +215,11 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
   async _checkEligibilityAndTransferFunds(auxChainId, perChainFundingConfig) {
     const oThis = this;
 
-    let transferDetails = [],
-      totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0);
+    const transferDetails = [];
+    let totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0);
 
-    for (let addressKind in perChainFundingConfig) {
-      let fundingAddressDetails = perChainFundingConfig[addressKind],
+    for (const addressKind in perChainFundingConfig) {
+      const fundingAddressDetails = perChainFundingConfig[addressKind],
         address = fundingAddressDetails.address,
         balance = fundingAddressDetails.balance;
 
@@ -238,7 +233,7 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
         continue;
       }
 
-      let addressFundAmount = basicHelper
+      const addressFundAmount = basicHelper
           .convertToWei(String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount))
           .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
         addressCurrentBalance = basicHelper.convertToBigNumber(balance),
@@ -252,7 +247,7 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
       logger.log('Threshold Amount for address: ', addressThresholdAmount.toString(10));
 
       if (addressCurrentBalance.lt(addressThresholdAmount)) {
-        let amountToBeTransferredBN = addressFundAmount.minus(addressCurrentBalance),
+        const amountToBeTransferredBN = addressFundAmount.minus(addressCurrentBalance),
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,

@@ -196,7 +196,7 @@ class BaseCurrency extends Base {
     for (let index = 0; index < params.contractAddresses.length; index++) {
       keyObjArray.push(
         oThis._keyObj({
-          tokenId: params.contractAddresses[index]
+          contractAddress: params.contractAddresses[index]
         })
       );
     }
