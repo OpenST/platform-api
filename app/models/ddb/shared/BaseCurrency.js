@@ -159,7 +159,7 @@ class BaseCurrency extends Base {
    * @private
    */
   _sanitizeRowForDynamo(params) {
-    params['contract_address'] = basicHelper.sanitizeAddress(params['contract_address']);
+    params['contractAddress'] = basicHelper.sanitizeAddress(params['contractAddress']);
     return params;
   }
 
