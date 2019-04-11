@@ -1,21 +1,21 @@
 /**
- * Module to insert base currency contract address in  table.
+ * Module to insert base currency contract address in economies table.
  *
  * @module executables/oneTimers/stableCoinStaking/createBaseCurrenciesTable
  */
 
 const rootPrefix = '../../..',
-  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
-  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  ChainAddressesModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
-  chainAddressesConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
 const BATCH_SIZE = 25;
 
@@ -23,7 +23,7 @@ const BATCH_SIZE = 25;
 require(rootPrefix + '/app/models/ddb/shared/BaseCurrency');
 
 /**
- * Class to create base currencies table.
+ * Class to insert base currency contract address in economies table.
  *
  * @class CreateBaseCurrenciesTable
  */
@@ -54,34 +54,43 @@ class InsertBaseCurrencyAddressInEconomies {
    */
   async asyncPerform() {
     const oThis = this;
-    //Fetch ST contract address from chain addresses.
-    await oThis._fetchSTContractAddress();
 
-    //Fetch all chain ids.
+    // Fetch ST contract address from chain addresses.
+    await oThis._fetchStContractAddress();
+
+    // Fetch all chain ids.
     await oThis._fetchAllChainIds();
 
-    //Perform chain specific operations
+    // Perform chain specific operations.
     await oThis._chainSpecificOperations();
   }
 
   /**
-   * Fetch simple token contract address
+   * Fetch simple token contract address.
+   *
+   * @sets oThis.stContractAddress
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _fetchSTContractAddress() {
+  async _fetchStContractAddress() {
     const oThis = this;
 
-    let chainAddressObj = new ChainAddressesModel(),
-      queryResponse = await chainAddressObj
-        .select('address')
-        .where(['kind = ?', chainAddressesConstants.invertedKinds[chainAddressesConstants.stContractKind]])
-        .fire();
+    // Fetch all addresses associated with origin chain id.
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+      chainAddressesRsp = await chainAddressCacheObj.fetch();
 
-    oThis.stContractAddress = queryResponse[0]['address'];
+    oThis.stContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
   }
 
+  /**
+   * Fetch all chainIds.
+   *
+   * @sets oThis.chainIds
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _fetchAllChainIds() {
     const oThis = this;
 
@@ -89,17 +98,16 @@ class InsertBaseCurrencyAddressInEconomies {
   }
 
   /**
-   * Performs chain specific operations
+   * Performs chain specific operations.
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _chainSpecificOperations() {
     const oThis = this;
 
-    for (let i = 0; i < oThis.chainIds.length; i++) {
-      let chainId = oThis.chainIds[i],
+    for (let index = 0; index < oThis.chainIds.length; index++) {
+      const chainId = oThis.chainIds[index],
         ubtAddresses = await oThis._fetchEconomyAddress(chainId);
 
       await oThis._updateEconomies(ubtAddresses, chainId);
@@ -107,12 +115,11 @@ class InsertBaseCurrencyAddressInEconomies {
   }
 
   /**
-   * Fetch all utility branded token addresses for tokens deployed on given chain id
+   * Fetch all utility branded token addresses for tokens deployed on given chain id.
    *
    * @param {number} chainId
    *
-   * @returns {Promise<Array>} Return array of utility branded token addresses
-   *
+   * @returns {Promise<Array>} Return array of utility branded token addresses.
    * @private
    */
   async _fetchEconomyAddress(chainId) {
@@ -136,10 +143,9 @@ class InsertBaseCurrencyAddressInEconomies {
   /**
    * Fetch all client ids on specific chain.
    *
-   * @param {Number} auxChainId
+   * @param {number} auxChainId
    *
    * @return {Promise<Array>}
-   *
    * @private
    */
   async _fetchClientsOnChain(auxChainId) {
@@ -150,6 +156,7 @@ class InsertBaseCurrencyAddressInEconomies {
       .fire();
 
     const clientIds = [];
+
     for (let index = 0; index < chainClientIds.length; index++) {
       const clientId = chainClientIds[index].client_id;
 
@@ -162,10 +169,9 @@ class InsertBaseCurrencyAddressInEconomies {
   /**
    * Fetch token ids for specific clients.
    *
-   * @param {Array} clientIds
+   * @param {array<number>} clientIds
    *
    * @return {Promise<Array>}
-   *
    * @private
    */
   async _fetchClientTokenIdsFor(clientIds) {
@@ -192,10 +198,9 @@ class InsertBaseCurrencyAddressInEconomies {
   /**
    * Fetch ubt addresses for specific token ids.
    *
-   * @param {Array} tokenIds
+   * @param {array<number>} tokenIds
    *
-   * @return {Promise<Array>}
-   *
+   * @return {Promise<*>}
    * @private
    */
   async _fetchUbtAddresses(tokenIds) {
@@ -216,32 +221,31 @@ class InsertBaseCurrencyAddressInEconomies {
   /**
    * Update all the economies whose ubt address is passed.
    *
-   * @param {Array} ubtAddresses
-   *
-   * @param {Number} chainId
+   * @param {array<string>} ubtAddresses
+   * @param {number} chainId
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _updateEconomies(ubtAddresses, chainId) {
     const oThis = this;
 
-    let blockScanner = await blockScannerProvider.getInstance([]),
+    const blockScanner = await blockScannerProvider.getInstance([]),
       economiesModel = blockScanner.model.Economy,
-      economiesObj = new economiesModel({}),
-      promiseArray = [];
+      economiesObj = new economiesModel({});
 
-    for (let i = 0; i < ubtAddresses.length; i++) {
-      let updateParams = {
-        contractAddress: ubtAddresses[i]['address'],
+    let promiseArray = [];
+
+    for (let index = 0; index < ubtAddresses.length; index++) {
+      const updateParams = {
+        contractAddress: ubtAddresses[index].address,
         chainId: chainId,
         baseCurrencyContractAddress: oThis.stContractAddress
       };
 
       promiseArray.push(economiesObj.updateItem(updateParams));
 
-      if (promiseArray.length >= BATCH_SIZE || ubtAddresses.length === i + 1) {
+      if (promiseArray.length >= BATCH_SIZE || ubtAddresses.length === index + 1) {
         await Promise.all(promiseArray);
         promiseArray = [];
       }

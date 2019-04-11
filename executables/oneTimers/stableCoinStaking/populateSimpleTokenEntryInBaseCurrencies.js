@@ -6,11 +6,8 @@
 
 const rootPrefix = '../../..',
   UpdateBaseCurrenciesTable = require(rootPrefix + '/lib/UpdateBaseCurrenciesTable'),
-  ConfigStrategyByChainId = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
  * Class to populate simple token entry in base currencies table.
