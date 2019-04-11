@@ -11,6 +11,7 @@ const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
   util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 // Following require(s) for registering into instance composer.
@@ -158,6 +159,7 @@ class BaseCurrency extends Base {
    * @private
    */
   _sanitizeRowForDynamo(params) {
+    params['contract_address'] = basicHelper.sanitizeAddress(params['contract_address']);
     return params;
   }
 
