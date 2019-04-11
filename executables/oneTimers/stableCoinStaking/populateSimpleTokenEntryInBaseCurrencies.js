@@ -26,28 +26,9 @@ class PopulateSimpleTokenEntryInBaseCurrency {
   async perform() {
     const oThis = this;
 
-    await oThis.getWeb3Provider();
-
     await oThis.fetchStContractAddress();
 
     await oThis.createEntryInBaseCurrenciesTable();
-  }
-
-  /**
-   * Fetch origin chain config strategy.
-   *
-   * @return {Promise<void>}
-   */
-  async getWeb3Provider() {
-    const oThis = this;
-
-    const csHelper = new ConfigStrategyByChainId(0),
-      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
-      configForChain = csResponse.data[configStrategyConstants.originGeth],
-      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
-      provider = readWriteConfig.wsProvider ? readWriteConfig.wsProvider : readWriteConfig.rpcProvider;
-
-    oThis.web3Instance = web3Provider.getInstance(provider).web3WsProvider;
   }
 
   /**
