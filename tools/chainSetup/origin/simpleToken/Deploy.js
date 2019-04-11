@@ -12,6 +12,7 @@ const rootPrefix = '../../../..',
   CoreBins = require(rootPrefix + '/config/CoreBins'),
   DeployerKlass = require(rootPrefix + '/tools/helpers/Deploy'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  UpdateBaseCurrenciesTable = require(rootPrefix + '/lib/UpdateBaseCurrenciesTable'),
   UpdateStakeCurrenciesTable = require(rootPrefix + '/lib/UpdateStakeCurrenciesTable'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
@@ -64,6 +65,8 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
     await oThis._insertIntoChainAddress(deployerResponse);
 
     await oThis._insertInStakeCurrencies(deployerResponse);
+
+    await oThis._insertInBaseCurrencies(deployerResponse);
 
     return deployerResponse;
   }
@@ -144,6 +147,18 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
    */
   async _insertInStakeCurrencies(deployerResponse) {
     await new UpdateStakeCurrenciesTable(deployerResponse.data.contractAddress).perform();
+  }
+
+  /**
+   * Create SimpleToken entry in base currencies table in DynamoDB.
+   *
+   * @param {object} deployerResponse
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _insertInBaseCurrencies(deployerResponse) {
+    await new UpdateBaseCurrenciesTable(deployerResponse.data.contractAddress).perform();
   }
 }
 
