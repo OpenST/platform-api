@@ -18,7 +18,7 @@
 
 ## Create common tables for SAAS DDB
 
-* Create all SAAS Owned DDB Tables - (shards and shard_by_tokens)
+* Create all SAAS Owned DDB Tables - (shards, shard_by_tokens, and base_currencies)
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/saasDdb.js
