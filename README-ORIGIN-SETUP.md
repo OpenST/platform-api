@@ -88,6 +88,12 @@ NOTE: Copy the ETH funder private key for later use.
     source set_env_vars.sh
     node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
+    
+* Deploy Mock Token (EXCEPT PRODUCTION MAIN ENV)
+```bash
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --deploy-mock-token
+```
 
 NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
 
