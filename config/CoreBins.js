@@ -22,7 +22,7 @@ const nameToBinMap = {};
  * @param {string} filePath
  * @param {object} options
  *
- * @return {Buffer}
+ * @return {any}
  */
 function readFile(filePath, options) {
   filePath = path.join(__dirname, '/' + filePath);

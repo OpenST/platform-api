@@ -142,10 +142,14 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
    *
    * @param {object} deployerResponse
    *
-   * @return {Promise<void>}
+   * @return {Promise<void/object>}
    * @private
    */
   async _insertInStakeCurrencies(deployerResponse) {
+    if (deployerResponse.isFailure()) {
+      return deployerResponse;
+    }
+
     await new UpdateStakeCurrenciesTable(deployerResponse.data.contractAddress).perform();
   }
 
@@ -154,10 +158,13 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
    *
    * @param {object} deployerResponse
    *
-   * @return {Promise<void>}
+   * @return {Promise<void/object>}
    * @private
    */
   async _insertInBaseCurrencies(deployerResponse) {
+    if (deployerResponse.isFailure()) {
+      return deployerResponse;
+    }
     await new UpdateBaseCurrenciesTable(deployerResponse.data.contractAddress).perform();
   }
 }
