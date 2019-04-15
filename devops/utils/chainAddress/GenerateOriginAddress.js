@@ -1,49 +1,49 @@
-'use strict';
 /**
- * Generate address for Origin and Auxiliary chains
+ * Module to generate addresses for origin chain.
  *
  * @module devops/utils/GenerateAddress
  */
 
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   fundingConfig = require(rootPrefix + '/config/funding'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
- * Class for Generating addresses for origin chains
+ * Class for generating addresses for origin chain.
  *
- * @class
+ * @class GenerateOriginAddress
  */
 class GenerateOriginAddress extends ChainAddressBase {
   /**
-   * Constructor
+   * Constructor for generating addresses for origin chain.
    *
-   * @param {Number} chainId
+   * @param {number} chainId: origin chain Id.
+   *
+   * @augments ChainAddressBase
    *
    * @constructor
    */
   constructor(chainId) {
     super(chainId);
+
     const oThis = this;
 
-    oThis.chainId = chainId;
     oThis.chainKind = coreConstants.originChainKind;
   }
 
   /**
-   *
-   * async perform
+   * Async perform.
    *
    * @return {Promise<result>}
-   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
 
-    let addressKinds = [
+    const addressKinds = [
       chainAddressConstants.originDeployerKind,
 
       chainAddressConstants.stOrgContractOwnerKind,
@@ -60,7 +60,6 @@ class GenerateOriginAddress extends ChainAddressBase {
     ];
 
     logger.log('* Generating address originDeployerKind.');
-    //logger.log('* Generating address masterInternalFunderKind.');
     logger.log('* Generating address stOrgContractOwnerKind.');
     logger.log('* Generating address originAnchorOrgContractOwnerKind.');
     logger.log('* Generating address stOrgContractAdminKind.');
@@ -70,15 +69,15 @@ class GenerateOriginAddress extends ChainAddressBase {
     logger.log('* Generating address originDefaultBTOrgContractAdminKind.');
     logger.log('* Generating address originDefaultBTOrgContractWorkerKind.');
 
-    let addressesResp = await oThis._generateAddresses(addressKinds);
+    const addressesResp = await oThis._generateAddresses(addressKinds);
 
     if (addressesResp.isSuccess()) {
-      let addresses = addressesResp['data']['addresses'];
+      const addresses = addressesResp.data.addresses;
 
       logger.log(
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
-      let amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
+      const amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
         amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount;
       await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer);
     }
