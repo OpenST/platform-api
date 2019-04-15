@@ -5,8 +5,8 @@
  */
 
 const rootPrefix = '../../..',
-  UpdateBaseCurrenciesTable = require(rootPrefix + '/lib/UpdateBaseCurrenciesTable'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  UpdateBaseCurrenciesTable = require(rootPrefix + '/lib/stableCoin/UpdateBaseCurrenciesTable'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**

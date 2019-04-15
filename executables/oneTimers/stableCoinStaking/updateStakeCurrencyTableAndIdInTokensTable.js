@@ -6,8 +6,8 @@
 
 const rootPrefix = '../../..',
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
-  UpdateStakeCurrenciesTable = require(rootPrefix + '/lib/UpdateStakeCurrenciesTable'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  UpdateStakeCurrenciesTable = require(rootPrefix + '/lib/stableCoin/UpdateStakeCurrenciesTable'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
