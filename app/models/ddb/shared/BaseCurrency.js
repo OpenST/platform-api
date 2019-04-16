@@ -1,5 +1,5 @@
 /**
- * Module for Base Currency table model.
+ * Module for base currency table model.
  *
  * @module app/models/ddb/shared/BaseCurrency
  */
@@ -10,11 +10,10 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../../..',
   Base = require(rootPrefix + '/app/models/ddb/shared/Base'),
   util = require(rootPrefix + '/lib/util'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
-
-// Following require(s) for registering into instance composer.
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  sharedMemcached = require(rootPrefix + '/lib/providers/sharedMemcached');
 
 /**
  * Class for base currency model.
@@ -159,7 +158,8 @@ class BaseCurrency extends Base {
    * @private
    */
   _sanitizeRowForDynamo(params) {
-    params['contractAddress'] = basicHelper.sanitizeAddress(params['contractAddress']);
+    params.contractAddress = basicHelper.sanitizeAddress(params.contractAddress);
+
     return params;
   }
 
@@ -184,7 +184,7 @@ class BaseCurrency extends Base {
    * Get base currency.
    *
    * @param {object} params
-   * @param {string} params.contractAddresses
+   * @param {array<string>} params.contractAddresses
    *
    * @return {Promise<*|result>}
    */
@@ -232,7 +232,7 @@ class BaseCurrency extends Base {
    * @returns {Promise<*>}
    */
   async updateItem() {
-    throw new Error('Can not update base currencies table.');
+    throw new Error('Cannot update base currencies table.');
   }
 
   /**
@@ -240,12 +240,10 @@ class BaseCurrency extends Base {
    *
    * @return {Promise<void>}
    */
-  static async afterUpdate(ic, params) {
-    // TODO: @Ankit: Add code here.
-    // const TokenShardNumbersCache = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache'),
-    //   cacheObject = new TokenShardNumbersCache({ tokenId: params.tokenId });
-    //
-    // await cacheObject.clear();
+  static async afterUpdate() {
+    const cacheImplementer = sharedMemcached.getInstance().cacheInstance;
+
+    await cacheImplementer.delAll();
 
     return responseHelper.successWithData({});
   }
