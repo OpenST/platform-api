@@ -89,19 +89,21 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
     
+NOTE: Copy the response from the script above and save somewhere offline.
+    
 * Deploy Mock Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
-    node devops/exec/chainSetup.js --deploy-mock-token
+    node devops/exec/chainSetup.js --deploy-mock-token --chain-id 3
 ```
 
-NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
+NOTE: Copy the response from the script above and save somewhere offline.
 
-* Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
-Granter address gets ETH and OST in this step.
+* Use Simple token Owner Private Key and Stable Coin Deployer Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
+Granter address gets ETH, OST and StableCoin token in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stableCoinOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50 --stableCoinAmount 1000000
 ```
 
 * Save simple token admin and owner addresses in database.

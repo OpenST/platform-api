@@ -103,7 +103,11 @@ const Main = async function() {
       throw 'This step is not allowed for production-main ENV. Either this has already done or ask Sunil! :)';
     }
 
-    performerObj = new DeployMockToken();
+    if (!program.chainId) {
+      handleError();
+    }
+
+    performerObj = new DeployMockToken(program.chainId);
   } else {
     return handleError();
   }
