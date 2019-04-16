@@ -56,7 +56,9 @@ class GenerateOriginAddress extends ChainAddressBase {
       chainAddressConstants.originAnchorOrgContractWorkerKind,
 
       chainAddressConstants.originDefaultBTOrgContractAdminKind,
-      chainAddressConstants.originDefaultBTOrgContractWorkerKind
+      chainAddressConstants.originDefaultBTOrgContractWorkerKind,
+
+      chainAddressConstants.originStableCoinDeployerKind
     ];
 
     logger.log('* Generating address originDeployerKind.');
@@ -68,6 +70,7 @@ class GenerateOriginAddress extends ChainAddressBase {
     logger.log('* Generating address originAnchorOrgContractWorkerKind.');
     logger.log('* Generating address originDefaultBTOrgContractAdminKind.');
     logger.log('* Generating address originDefaultBTOrgContractWorkerKind.');
+    logger.log('* Generating address originStableCoinDeployerKind.');
 
     const addressesResp = await oThis._generateAddresses(addressKinds);
 
@@ -79,6 +82,7 @@ class GenerateOriginAddress extends ChainAddressBase {
       );
       const amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
         amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount;
+
       await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer);
     }
 
