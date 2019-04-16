@@ -24,6 +24,7 @@ const rootPrefix = '../../..',
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   ClientPreProvisioning = require(rootPrefix + '/app/models/mysql/ClientPreProvisioning'),
   EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router'),
+  StakeCurrencyCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrency'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
   ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
 
@@ -321,6 +322,8 @@ class Deployment {
       // Fetch config group for the client.
       await oThis._insertAndFetchConfigGroup();
 
+      await oThis._fetchStakeCurrencyContractAddress();
+
       let economySetupRouterParams = {
         stepKind: workflowStepConstants.economySetupInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
@@ -331,7 +334,8 @@ class Deployment {
           tokenId: oThis.tokenId,
           auxChainId: oThis.chainId,
           originChainId: oThis.originChainId,
-          clientId: oThis.clientId
+          clientId: oThis.clientId,
+          stakeCurrencyContractAddress: oThis.stakeCurrencyContractAddress
         }
       };
 
@@ -399,6 +403,50 @@ class Deployment {
         }
       }
     }
+  }
+
+  /**
+   * This function fetches and set stake currency contract address.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _fetchStakeCurrencyContractAddress() {
+    const oThis = this;
+
+    let tokenDetails = await oThis._fetchTokenDetails(oThis.clientId),
+      stakeCurrencyId = tokenDetails.stakeCurrencyId,
+      stakeCurrencyDetails = await oThis._fetchStakeCurrencyDetails(stakeCurrencyId);
+
+    oThis.stakeCurrencyContractAddress = stakeCurrencyDetails.contractAddress;
+  }
+
+  /**
+   * This function fetches stake currency details.
+   *
+   * @param {number} stakeCurrencyId
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchStakeCurrencyDetails(stakeCurrencyId) {
+    const oThis = this;
+
+    let stakeCurrencyCacheResponse = await new StakeCurrencyCache({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
+
+    if (stakeCurrencyCacheResponse.isFailure()) {
+      logger.error('Could not fetch stake currency details.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_t_d_8',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            stakeCurrencyIds: [oThis.stakeCurrencyId]
+          }
+        })
+      );
+    }
+
+    return stakeCurrencyCacheResponse.data[stakeCurrencyId];
   }
 
   /**
