@@ -75,6 +75,7 @@ class StakeCurrency extends ModelBase {
       .where({ contract_address: contractAddress })
       .fire();
 
+    // TODO::Shlok - why not reject here
     if (dbRow.length === 0) {
       return responseHelper.successWithData({});
     }
@@ -97,6 +98,7 @@ class StakeCurrency extends ModelBase {
       .where({ id: stakeCurrencyId })
       .fire();
 
+    // TODO::Shlok - why not reject here
     if (dbRow.length === 0) {
       return responseHelper.successWithData({});
     }
@@ -120,6 +122,8 @@ class StakeCurrency extends ModelBase {
       .where([' id IN (?)', stakeCurrencyIds])
       .fire();
 
+    // TODO::Shlok - why not reject here
+    // TODO::Shlok - we can remove the fetch by id function and use this. Will save code.
     if (dbRows.length === 0) {
       return responseHelper.successWithData({});
     }
