@@ -1,5 +1,5 @@
 /**
- * Deploy simpleToken
+ * Module to deploy simple token.
  *
  * @module tools/chainSetup/origin/simpleToken/Deploy
  */
@@ -11,15 +11,10 @@ const rootPrefix = '../../../..',
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   CoreBins = require(rootPrefix + '/config/CoreBins'),
   DeployerKlass = require(rootPrefix + '/tools/helpers/Deploy'),
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
-  UpdateBaseCurrenciesTable = require(rootPrefix + '/lib/stableCoin/UpdateBaseCurrenciesTable'),
-  UpdateStakeCurrenciesTable = require(rootPrefix + '/lib/stableCoin/UpdateStakeCurrenciesTable'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
@@ -44,7 +39,7 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
   }
 
   /**
-   * AsyncPerform
+   * Async perform.
    *
    * @ignore
    * @return {Promise}
@@ -62,17 +57,11 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
 
     await oThis._insertIntoChainSetupLogs(chainSetupConstants.deployBaseContractStepKind, deployerResponse);
 
-    await oThis._insertIntoChainAddress(deployerResponse);
-
-    await oThis._insertInStakeCurrencies(deployerResponse);
-
-    await oThis._insertInBaseCurrencies(deployerResponse);
-
     return deployerResponse;
   }
 
   /**
-   * Deploy contract
+   * Deploy contract.
    *
    * @return {Promise<*>}
    * @private
@@ -107,58 +96,6 @@ class DeploySimpleToken extends SetupSimpleTokenBase {
     };
 
     return deployerResponse;
-  }
-
-  /**
-   * Insert simple token contract address into chain address.
-   *
-   * @param {object} deployerResponse
-   *
-   * @return {Promise<*>}
-   * @private
-   */
-  async _insertIntoChainAddress(deployerResponse) {
-    const oThis = this;
-
-    if (deployerResponse.isFailure()) {
-      return deployerResponse;
-    }
-
-    await new ChainAddressModel().insertAddress({
-      address: deployerResponse.data.contractAddress,
-      associatedAuxChainId: 0,
-      addressKind: chainAddressConstants.stContractKind,
-      deployedChainId: oThis.configStrategyObject.originChainId,
-      deployedChainKind: coreConstants.originChainKind,
-      status: chainAddressConstants.activeStatus
-    });
-
-    // Clear chain address cache.
-    await new ChainAddressCache({ associatedAuxChainId: 0 }).clear();
-  }
-
-  /**
-   * Create SimpleToken entry in stake currencies table.
-   *
-   * @param {object} deployerResponse
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _insertInStakeCurrencies(deployerResponse) {
-    await new UpdateStakeCurrenciesTable(deployerResponse.data.contractAddress).perform();
-  }
-
-  /**
-   * Create SimpleToken entry in base currencies table in DynamoDB.
-   *
-   * @param {object} deployerResponse
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _insertInBaseCurrencies(deployerResponse) {
-    await new UpdateBaseCurrenciesTable(deployerResponse.data.contractAddress).perform();
   }
 }
 
