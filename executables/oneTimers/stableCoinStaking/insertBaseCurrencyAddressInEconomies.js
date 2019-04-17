@@ -59,7 +59,7 @@ class InsertBaseCurrencyAddressInEconomies {
     await oThis._fetchStContractAddress();
 
     // Fetch all chain ids.
-    await oThis._fetchAllChainIds();
+    await oThis._fetchAllAuxChainIds();
 
     // Perform chain specific operations.
     await oThis._chainSpecificOperations();
@@ -91,11 +91,10 @@ class InsertBaseCurrencyAddressInEconomies {
    * @return {Promise<void>}
    * @private
    */
-  async _fetchAllChainIds() {
+  async _fetchAllAuxChainIds() {
     const oThis = this;
 
-    // TODO::Shlok - origin chain should be avoided here.
-    oThis.chainIds = await chainConfigProvider.allChainIds();
+    oThis.chainIds = await chainConfigProvider.allAuxChainIds();
   }
 
   /**

@@ -75,32 +75,8 @@ class StakeCurrency extends ModelBase {
       .where({ contract_address: contractAddress })
       .fire();
 
-    // TODO::Shlok - why not reject here
     if (dbRow.length === 0) {
-      return responseHelper.successWithData({});
-    }
-
-    return responseHelper.successWithData(StakeCurrency._formatDbData(dbRow[0]));
-  }
-
-  /**
-   * Fetch stake currency details by stakeCurrencyId.
-   *
-   * @param {string/number} stakeCurrencyId
-   *
-   * @return {Promise<any>}
-   */
-  async fetchStakeCurrencyById(stakeCurrencyId) {
-    const oThis = this;
-
-    const dbRow = await oThis
-      .select('*')
-      .where({ id: stakeCurrencyId })
-      .fire();
-
-    // TODO::Shlok - why not reject here
-    if (dbRow.length === 0) {
-      return responseHelper.successWithData({});
+      return Promise.reject(new Error(`No entry found for contractAddress: ${contractAddress}.`));
     }
 
     return responseHelper.successWithData(StakeCurrency._formatDbData(dbRow[0]));
@@ -122,10 +98,8 @@ class StakeCurrency extends ModelBase {
       .where([' id IN (?)', stakeCurrencyIds])
       .fire();
 
-    // TODO::Shlok - why not reject here
-    // TODO::Shlok - we can remove the fetch by id function and use this. Will save code.
     if (dbRows.length === 0) {
-      return responseHelper.successWithData({});
+      return Promise.reject(new Error(`No entries found for stakeCurrencyIds: ${stakeCurrencyIds}.`));
     }
 
     for (let index = 0; index < dbRows.length; index++) {

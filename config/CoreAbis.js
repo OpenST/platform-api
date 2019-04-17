@@ -50,7 +50,6 @@ class CoreAbis {
    * @return {*}
    */
   static get genericErc20() {
-    // TODO::Shlok - can we avoid reading file everytime abi is requested?? in memory-Caching?
     if (nameToAbiMap['genericErc20']) return nameToAbiMap['genericErc20'];
     nameToAbiMap['genericErc20'] = parseFile(rootPrefix + '/contracts/abi/GenericERC20.abi', 'utf8');
     return nameToAbiMap['genericErc20'];
