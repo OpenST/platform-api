@@ -65,6 +65,20 @@ class CoreBins {
   }
 
   /**
+   * Returns usdc BIN.
+   *
+   * @return {Buffer|*}
+   */
+  static get usdc() {
+    if (nameToBinMap.usdc) {
+      return nameToBinMap.usdc;
+    }
+    nameToBinMap.usdc = readFile(rootPrefix + '/contracts/bin/USDC.bin', 'utf8');
+
+    return nameToBinMap.usdc;
+  }
+
+  /**
    * Get BIN.
    *
    * @param {string} contractName
