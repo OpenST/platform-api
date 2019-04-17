@@ -51,20 +51,6 @@ class CoreBins {
   }
 
   /**
-   * Returns mockToken BIN.
-   *
-   * @return {Buffer|*}
-   */
-  static get mockToken() {
-    if (nameToBinMap.mockToken) {
-      return nameToBinMap.mockToken;
-    }
-    nameToBinMap.mockToken = readFile(rootPrefix + '/contracts/bin/MockToken.bin', 'utf8');
-
-    return nameToBinMap.mockToken;
-  }
-
-  /**
    * Returns usdc BIN.
    *
    * @return {Buffer|*}

@@ -66,20 +66,6 @@ class CoreAbis {
   }
 
   /**
-   * Returns mockToken ABI.
-   *
-   * @return {*}
-   */
-  static get mockToken() {
-    if (nameToAbiMap.mockToken) {
-      return nameToAbiMap.mockToken;
-    }
-    nameToAbiMap.mockToken = parseFile(rootPrefix + '/contracts/abi/MockToken.abi', 'utf8');
-
-    return nameToAbiMap.mockToken;
-  }
-
-  /**
    * Returns usdc ABI.
    *
    * @return {*}
