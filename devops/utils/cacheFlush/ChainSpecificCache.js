@@ -43,7 +43,7 @@ class ChainCacheFlush extends FlushBase {
     console.log('Flushing Chain specific memcache... START');
     let originChainId = oThis._fetchOriginChainId();
 
-    let chainIds = await chainConfigProvider.allChainIds();
+    let chainIds = await chainConfigProvider.allAuxChainIds();
     let auxChainIds = chainIds.filter((chainId) => chainId !== originChainId);
 
     // Flush memcache one by one for all the chains

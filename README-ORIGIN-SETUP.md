@@ -88,28 +88,26 @@ NOTE: Copy the ETH funder private key for later use.
     source set_env_vars.sh
     node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
-    
-NOTE: Copy the response from the script above and save somewhere offline.
-    
-* Deploy Mock Token (EXCEPT PRODUCTION MAIN ENV)
-```bash
-    source set_env_vars.sh
-    node devops/exec/chainSetup.js --deploy-mock-token --chain-id 3
-```
 
 NOTE: Copy the response from the script above and save somewhere offline.
 
-* Use Simple token Owner Private Key and Stable Coin Deployer Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
-Granter address gets ETH, OST and StableCoin token in this step.
+* Save simple token admin, owner and contract address in database.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stableCoinOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50 --stableCoinAmount 1000000
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0x27B2976Bc5ddC76080F838C7F2A91F98192d7FE3' --owner '0x901b0CB16c14bA281f0EFddfB3d48C1174C8db80' --stContractAddress '0xffECb7fFE3b7330524Cd37B45141b887E2A6596f'
 ```
 
-* Save simple token admin and owner addresses in database.
+* Save simple token contract details in stake currencies and base currencies table.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xffECb7fFE3b7330524Cd37B45141b887E2A6596f'
+```
+
+* Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
+Granter address gets ETH and OST in this step.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)

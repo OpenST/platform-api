@@ -1,41 +1,49 @@
-'use strict';
-
 /**
- * finalize
+ * Module to finalize simple token contract.
  *
  * @module tools/chainSetup/origin/simpleToken/Finalize
  */
+
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../../..',
-  OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer,
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
+ * Class to finalize simple token contract.
  *
  * @class
  */
 class FinalizeSimpleToken extends SetupSimpleTokenBase {
   /**
-   * Constructor
+   * Constructor to finalize simple token contract.
    *
    * @param {Object} params
-   * @param {String} params.signerAddress - address who signs Tx
-   * @param {String} params.signerKey - private key of signerAddress
+   * @param {String} params.signerAddress: address who signs Tx
+   * @param {String} params.signerKey: private key of signerAddress
+   * @param {String} params.simpleTokenContractAddress: simple token contract address
+   *
+   * @augments SetupSimpleTokenBase
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
+    const oThis = this;
+
+    oThis.simpleTokenContractAddress = params.simpleTokenContractAddress;
   }
 
   /**
-   * asyncPerform
+   * Async perform.
    *
    * @ignore
    *
@@ -48,7 +56,7 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
-    let finalizeRsp = await oThis._finalizeSimpleToken();
+    const finalizeRsp = await oThis._finalizeSimpleToken();
 
     oThis.removeKeyFromWallet();
 
@@ -57,34 +65,33 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
     return finalizeRsp;
   }
 
-  /***
-   *
-   * finallize simple token
+  /**
+   * Finalize simple token.
    *
    * @return {Promise}
-   *
    * @private
    */
   async _finalizeSimpleToken() {
     const oThis = this;
 
-    let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
+    const nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
-    let params = {
+    const params = {
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce'],
+      nonce: nonceRsp.data.nonce,
       gasPrice: oThis.gasPrice,
       gas: contractConstants.finalizeSimpleTokenGas
     };
 
-    let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
-    simpleTokenContractObj.options.address = await oThis.getSimpleTokenContractAddr();
+    const simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
+    simpleTokenContractObj.options.address = oThis.simpleTokenContractAddress;
 
-    let transactionReceipt = await simpleTokenContractObj.methods
+    const transactionReceipt = await simpleTokenContractObj.methods
       .finalize()
       .send(params)
       .catch(function(errorResponse) {
         logger.error(errorResponse);
+
         return responseHelper.error({
           internal_error_identifier: 't_cs_o_ag_st_f_1',
           api_error_identifier: 'unhandled_catch_response',
@@ -92,7 +99,7 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
         });
       });
 
-    let finalizeRsp = responseHelper.successWithData({
+    const finalizeRsp = responseHelper.successWithData({
       transactionHash: transactionReceipt.transactionHash,
       transactionReceipt: transactionReceipt
     });
