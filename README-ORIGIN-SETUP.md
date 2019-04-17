@@ -63,7 +63,7 @@ NOTE: Copy the ETH funder private key for later use.
 * [Only Development] Setup Origin GETH and fund necessary addresses.	
 ```bash	
     source set_env_vars.sh	
-    node tools/localSetup/origin/setupGeth.js --originChainId 3	
+    node tools/localSetup/origin/setupGeth.js --originChainId 3
 ```
 
 * [Only Development] Start Origin GETH with this script.	

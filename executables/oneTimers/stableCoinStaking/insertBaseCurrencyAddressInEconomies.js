@@ -94,6 +94,7 @@ class InsertBaseCurrencyAddressInEconomies {
   async _fetchAllChainIds() {
     const oThis = this;
 
+    // TODO::Shlok - origin chain should be avoided here.
     oThis.chainIds = await chainConfigProvider.allChainIds();
   }
 

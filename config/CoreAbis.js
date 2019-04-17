@@ -57,6 +57,7 @@ class CoreAbis {
    * @return {*}
    */
   static get genericErc20() {
+    // TODO::Shlok - can we avoid reading file everytime abi is requested?? in memory-Caching?
     if (nameToAbiMap.genericErc20) {
       return nameToAbiMap.genericErc20;
     }
