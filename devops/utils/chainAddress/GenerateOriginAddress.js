@@ -31,6 +31,7 @@ class GenerateOriginAddress extends ChainAddressBase {
 
     const oThis = this;
 
+    oThis.originChainId = chainId;
     oThis.chainKind = coreConstants.originChainKind;
   }
 
