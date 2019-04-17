@@ -80,6 +80,20 @@ class CoreAbis {
   }
 
   /**
+   * Returns usdc ABI.
+   *
+   * @return {*}
+   */
+  static get usdc() {
+    if (nameToAbiMap.usdc) {
+      return nameToAbiMap.usdc;
+    }
+    nameToAbiMap.usdc = parseFile(rootPrefix + '/contracts/abi/USDC.abi', 'utf8');
+
+    return nameToAbiMap.usdc;
+  }
+
+  /**
    * Get ABI.
    *
    * @param {string} contractName
