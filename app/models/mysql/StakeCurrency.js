@@ -83,7 +83,7 @@ class StakeCurrency extends ModelBase {
   }
 
   /**
-   * Fetch stake currency details by stakeCurrencyId.
+   * Fetch stake currency details by stakeCurrencyIds.
    *
    * @param {array<string/number>} stakeCurrencyIds
    *
@@ -100,6 +100,33 @@ class StakeCurrency extends ModelBase {
 
     if (dbRows.length === 0) {
       return Promise.reject(new Error(`No entries found for stakeCurrencyIds: ${stakeCurrencyIds}.`));
+    }
+
+    for (let index = 0; index < dbRows.length; index++) {
+      response[dbRows[index].id] = StakeCurrency._formatDbData(dbRows[index]);
+    }
+
+    return responseHelper.successWithData(response);
+  }
+
+  /**
+   * Fetch stake currency details by stakeCurrencySymbols.
+   *
+   * @param {array<string>} stakeCurrencySymbols
+   *
+   * @return {Promise<*>}
+   */
+  async fetchStakeCurrenciesBySymbols(stakeCurrencySymbols) {
+    const oThis = this,
+      response = {};
+
+    const dbRows = await oThis
+      .select('*')
+      .where([' symbol IN (?)', stakeCurrencySymbols])
+      .fire();
+
+    if (dbRows.length === 0) {
+      return Promise.reject(new Error(`No entries found for stakeCurrencySymbols: ${stakeCurrencySymbols}.`));
     }
 
     for (let index = 0; index < dbRows.length; index++) {
