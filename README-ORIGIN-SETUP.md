@@ -89,19 +89,25 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
 
-NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
+NOTE: Copy the response from the script above and save somewhere offline.
+
+* Save simple token admin, owner and contract address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0x27B2976Bc5ddC76080F838C7F2A91F98192d7FE3' --owner '0x901b0CB16c14bA281f0EFddfB3d48C1174C8db80' --stContractAddress '0xffECb7fFE3b7330524Cd37B45141b887E2A6596f'
+```
+
+* Save simple token contract details in stake currencies and base currencies table.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xffECb7fFE3b7330524Cd37B45141b887E2A6596f'
+```
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
-```
-
-* Save simple token admin and owner addresses in database.
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
