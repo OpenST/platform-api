@@ -267,10 +267,10 @@ if (cluster.isMaster) {
   // Fork workers equal to number of CPUs
   const numWorkers = process.env.OST_CACHING_ENGINE === 'none' ? 1 : process.env.WORKERS || require('os').cpus().length;
 
-  //. Rachin: Potential problem here. 
+  //. Rachin: Potential problem here.
   //    Fork should be the last thing that should be done.
   //.   First all event handlers should be registered.
-  //.   To do for validation: Check if onlineWorker count changes changes. 
+  //.   To do for validation: Check if onlineWorker count changes changes.
   for (let i = 0; i < numWorkers; i++) {
     // Spawn a new worker process.
     cluster.fork();

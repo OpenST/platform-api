@@ -528,5 +528,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "RMQ Publish failed."
+  },
+  "balance_rollback_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Balance Rollback Failed from API Thread."
   }
 }

@@ -165,7 +165,8 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
         userId: oThis.userId,
         tokenId: oThis.tokenId,
         shardNumber: oThis.sessionShardNumber,
-        page: 1
+        page: 1,
+        limit: 300
       }),
       userSessionAddressCacheResp = await userSessionAddressCache.fetch();
 
