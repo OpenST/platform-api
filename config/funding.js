@@ -20,8 +20,8 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 
     // Origin stable coin deployer.
     [chainAddressConstants.originStableCoinDeployerKind]: {
-      fundAmount: '1',
-      thresholdAmount: '1'
+      fundAmount: '0.00498',
+      thresholdAmount: '0.00498'
     },
 
     // Origin anchor owner.
@@ -68,8 +68,8 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 
     // Usdc contract owner.
     [chainAddressConstants.usdcContractOwnerKind]: {
-      fundAmount: '1',
-      thresholdAmount: '1'
+      fundAmount: '0.00048',
+      thresholdAmount: '0.00048'
     },
 
     // Facilitator.

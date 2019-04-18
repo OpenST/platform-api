@@ -79,16 +79,21 @@ class GenerateOriginAddress extends ChainAddressBase {
       const addresses = addressesResp.data.addresses,
         promises = [];
 
-      logger.log(
-        `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
-      );
       const amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
         amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount,
         amountForOriginStableCoinDeployer =
           amountToFundOriginGasMap[chainAddressConstants.originStableCoinDeployerKind].fundAmount;
 
+      logger.log(
+        `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
+      );
       promises.push(
         oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer)
+      );
+      logger.log(
+        `* Funding origin stable coin deployer address (${
+          addresses[chainAddressConstants.originDeployerKind]
+        }) with ETH.`
       );
       promises.push(
         oThis._fundAddressWithEth(
