@@ -241,10 +241,6 @@ class BaseCurrency extends Base {
    * @return {Promise<void>}
    */
   static async afterUpdate() {
-    const cacheImplementer = sharedMemcached.getInstance().cacheInstance;
-
-    await cacheImplementer.delAll();
-
     return responseHelper.successWithData({});
   }
 
