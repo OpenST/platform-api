@@ -56,6 +56,12 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
       thresholdAmount: '0.00005'
     },
 
+    // simple token admin
+    [chainAddressConstants.usdcContractOwnerKind]: {
+      fundAmount: '0.00138',
+      thresholdAmount: '0.00138'
+    },
+
     // facilitator
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.1044',

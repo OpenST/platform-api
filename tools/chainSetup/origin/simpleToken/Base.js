@@ -3,6 +3,7 @@
  *
  * @module tools/chainSetup/origin/simpleToken/Base
  */
+
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
