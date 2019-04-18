@@ -77,7 +77,7 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0a___' --amount 10
 ```
 
-* Generate origin address and fund them
+* Generate origin address and fund them.
 ```bash
     source set_env_vars.sh
     node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
@@ -114,13 +114,13 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Save USDC token owner address in database.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveUsdcTokenAddresses.js --owner '0x874A0cbA9959D8b5312C9bC3166ba3eAdd2599e1'
+    node executables/setup/origin/saveUsdcTokenAddresses.js --owner '0xabc___'
 ```
 
 * Save USDC token contract details in stake currencies and base currencies table.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xF947fb29E31c279bC927928D6F96d8A9679bed4a'
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
 ```
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
