@@ -25,11 +25,11 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
   /**
    * Constructor to set admin address in simple token contract.
    *
-   * @param {Object} params
-   * @param {String} params.signerAddress: address who signs Tx
-   * @param {String} params.signerKey: private key of signerAddress
-   * @param {String} params.adminAddress: address which is to be made admin
-   * @param {String} params.simpleTokenContractAddress: simple token contract address
+   * @param {object} params
+   * @param {string} params.signerAddress: address who signs Tx
+   * @param {string} params.signerKey: private key of signerAddress
+   * @param {string} params.adminAddress: address which is to be made admin
+   * @param {string} params.simpleTokenContractAddress: simple token contract address
    *
    * @augments SetupSimpleTokenBase
    *

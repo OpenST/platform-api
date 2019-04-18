@@ -19,16 +19,16 @@ const rootPrefix = '../../../..',
 /**
  * Class to finalize simple token contract.
  *
- * @class
+ * @class FinalizeSimpleToken
  */
 class FinalizeSimpleToken extends SetupSimpleTokenBase {
   /**
    * Constructor to finalize simple token contract.
    *
-   * @param {Object} params
-   * @param {String} params.signerAddress: address who signs Tx
-   * @param {String} params.signerKey: private key of signerAddress
-   * @param {String} params.simpleTokenContractAddress: simple token contract address
+   * @param {object} params
+   * @param {string} params.signerAddress: address who signs Tx
+   * @param {string} params.signerKey: private key of signerAddress
+   * @param {string} params.simpleTokenContractAddress: simple token contract address
    *
    * @augments SetupSimpleTokenBase
    *
