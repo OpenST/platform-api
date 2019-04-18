@@ -1,13 +1,14 @@
 'use strict';
 
-const API_END_POINT = 'https://api.ost.com/testnet/v2/',
+//const API_END_POINT = 'https://api.ost.com/testnet/v2/',
+const API_END_POINT = 'http://localhost:7001/testnet/v2/',
   BATCH_SIZE = 25,
   POLLING_INTERVAL = 5000, //5 secs
   NUMBER_OF_USERS = 4,
   CREDENTIALS_ARRAY = [
     {
-      apiKey: '7147bb3e4e7e477ad12d3347978dd268',
-      apiSecret: 'e677ca08c735677c66b62d1470e669b911e937c8f0600d6a38122409d526b354',
+      apiKey: 'c63fca36943bfc84b66a4d9b967b6eed',
+      apiSecret: '68b01ee2d77cdb45be83ba28a37161d7c13bd183c341a4b25ed274e3a9797ebd',
       apiEndPoint: API_END_POINT
     }
   ];
