@@ -111,10 +111,16 @@ NOTE: Copy the response from the script above and save somewhere offline.
 
 NOTE: Copy the response from the script above and save somewhere offline.
 
+* Save USDC token owner address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveUsdcTokenAddresses.js --owner '0x874A0cbA9959D8b5312C9bC3166ba3eAdd2599e1'
+```
+
 * Save USDC token contract details in stake currencies and base currencies table.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xF947fb29E31c279bC927928D6F96d8A9679bed4a'
 ```
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
