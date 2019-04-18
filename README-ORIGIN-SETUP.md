@@ -94,13 +94,13 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Save simple token admin, owner and contract address in database.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0x27B2976Bc5ddC76080F838C7F2A91F98192d7FE3' --owner '0x901b0CB16c14bA281f0EFddfB3d48C1174C8db80' --stContractAddress '0xffECb7fFE3b7330524Cd37B45141b887E2A6596f'
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___' --stContractAddress '0xabc___'
 ```
 
 * Save simple token contract details in stake currencies and base currencies table.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xffECb7fFE3b7330524Cd37B45141b887E2A6596f'
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
 ```
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
