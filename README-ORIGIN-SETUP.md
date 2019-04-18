@@ -103,6 +103,20 @@ NOTE: Copy the response from the script above and save somewhere offline.
     node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
 ```
 
+* Setup USDC Token (EXCEPT PRODUCTION MAIN ENV)
+```bash
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --setup-usdc-token --chain-id 3 --eth-owner-private-key '0xabc___'
+```
+
+NOTE: Copy the response from the script above and save somewhere offline.
+
+* Save USDC token contract details in stake currencies and base currencies table.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+```
+
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
 Granter address gets ETH and OST in this step.
 ```bash

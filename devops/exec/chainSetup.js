@@ -103,11 +103,11 @@ const Main = async function() {
       throw 'This step is not allowed for production-main ENV. Either this has already done or ask Sunil! :)';
     }
 
-    if (!program.chainId) {
+    if (!program.chainId && !program.ethOwnerPrivateKey) {
       handleError();
     }
 
-    performerObj = new SetupUsdcToken(program.chainId);
+    performerObj = new SetupUsdcToken(program.chainId, program.ethOwnerPrivateKey);
   } else {
     return handleError();
   }
