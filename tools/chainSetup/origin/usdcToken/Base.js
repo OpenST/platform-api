@@ -119,7 +119,7 @@ class SetupUsdcTokenBase {
       return oThis.web3InstanceObj;
     }
 
-    const chainEndpoint = oThis.configStrategyObject.originChainWsProvider('readWrite');
+    const chainEndpoint = oThis.configStrategyObject.originChainRpcProvider('readWrite');
 
     oThis.web3InstanceObj = web3Provider.getInstance(chainEndpoint).web3WsProvider;
 
