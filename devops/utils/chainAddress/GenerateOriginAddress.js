@@ -57,7 +57,9 @@ class GenerateOriginAddress extends ChainAddressBase {
       chainAddressConstants.originAnchorOrgContractWorkerKind,
 
       chainAddressConstants.originDefaultBTOrgContractAdminKind,
-      chainAddressConstants.originDefaultBTOrgContractWorkerKind
+      chainAddressConstants.originDefaultBTOrgContractWorkerKind,
+
+      chainAddressConstants.originStableCoinDeployerKind
     ];
 
     logger.log('* Generating address originDeployerKind.');
@@ -69,19 +71,33 @@ class GenerateOriginAddress extends ChainAddressBase {
     logger.log('* Generating address originAnchorOrgContractWorkerKind.');
     logger.log('* Generating address originDefaultBTOrgContractAdminKind.');
     logger.log('* Generating address originDefaultBTOrgContractWorkerKind.');
+    logger.log('* Generating address originStableCoinDeployerKind.');
 
     const addressesResp = await oThis._generateAddresses(addressKinds);
 
     if (addressesResp.isSuccess()) {
-      const addresses = addressesResp.data.addresses;
+      const addresses = addressesResp.data.addresses,
+        promises = [];
 
       logger.log(
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
       const amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
-        amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount;
+        amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount,
+        amountForOriginStableCoinDeployer =
+          amountToFundOriginGasMap[chainAddressConstants.originStableCoinDeployerKind].fundAmount;
 
-      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer);
+      promises.push(
+        oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer)
+      );
+      promises.push(
+        oThis._fundAddressWithEth(
+          addresses[chainAddressConstants.originStableCoinDeployerKind],
+          amountForOriginStableCoinDeployer
+        )
+      );
+
+      await Promise.all(promises);
     }
 
     return addressesResp;

@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Module to get funding config.
+ *
+ * @module config/funding
+ */
 
 const rootPrefix = '..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -8,61 +12,67 @@ const fundingAmounts = {};
 
 fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
   originGas: {
-    // origin deployer
+    // Origin deployer.
     [chainAddressConstants.originDeployerKind]: {
       fundAmount: '0.2941',
       thresholdAmount: '0.1541'
     },
 
-    // origin anchor owner
+    // Origin stable coin deployer.
+    [chainAddressConstants.originStableCoinDeployerKind]: {
+      fundAmount: '1',
+      thresholdAmount: '1'
+    },
+
+    // Origin anchor owner.
     [chainAddressConstants.originAnchorOrgContractOwnerKind]: {
       fundAmount: '0.00006',
       thresholdAmount: '0.00006'
     },
 
-    // origin ST organization owner
+    // Origin ST organization owner.
     [chainAddressConstants.stOrgContractOwnerKind]: {
       fundAmount: '0.00012',
       thresholdAmount: '0.00012'
     },
 
-    // origin anchor admin
+    // Origin anchor admin.
     [chainAddressConstants.originAnchorOrgContractAdminKind]: {
       fundAmount: '0.0048',
       thresholdAmount: '0.0024'
     },
 
-    // token origin admin
+    // Token origin admin.
     [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
       fundAmount: '0.0024',
       thresholdAmount: '0.0012'
     },
 
-    // token origin worker
+    // Token origin worker.
     [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
       fundAmount: '0.002',
       thresholdAmount: '0.001'
     },
 
-    // simple token owner
+    // Simple token owner.
     [chainAddressConstants.stContractOwnerKind]: {
       fundAmount: '0.00138',
       thresholdAmount: '0.00138'
     },
 
-    // simple token admin
+    // Simple token admin.
     [chainAddressConstants.stContractAdminKind]: {
       fundAmount: '0.00005',
       thresholdAmount: '0.00005'
     },
 
-    // simple token admin
+    // Usdc contract owner.
     [chainAddressConstants.usdcContractOwnerKind]: {
-      fundAmount: '0.00138',
-      thresholdAmount: '0.00138'
+      fundAmount: '1',
+      thresholdAmount: '1'
     },
 
-    // facilitator
+    // Facilitator.
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.1044',
       thresholdAmount: '0.0522'
@@ -70,25 +80,25 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
   },
 
   auxGas: {
-    // aux deployer
+    // Aux deployer.
     [chainAddressConstants.auxDeployerKind]: {
       fundAmount: '0.537',
       thresholdAmount: '0.2685'
     },
 
-    // aux anchor admin
+    // Aux anchor admin.
     [chainAddressConstants.auxAnchorOrgContractAdminKind]: {
       fundAmount: '0.007',
       thresholdAmount: '0.0035'
     },
 
-    // aux Price Oracle workers
+    // Aux Price Oracle workers.
     [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
       fundAmount: '0.00384',
       thresholdAmount: '0.00192'
     },
 
-    // facilitator
+    // Facilitator.
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.3124',
       thresholdAmount: '0.1562'
@@ -99,31 +109,31 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
   originGas: {},
   auxGas: {
-    // token aux admin
+    // Token aux admin.
     [tokenAddressConstants.auxAdminAddressKind]: {
       fundAmount: '0.002',
       thresholdAmount: '0.001'
     },
 
-    // token aux workers
+    // Token aux workers.
     [tokenAddressConstants.auxWorkerAddressKind]: {
       fundAmount: '0.7078',
       thresholdAmount: '0.3539'
     },
 
-    // token ExTx workers
+    // Token ExTx workers.
     [tokenAddressConstants.txWorkerAddressKind]: {
       fundAmount: '30',
       thresholdAmount: '15'
     },
 
-    // token user multisig worker
+    // Token user multisig worker.
     [tokenAddressConstants.tokenUserOpsWorkerKind]: {
       fundAmount: '14.1661',
       thresholdAmount: '7.08305'
     },
 
-    // recovery controller
+    // Recovery controller.
     [tokenAddressConstants.recoveryControllerAddressKind]: {
       fundAmount: '0.0415',
       thresholdAmount: '0.02075'
