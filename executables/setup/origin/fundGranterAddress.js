@@ -13,8 +13,10 @@ const rootPrefix = '../../..',
 program
   .option('--stOwnerPrivateKey <stOwnerPrivateKey>', 'ST Owner Private Key')
   .option('--ethOwnerPrivateKey <ethOwnerPrivateKey>', 'ETH Owner Private Key')
+  .option('--usdcOwnerPrivateKey <usdcOwnerPrivateKey>', 'USDC Owner Private Key')
   .option('--stAmount <stAmount>', 'ST Amount')
   .option('--ethAmount <ethAmount>', 'ETH Amount')
+  .option('--usdcAmount <usdcAmount>', 'USDC Amount')
   .parse(process.argv);
 
 program.on('--help', function() {
@@ -31,10 +33,10 @@ program.on('--help', function() {
 if (
   !program.stOwnerPrivateKey ||
   !program.ethOwnerPrivateKey ||
-  !program.stableCoinOwnerPrivateKey ||
+  !program.usdcOwnerPrivateKey ||
   !program.stAmount ||
   !program.ethAmount ||
-  !program.stableCoinAmount
+  !program.usdcAmount
 ) {
   program.help();
   process.exit(1);
@@ -43,10 +45,10 @@ if (
 new FundGranterAddress(
   program.stOwnerPrivateKey,
   program.ethOwnerPrivateKey,
-  program.stableCoinOwnerPrivateKey,
+  program.usdcOwnerPrivateKey,
   program.stAmount,
   program.ethAmount,
-  program.stableCoinAmount
+  program.usdcAmount
 )
   .perform()
   .then(function(response) {
