@@ -90,7 +90,7 @@ const Main = async function() {
     }
 
     performerObj = new SetupSimpleToken(program.chainId, program.ethOwnerPrivateKey);
-  } else if (program.deployMockToken) {
+  } else if (program.setupUsdcToken) {
     let env = process.env['SA_ENVIRONMENT'],
       subEnv = process.env['SA_SUB_ENVIRONMENT'];
 
@@ -103,11 +103,11 @@ const Main = async function() {
       throw 'This step is not allowed for production-main ENV. Either this has already done or ask Sunil! :)';
     }
 
-    if (!program.chainId && !program.ethOwnerPrivateKey) {
+    if (!program.chainId) {
       handleError();
     }
 
-    performerObj = new SetupUsdcToken(program.chainId, program.ethOwnerPrivateKey);
+    performerObj = new SetupUsdcToken(program.chainId);
   } else {
     return handleError();
   }
