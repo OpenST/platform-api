@@ -90,7 +90,7 @@ class MintUsdcToken extends SetupUsdcTokenBase {
     usdcTokenContractObj.options.address = oThis.usdcContractAddress;
 
     const transactionReceipt = await usdcTokenContractObj.methods
-      .mint(oThis.toAddress, contractConstants.usdcTokenAmount)
+      .mint(oThis.toAddress, contractConstants.usdcMintAmountInLowestUnit)
       .send(params)
       .catch(function(errorResponse) {
         logger.error(errorResponse);
