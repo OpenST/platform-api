@@ -127,7 +127,7 @@ NOTE: Copy the response from the script above and save somewhere offline.
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --usdcOwnerPrivateKey '0xab___' --stAmount 1000000 --ethAmount 50 --usdcAmount 1000000
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)

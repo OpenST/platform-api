@@ -24,7 +24,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc --stableCoinOwnerPrivateKey 0xabc --stAmount 200000 --ethAmount 50 --stableCoinAmount 200000'
+    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc --usdcOwnerPrivateKey 0xabc --stAmount 200000 --ethAmount 50 --usdcAmount 200000'
   );
   logger.log('');
   logger.log('');
