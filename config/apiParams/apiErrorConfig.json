@@ -334,6 +334,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Failed to fetch shard_number. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
+  "base_currency_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Failed to fetch base_currency. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
+  },
   "session_address_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",

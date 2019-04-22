@@ -13,7 +13,6 @@ const rootPrefix = '../../../..',
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  fundingAmounts = require(rootPrefix + '/config/funding'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
@@ -253,7 +252,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
    * @private
    */
   _checkThresholdAmountForMif() {
-    let amountRequirement = tokenAuxFunderRequirement.perform(),
+    const amountRequirement = tokenAuxFunderRequirement.perform(),
       auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer(),
       amountForOneGwei = amountRequirement[tokenAddressConstants.auxFunderAddressKind].maxBalanceToFundAtOneGwei,
       finalAmount = basicHelper

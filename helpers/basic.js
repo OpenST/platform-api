@@ -45,8 +45,7 @@ class BasicHelper {
   }
 
   /**
-   *
-   * convert wei value to un wei (normal)
+   * Convert wei value to un wei (normal).
    *
    * @param wei
    * @return {BigNumber}
@@ -56,8 +55,7 @@ class BasicHelper {
   }
 
   /**
-   *
-   * convert wei value to un wei (normal)
+   * Convert wei value to un wei (normal).
    *
    * @param wei
    * @return {BigNumber}
@@ -67,8 +65,7 @@ class BasicHelper {
   }
 
   /**
-   *
-   * convert wei value to un wei (normal)
+   * Convert wei value to un wei (normal).
    *
    * @param wei
    * @return {BigNumber}
@@ -78,14 +75,14 @@ class BasicHelper {
   }
 
   /**
-   *
-   * convert wei value to un wei (normal)
+   * Convert wei value to un wei (normal).
    *
    * @param wei
-   * @return {BigNumber}
+   * @return {String}
    */
   toPrecession(wei, precession) {
-    let normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+    const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+
     return normalValue.toFixed(precession, BigNumber.ROUND_HALF_UP).toString(10);
   }
 
@@ -125,7 +122,8 @@ class BasicHelper {
   }
 
   /**
-   * Convert the given big number in Gwei to wei
+   * Convert the given big number in Gwei to wei.
+   *
    * @param {BigNumber} num
    */
   convertGweiToWei(num) {
@@ -278,7 +276,7 @@ class BasicHelper {
    * @return {Boolean}
    */
   isProduction() {
-    return coreConstants.environment == 'production';
+    return coreConstants.environment === 'production';
   }
 
   /**
@@ -287,7 +285,7 @@ class BasicHelper {
    * @return {Boolean}
    */
   isStaging() {
-    return coreConstants.environment == 'staging';
+    return coreConstants.environment === 'staging';
   }
 
   /**
@@ -296,7 +294,7 @@ class BasicHelper {
    * @return {Boolean}
    */
   isDevelopment() {
-    return coreConstants.environment == 'development';
+    return coreConstants.environment === 'development';
   }
 
   /**
@@ -305,7 +303,7 @@ class BasicHelper {
    * @return {Boolean}
    */
   isMainSubEnvironment() {
-    return coreConstants.subEnvironment == 'main';
+    return coreConstants.subEnvironment === 'main';
   }
 
   /**
@@ -314,7 +312,7 @@ class BasicHelper {
    * @return {Boolean}
    */
   isSandboxSubEnvironment() {
-    return coreConstants.subEnvironment == 'sandbox';
+    return coreConstants.subEnvironment === 'sandbox';
   }
 
   /**
@@ -529,6 +527,7 @@ class BasicHelper {
    */
   sleep(ms) {
     console.log('Sleeping for ', ms, ' ms');
+
     return new Promise(function(resolve) {
       setTimeout(resolve, ms);
     });

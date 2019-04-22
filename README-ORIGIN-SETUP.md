@@ -18,7 +18,7 @@
 
 ## Create common tables for SAAS DDB
 
-* Create all SAAS Owned DDB Tables - (shards and shard_by_tokens)
+* Create all SAAS Owned DDB Tables - (shards, shard_by_tokens, and base_currencies)
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/saasDdb.js
@@ -63,7 +63,7 @@ NOTE: Copy the ETH funder private key for later use.
 * [Only Development] Setup Origin GETH and fund necessary addresses.	
 ```bash	
     source set_env_vars.sh	
-    node tools/localSetup/origin/setupGeth.js --originChainId 3	
+    node tools/localSetup/origin/setupGeth.js --originChainId 3
 ```
 
 * [Only Development] Start Origin GETH with this script.	
@@ -89,19 +89,25 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
 
-NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
+NOTE: Copy the response from the script above and save somewhere offline.
+
+* Save simple token admin, owner and contract address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___' --stContractAddress '0xabc___'
+```
+
+* Save simple token contract details in stake currencies and base currencies table.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+```
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
-```
-
-* Save simple token admin and owner addresses in database.
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)

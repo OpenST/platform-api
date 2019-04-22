@@ -1,7 +1,7 @@
 /**
- * This script is used for creating initial set of ORIGIN specific DDB tables used by SAAS.
+ * Module to create base currencies table.
  *
- * @module executables/setup/origin/saasDdb
+ * @module executables/oneTimers/stableCoinStaking/createBaseCurrenciesTable
  */
 
 const OSTBase = require('@ostdotcom/base'),
@@ -14,16 +14,14 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 // Following require(s) for registering into instance composer.
-require(rootPrefix + '/app/models/ddb/shared/Shard');
-require(rootPrefix + '/app/models/ddb/shared/ShardByToken');
 require(rootPrefix + '/app/models/ddb/shared/BaseCurrency');
 
 /**
- * Class to create initial DDB tables for SAAS.
+ * Class to create base currencies table.
  *
- * @class CreateInitialDdbTablesForSaas
+ * @class CreateBaseCurrenciesTable
  */
-class CreateInitialDdbTablesForSaas {
+class CreateBaseCurrenciesTable {
   /**
    * Main performer method for the class.
    *
@@ -36,7 +34,7 @@ class CreateInitialDdbTablesForSaas {
       logger.error(`${__filename}::perform`);
 
       return responseHelper.error({
-        internal_error_identifier: 't_ls_ddb_1',
+        internal_error_identifier: 'e_ot_scs_cbct_1',
         api_error_identifier: 'something_went_wrong',
         debug_options: err
       });
@@ -53,34 +51,24 @@ class CreateInitialDdbTablesForSaas {
       strategyFetchRsp = await strategyByChainHelper.getComplete(),
       configStrategy = strategyFetchRsp.data,
       ic = new InstanceComposer(configStrategy),
-      ShardModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ShardModel'),
-      BaseCurrencyModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BaseCurrency'),
-      ShardByTokenModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ShardByTokenModel');
+      BaseCurrencyModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BaseCurrency');
 
-    const shardsObject = new ShardModel({}),
-      baseCurrencyObject = new BaseCurrencyModel({}),
-      shardByTokenObject = new ShardByTokenModel({});
-
-    // Create Shards table.
-    await shardsObject.createTable();
-
-    // Create Shard By Tokens table.
-    await shardByTokenObject.createTable();
+    const baseCurrencyObject = new BaseCurrencyModel({});
 
     // Create Base Currencies table.
     await baseCurrencyObject.createTable();
   }
 }
 
-const setupInit = new CreateInitialDdbTablesForSaas();
+const createBaseCurrenciesTable = new CreateBaseCurrenciesTable();
 
-setupInit
+createBaseCurrenciesTable
   .perform()
-  .then(function() {
-    logger.win('Created Initial Origin Ddb Tables For Saas.');
+  .then(() => {
+    console.log('One timer finished.');
     process.exit(0);
   })
-  .catch(function(err) {
-    logger.error('Faced error: ', err);
+  .catch((err) => {
+    console.log(`Error: ${err}`);
     process.exit(1);
   });
