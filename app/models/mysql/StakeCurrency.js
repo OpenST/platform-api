@@ -130,7 +130,7 @@ class StakeCurrency extends ModelBase {
     }
 
     for (let index = 0; index < dbRows.length; index++) {
-      response[dbRows[index].id] = StakeCurrency._formatDbData(dbRows[index]);
+      response[dbRows[index].symbol] = StakeCurrency._formatDbData(dbRows[index]);
     }
 
     return responseHelper.successWithData(response);
