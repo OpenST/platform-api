@@ -212,69 +212,6 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   }
 
   /**
-   * Increment Unack count.
-   *
-   * @param messageParams
-   * @returns {boolean}
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    const oThis = this;
-
-    let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].incrementUnAckCount();
-    } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].incrementUnAckCount();
-    }
-    return true;
-  }
-
-  /**
-   * Decrement Unack count.
-   *
-   * @param messageParams
-   * @returns {boolean}
-   * @private
-   */
-  _decrementUnAck(messageParams) {
-    const oThis = this;
-
-    let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].decrementUnAckCount();
-    } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].decrementUnAckCount();
-    }
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @param messageParams
-   * @returns {number}
-   * @private
-   */
-  _getUnAck(messageParams) {
-    const oThis = this;
-
-    let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      return oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount;
-    } else if (kind == kwcConstant.commandMsg) {
-      return oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount;
-    }
-    return 0;
-  }
-
-  /**
    * Process message
    *
    * @param {Object} messageParams

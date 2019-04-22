@@ -208,8 +208,7 @@ class TransactionParser extends MultiSubscriptionBase {
     if (blockParserTasks.length <= 0) {
       logger.error(
         'e_bs_tp_3',
-        'Error in transaction parsing. unAckCount ->',
-        oThis.unAckCount,
+        'Error in transaction parsing.',
         'Transaction parsing response: ',
         'Could not fetch details for pending task: ',
         taskId
@@ -241,7 +240,6 @@ class TransactionParser extends MultiSubscriptionBase {
       await new BlockParserPendingTaskModel().deleteTask(taskId);
 
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
 
       // ACK RMQ.
       return;
@@ -262,8 +260,7 @@ class TransactionParser extends MultiSubscriptionBase {
 
       logger.error(
         'e_bs_tp_4',
-        'Error in transaction parsing. unAckCount ->',
-        oThis.unAckCount,
+        'Error in transaction parsing.',
         'Transaction parsing response: ',
         transactionParserResponse
       );
@@ -302,7 +299,6 @@ class TransactionParser extends MultiSubscriptionBase {
     // If token transfer parsing not needed, ACK RMQ
     if (!tokenParserNeeded) {
       logger.log('Token transfer parsing not needed.');
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
 
       // Delete block parser pending task if token parser is not needed.
       await new BlockParserPendingTaskModel().deleteTask(taskId);
@@ -323,13 +319,11 @@ class TransactionParser extends MultiSubscriptionBase {
 
     if (tokenTransferParserResponse.isSuccess()) {
       // Token transfer parser was successful.
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
     } else {
       // If token transfer parsing failed.
       logger.error(
         'e_bs_w_3',
-        'Token transfer parsing unsuccessful. unAckCount ->',
-        oThis.unAckCount,
+        'Token transfer parsing unsuccessful.',
         'Token transfer parsing response: ',
         tokenTransferParserResponse
       );
@@ -432,44 +426,6 @@ class TransactionParser extends MultiSubscriptionBase {
     const oThis = this;
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
-  }
-
-  /**
-   * Increment Unack count.
-   *
-   * @private
-   */
-  _incrementUnAck() {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Decrement Unack count
-   *
-   * @private
-   */
-  _decrementUnAck() {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @returns {number}
-   * @private
-   */
-  _getUnAck() {
-    const oThis = this;
-
-    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
   }
 
   /**

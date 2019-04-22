@@ -211,44 +211,6 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
   }
-
-  /**
-   * Increment Unack count.
-   *
-   * @private
-   */
-  _incrementUnAck() {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Decrement Unack count
-   *
-   * @private
-   */
-  _decrementUnAck() {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @returns {number}
-   * @private
-   */
-  _getUnAck() {
-    const oThis = this;
-
-    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
-  }
 }
 
 logger.step('Workflow Router Factory started.');
