@@ -30,17 +30,17 @@ program.on('--help', function() {
   logger.log('');
 });
 
-if (
-  !program.stOwnerPrivateKey ||
-  !program.ethOwnerPrivateKey ||
-  !program.usdcOwnerPrivateKey ||
-  !program.stAmount ||
-  !program.ethAmount ||
-  !program.usdcAmount
-) {
-  program.help();
-  process.exit(1);
-}
+// if (
+//   !program.stOwnerPrivateKey ||
+//   !program.ethOwnerPrivateKey ||
+//   !program.usdcOwnerPrivateKey ||
+//   !program.stAmount ||
+//   !program.ethAmount ||
+//   !program.usdcAmount
+// ) {
+//   program.help();
+//   process.exit(1);
+// }
 
 new FundGranterAddress(
   program.stOwnerPrivateKey,
