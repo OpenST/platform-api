@@ -1,7 +1,7 @@
 /**
- * Module to finalize simple token contract.
+ * Module to configure minter for USDC token contract.
  *
- * @module tools/chainSetup/origin/simpleToken/Finalize
+ * @module tools/chainSetup/origin/usdcToken/ConfigureMinter
  */
 
 const OSTBase = require('@ostdotcom/base'),
@@ -9,7 +9,7 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
-  SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
+  SetupUsdcTokenBase = require(rootPrefix + '/tools/chainSetup/origin/usdcToken/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -17,20 +17,20 @@ const rootPrefix = '../../../..',
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
- * Class to finalize simple token contract.
+ * Class to configure minter for USDC token contract.
  *
- * @class FinalizeSimpleToken
+ * @class ConfigureMinterForUsdcToken
  */
-class FinalizeSimpleToken extends SetupSimpleTokenBase {
+class ConfigureMinterForUsdcToken extends SetupUsdcTokenBase {
   /**
-   * Constructor to finalize simple token contract.
+   * Constructor to configure minter for USDC token contract.
    *
    * @param {object} params
    * @param {string} params.signerAddress: address who signs Tx
    * @param {string} params.signerKey: private key of signerAddress
-   * @param {string} params.simpleTokenContractAddress: simple token contract address
+   * @param {string} params.usdcContractAddress: USDC token contract address
    *
-   * @augments SetupSimpleTokenBase
+   * @augments SetupUsdcTokenBase
    *
    * @constructor
    */
@@ -39,7 +39,10 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     const oThis = this;
 
-    oThis.simpleTokenContractAddress = params.simpleTokenContractAddress;
+    oThis.usdcContractAddress = params.usdcContractAddress;
+
+    // Contract minter configuration specific parameters.
+    oThis.minterAddress = params.signerAddress;
   }
 
   /**
@@ -56,22 +59,22 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
-    const finalizeRsp = await oThis._finalizeSimpleToken();
+    const finalizeRsp = await oThis._configureMinter();
 
     oThis.removeKeyFromWallet();
 
-    await oThis._insertIntoChainSetupLogs(chainSetupConstants.initializeBaseContractStepKind, finalizeRsp);
+    await oThis._insertIntoChainSetupLogs(chainSetupConstants.configureMinterBaseContractStepKind, finalizeRsp);
 
     return finalizeRsp;
   }
 
   /**
-   * Finalize simple token.
+   * Configure minter for USDC token contract.
    *
    * @return {Promise}
    * @private
    */
-  async _finalizeSimpleToken() {
+  async _configureMinter() {
     const oThis = this;
 
     const nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
@@ -80,41 +83,45 @@ class FinalizeSimpleToken extends SetupSimpleTokenBase {
       from: oThis.signerAddress,
       nonce: nonceRsp.data.nonce,
       gasPrice: oThis.gasPrice,
-      gas: contractConstants.finalizeSimpleTokenGas
+      gas: contractConstants.configureMinterForUsdcTokenGas
     };
 
-    const simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
-    simpleTokenContractObj.options.address = oThis.simpleTokenContractAddress;
+    const usdcTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.usdc);
+    usdcTokenContractObj.options.address = oThis.usdcContractAddress;
 
-    const transactionReceipt = await simpleTokenContractObj.methods
-      .finalize()
+    const transactionReceipt = await usdcTokenContractObj.methods
+      .configureMinter(oThis.minterAddress, contractConstants.usdcTokenMintingLimit)
       .send(params)
       .catch(function(errorResponse) {
         logger.error(errorResponse);
 
         return responseHelper.error({
-          internal_error_identifier: 't_cs_o_ag_st_f_1',
+          internal_error_identifier: 't_cs_o_ut_cm_1',
           api_error_identifier: 'unhandled_catch_response',
           debug_options: { error: errorResponse }
         });
       });
 
-    const finalizeRsp = responseHelper.successWithData({
+    const configureMinterRsp = responseHelper.successWithData({
       transactionHash: transactionReceipt.transactionHash,
       transactionReceipt: transactionReceipt
     });
 
-    finalizeRsp.debugOptions = {
+    configureMinterRsp.debugOptions = {
       inputParams: {
         signerAddress: oThis.signerAddress
       },
       processedParams: {}
     };
 
-    return finalizeRsp;
+    return configureMinterRsp;
   }
 }
 
-InstanceComposer.registerAsShadowableClass(FinalizeSimpleToken, coreConstants.icNameSpace, 'FinalizeSimpleToken');
+InstanceComposer.registerAsShadowableClass(
+  ConfigureMinterForUsdcToken,
+  coreConstants.icNameSpace,
+  'ConfigureMinterForUsdcToken'
+);
 
-module.exports = FinalizeSimpleToken;
+module.exports = ConfigureMinterForUsdcToken;

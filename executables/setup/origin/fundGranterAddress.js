@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Module to fund granter address.
+ *
+ * @module executables/setup/origin/fundGranterAddress
+ */
 
 const program = require('commander');
 
@@ -9,8 +13,10 @@ const rootPrefix = '../../..',
 program
   .option('--stOwnerPrivateKey <stOwnerPrivateKey>', 'ST Owner Private Key')
   .option('--ethOwnerPrivateKey <ethOwnerPrivateKey>', 'ETH Owner Private Key')
+  .option('--usdcOwnerPrivateKey <usdcOwnerPrivateKey>', 'USDC Owner Private Key')
   .option('--stAmount <stAmount>', 'ST Amount')
   .option('--ethAmount <ethAmount>', 'ETH Amount')
+  .option('--usdcAmount <usdcAmount>', 'USDC Amount')
   .parse(process.argv);
 
 program.on('--help', function() {
@@ -18,35 +24,34 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc --stAmount 200000 --ethAmount 50'
+    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc --stableCoinOwnerPrivateKey 0xabc --stAmount 200000 --ethAmount 50 --stableCoinAmount 200000'
   );
   logger.log('');
   logger.log('');
 });
 
-if (!program.stOwnerPrivateKey) {
+if (
+  !program.stOwnerPrivateKey ||
+  !program.ethOwnerPrivateKey ||
+  !program.usdcOwnerPrivateKey ||
+  !program.stAmount ||
+  !program.ethAmount ||
+  !program.usdcAmount
+) {
   program.help();
   process.exit(1);
 }
 
-if (!program.ethOwnerPrivateKey) {
-  program.help();
-  process.exit(1);
-}
-
-if (!program.stAmount) {
-  program.help();
-  process.exit(1);
-}
-
-if (!program.ethAmount) {
-  program.help();
-  process.exit(1);
-}
-
-new FundGranterAddress(program.stOwnerPrivateKey, program.ethOwnerPrivateKey, program.stAmount, program.ethAmount)
+new FundGranterAddress(
+  program.stOwnerPrivateKey,
+  program.ethOwnerPrivateKey,
+  program.usdcOwnerPrivateKey,
+  program.stAmount,
+  program.ethAmount,
+  program.usdcAmount
+)
   .perform()
   .then(function(response) {
-    logger.log('response:', response);
+    logger.log('Response:', response);
     process.exit(0);
   });

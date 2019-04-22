@@ -1,9 +1,7 @@
-'use strict';
-
 /**
- * Load all required contract abi files and export them.<br><br>
+ * Load all required contract bin files and export them.
  *
- * @module config/core_abis
+ * @module config/coreBins
  */
 
 const fs = require('fs'),
@@ -13,40 +11,65 @@ const fs = require('fs'),
   OpenSTJs = require('@openst/openst.js');
 
 const rootPrefix = '..',
-  contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName'),
-  nameToBinMap = {};
+  contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName');
 
+// Declare variables.
+const nameToBinMap = {};
+
+/**
+ * Function to read file.
+ *
+ * @param {string} filePath
+ * @param {object} options
+ *
+ * @return {any}
+ */
 function readFile(filePath, options) {
   filePath = path.join(__dirname, '/' + filePath);
+
   return fs.readFileSync(filePath, options || 'utf8');
 }
 
 /**
- * Constructor for openST core contract abis
+ * Class for OpenST core contract BINs.
  *
- * @constructor
+ * @class CoreBins
  */
-
 class CoreBins {
-  constructor() {}
-
   /**
-   * Value Chain Contract: simple token EIP20 contract ABI.<br><br>
+   * Returns SimpleToken BIN.
    *
-   * @constant {object}
-   *
+   * @return {Buffer|*}
    */
   static get simpleToken() {
-    if (nameToBinMap['simpleToken']) return nameToBinMap['simpleToken'];
-    nameToBinMap['simpleToken'] = readFile(rootPrefix + '/contracts/bin/SimpleToken.bin', 'utf8');
-    return nameToBinMap['simpleToken'];
+    if (nameToBinMap.simpleToken) {
+      return nameToBinMap.simpleToken;
+    }
+    nameToBinMap.simpleToken = readFile(rootPrefix + '/contracts/bin/SimpleToken.bin', 'utf8');
+
+    return nameToBinMap.simpleToken;
   }
 
   /**
-   * Get bin
+   * Returns usdc BIN.
    *
-   * @param contractName
-   * @returns {String}
+   * @return {Buffer|*}
+   */
+  static get usdc() {
+    if (nameToBinMap.usdc) {
+      return nameToBinMap.usdc;
+    }
+    nameToBinMap.usdc = readFile(rootPrefix + '/contracts/bin/USDC.bin', 'utf8');
+
+    return nameToBinMap.usdc;
+  }
+
+  /**
+   * Get BIN.
+   *
+   * @param {string} contractName
+   *
+   * @returns {string}
    */
   static getBin(contractName) {
     switch (contractName) {
@@ -71,6 +94,8 @@ class CoreBins {
       case contractNameConstants.OSTPrimeContractName:
       case contractNameConstants.AnchorContractName:
         return new MosaicJs.AbiBinProvider().getBIN(contractName);
+      default:
+        console.log(`BIN for contract name ${contractName} does not exist.`);
     }
   }
 }

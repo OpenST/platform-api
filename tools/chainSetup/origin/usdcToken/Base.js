@@ -1,7 +1,7 @@
 /**
- * Module to setup simple token.
+ * Module to setup USDC token.
  *
- * @module tools/chainSetup/origin/simpleToken/Base
+ * @module tools/chainSetup/origin/usdcToken/Base
  */
 
 const OSTBase = require('@ostdotcom/base'),
@@ -20,11 +20,11 @@ const rootPrefix = '../../../..',
   GasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
 /**
- * Class to setup simple token.
+ * Class to setup USDC token.
  *
- * @class SetupSimpleTokenBase
+ * @class SetupUsdcTokenBase
  */
-class SetupSimpleTokenBase {
+class SetupUsdcTokenBase {
   /**
    * Constructor to setup simple token.
    *
@@ -55,7 +55,7 @@ class SetupSimpleTokenBase {
 
     if (basicHelper.isProduction() && basicHelper.isMainSubEnvironment()) {
       return responseHelper.error({
-        internal_error_identifier: 't_cs_o_st_b_1',
+        internal_error_identifier: 't_cs_o_ut_b_1',
         api_error_identifier: 'action_prohibited_in_prod_main',
         debug_options: {}
       });
@@ -65,11 +65,11 @@ class SetupSimpleTokenBase {
       if (responseHelper.isCustomResult(error)) {
         return error;
       }
-      logger.error('tools/chainSetup/origin/simpleToken/Base::perform::catch');
+      logger.error('tools/chainSetup/origin/usdcToken/Base::perform::catch');
       logger.error(error);
 
       return responseHelper.error({
-        internal_error_identifier: 't_cs_o_st_b_2',
+        internal_error_identifier: 't_cs_o_ut_b_2',
         api_error_identifier: 'unhandled_catch_response',
         debug_options: {}
       });
@@ -119,7 +119,7 @@ class SetupSimpleTokenBase {
       return oThis.web3InstanceObj;
     }
 
-    const chainEndpoint = oThis.configStrategyObject.originChainWsProvider('readWrite');
+    const chainEndpoint = oThis.configStrategyObject.originChainRpcProvider('readWrite');
 
     oThis.web3InstanceObj = web3Provider.getInstance(chainEndpoint).web3WsProvider;
 
@@ -210,6 +210,6 @@ class SetupSimpleTokenBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(SetupSimpleTokenBase, coreConstants.icNameSpace, 'SetupSimpleTokenBase');
+InstanceComposer.registerAsShadowableClass(SetupUsdcTokenBase, coreConstants.icNameSpace, 'SetupUsdcTokenBase');
 
-module.exports = SetupSimpleTokenBase;
+module.exports = SetupUsdcTokenBase;

@@ -1,52 +1,50 @@
-'use strict';
-
 /**
- * Generate address for Origin and Auxiliary chains
+ * Module to generate address for auxiliary chains.
  *
  * @module devops/utils/GenerateAddress
  */
+
 const rootPrefix = '../../..',
-  fundingConfig = require(rootPrefix + '/config/funding'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base');
+  fundingConfig = require(rootPrefix + '/config/funding'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
- * Class for Generating addresses for Origin and Auxiliary chains
+ * Class for generating addresses for auxiliary chains.
  *
- * @class
+ * @class GenerateAuxAddress
  */
 class GenerateAuxAddress extends ChainAddressBase {
   /**
-   * Constructor
+   * Constructor for generating addresses for auxiliary chains.
    *
-   * @param chainId
+   * @param {number} chainId: aux chain Id.
    *
    * @constructor
    */
   constructor(chainId) {
-    super();
+    super(chainId);
+
     const oThis = this;
 
-    oThis.chainId = chainId; //Aux Chain Id
     oThis.chainKind = coreConstants.auxChainKind;
   }
 
   /**
-   *
-   * async perform
+   * Async perform.
    *
    * @return {Promise<result>}
-   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
 
     // Generate addresses.
-    let addressKinds = [
+    const addressKinds = [
       chainAddressConstants.auxDeployerKind,
       chainAddressConstants.interChainFacilitatorKind,
 
@@ -75,7 +73,7 @@ class GenerateAuxAddress extends ChainAddressBase {
     logger.log('* Generating address auxAnchorOrgContractWorkerKind.');
     logger.log('* Generating address auxPriceOracleContractWorkerKind.');
 
-    let addresses = await oThis._generateAddresses(addressKinds);
+    const addresses = await oThis._generateAddresses(addressKinds);
 
     logger.step('Fetching required origin addresses to fund eth.');
     await oThis._fetchOriginAddresses();
@@ -90,14 +88,13 @@ class GenerateAuxAddress extends ChainAddressBase {
    * Fetch required origin addresses.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _fetchOriginAddresses() {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -119,13 +116,12 @@ class GenerateAuxAddress extends ChainAddressBase {
    * Fund origin addresses with eth.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _fundOriginAddresses() {
     const oThis = this;
 
-    let amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
+    const amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
       amountForSTOrganizationOwner = amountToFundOriginGasMap[chainAddressConstants.stOrgContractOwnerKind].fundAmount,
       amountForOriginAnchorContractOwner =
         amountToFundOriginGasMap[chainAddressConstants.originAnchorOrgContractOwnerKind].fundAmount;

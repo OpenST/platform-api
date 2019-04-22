@@ -1,54 +1,52 @@
-'use strict';
 /**
- * Generate master internal funder address for this env
+ * Module to generate master internal funder address for this env.
  *
  * @module devops/utils/chainAddress/GenerateMasterInternalFunderAddress
  */
 
 const rootPrefix = '../../..',
+  ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
- * Class for generate master internal funder address for this env
+ * Class to generate master internal funder address for this env.
  *
- * @class
+ * @class GenerateMasterInternalFunderAddress
  */
 class GenerateMasterInternalFunderAddress extends ChainAddressBase {
   /**
-   * Constructor
+   * Constructor to generate master internal funder address for this env.
    *
-   * @param {Number} chainId
+   * @param {number} chainId
+   *
+   * @augments ChainAddressBase
    *
    * @constructor
    */
   constructor(chainId) {
     super(chainId);
+
     const oThis = this;
 
-    oThis.chainId = chainId;
     oThis.chainKind = coreConstants.originChainKind;
   }
 
   /**
-   *
-   * async perform
+   * Async perform.
    *
    * @return {Promise<result>}
-   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
 
-    let addressKinds = [chainAddressConstants.masterInternalFunderKind];
+    const addressKinds = [chainAddressConstants.masterInternalFunderKind];
 
     logger.log('* Generating address masterInternalFunderKind.');
 
-    let addressesResp = await oThis._generateAddresses(addressKinds);
-
-    return addressesResp;
+    return oThis._generateAddresses(addressKinds);
   }
 }
 

@@ -77,7 +77,7 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0a___' --amount 10
 ```
 
-* Generate origin address and fund them
+* Generate origin address and fund them.
 ```bash
     source set_env_vars.sh
     node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
@@ -98,6 +98,26 @@ NOTE: Copy the response from the script above and save somewhere offline.
 ```
 
 * Save simple token contract details in stake currencies and base currencies table.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+```
+
+* Setup USDC Token (EXCEPT PRODUCTION MAIN ENV)
+```bash
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --setup-usdc-token --chain-id 3 --eth-owner-private-key '0xabc___'
+```
+
+NOTE: Copy the response from the script above and save somewhere offline.
+
+* Save USDC token owner address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveUsdcTokenAddresses.js --owner '0xabc___'
+```
+
+* Save USDC token contract details in stake currencies and base currencies table.
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'

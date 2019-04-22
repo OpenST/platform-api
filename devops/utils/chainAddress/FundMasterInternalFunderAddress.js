@@ -1,64 +1,64 @@
-'use strict';
 /**
- * Fund master internal funder address with ETH from external private key
+ * Module to fund master internal funder address with ETH from external private key.
  *
  * @module devops/utils/chainAddress/FundMasterInternalFunderAddress
  */
 
 const rootPrefix = '../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   TransferEthUsingPK = require(rootPrefix + '/lib/fund/eth/TransferUsingPK'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
- * Class to fund master internal funder address with ETH from external private key
+ * Class to fund master internal funder address with ETH from external private key.
  *
- * @class
+ * @class FundMasterInternalFunderAddress
  */
 class FundMasterInternalFunderAddress extends ChainAddressBase {
   /**
-   * Constructor
+   * Constructor to fund master internal funder address with ETH from external private key.
    *
-   * @param chainId
-   * @param ethOwnerPrivateKey
-   * @param amount
+   * @param {number} chainId
+   * @param {string} ethOwnerPrivateKey
+   * @param {string} amount
+   *
+   * @augments ChainAddressBase
    *
    * @constructor
    */
   constructor(chainId, ethOwnerPrivateKey, amount) {
-    super();
+    super(chainId);
 
     const oThis = this;
-    oThis.chainId = chainId;
+
     oThis.ethOwnerPrivateKey = ethOwnerPrivateKey;
     oThis.amount = amount;
   }
 
   /**
-   *
-   * async perform
+   * Async perform.
    *
    * @return {Promise<result>}
-   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(oThis._getRespError('do_u_ca_fmifa_ap1'));
     }
 
-    let masterInternalFunderAddr = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
+    const masterInternalFunderAddr = chainAddressesRsp.data[chainAddressConstants.masterInternalFunderKind].address;
     logger.log(`* Fund address of kind masterInternalFunderKind: ${masterInternalFunderAddr}`);
 
     await oThis._fundAddressWithEth(masterInternalFunderAddr, oThis.amount);
@@ -67,9 +67,10 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
   }
 
   /**
-   * fund address with ETH
+   * Fund address with ETH.
    *
-   * @param address {string} - Address for which fund needs to be transfered
+   * @param {string} address: Address for which fund needs to be transferred
+   * @param {string} amount
    *
    * @returns {Promise<void>}
    * @private
@@ -77,9 +78,9 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
   async _fundAddressWithEth(address, amount) {
     const oThis = this;
 
-    let providers = await oThis._getProvidersFromConfig(),
+    const providers = await oThis._getProvidersFromConfig(),
       provider = providers.data[0],
-      amountInWei = basicHelper.convertToWei(amount).toString(10); // transfer amount
+      amountInWei = basicHelper.convertToWei(amount).toString(10); // Transfer amount
 
     await new TransferEthUsingPK({
       toAddress: address,
@@ -91,13 +92,13 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
   }
 
   /**
-   * Get providers from configs
+   * Get providers from config.
    *
    * @returns {Promise<void>}
    * @private
    */
   async _getProvidersFromConfig() {
-    let csHelper = new ConfigStrategyHelper(0),
+    const csHelper = new ConfigStrategyHelper(0),
       csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
       configForChain = csResponse.data[configStrategyConstants.originGeth],
       readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
