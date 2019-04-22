@@ -9,13 +9,15 @@
 const rootPrefix = '../..',
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
+  StakeCurrenciesModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
  * Class to verify the table data with the chain data.
@@ -53,6 +55,9 @@ class OriginChainSetup {
     logger.step('** Validating Simple Token Contract Address.');
     await oThis._validateSimpleTokenContract();
 
+    logger.step('** Validating USDC Contract Address.');
+    await oThis._validateUsdcContract();
+
     logger.step('** Validating Simple Token Contract Organization.');
     await oThis._validateOrganization(chainAddressConstants.stOrgContractKind);
 
@@ -70,7 +75,7 @@ class OriginChainSetup {
   }
 
   /**
-   * Fetch required origin addresses
+   * Fetch required origin addresses.
    *
    * @return {Promise}
    * @private
@@ -114,6 +119,14 @@ class OriginChainSetup {
     oThis.stOrgContractWorkerAddresses = chainAddressesRsp.data[chainAddressConstants.stOrgContractWorkerKind];
     oThis.originAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
+
+    oThis.usdcOwnerAddress = chainAddressesRsp.data[chainAddressConstants.usdcContractOwnerKind].address;
+
+    // Fetch USDC contract address.
+    const stakeCurrenciesModelObj = new StakeCurrenciesModel({}),
+      stakeCurrenciesRsp = await stakeCurrenciesModelObj.fetchStakeCurrenciesBySymbols([conversionRateConstants.USDC]);
+
+    oThis.usdcContractAddress = stakeCurrenciesRsp.data[conversionRateConstants.USDC].contractAddress;
   }
 
   /**
@@ -204,6 +217,65 @@ class OriginChainSetup {
       return Promise.reject(new Error('Simple Token Contract is not finalized.'));
     }
     logger.log('Simple Token contract is finalized.');
+  }
+
+  /**
+   * Validate USDC contract details.
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateUsdcContract() {
+    const oThis = this;
+
+    logger.log('* Validating the deployed code on the address.');
+    const rsp = await oThis.verifiersHelper.validateUsdcContract(oThis.usdcContractAddress);
+    if (!rsp) {
+      logger.error('Deployment verification of USDC contract failed.');
+
+      return Promise.reject(new Error('Deployment verification of USDC contract failed.'));
+    }
+
+    const usdcContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.usdc, oThis.usdcContractAddress);
+
+    logger.log('* Validating USDC token master minter address.');
+    const chainUsdcMasterMinterAddress = await usdcContractObj.methods.masterMinter().call({});
+    if (chainUsdcMasterMinterAddress.toLowerCase() !== oThis.usdcOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Master minter address of USDC token -',
+        chainUsdcMasterMinterAddress,
+        'different from database value -',
+        oThis.usdcOwnerAddress
+      );
+
+      return Promise.reject(new Error('Master minter address verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token pauser address.');
+    const chainUsdcPauserAddress = await usdcContractObj.methods.pauser().call({});
+    if (chainUsdcPauserAddress.toLowerCase() !== oThis.usdcOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Pauser address of USDC token -',
+        chainUsdcPauserAddress,
+        'different from database value -',
+        oThis.usdcOwnerAddress
+      );
+
+      return Promise.reject(new Error('Pauser address verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token blacklister address.');
+    const chainUsdcBlacklisterAddress = await usdcContractObj.methods.blacklister().call({});
+    if (chainUsdcBlacklisterAddress.toLowerCase() !== oThis.usdcOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Blacklister address of USDC token -',
+        chainUsdcBlacklisterAddress,
+        'different from database value -',
+        oThis.usdcOwnerAddress
+      );
+
+      return Promise.reject(new Error('Blacklister address verification of USDC token contract failed.'));
+    }
   }
 
   /**
