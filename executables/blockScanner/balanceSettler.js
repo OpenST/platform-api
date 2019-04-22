@@ -180,14 +180,12 @@ class BalanceSettler extends MultiSubscriptionBase {
 
     if (balanceSettlerResponse.isSuccess()) {
       logger.log('Balance settling done for taskId', taskId);
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
       return Promise.resolve();
     } else {
       logger.error(
         'e_bs_bs_2',
-        'Error in Balance settlement. unAckCount ->',
-        oThis.unAckCount,
+        'Error in Balance settlement.',
         'Balance settler response: ',
         balanceSettlerResponse.toHash()
       );
@@ -206,47 +204,6 @@ class BalanceSettler extends MultiSubscriptionBase {
     const oThis = this;
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
-  }
-
-  /**
-   * Increment Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Decrement Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _decrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @param messageParams
-   * @returns {number}
-   * @private
-   */
-  _getUnAck(messageParams) {
-    const oThis = this;
-
-    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
   }
 }
 
