@@ -210,16 +210,6 @@ class Finalizer extends PublisherBase {
       }
 
       oThis.canExit = false;
-      if (waitTime > 2 * 30 * 5) {
-        // 5 minutes.
-        const errorObject = responseHelper.error({
-          internal_error_identifier: 'finalizer_stuck:e_bs_f_3',
-          api_error_identifier: 'finalizer_stuck',
-          debug_options: { waitTime: waitTime, chainId: oThis.chainId }
-        });
-
-        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-      }
 
       const finalizer = new oThis.BlockScannerFinalizer({
         chainId: oThis.chainId,
@@ -228,12 +218,32 @@ class Finalizer extends PublisherBase {
 
       const blockToProcess = await finalizer.getBlockToFinalize();
 
+      if (waitTime > 2 * 30 * 5) {
+        // 5 minutes.
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'finalizer_stuck:e_bs_f_3',
+          api_error_identifier: 'finalizer_stuck',
+          debug_options: { waitTime: waitTime, chainId: oThis.chainId, blockStuck: blockToProcess }
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
+      }
+
       const pendingTasks = await new BlockParserPendingTask().pendingBlockTasks(oThis.chainId, blockToProcess);
       if (pendingTasks.length > 0) {
         logger.log('=== Transactions not yet completely parsed for block: ', blockToProcess);
         logger.log('=== Waiting for 2 secs');
         waitTime += 2;
         await basicHelper.sleep(2000);
+      } else if (waitTime > 2) {
+        logger.log(
+          '=== Transactions of block ',
+          blockToProcess,
+          ' are just processed, so sleeping before proceeding further.'
+        );
+        logger.log('=== Waiting for 10 secs');
+        await basicHelper.sleep(10000);
+        waitTime = 0;
       } else {
         waitTime = 0;
         const validationResponse = await finalizer.validateBlockToProcess(blockToProcess);
@@ -246,6 +256,13 @@ class Finalizer extends PublisherBase {
           if (finalizerResponse.isFailure()) {
             logger.log('=== Finalization failed for block: ', blockToProcess);
             logger.log('=== Waiting for 2 secs');
+            const errorObject = responseHelper.error({
+              internal_error_identifier: 'finalization_failed_for_block:e_bs_f_4',
+              api_error_identifier: 'finalization_failed_for_block',
+              debug_options: { finalizerResponse: finalizerResponse }
+            });
+
+            await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
             await basicHelper.sleep(2000);
           } else {
             if (finalizerResponse.data.processedBlock) {

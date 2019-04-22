@@ -178,19 +178,12 @@ class Aggregator extends MultiSubscriptionBase {
 
     if (aggregatorResponse.isSuccess()) {
       logger.log('Aggregation done for block', blockNumber);
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
       return;
     } else {
       // Aggregation was unsuccessful.
 
-      logger.error(
-        'e_bs_a_1',
-        'Error in aggregation. unAckCount ->',
-        oThis.unAckCount,
-        'Aggregation response: ',
-        aggregatorResponse
-      );
+      logger.error('e_bs_a_1', 'Error in aggregation.', 'Aggregation response: ', aggregatorResponse);
       // ACK RMQ.
       return;
     }
@@ -206,47 +199,6 @@ class Aggregator extends MultiSubscriptionBase {
     const oThis = this;
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
-  }
-
-  /**
-   * Increment Unack count.
-   *
-   * @param messageParams
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Decrement Unack count.
-   *
-   * @param messageParams
-   * @private
-   */
-  _decrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @param messageParams
-   * @returns {number}
-   * @private
-   */
-  _getUnAck(messageParams) {
-    const oThis = this;
-
-    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
   }
 }
 

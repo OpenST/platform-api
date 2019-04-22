@@ -35,7 +35,9 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '14': workflowConstants.resetRecoveryOwnerKind,
     '15': workflowConstants.executeRecoveryKind,
     '16': workflowConstants.abortRecoveryByRecoveryControllerKind,
-    '17': workflowConstants.logoutSessionsKind
+    '17': workflowConstants.logoutSessionsKind,
+    '18': workflowConstants.stPrimeRedeemAndUnstakeKind,
+    '19': workflowConstants.btRedeemAndUnstakeKind
   },
   invertedStatuses = util.invert(statuses),
   invertedKinds = util.invert(kinds);
@@ -100,6 +102,26 @@ class Workflow extends ModelBase {
       .update(updateData)
       .where({ id: id })
       .fire();
+  }
+
+  /***
+   * Flush cache
+   *
+   * @param {object} params
+   *
+   * @returns {Promise<*>}
+   */
+  static async flushCache(params) {
+    const WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow');
+
+    await new WorkflowCache({
+      workflowId: params.workflowId
+    }).clear();
+
+    const WorkflowByClientCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WorkflowByClient');
+    await new WorkflowByClientCache({
+      clientId: params.clientId
+    }).clear();
   }
 }
 

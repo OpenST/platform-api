@@ -241,25 +241,13 @@ class MultiSubscriptionBase extends CronBase {
   _promiseExecutor(onResolve, onReject, messageParams) {
     const oThis = this;
 
-    oThis._incrementUnAck(messageParams);
-
     oThis
       ._processMessage(messageParams)
       .then(function() {
-        oThis._decrementUnAck(messageParams);
         onResolve();
       })
       .catch(function(error) {
-        oThis._decrementUnAck(messageParams);
-        logger.error(
-          'e_r_msb_2',
-          'Error in process message from rmq. unAckCount ->',
-          oThis._getUnAck(messageParams),
-          'Error: ',
-          error,
-          'Params: ',
-          messageParams
-        );
+        logger.error('e_r_msb_2', 'Error in process message from rmq.', 'Error: ', error, 'Params: ', messageParams);
         onResolve();
       });
   }
@@ -290,11 +278,10 @@ class MultiSubscriptionBase extends CronBase {
         continue;
       }
 
-      if (rabbitmqSubscription.unAckCount !== rabbitmqSubscription.promiseQueueManager.getPendingCount()) {
-        logger.error('ERROR :: unAckCount and pending counts are not in sync for', topic);
-      }
+      let pendingTaskCount = rabbitmqSubscription.promiseQueueManager.getPendingCount();
 
-      if (!(rabbitmqSubscription.promiseQueueManager.getPendingCount() == 0 && rabbitmqSubscription.unAckCount == 0)) {
+      if (pendingTaskCount != 0) {
+        logger.info('Waiting for pending tasks. Count:', pendingTaskCount);
         return false;
       }
     }
@@ -380,26 +367,6 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   _processMessage() {
-    throw 'sub class to implement.';
-  }
-
-  /**
-   * Increment Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    throw 'sub class to implement.';
-  }
-
-  /**
-   * Decrement Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _decrementUnAck(messageParams) {
     throw 'sub class to implement.';
   }
 

@@ -43,9 +43,7 @@ if (!program.cronProcessId) {
 }
 
 // Declare variables.
-const flowsForMinimumBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_MINIMUM_BALANCE),
-  flowsForTransferBalance = basicHelper.convertToBigNumber(coreConstants.FLOWS_FOR_TRANSFER_BALANCE),
-  auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer(),
+const auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer(),
   fundingAmountsAuxGasMap = fundingAmounts[chainAddressConstants.masterInternalFunderKind].auxGas;
 
 // Config for addresses which need to be funded per chain by OST Prime
@@ -72,11 +70,15 @@ const stPrimeFundingPerChainConfig = {
 /**
  * Class to fund St Prime by chain owner to chain specific addresses.
  *
- * @class
+ * @class fundByMasterInternalFunderAuxChainSpecificChainAddresses
  */
 class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainSpecificFundingCronBase {
   /**
-   * Constructor to fund stPrime.
+   * Constructor to fund stPrime by chain owner to chain specific addresses.
+   *
+   * @params {object} params
+   *
+   * @augments AuxChainSpecificFundingCronBase
    *
    * @constructor
    */

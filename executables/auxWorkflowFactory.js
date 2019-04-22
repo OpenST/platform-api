@@ -216,47 +216,6 @@ class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
   }
-
-  /**
-   * Increment Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Decrement Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _decrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @param messageParams
-   * @returns {number}
-   * @private
-   */
-  _getUnAck(messageParams) {
-    const oThis = this;
-
-    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
-  }
 }
 
 logger.step('Aux Workflow Router Factory started.');
