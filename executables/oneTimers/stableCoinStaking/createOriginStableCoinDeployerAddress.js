@@ -57,6 +57,7 @@ class CreateOriginStableCoinDeployerAddress {
     oThis.chainKind = coreConstants.originChainKind;
     oThis.originChainId = originChainId;
   }
+
   /**
    * Main performer method for the class.
    *
@@ -198,10 +199,10 @@ class CreateOriginStableCoinDeployerAddress {
 new CreateOriginStableCoinDeployerAddress(program.originChainId)
   .perform()
   .then(() => {
-    console.log('One-timer finished');
+    logger.log('One-timer finished');
     process.exit(0);
   })
   .catch(() => {
-    console.log('One-timer failed.');
+    logger.log('One-timer failed.');
     process.exit(1);
   });
