@@ -119,7 +119,6 @@ class Base {
    * Fetch master internal funder address.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _fetchMasterInternalFunderAddress() {
