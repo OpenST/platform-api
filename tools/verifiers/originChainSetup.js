@@ -1,28 +1,33 @@
-'use strict';
-
 /**
  * Objective is to verify the table data with the chain data.
  *
- * Usage:- node tools/verifiers/originChainSetup.js
+ * Usage: node tools/verifiers/originChainSetup.js
  *
  * @module tools/verifiers/originChainSetup
  */
 
 const rootPrefix = '../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis');
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
+ * Class to verify the table data with the chain data.
  *
+ * @class OriginChainSetup
  */
 class OriginChainSetup {
+  /**
+   * Constructor to verify the table data with the chain data.
+   *
+   * @constructor
+   */
   constructor() {
     const oThis = this;
 
@@ -31,6 +36,11 @@ class OriginChainSetup {
     oThis.chainId = null;
   }
 
+  /**
+   * Validate.
+   *
+   * @return {Promise<void>}
+   */
   async validate() {
     const oThis = this;
 
@@ -57,21 +67,19 @@ class OriginChainSetup {
     logger.win('* Origin Chain Setup Verification Done!!');
 
     process.exit(0);
-    //return Promise.resolve();
   }
 
   /**
    * Fetch required origin addresses
    *
    * @return {Promise}
-   *
    * @private
    */
   async _fetchOriginAddresses() {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -109,7 +117,9 @@ class OriginChainSetup {
   }
 
   /**
-   * Set Origin web3 Obj
+   * Set Origin web3 Obj.
+   *
+   * @sets oThis.web3Instance, oThis.verifiersHelper
    *
    * @return {Promise<void>}
    * @private
@@ -117,11 +127,11 @@ class OriginChainSetup {
   async _setWeb3Obj() {
     const oThis = this;
 
-    let csHelper = new ConfigStrategyHelper(0, 0),
+    const csHelper = new ConfigStrategyHelper(0, 0),
       csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
       configForChain = csResponse.data[configStrategyConstants.originGeth];
 
-    let readWriteConfig = configForChain[configStrategyConstants.gethReadWrite];
+    const readWriteConfig = configForChain[configStrategyConstants.gethReadWrite];
     oThis.chainId = configForChain.chainId;
 
     oThis.web3Instance = web3Provider.getInstance(readWriteConfig.wsProvider).web3WsProvider;
@@ -129,7 +139,7 @@ class OriginChainSetup {
   }
 
   /**
-   * Validate simple token contract
+   * Validate simple token contract.
    *
    * @return {Promise<Promise<never> | Promise<any>>}
    * @private
@@ -138,28 +148,29 @@ class OriginChainSetup {
     const oThis = this;
 
     logger.log('* Fetching simple token contract address from database.');
-    let dbSimpleTokenContractAddress = oThis.simpleTokenContractAddress;
+    const dbSimpleTokenContractAddress = oThis.simpleTokenContractAddress;
 
     logger.log('* Validating the deployed code on the address.');
-    let rsp = await oThis.verifiersHelper.validateSimpleTokenContract(dbSimpleTokenContractAddress);
+    const rsp = await oThis.verifiersHelper.validateSimpleTokenContract(dbSimpleTokenContractAddress);
     if (!rsp) {
       logger.error('Deployment verification of simple token contract failed.');
-      return Promise.reject();
+
+      return Promise.reject(new Error('Deployment verification of simple token contract failed.'));
     }
 
     logger.log('* Fetching simple token admin address from database.');
-    let dbSimpleTokenAdminAddress = oThis.stContractAdminAddress;
+    const dbSimpleTokenAdminAddress = oThis.stContractAdminAddress;
 
     logger.log('* Fetching simple token admin owner from database.');
-    let dbSimpleTokenOwnerAddress = oThis.stContractOwnerAddress;
+    const dbSimpleTokenOwnerAddress = oThis.stContractOwnerAddress;
 
-    let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(
+    const simpleTokenContractObj = new oThis.web3Instance.eth.Contract(
       CoreAbis.simpleToken,
       dbSimpleTokenContractAddress
     );
 
     logger.log('* Validating simple token admin address.');
-    let chainSimpleTokenAdminAddress = await simpleTokenContractObj.methods.adminAddress().call({});
+    const chainSimpleTokenAdminAddress = await simpleTokenContractObj.methods.adminAddress().call({});
     if (chainSimpleTokenAdminAddress.toLowerCase() !== dbSimpleTokenAdminAddress.toLowerCase()) {
       logger.error(
         'Admin address of simple token -',
@@ -167,11 +178,12 @@ class OriginChainSetup {
         'different from database value -',
         dbSimpleTokenAdminAddress
       );
-      return Promise.reject();
+
+      return Promise.reject(new Error('Admin address verification of simple token contract failed.'));
     }
 
     logger.log('* Validating simple token owner address.');
-    let chainSimpleTokenOwnerAddress = await simpleTokenContractObj.methods.owner().call({});
+    const chainSimpleTokenOwnerAddress = await simpleTokenContractObj.methods.owner().call({});
     if (chainSimpleTokenOwnerAddress.toLowerCase() !== dbSimpleTokenOwnerAddress.toLowerCase()) {
       logger.error(
         'Admin address of simple token -',
@@ -179,24 +191,26 @@ class OriginChainSetup {
         'different from database value -',
         dbSimpleTokenOwnerAddress
       );
-      return Promise.reject();
+
+      return Promise.reject(new Error('Owner address verification of simple token contract failed.'));
     }
 
     logger.log('* Checking whether simple token contract is finalized.');
-    let chainIsFinalized = await simpleTokenContractObj.methods.finalized().call({});
+    const chainIsFinalized = await simpleTokenContractObj.methods.finalized().call({});
 
     if (!chainIsFinalized) {
       logger.error('Simple Token Contract is not finalized.');
-      return Promise.reject();
-    } else {
-      logger.log('Simple Token contract is finalized.');
+
+      return Promise.reject(new Error('Simple Token Contract is not finalized.'));
     }
+    logger.log('Simple Token contract is finalized.');
   }
 
   /**
-   * Validate Simple Token & Origin Anchor organization contracts
+   * Validate Simple Token & Origin Anchor organization contracts.
    *
-   * @param organizationKind
+   * @param {string} organizationKind
+   *
    * @return {Promise<Promise<never> | Promise<any>>}
    * @private
    */
@@ -223,48 +237,51 @@ class OriginChainSetup {
         dbWorkerAddressesMap = oThis.originAnchorOrgContractWorkerAddresses;
         break;
       default:
-        console.error('unhandled organizationKind found: ', organizationKind);
-        Promise.reject();
+        logger.error('unhandled organizationKind found: ', organizationKind);
+        Promise.reject(new Error(`Unhandled organization kind found ${organizationKind}.`));
         break;
     }
 
     logger.log('* Validating the deployed code on the organization address.');
-    let rsp = await oThis.verifiersHelper.validateContract(
+    const rsp = await oThis.verifiersHelper.validateContract(
       dbOrganizationContractAddress,
       oThis.verifiersHelper.getOrganizationContractName
     );
     if (!rsp) {
       logger.error('Deployment verification of', organizationKind, 'organization contract failed.');
-      return Promise.reject();
+
+      Promise.reject(new Error(`Deployment verification of  ${organizationKind} organization contract failed.`));
     }
 
-    let organizationContractObj = await oThis.verifiersHelper.getContractObj(
+    const organizationContractObj = await oThis.verifiersHelper.getContractObj(
       'Organization',
       dbOrganizationContractAddress
     );
 
-    let chainAdmin = await organizationContractObj.methods.admin().call({});
+    const chainAdmin = await organizationContractObj.methods.admin().call({});
 
     logger.log('* Validating the admin address with chain.');
     if (chainAdmin.toLowerCase() !== dbAdminAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, 'failed.');
-      Promise.reject();
+      Promise.reject(new Error(`Deployment verification of ${organizationKind} failed.`));
     }
 
-    let chainOwner = await organizationContractObj.methods.owner().call({});
+    const chainOwner = await organizationContractObj.methods.owner().call({});
 
     logger.log('* Validating the owner address with chain.');
     if (chainOwner.toLowerCase() !== dbAOwnerAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, 'failed.');
-      Promise.reject();
+      Promise.reject(new Error(`Deployment verification of ${organizationKind} failed.`));
     }
 
     logger.log('* Validating the worker addresses with chain.');
-    for (let i = 0; i < dbWorkerAddressesMap.length; i++) {
-      let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddressesMap[i].address).call({});
+    for (let index = 0; index < dbWorkerAddressesMap.length; index++) {
+      const isWorkerResult = await organizationContractObj.methods
+        .isWorker(dbWorkerAddressesMap[index].address)
+        .call({});
       if (!isWorkerResult) {
         logger.error('Deployment verification of', organizationKind, 'failed.');
-        Promise.reject();
+        Promise.reject(new Error(`Deployment verification of ${organizationKind} failed.`));
       }
     }
   }
@@ -272,10 +289,9 @@ class OriginChainSetup {
   /**
    * Validate given library deployment
    *
-   * @param libKind
+   * @param {string} libKind
    *
    * @return {Promise<Promise<never> | Promise<any>>}
-   *
    * @private
    */
   async _validateLib(libKind) {
@@ -298,19 +314,20 @@ class OriginChainSetup {
         dbLibAddress = oThis.originGatewayLibContractAddress;
         break;
       default:
-        console.error('unhandled libKind found: ', libKind);
-        Promise.reject();
+        logger.error('Unhandled libKind found: ', libKind);
+        Promise.reject(new Error(`Unhandled libKind found: ${libKind}`));
         break;
     }
 
     logger.log('* Validating the deployed code on the', libKind, 'address.');
-    let rsp = await oThis.verifiersHelper.validateContract(
+    const rsp = await oThis.verifiersHelper.validateContract(
       dbLibAddress,
       oThis.verifiersHelper.getLibNameFromKind(libKind)
     );
     if (!rsp) {
       logger.error('Deployment verification of', libKind, 'organization contract failed.');
-      return Promise.reject();
+
+      return Promise.reject(new Error(`Deployment verification of ${libKind} organization contract failed.`));
     }
   }
 }
