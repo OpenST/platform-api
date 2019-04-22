@@ -34,6 +34,7 @@ class DeployPriceOracle {
    * @param {String/Number} params.auxChainId: auxChainId for which origin-gateway needs be deployed.
    * @param {String} params.baseCurrency: base currency for price oracle contract.
    * @param {String} params.quoteCurrency: quote currency for price oracle contract.
+   * @param {String} params.gasPrice: gas price for price oracle contract.
    *
    * @constructor
    */
@@ -41,8 +42,9 @@ class DeployPriceOracle {
     const oThis = this;
 
     oThis.auxChainId = params.auxChainId;
-    oThis.baseCurrency = params.baseCurrency || conversionRateConstants.OST;
-    oThis.quoteCurrency = params.quoteCurrency || conversionRateConstants.USD;
+    oThis.baseCurrency = params.baseCurrency;
+    oThis.quoteCurrency = params.quoteCurrency;
+    oThis.gasPrice = params.gasPrice || contractConstants.zeroGasPrice;
 
     oThis.configStrategyObj = null;
   }
@@ -55,6 +57,8 @@ class DeployPriceOracle {
   async perform() {
     const oThis = this;
 
+    oThis.validateParams();
+
     await oThis._fetchAddresses();
 
     await oThis._setWeb3Instance();
@@ -64,6 +68,19 @@ class DeployPriceOracle {
     await oThis._setOpsAddress();
 
     await oThis._setAdminAddress();
+
+    await oThis._saveContractAddress();
+  }
+
+  /**
+   *
+   * @returns {Promise}
+   */
+  validateParams() {
+    const oThis = this;
+    if (!oThis.auxChainId || !oThis.baseCurrency || !oThis.quoteCurrency) {
+      throw 'Incorrect parameters. Please check baseCurrency(OST, USDC), quoteCurrency(USD), and auxChainId are valid';
+    }
   }
 
   /**
@@ -125,11 +142,17 @@ class DeployPriceOracle {
   async _deployPriceOracleContract() {
     const oThis = this;
 
-    logger.step('* Deploying Price Oracle contract.');
+    logger.step(
+      '* Deploying Price Oracle contract for base currency:"' +
+        oThis.baseCurrency +
+        '" to quote currency:"' +
+        oThis.quoteCurrency,
+      '"'
+    );
 
     // Prepare txOptions.
     let txOptions = {
-      gasPrice: contractConstants.zeroGasPrice,
+      gasPrice: oThis.gasPrice,
       gas: contractConstants.deployPriceOracleContractGas,
       value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
@@ -169,7 +192,10 @@ class DeployPriceOracle {
     logger.win('\t Transaction receipt: ', transactionReceipt);
     logger.win('\t Contract Address: ', oThis.contractAddress);
 
-    logger.step('Price oracle contract deployed.');
+    logger.step(
+      'Price oracle contract for base currency:"' + oThis.baseCurrency + '" to quote currency:"' + oThis.quoteCurrency,
+      '" deployed.'
+    );
   }
 
   /**
@@ -186,7 +212,7 @@ class DeployPriceOracle {
 
     // Prepare txOptions.
     let txOptions = {
-      gasPrice: contractConstants.zeroGasPrice,
+      gasPrice: oThis.gasPrice,
       gas: contractConstants.setPriceOracleContractOpsAddressGas,
       value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
@@ -240,7 +266,7 @@ class DeployPriceOracle {
 
     // Prepare txOptions.
     let txOptions = {
-      gasPrice: contractConstants.zeroGasPrice,
+      gasPrice: oThis.gasPrice,
       gas: contractConstants.setPriceOracleContractAdminAddressGas,
       value: contractConstants.zeroValue,
       from: oThis.ownerAddress,
@@ -276,14 +302,17 @@ class DeployPriceOracle {
 
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
-
     logger.step('adminAddress set in price oracle contract.');
+  }
+
+  async _saveContractAddress() {
+    const oThis = this;
 
     // Insert priceOracleContractAddress in chainAddresses table.
     await new ChainAddressModel().insertAddress({
       address: oThis.contractAddress.toLowerCase(),
       associatedAuxChainId: oThis.auxChainId,
-      addressKind: chainAddressConstants.auxPriceOracleContractKind,
+      addressKind: chainAddressConstants.auxOstToUsdPriceOracleContractKind,
       deployedChainId: oThis.auxChainId,
       deployedChainKind: coreConstants.auxChainKind,
       status: chainAddressConstants.activeStatus

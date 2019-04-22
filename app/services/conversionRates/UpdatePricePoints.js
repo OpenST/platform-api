@@ -211,7 +211,7 @@ class UpdatePricePoints {
     oThis.auxPriceOracleContractWorkerAddress =
       chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractWorkerKind][0].address;
     oThis.auxPriceOracleContractAddress =
-      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractKind].address;
+      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
   }
 
   /**

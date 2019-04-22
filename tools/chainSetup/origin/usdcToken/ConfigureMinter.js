@@ -90,7 +90,7 @@ class ConfigureMinterForUsdcToken extends SetupUsdcTokenBase {
     usdcTokenContractObj.options.address = oThis.usdcContractAddress;
 
     const transactionReceipt = await usdcTokenContractObj.methods
-      .configureMinter(oThis.minterAddress, contractConstants.usdcTokenMintingLimit)
+      .configureMinter(oThis.minterAddress, contractConstants.usdcMintAmountInLowestUnit)
       .send(params)
       .catch(function(errorResponse) {
         logger.error(errorResponse);
