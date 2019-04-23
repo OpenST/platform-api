@@ -222,7 +222,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '344': workflowStepConstants.checkProveCoGatewayStatus,
     '345': workflowStepConstants.checkConfirmRedeemStatus,
     '346': workflowStepConstants.checkProgressRedeemStatus,
-    '347': workflowStepConstants.checkProgressUnstakeStatus
+    '347': workflowStepConstants.checkProgressUnstakeStatus,
+
+    '351': workflowStepConstants.updatePricePointInit,
+    '352': workflowStepConstants.fetchPricePointFromCoinMarketCapApi,
+    '353': workflowStepConstants.setPriceInPriceOracleContract,
+    '354': workflowStepConstants.verifySetPriceInPriceOracleContract
   },
   invertedKinds = util.invert(kinds);
 
