@@ -133,6 +133,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
       })
       .fire();
 
+    // TODO - check if the workflow was for the same aux chain
+
     if (queryRsp.length !== 0) {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'cron_stopped:cron_already_running:e_upp_1',
