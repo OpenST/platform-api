@@ -12,67 +12,67 @@ const fundingAmounts = {};
 
 fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
   originGas: {
-    // Origin deployer.
+    // origin deployer
     [chainAddressConstants.originDeployerKind]: {
       fundAmount: '0.2941',
       thresholdAmount: '0.1541'
     },
 
-    // Origin stable coin deployer.
+    // stable coin deployer
     [chainAddressConstants.originStableCoinDeployerKind]: {
       fundAmount: '0.00498',
       thresholdAmount: '0.00498'
     },
 
-    // Origin anchor owner.
+    // origin anchor owner
     [chainAddressConstants.originAnchorOrgContractOwnerKind]: {
       fundAmount: '0.00006',
       thresholdAmount: '0.00006'
     },
 
-    // Origin ST organization owner.
+    // origin ST organization owner
     [chainAddressConstants.stOrgContractOwnerKind]: {
       fundAmount: '0.00012',
       thresholdAmount: '0.00012'
     },
 
-    // Origin anchor admin.
+    // origin anchor admin
     [chainAddressConstants.originAnchorOrgContractAdminKind]: {
       fundAmount: '0.0048',
       thresholdAmount: '0.0024'
     },
 
-    // Token origin admin.
+    // token origin admin
     [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
       fundAmount: '0.0024',
       thresholdAmount: '0.0012'
     },
 
-    // Token origin worker.
+    // token origin worker.
     [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
       fundAmount: '0.002',
       thresholdAmount: '0.001'
     },
 
-    // Simple token owner.
+    // simple token owner
     [chainAddressConstants.stContractOwnerKind]: {
       fundAmount: '0.00138',
       thresholdAmount: '0.00138'
     },
 
-    // Simple token admin.
+    // simple token admin
     [chainAddressConstants.stContractAdminKind]: {
       fundAmount: '0.00005',
       thresholdAmount: '0.00005'
     },
 
-    // Usdc contract owner.
+    // usdc owner
     [chainAddressConstants.usdcContractOwnerKind]: {
       fundAmount: '0.00048',
       thresholdAmount: '0.00048'
     },
 
-    // Facilitator.
+    // facilitator
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.1044',
       thresholdAmount: '0.0522'
@@ -80,25 +80,25 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
   },
 
   auxGas: {
-    // Aux deployer.
+    // aux deployer
     [chainAddressConstants.auxDeployerKind]: {
       fundAmount: '0.537',
       thresholdAmount: '0.2685'
     },
 
-    // Aux anchor admin.
+    // aux anchor admin
     [chainAddressConstants.auxAnchorOrgContractAdminKind]: {
       fundAmount: '0.007',
       thresholdAmount: '0.0035'
     },
 
-    // Aux Price Oracle workers.
+    // aux Price Oracle workers
     [chainAddressConstants.auxPriceOracleContractWorkerKind]: {
       fundAmount: '0.00384',
       thresholdAmount: '0.00192'
     },
 
-    // Facilitator.
+    // facilitator
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.3124',
       thresholdAmount: '0.1562'
@@ -109,31 +109,31 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
   originGas: {},
   auxGas: {
-    // Token aux admin.
+    // token aux admin
     [tokenAddressConstants.auxAdminAddressKind]: {
       fundAmount: '0.002',
       thresholdAmount: '0.001'
     },
 
-    // Token aux workers.
+    // token aux workers
     [tokenAddressConstants.auxWorkerAddressKind]: {
       fundAmount: '0.7078',
       thresholdAmount: '0.3539'
     },
 
-    // Token ExTx workers.
+    // token ExTx workers
     [tokenAddressConstants.txWorkerAddressKind]: {
       fundAmount: '30',
       thresholdAmount: '15'
     },
 
-    // Token user multisig worker.
+    // token user multisig worker
     [tokenAddressConstants.tokenUserOpsWorkerKind]: {
       fundAmount: '14.1661',
       thresholdAmount: '7.08305'
     },
 
-    // Recovery controller.
+    // recovery controller
     [tokenAddressConstants.recoveryControllerAddressKind]: {
       fundAmount: '0.0415',
       thresholdAmount: '0.02075'

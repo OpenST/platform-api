@@ -45,25 +45,27 @@ class BasicHelper {
   }
 
   /**
-   * Convert input to USDC lowest unit.
+   * Convert input to lower unit.
    *
    * @param {string/number} num
+   * @param {number} decimals - decimals of the coin
    *
    * @return {BigNumber}
    */
-  convertToUsdcLowestUnit(num) {
-    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(6));
+  convertToLowerUnit(num, decimals) {
+    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(decimals));
   }
 
   /**
-   * Convert USDC value to normal.
+   * Convert lower unit value to normal.
    *
    * @param {string} wei
+   * @param {Number} decimals
    *
    * @return {BigNumber}
    */
-  convertLowestUsdcUnitToNormal(wei) {
-    return this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(6));
+  convertLowerUnitToNormal(wei, decimals) {
+    return this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(decimals));
   }
 
   /**
