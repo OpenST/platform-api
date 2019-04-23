@@ -101,6 +101,8 @@ class Base {
   async _fundAddressWithEth(toAddress, amount) {
     const oThis = this;
 
+    await oThis._getOriginChainId();
+
     const amountInWei = basicHelper
       .convertToWei(String(amount))
       .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
@@ -156,6 +158,24 @@ class Base {
     oThis.originChainId = configForChain.chainId;
 
     return responseHelper.successWithData(providers);
+  }
+
+  /**
+   * Fetch origin chain Id.
+   *
+   * @sets oThis.originChainId
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _getOriginChainId() {
+    const oThis = this;
+
+    const csHelper = new ConfigStrategyHelper(0),
+      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
+      configForChain = csResponse.data[configStrategyConstants.originGeth];
+
+    oThis.originChainId = configForChain.chainId;
   }
 
   /**
