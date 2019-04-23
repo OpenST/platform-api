@@ -108,7 +108,7 @@ class DeployPriceOracle {
     if (chainAddressesRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 't_cs_a_dpo_2',
+          internal_error_identifier: 't_cs_a_dpo_1',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -153,11 +153,9 @@ class DeployPriceOracle {
     const oThis = this;
 
     logger.step(
-      '* Deploying Price Oracle contract for base currency:"' +
-        oThis.baseCurrency +
-        '" to quote currency:"' +
-        oThis.quoteCurrency,
-      '"'
+      `* Deploying Price Oracle contract for base currency: "${oThis.baseCurrency}" to quote currency "${
+        oThis.quoteCurrency
+      }".`
     );
 
     // Prepare txOptions.
@@ -203,8 +201,9 @@ class DeployPriceOracle {
     logger.win('\t Contract Address: ', oThis.contractAddress);
 
     logger.step(
-      'Price oracle contract for base currency:"' + oThis.baseCurrency + '" to quote currency:"' + oThis.quoteCurrency,
-      '" deployed.'
+      `Price oracle contract for base currency:"${oThis.baseCurrency}" to quote currency "${
+        oThis.quoteCurrency
+      }" deployed.`
     );
   }
 
@@ -258,7 +257,7 @@ class DeployPriceOracle {
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
 
-    logger.step('opsAddress set in price oracle contract.');
+    logger.step('Ops address set in price oracle contract.');
   }
 
   /**
@@ -270,7 +269,7 @@ class DeployPriceOracle {
   async _setAdminAddress() {
     const oThis = this;
 
-    logger.step('* Setting adminAddress in Price oracle contract.');
+    logger.step('* Setting admin address in price oracle contract.');
 
     // Prepare txOptions.
     const txOptions = {
@@ -310,7 +309,7 @@ class DeployPriceOracle {
 
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
-    logger.step('adminAddress set in price oracle contract.');
+    logger.step('Admin address set in price oracle contract.');
   }
 
   /**
