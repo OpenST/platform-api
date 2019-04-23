@@ -141,26 +141,6 @@ class Base {
   }
 
   /**
-   * Get providers from config.
-   *
-   * @returns {Promise<any>}
-   * @private
-   */
-  async _getProvidersFromConfig() {
-    const oThis = this;
-
-    const csHelper = new ConfigStrategyHelper(0),
-      csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
-      configForChain = csResponse.data[configStrategyConstants.originGeth],
-      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
-      providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
-
-    oThis.originChainId = configForChain.chainId;
-
-    return responseHelper.successWithData(providers);
-  }
-
-  /**
    * Fetch origin chain Id.
    *
    * @sets oThis.originChainId
