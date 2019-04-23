@@ -79,7 +79,7 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
     const oThis = this;
 
     const providers = await oThis._getProvidersFromConfig(),
-      provider = providers.data[0],
+      provider = providers[0],
       amountInWei = basicHelper.convertToWei(amount).toString(10); // Transfer amount
 
     await new TransferEthUsingPK({
@@ -101,10 +101,9 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
     const csHelper = new ConfigStrategyHelper(0),
       csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
       configForChain = csResponse.data[configStrategyConstants.originGeth],
-      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite],
-      providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
+      readWriteConfig = configForChain[configStrategyConstants.gethReadWrite];
 
-    return Promise.resolve(responseHelper.successWithData(providers));
+    return readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
   }
 }
 
