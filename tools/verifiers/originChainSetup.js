@@ -15,6 +15,7 @@ const rootPrefix = '../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
@@ -275,6 +276,71 @@ class OriginChainSetup {
       );
 
       return Promise.reject(new Error('Blacklister address verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract name.');
+    const chainUsdcContractName = await usdcContractObj.methods.name().call({});
+    if (chainUsdcContractName !== contractConstants.usdcContractName) {
+      logger.error(
+        'Contract name of USDC token -',
+        chainUsdcContractName,
+        'different from database value -',
+        contractConstants.usdcContractName
+      );
+
+      return Promise.reject(new Error('Contract name verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract symbol.');
+    const chainUsdcContractSymbol = await usdcContractObj.methods.symbol().call({});
+    if (chainUsdcContractSymbol !== contractConstants.usdcContractSymbol) {
+      logger.error(
+        'Contract symbol of USDC token -',
+        chainUsdcContractSymbol,
+        'different from database value -',
+        contractConstants.usdcContractSymbol
+      );
+
+      return Promise.reject(new Error('Contract symbol verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract currency.');
+    const chainUsdcContractCurrency = await usdcContractObj.methods.currency().call({});
+    if (chainUsdcContractCurrency !== contractConstants.usdcContractCurrency) {
+      logger.error(
+        'Contract currency of USDC token -',
+        chainUsdcContractCurrency,
+        'different from database value -',
+        contractConstants.usdcContractCurrency
+      );
+
+      return Promise.reject(new Error('Contract currency verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract decimals.');
+    const chainUsdcContractDecimals = await usdcContractObj.methods.decimals().call({});
+    if (Number(chainUsdcContractDecimals) !== contractConstants.usdcContractDecimals) {
+      logger.error(
+        'Contract decimals of USDC token -',
+        chainUsdcContractDecimals,
+        'different from database value -',
+        contractConstants.usdcContractDecimals
+      );
+
+      return Promise.reject(new Error('Contract decimals verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract total supply.');
+    const chainUsdcContractTotalSupply = await usdcContractObj.methods.totalSupply().call({});
+    if (Number(chainUsdcContractTotalSupply) !== contractConstants.usdcMintAmountInLowestUnit) {
+      logger.error(
+        'Contract total supply of USDC token -',
+        chainUsdcContractTotalSupply,
+        'different from database value -',
+        contractConstants.usdcMintAmountInLowestUnit
+      );
+
+      return Promise.reject(new Error('Contract total supply verification of USDC token contract failed.'));
     }
   }
 
