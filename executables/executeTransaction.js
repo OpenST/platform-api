@@ -304,3 +304,8 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
 }
 
 new ExecuteTransactionExecutable({ cronProcessId: +program.cronProcessId }).perform();
+
+setInterval(function() {
+  logger.info('Ending the process. Sending SIGINT.');
+  process.emit('SIGINT');
+}, cronProcessesConstants.cronRestartInterval15Mins);

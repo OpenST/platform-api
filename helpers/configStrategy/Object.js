@@ -87,6 +87,11 @@ class ConfigStrategyObject {
     return basicHelper.shuffleArray(wsProviders);
   }
 
+  unShuffledAuxChainWsProviders(intent) {
+    const oThis = this;
+    return oThis.auxChainConfig()[intent].wsProviders;
+  }
+
   originChainRpcProviders(intent) {
     const oThis = this;
     return oThis.originChainConfig()[intent].rpcProviders;
