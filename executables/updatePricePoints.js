@@ -12,19 +12,19 @@
 const program = require('commander');
 
 const rootPrefix = '..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  UpdatePricePointsRouter = require(rootPrefix + '/lib/workflow/updatePricePoints/Router'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
-  UpdatePricePointsRouter = require(rootPrefix + '/lib/workflow/updatePricePoints/Router');
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -51,8 +51,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
   /**
    * Constructor to update price oracle price points periodically.
    *
-   * @param {Object} params
-   * @param {Number} params.cronProcessId
+   * @param {object} params
+   * @param {number} params.cronProcessId
    *
    * @augments CronBase
    *
@@ -67,10 +67,9 @@ class UpdatePriceOraclePricePoints extends CronBase {
   }
 
   /**
-   * Cron kind
+   * Cron kind.
    *
-   * @return {String}
-   *
+   * @return {string}
    * @private
    */
   get _cronKind() {
@@ -78,10 +77,9 @@ class UpdatePriceOraclePricePoints extends CronBase {
   }
 
   /**
-   * Validate and sanitize
+   * Validate and sanitize.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _validateAndSanitize() {
@@ -99,6 +97,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
 
     if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
       logger.error('Please pass a valid quote currency.');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_upp_2',
@@ -108,7 +107,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
       );
     }
 
-    let workflowModelQueryRsp = await new WorkflowModel()
+    const workflowModelQueryRsp = await new WorkflowModel()
       .select('*')
       .where({
         kind: new WorkflowModel().invertedKinds[workflowConstants.updatePricePointKind],
@@ -116,8 +115,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
       })
       .fire();
 
-    for (let i = 0; i < workflowModelQueryRsp.length; i++) {
-      let requestParams = JSON.parse(workflowModelQueryRsp[i].request_params);
+    for (let index = 0; index < workflowModelQueryRsp.length; index++) {
+      const requestParams = JSON.parse(workflowModelQueryRsp[index].request_params);
       if (requestParams.auxChainId === oThis.auxChainId) {
         const errorObject = responseHelper.error({
           internal_error_identifier: 'cron_stopped:cron_already_running:e_upp_3',
@@ -136,10 +135,9 @@ class UpdatePriceOraclePricePoints extends CronBase {
   }
 
   /**
-   * Pending tasks done
+   * Pending tasks done.
    *
-   * @return {Boolean}
-   *
+   * @return {boolean}
    * @private
    */
   _pendingTasksDone() {
@@ -152,7 +150,6 @@ class UpdatePriceOraclePricePoints extends CronBase {
    * Start the cron.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _start() {
@@ -169,16 +166,15 @@ class UpdatePriceOraclePricePoints extends CronBase {
   }
 
   /**
-   * Update Price Point
+   * Update price point.
    *
-   * @returns {Promise<void>}
-   *
+   * @returns {Promise<*>}
    * @private
    */
   async _updatePricePoint() {
     const oThis = this;
 
-    let updatePricePointParams = {
+    const updatePricePointParams = {
         stepKind: workflowStepConstants.updatePricePointInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         chainId: oThis.auxChainId,
@@ -190,7 +186,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
       },
       updatePricePointsRouterObj = new UpdatePricePointsRouter(updatePricePointParams);
 
-    let updatePricePointsInitResponse = await updatePricePointsRouterObj.perform();
+    const updatePricePointsInitResponse = await updatePricePointsRouterObj.perform();
 
     if (updatePricePointsInitResponse.isSuccess()) {
       return true;
@@ -198,7 +194,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
   }
 }
 
-// Perform action
+// Perform action.
 new UpdatePriceOraclePricePoints({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
