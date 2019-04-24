@@ -12,14 +12,14 @@ const rootPrefix = '../../..',
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
+  GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantStakeCurrency/Router');
 
 /**
  * Class for granting eth and ost.
  *
  * @class
  */
-class GrantEthOst {
+class GrantStakeCurrency {
   /**
    * Constructor for token deployment
    *
@@ -47,7 +47,7 @@ class GrantEthOst {
       if (responseHelper.isCustomResult(error)) {
         return error;
       } else {
-        logger.error('app/services/token/GrantEthOst::perform::catch');
+        logger.error('app/services/token/GrantStakeCurrency::perform::catch');
         logger.error(error);
         return responseHelper.error({
           internal_error_identifier: 's_t_geo_1',
@@ -108,7 +108,7 @@ class GrantEthOst {
       stepKind: workflowStepConstants.grantEthOstInit,
       taskStatus: workflowStepConstants.taskReadyToStart,
       chainId: oThis.chainId,
-      topic: workflowTopicConstant.grantEthOst,
+      topic: workflowTopicConstant.grantStakeCurrency,
       clientId: oThis.clientId,
       requestParams: {
         originChainId: oThis.originChainId,
@@ -123,4 +123,4 @@ class GrantEthOst {
   }
 }
 
-module.exports = GrantEthOst;
+module.exports = GrantStakeCurrency;

@@ -11,7 +11,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  GrantEthOst = require(rootPrefix + '/app/services/token/GrantEthOst'),
+  GrantStakeCurrency = require(rootPrefix + '/app/services/token/GrantStakeCurrency'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
   configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
@@ -24,7 +24,7 @@ const rootPrefix = '../../..',
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   ClientPreProvisioning = require(rootPrefix + '/app/models/mysql/ClientPreProvisioning'),
   EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router'),
-  StakeCurrencyCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrency'),
+  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
   ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
 
@@ -431,7 +431,7 @@ class Deployment {
   async _fetchStakeCurrencyDetails(stakeCurrencyId) {
     const oThis = this;
 
-    let stakeCurrencyCacheResponse = await new StakeCurrencyCache({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
+    let stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
 
     if (stakeCurrencyCacheResponse.isFailure()) {
       logger.error('Could not fetch stake currency details.');
@@ -470,8 +470,8 @@ class Deployment {
     let ownerAddress = tokenAddressCacheRsp.data[tokenAddressConstants.ownerAddressKind];
 
     // grant ETH and OST for this address.
-    let grantEthOst = new GrantEthOst({ client_id: oThis.clientId, address: ownerAddress }),
-      grantEthOstResponse = await grantEthOst.perform();
+    let grantStakeCurrency = new GrantStakeCurrency({ client_id: oThis.clientId, address: ownerAddress }),
+      grantEthOstResponse = await grantStakeCurrency.perform();
 
     if (!grantEthOstResponse.isSuccess()) {
       logger.error('Granting ETH and OST has been failed.');

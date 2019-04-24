@@ -269,7 +269,7 @@ const v2ErrorConfig = {
     message:
       'Invalid parameter raw_calldata. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api/#execute-a-transaction for details on how to form input parameters for transaction API.'
   },
-  invalid_raw_calldata_ost_to_usd_value: {
+  invalid_raw_calldata_stake_currency_to_usd_value: {
     parameter: 'raw_calldata',
     code: 'invalid',
     message:

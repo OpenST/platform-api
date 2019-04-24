@@ -441,7 +441,7 @@ class BasicHelper {
    */
   computeConversionRateForContract(conversionRate) {
     const conversionFactorFromDB = new BigNumber(conversionRate),
-      conversionMultiplier = new BigNumber(coreConstants.CONVERSION_RATE_MULTIPLIER);
+      conversionMultiplier = new BigNumber(coreConstants.STAKE_CURRENCY_TO_BT_CONVERSION_RATE_MULTIPLIER);
     const conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
 
     return conversionRateForContractBigNumber.toString();

@@ -23,7 +23,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '2': workflowConstants.stateRootSyncKind,
     '3': workflowConstants.stPrimeStakeAndMintKind,
     '4': workflowConstants.btStakeAndMintKind,
-    '5': workflowConstants.grantEthOstKind,
+    '5': workflowConstants.grantStakeCurrencyKind,
     '6': workflowConstants.setupUserKind,
     '7': workflowConstants.testKind,
     '8': workflowConstants.authorizeDeviceKind,

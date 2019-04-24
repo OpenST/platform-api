@@ -141,8 +141,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '171': workflowStepConstants.grantEthOstInit,
     '172': workflowStepConstants.grantEth,
     '173': workflowStepConstants.verifyGrantEth,
-    '174': workflowStepConstants.grantOst,
-    '175': workflowStepConstants.verifyGrantOst,
+    '174': workflowStepConstants.grantStakeCurrency,
+    '175': workflowStepConstants.verifyGrantStakeCurrency,
 
     '181': workflowStepConstants.userSetupInit,
     '182': workflowStepConstants.addSessionAddresses,

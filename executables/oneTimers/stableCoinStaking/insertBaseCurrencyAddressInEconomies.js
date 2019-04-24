@@ -1,7 +1,7 @@
 /**
  * Module to insert base currency contract address in economies table.
  *
- * @module executables/oneTimers/stableCoinStaking/createBaseCurrenciesTable
+ * @module executables/oneTimers/stableCoinStaking/insertBaseCurrencyAddressInEconomies
  */
 
 const rootPrefix = '../../..',

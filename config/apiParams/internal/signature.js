@@ -103,7 +103,7 @@ const signature = {
     optional: []
   },
 
-  grantEthOst: {
+  grantStakeCurrency: {
     mandatory: [
       {
         parameter: 'client_id',

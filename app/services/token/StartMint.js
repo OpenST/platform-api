@@ -113,6 +113,7 @@ class StartMint {
         originChainId: oThis._configStrategyObject.originChainId,
         stakerAddress: oThis.stakerAddress,
         tokenId: oThis.tokenId,
+        clientId: oThis.clientId,
         sourceChainId: oThis._configStrategyObject.originChainId,
         destinationChainId: oThis._configStrategyObject.auxChainId
       },
