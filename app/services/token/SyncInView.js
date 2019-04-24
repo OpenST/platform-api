@@ -30,6 +30,7 @@ class SyncInView {
    * @param {Integer} params.tokenId - Id of token table
    * @param {Integer} params.chainId
    * @param {Integer} params.clientId
+   * @param {Integer} params.stakeCurrencyContractAddress
    *
    * @constructor
    */
@@ -39,6 +40,7 @@ class SyncInView {
     oThis.tokenId = params.tokenId;
     oThis.chainId = params.chainId;
     oThis.clientId = params.clientId;
+    oThis.stakeCurrencyContractAddress = params.stakeCurrencyContractAddress;
   }
 
   /**
@@ -60,6 +62,7 @@ class SyncInView {
       gatewayContractAddress: oThis.gatewayContractAddress,
       brandedTokenContract: oThis.brandedTokenAddress,
       utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
+      stakeCurrencyContractAddress: oThis.stakeCurrencyContractAddress,
       chainEndpoint: chainEndPoint[0]
     });
 
@@ -71,6 +74,7 @@ class SyncInView {
         gatewayContractAddress: oThis.gatewayContractAddress,
         brandedTokenContract: oThis.brandedTokenAddress,
         utilityBrandedTokenContract: oThis.utilityBrandedTokenAddress,
+        stakeCurrencyContractAddress: oThis.stakeCurrencyContractAddress,
         chainEndpoint: chainEndPoint[0]
       }
     });

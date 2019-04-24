@@ -85,7 +85,7 @@ class TransactionMetaModel extends ModelBase {
     const oThis = this;
 
     return oThis
-      .select('id, status,receipt_status,transaction_hash')
+      .select('id,status,receipt_status,transaction_uuid,transaction_hash')
       .where(['associated_aux_chain_id = ? and transaction_hash IN (?)', chainId, transactionHashes])
       .fire();
   }

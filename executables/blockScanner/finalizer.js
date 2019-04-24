@@ -178,7 +178,6 @@ class Finalizer extends PublisherBase {
     oThis.BlockScannerFinalizer = blockScannerObj.block.Finalize;
     oThis.chainCronDataModel = blockScannerObj.model.ChainCronData;
     oThis.PendingTransactionByHashCache = blockScannerObj.cache.PendingTransactionByHash;
-    oThis.PendingTransactionByUuidCache = blockScannerObj.cache.PendingTransactionByUuid;
 
     logger.step('Services initialised.');
   }

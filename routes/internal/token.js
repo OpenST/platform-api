@@ -40,7 +40,14 @@ router.get('/get-dashboard', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDashboard';
   req.decodedParams.clientConfigStrategyRequired = true;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenDashboardDetail', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenDashboardDetail', 'r_it_5'));
+});
+
+router.get('/generate-known-address', function(req, res, next) {
+  req.decodedParams.apiName = 'generateKnownAddress';
+  req.decodedParams.clientConfigStrategyRequired = false;
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'app/services/token/GenerateKnownAddress', 'r_it_6'));
 });
 
 module.exports = router;

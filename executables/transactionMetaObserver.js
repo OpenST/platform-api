@@ -147,7 +147,7 @@ class TransactionMetaObserver extends CronBase {
       oThis.canExit = true;
 
       logger.step('** Sleeping...');
-      await basicHelper.sleep(10 * 1000);
+      await basicHelper.sleep(1 * 1000);
     }
   }
 
@@ -216,21 +216,19 @@ class TransactionMetaObserver extends CronBase {
     const oThis = this;
 
     const promiseArray = [],
+      txStatusStringMetaIdsMap = {},
       transactionsGroup = {};
+
     for (let index = 0; index < oThis.transactionsToProcess.length; index++) {
       const txMeta = oThis.transactionsToProcess[index];
 
       const txStatusString = transactionMetaConst.statuses[txMeta.status];
+
       transactionsGroup[txStatusString] = transactionsGroup[txStatusString] || [];
       transactionsGroup[txStatusString].push(txMeta);
 
-      const errorObject = responseHelper.error({
-        internal_error_identifier: 'transaction_meta_observer_pending_transaction:e_tmo_2:' + txStatusString,
-        api_error_identifier: 'transaction_meta_observer_pending_transaction',
-        debug_options: { txMetaId: txMeta.id }
-      });
-
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
+      txStatusStringMetaIdsMap[txStatusString] = txStatusStringMetaIdsMap[txStatusString] || [];
+      txStatusStringMetaIdsMap[txStatusString].push(txMeta.id);
     }
 
     for (const txStatusString in transactionsGroup) {
@@ -242,25 +240,22 @@ class TransactionMetaObserver extends CronBase {
       };
 
       if (transactionsMetaRecords && transactionsMetaRecords.length > 0) {
-        if (
-          txStatusString == transactionMetaConst.queuedStatus ||
-          txStatusString == transactionMetaConst.submissionInProcessStatus ||
-          txStatusString == transactionMetaConst.gethDownStatus ||
-          txStatusString == transactionMetaConst.gethOutOfSyncStatus
-        ) {
-          promiseArray.push(new QueuedHandlerKlass(params).perform());
-        } else if (
-          txStatusString == transactionMetaConst.rollBackBalanceStatus ||
-          txStatusString == transactionMetaConst.unknownGethSubmissionErrorStatus ||
-          txStatusString == transactionMetaConst.insufficientGasStatus ||
-          txStatusString == transactionMetaConst.nonceTooLowStatus ||
-          txStatusString == transactionMetaConst.replacementTxUnderpricedStatus
-        ) {
+        if (transactionMetaConst.mapOfStatusesForRollingBackBalances[txStatusString]) {
           promiseArray.push(new MarkFailAndRollbackBalanceKlass(params).perform());
+        } else if (transactionMetaConst.mapOfStatusesForResubmittingOrRollingBackBalances[txStatusString]) {
+          promiseArray.push(new QueuedHandlerKlass(params).perform());
         } else if (txStatusString == transactionMetaConst.submittedToGethStatus) {
           promiseArray.push(new SubmittedHandlerKlass(params).perform());
         }
       }
+
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'transaction_meta_observer_pending_transaction:e_tmo_2:' + txStatusString,
+        api_error_identifier: 'transaction_meta_observer_pending_transaction',
+        debug_options: { txMetaIds: txStatusStringMetaIdsMap[txStatusString] }
+      });
+
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     }
 
     await Promise.all(promiseArray);

@@ -10,6 +10,7 @@ const rootPrefix = '..',
   cronProcessHandlerObject = new CronProcessHandler(),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
 /**
@@ -116,9 +117,12 @@ class CronBase {
     /**
      * Handler for SIGINT and SIGTERM signals.
      */
-    const handle = function() {
+    const handle = async function() {
       // Rachin: Does this need to be called more than once?
       oThis._stopPickingUpNewTasks();
+
+      // Sleep to give some breathing space to cancel consume. So by chance if during cancellation new message arrives, it got considered
+      await basicHelper.sleep(5000);
 
       // We need to call notifier only once.
       if (!notifierCalled) {

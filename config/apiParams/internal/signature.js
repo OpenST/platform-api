@@ -129,6 +129,11 @@ const signature = {
       }
     ],
     optional: []
+  },
+
+  generateKnownAddress: {
+    mandatory: [],
+    optional: []
   }
 };
 
