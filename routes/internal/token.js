@@ -47,7 +47,7 @@ router.get('/generate-known-address', function(req, res, next) {
   req.decodedParams.apiName = 'generateKnownAddress';
   req.decodedParams.clientConfigStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'app/services/token/GenerateKnownAddress', 'r_it_6'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GenerateKnownAddress', 'r_it_6'));
 });
 
 module.exports = router;
