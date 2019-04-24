@@ -314,3 +314,30 @@ managedAddress = managedAddresses[0];
         
         a.perform().then(console.log)
 ```
+
+### ST Prime Redeem and Unstake.
+```bash
+    source set_env_vars.sh
+    > node
+        params = {
+            stepKind: 'stPrimeRedeemAndUnstakeInit',
+            taskStatus: 'taskReadyToStart',
+            clientId: 0,
+            chainId: 2000,
+            topic: 'workflow.stPrimeRedeemAndUnstake',
+            requestParams: {
+                redeemerAddress: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
+                originChainId: 1000, 
+                auxChainId: 2000, 
+                sourceChainId: 2000,
+                destinationChainId: 1000,
+                facilitator: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
+                amountToRedeem: '100000000000000000000', 
+                beneficiary: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6'
+            }
+    }
+    stPrimeRouterK = require('./lib/workflow/redeemAndUnstake/stPrime/Router')
+    stPrimeRouter = new stPrimeRouterK(params)
+
+    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
+```

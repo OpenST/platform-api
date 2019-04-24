@@ -34,6 +34,8 @@ const rootPrefix = '../../../..',
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
+  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   ProcessTokenRuleExecutableData = require(rootPrefix +
@@ -536,13 +538,7 @@ class ExecuteTxBase extends ServiceBase {
   async _revertOperations(customError) {
     const oThis = this;
 
-    if (oThis.pessimisticAmountDebitted) {
-      logger.debug('something_went_wrong rolling back pessimistic debited balances');
-      await oThis._rollBackPessimisticDebit().catch(async function(rollbackError) {
-        // TODO: Mark user balance as dirty
-        logger.error(`In catch block of _rollBackPessimisticDebit in file: ${__filename}`, rollbackError);
-      });
-    }
+    await oThis._revertPessimisticDebit();
 
     if (oThis.pendingTransactionInserted) {
       new PendingTransactionCrud(oThis.chainId)
@@ -551,7 +547,7 @@ class ExecuteTxBase extends ServiceBase {
           status: pendingTransactionConstants.failedStatus
         })
         .catch(async function(updatePendingTxError) {
-          // Do nothing
+          // Do nothing as UUid wouldn't be returned to user and no get calls would come hence forth
         });
     }
 
@@ -569,6 +565,39 @@ class ExecuteTxBase extends ServiceBase {
         address: oThis.sessionKeyAddress,
         chainId: oThis.auxChainId
       }).clear();
+    }
+  }
+
+  /**
+   *
+   * @private
+   */
+  async _revertPessimisticDebit() {
+    const oThis = this;
+
+    if (oThis.pessimisticAmountDebitted) {
+      logger.debug('something_went_wrong rolling back pessimistic debited balances');
+
+      await oThis._rollBackPessimisticDebit().catch(async function(rollbackError) {
+        logger.error(`In catch block of _rollBackPessimisticDebit`, rollbackError);
+
+        if (oThis.pendingTransactionInserted) {
+          // If entry was inserted in pending_tx table, error handler could come and rollback balances later
+          oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.rollBackBalanceStatus;
+        } else {
+          // Notify so that devs can manually revert balance
+
+          const errorObject = responseHelper.error({
+            internal_error_identifier: 's_et_b_7',
+            api_error_identifier: 'balance_rollback_failed',
+            debug_options: {
+              unsettledDebits: oThis.unsettledDebits
+            }
+          });
+
+          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
+        }
+      });
     }
   }
 
