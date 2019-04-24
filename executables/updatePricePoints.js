@@ -119,8 +119,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
       const requestParams = JSON.parse(workflowModelQueryRsp[index].request_params);
       if (requestParams.auxChainId === oThis.auxChainId) {
         const errorObject = responseHelper.error({
-          internal_error_identifier: 'cron_stopped:cron_already_running:e_upp_3',
-          api_error_identifier: 'cron_stopped',
+          internal_error_identifier: 'cron_already_running:e_upp_3',
+          api_error_identifier: 'cron_already_running',
           debug_options: { chainId: requestParams.auxChainId }
         });
 
