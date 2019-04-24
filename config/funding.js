@@ -123,8 +123,8 @@ fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
 
     // token ExTx workers
     [tokenAddressConstants.txWorkerAddressKind]: {
-      fundAmount: '30',
-      thresholdAmount: '15'
+      fundAmount: '45',
+      thresholdAmount: '30'
     },
 
     // token user multisig worker
