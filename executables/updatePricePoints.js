@@ -12,6 +12,7 @@
 const program = require('commander');
 
 const rootPrefix = '..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -95,6 +96,43 @@ class UpdatePriceOraclePricePoints extends CronBase {
         })
       );
     }
+
+    if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
+      logger.error('Please pass a valid quote currency.');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_upp_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { auxChainId: oThis.auxChainId }
+        })
+      );
+    }
+
+    let workflowModelQueryRsp = await new WorkflowModel()
+      .select('*')
+      .where({
+        kind: new WorkflowModel().invertedKinds[workflowConstants.updatePricePointKind],
+        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus]
+      })
+      .fire();
+
+    for (let i = 0; i < workflowModelQueryRsp.length; i++) {
+      let requestParams = JSON.parse(workflowModelQueryRsp[i].request_params);
+      if (requestParams.auxChainId === oThis.auxChainId) {
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'cron_stopped:cron_already_running:e_upp_3',
+          api_error_identifier: 'cron_stopped',
+          debug_options: { chainId: requestParams.auxChainId }
+        });
+
+        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+
+        logger.error('Cron already running for this chain. Exiting the process.');
+        oThis.canExit = true;
+        process.emit('SIGINT');
+        await basicHelper.sleep(5 * 1000);
+      }
+    }
   }
 
   /**
@@ -122,52 +160,12 @@ class UpdatePriceOraclePricePoints extends CronBase {
 
     oThis.canExit = false;
 
-    logger.step('Validating quoteCurrency.');
-    oThis._validateQuoteCurrency();
-
-    let queryRsp = await new WorkflowModel()
-      .select('id')
-      .where({
-        kind: new WorkflowModel().invertedKinds[workflowConstants.updatePricePointKind],
-        status: new WorkflowModel().invertedStatuses[workflowConstants.inProgressStatus]
-      })
-      .fire();
-
-    // TODO - check if the workflow was for the same aux chain
-
-    if (queryRsp.length !== 0) {
-      const errorObject = responseHelper.error({
-        internal_error_identifier: 'cron_stopped:cron_already_running:e_upp_1',
-        api_error_identifier: 'cron_stopped',
-        debug_options: { workflowQueryRsp: queryRsp }
-      });
-
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-    }
-
     logger.step('Update price points.');
     await oThis._updatePricePoint();
 
     logger.step('Cron completed.');
 
     oThis.canExit = true;
-  }
-
-  /**
-   * Validate if quoteCurrency is valid.
-   *
-   * @return {Promise<never> | Promise<any>}
-   *
-   * @private
-   */
-  _validateQuoteCurrency() {
-    const oThis = this;
-
-    if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
-      logger.error('Please pass a valid quote currency.');
-
-      return Promise.reject(new Error('Please pass a valid quote currency.'));
-    }
   }
 
   /**
