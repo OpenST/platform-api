@@ -4,31 +4,11 @@
  * @module executables/oneTimers/stableCoinStaking/updateExistingPriceOracleCronEntry
  */
 
-const program = require('commander');
-
 const rootPrefix = '../../..',
   CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
-
-program.option('--auxChainId <auxChainId>', 'aux chainId').parse(process.argv);
-
-program.on('--help', function() {
-  logger.log('');
-  logger.log('  Example:');
-  logger.log('');
-  logger.log(
-    '    node executables/oneTimers/stableCoinStaking/updateExistingPriceOracleCronEntry.js --auxChainId 2000'
-  );
-  logger.log('');
-  logger.log('');
-});
-
-if (!program.auxChainId) {
-  program.help();
-  process.exit(1);
-}
 
 /**
  * Class to update existing price oracle cron entry.
@@ -48,7 +28,8 @@ class UpdateExistingPriceOracleCronEntry {
 
     oThis.auxChainId = auxChainId;
 
-    oThis.insertId = 0;
+    oThis.tableIdToAuxChainIdMap = {};
+    oThis.tableIds = [];
   }
 
   /**
@@ -78,7 +59,7 @@ class UpdateExistingPriceOracleCronEntry {
   async asyncPerform() {
     const oThis = this;
 
-    await oThis._fetchExistingCronEntry();
+    await oThis._fetchExistingCronEntries();
 
     return oThis._updateCronParams();
   }
@@ -89,24 +70,23 @@ class UpdateExistingPriceOracleCronEntry {
    * @return {Promise<void>}
    * @private
    */
-  async _fetchExistingCronEntry() {
+  async _fetchExistingCronEntries() {
     const oThis = this;
 
-    const existingCronEntry = await new CronProcessModel()
+    const existingCronEntries = await new CronProcessModel()
       .select('*')
       .where({
         kind_name: cronProcessesConstants.updatePriceOraclePricePoints
       })
       .fire();
 
-    for (let index = 0; index < existingCronEntry.length; index++) {
-      const cronEntity = existingCronEntry[index];
+    for (let index = 0; index < existingCronEntries.length; index++) {
+      const cronEntity = existingCronEntries[index];
 
       const cronParams = JSON.parse(cronEntity.params);
 
-      if (Number(cronParams.auxChainId) === Number(oThis.auxChainId)) {
-        oThis.insertId = cronParams.id;
-      }
+      oThis.tableIdToAuxChainIdMap[cronEntity.id] = cronParams.auxChainId;
+      oThis.tableIds.push(cronEntity.id);
     }
   }
 
@@ -119,32 +99,37 @@ class UpdateExistingPriceOracleCronEntry {
   async _updateCronParams() {
     const oThis = this;
 
-    if (oThis.insertId === 0) {
-      logger.error(`Could not find any price oracle cron entry for the given auxChainId ${oThis.auxChainId}. Exiting.`);
+    if (oThis.tableIds.length === 0) {
+      logger.error('Could not find any price oracle cron entry in the environment. Exiting.');
 
-      return Promise.reject(
-        new Error(`Could not find any price oracle cron entry for the given auxChainId ${oThis.auxChainId}. Exiting.`)
+      return Promise.reject(new Error('Could not find any price oracle cron entry in the environment. Exiting.'));
+    }
+
+    const promises = [];
+
+    for (let index = 0; index < oThis.tableIds.length; index++) {
+      const tableId = oThis.tableIds[index];
+      const cronParams = JSON.stringify({
+        auxChainId: oThis.tableIdToAuxChainIdMap[tableId],
+        baseCurrency: 'OST'
+      });
+      promises.push(
+        new CronProcessModel()
+          .update({ params: cronParams })
+          .where({
+            id: tableId
+          })
+          .fire()
       );
     }
 
-    const cronParams = {
-      auxChainId: oThis.auxChainId,
-      baseCurrency: 'OST'
-    };
-    const stringifiedCronParams = JSON.stringify(cronParams);
+    await Promise.all(promises);
 
-    await new CronProcessModel()
-      .update({ params: stringifiedCronParams })
-      .where({
-        id: oThis.insertId
-      })
-      .fire();
-
-    return responseHelper.successWithData({ id: oThis.insertId, updatedCronParams: stringifiedCronParams });
+    return responseHelper.successWithData({ tableIdToAuxChainIdMap: oThis.tableIdToAuxChainIdMap });
   }
 }
 
-new UpdateExistingPriceOracleCronEntry(program.auxChainId).perform().then((response) => {
+new UpdateExistingPriceOracleCronEntry().perform().then((response) => {
   if (response.isFailure()) {
     logger.error(`One-timer failed. Response: ${JSON.stringify(response)}`);
     process.exit(1);
