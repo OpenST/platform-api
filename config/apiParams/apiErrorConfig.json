@@ -367,12 +367,12 @@
   "invalid_erc20_value": {
     "http_code": "422",
     "code": "BAD_REQUEST",
-    "message": "OST value is invalid."
+    "message": "ERC20 value is invalid."
   },
   "invalid_erc20_price": {
     "http_code": "422",
     "code": "BAD_REQUEST",
-    "message": "OST price is invalid."
+    "message": "ERC20 price is invalid."
   },
   "invalid_cmc_response": {
     "http_code": "422",
