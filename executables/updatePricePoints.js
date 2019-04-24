@@ -184,7 +184,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
         chainId: oThis.auxChainId,
         topic: workflowTopicConstants.updatePricePoint,
         requestParams: {
-          auxChainId: oThis.auxChainId
+          auxChainId: oThis.auxChainId,
+          baseCurrency: oThis.baseCurrency
         }
       },
       updatePricePointsRouterObj = new UpdatePricePointsRouter(updatePricePointParams);

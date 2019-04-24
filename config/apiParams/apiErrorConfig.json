@@ -364,12 +364,12 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Error while deleting session"
   },
-  "invalid_ost_value": {
+  "invalid_erc20_value": {
     "http_code": "422",
     "code": "BAD_REQUEST",
     "message": "OST value is invalid."
   },
-  "invalid_ost_price": {
+  "invalid_erc20_price": {
     "http_code": "422",
     "code": "BAD_REQUEST",
     "message": "OST price is invalid."
