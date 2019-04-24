@@ -10,6 +10,7 @@ const rootPrefix = '../..',
     '/devops/utils/chainAddress/GenerateMasterInternalFunderAddress'),
   FundMasterInternalFunderAddress = require(rootPrefix + '/devops/utils/chainAddress/FundMasterInternalFunderAddress'),
   SetupSimpleToken = require(rootPrefix + '/lib/setup/originChain/SetupSimpleToken'),
+  SetupUsdcToken = require(rootPrefix + '/lib/setup/originChain/SetupUsdcToken'),
   DevOpsCommonHelper = require(rootPrefix + '/devops/utils/Common');
 
 program
@@ -20,6 +21,7 @@ program
   .option('--generate-origin-addresses', 'Generate addresses required for origin chain')
   .option('--generate-aux-addresses', 'Generate addresses required for auxiliary chain')
   .option('--setup-simple-token', 'Setup SimpleToken and associated contracts')
+  .option('--setup-usdc-token', 'Setup USDC Token')
   .option('--chain-id <number>', 'Chain id required for actions -o, -a and -d', parseInt)
   .option('--eth-owner-private-key <string>', 'ETH sender private key. Required for action -n')
   .option('--st-owner-private-key <string>', 'ST Owner private key. Required for action -f')
@@ -88,6 +90,24 @@ const Main = async function() {
     }
 
     performerObj = new SetupSimpleToken(program.chainId, program.ethOwnerPrivateKey);
+  } else if (program.setupUsdcToken) {
+    let env = process.env['SA_ENVIRONMENT'],
+      subEnv = process.env['SA_SUB_ENVIRONMENT'];
+
+    if (!env && !subEnv) {
+      throw 'Either SA_ENVIRONMENT or SA_SUB_ENVIRONMENT is not set!';
+    }
+
+    // Do this only for non-production-main env
+    if (env === 'production' && subEnv === 'main') {
+      throw 'This step is not allowed for production-main ENV. Either this has already done or ask Sunil! :)';
+    }
+
+    if (!program.chainId && !program.ethOwnerPrivateKey) {
+      handleError();
+    }
+
+    performerObj = new SetupUsdcToken(program.chainId, program.ethOwnerPrivateKey);
   } else {
     return handleError();
   }

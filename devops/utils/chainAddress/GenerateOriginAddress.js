@@ -1,49 +1,50 @@
-'use strict';
 /**
- * Generate address for Origin and Auxiliary chains
+ * Module to generate addresses for origin chain.
  *
  * @module devops/utils/GenerateAddress
  */
 
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ChainAddressBase = require(rootPrefix + '/devops/utils/chainAddress/Base'),
   fundingConfig = require(rootPrefix + '/config/funding'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
- * Class for Generating addresses for origin chains
+ * Class for generating addresses for origin chain.
  *
- * @class
+ * @class GenerateOriginAddress
  */
 class GenerateOriginAddress extends ChainAddressBase {
   /**
-   * Constructor
+   * Constructor for generating addresses for origin chain.
    *
-   * @param {Number} chainId
+   * @param {number} chainId: origin chain Id.
+   *
+   * @augments ChainAddressBase
    *
    * @constructor
    */
   constructor(chainId) {
     super(chainId);
+
     const oThis = this;
 
-    oThis.chainId = chainId;
+    oThis.originChainId = chainId;
     oThis.chainKind = coreConstants.originChainKind;
   }
 
   /**
-   *
-   * async perform
+   * Async perform.
    *
    * @return {Promise<result>}
-   *
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
 
-    let addressKinds = [
+    const addressKinds = [
       chainAddressConstants.originDeployerKind,
 
       chainAddressConstants.stOrgContractOwnerKind,
@@ -56,11 +57,12 @@ class GenerateOriginAddress extends ChainAddressBase {
       chainAddressConstants.originAnchorOrgContractWorkerKind,
 
       chainAddressConstants.originDefaultBTOrgContractAdminKind,
-      chainAddressConstants.originDefaultBTOrgContractWorkerKind
+      chainAddressConstants.originDefaultBTOrgContractWorkerKind,
+
+      chainAddressConstants.originStableCoinDeployerKind
     ];
 
     logger.log('* Generating address originDeployerKind.');
-    //logger.log('* Generating address masterInternalFunderKind.');
     logger.log('* Generating address stOrgContractOwnerKind.');
     logger.log('* Generating address originAnchorOrgContractOwnerKind.');
     logger.log('* Generating address stOrgContractAdminKind.');
@@ -69,18 +71,38 @@ class GenerateOriginAddress extends ChainAddressBase {
     logger.log('* Generating address originAnchorOrgContractWorkerKind.');
     logger.log('* Generating address originDefaultBTOrgContractAdminKind.');
     logger.log('* Generating address originDefaultBTOrgContractWorkerKind.');
+    logger.log('* Generating address originStableCoinDeployerKind.');
 
-    let addressesResp = await oThis._generateAddresses(addressKinds);
+    const addressesResp = await oThis._generateAddresses(addressKinds);
 
     if (addressesResp.isSuccess()) {
-      let addresses = addressesResp['data']['addresses'];
+      const addresses = addressesResp.data.addresses,
+        promises = [];
+
+      const amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
+        amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount,
+        amountForOriginStableCoinDeployer =
+          amountToFundOriginGasMap[chainAddressConstants.originStableCoinDeployerKind].fundAmount;
 
       logger.log(
         `* Funding origin deployer address (${addresses[chainAddressConstants.originDeployerKind]}) with ETH.`
       );
-      let amountToFundOriginGasMap = fundingConfig[chainAddressConstants.masterInternalFunderKind].originGas,
-        amountForOriginDeployer = amountToFundOriginGasMap[chainAddressConstants.originDeployerKind].fundAmount;
-      await oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer);
+      promises.push(
+        oThis._fundAddressWithEth(addresses[chainAddressConstants.originDeployerKind], amountForOriginDeployer)
+      );
+      logger.log(
+        `* Funding origin stable coin deployer address (${
+          addresses[chainAddressConstants.originDeployerKind]
+        }) with ETH.`
+      );
+      promises.push(
+        oThis._fundAddressWithEth(
+          addresses[chainAddressConstants.originStableCoinDeployerKind],
+          amountForOriginStableCoinDeployer
+        )
+      );
+
+      await Promise.all(promises);
     }
 
     return addressesResp;

@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Module to get funding config.
+ *
+ * @module config/funding
+ */
 
 const rootPrefix = '..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -12,6 +16,12 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
     [chainAddressConstants.originDeployerKind]: {
       fundAmount: '0.2941',
       thresholdAmount: '0.1541'
+    },
+
+    // stable coin deployer
+    [chainAddressConstants.originStableCoinDeployerKind]: {
+      fundAmount: '0.00498',
+      thresholdAmount: '0.00498'
     },
 
     // origin anchor owner
@@ -38,7 +48,7 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
       thresholdAmount: '0.0012'
     },
 
-    // token origin worker
+    // token origin worker.
     [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
       fundAmount: '0.002',
       thresholdAmount: '0.001'
@@ -54,6 +64,12 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
     [chainAddressConstants.stContractAdminKind]: {
       fundAmount: '0.00005',
       thresholdAmount: '0.00005'
+    },
+
+    // usdc owner
+    [chainAddressConstants.usdcContractOwnerKind]: {
+      fundAmount: '0.00048',
+      thresholdAmount: '0.00048'
     },
 
     // facilitator
