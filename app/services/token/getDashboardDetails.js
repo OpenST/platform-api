@@ -150,7 +150,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     let economyDetails = cacheResponse.data[oThis.economyContractAddress];
 
-    // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecession needs wei value.
+    // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecision needs wei value.
     oThis.totalSupplyInWei = economyDetails.totalSupply;
     oThis.totalVolumeInWei = basicHelper.convertToWei(economyDetails.totalVolume);
     oThis.economyUsers = economyDetails.totalTokenHolders; //total economy users
@@ -239,12 +239,12 @@ class GetTokenDashboardDetail extends ServiceBase {
   prepareResponse() {
     const oThis = this;
 
-    let totalSupply = basicHelper.toPrecessionBT(oThis.totalSupplyInWei),
+    let totalSupply = basicHelper.toPrecisionBT(oThis.totalSupplyInWei),
       totalSupplyDollar = oThis.getBtToDollar(oThis.totalSupplyInWei),
-      totalVolume = basicHelper.toPrecessionBT(oThis.totalVolumeInWei),
+      totalVolume = basicHelper.toPrecisionBT(oThis.totalVolumeInWei),
       totalVolumeDollar = oThis.getOstToDollar(oThis.totalVolumeInWei),
       circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalance),
-      circulatingSupply = basicHelper.toPrecessionBT(circulatingSupplyInWei),
+      circulatingSupply = basicHelper.toPrecisionBT(circulatingSupplyInWei),
       circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei),
       economyUsers = oThis.economyUsers;
 
@@ -287,7 +287,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     let inUSD = new BigNumber(totalOstInWei).mul(oThis.ostIsHowManyUSD);
 
-    return basicHelper.toPrecessionFiat(inUSD);
+    return basicHelper.toPrecisionFiat(inUSD);
   }
 }
 
