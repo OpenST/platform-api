@@ -1,8 +1,8 @@
 'use strict';
 /**
- * This service grants eth and ost.
+ * This service grants eth and stake currency.
  *
- * @module app/services/token/GrantEthOs
+ * @module app/services/token/GrantStakeCurrency
  */
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
