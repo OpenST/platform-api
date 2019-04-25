@@ -146,7 +146,7 @@ require('./app/models/ddb/sharded/Balance.js');
 BalanceModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel');
 asso = new BalanceModel({shardNumber:1, chainId: 2000});
 asso.updateBalance({
-  blockChainSettledBalance: '1110999999999999913000',
+  blockChainSettledBalance: '0', // should be in respective BT Weis.
   erc20Address: '0x73a59fd69dbf0d9451dd57e894ce71ec718d258d',
   tokenHolderAddress: '0x39c5f8de38f5915d07ef2e74eb28a81ef053f1d3'
 }).then(console.log);
