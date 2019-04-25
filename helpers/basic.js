@@ -73,7 +73,7 @@ class BasicHelper {
    *
    * @param {string} wei
    *
-   * @return {BigNumber}
+   * @return {string}
    */
   toPrecisionOst(wei) {
     return this.toPrecision(wei, 5);
@@ -84,7 +84,7 @@ class BasicHelper {
    *
    * @param {string} wei
    *
-   * @return {BigNumber}
+   * @return {string}
    */
   toPrecisionBT(wei) {
     return this.toPrecision(wei, 5);
@@ -94,11 +94,35 @@ class BasicHelper {
    * Convert wei value to un wei (normal).
    *
    * @param {string} wei
+   * @param {number} decimals
    *
-   * @return {BigNumber}
+   * @return {string}
+   */
+  toPrecisionOfLowerUnitBT(wei, decimals) {
+    return this.toPrecisionOfLowerUnit(wei, 5, decimals);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   *
+   * @return {string}
    */
   toPrecisionFiat(wei) {
     return this.toPrecision(wei, 2);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toPrecisionOfLowerUnitFiat(wei, decimals) {
+    return this.toPrecisionOfLowerUnit(wei, 2, decimals);
   }
 
   /**
@@ -111,6 +135,21 @@ class BasicHelper {
    */
   toPrecision(wei, precision) {
     const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+
+    return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} precision
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toPrecisionOfLowerUnit(wei, precision, decimals) {
+    const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(decimals));
 
     return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
   }

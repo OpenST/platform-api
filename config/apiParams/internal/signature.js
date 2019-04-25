@@ -1,5 +1,10 @@
-'use strict';
+/**
+ * Module to define signatures for internal route api parameters.
+ *
+ * @module config/apiParams/internal/signature
+ */
 
+// Declare variables.
 const signature = {
   verifySigner: {
     mandatory: [
@@ -103,7 +108,7 @@ const signature = {
     optional: []
   },
 
-  grantStakeCurrency: {
+  grantEthStakeCurrency: {
     mandatory: [
       {
         parameter: 'client_id',
