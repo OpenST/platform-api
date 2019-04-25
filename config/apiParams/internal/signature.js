@@ -134,6 +134,15 @@ const signature = {
   generateKnownAddress: {
     mandatory: [],
     optional: []
+  },
+
+  removeKnownAddress: {
+    mandatory: [
+      {
+        parameter: 'known_address_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   }
 };
 

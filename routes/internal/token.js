@@ -54,7 +54,7 @@ router.post('/remove-known-address', function(req, res, next) {
   req.decodedParams.apiName = 'removeKnownAddress';
   req.decodedParams.clientConfigStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/RemoveKnownAddress.js', 'r_it_7'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/RemoveKnownAddress', 'r_it_7'));
 });
 
 module.exports = router;

@@ -18,12 +18,15 @@ class RemoveKnownAddress extends ServiceBase {
   /**
    * Constructor for RemoveKnownAddress
    *
+   * @param params
+   * @param params.known_address_id {number} - known address id
+   *
    * @constructor
    */
   constructor(params) {
     super();
     const oThis = this;
-    oThis.knownAddressId = params.knownAddressId;
+    oThis.knownAddressId = params.known_address_id;
   }
 
   /**
