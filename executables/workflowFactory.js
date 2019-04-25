@@ -189,10 +189,10 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
         return new BTRedeemRouter(msgParams).perform();
       }
 
-      case workflowTopicConstant.grantStakeCurrency: {
-        const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantStakeCurrency/Router');
+      case workflowTopicConstant.grantEthStakeCurrency: {
+        const GrantEthStakeCurrencyRouter = require(rootPrefix + '/lib/workflow/grantEthStakeCurrency/Router');
 
-        return new GrantEthOstRouter(msgParams).perform();
+        return new GrantEthStakeCurrencyRouter(msgParams).perform();
       }
 
       default:

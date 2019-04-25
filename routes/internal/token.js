@@ -30,10 +30,10 @@ router.get('/mint-details', function(req, res, next) {
 });
 
 router.get('/mint/grant', function(req, res, next) {
-  req.decodedParams.apiName = 'grantStakeCurrency';
+  req.decodedParams.apiName = 'grantEthStakeCurrency';
   req.decodedParams.clientConfigStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GrantStakeCurrency', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GrantEthStakeCurrency', 'r_it_4'));
 });
 
 router.get('/get-dashboard', function(req, res, next) {
