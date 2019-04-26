@@ -118,10 +118,6 @@ class TokenMintDetails extends ServiceBase {
 
     const stakeCurrencyDetails = await oThis.fetchStakeCurrencyDetails(oThis.token.stakeCurrencyId);
 
-    if (stakeCurrencyDetails.isFailure()) {
-      return Promise.reject(stakeCurrencyDetails);
-    }
-
     oThis.stakeCurrencyContractAddress = stakeCurrencyDetails.contractAddress;
   }
 
