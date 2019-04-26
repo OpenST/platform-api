@@ -1,67 +1,63 @@
-'use strict';
-
 /**
- * This service gets the simple token contract address and origin chain gas price
+ * Module to get the base currency contract address and origin chain gas price.
  *
  * @module app/services/token/Mint
  */
 
+const BigNumber = require('bignumber.js');
+
 const rootPrefix = '../../..',
-  BigNumber = require('bignumber.js'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  GasPriceCache = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice'),
+  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
-  TokenDetailCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
-  gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
-class TokenMintDetails {
+/**
+ * Class to get the base currency contract address and origin chain gas price.
+ *
+ * @class TokenMintDetails
+ */
+class TokenMintDetails extends ServiceBase {
+  /**
+   * Constructor to get the base currency contract address and origin chain gas price.
+   *
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {string} params.total_gas_for_mint
+   *
+   * @augments ServiceBase
+   *
+   * @constructor
+   */
   constructor(params) {
+    super();
+
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.totalGasForMint = params.total_gas_for_mint;
 
     oThis.responseData = {};
-    oThis.tokenId = 0;
+    oThis.stakeCurrencyContractAddress = '';
+    oThis.brandedTokenAddress = '';
   }
 
   /**
-   * perform
-   * @return {Promise<>}
-   */
-  perform() {
-    const oThis = this;
-    // TODO - use perform from service base
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error('app/services/token/Mint::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
-  }
-
-  /**
-   * asyncPerform
+   * Async perform.
    *
    * @return {Promise<any>}
+   * @private
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     await oThis._fetchTokenDetails();
 
-    await oThis.getSimpleTokenContractAddress();
+    await oThis.fetchStakeCurrencyContractAddress();
 
     await oThis.getBrandedTokenContractAddress();
 
@@ -69,10 +65,10 @@ class TokenMintDetails {
 
     await oThis.calculateMinimumEthRequired();
 
-    await oThis.calculateMinimumOstRequired();
+    await oThis.calculateMinimumStakeCurrencyRequired();
 
-    oThis.responseData['contract_address'] = {
-      simple_token: oThis.simpleTokenContractAddress,
+    oThis.responseData.contract_address = {
+      stake_currency: oThis.stakeCurrencyContractAddress,
       branded_token: oThis.brandedTokenAddress
     };
 
@@ -80,45 +76,73 @@ class TokenMintDetails {
   }
 
   /**
-   * This function fetches simple token contract address and sets in response data hash.
+   * This function fetches stake currency details.
+   *
+   * @param {number} stakeCurrencyId
    *
    * @returns {Promise<*>}
    */
-  async getSimpleTokenContractAddress() {
+  async fetchStakeCurrencyDetails(stakeCurrencyId) {
     const oThis = this;
 
-    // Fetch all addresses associated with origin chain id
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
+    const stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
+      stakeCurrencyIds: [stakeCurrencyId]
+    }).fetch();
 
-    if (chainAddressesRsp.isFailure()) {
+    if (stakeCurrencyCacheResponse.isFailure()) {
+      logger.error('Could not fetch stake currency details.');
+
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_2',
-          api_error_identifier: 'something_went_wrong'
+          internal_error_identifier: 'a_s_t_m_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            stakeCurrencyIds: [oThis.stakeCurrencyId]
+          }
         })
       );
     }
 
-    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+    return stakeCurrencyCacheResponse.data[stakeCurrencyId];
   }
 
   /**
-   * This function fetches simple token contract address and sets in response data hash.
+   * This function fetches and sets stake currency contract address.
+   *
+   * @sets oThis.stakeCurrencyContractAddress
+   *
+   * @returns {Promise<void>}
+   */
+  async fetchStakeCurrencyContractAddress() {
+    const oThis = this;
+
+    const stakeCurrencyDetails = await oThis.fetchStakeCurrencyDetails(oThis.token.stakeCurrencyId);
+
+    if (stakeCurrencyDetails.isFailure()) {
+      return Promise.reject(stakeCurrencyDetails);
+    }
+
+    oThis.stakeCurrencyContractAddress = stakeCurrencyDetails.contractAddress;
+  }
+
+  /**
+   * This function fetches branded token contract address.
+   *
+   * @sets oThis.brandedTokenAddress
    *
    * @returns {Promise<*>}
    */
   async getBrandedTokenContractAddress() {
     const oThis = this;
 
-    let getAddrRsp = await new TokenAddressCache({
+    const getAddrRsp = await new TokenAddressCache({
       tokenId: oThis.tokenId
     }).fetch();
 
     if (getAddrRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_3',
+          internal_error_identifier: 'a_s_t_m_2',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -128,86 +152,63 @@ class TokenMintDetails {
   }
 
   /**
-   * Fetch token details for given client id
-   *
-   * @return {Promise<never>}
-   * @private
-   */
-  async _fetchTokenDetails() {
-    const oThis = this;
-
-    let cacheResponse = await new TokenDetailCache({ clientId: oThis.clientId }).fetch();
-
-    if (cacheResponse.isFailure()) {
-      logger.error('Could not fetched token details.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            clientId: oThis.clientId
-          }
-        })
-      );
-    }
-
-    oThis.tokenId = cacheResponse.data['id'];
-  }
-
-  /**
    * This function fetches origin chain gas price and sets in response data hash.
+   *
+   * @sets oThis.responseData.gas_price
    *
    * @returns {Promise<*>}
    */
   async getOriginChainGasPrice() {
     const oThis = this;
 
-    let gasPriceCacheObj = new gasPriceCacheKlass(),
+    const gasPriceCacheObj = new GasPriceCache(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
-    oThis.responseData['gas_price'] = { origin: gasPriceRsp.data };
+    oThis.responseData.gas_price = { origin: gasPriceRsp.data };
   }
 
+  /**
+   * Calculate minimum ETH required.
+   *
+   * @sets oThis.responseData.minimum_eth_required
+   *
+   * @return {Promise<void>}
+   */
   async calculateMinimumEthRequired() {
     const oThis = this;
 
-    let averageGasUsedForMintBN = new BigNumber(oThis.totalGasForMint),
-      gasPriceBN = new BigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
-      minimumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN),
-      bufferAmount = minimumEthRequired.div(2);
+    const averageGasUsedForMintBN = new BigNumber(oThis.totalGasForMint),
+      gasPriceBN = new BigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE);
+
+    let minimumEthRequired = averageGasUsedForMintBN.mul(gasPriceBN);
+
+    const bufferAmount = minimumEthRequired.div(2);
 
     minimumEthRequired = minimumEthRequired.add(bufferAmount);
 
-    oThis.responseData['minimum_eth_required'] = minimumEthRequired.toString(10);
+    oThis.responseData.minimum_eth_required = minimumEthRequired.toString(10);
   }
 
-  async calculateMinimumOstRequired() {
+  /**
+   * Calculate minimum stake currency required.
+   *
+   * @sets oThis.responseData.minimum_stake_currency_required
+   *
+   * @return {Promise<never>}
+   */
+  async calculateMinimumStakeCurrencyRequired() {
     const oThis = this;
 
-    let tokenCacheObj = new TokenCache({ clientId: oThis.clientId }),
-      tokenData = await tokenCacheObj.fetch();
-
-    if (tokenData.isFailure()) {
-      logger.error('Token data not found!!');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_m_5',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { client_id: oThis.clientId }
-        })
-      );
-    }
-
-    // (1/conversion_factor) * 10^18
-    let conversionFactor = tokenData.data.conversionFactor,
-      decimal = tokenData.data.decimal,
+    // (1 / conversion_factor) * 10^(stake currency decimal values).
+    const conversionFactor = oThis.token.conversionFactor,
+      decimal = oThis.token.decimal,
       conversionFactorBN = new BigNumber(conversionFactor),
       oneAsBigNumber = new BigNumber('1'),
       tenAsBigNumber = new BigNumber('10'),
-      minimumOstRequiredBN = oneAsBigNumber.div(conversionFactorBN),
-      minimumOstRequiredInWei = minimumOstRequiredBN.mul(tenAsBigNumber.toPower(decimal));
+      minimumStakeCurrencyRequiredBN = oneAsBigNumber.div(conversionFactorBN),
+      minimumStakeCurrencyRequiredInWei = minimumStakeCurrencyRequiredBN.mul(tenAsBigNumber.toPower(decimal));
 
-    oThis.responseData['minimum_ost_required'] = minimumOstRequiredInWei.toString(10);
+    oThis.responseData.minimum_stake_currency_required = minimumStakeCurrencyRequiredInWei.toString(10);
   }
 }
 
