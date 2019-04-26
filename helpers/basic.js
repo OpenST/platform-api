@@ -98,8 +98,8 @@ class BasicHelper {
    *
    * @return {string}
    */
-  toPrecisionOfLowerUnitBT(wei, decimals) {
-    return this.toPrecisionOfLowerUnit(wei, 5, decimals);
+  toNormalPrecisionBT(wei, decimals) {
+    return this.toNormalPrecision(wei, 5, decimals);
   }
 
   /**
@@ -121,8 +121,8 @@ class BasicHelper {
    *
    * @return {string}
    */
-  toPrecisionOfLowerUnitFiat(wei, decimals) {
-    return this.toPrecisionOfLowerUnit(wei, 2, decimals);
+  toNormalPrecisionFiat(wei, decimals) {
+    return this.toNormalPrecision(wei, 2, decimals);
   }
 
   /**
@@ -148,7 +148,7 @@ class BasicHelper {
    *
    * @return {string}
    */
-  toPrecisionOfLowerUnit(wei, precision, decimals) {
+  toNormalPrecision(wei, precision, decimals) {
     const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(decimals));
 
     return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
