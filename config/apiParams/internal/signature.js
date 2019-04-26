@@ -83,7 +83,7 @@ const signature = {
         validatorMethod: 'validateEthAddress'
       },
       {
-        parameter: 'fe_ost_to_stake',
+        parameter: 'fe_stake_currency_to_stake',
         validatorMethod: 'validateString'
       },
       {
