@@ -192,7 +192,6 @@ class GetTokenDashboardDetail extends ServiceBase {
     const economyDetails = cacheResponse.data[oThis.economyContractAddress];
 
     // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecision needs wei value.
-    // TODO: @Shlok - Questions?
     oThis.totalSupplyInWei = economyDetails.totalSupply;
     oThis.totalVolumeInWei = basicHelper.convertToLowerUnit(
       economyDetails.totalVolume,
