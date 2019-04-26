@@ -279,11 +279,11 @@ class CoreConstants {
     return 10;
   }
 
-  get CONVERSION_RATE_DECIMALS() {
+  get STAKE_CURRENCY_TO_BT_CONVERSION_RATE_DECIMALS() {
     return '5';
   }
 
-  get CONVERSION_RATE_MULTIPLIER() {
+  get STAKE_CURRENCY_TO_BT_CONVERSION_RATE_MULTIPLIER() {
     return '100000';
   }
 

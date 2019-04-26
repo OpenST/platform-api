@@ -1,31 +1,31 @@
-'use strict';
 /**
- * This service grants eth and ost.
+ * Module to grant eth and stake currency.
  *
- * @module app/services/token/GrantEthOs
+ * @module app/services/token/GrantEthStakeCurrency
  */
+
 const rootPrefix = '../../..',
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  GrantEthStakeCurrencyRouter = require(rootPrefix + '/lib/workflow/grantEthStakeCurrency/Router'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
- * Class for granting eth and ost.
+ * Class to grant eth and stake currency.
  *
- * @class
+ * @class GrantEthStakeCurrency
  */
-class GrantEthOst {
+class GrantEthStakeCurrency {
   /**
-   * Constructor for token deployment
+   * Constructor to grant eth and stake currency.
    *
-   * @param {Object} params
-   * @param {Integer} params.client_id
-   * @param {String} params.address
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {string} params.address
    *
    * @constructor
    */
@@ -37,29 +37,31 @@ class GrantEthOst {
   }
 
   /**
-   * perform
+   * Main performer of class.
+   *
    * @return {Promise<>}
    */
   perform() {
     const oThis = this;
-    //TODO - use perform from service base
+
+    // TODO - use perform from service base.
     return oThis.asyncPerform().catch(function(error) {
       if (responseHelper.isCustomResult(error)) {
         return error;
-      } else {
-        logger.error('app/services/token/GrantEthOst::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 's_t_geo_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
       }
+      logger.error('app/services/token/GrantEthStakeCurrency::perform::catch');
+      logger.error(error);
+
+      return responseHelper.error({
+        internal_error_identifier: 's_t_gsc_1',
+        api_error_identifier: 'unhandled_catch_response',
+        debug_options: {}
+      });
     });
   }
 
   /**
-   * Async perform
+   * Async perform.
    *
    * @return {Promise<any>}
    */
@@ -68,7 +70,7 @@ class GrantEthOst {
 
     if (basicHelper.isMainSubEnvironment()) {
       return responseHelper.error({
-        internal_error_identifier: 's_t_geo_1',
+        internal_error_identifier: 's_t_gsc_2',
         api_error_identifier: 'route_prohibited_in_main',
         debug_options: {}
       });
@@ -81,7 +83,6 @@ class GrantEthOst {
    * Fetch origin chainId.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _fetchOriginChainId() {
@@ -104,11 +105,11 @@ class GrantEthOst {
     // Fetch origin chainId.
     await oThis._fetchOriginChainId();
 
-    const paramsForGrantEthOstRouter = {
-      stepKind: workflowStepConstants.grantEthOstInit,
+    const paramsForGrantEthStakeCurrencyRouter = {
+      stepKind: workflowStepConstants.grantEthStakeCurrencyInit,
       taskStatus: workflowStepConstants.taskReadyToStart,
       chainId: oThis.chainId,
-      topic: workflowTopicConstant.grantEthOst,
+      topic: workflowTopicConstant.grantEthStakeCurrency,
       clientId: oThis.clientId,
       requestParams: {
         originChainId: oThis.originChainId,
@@ -117,10 +118,10 @@ class GrantEthOst {
       }
     };
 
-    let grantEthOstRouter = new GrantEthOstRouter(paramsForGrantEthOstRouter);
+    const grantEthStakeCurrencyRouter = new GrantEthStakeCurrencyRouter(paramsForGrantEthStakeCurrencyRouter);
 
-    return grantEthOstRouter.perform();
+    return grantEthStakeCurrencyRouter.perform();
   }
 }
 
-module.exports = GrantEthOst;
+module.exports = GrantEthStakeCurrency;

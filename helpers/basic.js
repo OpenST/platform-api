@@ -73,7 +73,7 @@ class BasicHelper {
    *
    * @param {string} wei
    *
-   * @return {BigNumber}
+   * @return {string}
    */
   toPrecisionOst(wei) {
     return this.toPrecision(wei, 5);
@@ -84,7 +84,7 @@ class BasicHelper {
    *
    * @param {string} wei
    *
-   * @return {BigNumber}
+   * @return {string}
    */
   toPrecisionBT(wei) {
     return this.toPrecision(wei, 5);
@@ -94,11 +94,35 @@ class BasicHelper {
    * Convert wei value to un wei (normal).
    *
    * @param {string} wei
+   * @param {number} decimals
    *
-   * @return {BigNumber}
+   * @return {string}
+   */
+  toNormalPrecisionBT(wei, decimals) {
+    return this.toNormalPrecision(wei, 5, decimals);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   *
+   * @return {string}
    */
   toPrecisionFiat(wei) {
     return this.toPrecision(wei, 2);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toNormalPrecisionFiat(wei, decimals) {
+    return this.toNormalPrecision(wei, 2, decimals);
   }
 
   /**
@@ -111,6 +135,21 @@ class BasicHelper {
    */
   toPrecision(wei, precision) {
     const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+
+    return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} precision
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toNormalPrecision(wei, precision, decimals) {
+    const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(decimals));
 
     return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
   }
@@ -441,7 +480,7 @@ class BasicHelper {
    */
   computeConversionRateForContract(conversionRate) {
     const conversionFactorFromDB = new BigNumber(conversionRate),
-      conversionMultiplier = new BigNumber(coreConstants.CONVERSION_RATE_MULTIPLIER);
+      conversionMultiplier = new BigNumber(coreConstants.STAKE_CURRENCY_TO_BT_CONVERSION_RATE_MULTIPLIER);
     const conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
 
     return conversionRateForContractBigNumber.toString();

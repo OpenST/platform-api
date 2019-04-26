@@ -1,25 +1,28 @@
-'use strict';
-/*
+/**
+ * Module to retry workflow step.
+ *
+ * @module helpers/retryWorkflowStep
+ *
  * Usage: node helpers/retryWorkflowStep.js 31062
- */
+ **/
 
 const rootPrefix = '..',
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
+  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
+  WorkflowStepModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
   WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus'),
-  WorkflowStepModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
-  workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowStepId = process.argv[2];
 
-// Workflow kind to router file path map
-let workflowKindToRouterPathMap = {
+// Workflow kind to router file path map.
+const workflowKindToRouterPathMap = {
   [workflowConstants.tokenDeployKind]: 'lib/workflow/economySetup/Router',
   [workflowConstants.stateRootSyncKind]: 'lib/workflow/stateRootSync/Router',
   [workflowConstants.stPrimeStakeAndMintKind]: 'lib/workflow/stakeAndMint/stPrime/Router',
   [workflowConstants.btStakeAndMintKind]: 'lib/workflow/stakeAndMint/brandedToken/Router',
-  [workflowConstants.grantEthOstKind]: 'lib/workflow/grantEthOst/Router',
+  [workflowConstants.grantEthStakeCurrencyKind]: 'lib/workflow/grantEthStakeCurrency/Router',
   [workflowConstants.setupUserKind]: 'lib/workflow/userSetup/Router',
   [workflowConstants.testKind]: 'lib/workflow/test/Router',
   [workflowConstants.authorizeDeviceKind]: 'lib/workflow/authorizeDevice/Router',
@@ -34,13 +37,13 @@ let workflowKindToRouterPathMap = {
   [workflowConstants.logoutSessionsKind]: 'lib/workflow/logoutSessions/Router'
 };
 
-// Workflow kind to publish topic
-let workflowKindToTopic = {
+// Workflow kind to publish topic.
+const workflowKindToTopic = {
   [workflowConstants.tokenDeployKind]: workflowTopicConstant.economySetup,
   [workflowConstants.stateRootSyncKind]: workflowTopicConstant.stateRootSync,
   [workflowConstants.stPrimeStakeAndMintKind]: workflowTopicConstant.stPrimeStakeAndMint,
   [workflowConstants.btStakeAndMintKind]: workflowTopicConstant.btStakeAndMint,
-  [workflowConstants.grantEthOstKind]: workflowTopicConstant.grantEthOst,
+  [workflowConstants.grantEthStakeCurrencyKind]: workflowTopicConstant.grantEthStakeCurrency,
   [workflowConstants.setupUserKind]: workflowTopicConstant.userSetup,
   [workflowConstants.testKind]: workflowTopicConstant.test,
   [workflowConstants.authorizeDeviceKind]: workflowTopicConstant.authorizeDevice,
@@ -55,9 +58,17 @@ let workflowKindToTopic = {
   [workflowConstants.logoutSessionsKind]: workflowTopicConstant.logoutSession
 };
 
+/**
+ * Class to retry workflow step.
+ *
+ * @class RetryWorkflowStep
+ */
 class RetryWorkflowStep {
-  constructor() {}
-
+  /**
+   * Main performer of class.
+   *
+   * @return {Promise<void>}
+   */
   async perform() {
     const oThis = this;
 
@@ -68,7 +79,7 @@ class RetryWorkflowStep {
 
     rowToDuplicate = rowToDuplicate[0];
 
-    let workflowStepsObj = new WorkflowStepModel(),
+    const workflowStepsObj = new WorkflowStepModel(),
       workflowObj = new WorkflowModel();
 
     // Update all workflow entries above this id
@@ -79,7 +90,7 @@ class RetryWorkflowStep {
       .fire();
 
     // Insert workflow step entry for retry with queued status
-    let insertRsp = await new WorkflowStepModel()
+    const insertRsp = await new WorkflowStepModel()
       .insert({
         workflow_id: rowToDuplicate.workflow_id,
         kind: rowToDuplicate.kind,
@@ -89,7 +100,7 @@ class RetryWorkflowStep {
       })
       .fire();
 
-    let stepId = insertRsp.insertId,
+    const stepId = insertRsp.insertId,
       stepKind = rowToDuplicate.kind;
 
     // Update workflow status to processing
@@ -103,14 +114,14 @@ class RetryWorkflowStep {
     await oThis._clearCaches(rowToDuplicate.workflow_id);
 
     // Start workflow
-    let Rows = await new WorkflowModel()
+    const Rows = await new WorkflowModel()
       .select('*')
       .where({
         id: rowToDuplicate.workflow_id
       })
       .fire();
 
-    let params = {
+    const params = {
       workflowId: rowToDuplicate.workflow_id,
       stepId: stepId,
       stepKind: stepKind
@@ -119,35 +130,40 @@ class RetryWorkflowStep {
     await oThis._startWorkflow(Rows[0].kind, params);
   }
 
+  /**
+   * Clear workflow steps cache.
+   *
+   * @param {number/string} workflowId
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _clearCaches(workflowId) {
-    const oThis = this;
-
     // Flush workflow cache
     await new WorkflowCache({
       workflowId: workflowId
     }).clear();
 
     // Flush workflow steps cache
-    let workflowStepsCacheObj = new WorkflowStepsStatusCache({ workflowId: workflowId });
+    const workflowStepsCacheObj = new WorkflowStepsStatusCache({ workflowId: workflowId });
 
     await workflowStepsCacheObj.clear();
   }
 
   /**
-   * Start workflow
+   * Start workflow.
    *
-   * @param workflowKind
-   * @param params
+   * @param {string} workflowKind
+   * @param {object} params
+   *
    * @return {Promise<void>}
    * @private
    */
   async _startWorkflow(workflowKind, params) {
-    const oThis = this;
-
-    let workflowStepModel = new WorkflowStepModel(),
+    const workflowStepModel = new WorkflowStepModel(),
       workflowModel = new WorkflowModel();
 
-    let workflowParams = {
+    const workflowParams = {
       stepKind: workflowStepModel.kinds[params.stepKind],
       taskStatus: 'taskReadyToStart',
       topic: workflowKindToTopic[workflowModel.kinds[workflowKind]],
@@ -155,7 +171,7 @@ class RetryWorkflowStep {
       currentStepId: params.stepId
     };
 
-    let Workflow = require(rootPrefix + '/' + workflowKindToRouterPathMap[workflowModel.kinds[workflowKind]]),
+    const Workflow = require(rootPrefix + '/' + workflowKindToRouterPathMap[workflowModel.kinds[workflowKind]]),
       workflowObj = new Workflow(workflowParams);
 
     return workflowObj.perform();

@@ -18,6 +18,7 @@ const rootPrefix = '../../..',
   GetErc20Balance = require(rootPrefix + '/lib/getBalance/Erc20'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -27,6 +28,7 @@ const rootPrefix = '../../..',
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   environmentInfoConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -206,12 +208,17 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       .mul(basicHelper.convertToBigNumber(0.6));
 
     const granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei),
-      granterOstRequirement = basicHelper.convertToBigNumber(grantConstants.grantOstValueInWei);
+      granterOstRequirement = basicHelper.convertToBigNumber(grantConstants.grantOstValueInWei),
+      granterUsdcRequirement = basicHelper.convertToBigNumber(grantConstants.grantUsdcValueInWei);
 
     oThis.alertConfig[chainAddressConstants.originGranterKind].minEthRequirement = granterEthRequirement.mul(
       flowsForGranterMinimumBalance
     );
     oThis.alertConfig[chainAddressConstants.originGranterKind].minOstRequirement = granterOstRequirement.mul(
+      flowsForGranterMinimumBalance
+    );
+
+    oThis.alertConfig[chainAddressConstants.originGranterKind].minUsdcRequirement = granterUsdcRequirement.mul(
       flowsForGranterMinimumBalance
     );
   }
@@ -419,6 +426,17 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
           await oThis._notify(addressKind, address, currency, addressOstRequirement);
         }
       }
+
+      if (alertConfigDetails.minUsdcRequirement) {
+        const addressUsdcRequirement = alertConfigDetails.minUsdcRequirement,
+          addressCurrentUsdcBalance = await oThis._fetchUsdcBalance(address), // USDC balance
+          addressCurrentUsdcBalanceBN = basicHelper.convertToBigNumber(addressCurrentUsdcBalance),
+          currency = conversionRateConstants.USDC;
+
+        if (addressCurrentUsdcBalanceBN.lt(addressUsdcRequirement) && alertConfigDetails.alertRequired) {
+          await oThis._notify(addressKind, address, currency, addressUsdcRequirement);
+        }
+      }
     }
   }
 
@@ -459,6 +477,35 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   }
 
   /**
+   * Fetches USDC balance of a given address.
+   *
+   * @param {string} address
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchUsdcBalance(address) {
+    const oThis = this;
+
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [conversionRateConstants.USDC]
+    });
+
+    let stakeCurrenciesCacheRsp = await stakeCurrencyBySymbolCache.fetch();
+
+    let usdcContractAddress = stakeCurrenciesCacheRsp.data[conversionRateConstants.USDC].contractAddress;
+
+    const getUsdcBalanceObj = new GetErc20Balance({
+        originChainId: oThis.originChainId,
+        addresses: [address],
+        contractAddress: usdcContractAddress
+      }),
+      getUsdcBalanceMap = await getUsdcBalanceObj.perform();
+
+    return getUsdcBalanceMap[address];
+  }
+
+  /**
    * This function performs notification of an error condition.
    *
    * @param {String} addressKind
@@ -473,7 +520,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
 
     logger.warn('addressKind ' + addressKind + ' has low balance on chainId: ' + oThis.originChainId);
     const errorObject = responseHelper.error({
-      internal_error_identifier: 'low_balance:e_f_bmif_ocs_5',
+      internal_error_identifier: 'low_balance:e_f_bmif_ocs_6',
       api_error_identifier: 'low_balance',
       debug_options: {
         currency: currency,

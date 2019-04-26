@@ -19,6 +19,8 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
+  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -50,6 +52,8 @@ class GetTokenDashboardDetail extends ServiceBase {
     oThis.tokenHoldersBalance = 0;
     oThis.totalTokenHolders = 0;
 
+    oThis.stableCurrencyDetails = null;
+    oThis.stakeCurrencyIsHowManyUSD = null;
     oThis.companyTokenHolderAddresses = [];
     oThis.auxChainId = null;
     oThis.economyContractAddress = null;
@@ -64,6 +68,8 @@ class GetTokenDashboardDetail extends ServiceBase {
     const oThis = this;
 
     await oThis._fetchTokenDetails();
+
+    await oThis._fetchStableCurrencyDetails();
 
     await oThis._setChainIds();
 
@@ -80,6 +86,26 @@ class GetTokenDashboardDetail extends ServiceBase {
     await oThis._getTokenHoldersBalance();
 
     return oThis.prepareResponse();
+  }
+
+  /**
+   *
+   * fetch stable currency data
+   *
+   * @private
+   */
+  async _fetchStableCurrencyDetails() {
+    const oThis = this;
+
+    let stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
+      stakeCurrencyIds: [oThis.token.stakeCurrencyId]
+    }).fetch();
+
+    if (stakeCurrencyCacheResponse.isFailure()) {
+      return Promise.reject(stakeCurrencyCacheResponse);
+    }
+
+    oThis.stableCurrencyDetails = stakeCurrencyCacheResponse.data[oThis.token.stakeCurrencyId];
   }
 
   /**
@@ -226,9 +252,8 @@ class GetTokenDashboardDetail extends ServiceBase {
       );
     }
 
-    logger.info('Price points data: ', pricePointsResponse.data);
-
-    oThis.ostIsHowManyUSD = pricePointsResponse.data.OST.USD;
+    oThis.stakeCurrencyIsHowManyUSD =
+      pricePointsResponse.data[oThis.stableCurrencyDetails['symbol']][conversionRatesConstants.USD];
   }
 
   /**
@@ -242,7 +267,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     let totalSupply = basicHelper.toPrecisionBT(oThis.totalSupplyInWei),
       totalSupplyDollar = oThis.getBtToDollar(oThis.totalSupplyInWei),
       totalVolume = basicHelper.toPrecisionBT(oThis.totalVolumeInWei),
-      totalVolumeDollar = oThis.getOstToDollar(oThis.totalVolumeInWei),
+      totalVolumeDollar = oThis.getStakeCurrencyToDollar(oThis.totalVolumeInWei),
       circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalance),
       circulatingSupply = basicHelper.toPrecisionBT(circulatingSupplyInWei),
       circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei),
@@ -269,23 +294,23 @@ class GetTokenDashboardDetail extends ServiceBase {
    */
   getBtToDollar(amountinWei) {
     const oThis = this;
-    let oneOstIsHowManyBtFactor = oThis.token.conversionFactor;
+    let oneStakeCurrencyIsHowManyBtFactor = oThis.token.conversionFactor;
 
-    let totalOstInWei = new BigNumber(amountinWei).div(oneOstIsHowManyBtFactor);
+    let totalStakeCurrencyInWei = new BigNumber(amountinWei).div(oneStakeCurrencyIsHowManyBtFactor);
 
-    return oThis.getOstToDollar(totalOstInWei);
+    return oThis.getStakeCurrencyToDollar(totalStakeCurrencyInWei);
   }
 
   /**
    *
    *
-   * @param amountinWei
+   * @param amountInWei
    * @returns {string}
    */
-  getOstToDollar(totalOstInWei) {
+  getStakeCurrencyToDollar(amountInWei) {
     const oThis = this;
 
-    let inUSD = new BigNumber(totalOstInWei).mul(oThis.ostIsHowManyUSD);
+    let inUSD = new BigNumber(amountInWei).mul(oThis.stakeCurrencyIsHowManyUSD);
 
     return basicHelper.toPrecisionFiat(inUSD);
   }

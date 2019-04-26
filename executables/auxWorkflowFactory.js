@@ -199,6 +199,9 @@ class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
       case workflowTopicConstant.logoutSession:
         const logoutSessionRouter = require(rootPrefix + '/lib/workflow/logoutSessions/Router');
         return new logoutSessionRouter(msgParams).perform();
+      case workflowTopicConstant.updatePricePoint:
+        const updatePricePointsRouter = require(rootPrefix + '/lib/workflow/updatePricePoints/Router');
+        return new updatePricePointsRouter(msgParams).perform();
 
       default:
         throw 'Unsupported workflow topic ' + messageParams.topics[0];

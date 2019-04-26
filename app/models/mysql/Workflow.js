@@ -1,12 +1,12 @@
-'use strict';
 /**
- * Model to get workflow details.
+ * Module for workflow details model.
  *
  * @module /app/models/mysql/Workflow
  */
+
 const rootPrefix = '../../..',
-  util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow');
 
@@ -23,7 +23,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '2': workflowConstants.stateRootSyncKind,
     '3': workflowConstants.stPrimeStakeAndMintKind,
     '4': workflowConstants.btStakeAndMintKind,
-    '5': workflowConstants.grantEthOstKind,
+    '5': workflowConstants.grantEthStakeCurrencyKind,
     '6': workflowConstants.setupUserKind,
     '7': workflowConstants.testKind,
     '8': workflowConstants.authorizeDeviceKind,
@@ -37,19 +37,20 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '16': workflowConstants.abortRecoveryByRecoveryControllerKind,
     '17': workflowConstants.logoutSessionsKind,
     '18': workflowConstants.stPrimeRedeemAndUnstakeKind,
-    '19': workflowConstants.btRedeemAndUnstakeKind
+    '19': workflowConstants.btRedeemAndUnstakeKind,
+    '20': workflowConstants.updatePricePointKind
   },
   invertedStatuses = util.invert(statuses),
   invertedKinds = util.invert(kinds);
 
 /**
- * Class for workflow model.
+ * Class for workflow details model.
  *
- * @class
+ * @class Workflow
  */
 class Workflow extends ModelBase {
   /**
-   * Constructor for workflow model.
+   * Constructor for workflow details model.
    *
    * @augments ModelBase
    *
@@ -80,22 +81,22 @@ class Workflow extends ModelBase {
   }
 
   /**
-   * This function will add response data in workflow
+   * This function will add response data in workflow.
    *
-   * @param {Number/String} id
-   * @param {Object} responseData
+   * @param {number/string} id
+   * @param {object} responseData
    *
    * @returns Promise<>
    */
   async updateResponseData(id, responseData) {
     const oThis = this;
 
-    let rec = await oThis
+    const rec = await oThis
       .select('*')
       .where({ id: id })
       .fire();
 
-    let respData = Object.assign(responseData, JSON.parse(rec[0].response_data)),
+    const respData = Object.assign(responseData, JSON.parse(rec[0].response_data)),
       updateData = { response_data: JSON.stringify(respData) };
 
     return oThis
@@ -104,8 +105,8 @@ class Workflow extends ModelBase {
       .fire();
   }
 
-  /***
-   * Flush cache
+  /**
+   * Flush cache.
    *
    * @param {object} params
    *

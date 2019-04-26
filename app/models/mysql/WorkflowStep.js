@@ -138,11 +138,11 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '151': workflowStepConstants.commitStateRoot,
     '152': workflowStepConstants.updateCommittedStateRootInfo,
 
-    '171': workflowStepConstants.grantEthOstInit,
+    '171': workflowStepConstants.grantEthStakeCurrencyInit,
     '172': workflowStepConstants.grantEth,
     '173': workflowStepConstants.verifyGrantEth,
-    '174': workflowStepConstants.grantOst,
-    '175': workflowStepConstants.verifyGrantOst,
+    '174': workflowStepConstants.grantStakeCurrency,
+    '175': workflowStepConstants.verifyGrantStakeCurrency,
 
     '181': workflowStepConstants.userSetupInit,
     '182': workflowStepConstants.addSessionAddresses,
@@ -222,7 +222,12 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '344': workflowStepConstants.checkProveCoGatewayStatus,
     '345': workflowStepConstants.checkConfirmRedeemStatus,
     '346': workflowStepConstants.checkProgressRedeemStatus,
-    '347': workflowStepConstants.checkProgressUnstakeStatus
+    '347': workflowStepConstants.checkProgressUnstakeStatus,
+
+    '351': workflowStepConstants.updatePricePointInit,
+    '352': workflowStepConstants.fetchPricePointFromCoinMarketCapApi,
+    '353': workflowStepConstants.setPriceInPriceOracleContract,
+    '354': workflowStepConstants.verifySetPriceInPriceOracleContract
   },
   invertedKinds = util.invert(kinds);
 
