@@ -114,6 +114,9 @@ class Token extends ModelBase {
       status: dbRow.status,
       delayedRecoveryInterval: dbRow.delayed_recovery_interval,
       stakeCurrencyId: dbRow.stake_currency_id,
+      properties: dbRow.properties
+        ? util.getStringsForWhichBitsAreSet(dbRow.properties, tokenConstants.invertedPropertiesConfig)
+        : [],
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
