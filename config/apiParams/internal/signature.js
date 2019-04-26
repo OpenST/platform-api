@@ -148,6 +148,31 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       }
     ]
+  },
+
+  preMint: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'staker_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'stake_amount',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'bt_amount',
+        validatorMethod: 'validateString'
+      }
+    ]
   }
 };
 
