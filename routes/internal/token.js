@@ -7,7 +7,7 @@ const router = express.Router();
 
 require(rootPrefix + '/app/services/token/StartMint');
 require(rootPrefix + '/app/services/token/getDashboardDetails');
-require(rootPrefix + '/app/services/contracts/GatewayComposer');
+require(rootPrefix + '/app/services/token/PreMint');
 
 router.post('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
@@ -62,7 +62,7 @@ router.get('/pre-mint', function(req, res, next) {
   req.decodedParams.apiName = 'preMint';
   req.decodedParams.clientConfigStrategyRequired = true;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GatewayComposer', 'r_it_8'));
+  Promise.resolve(routeHelper.perform(req, res, next, 'PreMint', 'r_it_8'));
 });
 
 module.exports = router;

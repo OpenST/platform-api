@@ -23,7 +23,7 @@ const rootPrefix = '../../..',
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
-class GatewayComposer extends ServiceBase {
+class PreMint extends ServiceBase {
   /**
    * Constructor for pre mint.
    *
@@ -272,6 +272,6 @@ class GatewayComposer extends ServiceBase {
   }
 }
 
-module.exports = GatewayComposer;
+module.exports = PreMint;
 
-InstanceComposer.registerAsShadowableClass(GatewayComposer, coreConstants.icNameSpace, 'GatewayComposer');
+InstanceComposer.registerAsShadowableClass(PreMint, coreConstants.icNameSpace, 'PreMint');
