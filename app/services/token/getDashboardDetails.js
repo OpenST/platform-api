@@ -1,41 +1,46 @@
-'use strict';
 /**
- * This service gets the details of the economy from economy model
+ * Module to get dashboard details for an economy.
  *
- * @module app/services/token/Detail
+ * @module app/services/token/getDashboardDetails
  */
+
 const OSTBase = require('@ostdotcom/base'),
-  BigNumber = require('bignumber.js');
+  BigNumber = require('bignumber.js'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
+  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  getUbtBalance = require(rootPrefix + '/lib/getBalance/Ubt'),
+  GetUbtBalance = require(rootPrefix + '/lib/getBalance/Ubt'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
-  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
- * Class for token details.
+ * Class to get dashboard details for an economy.
  *
- * @class
+ * @class GetTokenDashboardDetail
  */
 class GetTokenDashboardDetail extends ServiceBase {
   /**
+   * Constructor to get dashboard details for an economy.
    *
-   * @param {Object} params
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} params.token_id
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -49,7 +54,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     oThis.totalSupplyInWei = 0;
     oThis.totalVolumeInWei = 0;
-    oThis.tokenHoldersBalance = 0;
+    oThis.tokenHoldersBalanceBn = 0;
     oThis.totalTokenHolders = 0;
 
     oThis.stableCurrencyDetails = null;
@@ -60,9 +65,10 @@ class GetTokenDashboardDetail extends ServiceBase {
   }
 
   /**
-   * Async perform
+   * Async perform.
    *
    * @return {Promise<any>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -71,7 +77,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     await oThis._fetchStableCurrencyDetails();
 
-    await oThis._setChainIds();
+    await oThis._setAuxChainId();
 
     await oThis._fetchTokenAddresses();
 
@@ -89,15 +95,17 @@ class GetTokenDashboardDetail extends ServiceBase {
   }
 
   /**
+   * Fetch stable currency data.
    *
-   * fetch stable currency data
+   * @sets oThis.stableCurrencyDetails
    *
+   * @return {Promise<any>}
    * @private
    */
   async _fetchStableCurrencyDetails() {
     const oThis = this;
 
-    let stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
+    const stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
       stakeCurrencyIds: [oThis.token.stakeCurrencyId]
     }).fetch();
 
@@ -109,20 +117,23 @@ class GetTokenDashboardDetail extends ServiceBase {
   }
 
   /**
+   * Set aux chainId.
    *
-   * Set chain ids
+   * @sets oThis.auxChainId
    *
    * @private
    */
-  _setChainIds() {
+  _setAuxChainId() {
     const oThis = this,
       configStrategy = oThis.ic().configStrategy;
 
-    oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth]['chainId'];
+    oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth].chainId;
   }
 
   /**
-   * Fetch Token Addresses for token id
+   * Fetch token addresses for token id.
+   *
+   * @sets oThis.economyContractAddress
    *
    * @return {Promise<never>}
    * @private
@@ -130,12 +141,13 @@ class GetTokenDashboardDetail extends ServiceBase {
   async _fetchTokenAddresses() {
     const oThis = this;
 
-    let cacheResponse = await new TokenAddressCache({
+    const cacheResponse = await new TokenAddressCache({
       tokenId: oThis.tokenId
     }).fetch();
 
     if (cacheResponse.isFailure()) {
-      logger.error('Could not fetched token address details.');
+      logger.error('Could not fetch token address details.');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_t_gdd_1',
@@ -148,7 +160,8 @@ class GetTokenDashboardDetail extends ServiceBase {
       );
     }
 
-    let tokenAddresses = cacheResponse.data;
+    const tokenAddresses = cacheResponse.data;
+
     oThis.economyContractAddress = tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract];
   }
 
@@ -156,33 +169,40 @@ class GetTokenDashboardDetail extends ServiceBase {
    * Get economy details for given token id.
    *
    * @return {Promise<*|result>}
+   * @private
    */
   async _getEconomyDetailsFromDdb() {
     const oThis = this;
 
-    let blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]),
+    const blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]),
       EconomyCache = blockScannerObj.cache.Economy,
       economyCache = new EconomyCache({
         chainId: oThis.auxChainId,
         economyContractAddresses: [oThis.economyContractAddress]
       });
 
-    let cacheResponse = await economyCache.fetch();
+    const cacheResponse = await economyCache.fetch();
 
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched economy details from DDB.');
+
       return Promise.reject(cacheResponse);
     }
 
-    let economyDetails = cacheResponse.data[oThis.economyContractAddress];
+    const economyDetails = cacheResponse.data[oThis.economyContractAddress];
 
     // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecision needs wei value.
+    // TODO: @Shlok - Questions?
     oThis.totalSupplyInWei = economyDetails.totalSupply;
-    oThis.totalVolumeInWei = basicHelper.convertToWei(economyDetails.totalVolume);
-    oThis.economyUsers = economyDetails.totalTokenHolders; //total economy users
+    oThis.totalVolumeInWei = basicHelper.convertToLowerUnit(
+      economyDetails.totalVolume,
+      oThis.stableCurrencyDetails.decimal
+    );
+    oThis.economyUsers = economyDetails.totalTokenHolders; // Total economy users
   }
 
   /**
+   * Set company token holder addresses.
    *
    * @return {Promise<void>}
    * @private
@@ -190,48 +210,57 @@ class GetTokenDashboardDetail extends ServiceBase {
   async _setCompanyTokenHolderAddress() {
     const oThis = this;
 
-    let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
+    const tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
 
     if (
       tokenCompanyUserCacheRsp.isFailure() ||
       !tokenCompanyUserCacheRsp.data ||
-      !tokenCompanyUserCacheRsp.data['userUuids']
+      !tokenCompanyUserCacheRsp.data.userUuids
     ) {
       return Promise.resolve();
     }
 
-    let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+    const TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUSerDetailsCache({
         tokenId: oThis.tokenId,
-        userIds: tokenCompanyUserCacheRsp.data['userUuids']
+        userIds: tokenCompanyUserCacheRsp.data.userUuids
       }),
       cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
 
-    let usersData = cacheFetchRsp.data;
+    const usersData = cacheFetchRsp.data;
 
-    for (let uuid in usersData) {
-      let userData = usersData[uuid];
+    for (const uuid in usersData) {
+      const userData = usersData[uuid];
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
     }
   }
 
+  /**
+   * Fetch balance of all token holder addresses.
+   *
+   * @sets oThis.tokenHoldersBalanceBn
+   *
+   * @return {Promise<void>}
+   * @private
+   */
   async _getTokenHoldersBalance() {
     const oThis = this;
 
-    let ubtbalances = await new getUbtBalance({
+    const ubtBalances = await new GetUbtBalance({
       auxChainId: oThis.auxChainId,
       tokenId: oThis.tokenId,
       addresses: oThis.companyTokenHolderAddresses
     }).perform();
 
-    for (let tha in ubtbalances) {
-      let ubtbalance = ubtbalances[tha];
-      oThis.tokenHoldersBalance = new BigNumber(oThis.tokenHoldersBalance).plus(ubtbalance);
+    for (const tha in ubtBalances) {
+      const ubtBalance = ubtBalances[tha];
+
+      oThis.tokenHoldersBalanceBn = new BigNumber(oThis.tokenHoldersBalanceBn).plus(new BigNumber(ubtBalance));
     }
   }
 
   /**
-   * This function fetches price points for a particular chainId
+   * This function fetches price points for a particular chainId.
    *
    * @returns {Promise<*>}
    * @private
@@ -239,7 +268,7 @@ class GetTokenDashboardDetail extends ServiceBase {
   async _fetchPricePointsData() {
     const oThis = this;
 
-    let pricePointsCacheObj = new PricePointsCache({ chainId: oThis.auxChainId }),
+    const pricePointsCacheObj = new PricePointsCache({ chainId: oThis.auxChainId }),
       pricePointsResponse = await pricePointsCacheObj.fetch();
 
     if (pricePointsResponse.isFailure()) {
@@ -253,7 +282,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     }
 
     oThis.stakeCurrencyIsHowManyUSD =
-      pricePointsResponse.data[oThis.stableCurrencyDetails['symbol']][conversionRatesConstants.USD];
+      pricePointsResponse.data[oThis.stableCurrencyDetails.symbol][conversionRatesConstants.USD];
   }
 
   /**
@@ -264,12 +293,12 @@ class GetTokenDashboardDetail extends ServiceBase {
   prepareResponse() {
     const oThis = this;
 
-    let totalSupply = basicHelper.toPrecisionBT(oThis.totalSupplyInWei),
+    const totalSupply = basicHelper.toNormalPrecisionBT(oThis.totalSupplyInWei, oThis.stableCurrencyDetails.decimal),
       totalSupplyDollar = oThis.getBtToDollar(oThis.totalSupplyInWei),
-      totalVolume = basicHelper.toPrecisionBT(oThis.totalVolumeInWei),
+      totalVolume = basicHelper.toNormalPrecisionBT(oThis.totalVolumeInWei, oThis.stableCurrencyDetails.decimal),
       totalVolumeDollar = oThis.getStakeCurrencyToDollar(oThis.totalVolumeInWei),
-      circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalance),
-      circulatingSupply = basicHelper.toPrecisionBT(circulatingSupplyInWei),
+      circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalanceBn),
+      circulatingSupply = basicHelper.toNormalPrecisionBT(circulatingSupplyInWei, oThis.stableCurrencyDetails.decimal),
       circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei),
       economyUsers = oThis.economyUsers;
 
@@ -287,32 +316,34 @@ class GetTokenDashboardDetail extends ServiceBase {
   }
 
   /**
+   * Get BT to dollar value.
    *
+   * @param {string} amountInWei
    *
-   * @param amountinWei
    * @returns {string}
    */
-  getBtToDollar(amountinWei) {
+  getBtToDollar(amountInWei) {
     const oThis = this;
-    let oneStakeCurrencyIsHowManyBtFactor = oThis.token.conversionFactor;
 
-    let totalStakeCurrencyInWei = new BigNumber(amountinWei).div(oneStakeCurrencyIsHowManyBtFactor);
+    const oneStakeCurrencyIsHowManyBtFactor = oThis.token.conversionFactor;
+    const totalStakeCurrencyInWei = new BigNumber(amountInWei).div(new BigNumber(oneStakeCurrencyIsHowManyBtFactor));
 
     return oThis.getStakeCurrencyToDollar(totalStakeCurrencyInWei);
   }
 
   /**
+   * Get Stake currency to dollar.
    *
+   * @param {string} amountInWei
    *
-   * @param amountInWei
    * @returns {string}
    */
   getStakeCurrencyToDollar(amountInWei) {
     const oThis = this;
 
-    let inUSD = new BigNumber(amountInWei).mul(oThis.stakeCurrencyIsHowManyUSD);
+    const inUSD = new BigNumber(amountInWei).mul(new BigNumber(oThis.stakeCurrencyIsHowManyUSD));
 
-    return basicHelper.toPrecisionFiat(inUSD);
+    return basicHelper.toNormalPrecisionFiat(inUSD, oThis.stableCurrencyDetails.decimal);
   }
 }
 
