@@ -5,6 +5,7 @@
  */
 
 const rootPrefix = '../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
@@ -33,7 +34,7 @@ const rootPrefix = '../../..',
  *
  * @class Deployment
  */
-class Deployment {
+class Deployment extends ServiceBase {
   /**
    * Constructor to start deployment of token.
    *
@@ -41,9 +42,13 @@ class Deployment {
    * @param {string/number} params.token_id
    * @param {string/number} params.client_id
    *
+   * @augments ServiceBase
+   *
    * @constructor
    */
   constructor(params) {
+    super();
+
     const oThis = this;
 
     oThis.tokenId = params.token_id;
@@ -51,35 +56,12 @@ class Deployment {
   }
 
   /**
-   * Main performer of class.
-   *
-   * @return {Promise<>}
-   */
-  perform() {
-    // TODO - use perform from servicebase
-    const oThis = this;
-
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      }
-      logger.error('app/services/token/Deployment::perform::catch');
-      logger.error(error);
-
-      return responseHelper.error({
-        internal_error_identifier: 's_t_d_1',
-        api_error_identifier: 'unhandled_catch_response',
-        debug_options: {}
-      });
-    });
-  }
-
-  /**
    * Async perform.
    *
    * @return {Promise<any>}
+   * @private
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     await oThis._validateRequest();
