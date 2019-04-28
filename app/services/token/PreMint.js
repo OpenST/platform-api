@@ -38,8 +38,7 @@ class PreMint extends ServiceBase {
   constructor(params) {
     super(params);
     const oThis = this;
-
-    oThis.client_id = params.client_id;
+    oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
     oThis.stakeAmount = params.stake_amount;
     oThis.btAmount = params.bt_amount;
@@ -52,7 +51,7 @@ class PreMint extends ServiceBase {
    *
    * @return {Promise<any>}
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     await oThis.getGatewayComposerContractAddress();
