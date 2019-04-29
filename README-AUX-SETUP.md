@@ -245,6 +245,11 @@ And add it to tables using following script.
     node executables/updatePricePoints.js --cronProcessId 15
 ```
 
+```bash
+    source set_env_vars.sh
+    node executables/updatePricePoints.js --cronProcessId 16
+```
+
 ### Start balance Verifier
 * Start balance verifier
 ```bash
