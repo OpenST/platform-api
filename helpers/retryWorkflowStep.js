@@ -9,11 +9,14 @@
 const rootPrefix = '..',
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
+  TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
+  TokenByClientIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   WorkflowStepModel = require(rootPrefix + '/app/models/mysql/WorkflowStep'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
   WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  tokenRuleConstants = require(rootPrefix + '/lib/globalConstant/tokenRule'),
   workflowStepId = process.argv[2];
 
 // Workflow kind to router file path map.
@@ -128,6 +131,8 @@ class RetryWorkflowStep {
     };
 
     await oThis._startWorkflow(Rows[0].kind, params);
+
+    await oThis._changeTokenStatusAndClearCache(Rows[0].kind, Rows[0].client_id);
   }
 
   /**
@@ -175,6 +180,32 @@ class RetryWorkflowStep {
       workflowObj = new Workflow(workflowParams);
 
     return workflowObj.perform();
+  }
+
+  /**
+   * Change token status
+   *
+   * @param {Number} workflowKind
+   * @param {Number} clientId
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _changeTokenStatusAndClearCache(workflowKind, clientId) {
+    const oThis = this,
+      workflowStepModel = new WorkflowStepModel();
+
+    if (workflowKind != workflowStepModel.invertedKinds[workflowConstants.tokenDeployKind]) {
+      return;
+    }
+
+    let tokenModel = new TokenModel({});
+
+    await tokenModel.update(['status = ?', tokenRuleConstants.invertedStatuses[tokenRuleConstants.deploymentStarted]]);
+
+    await new TokenByClientIdCache({
+      clientId: clientId
+    }).clear();
   }
 }
 
