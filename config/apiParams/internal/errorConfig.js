@@ -71,6 +71,11 @@ const errorConfig = {
     code: 'invalid',
     message:
       'Invalid parameter address. This field accepts data_type "address" as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit.'
+  },
+  invalid_currencies: {
+    parameter: 'currencies',
+    code: 'invalid',
+    message: 'One or more currencies provided in the currencies array is invalid'
   }
 };
 

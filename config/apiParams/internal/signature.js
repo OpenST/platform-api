@@ -169,6 +169,19 @@ const signature = {
         validatorMethod: 'validateString'
       }
     ]
+  },
+
+  getBalance: {
+    mandatory: [
+      {
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'currencies',
+        validatorMethod: 'validateStringArray'
+      }
+    ]
   }
 };
 

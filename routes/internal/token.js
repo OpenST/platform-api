@@ -65,4 +65,11 @@ router.get('/pre-mint', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'PreMint', 'r_it_8'));
 });
 
+router.get('/balance', function(req, res, next) {
+  req.decodedParams.apiName = 'getBalance';
+  req.decodedParams.clientConfigStrategyRequired = false;
+
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GetBalance', 'r_it_9'));
+});
+
 module.exports = router;
