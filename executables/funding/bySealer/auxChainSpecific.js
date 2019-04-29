@@ -11,6 +11,7 @@ const rootPrefix = '../../..',
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -266,13 +267,17 @@ class FundBySealerAuxChainSpecific extends CronBase {
       logger.debug('sealerAddress-----', sealerAddress);
       logger.debug('sealerAddressBalance-----', sealerAddressBalance);
 
-      if (basicHelper.convertToBigNumber(sealerAddressBalance).gt(basicHelper.convertToWei(1))) {
+      if (
+        basicHelper
+          .convertToBigNumber(sealerAddressBalance)
+          .gt(basicHelper.convertToLowerUnit(1, coreConstants.ETH_CONVERSION_DECIMALS))
+      ) {
         oThis.transferDetails.push({
           fromAddress: sealerAddress,
           toAddress: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
             .convertToBigNumber(sealerAddressBalance)
-            .minus(basicHelper.convertToWei(0.5))
+            .minus(basicHelper.convertToLowerUnit(0.5, coreConstants.ETH_CONVERSION_DECIMALS))
             .toString(10)
         });
       }

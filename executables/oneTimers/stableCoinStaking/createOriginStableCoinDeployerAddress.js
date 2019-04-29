@@ -182,7 +182,7 @@ class CreateOriginStableCoinDeployerAddress {
     const oThis = this;
 
     const amountInWei = basicHelper
-      .convertToWei(String(amount))
+      .convertToLowerUnit(String(amount), coreConstants.ETH_CONVERSION_DECIMALS)
       .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
       .toString(10);
 

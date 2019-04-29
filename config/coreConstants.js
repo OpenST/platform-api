@@ -331,6 +331,13 @@ class CoreConstants {
     return 1000000;
   }
 
+  get ETH_CONVERSION_DECIMALS() {
+    return 18;
+  }
+
+  get USDC_CONVERSION_DECIMALS() {
+    return 6;
+  }
   /**
    * Batch delete retry count
    *
