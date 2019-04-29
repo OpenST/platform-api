@@ -184,7 +184,7 @@ class AuxChainSpecificCronSeeder {
     return new InsertCrons()
       .perform(cronProcessConstants.updatePriceOraclePricePoints, {
         auxChainId: 2000,
-        baseCurrency: 'USDC'
+        baseCurrency: 'USDC' //TODO: Move value of USDC to a single constant ref: lib/globalConstant/conversionRates.js
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
