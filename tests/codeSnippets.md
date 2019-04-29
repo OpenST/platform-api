@@ -55,8 +55,8 @@ asso.perform().then(console.log);
 
 require('./lib/setup/economy/VerifySetup');
 EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
-asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1000});
-asso.perform().then(console.log);
+asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1003, stakeCurrencyContractAddress: '0xdbb1543f2677967eb1a63ebe4ea15b5c4f971a6c'});
+asso.perform().then(console.log).catch(console.log);
 
 
 params = {
