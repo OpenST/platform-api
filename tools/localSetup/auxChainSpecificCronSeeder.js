@@ -7,6 +7,7 @@
 const rootPrefix = '../..',
   InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
@@ -184,7 +185,7 @@ class AuxChainSpecificCronSeeder {
     return new InsertCrons()
       .perform(cronProcessConstants.updatePriceOraclePricePoints, {
         auxChainId: 2000,
-        baseCurrency: 'USDC' //TODO: Move value of USDC to a single constant ref: lib/globalConstant/conversionRates.js
+        baseCurrency: conversionRateConstants.USDC
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

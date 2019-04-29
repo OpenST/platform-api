@@ -294,12 +294,12 @@ class OriginChainSetup {
 
     logger.log('* Validating USDC token contract symbol.');
     const chainUsdcContractSymbol = await usdcContractObj.methods.symbol().call({});
-    if (chainUsdcContractSymbol !== contractConstants.usdcContractSymbol) {
+    if (chainUsdcContractSymbol !== conversionRateConstants.USDC) {
       logger.error(
         'Contract symbol of USDC token -',
         chainUsdcContractSymbol,
         'different from database value -',
-        contractConstants.usdcContractSymbol
+        conversionRateConstants.USDC
       );
 
       return Promise.reject(new Error('Contract symbol verification of USDC token contract failed.'));
@@ -307,12 +307,12 @@ class OriginChainSetup {
 
     logger.log('* Validating USDC token contract currency.');
     const chainUsdcContractCurrency = await usdcContractObj.methods.currency().call({});
-    if (chainUsdcContractCurrency !== contractConstants.usdcContractCurrency) {
+    if (chainUsdcContractCurrency !== conversionRateConstants.USD) {
       logger.error(
         'Contract currency of USDC token -',
         chainUsdcContractCurrency,
         'different from database value -',
-        contractConstants.usdcContractCurrency
+        conversionRateConstants.USD
       );
 
       return Promise.reject(new Error('Contract currency verification of USDC token contract failed.'));
