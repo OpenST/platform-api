@@ -16,6 +16,7 @@ const rootPrefix = '../../../..',
   AuxChainSpecificFundingCronBase = require(rootPrefix +
     '/executables/funding/byMasterInternalFunder/auxChainSpecific/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
@@ -234,11 +235,14 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
       }
 
       const addressFundAmount = basicHelper
-          .convertToWei(String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount))
+          .convertToLowerUnit(
+            String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount),
+            coreConstants.ETH_CONVERSION_DECIMALS
+          )
           .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
         addressCurrentBalance = basicHelper.convertToBigNumber(balance),
         addressThresholdAmount = basicHelper
-          .convertToWei(String(fundingAddressDetails.thresholdAmount))
+          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.ETH_CONVERSION_DECIMALS)
           .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
       logger.log('\n\nAddress: ', address);

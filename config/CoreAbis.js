@@ -93,6 +93,7 @@ class CoreAbis {
       case contractNameConstants.userWalletFactoryContractName:
       case contractNameConstants.proxyFactoryContractName:
       case contractNameConstants.gnosisSafeContractName:
+      case contractNameConstants.pricerRuleContractName:
         return new OpenSTJs.AbiBinProvider().getABI(contractName);
 
       case contractNameConstants.utilityBrandedTokenContractName:

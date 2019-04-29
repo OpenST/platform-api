@@ -10,6 +10,7 @@ const rootPrefix = '../../..',
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   GenerateChainKnownAddresses = require(rootPrefix + '/tools/helpers/GenerateChainKnownAddresses'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -104,7 +105,7 @@ class Base {
     await oThis._getOriginChainId();
 
     const amountInWei = basicHelper
-      .convertToWei(String(amount))
+      .convertToLowerUnit(String(amount), coreConstants.ETH_CONVERSION_DECIMALS)
       .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
       .toString(10);
 

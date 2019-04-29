@@ -1,5 +1,6 @@
 /**
- * Cron to fund stPrime
+ * Cron to fund stPrime.
+ *
  * by: Master Internal Funder
  * to: Token funder addresses.
  * what: St prime
@@ -13,6 +14,7 @@ const program = require('commander');
 const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   TokenAddressModel = require(rootPrefix + '/app/models/mysql/TokenAddress'),
@@ -48,7 +50,7 @@ const auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultipli
 /**
  * Class to fund StPrime by chain owner to token funder addresses.
  *
- * @class
+ * @class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses
  */
 class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends AuxChainSpecificFundingCronBase {
   /**
@@ -278,7 +280,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       if (addressCurrentBalance.lt(addressThresholdFund)) {
         const amountToBeTransferredBN = addressMaxAmountToFund
             .minus(addressCurrentBalance)
-            .plus(basicHelper.convertToWei(1)), // Adding some more buffer for its own gas consumption
+            .plus(basicHelper.convertToLowerUnit(1, coreConstants.ETH_CONVERSION_DECIMALS)), // Adding some more buffer for its own gas consumption
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,

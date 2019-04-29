@@ -10,6 +10,7 @@ const rootPrefix = '../../..',
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
@@ -80,7 +81,7 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
 
     const providers = await oThis._getProvidersFromConfig(),
       provider = providers[0],
-      amountInWei = basicHelper.convertToWei(amount).toString(10); // Transfer amount
+      amountInWei = basicHelper.convertToLowerUnit(amount, coreConstants.ETH_CONVERSION_DECIMALS).toString(10); // Transfer amount
 
     await new TransferEthUsingPK({
       toAddress: address,

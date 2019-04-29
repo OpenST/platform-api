@@ -13,6 +13,7 @@ const rootPrefix = '../../../..',
   TransferStPrimeBatch = require(rootPrefix + '/lib/fund/stPrime/BatchTransfer'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
@@ -258,7 +259,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       finalAmount = basicHelper
         .convertToBigNumber(String(amountForOneGwei))
         .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer))
-        .plus(basicHelper.convertToWei(1));
+        .plus(basicHelper.convertToLowerUnit(1, coreConstants.ETH_CONVERSION_DECIMALS));
 
     return finalAmount.toString(10);
   }
