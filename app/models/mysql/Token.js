@@ -57,7 +57,7 @@ class Token extends ModelBase {
     const oThis = this;
 
     const dbRows = await oThis
-      .select('client_id')
+      .select('*')
       .where({
         id: tokenId
       })
@@ -67,9 +67,7 @@ class Token extends ModelBase {
       return responseHelper.successWithData({});
     }
 
-    return responseHelper.successWithData({
-      clientId: dbRows[0].client_id
-    });
+    return responseHelper.successWithData(oThis.formatDbData(dbRows[0]));
   }
 
   /**
