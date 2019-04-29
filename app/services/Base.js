@@ -1,39 +1,38 @@
-'use strict';
 /**
  * This is base class for all services.
  *
- * @module services/Base
+ * @module app/services/Base
  */
+
 const rootPrefix = '../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
-  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions');
 
+// Declare error config.
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 /**
- * Base class for all services
+ * Base class for all services.
  *
- * @class
+ * @class ServicesBaseKlass
  */
 class ServicesBaseKlass {
   /**
-   * Constructor for base class service
-   *
-   * @param {Object} params
+   * Constructor for base class for all services.
    *
    * @constructor
    */
-  constructor(params) {
+  constructor() {
     const oThis = this;
 
-    oThis.tokenId = null;
     oThis.token = null;
+    oThis.tokenId = null;
     oThis.delayedRecoveryInterval = null;
   }
 
@@ -48,47 +47,48 @@ class ServicesBaseKlass {
     return oThis._asyncPerform().catch(function(err) {
       if (responseHelper.isCustomResult(err)) {
         return err;
-      } else {
-        logger.error(' In catch block of services/Base.js', err);
-        return responseHelper.error({
-          internal_error_identifier: 's_b_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: { error: err.toString() },
-          error_config: errorConfig
-        });
       }
+      logger.error(' In catch block of services/Base.js', err);
+
+      return responseHelper.error({
+        internal_error_identifier: 'a_s_b_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: { error: err.toString() },
+        error_config: errorConfig
+      });
     });
   }
 
   /**
-   * Async performer.
+   * Async perform.
    *
    * @private
    * @returns {Promise<void>}
    */
   async _asyncPerform() {
-    throw 'sub-class to implement';
+    throw new Error('sub-class to implement.');
   }
 
   /**
-   * Fetch token details: fetch token details from cache
+   * Fetch token details from cache.
+   *
+   * @sets oThis.token, oThis.tokenId, oThis.delayedRecoveryInterval
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _fetchTokenDetails() {
     const oThis = this;
 
-    let tokenCache = new TokenCache({
+    const tokenCache = new TokenCache({
       clientId: oThis.clientId
     });
 
-    let response = await tokenCache.fetch();
+    const response = await tokenCache.fetch();
     if (!response.data) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_b_1',
+          internal_error_identifier: 'a_s_b_2',
           api_error_identifier: 'token_not_setup',
           debug_options: {}
         })
@@ -101,7 +101,7 @@ class ServicesBaseKlass {
   }
 
   /**
-   * Validate token status
+   * Validate token status.
    *
    * @returns {Promise<Void>}
    * @private
@@ -125,26 +125,26 @@ class ServicesBaseKlass {
   }
 
   /**
-   * Fetch client config strategy
+   * Fetch client config strategy.
    *
-   * @param clientId
+   * @param {number/string} clientId
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchClientConfigStrategy(clientId) {
     // Fetch client config group.
-    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
+    const clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
       fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
 
     if (fetchCacheRsp.isFailure()) {
       logger.error(
         'ClientId has no config group assigned to it. This means that client has not been deployed successfully.'
       );
+
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_b_2',
+          internal_error_identifier: 'a_s_b_4',
           api_error_identifier: 'token_not_setup',
           debug_options: {}
         })
@@ -155,29 +155,29 @@ class ServicesBaseKlass {
   }
 
   /**
-   * _parsePaginationParams - parse pagination identifier
+   * Parse pagination identifier.
    *
-   * @param paginationIdentifier
+   * @param {string} paginationIdentifier
+   *
    * @return {*}
    * @private
    */
   _parsePaginationParams(paginationIdentifier) {
-    const oThis = this;
-
     return basicHelper.decryptPageIdentifier(paginationIdentifier);
   }
 
   /**
-   * Validate limit
+   * Validate page size.
+   *
+   * @sets oThis.limit
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _validatePageSize() {
     const oThis = this;
 
-    let limitVas = CommonValidators.validateAndSanitizeLimit(
+    const limitVas = CommonValidators.validateAndSanitizeLimit(
       oThis._currentPageLimit(),
       oThis._defaultPageLimit(),
       oThis._minPageLimit(),
@@ -187,7 +187,7 @@ class ServicesBaseKlass {
     if (!limitVas[0]) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 's_b_3',
+          internal_error_identifier: 'a_s_b_5',
           api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_limit'],
           debug_options: {}
@@ -199,19 +199,19 @@ class ServicesBaseKlass {
   }
 
   _currentPageLimit() {
-    throw 'Sub-class to implement';
+    throw new Error('Sub-class to implement');
   }
 
   _defaultPageLimit() {
-    throw 'Sub-class to implement';
+    throw new Error('Sub-class to implement');
   }
 
   _minPageLimit() {
-    throw 'Sub-class to implement';
+    throw new Error('Sub-class to implement');
   }
 
   _maxPageLimit() {
-    throw 'Sub-class to implement';
+    throw new Error('Sub-class to implement');
   }
 }
 

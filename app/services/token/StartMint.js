@@ -1,36 +1,48 @@
-'use strict';
 /**
- * This service starts the token minting process
+ * Module to start the token minting process.
  *
  * @module app/services/token/StartMint
  */
+
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup');
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic');
 
 /**
- * Class for Start Mint
+ * Class to start the token minting process.
  *
- * @class
+ * @class StartMint
  */
-class StartMint {
+class StartMint extends ServiceBase {
   /**
-   * Constructor for start mint
+   * Constructor to start the token minting process.
+   *
+   * @param {object} params
+   * @param {number/string} params.token_id
+   * @param {number/string} params.client_id
+   * @param {string} params.approve_transaction_hash
+   * @param {string} params.request_stake_transaction_hash
+   * @param {string} params.staker_address
+   * @param {string} params.fe_stake_currency_to_stake
+   * @param {string} params.fe_bt_to_mint
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
+    super();
+
     const oThis = this;
 
     oThis.tokenId = params.token_id;
@@ -38,38 +50,17 @@ class StartMint {
     oThis.approveTransactionHash = params.approve_transaction_hash;
     oThis.requestStakeTransactionHash = params.request_stake_transaction_hash;
     oThis.stakerAddress = params.staker_address;
-    oThis.feOstToStake = params.fe_ost_to_stake;
+    oThis.feStakeCurrencyToStake = params.fe_stake_currency_to_stake;
     oThis.feBtToMint = params.fe_bt_to_mint;
   }
 
   /**
-   * perform
-   * @return {Promise<>}
-   */
-  perform() {
-    const oThis = this;
-    // TODO - use perform from service base
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error('app/services/token/StartMint::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_t_sm_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
-  }
-
-  /**
-   * asyncPerform
+   * Async perform.
    *
    * @return {Promise<any>}
+   * @private
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     await oThis._validateAndSanitize();
@@ -78,6 +69,7 @@ class StartMint {
   }
 
   /**
+   * Validate and sanitize.
    *
    * @returns {Promise<*>}
    * @private
@@ -91,22 +83,24 @@ class StartMint {
       !basicHelper.isEthAddressValid(oThis.stakerAddress)
     ) {
       logger.error('Parameters passed are incorrect.');
+
       return responseHelper.error({
-        internal_error_identifier: 's_t_sm_3',
+        internal_error_identifier: 'a_s_t_sm_1',
         api_error_identifier: 'invalid_params',
         debug_options: {}
       });
     }
   }
+
   /**
-   * Start minting
+   * Start minting.
    *
    * @return {Promise<*|result>}
    */
   async startMinting() {
     const oThis = this;
 
-    let requestParams = {
+    const requestParams = {
         approveTransactionHash: oThis.approveTransactionHash,
         requestStakeTransactionHash: oThis.requestStakeTransactionHash,
         auxChainId: oThis._configStrategyObject.auxChainId,
@@ -124,94 +118,41 @@ class StartMint {
         chainId: oThis._configStrategyObject.originChainId,
         topic: workflowTopicConstant.btStakeAndMint,
         requestParams: requestParams,
-        feResponseData: { fe_ost_to_stake: oThis.feOstToStake, fe_bt_to_mint: oThis.feBtToMint }
+        feResponseData: { fe_stake_currency_to_stake: oThis.feStakeCurrencyToStake, fe_bt_to_mint: oThis.feBtToMint }
       };
 
-    let brandedTokenRouterObj = new BtStakeAndMintRouter(stakeAndMintParams);
+    const brandedTokenRouterObj = new BtStakeAndMintRouter(stakeAndMintParams);
 
     return brandedTokenRouterObj.perform();
   }
 
   /**
-   * Fetch config group for the client. If config group is not assigned for the client, assign one.
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _fetchConfigGroup() {
-    const oThis = this;
-
-    // Fetch client config group.
-    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId }),
-      fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
-
-    // Config group is not associated for the given client.
-    if (fetchCacheRsp.isFailure()) {
-      // Assign config group for the client.
-      logger.error('Config strategy is not assigned');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_sm_2',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-    // Config group is already associated for the given client.
-    else {
-      oThis.chainId = fetchCacheRsp.data[oThis.clientId].chainId;
-    }
-  }
-
-  /**
-   * Fetch token details
-   *
-   * @param {String/Number} clientId
-   *
-   * @return {Promise<void>}
-   *
-   * @private
-   */
-  async _fetchTokenDetails(clientId) {
-    let cacheResponse = await new TokenCache({ clientId: clientId }).fetch();
-
-    if (cacheResponse.isFailure()) {
-      logger.error('Could not fetched token details.');
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_sm_3',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            clientId: clientId
-          }
-        })
-      );
-    }
-    return cacheResponse.data;
-  }
-
-  /***
-   *
-   * config strategy
+   * Config strategy.
    *
    * @return {object}
    */
   get _configStrategy() {
     const oThis = this;
+
     return oThis.ic().configStrategy;
   }
 
-  /***
+  /**
+   * Object of config strategy class.
    *
-   * object of config strategy klass
+   * @sets oThis.configStrategyObj
    *
    * @return {object}
    */
   get _configStrategyObject() {
     const oThis = this;
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+
+    if (oThis.configStrategyObj) {
+      return oThis.configStrategyObj;
+    }
+
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
+
     return oThis.configStrategyObj;
   }
 }

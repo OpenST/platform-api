@@ -51,8 +51,8 @@ const errorConfig = {
     message:
       'Invalid parameter staker_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
-  invalid_fe_ost_to_stake: {
-    parameter: 'fe_ost_to_stake',
+  invalid_fe_stake_currency_to_stake: {
+    parameter: 'fe_stake_currency_to_stake',
     code: 'invalid',
     message: 'Please enter a valid number.'
   },

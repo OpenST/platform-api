@@ -95,6 +95,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
    * Constructor to fund eth by chain owner.
    *
    * @param {object} params
+   * @param {number/string} params.cronProcessId
    *
    * @augments CronBase
    *
@@ -493,13 +494,13 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _fetchUsdcBalance(address) {
     const oThis = this;
 
-    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+    const stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: [conversionRateConstants.USDC]
     });
 
-    let stakeCurrenciesCacheRsp = await stakeCurrencyBySymbolCache.fetch();
+    const stakeCurrenciesCacheRsp = await stakeCurrencyBySymbolCache.fetch();
 
-    let usdcContractAddress = stakeCurrenciesCacheRsp.data[conversionRateConstants.USDC].contractAddress;
+    const usdcContractAddress = stakeCurrenciesCacheRsp.data[conversionRateConstants.USDC].contractAddress;
 
     const getUsdcBalanceObj = new GetErc20Balance({
         originChainId: oThis.originChainId,
