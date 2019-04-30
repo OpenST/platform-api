@@ -16,7 +16,7 @@ const rootPrefix = '..',
   WorkflowStepsStatusCache = require(rootPrefix + '/lib/cacheManagement/shared/WorkflowStepsStatus'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  tokenRuleConstants = require(rootPrefix + '/lib/globalConstant/tokenRule'),
+  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   workflowStepId = process.argv[2];
 
 // Workflow kind to router file path map.
@@ -130,9 +130,9 @@ class RetryWorkflowStep {
       stepKind: stepKind
     };
 
-    await oThis._startWorkflow(Rows[0].kind, params);
-
     await oThis._changeTokenStatusAndClearCache(Rows[0].kind, Rows[0].client_id);
+
+    await oThis._startWorkflowStep(Rows[0].kind, params);
   }
 
   /**
@@ -156,7 +156,7 @@ class RetryWorkflowStep {
   }
 
   /**
-   * Start workflow.
+   * Start workflow step.
    *
    * @param {string} workflowKind
    * @param {object} params
@@ -164,7 +164,7 @@ class RetryWorkflowStep {
    * @return {Promise<void>}
    * @private
    */
-  async _startWorkflow(workflowKind, params) {
+  async _startWorkflowStep(workflowKind, params) {
     const workflowStepModel = new WorkflowStepModel(),
       workflowModel = new WorkflowModel();
 
@@ -193,15 +193,18 @@ class RetryWorkflowStep {
    */
   async _changeTokenStatusAndClearCache(workflowKind, clientId) {
     const oThis = this,
-      workflowStepModel = new WorkflowStepModel();
+      workflowModel = new WorkflowModel();
 
-    if (workflowKind != workflowStepModel.invertedKinds[workflowConstants.tokenDeployKind]) {
+    if (workflowKind != workflowModel.invertedKinds[workflowConstants.tokenDeployKind]) {
       return;
     }
 
     let tokenModel = new TokenModel({});
 
-    await tokenModel.update(['status = ?', tokenRuleConstants.invertedStatuses[tokenRuleConstants.deploymentStarted]]);
+    await tokenModel
+      .update({ status: tokenConstants.invertedStatuses[tokenConstants.deploymentStarted] })
+      .where({ client_id: clientId })
+      .fire();
 
     await new TokenByClientIdCache({
       clientId: clientId
