@@ -23,17 +23,6 @@ const rootPrefix = '..',
  */
 class BasicHelper {
   /**
-   * Convert input to Weis.
-   *
-   * @param {string/number} num
-   *
-   * @return {BigNumber}
-   */
-  convertToWei(num) {
-    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(18));
-  }
-
-  /**
    * Convert wei value to un wei (normal).
    *
    * @param {string} wei
@@ -231,6 +220,18 @@ class BasicHelper {
    */
   convertToHex(number) {
     return '0x' + new BigNumber(number).toString(16).toUpperCase();
+  }
+
+  /**
+   * Convert Hex to String.
+   *
+   * @param {string} string: Hex string
+   *
+   * @return {string}
+   */
+  convertHexToString(string) {
+    const buf = new Buffer.from(string, 'hex');
+    return buf.toString('utf8');
   }
 
   /**
