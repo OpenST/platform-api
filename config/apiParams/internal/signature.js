@@ -71,14 +71,6 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'approve_transaction_hash',
-        validatorMethod: 'validateTransactionHash'
-      },
-      {
-        parameter: 'request_stake_transaction_hash',
-        validatorMethod: 'validateTransactionHash'
-      },
-      {
         parameter: 'staker_address',
         validatorMethod: 'validateEthAddress'
       },
@@ -89,9 +81,26 @@ const signature = {
       {
         parameter: 'fe_bt_to_mint',
         validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'bt_to_mint',
+        validatorMethod: 'validateNonZeroWeiValue'
+      },
+      {
+        parameter: 'stake_currency_to_stake',
+        validatorMethod: 'validateNonZeroWeiValue'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'approve_transaction_hash',
+        validatorMethod: 'validateTransactionHash'
+      },
+      {
+        parameter: 'request_stake_transaction_hash',
+        validatorMethod: 'validateTransactionHash'
+      }
+    ]
   },
 
   mintDetails: {
@@ -161,12 +170,18 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'stake_amount',
-        validatorMethod: 'validateString'
+        parameter: 'bt_to_mint',
+        validatorMethod: 'validateNonZeroWeiValue'
       },
       {
-        parameter: 'bt_amount',
-        validatorMethod: 'validateString'
+        parameter: 'stake_currency_to_stake',
+        validatorMethod: 'validateNonZeroWeiValue'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'fetch_request_stake_tx_params',
+        validatorMethod: 'validateBoolean'
       }
     ]
   },

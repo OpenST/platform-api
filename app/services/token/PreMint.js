@@ -14,14 +14,16 @@ const rootPrefix = '../../..',
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
-  TokenByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
   StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
+
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 class PreMint extends ServiceBase {
   /**
@@ -30,20 +32,27 @@ class PreMint extends ServiceBase {
    * @param {Object} params
    * @param {Number} params.client_id: client id
    * @param {Number} params.token_id: token id
-   * @param {String} params.stake_amount: stake amount
-   * @param {String} params.bt_amount: bt amount
+   * @param {String} params.stake_currency_to_stake: in wei stake amount
+   * @param {String} params.bt_to_mint: in wei bt amount
+   * @param {Boolean} params.fetch_request_stake_tx_params: boolean which would determine fetching params needed
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-    oThis.stakeAmount = params.stake_amount;
-    oThis.btAmount = params.bt_amount;
+    oThis.stakeAmountInWei = params.stake_currency_to_stake;
+    oThis.btAmountInWei = params.bt_to_mint;
 
-    oThis.responseData = {};
+    // optional
+    oThis.fetchRequestStakeTxParams = params.fetch_request_stake_tx_params;
+
+    oThis.preciseAmounts = {};
+    oThis.requestStakeTxParams = {};
   }
 
   /**
@@ -54,19 +63,28 @@ class PreMint extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis.getGatewayComposerContractAddress();
+    await oThis._fetchTokenDetails();
 
-    await oThis.getGatewayContractAddress();
+    await oThis._getPreciseAmount();
 
-    await oThis.getBeneficiaryAddress();
+    if (CommonValidators.isVarTrue(oThis.fetchRequestStakeTxParams)) {
+      oThis._getContractGasPriceAndGasLimit();
 
-    await oThis.getOriginChainGasPrice();
+      await oThis.getGatewayComposerContractAddress();
 
-    await oThis.getStakerNonceFromGateway();
+      await oThis.getGatewayContractAddress();
 
-    await oThis.getPreciseAmount();
+      await oThis.getBeneficiaryAddress();
 
-    return responseHelper.successWithData(oThis.responseData);
+      await oThis.getOriginChainGasPrice();
+
+      await oThis.getStakerNonceFromGateway();
+    }
+
+    return responseHelper.successWithData({
+      precise_amounts: oThis.preciseAmounts,
+      request_stake_tx_params: oThis.requestStakeTxParams
+    });
   }
 
   /**
@@ -90,7 +108,7 @@ class PreMint extends ServiceBase {
       );
     }
 
-    oThis.responseData.gateway_composer_contract_address = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
+    oThis.requestStakeTxParams.gateway_composer_contract_address = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
   }
 
   /**
@@ -115,7 +133,8 @@ class PreMint extends ServiceBase {
       );
     }
 
-    oThis.responseData.gateway_contract_address = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
+    oThis.requestStakeTxParams.gateway_contract_address =
+      tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
   }
 
   /**
@@ -153,7 +172,8 @@ class PreMint extends ServiceBase {
       return Promise.reject(tokenUserDetailsCacheRsp);
     }
 
-    oThis.responseData.stake_and_mint_beneficiary = tokenUserDetailsCacheRsp.data[tokenHolderUuid].tokenHolderAddress;
+    oThis.requestStakeTxParams.stake_and_mint_beneficiary =
+      tokenUserDetailsCacheRsp.data[tokenHolderUuid].tokenHolderAddress;
   }
 
   /**
@@ -167,7 +187,7 @@ class PreMint extends ServiceBase {
     const gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
-    oThis.responseData.origin_chain_gas_price = gasPriceRsp.data;
+    oThis.requestStakeTxParams.origin_chain_gas_price = gasPriceRsp.data;
   }
 
   /**
@@ -181,12 +201,24 @@ class PreMint extends ServiceBase {
     await oThis._setOriginWeb3Instance();
 
     oThis.stakerNonce = await oThis._stakeHelperObject.getNonce(
-      oThis.responseData.gateway_composer_contract_address,
+      oThis.requestStakeTxParams.gateway_composer_contract_address,
       oThis.originReadOnlyWeb3,
-      oThis.responseData.gateway_contract_address
+      oThis.requestStakeTxParams.gateway_contract_address
     );
 
-    oThis.responseData.staker_gateway_nonce = oThis.stakerNonce;
+    oThis.requestStakeTxParams.staker_gateway_nonce = oThis.stakerNonce;
+  }
+
+  /**
+   * Get gateway composer contracts gas price and gas limit
+   *
+   * @private
+   */
+  _getContractGasPriceAndGasLimit() {
+    const oThis = this;
+
+    oThis.requestStakeTxParams.gas_price = contractConstants.gatewayComposerGasPrice;
+    oThis.requestStakeTxParams.gas_limit = contractConstants.gatewayComposerGasLimit;
   }
 
   /**
@@ -215,45 +247,23 @@ class PreMint extends ServiceBase {
    * @returns {Promise<void>}
    * @private
    */
-  async getPreciseAmount() {
+  async _getPreciseAmount() {
     const oThis = this;
-
-    await oThis._fetchTokenDetails();
 
     let conversionFactor = oThis.token.conversionFactor,
       conversionFactorBN = basicHelper.convertToBigNumber(conversionFactor),
-      stakeAmountBN = basicHelper.convertToBigNumber(oThis.stakeAmount),
-      btAmountBN = basicHelper.convertToBigNumber(oThis.btAmount);
+      stakeAmountBN = basicHelper.convertToBigNumber(oThis.stakeAmountInWei),
+      btAmountBN = basicHelper.convertToBigNumber(oThis.btAmountInWei);
 
     let stakeAmountEquivalentBT = stakeAmountBN.mul(conversionFactorBN),
       convertedStakeAmount = stakeAmountEquivalentBT.div(conversionFactorBN);
 
-    oThis.responseData.precise_amounts = {
-      stake_currency: oThis.stakeAmount,
-      BT: stakeAmountEquivalentBT
+    oThis.preciseAmounts = {
+      stake_currency: oThis.stakeAmountInWei,
+      bt: basicHelper.formatWeiToString(stakeAmountEquivalentBT)
     };
 
     //Todo: Add logic to handle the precision.
-  }
-
-  /**
-   * Returns conversion factor
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _fetchConversionFactor() {
-    const oThis = this;
-
-    let tokenByTokenIdCacheRsp = await new TokenByTokenIdCache({ tokenId: oThis.tokenId }).fetch();
-    if (tokenByTokenIdCacheRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_pm_3',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
   }
 
   /**
@@ -271,6 +281,6 @@ class PreMint extends ServiceBase {
   }
 }
 
-module.exports = PreMint;
-
 InstanceComposer.registerAsShadowableClass(PreMint, coreConstants.icNameSpace, 'PreMint');
+
+module.exports = {};

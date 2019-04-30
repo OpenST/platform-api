@@ -139,6 +139,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The token has already been successfully deployed."
   },
+  "token_not_deployed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The token has not been deployed yet."
+  },
   "token_deployment_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
