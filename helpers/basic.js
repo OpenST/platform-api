@@ -23,17 +23,6 @@ const rootPrefix = '..',
  */
 class BasicHelper {
   /**
-   * Convert input to Weis.
-   *
-   * @param {string/number} num
-   *
-   * @return {BigNumber}
-   */
-  convertToWei(num) {
-    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(18));
-  }
-
-  /**
    * Convert wei value to un wei (normal).
    *
    * @param {string} wei
