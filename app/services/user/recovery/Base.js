@@ -1,5 +1,5 @@
 /**
- *  Base for user recovery operations.
+ * Base module for user recovery operations.
  *
  * @module app/services/user/recovery/Base
  */
@@ -8,6 +8,7 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -15,17 +16,16 @@ const rootPrefix = '../../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
- * Class for user recovery operations.
+ * Base class for user recovery operations.
  *
  * @class UserRecoveryBase
  */
@@ -33,17 +33,19 @@ class UserRecoveryBase extends ServiceBase {
   /**
    * Constructor for user recovery operations.
    *
-   * @param {Object} params
-   * @param {Number} params.client_id
-   * @param {Number} params.token_id
-   * @param {String} params.user_id
-   * @param {String} params.old_linked_address
-   * @param {String} params.old_device_address
-   * @param {String} params.new_device_address
-   * @param {String} params.new_recovery_owner_address
-   * @param {String} params.to: Transaction to address, user recovery proxy address
-   * @param {String} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer: recovery owner address who signed this transaction
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} params.token_id
+   * @param {string} params.user_id
+   * @param {string} params.old_linked_address
+   * @param {string} params.old_device_address
+   * @param {string} params.new_device_address
+   * @param {string} params.new_recovery_owner_address
+   * @param {string} params.to: Transaction to address, user recovery proxy address
+   * @param {string} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {string} params.signer: recovery owner address who signed this transaction
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -73,10 +75,9 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Async perform
+   * Async perform.
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _asyncPerform() {
@@ -100,10 +101,9 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Sanitize Params
+   * Sanitize input parameters.
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _sanitizeParams() {
@@ -120,10 +120,11 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Fetch user details
+   * Fetch user details.
+   *
+   * @sets oThis.userData, oThis.deviceShardNumber
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _fetchUserDetails() {
@@ -152,13 +153,12 @@ class UserRecoveryBase extends ServiceBase {
    * Perform basic validations on user data before recovery procedures.
    *
    * @returns {Promise<Void>}
-   *
    * @private
    */
   async _basicValidations() {
     const oThis = this;
 
-    // User is activated or not
+    // User is activated or not.
     if (oThis.userData.status !== tokenUserConstants.activatedStatus) {
       return Promise.reject(
         responseHelper.error({
@@ -181,7 +181,7 @@ class UserRecoveryBase extends ServiceBase {
       );
     }
 
-    // Validate user recovery contract address is same as input
+    // Validate user recovery contract address is same as input.
     if (oThis.userData.recoveryAddress !== oThis.recoveryContractAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -201,7 +201,6 @@ class UserRecoveryBase extends ServiceBase {
    * Validate signature.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _validateSignature() {
@@ -235,7 +234,7 @@ class UserRecoveryBase extends ServiceBase {
   async _fetchUserPendingRecoveryOperations() {
     const oThis = this;
 
-    let recoveryOperationsResp = await new UserRecoveryOperationsCache({
+    const recoveryOperationsResp = await new UserRecoveryOperationsCache({
       tokenId: oThis.tokenId,
       userId: oThis.userId
     }).fetch();
@@ -257,7 +256,6 @@ class UserRecoveryBase extends ServiceBase {
    * Get typed data.
    *
    * @return {TypedData}
-   *
    * @private
    */
   _createTypedData() {
@@ -265,10 +263,9 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Validate old linked address from input with contract
+   * Validate old linked address from input with contract.
    *
    * @returns {Promise<Void>}
-   *
    * @private
    */
   async _validateOldLinkedAddress() {
@@ -286,7 +283,7 @@ class UserRecoveryBase extends ServiceBase {
       );
     }
 
-    // Validate old linked address from input is same as one found from contract
+    // Validate old linked address from input is same as one found from contract.
     if (
       !linkedAddressesMap[oThis.oldDeviceAddress] ||
       linkedAddressesMap[oThis.oldDeviceAddress].toLowerCase() !== oThis.oldLinkedAddress
@@ -306,7 +303,6 @@ class UserRecoveryBase extends ServiceBase {
    * Fetch linked addresses map of user.
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchUserAddressesLink() {
@@ -318,6 +314,7 @@ class UserRecoveryBase extends ServiceBase {
 
     if (previousOwnersMapRsp.isFailure()) {
       logger.error('Error in fetching linked addresses');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_u_r_b_9',
@@ -334,7 +331,6 @@ class UserRecoveryBase extends ServiceBase {
    * Fetch devices from cache.
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchDevices() {
@@ -363,12 +359,11 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Change Device statuses.
+   * Change device statuses.
    *
-   * @param {Object} statusMap
+   * @param {object} statusMap
    *
    * @returns {Promise<Array>}
-   *
    * @private
    */
   async _changeDeviceStatuses(statusMap) {
@@ -379,7 +374,7 @@ class UserRecoveryBase extends ServiceBase {
       deviceEntities = [];
     let ddbQueryFailed = false;
 
-    for (let address in statusMap) {
+    for (const address in statusMap) {
       const initialStatus = statusMap[address].initial,
         finalStatus = statusMap[address].final,
         deviceModelObj = new DeviceModel({ shardNumber: oThis.userData.deviceShardNumber });
@@ -416,13 +411,14 @@ class UserRecoveryBase extends ServiceBase {
         })
       );
     }
+
     return deviceEntities;
   }
 
-  /***
-   * Config strategy
+  /**
+   * Config strategy.
    *
-   * @return {Object}
+   * @return {object}
    */
   get _configStrategy() {
     const oThis = this;
@@ -431,14 +427,16 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Object of config strategy class
+   * Object of config strategy class.
    *
-   * @return {Object}
+   * @return {object}
    */
   get _configStrategyObject() {
     const oThis = this;
 
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    if (oThis.configStrategyObj) {
+      return oThis.configStrategyObj;
+    }
 
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
 
@@ -446,14 +444,18 @@ class UserRecoveryBase extends ServiceBase {
   }
 
   /**
-   * Get web3instance to interact with chain
+   * Get web3instance to interact with chain.
    *
-   * @return {Object}
+   * @sets oThis.web3InstanceObj
+   *
+   * @return {object}
    */
   get _web3Instance() {
     const oThis = this;
 
-    if (oThis.web3InstanceObj) return oThis.web3InstanceObj;
+    if (oThis.web3InstanceObj) {
+      return oThis.web3InstanceObj;
+    }
 
     const chainEndPoint = oThis._configStrategyObject.auxChainWsProvider(configStrategyConstants.gethReadWrite);
     oThis.web3InstanceObj = web3Provider.getInstance(chainEndPoint).web3WsProvider;
@@ -465,7 +467,6 @@ class UserRecoveryBase extends ServiceBase {
    * Check if recovery operation can be performed or not.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _canPerformRecoveryOperation() {
@@ -476,7 +477,6 @@ class UserRecoveryBase extends ServiceBase {
    * Validate input addresses with devices or recovery owners based on service.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _validateAddressStatuses() {
@@ -487,7 +487,6 @@ class UserRecoveryBase extends ServiceBase {
    * Perform recovery operation for user.
    *
    * @returns {Promise<Array>}
-   *
    * @private
    */
   async _performRecoveryOperation() {
@@ -498,7 +497,6 @@ class UserRecoveryBase extends ServiceBase {
    * Return required response as per the service.
    *
    * @returns {Promise<>}
-   *
    * @private
    */
   async _returnResponse() {

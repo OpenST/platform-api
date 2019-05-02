@@ -1,5 +1,5 @@
 /**
- * This service initiates reset recovery owner of user.
+ * Module to initiate reset recovery owner of user.
  *
  * @module app/services/user/recovery/ResetOwner
  */
@@ -10,19 +10,19 @@ const OpenStJs = require('@openst/openst.js'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
+  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
+  ResetRecoveryOwnerRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  UserRecoveryServiceBase = require(rootPrefix + '/app/services/user/recovery/Base'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
-  RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
-  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation'),
-  ResetRecoveryOwnerRouter = require(rootPrefix + '/lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router');
+  recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/models/ddb/sharded/RecoveryOwner');
@@ -37,14 +37,14 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
   /**
    * Constructor to reset recovery owner of user.
    *
-   * @param {Object} params
-   * @param {Number} params.client_id
-   * @param {Number} params.token_id
-   * @param {String} params.user_id
-   * @param {String} params.new_recovery_owner_address
-   * @param {String} params.to: Transaction to address, user recovery proxy address
-   * @param {String} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer: recovery owner address who signed this transaction
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} params.token_id
+   * @param {string} params.user_id
+   * @param {string} params.new_recovery_owner_address
+   * @param {string} params.to: Transaction to address, user recovery proxy address
+   * @param {string} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {string} params.signer: recovery owner address who signed this transaction
    *
    * @constructor
    */
@@ -59,7 +59,6 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Perform basic validations on user data before recovery procedures.
    *
    * @returns {Promise<Void>}
-   *
    * @private
    */
   async _basicValidations() {
@@ -67,7 +66,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
 
     await super._basicValidations();
 
-    // Check for same old and new recovery owner addresses
+    // Check for same old and new recovery owner addresses.
     if (oThis.userData.recoveryOwnerAddress === oThis.newRecoveryOwnerAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -84,7 +83,6 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Get typed data.
    *
    * @return {TypedData}
-   *
    * @private
    */
   _createTypedData() {
@@ -98,13 +96,12 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Check if recovery operation can be performed or not.
    *
    * @returns {Promise<Void>}
-   *
    * @private
    */
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    for (let index in oThis.userPendingRecoveryOperations) {
+    for (const index in oThis.userPendingRecoveryOperations) {
       const operation = oThis.userPendingRecoveryOperations[index];
 
       // Another in progress operation is present.
@@ -123,18 +120,17 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
   }
 
   /**
-   * Validate input addresses with recovery owners statuses
+   * Validate input addresses with recovery owners statuses.
    *
    * @returns {Promise<never>}
-   *
    * @private
    */
   async _validateAddressStatuses() {
     const oThis = this;
     // Device validation is not required for this service.
-    // Instead of that we are checking for recovery owners
+    // Instead of that we are checking for recovery owners.
 
-    let recoveryOwnersCacheResp = await oThis._fetchRecoveryOwners();
+    const recoveryOwnersCacheResp = await oThis._fetchRecoveryOwners();
 
     if (
       !CommonValidators.validateObject(recoveryOwnersCacheResp[oThis.userData.recoveryOwnerAddress]) ||
@@ -150,7 +146,7 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
       );
     }
 
-    // New Recovery owner would not be present first time and if its present then it should be in Authorization failed state
+    // New recovery owner would not be present first time and if its present then it should be in Authorization failed state.
     oThis.newRecoveryOwnerAlreadyPresent = CommonValidators.validateObject(
       recoveryOwnersCacheResp[oThis.newRecoveryOwnerAddress]
     );
@@ -191,7 +187,6 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Reset recovery owner for user.
    *
    * @returns {Promise<never>}
-   *
    * @private
    */
   async _performRecoveryOperation() {
@@ -213,10 +208,9 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
   /**
    * Start reset recovery owner workflow.
    *
-   * @param {String/Number} recoveryOperationId
+   * @param {string/number} recoveryOperationId
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _startResetRecoveryOwnerWorkflow(recoveryOperationId) {
@@ -260,7 +254,6 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Fetch devices from cache.
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchRecoveryOwners() {
@@ -294,7 +287,6 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Create new recovery owner and update status of old recovery owner address.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _createUpdateRecoveryOwners() {
@@ -385,7 +377,6 @@ class ResetRecoveryOwner extends UserRecoveryServiceBase {
    * Return recovery owner entity.
    *
    * @returns {Promise<>}
-   *
    * @private
    */
   async _returnResponse() {

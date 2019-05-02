@@ -1,6 +1,5 @@
-'use strict';
 /**
- * This service abort existing recovery procedure for user.
+ * Module to abort existing recovery procedure for user.
  *
  * @module app/services/user/recovery/Abort
  */
@@ -23,6 +22,7 @@ const rootPrefix = '../../../..',
 
 const RecoveryHelper = OpenStJs.Helpers.Recovery,
   InstanceComposer = OSTBase.InstanceComposer;
+
 /**
  * Class to abort existing recovery procedure for user.
  *
@@ -32,16 +32,18 @@ class AbortRecovery extends UserRecoveryServiceBase {
   /**
    * Constructor to abort existing recovery procedure for user.
    *
-   * @param {Object} params
-   * @param {Number} params.client_id
-   * @param {Number} params.token_id
-   * @param {String} params.user_id
-   * @param {String} params.old_linked_address
-   * @param {String} params.old_device_address
-   * @param {String} params.new_device_address
-   * @param {String} params.to: Transaction to address, user recovery proxy address
-   * @param {String} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
-   * @param {String} params.signer: recovery owner address who signed this transaction
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} params.token_id
+   * @param {string} params.user_id
+   * @param {string} params.old_linked_address
+   * @param {string} params.old_device_address
+   * @param {string} params.new_device_address
+   * @param {string} params.to: Transaction to address, user recovery proxy address
+   * @param {string} params.signature: Packed signature data ({bytes32 r}{bytes32 s}{uint8 v})
+   * @param {string} params.signer: recovery owner address who signed this transaction
+   *
+   * @augments UserRecoveryServiceBase
    *
    * @constructor
    */
@@ -57,7 +59,6 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Perform basic validations on user data before recovery procedures.
    *
    * @returns {Promise<Void>}
-   *
    * @private
    */
   async _basicValidations() {
@@ -65,7 +66,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
 
     await super._basicValidations();
 
-    // Check for same old and new device addresses
+    // Check for same old and new device addresses.
     if (oThis.oldDeviceAddress === oThis.newDeviceAddress) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -84,7 +85,6 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Get typed data.
    *
    * @return {TypedData}
-   *
    * @private
    */
   _createTypedData() {
@@ -97,14 +97,15 @@ class AbortRecovery extends UserRecoveryServiceBase {
   /**
    * Check if recovery operation can be performed or not.
    *
-   * @returns {Promise<Void>}
+   * @sets oThis.initiateRecoveryOperationId
    *
+   * @returns {Promise<Void>}
    * @private
    */
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    for (let index in oThis.userPendingRecoveryOperations) {
+    for (const index in oThis.userPendingRecoveryOperations) {
       const operation = oThis.userPendingRecoveryOperations[index];
 
       // Another in progress operation is present.
@@ -147,7 +148,6 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * @sets oThis.newDeviceAddressEntity
    *
    * @returns {Promise<never>}
-   *
    * @private
    */
   async _validateAddressStatuses() {
@@ -192,7 +192,6 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Initiate recovery for user.
    *
    * @returns {Promise<never>}
-   *
    * @private
    */
   async _performRecoveryOperation() {
@@ -205,17 +204,16 @@ class AbortRecovery extends UserRecoveryServiceBase {
       status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
     });
 
-    // Start Abort Recovery workflow
+    // Start abort recovery workflow.
     await oThis._startAbortRecoveryWorkflow(recOperation.insertId);
   }
 
   /**
    * Start abort recovery workflow.
    *
-   * @param {String/Number} recoveryOperationId
+   * @param {string/number} recoveryOperationId
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _startAbortRecoveryWorkflow(recoveryOperationId) {
@@ -261,7 +259,6 @@ class AbortRecovery extends UserRecoveryServiceBase {
    * Return device entity.
    *
    * @returns {Promise<>}
-   *
    * @private
    */
   async _returnResponse() {
