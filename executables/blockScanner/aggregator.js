@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This code acts as a aggregator for blocks which are finalized
  *
@@ -9,17 +8,16 @@
  *
  * @module executables/blockScanner/aggregator
  */
+const program = require('commander');
 
 const rootPrefix = '../..',
-  program = require('commander'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase');
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -37,12 +35,17 @@ if (!program.cronProcessId) {
   process.exit(1);
 }
 
+/**
+ * Class for aggregator.
+ *
+ * @class Aggregator
+ */
 class Aggregator extends MultiSubscriptionBase {
   /**
-   * Constructor for transaction parser
+   * Constructor for aggregator.
    *
-   * @param params {object} - params object
-   * @param params.cronProcessId {number} - cron_processes table id
+   * @param {object} params: params object
+   * @param {number} params.cronProcessId: cron_processes table id
    *
    * @constructor
    */
@@ -51,7 +54,7 @@ class Aggregator extends MultiSubscriptionBase {
   }
 
   /**
-   * process name prefix
+   * Process name prefix.
    *
    * @returns {string}
    * @private
@@ -61,7 +64,7 @@ class Aggregator extends MultiSubscriptionBase {
   }
 
   /**
-   * topics to subscribe
+   * Topics to subscribe.
    *
    * @returns {*[]}
    * @private
@@ -73,7 +76,7 @@ class Aggregator extends MultiSubscriptionBase {
   }
 
   /**
-   * queue name
+   * Queue name.
    *
    * @returns {string}
    * @private
@@ -85,7 +88,7 @@ class Aggregator extends MultiSubscriptionBase {
   }
 
   /**
-   * Specific validations apart from common validations
+   * Specific validations apart from common validations.
    *
    * @private
    */
@@ -108,7 +111,7 @@ class Aggregator extends MultiSubscriptionBase {
   }
 
   /**
-   * _beforeSubscribe - Create aggregator object before subscription
+   * Create aggregator object before subscription.
    *
    * @return {Promise<void>}
    * @private
@@ -138,7 +141,6 @@ class Aggregator extends MultiSubscriptionBase {
    * @returns {{}}
    * @private
    */
-
   _prepareSubscriptionData() {
     const oThis = this;
 
@@ -152,7 +154,7 @@ class Aggregator extends MultiSubscriptionBase {
   }
 
   /**
-   * This method calls aggregator for finalized transactions
+   * This method calls aggregator for finalized transactions.
    *
    * @param {String} messageParams
    *
@@ -176,26 +178,19 @@ class Aggregator extends MultiSubscriptionBase {
 
     if (aggregatorResponse.isSuccess()) {
       logger.log('Aggregation done for block', blockNumber);
-      logger.debug('------unAckCount -> ', oThis.unAckCount);
       // ACK RMQ.
       return;
     } else {
       // Aggregation was unsuccessful.
 
-      logger.error(
-        'e_bs_a_1',
-        'Error in aggregation. unAckCount ->',
-        oThis.unAckCount,
-        'Aggregation response: ',
-        aggregatorResponse
-      );
+      logger.error('e_bs_a_1', 'Error in aggregation.', 'Aggregation response: ', aggregatorResponse);
       // ACK RMQ.
       return;
     }
   }
 
   /**
-   * Start subscription
+   * Start subscription.
    *
    * @return {Promise<void>}
    * @private
@@ -204,47 +199,6 @@ class Aggregator extends MultiSubscriptionBase {
     const oThis = this;
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
-  }
-
-  /**
-   * Increment Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].incrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Decrement Unack count
-   *
-   * @param messageParams
-   * @private
-   */
-  _decrementUnAck(messageParams) {
-    const oThis = this;
-
-    oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].decrementUnAckCount();
-
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @param messageParams
-   * @returns {number}
-   * @private
-   */
-  _getUnAck(messageParams) {
-    const oThis = this;
-
-    return oThis.subscriptionTopicToDataMap[oThis._topicsToSubscribe[0]].unAckCount;
   }
 }
 
@@ -255,4 +209,4 @@ new Aggregator({ cronProcessId: +program.cronProcessId }).perform();
 setInterval(function() {
   logger.info('Ending the process.');
   process.emit('SIGINT');
-}, cronProcessesConstants.continuousCronRestartInterval);
+}, cronProcessesConstants.cronRestartInterval5Mins);

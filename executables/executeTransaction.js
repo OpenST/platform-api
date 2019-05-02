@@ -212,69 +212,6 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   }
 
   /**
-   * Increment Unack count.
-   *
-   * @param messageParams
-   * @returns {boolean}
-   * @private
-   */
-  _incrementUnAck(messageParams) {
-    const oThis = this;
-
-    let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].incrementUnAckCount();
-    } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].incrementUnAckCount();
-    }
-    return true;
-  }
-
-  /**
-   * Decrement Unack count.
-   *
-   * @param messageParams
-   * @returns {boolean}
-   * @private
-   */
-  _decrementUnAck(messageParams) {
-    const oThis = this;
-
-    let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].decrementUnAckCount();
-    } else if (kind == kwcConstant.commandMsg) {
-      oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].decrementUnAckCount();
-    }
-    return true;
-  }
-
-  /**
-   * Get Unack count.
-   *
-   * @param messageParams
-   * @returns {number}
-   * @private
-   */
-  _getUnAck(messageParams) {
-    const oThis = this;
-
-    let msgParams = messageParams.message.payload,
-      kind = msgParams.kind;
-
-    if (kind == kwcConstant.executeTx) {
-      return oThis.subscriptionTopicToDataMap[oThis.exTxTopicName].unAckCount;
-    } else if (kind == kwcConstant.commandMsg) {
-      return oThis.subscriptionTopicToDataMap[oThis.cMsgTopicName].unAckCount;
-    }
-    return 0;
-  }
-
-  /**
    * Process message
    *
    * @param {Object} messageParams
@@ -333,6 +270,8 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
    * @private
    */
   async _commandMessageProcessor(messageParams) {
+    const oThis = this;
+
     let commandProcessorResponse = await new CommandMessageProcessor({
       auxChainId: oThis.auxChainId,
       commandMessage: messageParams.message.payload
@@ -358,9 +297,15 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
     if (commandProcessorResponse.data.shouldStartTxQueConsume === 1) {
       await oThis._startSubscriptionFor(oThis.exTxTopicName);
     } else if (commandProcessorResponse.data.shouldStopTxQueConsume === 1) {
-      oThis._stopPickingUpNewTasks(oThis.exTxTopicName);
+      let rabbitmqSubscription = oThis.subscriptionTopicToDataMap[oThis.exTxTopicName];
+      rabbitmqSubscription.stopConsumption();
     }
   }
 }
 
 new ExecuteTransactionExecutable({ cronProcessId: +program.cronProcessId }).perform();
+
+setInterval(function() {
+  logger.info('Ending the process. Sending SIGINT.');
+  process.emit('SIGINT');
+}, cronProcessesConstants.cronRestartInterval15Mins);

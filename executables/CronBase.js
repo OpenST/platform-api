@@ -1,14 +1,16 @@
 /**
- * Class for sigint handler.
+ * Module for sigint handler.
  *
  * @module executables/CronBase
  */
+
 const rootPrefix = '..',
   CronProcessHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   cronProcessHandlerObject = new CronProcessHandler(),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
 /**
@@ -61,7 +63,9 @@ class CronBase {
         }
       });
 
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity).then(() => {
+        process.emit('SIGINT');
+      });
 
       return responseHelper.error({
         internal_error_identifier: 'e_cb_2',
@@ -113,9 +117,12 @@ class CronBase {
     /**
      * Handler for SIGINT and SIGTERM signals.
      */
-    const handle = function() {
+    const handle = async function() {
       // Rachin: Does this need to be called more than once?
       oThis._stopPickingUpNewTasks();
+
+      // Sleep to give some breathing space to cancel consume. So by chance if during cancellation new message arrives, it got considered
+      await basicHelper.sleep(5000);
 
       // We need to call notifier only once.
       if (!notifierCalled) {
@@ -126,21 +133,25 @@ class CronBase {
       if (oThis._pendingTasksDone()) {
         logger.info(':: No pending tasks. Changing the status ');
 
-        //Rachin: What will happen if stopProcess thorws an exception?
-        cronProcessHandlerObject.stopProcess(oThis.cronProcessId).then(function() {
-          logger.info('Status and last_ended_at updated in table. Killing process.');
+        cronProcessHandlerObject
+          .stopProcess(oThis.cronProcessId)
+          .then(function() {
+            logger.info('Status and last_ended_at updated in table. Killing process.');
 
-          // Stop the process only after the entry has been updated in the table.
-          // Rachin: Why exit code 1? The pending tasks are done. Right?
-          process.exit(1);
-        });
+            // Stop the process only after the entry has been updated in the table.
+            process.exit(0);
+          })
+          .catch(function(err) {
+            logger.error(`Error occurred while stopping cron. Error: ${err}`);
+            process.exit(1);
+          });
       } else {
         logger.info(':: There are pending tasks. Waiting for completion.');
         // Rachin: Consider breaking this function into 2 parts:
-        // a. One that is signal handler which:
+        // A. One that is signal handler which:
         //    1. _stopPickingUpNewTasks
         //    2. schedules sendNotification
-        // b. The other that is a recursive method which verifies _pendingTasksDone.
+        // B. The other that is a recursive method which verifies _pendingTasksDone.
         setTimeout(handle, 1000);
       }
     };

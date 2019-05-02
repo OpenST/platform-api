@@ -57,6 +57,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '31': workflowStepConstants.verifySetInternalActorForOwnerInUBT,
     '32': workflowStepConstants.verifyEconomySetup,
     '33': workflowStepConstants.assignShards,
+    '86': workflowStepConstants.sendTokenSetupSuccessEmail,
+    '87': workflowStepConstants.sendTokenSetupErrorEmail,
 
     '34': workflowStepConstants.deployTokenRules,
     '35': workflowStepConstants.saveTokenRules,
@@ -95,6 +97,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '65': workflowStepConstants.confirmStakeIntent,
     '66': workflowStepConstants.progressStake,
     '67': workflowStepConstants.progressMint,
+    '88': workflowStepConstants.sendStakeAndMintSuccessEmail,
+    '89': workflowStepConstants.sendStakeAndMintErrorEmail,
 
     '70': workflowStepConstants.btStakeAndMintInit,
     '71': workflowStepConstants.approveGatewayComposerTrx,
@@ -196,7 +200,29 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 
     '312': workflowStepConstants.abortRecoveryByRecoveryControllerInit,
     '313': workflowStepConstants.abortRecoveryByRecoveryControllerPerformTransaction,
-    '314': workflowStepConstants.abortRecoveryByRecoveryControllerVerifyTransaction
+    '314': workflowStepConstants.abortRecoveryByRecoveryControllerVerifyTransaction,
+
+    '321': workflowStepConstants.stPrimeRedeemAndUnstakeInit,
+    '322': workflowStepConstants.stPrimeWrapAsBT,
+    '323': workflowStepConstants.stPrimeApproveCoGateway,
+    '324': workflowStepConstants.stPrimeRedeem,
+    '325': workflowStepConstants.fetchRedeemIntentMessageHash,
+    '326': workflowStepConstants.proveCoGatewayOnGateway,
+    '327': workflowStepConstants.confirmRedeemIntent,
+    '328': workflowStepConstants.progressRedeem,
+    '329': workflowStepConstants.progressUnstake,
+
+    '331': workflowStepConstants.btRedeemAndUnstakeInit,
+    '332': workflowStepConstants.executeBTRedemption,
+    '333': workflowStepConstants.checkExecuteBTRedemptionStatus,
+
+    '341': workflowStepConstants.checkWrapStPrimeStatus,
+    '342': workflowStepConstants.checkApproveCoGatewayStatus,
+    '343': workflowStepConstants.checkRedeemStatus,
+    '344': workflowStepConstants.checkProveCoGatewayStatus,
+    '345': workflowStepConstants.checkConfirmRedeemStatus,
+    '346': workflowStepConstants.checkProgressRedeemStatus,
+    '347': workflowStepConstants.checkProgressUnstakeStatus
   },
   invertedKinds = util.invert(kinds);
 

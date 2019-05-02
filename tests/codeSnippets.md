@@ -270,6 +270,10 @@ a = require('./lib/getBalance/StPrime');
 b = new a({auxChainId: 2000, addresses: ['0x9b8497f476ca8c285f69c911f2fc6fb727d5c9c9']});
 b.perform().then(console.log);
 
+a = require('./lib/getBalance/Ubt');
+b = new a({auxChainId: 1407, tokenId: 1003, addresses: ['0x8bfca77079bbb3da3fb4293c64de3b9010c3948b']});
+b.perform().then(console.log);
+
 a = require('./lib/transfer/Eth');
 b = new a({originChainId: originChainId, transferDetails: [{from: chainOwner,to: originDeployer, amountInWei:'2000000000000000000'}]});
 b.perform().then(console.log);
@@ -294,4 +298,50 @@ managedAddresses = null;
 new KnownAddressModel().getByAddressesSecure(['0xb12e2ab242cb324f61db62a026d1f628bbe2907e']).then(function(resp){managedAddresses = resp});
 managedAddress = managedAddresses[0];
 
+```
+
+### BT Redeem and Unstake.
+```bash
+    source set_env_vars.sh
+    > node
+        OSTBase = require('@ostdotcom/base')
+        InstanceComposer = OSTBase.InstanceComposer
+        ic = new InstanceComposer(config)
+        
+        require('./app/services/token/redeem/ByCompany.js')
+        
+        TokenRedeemByCompany = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenRedeemByCompany');
+        
+        a = new TokenRedeemByCompany({token_id: 1009, client_id: 10009, 
+            beneficiary: '0x5f2EA87f3515C608f6d7255082A07Ff7B61d59f1', 
+            amount_to_redeem: '100000000000000000000'})
+        
+        a.perform().then(console.log)
+```
+
+### ST Prime Redeem and Unstake.
+```bash
+    source set_env_vars.sh
+    > node
+        params = {
+            stepKind: 'stPrimeRedeemAndUnstakeInit',
+            taskStatus: 'taskReadyToStart',
+            clientId: 0,
+            chainId: 2000,
+            topic: 'workflow.stPrimeRedeemAndUnstake',
+            requestParams: {
+                redeemerAddress: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
+                originChainId: 1000, 
+                auxChainId: 2000, 
+                sourceChainId: 2000,
+                destinationChainId: 1000,
+                facilitator: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
+                amountToRedeem: '100000000000000000000', 
+                beneficiary: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6'
+            }
+    }
+    stPrimeRouterK = require('./lib/workflow/redeemAndUnstake/stPrime/Router')
+    stPrimeRouter = new stPrimeRouterK(params)
+
+    stPrimeRouter.perform().then(console.log).catch(function(err){console.log('err', err)})
 ```

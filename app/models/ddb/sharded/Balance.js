@@ -166,10 +166,6 @@ class Balance extends Base {
       deltaPessimisticBalance = deltaPessimisticChainBalance.add(deltaPessimisticCreditBalance),
       totalUnsettledDebits = new BigNumber(deltaBUD).add(new BigNumber(deltaCUD));
 
-    if (totalUnsettledDebits.gt(zeroBn)) {
-      await oThis._checkBalanceFromCache(params.erc20Address, params.tokenHolderAddress, totalUnsettledDebits);
-    }
-
     const balanceParams = {
       TableName: oThis.tableName(),
       Key: oThis._keyObj(params),
@@ -207,28 +203,28 @@ class Balance extends Base {
     }
 
     const updateResponse = await oThis.ddbServiceObj.updateItem(balanceParams).catch(function(updateBalanceResponse) {
-      let debugOptions = { totalUnsettledDebits: totalUnsettledDebits };
-      let apiErrorIdentifier = 'balance_update_failed';
-
-      if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
-        apiErrorIdentifier = 'insufficient_funds';
+      if (responseHelper.isCustomResult(updateBalanceResponse)) {
+        return updateBalanceResponse;
       }
-      return Promise.reject(
-        oThis._prepareErrorObject({
-          errorObject: updateBalanceResponse,
-          internalErrorCode: `a_m_d_dh_b_1:${errorConstant.insufficientFunds}`,
-          apiErrorIdentifier: apiErrorIdentifier,
-          debugOptions: debugOptions
-        })
-      );
+      return responseHelper.error({
+        internal_error_identifier: 'a_m_d_dh_b_1',
+        api_error_identifier: 'something_went_wrong',
+        debug_options: { error: updateBalanceResponse.toString(), params: params }
+      });
     });
 
     if (updateResponse.isFailure()) {
+      let apiErrorIdentifier;
+      if (updateResponse.internalErrorCode.endsWith(errorConstant.conditionalCheckFailedExceptionSuffix)) {
+        apiErrorIdentifier = 'insufficient_funds';
+      } else {
+        apiErrorIdentifier = 'balance_update_failed';
+      }
       return Promise.reject(
         oThis._prepareErrorObject({
           errorObject: updateResponse,
           internalErrorCode: 'a_m_d_dh_b_3',
-          apiErrorIdentifier: 'balance_update_failed'
+          apiErrorIdentifier: apiErrorIdentifier
         })
       );
     }
@@ -241,45 +237,6 @@ class Balance extends Base {
     }
 
     return updateResponse;
-  }
-
-  /**
-   *
-   * check if balance from cache is greater than totalUnsettledDebits
-   *
-   * @param {String} erc20Address
-   * @param {String} tokenHolderAddress
-   * @param {String} totalUnsettledDebits
-   * @private
-   */
-  async _checkBalanceFromCache(erc20Address, tokenHolderAddress, totalUnsettledDebits) {
-    const oThis = this;
-
-    require(rootPrefix + '/lib/cacheManagement/chainMulti/Balance');
-    let BalanceCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
-      balanceCache = new BalanceCache({
-        tokenHolderAddresses: [tokenHolderAddress],
-        erc20Address: erc20Address
-      });
-    let balanceFetchRsp = await balanceCache.fetch();
-    if (balanceFetchRsp.isFailure()) {
-      return balanceFetchRsp;
-    }
-
-    let pessimisticBalance = balanceFetchRsp.data[tokenHolderAddress]['pessimisticSettledBalance'];
-
-    if (!pessimisticBalance || new BigNumber(pessimisticBalance).lt(totalUnsettledDebits)) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: `a_m_d_dh_b_2:${errorConstant.insufficientFunds}`,
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {
-            totalUnsettledDebits: totalUnsettledDebits,
-            pessimisticBalance: pessimisticBalance
-          }
-        })
-      );
-    }
   }
 
   /**

@@ -18,7 +18,8 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  tokenAuxFunderRequirement = require(rootPrefix + '/lib/calculateTokenAuxFunderSTPRequirement');
 
 /**
  * Base class for aux chain specific by chain owner funding crons.
@@ -245,6 +246,25 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
   }
 
   /**
+   * This function tells if the master internal funder has some threshold amount of stPrime.
+   *
+   * @returns {String}
+   *
+   * @private
+   */
+  _checkThresholdAmountForMif() {
+    let amountRequirement = tokenAuxFunderRequirement.perform(),
+      auxMaxGasPriceMultiplierWithBuffer = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer(),
+      amountForOneGwei = amountRequirement[tokenAddressConstants.auxFunderAddressKind].maxBalanceToFundAtOneGwei,
+      finalAmount = basicHelper
+        .convertToBigNumber(String(amountForOneGwei))
+        .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer))
+        .plus(basicHelper.convertToWei(1));
+
+    return finalAmount.toString(10);
+  }
+
+  /**
    * This function tells if the master internal funder st prime balance is greater than the given amount.
    *
    * @param {String/Number} amount
@@ -260,6 +280,8 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
         oThis.masterInternalFunderAddress
       ]),
       mifBalance = basicHelper.convertToBigNumber(mifAddressToBalanceMap[oThis.masterInternalFunderAddress]);
+
+    logger.debug('Master internal funder balance', mifBalance.toString(10));
 
     if (mifBalance.lt(amount)) {
       // Create an alert
