@@ -31,14 +31,15 @@ class PublisherBase extends CronBase {
   /**
    * Validate and sanitize.
    *
+   * @return {Promise<void>}
    * @private
    */
-  _validateAndSanitize() {
+  async _validateAndSanitize() {
     const oThis = this;
 
     logger.step('Common validations done.');
 
-    oThis._specificValidations();
+    await oThis._specificValidations();
 
     logger.step('Specific validations done.');
   }
@@ -56,15 +57,40 @@ class PublisherBase extends CronBase {
     return oThis.canExit;
   }
 
+  /**
+   * Topics to publish
+   *
+   * @private
+   */
   get _topicsToPublish() {
     throw new Error('Sub-class to implement.');
   }
 
+  /**
+   * Publisher
+   *
+   * @private
+   */
   get _publisher() {
     throw new Error('Sub-class to implement.');
   }
 
+  /**
+   * Message kind
+   *
+   * @private
+   */
   get _messageKind() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Specific validations
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _specificValidations() {
     throw new Error('Sub-class to implement.');
   }
 }
