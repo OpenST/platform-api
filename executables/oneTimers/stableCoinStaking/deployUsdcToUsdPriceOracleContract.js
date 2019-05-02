@@ -10,6 +10,7 @@ const rootPrefix = '../../..',
   DeployPriceOracle = require(rootPrefix + '/tools/chainSetup/aux/DeployPriceOracle'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
@@ -81,7 +82,8 @@ class DeployUsdcToUsdPriceOracleContract {
       auxChainId: oThis.auxChainId,
       baseCurrency: conversionRateConstants.USDC,
       quoteCurrency: conversionRateConstants.USD,
-      contractAddressKind: chainAddressConstants.auxUsdcToUsdPriceOracleContractKind
+      contractAddressKind: chainAddressConstants.auxUsdcToUsdPriceOracleContractKind,
+      gasPrice: contractConstants.auxChainGasPrice
     }).perform();
   }
 }
