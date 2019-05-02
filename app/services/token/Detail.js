@@ -64,7 +64,7 @@ class TokenDetail extends ServiceBase {
 
     oThis.token['originChainId'] = oThis.originChainId;
     oThis.token['auxChainId'] = oThis.auxChainId;
-    oThis.token['decimals'] = contractConstants.requiredPriceOracleDecimals;
+    oThis.token['decimals'] = oThis.token.decimal;
 
     await oThis._fetchTokenAddresses();
 
