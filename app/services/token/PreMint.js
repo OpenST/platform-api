@@ -32,7 +32,6 @@ class PreMint extends ServiceBase {
    * @param {Object} params
    * @param {Number} params.client_id: client id
    * @param {Number} params.token_id: token id
-   * @param {String} params.stake_currency_to_stake: in wei stake amount
    * @param {String} params.bt_to_mint: in wei bt amount
    * @param {Boolean} params.fetch_request_stake_tx_params: boolean which would determine fetching params needed
    *
@@ -45,7 +44,6 @@ class PreMint extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-    oThis.stakeAmountInWei = params.stake_currency_to_stake;
     oThis.btAmountInWei = params.bt_to_mint;
 
     // optional
@@ -252,15 +250,16 @@ class PreMint extends ServiceBase {
 
     let conversionFactor = oThis.token.conversionFactor,
       conversionFactorBN = basicHelper.convertToBigNumber(conversionFactor),
-      stakeAmountBN = basicHelper.convertToBigNumber(oThis.stakeAmountInWei),
       btAmountBN = basicHelper.convertToBigNumber(oThis.btAmountInWei);
 
-    let stakeAmountEquivalentBT = stakeAmountBN.mul(conversionFactorBN),
-      convertedStakeAmount = stakeAmountEquivalentBT.div(conversionFactorBN);
+    let computedStakeAmountBN = btAmountBN.div(conversionFactorBN),
+      computedStakeAmountStr = basicHelper.formatWeiToString(computedStakeAmountBN),
+      // as contract always floor's the number. applying a custom logic
+      truncatedComputedStakeAmountStr = computedStakeAmountStr.split('.')[0];
 
     oThis.preciseAmounts = {
-      stake_currency: oThis.stakeAmountInWei,
-      bt: basicHelper.formatWeiToString(stakeAmountEquivalentBT)
+      stake_currency: basicHelper.formatWeiToString(truncatedComputedStakeAmountStr),
+      bt: oThis.btAmountInWei
     };
 
     //Todo: Add logic to handle the precision.

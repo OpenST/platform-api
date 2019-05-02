@@ -172,10 +172,6 @@ const signature = {
       {
         parameter: 'bt_to_mint',
         validatorMethod: 'validateNonZeroWeiValue'
-      },
-      {
-        parameter: 'stake_currency_to_stake',
-        validatorMethod: 'validateNonZeroWeiValue'
       }
     ],
     optional: [
