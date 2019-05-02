@@ -47,15 +47,17 @@ class MultiSubscriptionBase extends CronBase {
     const oThis = this;
 
     if (!oThis.prefetchCount) {
-      logger.error('Prefetch count un-available in cron params in the database.');
-      process.emit('SIGINT');
+      let errMsg = 'Prefetch count un-available in cron params in the database.';
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     oThis.prefetchCount = parseInt(oThis.prefetchCount);
 
     if (!CommonValidators.validateNonZeroInteger(oThis.prefetchCount)) {
-      logger.error('Prefetch count is not a valid integer.');
-      process.emit('SIGINT');
+      let errMsg = 'Prefetch count is not a valid integer.';
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     logger.step('Common validations done.');
@@ -63,8 +65,6 @@ class MultiSubscriptionBase extends CronBase {
     oThis._specificValidations();
 
     logger.step('Specific validations done.');
-
-    return true;
   }
 
   /**
@@ -355,9 +355,10 @@ class MultiSubscriptionBase extends CronBase {
   /**
    * Specific validations
    *
+   * @return {Promise<void>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     throw 'sub class to implement.';
   }
 

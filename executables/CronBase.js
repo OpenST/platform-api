@@ -46,7 +46,7 @@ class CronBase {
   perform() {
     const oThis = this;
 
-    return oThis.asyncPerform().catch(function(err) {
+    return oThis.asyncPerform().catch(async function(err) {
       oThis.canExit = true;
 
       logger.log('Marked can exit as true in cron Base catch block.');
@@ -63,15 +63,9 @@ class CronBase {
         }
       });
 
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity).then(() => {
-        process.emit('SIGINT');
-      });
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
-      return responseHelper.error({
-        internal_error_identifier: 'e_cb_2',
-        api_error_identifier: 'unhandled_catch_response',
-        debug_options: err
-      });
+      process.emit('SIGINT');
     });
   }
 
@@ -85,7 +79,7 @@ class CronBase {
 
     await oThis._validateCronProcess();
 
-    oThis._validateAndSanitize();
+    await oThis._validateAndSanitize();
 
     await oThis._start();
   }
@@ -190,11 +184,12 @@ class CronBase {
       // Fetch params from the DB.
       const cronParams = JSON.parse(response.data.params);
 
+      // all the cron process params will be available in oThis object as attributes
       for (const key in cronParams) {
         oThis[key] = cronParams[key];
       }
     } catch (err) {
-      logger.error('cronParams stored in INVALID format in the DB.');
+      logger.error('cron process params stored in INVALID format in the DB.');
       logger.error(
         'The status of the cron was NOT changed to stopped. Please check the status before restarting the cron'
       );

@@ -1,11 +1,7 @@
 'use strict';
 
 /**
- * Cron to fund stPrime by tokenAuxFunder.
- *
- * @module executables/funding/byTokenAuxFunder/ByTokenAuxFunderBase
- *
- * This cron expects originChainId and auxChainIds as parameter in the params.
+ * @module executables/funding/byTokenAuxFunder/Base
  */
 
 const rootPrefix = '../../..',

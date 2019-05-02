@@ -137,7 +137,7 @@ class BalanceVerifier extends CronBase {
    *
    * @private
    */
-  _validateAndSanitize() {
+  async _validateAndSanitize() {
     return;
   }
 

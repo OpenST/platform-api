@@ -191,13 +191,11 @@ class ExecuteTransactionExecutable extends MultiSubscriptionBase {
   /**
    * Specific validations
    *
-   * @returns {Boolean}
-   *
+   * @return {Promise<boolean>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     // Add specific validations here
-    return true;
   }
 
   /**

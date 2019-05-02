@@ -8,7 +8,6 @@ const program = require('commander');
 
 const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
@@ -87,13 +86,11 @@ class AuxWorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Specific validations
    *
-   * @returns {Boolean}
-   *
+   * @return {Promise<void>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     // Add specific validations here
-    return true;
   }
 
   /**

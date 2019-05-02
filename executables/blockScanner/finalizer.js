@@ -77,18 +77,20 @@ class Finalizer extends PublisherBase {
   }
 
   /**
-   * Sanitizes and validates the input parameters. ChainId is not validated here as it is already validated
-   * before calling the perform method of the class.
+   * Sepcific validations
    *
+   * @return {Promise<never>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     const oThis = this;
 
     // Validate chainId
     if (!oThis.chainId) {
-      logger.error('Invalid chainId. Exiting the cron.');
-      process.emit('SIGINT');
+      let errMsg = 'Invalid chainId. Exiting the cron.';
+
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     logger.step('All validations done.');
