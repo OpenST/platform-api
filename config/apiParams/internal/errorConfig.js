@@ -76,6 +76,18 @@ const errorConfig = {
     parameter: 'currencies',
     code: 'invalid',
     message: 'One or more currencies provided in the currencies array is invalid'
+  },
+
+  invalid_bt_to_mint: {
+    parameter: 'bt_to_mint',
+    code: 'invalid',
+    message: 'Invalid bt to mint amount'
+  },
+
+  invalid_stake_currency_to_stake: {
+    parameter: 'stake_currency_to_stake',
+    code: 'invalid',
+    message: 'Invalid stake currency to stake'
   }
 };
 

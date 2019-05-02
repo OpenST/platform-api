@@ -10,6 +10,7 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
+  StakeCurrencyBTConverter = require(rootPrefix + '/lib/StakeCurrencyBTConverter'),
   BtStakeAndMintRouter = require(rootPrefix + '/lib/workflow/stakeAndMint/brandedToken/Router'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
@@ -18,7 +19,6 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   ServiceBase = require(rootPrefix + '/app/services/Base');
 
@@ -119,13 +119,19 @@ class StartMint extends ServiceBase {
   _validateAmounts() {
     const oThis = this;
 
-    if (false && oThis._tokenHasManagedOwner()) {
-      //TODO: Ankit add check here to see if these are in sync with each other
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_t_sm_6',
-        api_error_identifier: 'invalid_params',
-        debug_options: {}
-      });
+    if (oThis._tokenHasManagedOwner()) {
+      let stakeCurrencyBTConverterObj = new StakeCurrencyBTConverter({
+          conversionFactor: oThis.token.conversionFactor
+        }),
+        computedStakeCurrencyInWei = stakeCurrencyBTConverterObj.convertBtToStakeCurrency(oThis.btToMintInWei);
+
+      if (computedStakeCurrencyInWei !== oThis.stakeCurrencyToStakeInWei) {
+        return responseHelper.error({
+          internal_error_identifier: 'a_s_t_sm_6',
+          api_error_identifier: 'stake_currency_bt_conversion_mismatch',
+          debug_options: {}
+        });
+      }
     }
   }
 

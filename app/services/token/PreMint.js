@@ -18,6 +18,7 @@ const rootPrefix = '../../..',
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  StakeCurrencyBTConverter = require(rootPrefix + '/lib/StakeCurrencyBTConverter'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
@@ -248,17 +249,11 @@ class PreMint extends ServiceBase {
   async _getPreciseAmount() {
     const oThis = this;
 
-    let conversionFactor = oThis.token.conversionFactor,
-      conversionFactorBN = basicHelper.convertToBigNumber(conversionFactor),
-      btAmountBN = basicHelper.convertToBigNumber(oThis.btAmountInWei);
-
-    let computedStakeAmountBN = btAmountBN.div(conversionFactorBN),
-      computedStakeAmountStr = basicHelper.formatWeiToString(computedStakeAmountBN),
-      // as contract always floor's the number. applying a custom logic
-      truncatedComputedStakeAmountStr = computedStakeAmountStr.split('.')[0];
+    let stakeCurrencyBTConverterObj = new StakeCurrencyBTConverter({ conversionFactor: oThis.token.conversionFactor }),
+      computedStakeCurrencyInWei = stakeCurrencyBTConverterObj.convertBtToStakeCurrency(oThis.btAmountInWei);
 
     oThis.preciseAmounts = {
-      stake_currency: basicHelper.formatWeiToString(truncatedComputedStakeAmountStr),
+      stake_currency: computedStakeCurrencyInWei,
       bt: oThis.btAmountInWei
     };
 

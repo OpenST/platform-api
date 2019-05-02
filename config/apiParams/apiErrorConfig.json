@@ -548,5 +548,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Balance Rollback Failed from API Thread."
+  },
+  "stake_currency_bt_conversion_mismatch": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Mismatch in stake currency amount and bt amount."
   }
 }
