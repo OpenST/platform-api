@@ -1,7 +1,7 @@
 /**
  * Module to deploy USDC to USD price oracle contract.
  *
- * @module executables/oneTimers/stableCoinStaking/deployUsdcToUsdcPriceOracleContract
+ * @module executables/oneTimers/stableCoinStaking/deployUsdcToUsdPriceOracleContract
  */
 
 const program = require('commander');
@@ -20,7 +20,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/oneTimers/stableCoinStaking/deployUsdcToUsdcPriceOracleContract.js --auxChainId 2000'
+    '    node executables/oneTimers/stableCoinStaking/deployUsdcToUsdPriceOracleContract.js --auxChainId 2000'
   );
   logger.log('');
   logger.log('');
