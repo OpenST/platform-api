@@ -208,9 +208,10 @@ class StartMint extends ServiceBase {
     } else {
       if (oThis.stakerAddress !== oThis.tokenAddresses[tokenAddressConstants.ownerAddressKind]) {
         return Promise.reject(
-          responseHelper.error({
+          responseHelper.paramValidationError({
             internal_error_identifier: 'a_s_t_sm_3',
             api_error_identifier: 'something_went_wrong',
+            params_error_identifiers: ['invalid_staker_address'],
             debug_options: { stakerAddress: oThis.stakerAddress }
           })
         );
