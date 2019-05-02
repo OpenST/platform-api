@@ -105,7 +105,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
   async _canPerformRecoveryOperation() {
     const oThis = this;
 
-    for (const index in oThis.userPendingRecoveryOperations) {
+    for (let index = 0; index < oThis.userPendingRecoveryOperations.length; index++) {
       const operation = oThis.userPendingRecoveryOperations[index];
 
       // Another in progress operation is present.

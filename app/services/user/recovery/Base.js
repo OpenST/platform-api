@@ -228,6 +228,8 @@ class UserRecoveryBase extends ServiceBase {
   /**
    * Fetch pending recovery operations of user if any.
    *
+   * @sets oThis.userPendingRecoveryOperations
+   *
    * @returns {Promise<Void>}
    * @private
    */
