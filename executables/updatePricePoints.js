@@ -127,10 +127,9 @@ class UpdatePriceOraclePricePoints extends CronBase {
 
         await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
-        logger.error('Cron already running for this chain. Exiting the process.');
-        oThis.canExit = true;
-        process.emit('SIGINT');
-        await basicHelper.sleep(5 * 1000);
+        let errMsg = 'Cron already running for this chain. Exiting the process.';
+        logger.error(errMsg);
+        return Promise.reject(errMsg);
       }
     }
   }

@@ -83,12 +83,11 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Specific validations
    *
-   * @returns {boolean}
+   * @return {Promise<boolean>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     // Add specific validations here
-    return true;
   }
 
   /**
