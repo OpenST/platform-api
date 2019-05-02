@@ -26,6 +26,7 @@ class SubEnvSpecificCronSeeder {
     await oThis.insertWorkflowWorkerEntry();
     await oThis.insertUpdateRealtimeGasPriceEntry();
     await oThis.insertCronProcessesMonitorEntry();
+    await oThis.insertRecoveryRequestsMonitorEntry();
   }
 
   /**
@@ -67,6 +68,17 @@ class SubEnvSpecificCronSeeder {
    */
   async insertCronProcessesMonitorEntry() {
     return new InsertCrons().perform(cronProcessConstants.cronProcessesMonitor, {}).then(function(insertId) {
+      logger.log('InsertId: ', insertId);
+    });
+  }
+
+  /**
+   * Insert Recovery Requests Monitor cron entry.
+   *
+   * @return {Promise<*>}
+   */
+  async insertRecoveryRequestsMonitorEntry() {
+    return new InsertCrons().perform(cronProcessConstants.recoveryRequestsMonitor, {}).then(function(insertId) {
       logger.log('InsertId: ', insertId);
     });
   }
