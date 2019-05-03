@@ -1,7 +1,7 @@
 /**
  * Module to deploy USDC to USD price oracle contract.
  *
- * @module executables/oneTimers/stableCoinStaking/deployUsdcToUsdcPriceOracleContract
+ * @module executables/oneTimers/stableCoinStaking/deployUsdcToUsdPriceOracleContract
  */
 
 const program = require('commander');
@@ -10,6 +10,7 @@ const rootPrefix = '../../..',
   DeployPriceOracle = require(rootPrefix + '/tools/chainSetup/aux/DeployPriceOracle'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
@@ -20,7 +21,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/oneTimers/stableCoinStaking/deployUsdcToUsdcPriceOracleContract.js --auxChainId 2000'
+    '    node executables/oneTimers/stableCoinStaking/deployUsdcToUsdPriceOracleContract.js --auxChainId 2000'
   );
   logger.log('');
   logger.log('');
@@ -81,7 +82,8 @@ class DeployUsdcToUsdPriceOracleContract {
       auxChainId: oThis.auxChainId,
       baseCurrency: conversionRateConstants.USDC,
       quoteCurrency: conversionRateConstants.USD,
-      contractAddressKind: chainAddressConstants.auxUsdcToUsdPriceOracleContractKind
+      contractAddressKind: chainAddressConstants.auxUsdcToUsdPriceOracleContractKind,
+      gasPrice: contractConstants.auxChainGasPrice
     }).perform();
   }
 }

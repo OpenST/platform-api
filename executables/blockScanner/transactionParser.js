@@ -117,13 +117,15 @@ class TransactionParser extends MultiSubscriptionBase {
     const oThis = this;
 
     if (!oThis.chainId) {
-      logger.error('Chain ID is un-available in cron params in the database.');
-      process.emit('SIGINT');
+      let errMsg = 'Chain ID is un-available in cron params in the database.';
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     if (oThis.chainId < 0) {
-      logger.error('Chain ID is invalid.');
-      process.emit('SIGINT');
+      let errMsg = 'Chain ID is invalid.';
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
   }
 
