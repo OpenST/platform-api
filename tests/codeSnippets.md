@@ -214,6 +214,10 @@ a.perform().then(console.log)
 
 ### Manually retry a workflow step:
 
+```sh
+node helpers/retryWorkflowStep.js <workflowStepId>
+```
+
 ```node
 
 params = {
