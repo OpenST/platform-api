@@ -533,5 +533,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Balance Rollback Failed from API Thread."
+  },
+  "recovery_requests_threshold_exceeded": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Recovery requests for a client have exceeded the threshold limit."
   }
 }
