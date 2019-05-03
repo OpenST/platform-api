@@ -4,11 +4,14 @@
  * @module executables/recoveryRequestsMonitor
  */
 
-const program = require('commander');
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer,
+  program = require('commander');
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   TokenByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
@@ -22,6 +25,9 @@ const rootPrefix = '..',
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation');
+
+// Following require(s) for registering into instance composer.
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -41,6 +47,8 @@ if (!cronProcessId) {
   process.exit(1);
 }
 
+// Declare variables.
+const chainInstanceComposer = {};
 /**
  * Class for recovery requests monitoring cron.
  *
@@ -228,7 +236,7 @@ class RecoveryRequestsMonitor extends CronBase {
         );
       }
 
-      oThis.tokenIdMap[tokenId].chainId = cacheResponse[oThis.tokenIdMap[tokenId].clientId].chainId;
+      oThis.tokenIdMap[tokenId].chainId = cacheResponse.data[oThis.tokenIdMap[tokenId].clientId].chainId;
     }
 
     console.log('======oThis.tokenIdMap=====4444444=======', oThis.tokenIdMap);
@@ -356,6 +364,8 @@ class RecoveryRequestsMonitor extends CronBase {
 
     const cacheResponse = await economyCache.fetch();
 
+    console.log('====cacheResponse=====', cacheResponse);
+
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched economy details from DDB.');
 
@@ -392,7 +402,12 @@ class RecoveryRequestsMonitor extends CronBase {
       return Promise.reject(new Error('Could not fetch company user UUIDS.'));
     }
 
-    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+    const instanceComposer = await oThis._fetchInstanceComposer(oThis.tokenIdMap[tokenId].chainId);
+
+    const TokenUserDetailsCache = instanceComposer.getShadowedClassFor(
+        coreConstants.icNameSpace,
+        'TokenUserDetailsCache'
+      ),
       tokenUserDetailsCacheObj = new TokenUserDetailsCache({
         tokenId: tokenId,
         userIds: tokenCompanyUserCacheRsp.data.userUuids
@@ -412,6 +427,28 @@ class RecoveryRequestsMonitor extends CronBase {
   }
 
   /**
+   * Fetch instance composer for the given chainId.
+   *
+   * @param {string/number} chainId
+   *
+   * @return {Promise<*>}
+   * @private
+   */
+  async _fetchInstanceComposer(chainId) {
+    if (chainInstanceComposer[chainId]) {
+      return chainInstanceComposer[chainId];
+    }
+
+    const configStrategyHelper = new ConfigStrategyHelper(chainId);
+    const configResponse = await configStrategyHelper.getComplete();
+    const configStrategy = configResponse.data;
+
+    chainInstanceComposer[chainId] = new InstanceComposer(configStrategy);
+
+    return chainInstanceComposer[chainId];
+  }
+
+  /**
    * Send pager duty alerts to dev team if needed.
    *
    * @return {Promise<void>}
@@ -427,12 +464,25 @@ class RecoveryRequestsMonitor extends CronBase {
     for (const tokenId in oThis.tokenIdMap) {
       const tokenTotalUsers = oThis.tokenIdMap[tokenId].totalUsers;
 
+      console.log('===tokenTotalUsers====', tokenTotalUsers);
+      console.log(
+        '===recoveryOperationConstants.requestsUsersCount====',
+        recoveryOperationConstants.requestsUsersCount
+      );
+
       const requestsPerUsersCount = Math.ceil(tokenTotalUsers / recoveryOperationConstants.requestsUsersCount);
+
+      console.log('======requestsPerUsersCount======', requestsPerUsersCount);
+      console.log(
+        '======requestsPerUsersCount===1111111===',
+        requestsPerUsersCount * recoveryOperationConstants.requestsCountThreshold
+      );
 
       if (
         requestsPerUsersCount * recoveryOperationConstants.requestsCountThreshold >
         oThis.tokenIdMap[tokenId].totalOperations
       ) {
+        return; // TODO: Revert this.
         logger.error('e_rrm_4', 'Recovery requests for client greater than threshold.');
         const errorObject = responseHelper.error({
           internal_error_identifier: 'recovery_requests_threshold_exceeded:e_rrm_4',
