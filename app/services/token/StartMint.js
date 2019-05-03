@@ -123,9 +123,9 @@ class StartMint extends ServiceBase {
       let stakeCurrencyBTConverterObj = new StakeCurrencyBTConverter({
           conversionFactor: oThis.token.conversionFactor
         }),
-        computedStakeCurrencyInWei = stakeCurrencyBTConverterObj.convertBtToStakeCurrency(oThis.btToMintInWei);
+        computedBTCurrencyInWei = stakeCurrencyBTConverterObj.convertStakeCurrencyToBT(oThis.stakeCurrencyToStakeInWei);
 
-      if (computedStakeCurrencyInWei !== oThis.stakeCurrencyToStakeInWei) {
+      if (computedBTCurrencyInWei !== oThis.btToMintInWei) {
         return responseHelper.error({
           internal_error_identifier: 'a_s_t_sm_6',
           api_error_identifier: 'stake_currency_bt_conversion_mismatch',

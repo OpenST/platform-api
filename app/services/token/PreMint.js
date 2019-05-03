@@ -252,12 +252,12 @@ class PreMint extends ServiceBase {
     let stakeCurrencyBTConverterObj = new StakeCurrencyBTConverter({ conversionFactor: oThis.token.conversionFactor }),
       computedStakeCurrencyInWei = stakeCurrencyBTConverterObj.convertBtToStakeCurrency(oThis.btAmountInWei);
 
+    let correctedBTAmountInWei = stakeCurrencyBTConverterObj.convertStakeCurrencyToBT(computedStakeCurrencyInWei);
+
     oThis.preciseAmounts = {
       stake_currency: computedStakeCurrencyInWei,
-      bt: oThis.btAmountInWei
+      bt: correctedBTAmountInWei
     };
-
-    //Todo: Add logic to handle the precision.
   }
 
   /**
