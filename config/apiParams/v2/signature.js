@@ -22,7 +22,16 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.getToken]: {
