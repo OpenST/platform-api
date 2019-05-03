@@ -113,13 +113,13 @@ class RecoveryRequestsMonitor extends CronBase {
 
     await oThis._fetchRecoveryOperations();
 
-    if (oThis.tokenIds.length > 0) {
-      await oThis._fetchTokenDetails();
+    if (oThis.tokenIds.length === 0) return;
 
-      await oThis._fetchTokenTotalUsers();
+    await oThis._fetchTokenDetails();
 
-      await oThis._sendAlertsIfNeeded();
-    }
+    await oThis._fetchTokenTotalUsers();
+
+    await oThis._sendAlertsIfNeeded();
   }
 
   /**
@@ -157,7 +157,14 @@ class RecoveryRequestsMonitor extends CronBase {
       const recoveryOperationEntity = activeRecoveryOperations[index];
 
       oThis.tokenIds.push(recoveryOperationEntity.token_id);
-      oThis.tokenIdMap[recoveryOperationEntity.token_id] = {};
+      oThis.tokenIdMap[recoveryOperationEntity.token_id] = {
+        totalOperations: 0,
+        clientId: 0,
+        chainId: 0,
+        economyContractAddress: '',
+        totalUsers: 0
+      };
+
       oThis.tokenIdMap[recoveryOperationEntity.token_id].totalOperations = recoveryOperationEntity.totalOperations;
     }
 
@@ -466,23 +473,22 @@ class RecoveryRequestsMonitor extends CronBase {
 
       console.log('===tokenTotalUsers====', tokenTotalUsers);
       console.log(
-        '===recoveryOperationConstants.requestsUsersCount====',
-        recoveryOperationConstants.requestsUsersCount
+        '===recoveryOperationConstants.recoveryRequestUserBatchSize====',
+        recoveryOperationConstants.recoveryRequestUserBatchSize
       );
 
-      const requestsPerUsersCount = Math.ceil(tokenTotalUsers / recoveryOperationConstants.requestsUsersCount);
+      const userBatchCount = Math.ceil(tokenTotalUsers / recoveryOperationConstants.recoveryRequestUserBatchSize);
 
-      console.log('======requestsPerUsersCount======', requestsPerUsersCount);
+      console.log('======requestsPerUsersCount======', userBatchCount);
       console.log(
         '======requestsPerUsersCount===1111111===',
-        requestsPerUsersCount * recoveryOperationConstants.requestsCountThreshold
+        userBatchCount * recoveryOperationConstants.requestsThresholdAllowedPerUserBatch
       );
 
       if (
-        requestsPerUsersCount * recoveryOperationConstants.requestsCountThreshold >
+        userBatchCount * recoveryOperationConstants.requestsThresholdAllowedPerUserBatch <
         oThis.tokenIdMap[tokenId].totalOperations
       ) {
-        return; // TODO: Revert this.
         logger.error('e_rrm_4', 'Recovery requests for client greater than threshold.');
         const errorObject = responseHelper.error({
           internal_error_identifier: 'recovery_requests_threshold_exceeded:e_rrm_4',
@@ -490,7 +496,7 @@ class RecoveryRequestsMonitor extends CronBase {
           debug_options: {
             tokenId: tokenId,
             totalRecoveryOperations: oThis.tokenIdMap[tokenId].totalOperations,
-            threshold: requestsPerUsersCount * recoveryOperationConstants.requestsCountThreshold
+            threshold: userBatchCount * recoveryOperationConstants.requestsThresholdAllowedPerUserBatch
           }
         });
         promisesArray.push(createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity));
