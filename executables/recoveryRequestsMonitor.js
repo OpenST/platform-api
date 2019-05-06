@@ -74,8 +74,6 @@ class RecoveryRequestsMonitor extends CronBase {
 
     oThis.tokenIds = [];
     oThis.tokenIdMap = {};
-
-    console.log('======oThis.tokenIdMap=====111111=======', oThis.tokenIdMap);
   }
 
   /**
@@ -167,9 +165,6 @@ class RecoveryRequestsMonitor extends CronBase {
 
       oThis.tokenIdMap[recoveryOperationEntity.token_id].totalOperations = recoveryOperationEntity.totalOperations;
     }
-
-    console.log('=======oThis.tokenIds=======', oThis.tokenIds);
-    console.log('======oThis.tokenIdMap=====222222=======', oThis.tokenIdMap);
   }
 
   /**
@@ -211,8 +206,6 @@ class RecoveryRequestsMonitor extends CronBase {
       oThis.tokenIdMap[tokenId].clientId = cacheResponse.data.clientId;
     }
 
-    console.log('======oThis.tokenIdMap=====333333=======', oThis.tokenIdMap);
-
     // Fetch chainId of client.
     const chainIdsCacheResponsePromisesArray = [];
 
@@ -245,8 +238,6 @@ class RecoveryRequestsMonitor extends CronBase {
 
       oThis.tokenIdMap[tokenId].chainId = cacheResponse.data[oThis.tokenIdMap[tokenId].clientId].chainId;
     }
-
-    console.log('======oThis.tokenIdMap=====4444444=======', oThis.tokenIdMap);
   }
 
   /**
@@ -266,8 +257,6 @@ class RecoveryRequestsMonitor extends CronBase {
     }
 
     await Promise.all(economyContractAddressPromisesArray);
-
-    console.log('======oThis.tokenIdMap=====555555=======', oThis.tokenIdMap);
 
     const chainIdToTokenIdMap = {};
     const chainIdToEconomyContractAddressMap = {};
@@ -299,8 +288,6 @@ class RecoveryRequestsMonitor extends CronBase {
 
     await Promise.all(totalEconomyUsersPromisesArray);
 
-    console.log('======oThis.tokenIdMap=====66666666=======', oThis.tokenIdMap);
-
     // Subtract company token holder addresses from total users count.
     const companyTokenHolderAddressesPromisesArray = [];
 
@@ -309,8 +296,6 @@ class RecoveryRequestsMonitor extends CronBase {
     }
 
     await Promise.all(companyTokenHolderAddressesPromisesArray);
-
-    console.log('======oThis.tokenIdMap=====7777777777=======', oThis.tokenIdMap);
   }
 
   /**
@@ -370,8 +355,6 @@ class RecoveryRequestsMonitor extends CronBase {
       });
 
     const cacheResponse = await economyCache.fetch();
-
-    console.log('====cacheResponse=====', cacheResponse);
 
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched economy details from DDB.');
@@ -471,19 +454,7 @@ class RecoveryRequestsMonitor extends CronBase {
     for (const tokenId in oThis.tokenIdMap) {
       const tokenTotalUsers = oThis.tokenIdMap[tokenId].totalUsers;
 
-      console.log('===tokenTotalUsers====', tokenTotalUsers);
-      console.log(
-        '===recoveryOperationConstants.recoveryRequestUserBatchSize====',
-        recoveryOperationConstants.recoveryRequestUserBatchSize
-      );
-
       const userBatchCount = Math.ceil(tokenTotalUsers / recoveryOperationConstants.recoveryRequestUserBatchSize);
-
-      console.log('======requestsPerUsersCount======', userBatchCount);
-      console.log(
-        '======requestsPerUsersCount===1111111===',
-        userBatchCount * recoveryOperationConstants.requestsThresholdAllowedPerUserBatch
-      );
 
       if (
         userBatchCount * recoveryOperationConstants.requestsThresholdAllowedPerUserBatch <
