@@ -154,6 +154,17 @@ class StartMint extends ServiceBase {
           debug_options: {}
         });
       }
+    } else {
+      if (
+        CommonValidators.isVarNull(oThis.approveTransactionHash) ||
+        CommonValidators.isVarNull(oThis.requestStakeTransactionHash)
+      ) {
+        return responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_t_sm_7',
+          api_error_identifier: 'invalid_params',
+          debug_options: {}
+        });
+      }
     }
   }
 

@@ -155,6 +155,10 @@ const signature = {
       {
         parameter: 'known_address_id',
         validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
   },
