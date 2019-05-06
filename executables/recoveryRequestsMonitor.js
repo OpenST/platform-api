@@ -136,14 +136,14 @@ class RecoveryRequestsMonitor extends CronBase {
       recoveryOperationConstants.invertedKinds[recoveryOperationConstants.pinResetByUserKind]
     ];
     const statusKinds = [
-      recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.completedStatus], // TODO: Revert to inProgressStatus
-      recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.abortedStatus] // TODO: Revert to waitingForAdminActionStatus
+      recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus],
+      recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.waitingForAdminActionStatus]
     ];
 
     const activeRecoveryOperations = await new RecoveryOperationModel()
       .select('token_id, count(*) as totalOperations')
       .where([
-        'kind IN (?) AND status IN (?) AND created_at < DATE_SUB(NOW(), INTERVAL (?) SECOND )', // TODO: Revert < to >.
+        'kind IN (?) AND status IN (?) AND created_at > DATE_SUB(NOW(), INTERVAL (?) SECOND )',
         queryKinds,
         statusKinds,
         recoveryOperationConstants.timeDurationInSeconds
