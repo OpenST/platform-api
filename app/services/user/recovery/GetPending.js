@@ -1,6 +1,5 @@
-'use strict';
 /**
- * This service fetches recovery request of user which is waiting for admin action.
+ * Module to fetch recovery request of user which is waiting for admin action.
  *
  * @module app/services/user/recovery/GetPending
  */
@@ -11,28 +10,38 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   WorkflowCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Workflow'),
+  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   recoveryOperationConstants = require(rootPrefix + '/lib/globalConstant/recoveryOperation');
 
 const InstanceComposer = OSTBase.InstanceComposer;
 
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
+/**
+ * Class to fetch recovery request of user which is waiting for admin action.
+ *
+ * @class GetPendingRecovery
+ */
 class GetPendingRecovery extends ServiceBase {
   /**
-   * @constructor
+   * Constructor to fetch recovery request of user which is waiting for admin action.
    *
-   * @param {Object} params
-   * @param {Number} params.client_id - client Id
-   * @param {Number} [params.token_id] - token Id
-   * @param {Number} [params.user_id] - user Id
+   * @param {object} params
+   * @param {number} params.client_id: client Id
+   * @param {number} [params.token_id]: token Id
+   * @param {number} [params.user_id]: user Id
+   *
+   * @augments ServiceBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -49,9 +58,10 @@ class GetPendingRecovery extends ServiceBase {
   }
 
   /**
-   * perform - Perform Get user lists
+   * Async perform.
    *
    * @return {Promise<void>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -70,14 +80,17 @@ class GetPendingRecovery extends ServiceBase {
   /**
    * Fetch user details.
    *
+   * @sets oThis.userData
+   *
    * @return {Promise<string>}
+   * @private
    */
   async _getUserDetailsFromCache() {
     const oThis = this;
 
-    let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
+    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
 
-    let tokenUserDetailsCache = new TokenUserDetailsCache({
+    const tokenUserDetailsCache = new TokenUserDetailsCache({
         tokenId: oThis.tokenId,
         userIds: [oThis.userId]
       }),
@@ -97,7 +110,7 @@ class GetPendingRecovery extends ServiceBase {
 
     const userData = tokenUserDetailsCacheRsp.data[oThis.userId];
 
-    // error out if user data not fetched.
+    // Error out if user data not fetched.
     if (!CommonValidators.validateObject(userData)) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -109,7 +122,7 @@ class GetPendingRecovery extends ServiceBase {
       );
     }
 
-    // check if user is activated, otherwise error out.
+    // Check if user is activated, otherwise error out.
     if (userData.status !== tokenUserConstants.activatedStatus) {
       return Promise.reject(
         responseHelper.error({
@@ -124,7 +137,9 @@ class GetPendingRecovery extends ServiceBase {
   }
 
   /**
-   * Fetch Pending recovery operation of user.
+   * Fetch pending recovery operation of user.
+   *
+   * @sets oThis.pendingRecoveryParams
    *
    * @returns {Promise<void>}
    * @private
@@ -132,7 +147,7 @@ class GetPendingRecovery extends ServiceBase {
   async _fetchPendingRecoveryOperation() {
     const oThis = this;
 
-    let recoveryOperationsResp = await new UserRecoveryOperationsCache({
+    const recoveryOperationsResp = await new UserRecoveryOperationsCache({
         tokenId: oThis.tokenId,
         userId: oThis.userId
       }).fetch(),
@@ -173,7 +188,6 @@ class GetPendingRecovery extends ServiceBase {
    * Fetch devices from cache.
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchDevices() {
@@ -191,20 +205,21 @@ class GetPendingRecovery extends ServiceBase {
   }
 
   /**
-   * Get user device extended details
+   * Get user device extended details.
    *
    * @returns {Promise<*|result>}
+   * @private
    */
   async _fetchDevicesExtendedDetails() {
     const oThis = this;
 
-    let response = await oThis._fetchDevices(),
+    const response = await oThis._fetchDevices(),
       walletAddresses = [oThis.pendingRecoveryParams.oldDeviceAddress, oThis.pendingRecoveryParams.newDeviceAddress],
       devices = response.data,
       linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
 
-    for (let index in walletAddresses) {
-      let deviceAddr = walletAddresses[index],
+    for (const index in walletAddresses) {
+      const deviceAddr = walletAddresses[index],
         device = devices[deviceAddr];
 
       if (!CommonValidators.validateObject(device)) {
@@ -216,7 +231,7 @@ class GetPendingRecovery extends ServiceBase {
   }
 
   /**
-   * fetch linked device addresses for specified user id
+   * Fetch linked device addresses for specified user id.
    *
    * @returns {Promise<*>}
    * @private
@@ -230,6 +245,7 @@ class GetPendingRecovery extends ServiceBase {
 
     if (previousOwnersMapRsp.isFailure()) {
       logger.error('Error in fetching linked addresses');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_d_g_b_2',
@@ -243,7 +259,7 @@ class GetPendingRecovery extends ServiceBase {
   }
 
   /**
-   * Format API
+   * Format API response.
    *
    * @returns {Promise<*>}
    * @private
