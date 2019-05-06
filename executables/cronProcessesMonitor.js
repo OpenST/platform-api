@@ -122,7 +122,10 @@ class CronProcessesMonitorExecutable extends CronBase {
   async _monitor() {
     const oThis = this;
 
-    const existingCrons = await new CronProcessModel().select('*').fire(),
+    const existingCrons = await new CronProcessModel()
+        .select('*')
+        .where(['status NOT IN (?)', new CronProcessModel().invertedStatuses[cronProcessesConstants.inactiveStatus]])
+        .fire(),
       existingCronsLength = existingCrons.length;
 
     for (let index = 0; index < existingCronsLength; index++) {
