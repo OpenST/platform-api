@@ -20,8 +20,6 @@ const rootPrefix = '..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry');
 
-const OFFSET_TIME_IN_MSEC = 5 * 60 * 1000;
-
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
 program.on('--help', function() {
@@ -39,6 +37,9 @@ if (!cronProcessId) {
   program.help();
   process.exit(1);
 }
+
+// Declare variables.
+const OFFSET_TIME_IN_MSEC = 5 * 60 * 1000;
 
 /**
  * Class for cron processes monitor.
@@ -67,7 +68,6 @@ class CronProcessesMonitorExecutable extends CronBase {
    * Start the executable.
    *
    * @returns {Promise<any>}
-   *
    * @private
    */
   async _start() {
@@ -86,7 +86,7 @@ class CronProcessesMonitorExecutable extends CronBase {
         [cronProcessesConstants.auxWorkflowWorker]: cronProcessesConstants.continuousCronRestartInterval,
         [cronProcessesConstants.generateGraph]: cronProcessesConstants.continuousCronRestartInterval
       },
-      // Restart interval time for periodic crons should match with devops- cron config file
+      // Restart interval time for periodic crons should match with devops-cron config file.
       [cronProcessesConstants.periodicCronsType]: {
         [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses]: 5 * 60 * 1000,
         [cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific]: 5 * 60 * 1000,
@@ -101,7 +101,8 @@ class CronProcessesMonitorExecutable extends CronBase {
         [cronProcessesConstants.updatePriceOraclePricePoints]: 55 * 60 * 1000,
         [cronProcessesConstants.executeRecovery]: 10 * 60 * 1000,
         [cronProcessesConstants.updateRealtimeGasPrice]: 5 * 60 * 1000,
-        [cronProcessesConstants.balanceVerifier]: 5 * 60 * 1000
+        [cronProcessesConstants.balanceVerifier]: 5 * 60 * 1000,
+        [cronProcessesConstants.recoveryRequestsMonitor]: 30 * 60 * 1000
       }
     };
 
@@ -116,13 +117,15 @@ class CronProcessesMonitorExecutable extends CronBase {
    * Monitor cron processes.
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _monitor() {
     const oThis = this;
 
-    const existingCrons = await new CronProcessModel().select('*').fire(),
+    const existingCrons = await new CronProcessModel()
+        .select('*')
+        .where(['status NOT IN (?)', new CronProcessModel().invertedStatuses[cronProcessesConstants.inactiveStatus]])
+        .fire(),
       existingCronsLength = existingCrons.length;
 
     for (let index = 0; index < existingCronsLength; index++) {
@@ -229,11 +232,10 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * Insert entry in error_logs table.
    *
-   * @param {String} errorIdentifier: errorIdentifier
-   * @param {Object} debugOptions:  debugOptions
+   * @param {string} errorIdentifier: errorIdentifier
+   * @param {object} debugOptions:  debugOptions
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _notify(errorIdentifier, debugOptions) {
@@ -248,11 +250,10 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * Insert entry in error_logs table for stop state.
    *
-   * @param {String} errorIdentifier: errorIdentifier
-   * @param {Object} debugOptions:  debugOptions
+   * @param {string} errorIdentifier: errorIdentifier
+   * @param {object} debugOptions:  debugOptions
    *
    * @returns {Promise<void>}
-   *
    * @private
    */
   async _notifyStopState(errorIdentifier, debugOptions) {
@@ -267,8 +268,7 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * This function provides info whether the process has to exit.
    *
-   * @returns {Boolean}
-   *
+   * @returns {boolean}
    * @private
    */
   _pendingTasksDone() {
@@ -288,7 +288,7 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * Get cron kind.
    *
-   * @returns {String}
+   * @returns {string}
    *
    * @private
    */
