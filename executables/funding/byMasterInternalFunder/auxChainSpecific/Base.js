@@ -259,7 +259,7 @@ class FundByChainOwnerAuxChainSpecificBase extends CronBase {
       finalAmount = basicHelper
         .convertToBigNumber(String(amountForOneGwei))
         .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer))
-        .plus(basicHelper.convertToLowerUnit(1, coreConstants.ETH_CONVERSION_DECIMALS));
+        .plus(basicHelper.convertToLowerUnit(1, coreConstants.OSTPRIME_DECIMALS));
 
     return finalAmount.toString(10);
   }

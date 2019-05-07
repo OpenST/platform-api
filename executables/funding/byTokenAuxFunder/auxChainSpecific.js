@@ -320,10 +320,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     const auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
     return basicHelper
-      .convertToLowerUnit(
-        String(fundingConfig[addressKind].oneGWeiMinOSTPrimeAmount),
-        coreConstants.ETH_CONVERSION_DECIMALS
-      )
+      .convertToLowerUnit(String(fundingConfig[addressKind].oneGWeiMinOSTPrimeAmount), coreConstants.OSTPRIME_DECIMALS)
       .mul(basicHelper.convertToBigNumber(auxGasPrice));
   }
 
@@ -340,7 +337,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     const auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
     return basicHelper
-      .convertToLowerUnit(String(fundingConfig[addressKind].thresholdAmount), coreConstants.ETH_CONVERSION_DECIMALS)
+      .convertToLowerUnit(String(fundingConfig[addressKind].thresholdAmount), coreConstants.OSTPRIME_DECIMALS)
       .mul(basicHelper.convertToBigNumber(auxGasPrice));
   }
 }

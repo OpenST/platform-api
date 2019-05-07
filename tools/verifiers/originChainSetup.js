@@ -12,6 +12,7 @@ const rootPrefix = '../..',
   StakeCurrenciesModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -318,14 +319,21 @@ class OriginChainSetup {
       return Promise.reject(new Error('Contract currency verification of USDC token contract failed.'));
     }
 
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [conversionRateConstants.USDC]
+    });
+
+    let response = await stakeCurrencyBySymbolCache.fetch(),
+      usdcDecimals = response.data[conversionRateConstants.USDC].decimal;
+
     logger.log('* Validating USDC token contract decimals.');
     const chainUsdcContractDecimals = await usdcContractObj.methods.decimals().call({});
-    if (Number(chainUsdcContractDecimals) !== coreConstants.USDC_CONVERSION_DECIMALS) {
+    if (Number(chainUsdcContractDecimals) !== usdcDecimals) {
       logger.error(
         'Contract decimals of USDC token -',
         chainUsdcContractDecimals,
         'different from database value -',
-        coreConstants.USDC_CONVERSION_DECIMALS
+        usdcDecimals
       );
 
       return Promise.reject(new Error('Contract decimals verification of USDC token contract failed.'));

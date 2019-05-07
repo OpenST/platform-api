@@ -111,6 +111,12 @@ NOTE: Copy the response from the script above and save somewhere offline.
 
 NOTE: Copy the response from the script above and save somewhere offline.
 
+* Mint sufficient USDC Tokens (EXCEPT PRODUCTION MAIN ENV)
+```bash
+    source set_env_vars.sh
+    node executables/oneTimers/stableCoinStaking/mintUsdcToken.js --usdcTokenOwnerAddress "0xabc___" --usdcTokenOwnerPrivateKey "0xabc___" --usdcContractAddress "0xabc___" --usdcToMintInWei "200000000000000"
+```
+
 * Save USDC token owner address in database.
 ```bash
     source set_env_vars.sh

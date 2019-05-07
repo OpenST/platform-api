@@ -81,7 +81,7 @@ class FundMasterInternalFunderAddress extends ChainAddressBase {
 
     const providers = await oThis._getProvidersFromConfig(),
       provider = providers[0],
-      amountInWei = basicHelper.convertToLowerUnit(amount, coreConstants.ETH_CONVERSION_DECIMALS).toString(10); // Transfer amount
+      amountInWei = basicHelper.convertToLowerUnit(amount, coreConstants.ETH_DECIMALS).toString(10); // Transfer amount
 
     await new TransferEthUsingPK({
       toAddress: address,

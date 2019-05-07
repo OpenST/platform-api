@@ -29,6 +29,7 @@ class MintUsdcToken extends SetupUsdcTokenBase {
    * @param {string} params.signerAddress: address who signs Tx
    * @param {string} params.signerKey: private key of signerAddress
    * @param {string} params.usdcContractAddress: USDC token contract address
+   * @param {string} params.usdcToMintInWei: USDC to mint in wei
    *
    * @augments SetupUsdcTokenBase
    *
@@ -40,6 +41,7 @@ class MintUsdcToken extends SetupUsdcTokenBase {
     const oThis = this;
 
     oThis.usdcContractAddress = params.usdcContractAddress;
+    oThis.usdcToMintInWei = params.usdcToMintInWei;
 
     // Contract mint specific parameters.
     oThis.toAddress = params.signerAddress;
@@ -90,7 +92,7 @@ class MintUsdcToken extends SetupUsdcTokenBase {
     usdcTokenContractObj.options.address = oThis.usdcContractAddress;
 
     const transactionReceipt = await usdcTokenContractObj.methods
-      .mint(oThis.toAddress, contractConstants.usdcMintAmountInLowestUnit)
+      .mint(oThis.toAddress, oThis.usdcToMintInWei)
       .send(params)
       .catch(function(errorResponse) {
         logger.error(errorResponse);

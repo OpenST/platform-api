@@ -188,8 +188,8 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   populateAlertConfig() {
     const oThis = this;
 
-    let maxEthBalanceToFund = basicHelper.convertToLowerUnit(String(0), coreConstants.ETH_CONVERSION_DECIMALS),
-      thresholdEthBalance = basicHelper.convertToLowerUnit(String(0), coreConstants.ETH_CONVERSION_DECIMALS);
+    let maxEthBalanceToFund = basicHelper.convertToLowerUnit(String(0), coreConstants.ETH_DECIMALS),
+      thresholdEthBalance = basicHelper.convertToLowerUnit(String(0), coreConstants.ETH_DECIMALS);
 
     const mifEthFundingConfig = basicHelper.deepDup(
       fundingAmounts[chainAddressConstants.masterInternalFunderKind].originGas
@@ -197,16 +197,10 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
 
     for (const address in mifEthFundingConfig) {
       maxEthBalanceToFund = maxEthBalanceToFund.plus(
-        basicHelper.convertToLowerUnit(
-          String(mifEthFundingConfig[address].fundAmount),
-          coreConstants.ETH_CONVERSION_DECIMALS
-        )
+        basicHelper.convertToLowerUnit(String(mifEthFundingConfig[address].fundAmount), coreConstants.ETH_DECIMALS)
       );
       thresholdEthBalance = thresholdEthBalance.plus(
-        basicHelper.convertToLowerUnit(
-          String(mifEthFundingConfig[address].thresholdAmount),
-          coreConstants.ETH_CONVERSION_DECIMALS
-        )
+        basicHelper.convertToLowerUnit(String(mifEthFundingConfig[address].thresholdAmount), coreConstants.ETH_DECIMALS)
       );
     }
 
@@ -321,11 +315,11 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       const fundingAddressDetails = oThis.ethFundingConfig[addressKind],
         address = fundingAddressDetails.address,
         addressThresholdBalance = basicHelper
-          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.ETH_CONVERSION_DECIMALS)
+          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.ETH_DECIMALS)
           .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer)),
         addressCurrentBalance = basicHelper.convertToBigNumber(fundingAddressDetails.balance),
         addressMaxAmountToFund = basicHelper
-          .convertToLowerUnit(String(fundingAddressDetails.fundAmount), coreConstants.ETH_CONVERSION_DECIMALS)
+          .convertToLowerUnit(String(fundingAddressDetails.fundAmount), coreConstants.ETH_DECIMALS)
           .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
       if (addressCurrentBalance.lt(addressThresholdBalance)) {

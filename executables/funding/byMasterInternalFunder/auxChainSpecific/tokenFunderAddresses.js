@@ -280,7 +280,7 @@ class fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses extends Aux
       if (addressCurrentBalance.lt(addressThresholdFund)) {
         const amountToBeTransferredBN = addressMaxAmountToFund
             .minus(addressCurrentBalance)
-            .plus(basicHelper.convertToLowerUnit(1, coreConstants.ETH_CONVERSION_DECIMALS)), // Adding some more buffer for its own gas consumption
+            .plus(basicHelper.convertToLowerUnit(1, coreConstants.OSTPRIME_DECIMALS)), // Adding some more buffer for its own gas consumption
           transferParams = {
             fromAddress: oThis.masterInternalFunderAddress,
             toAddress: address,

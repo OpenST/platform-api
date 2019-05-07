@@ -105,7 +105,7 @@ class Base {
     await oThis._getOriginChainId();
 
     const amountInWei = basicHelper
-      .convertToLowerUnit(String(amount), coreConstants.ETH_CONVERSION_DECIMALS)
+      .convertToLowerUnit(String(amount), coreConstants.ETH_DECIMALS)
       .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
       .toString(10);
 

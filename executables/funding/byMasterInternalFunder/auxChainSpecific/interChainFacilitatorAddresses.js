@@ -156,13 +156,13 @@ class fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses e
       totalAmountToTransferFromMIF = basicHelper.convertToBigNumber(0),
       fundingAddressDetails = ethFundingConfig[[chainAddressConstants.interChainFacilitatorKind]],
       addressMaxFundAmount = basicHelper
-        .convertToLowerUnit(String(fundingAddressDetails.fundAmount), coreConstants.ETH_CONVERSION_DECIMALS)
+        .convertToLowerUnit(String(fundingAddressDetails.fundAmount), coreConstants.ETH_DECIMALS)
         .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
     for (let address in addressesToBalanceMap) {
       let addressCurrentBalance = basicHelper.convertToBigNumber(addressesToBalanceMap[address]),
         addressThresholdBalance = basicHelper
-          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.ETH_CONVERSION_DECIMALS)
+          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.ETH_DECIMALS)
           .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer));
 
       logger.log('Address: ', address);

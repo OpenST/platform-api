@@ -235,14 +235,11 @@ class fundByMasterInternalFunderAuxChainSpecificChainAddresses extends AuxChainS
       }
 
       const addressFundAmount = basicHelper
-          .convertToLowerUnit(
-            String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount),
-            coreConstants.ETH_CONVERSION_DECIMALS
-          )
+          .convertToLowerUnit(String(fundingAddressDetails.oneGWeiMinOSTPrimeAmount), coreConstants.OSTPRIME_DECIMALS)
           .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer)),
         addressCurrentBalance = basicHelper.convertToBigNumber(balance),
         addressThresholdAmount = basicHelper
-          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.ETH_CONVERSION_DECIMALS)
+          .convertToLowerUnit(String(fundingAddressDetails.thresholdAmount), coreConstants.OSTPRIME_DECIMALS)
           .mul(basicHelper.convertToBigNumber(auxMaxGasPriceMultiplierWithBuffer));
 
       logger.log('\n\nAddress: ', address);

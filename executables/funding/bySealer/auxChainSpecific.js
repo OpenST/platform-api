@@ -270,14 +270,14 @@ class FundBySealerAuxChainSpecific extends CronBase {
       if (
         basicHelper
           .convertToBigNumber(sealerAddressBalance)
-          .gt(basicHelper.convertToLowerUnit(1, coreConstants.ETH_CONVERSION_DECIMALS))
+          .gt(basicHelper.convertToLowerUnit(1, coreConstants.OSTPRIME_DECIMALS))
       ) {
         oThis.transferDetails.push({
           fromAddress: sealerAddress,
           toAddress: oThis.masterInternalFunderAddress,
           amountInWei: basicHelper
             .convertToBigNumber(sealerAddressBalance)
-            .minus(basicHelper.convertToLowerUnit(0.5, coreConstants.ETH_CONVERSION_DECIMALS))
+            .minus(basicHelper.convertToLowerUnit(0.5, coreConstants.OSTPRIME_DECIMALS))
             .toString(10)
         });
       }
