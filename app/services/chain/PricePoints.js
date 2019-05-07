@@ -5,6 +5,7 @@
  */
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   TokenByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
   StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
@@ -75,6 +76,16 @@ class PricePointsGet extends ServiceBase {
           internal_error_identifier: 'a_s_c_pp_1',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['price_point_not_available_for_chain_id'],
+          debug_options: {}
+        })
+      );
+    }
+
+    if (CommonValidators.isVarNull(oThis.clientId) && CommonValidators.isVarNull(oThis.tokenId)) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_c_pp_7',
+          api_error_identifier: 'something_went_wrong', //Not returning param validation error because client_id and token_id are internal parameters and are not expected as part of external api.
           debug_options: {}
         })
       );
