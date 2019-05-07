@@ -331,10 +331,12 @@ class CoreConstants {
     return 1000000;
   }
 
+  // TODO @Santhosh - ETH_DECIMALS, OST_DECIMALS, OSTPRIME_DECIMALS
   get ETH_CONVERSION_DECIMALS() {
     return 18;
   }
 
+  // TODO @Santhosh - USD_DECIMALS
   get USDC_CONVERSION_DECIMALS() {
     return 6;
   }
