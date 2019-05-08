@@ -126,11 +126,18 @@ class StartMint extends ServiceBase {
         computedBTCurrencyInWei = stakeCurrencyBTConverterObj.convertStakeCurrencyToBT(oThis.stakeCurrencyToStakeInWei);
 
       if (computedBTCurrencyInWei !== oThis.btToMintInWei) {
-        return responseHelper.error({
-          internal_error_identifier: 'a_s_t_sm_6',
-          api_error_identifier: 'stake_currency_bt_conversion_mismatch',
-          debug_options: {}
-        });
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'a_s_t_sm_6',
+            api_error_identifier: 'stake_currency_bt_conversion_mismatch',
+            debug_options: {
+              stakeCurrencyToStakeInWei: oThis.stakeCurrencyToStakeInWei,
+              computedBTCurrencyInWei: computedBTCurrencyInWei,
+              btToMintInWei: oThis.btToMintInWei,
+              conversionFactor: oThis.token.conversionFactor
+            }
+          })
+        );
       }
     }
   }
@@ -148,22 +155,32 @@ class StartMint extends ServiceBase {
         !CommonValidators.isVarNull(oThis.approveTransactionHash) ||
         !CommonValidators.isVarNull(oThis.requestStakeTransactionHash)
       ) {
-        return responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_t_sm_4',
-          api_error_identifier: 'invalid_params',
-          debug_options: {}
-        });
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_t_sm_4',
+            api_error_identifier: 'invalid_params',
+            debug_options: {
+              approveTransactionHash: oThis.approveTransactionHash,
+              requestStakeTransactionHash: oThis.requestStakeTransactionHash
+            }
+          })
+        );
       }
     } else {
       if (
         CommonValidators.isVarNull(oThis.approveTransactionHash) ||
         CommonValidators.isVarNull(oThis.requestStakeTransactionHash)
       ) {
-        return responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_t_sm_7',
-          api_error_identifier: 'invalid_params',
-          debug_options: {}
-        });
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_t_sm_7',
+            api_error_identifier: 'invalid_params',
+            debug_options: {
+              approveTransactionHash: oThis.approveTransactionHash,
+              requestStakeTransactionHash: oThis.requestStakeTransactionHash
+            }
+          })
+        );
       }
     }
   }
@@ -229,7 +246,10 @@ class StartMint extends ServiceBase {
             internal_error_identifier: 'a_s_t_sm_3',
             api_error_identifier: 'something_went_wrong',
             params_error_identifiers: ['invalid_staker_address'],
-            debug_options: { stakerAddress: oThis.stakerAddress }
+            debug_options: {
+              stakerAddress: oThis.stakerAddress,
+              tokenAddresses: oThis.tokenAddresses
+            }
           })
         );
       }
