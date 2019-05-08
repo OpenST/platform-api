@@ -14,10 +14,10 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
 
@@ -47,6 +47,7 @@ class TokenDetail extends ServiceBase {
     oThis.tokenAddresses = null;
     oThis.economyContractAddress = null;
     oThis.economyDetails = null;
+    oThis.stakeCurrencySymbol = null;
     oThis.companyTokenHolderAddresses = [];
   }
 
@@ -60,11 +61,14 @@ class TokenDetail extends ServiceBase {
 
     await oThis._fetchTokenDetails();
 
+    await oThis._fetchStakeCurrencySymbol();
+
     await oThis._setChainIds();
 
     oThis.token['originChainId'] = oThis.originChainId;
     oThis.token['auxChainId'] = oThis.auxChainId;
     oThis.token['decimals'] = oThis.token.decimal;
+    oThis.token['baseToken'] = oThis.stakeCurrencySymbol;
 
     await oThis._fetchTokenAddresses();
 
@@ -78,6 +82,31 @@ class TokenDetail extends ServiceBase {
         }
       })
     );
+  }
+
+  /**
+   * This function fetches stake currency symbol.
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _fetchStakeCurrencySymbol() {
+    const oThis = this;
+
+    let stakeCurrencyId = oThis.token.stakeCurrencyId,
+      stakeCurrencyDetails = await new StakeCurrencyById({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
+
+    if (stakeCurrencyDetails.isFailure() || !stakeCurrencyDetails.data) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_5',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.stakeCurrencySymbol = stakeCurrencyDetails.data[stakeCurrencyId].symbol;
   }
 
   /**
