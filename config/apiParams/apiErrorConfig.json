@@ -139,6 +139,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The token has already been successfully deployed."
   },
+  "token_not_deployed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The token has not been deployed yet."
+  },
   "token_deployment_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
@@ -543,6 +548,11 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Balance Rollback Failed from API Thread."
+  },
+  "stake_currency_bt_conversion_mismatch": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Mismatch in stake currency amount and bt amount."
   },
   "recovery_requests_threshold_exceeded": {
     "http_code": "422",

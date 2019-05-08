@@ -5,7 +5,10 @@
  */
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
+  TokenByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
+  StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
@@ -23,6 +26,9 @@ class PricePointsGet extends ServiceBase {
    * @param {Object} params
    * @param {Number/String} params.chain_id: chain Id
    *
+   * @param {Number/String} [params.client_id]: client Id
+   * @param {Number/String} [params.token_id]: token Id
+   *
    * @constructor
    */
   constructor(params) {
@@ -31,6 +37,9 @@ class PricePointsGet extends ServiceBase {
     const oThis = this;
 
     oThis.chainId = params.chain_id;
+
+    oThis.clientId = params.client_id;
+    oThis.tokenId = params.token_id;
   }
 
   /**
@@ -42,6 +51,8 @@ class PricePointsGet extends ServiceBase {
     const oThis = this;
 
     await oThis._validateParams();
+
+    await oThis._fetchStakeCurrencySymbol();
 
     return oThis._fetchPricePointsData();
   }
@@ -70,6 +81,16 @@ class PricePointsGet extends ServiceBase {
       );
     }
 
+    if (CommonValidators.isVarNull(oThis.clientId) && CommonValidators.isVarNull(oThis.tokenId)) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_c_pp_7',
+          api_error_identifier: 'something_went_wrong', //Not returning param validation error because client_id and token_id are internal parameters and are not expected as part of external api.
+          debug_options: {}
+        })
+      );
+    }
+
     /*
     Check if it is auxChainId or not. We are not specifically checking the auxChainId value 
     because if chainConfig has the 'auxGeth' property, the chainId will obviously be the same.
@@ -86,6 +107,62 @@ class PricePointsGet extends ServiceBase {
     }
 
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * This function fetches stake currency symbol.
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _fetchStakeCurrencySymbol() {
+    const oThis = this;
+
+    if (!oThis.clientId) {
+      await oThis._fetchClientIdByTokenId();
+    }
+
+    await oThis._fetchTokenDetails();
+
+    let stakeCurrencyId = oThis.token.stakeCurrencyId,
+      stakeCurrencyDetails = await new StakeCurrencyById({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
+
+    if (stakeCurrencyDetails.isFailure() || !stakeCurrencyDetails.data) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_c_pp_4',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.stakeCurrencySymbol = stakeCurrencyDetails.data[stakeCurrencyId].symbol;
+  }
+
+  /**
+   * This function fetches client is using token id.
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _fetchClientIdByTokenId() {
+    const oThis = this;
+
+    let clientIdByTokenIdCacheObj = new TokenByTokenId({ tokenId: oThis.tokenId }),
+      cacheResponse = await clientIdByTokenIdCacheObj.fetch();
+
+    if (cacheResponse.isFailure() || !cacheResponse.data) {
+      return Promise.reject(
+        //This is not a param validation error because we are fetching token id and/or client id internally.
+        responseHelper.error({
+          internal_error_identifier: 'a_s_c_pp_5',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+    oThis.clientId = cacheResponse.data.clientId;
   }
 
   /**
@@ -112,11 +189,15 @@ class PricePointsGet extends ServiceBase {
     }
 
     const pricePointData = pricePointsResponse.data;
-    pricePointData.decimals = contractConstants.requiredPriceOracleDecimals;
 
     logger.debug('Price points data: ', pricePointData);
 
-    return responseHelper.successWithData(pricePointData);
+    let responseData = {};
+
+    responseData[oThis.stakeCurrencySymbol] = pricePointData[oThis.stakeCurrencySymbol];
+    responseData['decimals'] = contractConstants.requiredPriceOracleDecimals;
+
+    return responseHelper.successWithData(responseData);
   }
 }
 

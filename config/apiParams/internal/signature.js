@@ -71,14 +71,6 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'approve_transaction_hash',
-        validatorMethod: 'validateTransactionHash'
-      },
-      {
-        parameter: 'request_stake_transaction_hash',
-        validatorMethod: 'validateTransactionHash'
-      },
-      {
         parameter: 'staker_address',
         validatorMethod: 'validateEthAddress'
       },
@@ -89,9 +81,26 @@ const signature = {
       {
         parameter: 'fe_bt_to_mint',
         validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'bt_to_mint',
+        validatorMethod: 'validateNonZeroWeiValue'
+      },
+      {
+        parameter: 'stake_currency_to_stake',
+        validatorMethod: 'validateNonZeroWeiValue'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'approve_transaction_hash',
+        validatorMethod: 'validateTransactionHash'
+      },
+      {
+        parameter: 'request_stake_transaction_hash',
+        validatorMethod: 'validateTransactionHash'
+      }
+    ]
   },
 
   mintDetails: {
@@ -139,6 +148,55 @@ const signature = {
   generateKnownAddress: {
     mandatory: [],
     optional: []
+  },
+
+  removeKnownAddress: {
+    mandatory: [
+      {
+        parameter: 'known_address_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
+  },
+
+  preMint: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'bt_to_mint',
+        validatorMethod: 'validateNonZeroWeiValue'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'fetch_request_stake_tx_params',
+        validatorMethod: 'validateBoolean'
+      }
+    ]
+  },
+
+  getBalance: {
+    mandatory: [
+      {
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'currencies',
+        validatorMethod: 'validateStringArray'
+      }
+    ]
   }
 };
 
