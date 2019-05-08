@@ -4,6 +4,9 @@
  * @module config/apiParams/internal/signature
  */
 
+const rootPrefix = '../../..',
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName');
+
 // Declare variables.
 const signature = {
   verifySigner: {
@@ -195,6 +198,25 @@ const signature = {
       {
         parameter: 'currencies',
         validatorMethod: 'validateStringArray'
+      }
+    ]
+  },
+
+  [apiName.getUserInternal]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
   }
