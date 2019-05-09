@@ -153,7 +153,7 @@ class CreateTokenHolder extends ServiceBase {
 
     let currentBlock = Number(block.data.block),
       minExpirationBlocks = Math.floor(
-        sessionConstants.sessionKeyExpirationMinimumTime / Number(block.data.blockGenerationTime)
+        sessionConstants.sessionKeyExpirationMinimumTime / (Number(block.data.blockGenerationTime) * 1000)
       );
 
     if (currentBlock + minExpirationBlocks >= oThis.expirationHeight) {
