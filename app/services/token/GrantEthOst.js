@@ -5,6 +5,8 @@
  * @module app/services/token/GrantEthOs
  */
 const rootPrefix = '../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -19,7 +21,7 @@ const rootPrefix = '../../..',
  *
  * @class
  */
-class GrantEthOst {
+class GrantEthStakeCurrency extends ServiceBase {
   /**
    * Constructor for token deployment
    *
@@ -30,6 +32,8 @@ class GrantEthOst {
    * @constructor
    */
   constructor(params) {
+    super();
+
     const oThis = this;
 
     oThis.clientId = params.client_id;
@@ -37,33 +41,11 @@ class GrantEthOst {
   }
 
   /**
-   * perform
-   * @return {Promise<>}
-   */
-  perform() {
-    const oThis = this;
-    //TODO - use perform from service base
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error('app/services/token/GrantEthOst::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 's_t_geo_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
-  }
-
-  /**
    * Async perform
    *
    * @return {Promise<any>}
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     if (basicHelper.isMainSubEnvironment()) {
@@ -73,6 +55,8 @@ class GrantEthOst {
         debug_options: {}
       });
     }
+
+    await oThis._fetchTokenDetails();
 
     return oThis.startGranting();
   }
@@ -111,6 +95,7 @@ class GrantEthOst {
       topic: workflowTopicConstant.grantEthOst,
       clientId: oThis.clientId,
       requestParams: {
+        tokenId: oThis.tokenId,
         originChainId: oThis.originChainId,
         address: oThis.address,
         clientId: oThis.clientId
@@ -123,4 +108,4 @@ class GrantEthOst {
   }
 }
 
-module.exports = GrantEthOst;
+module.exports = GrantEthStakeCurrency;
