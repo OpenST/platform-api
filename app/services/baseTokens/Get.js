@@ -9,8 +9,8 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
-  StakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/StakeCurrencySymbols');
+  StakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/StakeCurrencySymbols'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
 
 /**
  * Class for base tokens details.
@@ -78,6 +78,12 @@ class BaseTokens extends ServiceBase {
     oThis.stakeCurrencySymbols = stakeCurrencySymbols.data;
   }
 
+  /**
+   * This function fetches stake currency details.
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
   async _fetchStakeCurrencyDetails() {
     const oThis = this;
 
