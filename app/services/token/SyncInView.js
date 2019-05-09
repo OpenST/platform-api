@@ -66,7 +66,17 @@ class SyncInView {
       chainEndpoint: chainEndPoint[0]
     });
 
-    await createInView.perform();
+    let createInViewResponse = await createInView.perform();
+
+    if (createInViewResponse.isFailure()) {
+      return responseHelper.successWithData({
+        taskStatus: workflowStepConstants.taskFailed,
+        debugParams: {
+          response: createInViewResponse.toHash(),
+          msg: 'Error in block scanner'
+        }
+      });
+    }
 
     return responseHelper.successWithData({
       taskStatus: workflowStepConstants.taskDone,
