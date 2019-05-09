@@ -158,9 +158,10 @@ class CreateTokenHolder extends ServiceBase {
 
     if (currentBlock + minExpirationBlocks >= oThis.expirationHeight) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_cth_9',
-          api_error_identifier: 'invalid_expiration_height',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['invalid_minimum_expiration_height'],
           debug_options: {}
         })
       );

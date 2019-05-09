@@ -475,6 +475,11 @@ const v2ErrorConfig = {
     parameter: 'kind',
     code: 'invalid',
     message: 'Invalid kind'
+  },
+  invalid_minimum_expiration_height: {
+    parameter: 'expiration_height',
+    code: 'invalid',
+    message: 'Expiration height should be a block at least 2hrs from now.'
   }
 };
 
