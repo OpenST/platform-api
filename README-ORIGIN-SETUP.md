@@ -228,5 +228,5 @@ Granter address gets ETH and OST in this step.
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 8
 ```

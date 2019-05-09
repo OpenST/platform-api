@@ -5,6 +5,7 @@
  */
 
 const rootPrefix = '../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   GrantEthStakeCurrencyRouter = require(rootPrefix + '/lib/workflow/grantEthStakeCurrency/Router'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -19,7 +20,7 @@ const rootPrefix = '../../..',
  *
  * @class GrantEthStakeCurrency
  */
-class GrantEthStakeCurrency {
+class GrantEthStakeCurrency extends ServiceBase {
   /**
    * Constructor to grant eth and stake currency.
    *
@@ -30,6 +31,8 @@ class GrantEthStakeCurrency {
    * @constructor
    */
   constructor(params) {
+    super();
+
     const oThis = this;
 
     oThis.clientId = params.client_id;
@@ -37,35 +40,11 @@ class GrantEthStakeCurrency {
   }
 
   /**
-   * Main performer of class.
-   *
-   * @return {Promise<>}
-   */
-  perform() {
-    const oThis = this;
-
-    // TODO - use perform from service base.
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      }
-      logger.error('app/services/token/GrantEthStakeCurrency::perform::catch');
-      logger.error(error);
-
-      return responseHelper.error({
-        internal_error_identifier: 's_t_gsc_1',
-        api_error_identifier: 'unhandled_catch_response',
-        debug_options: {}
-      });
-    });
-  }
-
-  /**
    * Async perform.
    *
    * @return {Promise<any>}
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     if (basicHelper.isMainSubEnvironment()) {
@@ -75,6 +54,8 @@ class GrantEthStakeCurrency {
         debug_options: {}
       });
     }
+
+    await oThis._fetchTokenDetails();
 
     return oThis.startGranting();
   }
@@ -112,6 +93,7 @@ class GrantEthStakeCurrency {
       topic: workflowTopicConstant.grantEthStakeCurrency,
       clientId: oThis.clientId,
       requestParams: {
+        tokenId: oThis.tokenId,
         originChainId: oThis.originChainId,
         address: oThis.address,
         clientId: oThis.clientId
