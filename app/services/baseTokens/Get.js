@@ -1,31 +1,35 @@
-'use strict';
 /**
- * This service gets the base token details. These are the tokens which users can stake in order to mint brand tokens.
+ * Module for service to get the base token details. These are the tokens which users can stake in order to mint brand tokens.
  *
  * @module app/services/baseTokens/Get
  */
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   StakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/StakeCurrencySymbols'),
-  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 /**
- * Class for base tokens details.
+ * Class for service to get the base token details. These are the tokens which users can stake in order to mint brand tokens.
  *
- * @class
+ * @class BaseTokens
  */
 class BaseTokens extends ServiceBase {
   /**
+   * Constructor for service to get the base token details.
+   * These are the tokens which users can stake in order to mint brand tokens.
    *
-   * @param {Object} params
+   * @param {object} params
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
 
     oThis.stakeCurrencySymbols = null;
@@ -33,7 +37,7 @@ class BaseTokens extends ServiceBase {
   }
 
   /**
-   * Async perform
+   * Async perform.
    *
    * @return {Promise<any>}
    */
@@ -44,8 +48,7 @@ class BaseTokens extends ServiceBase {
 
     await oThis._fetchStakeCurrencyDetails();
 
-    //Prepare response data
-
+    // Prepare response data.
     return Promise.resolve(
       responseHelper.successWithData({
         [resultType.baseTokens]: {
@@ -58,13 +61,15 @@ class BaseTokens extends ServiceBase {
   /**
    * This function fetches stake currency symbols.
    *
+   * @sets oThis.stakeCurrencySymbols
+   *
    * @returns {Promise<never>}
    * @private
    */
   async _fetchStakeCurrencySymbols() {
     const oThis = this;
 
-    let stakeCurrencySymbols = await new StakeCurrencySymbolsCache().fetch();
+    const stakeCurrencySymbols = await new StakeCurrencySymbolsCache().fetch();
 
     if (stakeCurrencySymbols.isFailure()) {
       return Promise.reject(
@@ -81,13 +86,15 @@ class BaseTokens extends ServiceBase {
   /**
    * This function fetches stake currency details.
    *
+   * @sets oThis.stakeCurrencyDetails
+   *
    * @returns {Promise<never>}
    * @private
    */
   async _fetchStakeCurrencyDetails() {
     const oThis = this;
 
-    let stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
+    const stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: oThis.stakeCurrencySymbols
     }).fetch();
 

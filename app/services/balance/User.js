@@ -1,46 +1,50 @@
-'use strict';
 /**
- *  Fetch balance by userId.
+ * Module to fetch balance by userId.
  *
  * @module app/services/balance/User
  */
 
-const OSTBase = require('@ostdotcom/base');
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
-  apiSignatureConstants = require(rootPrefix + '/lib/globalConstant/apiSignature'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  apiSignatureConstants = require(rootPrefix + '/lib/globalConstant/apiSignature');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/Balance');
 
 /**
- * Class to get balance by userId.
+ * Class to fetch balance by userId.
  *
  * @class GetUserBalance
  */
 class GetUserBalance extends ServiceBase {
   /**
-   * @param params
-   * @param {Integer} params.client_id
-   * @param {Integer} params.user_id - user id user who signed request
-   * @param {Integer} [params.token_id]
-   * @param {String} [params.api_signature_kind]
-   * @param {Object} [params.user_data] - user data of user who signed request
-   * @param {Object} [params.token_shard_details] - map of all shard numbers by token id
+   * Constructor to fetch balance by userId.
+   *
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} params.user_id: user id user who signed request
+   * @param {number} [params.token_id]
+   * @param {string} [params.api_signature_kind]
+   * @param {object} [params.user_data]: user data of user who signed request
+   * @param {object} [params.token_shard_details]: map of all shard numbers by token id
+   *
+   * @augments ServiceBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -50,7 +54,6 @@ class GetUserBalance extends ServiceBase {
     oThis.clientId = params.client_id;
     oThis.userId = params.user_id;
     oThis.apiSignatureKind = params.api_signature_kind;
-
     oThis.tokenId = params.token_id;
     oThis.tokenShardDetails = params.token_shard_details;
     oThis.userData = params.user_data;
@@ -61,9 +64,10 @@ class GetUserBalance extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Async perform.
    *
    * @returns {Promise<*|result>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -88,34 +92,42 @@ class GetUserBalance extends ServiceBase {
   }
 
   /**
-   * Fetch shard numbers for all entities which are sharded by token id
+   * Fetch shard numbers for all entities which are sharded by token id.
    *
+   * @sets oThis.tokenShardDetails
+   *
+   * @return {Promise<never>}
    * @private
    */
   async _fetchTokenShardNumbers() {
     const oThis = this;
 
-    let TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
-    let tokenShardNumbersCache = new TokenShardNumbersCache({
+    const TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
+    const tokenShardNumbersCache = new TokenShardNumbersCache({
       tokenId: oThis.tokenId
     });
 
-    let response = await tokenShardNumbersCache.fetch();
+    const response = await tokenShardNumbersCache.fetch();
     if (response.isFailure()) {
       return Promise.reject(response);
     }
+
     oThis.tokenShardDetails = response.data;
   }
 
   /**
+   * Fetch user details.
    *
+   * @sets oThis.userData
+   *
+   * @return {Promise<never>}
    * @private
    */
   async _fetchUserDetails() {
     const oThis = this;
 
-    let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUSerDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
+    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
       cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
 
     if (!CommonValidators.validateObject(cacheFetchRsp.data[oThis.userId])) {
@@ -133,7 +145,9 @@ class GetUserBalance extends ServiceBase {
   }
 
   /**
+   * Validate access of user.
    *
+   * @return {Promise<never>}
    * @private
    */
   async _validateAccess() {
@@ -163,14 +177,18 @@ class GetUserBalance extends ServiceBase {
     }
   }
 
-  /***
+  /**
+   * Fetch token addresses.
    *
+   * @sets oThis.tokenAddresses
+   *
+   * @return {Promise<never>}
    * @private
    */
   async _fetchTokenAddresses() {
     const oThis = this;
 
-    let getAddrRsp = await new TokenAddressCache({
+    const getAddrRsp = await new TokenAddressCache({
       tokenId: oThis.tokenId
     }).fetch();
 
@@ -182,14 +200,17 @@ class GetUserBalance extends ServiceBase {
   }
 
   /**
-   * fetch user sessions from cache
+   * Fetch balance from cache.
    *
+   * @sets oThis.balanceDetails, [oThis.balanceDetails.userId]
+   *
+   * @return {Promise<never>}
    * @private
    */
   async _fetchBalanceFromCache() {
     const oThis = this;
 
-    let UserBalanceCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
+    const UserBalanceCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceCache'),
       userBalanceCache = new UserBalanceCache({
         chainId: oThis.auxChainId,
         shardNumber: oThis.tokenShardDetails[shardConstant.balanceEntityKind],
@@ -197,7 +218,7 @@ class GetUserBalance extends ServiceBase {
         tokenHolderAddresses: [oThis.userData.tokenHolderAddress]
       });
 
-    let fetchBalanceRsp = await userBalanceCache.fetch();
+    const fetchBalanceRsp = await userBalanceCache.fetch();
     if (fetchBalanceRsp.isFailure()) {
       return Promise.reject(fetchBalanceRsp);
     }
@@ -212,40 +233,51 @@ class GetUserBalance extends ServiceBase {
       };
     } else {
       oThis.balanceDetails = fetchBalanceRsp.data[oThis.userData.tokenHolderAddress];
-      oThis.balanceDetails['userId'] = oThis.userId;
+      oThis.balanceDetails.userId = oThis.userId;
     }
   }
 
   /**
-   * Format API response
+   * Format API response.
    *
-   * @return {*}
+   * @return {*|result}
    * @private
    */
   _formatApiResponse() {
     const oThis = this;
+
     return responseHelper.successWithData({
       [resultType.balance]: oThis.balanceDetails
     });
   }
 
   /**
-   * Object of config strategy class
+   * Object of config strategy class.
    *
-   * @return {Object}
+   * @sets oThis.configStrategyObj
+   *
+   * @return {object}
    */
   get _configStrategyObject() {
     const oThis = this;
 
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    if (oThis.configStrategyObj) {
+      return oThis.configStrategyObj;
+    }
 
     oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
 
     return oThis.configStrategyObj;
   }
 
+  /**
+   * Get auxChainId.
+   *
+   * @return {number}
+   */
   get auxChainId() {
     const oThis = this;
+
     return oThis._configStrategyObject.auxChainId;
   }
 }
