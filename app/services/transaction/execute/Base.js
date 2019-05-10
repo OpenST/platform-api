@@ -261,7 +261,7 @@ class ExecuteTxBase extends ServiceBase {
         web3Instance: oThis.web3Instance,
         tokenHolderAddress: oThis.tokenHolderAddress,
         auxChainId: oThis.auxChainId,
-        conversionFactor: oThis.token.conversionFactor,
+        token: oThis.token,
         rawCallData: oThis.rawCalldata
       }).perform();
     } else {

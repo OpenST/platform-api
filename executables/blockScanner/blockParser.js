@@ -108,12 +108,12 @@ class BlockParserExecutable extends PublisherBase {
   }
 
   /**
-   * Sanitizes and validates the input parameters. ChainId is not validated here as it is already validated
-   * before calling the perform method of the class.
+   * Specific validations
    *
+   * @return {Promise<void>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     const oThis = this;
 
     // If startBlockNumber is not passed, then block parser will process from highest block in blocks table.
@@ -123,8 +123,10 @@ class BlockParserExecutable extends PublisherBase {
 
     // If startBlockNumber is present, validate it.
     if (oThis.startBlockNumber && oThis.startBlockNumber < -1) {
-      logger.error('Invalid startBlockNumber. Exiting the cron.');
-      process.emit('SIGINT');
+      let errMsg = 'Invalid startBlockNumber. Exiting the cron.';
+
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     // If endBlockNumber is not passed, then block parser will not stop automatically.
@@ -134,14 +136,18 @@ class BlockParserExecutable extends PublisherBase {
 
     // If endBlockNumber is present, validate it.
     if (oThis.endBlockNumber && oThis.endBlockNumber < -1) {
-      logger.error('Invalid endBlockNumber. Exiting the cron.');
-      process.emit('SIGINT');
+      let errMsg = 'Invalid endBlockNumber. Exiting the cron.';
+
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     // Validate intentionalBlockDelay
     if (oThis.intentionalBlockDelay < 0) {
-      logger.error('Invalid intentionalBlockDelay. Exiting the cron.');
-      process.emit('SIGINT');
+      let errMsg = 'Invalid intentionalBlockDelay. Exiting the cron.';
+
+      logger.error(errMsg);
+      return Promise.reject(errMsg);
     }
 
     logger.step('All validations done.');

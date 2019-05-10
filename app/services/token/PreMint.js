@@ -1,8 +1,8 @@
 /**
  * This service gets the gateway composer contract address, origin chain gas price,
- * gateway contract address, staker nonce from gateway.
+ * gateway contract address, staker nonce from gateway, precise amount of bt and stake currency.
  *
- * @module app/services/contracts/GatewayComposer
+ * @module app/services/token/PreMint
  */
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer,
@@ -10,48 +10,48 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  StakeCurrencyBTConverter = require(rootPrefix + '/lib/StakeCurrencyBTConverter'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   StakerWhitelistedAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/StakerWhitelistedAddress'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   gasPriceCacheKlass = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
 
-// TODO - use service base
-class GatewayComposer {
-  constructor(params) {
-    const oThis = this;
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
-    oThis.tokenId = params.token_id;
-
-    oThis.responseData = {};
-  }
-
+class PreMint extends ServiceBase {
   /**
-   * Perform
+   * Constructor for pre mint.
    *
-   * @return {Promise<>}
+   * @param {Object} params
+   * @param {Number} params.client_id: client id
+   * @param {Number} params.token_id: token id
+   * @param {String} params.bt_to_mint: in wei bt amount
+   * @param {Boolean} params.fetch_request_stake_tx_params: boolean which would determine fetching params needed
+   *
+   * @constructor
    */
-  perform() {
+  constructor(params) {
+    super(params);
+
     const oThis = this;
 
-    return oThis.asyncPerform().catch((error) => {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      }
-      logger.error('app/services/contracts/GatewayComposer::perform::catch');
-      logger.error(error);
+    oThis.clientId = params.client_id;
+    oThis.tokenId = params.token_id;
+    oThis.btAmountInWei = params.bt_to_mint;
 
-      return responseHelper.error({
-        internal_error_identifier: 'a_s_c_gc_1',
-        api_error_identifier: 'unhandled_catch_response',
-        debug_options: {}
-      });
-    });
+    // optional
+    oThis.fetchRequestStakeTxParams = params.fetch_request_stake_tx_params;
+
+    oThis.preciseAmounts = {};
+    oThis.requestStakeTxParams = {};
   }
 
   /**
@@ -59,20 +59,31 @@ class GatewayComposer {
    *
    * @return {Promise<any>}
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
-    await oThis.getGatewayComposerContractAddress();
+    await oThis._fetchTokenDetails();
 
-    await oThis.getGatewayContractAddress();
+    await oThis._getPreciseAmount();
 
-    await oThis.getBeneficiaryAddress();
+    if (CommonValidators.isVarTrue(oThis.fetchRequestStakeTxParams)) {
+      oThis._getContractGasPriceAndGasLimit();
 
-    await oThis.getOriginChainGasPrice();
+      await oThis.getGatewayComposerContractAddress();
 
-    await oThis.getStakerNonceFromGateway();
+      await oThis.getGatewayContractAddress();
 
-    return responseHelper.successWithData(oThis.responseData);
+      await oThis.getBeneficiaryAddress();
+
+      await oThis.getOriginChainGasPrice();
+
+      await oThis.getStakerNonceFromGateway();
+    }
+
+    return responseHelper.successWithData({
+      precise_amounts: oThis.preciseAmounts,
+      request_stake_tx_params: oThis.requestStakeTxParams
+    });
   }
 
   /**
@@ -96,7 +107,7 @@ class GatewayComposer {
       );
     }
 
-    oThis.responseData.gateway_composer_contract_address = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
+    oThis.requestStakeTxParams.gateway_composer_contract_address = stakerWhitelistedAddrRsp.data.gatewayComposerAddress;
   }
 
   /**
@@ -121,7 +132,8 @@ class GatewayComposer {
       );
     }
 
-    oThis.responseData.gateway_contract_address = tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
+    oThis.requestStakeTxParams.gateway_contract_address =
+      tokenAddressesRsp.data[tokenAddressConstants.tokenGatewayContract];
   }
 
   /**
@@ -159,7 +171,8 @@ class GatewayComposer {
       return Promise.reject(tokenUserDetailsCacheRsp);
     }
 
-    oThis.responseData.stake_and_mint_beneficiary = tokenUserDetailsCacheRsp.data[tokenHolderUuid].tokenHolderAddress;
+    oThis.requestStakeTxParams.stake_and_mint_beneficiary =
+      tokenUserDetailsCacheRsp.data[tokenHolderUuid].tokenHolderAddress;
   }
 
   /**
@@ -173,7 +186,7 @@ class GatewayComposer {
     const gasPriceCacheObj = new gasPriceCacheKlass(),
       gasPriceRsp = await gasPriceCacheObj.fetch();
 
-    oThis.responseData.origin_chain_gas_price = gasPriceRsp.data;
+    oThis.requestStakeTxParams.origin_chain_gas_price = gasPriceRsp.data;
   }
 
   /**
@@ -187,12 +200,24 @@ class GatewayComposer {
     await oThis._setOriginWeb3Instance();
 
     oThis.stakerNonce = await oThis._stakeHelperObject.getNonce(
-      oThis.responseData.gateway_composer_contract_address,
+      oThis.requestStakeTxParams.gateway_composer_contract_address,
       oThis.originReadOnlyWeb3,
-      oThis.responseData.gateway_contract_address
+      oThis.requestStakeTxParams.gateway_contract_address
     );
 
-    oThis.responseData.staker_gateway_nonce = oThis.stakerNonce;
+    oThis.requestStakeTxParams.staker_gateway_nonce = oThis.stakerNonce;
+  }
+
+  /**
+   * Get gateway composer contracts gas price and gas limit
+   *
+   * @private
+   */
+  _getContractGasPriceAndGasLimit() {
+    const oThis = this;
+
+    oThis.requestStakeTxParams.gas_price = contractConstants.gatewayComposerGasPrice;
+    oThis.requestStakeTxParams.gas_limit = contractConstants.gatewayComposerGasLimit;
   }
 
   /**
@@ -216,6 +241,26 @@ class GatewayComposer {
   }
 
   /**
+   * Calculates precise amount
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _getPreciseAmount() {
+    const oThis = this;
+
+    let stakeCurrencyBTConverterObj = new StakeCurrencyBTConverter({ conversionFactor: oThis.token.conversionFactor }),
+      computedStakeCurrencyInWei = stakeCurrencyBTConverterObj.convertBtToStakeCurrency(oThis.btAmountInWei);
+
+    let correctedBTAmountInWei = stakeCurrencyBTConverterObj.convertStakeCurrencyToBT(computedStakeCurrencyInWei);
+
+    oThis.preciseAmounts = {
+      stake_currency: computedStakeCurrencyInWei,
+      bt: correctedBTAmountInWei
+    };
+  }
+
+  /**
    * Get staker helper object
    *
    */
@@ -230,6 +275,6 @@ class GatewayComposer {
   }
 }
 
-module.exports = GatewayComposer;
+InstanceComposer.registerAsShadowableClass(PreMint, coreConstants.icNameSpace, 'PreMint');
 
-InstanceComposer.registerAsShadowableClass(GatewayComposer, coreConstants.icNameSpace, 'GatewayComposer');
+module.exports = {};

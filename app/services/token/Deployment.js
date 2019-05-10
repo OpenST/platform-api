@@ -1,44 +1,54 @@
-'use strict';
 /**
- * This service starts the deployment of token
+ * Module to start deployment of token.
  *
  * @module app/services/token/Deployment
  */
+
 const rootPrefix = '../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  GrantEthOst = require(rootPrefix + '/app/services/token/GrantEthOst'),
   TokenCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/Token'),
   ConfigGroupsModel = require(rootPrefix + '/app/models/mysql/ConfigGroup'),
-  configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ClientConfigGroupModel = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   ClientPreProvisioning = require(rootPrefix + '/app/models/mysql/ClientPreProvisioning'),
-  EconomySetupRouter = require(rootPrefix + '/lib/workflow/economySetup/Router'),
+  GrantEthStakeCurrency = require(rootPrefix + '/app/services/token/GrantEthStakeCurrency'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
-  ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting');
+  ClientWhitelistingCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ClientWhitelisting'),
+  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
+  configGroupConstants = require(rootPrefix + '/lib/globalConstant/configGroups'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
- * Class for token deployment
+ * Class to start deployment of token.
  *
- * @class
+ * @class Deployment
  */
-class Deployment {
+class Deployment extends ServiceBase {
   /**
-   * Constructor for token deployment
+   * Constructor to start deployment of token.
+   *
+   * @param {object} params
+   * @param {string/number} params.token_id
+   * @param {string/number} params.client_id
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
+    super();
+
     const oThis = this;
 
     oThis.tokenId = params.token_id;
@@ -46,58 +56,34 @@ class Deployment {
   }
 
   /**
-   * perform
-   * @return {Promise<>}
-   */
-  perform() {
-    // TODO - use perform from servicebase
-    const oThis = this;
-
-    return oThis.asyncPerform().catch(function(error) {
-      if (responseHelper.isCustomResult(error)) {
-        return error;
-      } else {
-        logger.error('app/services/token/Deployment::perform::catch');
-        logger.error(error);
-        return responseHelper.error({
-          internal_error_identifier: 's_t_d_1',
-          api_error_identifier: 'unhandled_catch_response',
-          debug_options: {}
-        });
-      }
-    });
-  }
-
-  /**
-   * asyncPerform
+   * Async perform.
    *
    * @return {Promise<any>}
+   * @private
    */
-  async asyncPerform() {
+  async _asyncPerform() {
     const oThis = this;
 
     await oThis._validateRequest();
 
-    let tokenDeploymentResponse = await oThis.startTokenDeployment();
+    const tokenDeploymentResponse = await oThis.startTokenDeployment();
 
     if (!tokenDeploymentResponse.isSuccess()) {
       return Promise.reject(tokenDeploymentResponse);
     }
 
-    // Grant Eth only if its sandbox environment.
+    // Grant Eth and Stake currency only if it is sandbox environment.
     if (basicHelper.isSandboxSubEnvironment()) {
-      await oThis._grantEthOst();
+      await oThis._grantEthStakeCurrency();
     }
 
     return tokenDeploymentResponse;
   }
 
   /**
-   *
-   * Validate request
+   * Validate request.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _validateRequest() {
@@ -107,7 +93,7 @@ class Deployment {
       return responseHelper.successWithData({});
     }
 
-    let rsp = await new ClientWhitelistingCache({ clientId: oThis.clientId }).fetch();
+    const rsp = await new ClientWhitelistingCache({ clientId: oThis.clientId }).fetch();
 
     if (!rsp.data.id) {
       return Promise.reject(
@@ -124,16 +110,17 @@ class Deployment {
   /**
    * Fetch config group for the client. If config group is not assigned for the client, assign one.
    *
-   * @return {Promise<void>}
+   * @sets oThis.chainId
    *
+   * @return {Promise<void>}
    * @private
    */
   async _insertAndFetchConfigGroup() {
     const oThis = this;
 
     // Fetch client config group.
-    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId }),
-      fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
+    const clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: oThis.clientId });
+    let fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
 
     if (fetchCacheRsp.isSuccess()) {
       // Config group is already associated for the given client.
@@ -150,17 +137,16 @@ class Deployment {
    * Assign config group to the clientId.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _assignConfigGroupsToClient() {
     const oThis = this;
 
-    let rsp = await oThis._getChainIdFromPreProvisioning(),
-      insertParams = rsp.data;
+    const rsp = await oThis._getChainIdFromPreProvisioning();
+    let insertParams = rsp.data;
 
     if (!insertParams.groupId) {
-      let configGroups = new ConfigGroupsModel(),
+      const configGroups = new ConfigGroupsModel(),
         configGroupsResponse = await configGroups
           .select('*')
           .where({
@@ -171,10 +157,10 @@ class Deployment {
           .fire();
 
       // Select config group on round robin basis.
-      let configGroupRow = oThis.clientId % configGroupsResponse.length;
+      const configGroupRow = oThis.clientId % configGroupsResponse.length;
 
       // Fetch config group.
-      let configGroup = configGroupsResponse[configGroupRow];
+      const configGroup = configGroupsResponse[configGroupRow];
 
       insertParams = {
         chainId: configGroup.chain_id,
@@ -193,8 +179,7 @@ class Deployment {
   }
 
   /**
-   *
-   * fetch chain id from client pre provisioning
+   * Fetch chain id from client pre provisioning.
    *
    * @return {Promise<object>}
    * @private
@@ -204,10 +189,10 @@ class Deployment {
 
     let returnData;
 
-    let clientPreProvisioningConfig = await new ClientPreProvisioning().getDetailsByClientId(oThis.clientId);
+    const clientPreProvisioningConfig = await new ClientPreProvisioning().getDetailsByClientId(oThis.clientId);
 
     if (clientPreProvisioningConfig.data.config && clientPreProvisioningConfig.data.config.config_group_id) {
-      let configGroupsModel = new ConfigGroupsModel(),
+      const configGroupsModel = new ConfigGroupsModel(),
         dbRows = await configGroupsModel
           .select('*')
           .where({
@@ -229,10 +214,9 @@ class Deployment {
   /**
    * Fetch latest workflow details for the client.
    *
-   * @param {String/Number} clientId
+   * @param {string/number} clientId
    *
    * @return {Promise<*>}
-   *
    * @private
    */
   async _fetchWorkflowDetails(clientId) {
@@ -247,19 +231,19 @@ class Deployment {
   }
 
   /**
-   * Fetch token details
+   * Fetch token details.
    *
-   * @param {String/Number} clientId
+   * @param {string/number} clientId
    *
-   * @return {Promise<void>}
-   *
+   * @return {Promise<object>}
    * @private
    */
   async _fetchTokenDetails(clientId) {
-    let cacheResponse = await new TokenCache({ clientId: clientId }).fetch();
+    const cacheResponse = await new TokenCache({ clientId: clientId }).fetch();
 
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched token details.');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_t_d_2',
@@ -270,20 +254,21 @@ class Deployment {
         })
       );
     }
+
     return cacheResponse.data;
   }
 
-  /***
+  /**
+   * Object of config strategy klass
    *
-   * object of config strategy klass
+   * @sets oThis.originChainId
    *
    * @return {object}
-   *
-   * @Sets oThis.originChainId
    */
   async _fetchOriginChainId() {
     const oThis = this;
-    let csHelper = new ConfigStrategyHelper(0),
+
+    const csHelper = new ConfigStrategyHelper(0),
       csResponse = await csHelper.getForKind(configStrategyConstants.constants),
       configConstants = csResponse.data[configStrategyConstants.constants];
 
@@ -291,7 +276,7 @@ class Deployment {
   }
 
   /**
-   * Start token deployment
+   * Start token deployment.
    *
    * @return {Promise<*|result>}
    */
@@ -299,7 +284,7 @@ class Deployment {
     const oThis = this;
 
     // Update status of token deployment as deploymentStarted in tokens table.
-    let tokenModelResp = await new TokenModel()
+    const tokenModelResp = await new TokenModel()
       .update({
         status: new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]
       })
@@ -321,7 +306,9 @@ class Deployment {
       // Fetch config group for the client.
       await oThis._insertAndFetchConfigGroup();
 
-      let economySetupRouterParams = {
+      await oThis._fetchStakeCurrencyContractAddress();
+
+      const economySetupRouterParams = {
         stepKind: workflowStepConstants.economySetupInit,
         taskStatus: workflowStepConstants.taskReadyToStart,
         clientId: oThis.clientId,
@@ -331,86 +318,135 @@ class Deployment {
           tokenId: oThis.tokenId,
           auxChainId: oThis.chainId,
           originChainId: oThis.originChainId,
-          clientId: oThis.clientId
+          clientId: oThis.clientId,
+          stakeCurrencyContractAddress: oThis.stakeCurrencyContractAddress
         }
       };
 
-      let economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams);
+      const economySetupRouterObj = new EconomySetupRouter(economySetupRouterParams);
 
       return economySetupRouterObj.perform();
     }
     // Status of token deployment is not as expected.
-    else {
-      // Fetch token details.
-      let tokenDetails = await oThis._fetchTokenDetails(oThis.clientId);
 
-      // If token does not exist in the table.
-      if (Object.keys(tokenDetails) < 1) {
-        logger.error('Token does not exist.');
+    // Fetch token details.
+    const tokenDetails = await oThis._fetchTokenDetails(oThis.clientId);
 
+    // If token does not exist in the table.
+    if (Object.keys(tokenDetails) < 1) {
+      logger.error('Token does not exist.');
+
+      return responseHelper.error({
+        internal_error_identifier: 's_t_d_3',
+        api_error_identifier: 'invalid_branded_token',
+        debug_options: {}
+      });
+    }
+    // Token exists in the table.
+
+    switch (tokenDetails.status.toString()) {
+      case new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]: {
+        // Fetch latest workflow details for the client.
+        let workflowDetails = await oThis._fetchWorkflowDetails(oThis.clientId);
+
+        // Workflow for the client has not been initiated yet.
+        if (workflowDetails.length !== 1) {
+          logger.error('Workflow for the client has not been initiated yet.');
+
+          return responseHelper.error({
+            internal_error_identifier: 's_t_d_4',
+            api_error_identifier: 'token_not_setup',
+            debug_options: {}
+          });
+        }
+
+        workflowDetails = workflowDetails[0];
+
+        return responseHelper.successWithData({ workflow_id: workflowDetails.id });
+      }
+
+      case new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]: {
         return responseHelper.error({
-          internal_error_identifier: 's_t_d_3',
-          api_error_identifier: 'invalid_branded_token',
-          debug_options: {}
+          internal_error_identifier: 's_t_d_5',
+          api_error_identifier: 'token_already_deployed',
+          debug_options: { tokenStatus: tokenDetails.status }
         });
       }
-      // Token exists in the table.
-      else {
-        switch (tokenDetails.status.toString()) {
-          case new TokenModel().invertedStatuses[tokenConstants.deploymentStarted]:
-            // Fetch latest workflow details for the client.
-            let workflowDetails = await oThis._fetchWorkflowDetails(oThis.clientId);
-
-            // Workflow for the client has not been initiated yet.
-            if (workflowDetails.length !== 1) {
-              logger.error('Workflow for the client has not been initiated yet.');
-
-              return responseHelper.error({
-                internal_error_identifier: 's_t_d_4',
-                api_error_identifier: 'token_not_setup',
-                debug_options: {}
-              });
-            }
-
-            workflowDetails = workflowDetails[0];
-
-            return responseHelper.successWithData({ workflow_id: workflowDetails.id });
-
-          case new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]:
-            return responseHelper.error({
-              internal_error_identifier: 's_t_d_5',
-              api_error_identifier: 'token_already_deployed',
-              debug_options: { tokenStatus: tokenDetails.status }
-            });
-
-          case new TokenModel().invertedStatuses[tokenConstants.deploymentFailed]:
-            return responseHelper.error({
-              internal_error_identifier: 's_t_d_6',
-              api_error_identifier: 'token_deployment_failed',
-              debug_options: { tokenStatus: tokenDetails.status }
-            });
-
-          default:
-            return responseHelper.error({
-              internal_error_identifier: 's_t_d_7',
-              api_error_identifier: 'something_went_wrong',
-              debug_options: { tokenStatus: tokenDetails.status }
-            });
-        }
+      case new TokenModel().invertedStatuses[tokenConstants.deploymentFailed]: {
+        return responseHelper.error({
+          internal_error_identifier: 's_t_d_6',
+          api_error_identifier: 'token_deployment_failed',
+          debug_options: { tokenStatus: tokenDetails.status }
+        });
       }
+      default:
+        return responseHelper.error({
+          internal_error_identifier: 's_t_d_7',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { tokenStatus: tokenDetails.status }
+        });
     }
   }
 
   /**
-   * Call service which grants ETH and OST to given address.
+   * This function fetches and sets stake currency contract address.
+   *
+   * @sets oThis.stakeCurrencyContractAddress
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _fetchStakeCurrencyContractAddress() {
+    const oThis = this;
+
+    const tokenDetails = await oThis._fetchTokenDetails(oThis.clientId),
+      stakeCurrencyId = tokenDetails.stakeCurrencyId,
+      stakeCurrencyDetails = await oThis._fetchStakeCurrencyDetails(stakeCurrencyId);
+
+    oThis.stakeCurrencyContractAddress = stakeCurrencyDetails.contractAddress;
+  }
+
+  /**
+   * This function fetches stake currency details.
+   *
+   * @param {number} stakeCurrencyId
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchStakeCurrencyDetails(stakeCurrencyId) {
+    const oThis = this;
+
+    const stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
+      stakeCurrencyIds: [stakeCurrencyId]
+    }).fetch();
+
+    if (stakeCurrencyCacheResponse.isFailure()) {
+      logger.error('Could not fetch stake currency details.');
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 's_t_d_8',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {
+            stakeCurrencyIds: [oThis.stakeCurrencyId]
+          }
+        })
+      );
+    }
+
+    return stakeCurrencyCacheResponse.data[stakeCurrencyId];
+  }
+
+  /**
+   * Call service which grants ETH and Stake currency to given address.
    *
    * @return {Promise<*>}
    */
-  async _grantEthOst() {
+  async _grantEthStakeCurrency() {
     const oThis = this;
 
-    // fetch meta-mask address for client
-    let tokenAddressCacheRsp = await new TokenAddressCache({
+    // Fetch meta-mask address for client.
+    const tokenAddressCacheRsp = await new TokenAddressCache({
       tokenId: oThis.tokenId
     }).fetch();
 
@@ -418,19 +454,20 @@ class Deployment {
       return Promise.reject(tokenAddressCacheRsp);
     }
 
-    // meta-mask address will be the ownerAddress from token deployment.
-    let ownerAddress = tokenAddressCacheRsp.data[tokenAddressConstants.ownerAddressKind];
+    // Meta-mask address will be the ownerAddress from token deployment.
+    const ownerAddress = tokenAddressCacheRsp.data[tokenAddressConstants.ownerAddressKind];
 
-    // grant ETH and OST for this address.
-    let grantEthOst = new GrantEthOst({ client_id: oThis.clientId, address: ownerAddress }),
-      grantEthOstResponse = await grantEthOst.perform();
+    // Grant ETH and Stake currency for this address.
+    const grantEthStakeCurrency = new GrantEthStakeCurrency({ client_id: oThis.clientId, address: ownerAddress }),
+      grantEthStakeCurrencyResponse = await grantEthStakeCurrency.perform();
 
-    if (!grantEthOstResponse.isSuccess()) {
-      logger.error('Granting ETH and OST has been failed.');
-      return Promise.resolve(grantEthOstResponse);
+    if (!grantEthStakeCurrencyResponse.isSuccess()) {
+      logger.error('Granting ETH and Stake currency has been failed.');
+
+      return Promise.resolve(grantEthStakeCurrencyResponse);
     }
 
-    return Promise.resolve(grantEthOstResponse);
+    return Promise.resolve(grantEthStakeCurrencyResponse);
   }
 }
 

@@ -7,6 +7,7 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -85,6 +86,78 @@ class CurrencyConversionRateModel extends ModelBase {
       .limit(1)
       .order_by('timestamp DESC')
       .fire();
+  }
+
+  /**
+   * This function fetches latest conversion rate for given base currencies.
+   * NOTE: It is expected that in the latest 10 rows we will be able to find all the base currencies. If data for some
+   * base currencies is not found then call the same function again for the remaining base currencies.
+   *
+   * @param {Number} params.chainId
+   * @param {Array} params.baseCurrencies
+   *
+   * @returns {Promise<*>}
+   */
+  async getBaseCurrencyLatestActiveRates(params) {
+    const oThis = this;
+
+    let chainId = params.chainId,
+      baseCurrenciesArray = params.baseCurrencies,
+      baseCurrenciesIntValueArray = oThis._getIntValueForBaseCurrency(baseCurrenciesArray),
+      whereClause = {
+        quote_currency: conversionRatesConstants.invertedQuoteCurrencies[conversionRatesConstants.USD],
+        base_currency: baseCurrenciesIntValueArray
+      };
+
+    if (chainId) {
+      whereClause['chain_id'] = chainId;
+    }
+
+    let records = await oThis
+      .select('*')
+      .where(whereClause)
+      .order_by('timestamp DESC')
+      .limit(10)
+      .fire();
+
+    if (records.length === 0) {
+      return Promise.resolve(
+        responseHelper.error({
+          internal_error_identifier: 'a_m_m_ccr_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: { chainId: chainId, baseCurrenciesArray: baseCurrenciesArray }
+        })
+      );
+    }
+
+    let responseData = {};
+
+    for (let i = 0; i < records.length; i++) {
+      if (!responseData[records[i].base_currency]) {
+        let dataHash = {};
+        dataHash[conversionRatesConstants.quoteCurrencies[records[i].quote_currency]] = records[i].conversion_rate;
+        dataHash['updated_timestamp'] = records[i].timestamp;
+        responseData[conversionRatesConstants.baseCurrencies[records[i].base_currency]] = dataHash;
+      }
+    }
+
+    return responseHelper.successWithData(responseData);
+  }
+
+  /**
+   * This function converts array of string value of base currencies to array of integer values of base currencies
+   *
+   * @param {Array} baseCurrenciesArray
+   * @returns {Array}
+   * @private
+   */
+  _getIntValueForBaseCurrency(baseCurrenciesArray) {
+    let baseCurrencyIntValueArray = [];
+    for (let i = 0; i < baseCurrenciesArray.length; i++) {
+      baseCurrencyIntValueArray.push(conversionRatesConstants.invertedBaseCurrencies[baseCurrenciesArray[i]]);
+    }
+
+    return baseCurrencyIntValueArray;
   }
 }
 

@@ -139,6 +139,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The token has already been successfully deployed."
   },
+  "token_not_deployed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The token has not been deployed yet."
+  },
   "token_deployment_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
@@ -334,6 +339,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Failed to fetch shard_number. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
   },
+  "base_currency_fetch_failed": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Failed to fetch base_currency. This means OST server is not available, its a temporary problem. Make sure your connection is not going idle or you are not seeing any timeouts. Verify and re-submit the request a bit later."
+  },
   "session_address_fetch_failed": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
@@ -359,15 +369,15 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Error while deleting session"
   },
-  "invalid_ost_value": {
+  "invalid_erc20_value": {
     "http_code": "422",
     "code": "BAD_REQUEST",
-    "message": "OST value is invalid."
+    "message": "ERC20 value is invalid."
   },
-  "invalid_ost_price": {
+  "invalid_erc20_price": {
     "http_code": "422",
     "code": "BAD_REQUEST",
-    "message": "OST price is invalid."
+    "message": "ERC20 price is invalid."
   },
   "invalid_cmc_response": {
     "http_code": "422",
@@ -413,6 +423,11 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Cron is in stopped state for at least one interval."
+  },
+  "cron_already_running": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Cron is already running."
   },
   "low_eth_balance_master_internal_funder": {
     "http_code": "422",
@@ -533,6 +548,11 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Balance Rollback Failed from API Thread."
+  },
+  "stake_currency_bt_conversion_mismatch": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Mismatch in stake currency amount and bt amount."
   },
   "recovery_requests_threshold_exceeded": {
     "http_code": "422",

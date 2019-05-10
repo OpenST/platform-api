@@ -1,28 +1,38 @@
-'use strict';
-
 /**
  * Objective is to verify the table data with the chain data.
  *
- * Usage:- node tools/verifiers/originChainSetup.js
+ * Usage: node tools/verifiers/originChainSetup.js
  *
  * @module tools/verifiers/originChainSetup
  */
 
 const rootPrefix = '../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis');
+  StakeCurrenciesModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
+  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  web3Provider = require(rootPrefix + '/lib/providers/web3'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
+ * Class to verify the table data with the chain data.
  *
+ * @class OriginChainSetup
  */
 class OriginChainSetup {
+  /**
+   * Constructor to verify the table data with the chain data.
+   *
+   * @constructor
+   */
   constructor() {
     const oThis = this;
 
@@ -31,6 +41,11 @@ class OriginChainSetup {
     oThis.chainId = null;
   }
 
+  /**
+   * Validate.
+   *
+   * @return {Promise<void>}
+   */
   async validate() {
     const oThis = this;
 
@@ -42,6 +57,9 @@ class OriginChainSetup {
 
     logger.step('** Validating Simple Token Contract Address.');
     await oThis._validateSimpleTokenContract();
+
+    logger.step('** Validating USDC Contract Address.');
+    await oThis._validateUsdcContract();
 
     logger.step('** Validating Simple Token Contract Organization.');
     await oThis._validateOrganization(chainAddressConstants.stOrgContractKind);
@@ -57,21 +75,19 @@ class OriginChainSetup {
     logger.win('* Origin Chain Setup Verification Done!!');
 
     process.exit(0);
-    //return Promise.resolve();
   }
 
   /**
-   * Fetch required origin addresses
+   * Fetch required origin addresses.
    *
    * @return {Promise}
-   *
    * @private
    */
   async _fetchOriginAddresses() {
     const oThis = this;
 
     // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
+    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
     if (chainAddressesRsp.isFailure()) {
@@ -106,10 +122,20 @@ class OriginChainSetup {
     oThis.stOrgContractWorkerAddresses = chainAddressesRsp.data[chainAddressConstants.stOrgContractWorkerKind];
     oThis.originAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
+
+    oThis.usdcOwnerAddress = chainAddressesRsp.data[chainAddressConstants.usdcContractOwnerKind].address;
+
+    // Fetch USDC contract address.
+    const stakeCurrenciesModelObj = new StakeCurrenciesModel({}),
+      stakeCurrenciesRsp = await stakeCurrenciesModelObj.fetchStakeCurrenciesBySymbols([conversionRateConstants.USDC]);
+
+    oThis.usdcContractAddress = stakeCurrenciesRsp.data[conversionRateConstants.USDC].contractAddress;
   }
 
   /**
-   * Set Origin web3 Obj
+   * Set Origin web3 Obj.
+   *
+   * @sets oThis.web3Instance, oThis.verifiersHelper
    *
    * @return {Promise<void>}
    * @private
@@ -117,11 +143,11 @@ class OriginChainSetup {
   async _setWeb3Obj() {
     const oThis = this;
 
-    let csHelper = new ConfigStrategyHelper(0, 0),
+    const csHelper = new ConfigStrategyHelper(0, 0),
       csResponse = await csHelper.getForKind(configStrategyConstants.originGeth),
       configForChain = csResponse.data[configStrategyConstants.originGeth];
 
-    let readWriteConfig = configForChain[configStrategyConstants.gethReadWrite];
+    const readWriteConfig = configForChain[configStrategyConstants.gethReadWrite];
     oThis.chainId = configForChain.chainId;
 
     oThis.web3Instance = web3Provider.getInstance(readWriteConfig.wsProvider).web3WsProvider;
@@ -129,7 +155,7 @@ class OriginChainSetup {
   }
 
   /**
-   * Validate simple token contract
+   * Validate simple token contract.
    *
    * @return {Promise<Promise<never> | Promise<any>>}
    * @private
@@ -138,28 +164,29 @@ class OriginChainSetup {
     const oThis = this;
 
     logger.log('* Fetching simple token contract address from database.');
-    let dbSimpleTokenContractAddress = oThis.simpleTokenContractAddress;
+    const dbSimpleTokenContractAddress = oThis.simpleTokenContractAddress;
 
     logger.log('* Validating the deployed code on the address.');
-    let rsp = await oThis.verifiersHelper.validateSimpleTokenContract(dbSimpleTokenContractAddress);
+    const rsp = await oThis.verifiersHelper.validateSimpleTokenContract(dbSimpleTokenContractAddress);
     if (!rsp) {
       logger.error('Deployment verification of simple token contract failed.');
-      return Promise.reject();
+
+      return Promise.reject(new Error('Deployment verification of simple token contract failed.'));
     }
 
     logger.log('* Fetching simple token admin address from database.');
-    let dbSimpleTokenAdminAddress = oThis.stContractAdminAddress;
+    const dbSimpleTokenAdminAddress = oThis.stContractAdminAddress;
 
     logger.log('* Fetching simple token admin owner from database.');
-    let dbSimpleTokenOwnerAddress = oThis.stContractOwnerAddress;
+    const dbSimpleTokenOwnerAddress = oThis.stContractOwnerAddress;
 
-    let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(
+    const simpleTokenContractObj = new oThis.web3Instance.eth.Contract(
       CoreAbis.simpleToken,
       dbSimpleTokenContractAddress
     );
 
     logger.log('* Validating simple token admin address.');
-    let chainSimpleTokenAdminAddress = await simpleTokenContractObj.methods.adminAddress().call({});
+    const chainSimpleTokenAdminAddress = await simpleTokenContractObj.methods.adminAddress().call({});
     if (chainSimpleTokenAdminAddress.toLowerCase() !== dbSimpleTokenAdminAddress.toLowerCase()) {
       logger.error(
         'Admin address of simple token -',
@@ -167,11 +194,12 @@ class OriginChainSetup {
         'different from database value -',
         dbSimpleTokenAdminAddress
       );
-      return Promise.reject();
+
+      return Promise.reject(new Error('Admin address verification of simple token contract failed.'));
     }
 
     logger.log('* Validating simple token owner address.');
-    let chainSimpleTokenOwnerAddress = await simpleTokenContractObj.methods.owner().call({});
+    const chainSimpleTokenOwnerAddress = await simpleTokenContractObj.methods.owner().call({});
     if (chainSimpleTokenOwnerAddress.toLowerCase() !== dbSimpleTokenOwnerAddress.toLowerCase()) {
       logger.error(
         'Admin address of simple token -',
@@ -179,24 +207,157 @@ class OriginChainSetup {
         'different from database value -',
         dbSimpleTokenOwnerAddress
       );
-      return Promise.reject();
+
+      return Promise.reject(new Error('Owner address verification of simple token contract failed.'));
     }
 
     logger.log('* Checking whether simple token contract is finalized.');
-    let chainIsFinalized = await simpleTokenContractObj.methods.finalized().call({});
+    const chainIsFinalized = await simpleTokenContractObj.methods.finalized().call({});
 
     if (!chainIsFinalized) {
       logger.error('Simple Token Contract is not finalized.');
-      return Promise.reject();
-    } else {
-      logger.log('Simple Token contract is finalized.');
+
+      return Promise.reject(new Error('Simple Token Contract is not finalized.'));
+    }
+    logger.log('Simple Token contract is finalized.');
+  }
+
+  /**
+   * Validate USDC contract details.
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateUsdcContract() {
+    const oThis = this;
+
+    logger.log('* Validating the deployed code on the address.');
+    const rsp = await oThis.verifiersHelper.validateUsdcContract(oThis.usdcContractAddress);
+    if (!rsp) {
+      logger.error('Deployment verification of USDC contract failed.');
+
+      return Promise.reject(new Error('Deployment verification of USDC contract failed.'));
+    }
+
+    const usdcContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.usdc, oThis.usdcContractAddress);
+
+    logger.log('* Validating USDC token master minter address.');
+    const chainUsdcMasterMinterAddress = await usdcContractObj.methods.masterMinter().call({});
+    if (chainUsdcMasterMinterAddress.toLowerCase() !== oThis.usdcOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Master minter address of USDC token -',
+        chainUsdcMasterMinterAddress,
+        'different from database value -',
+        oThis.usdcOwnerAddress
+      );
+
+      return Promise.reject(new Error('Master minter address verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token pauser address.');
+    const chainUsdcPauserAddress = await usdcContractObj.methods.pauser().call({});
+    if (chainUsdcPauserAddress.toLowerCase() !== oThis.usdcOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Pauser address of USDC token -',
+        chainUsdcPauserAddress,
+        'different from database value -',
+        oThis.usdcOwnerAddress
+      );
+
+      return Promise.reject(new Error('Pauser address verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token blacklister address.');
+    const chainUsdcBlacklisterAddress = await usdcContractObj.methods.blacklister().call({});
+    if (chainUsdcBlacklisterAddress.toLowerCase() !== oThis.usdcOwnerAddress.toLowerCase()) {
+      logger.error(
+        'Blacklister address of USDC token -',
+        chainUsdcBlacklisterAddress,
+        'different from database value -',
+        oThis.usdcOwnerAddress
+      );
+
+      return Promise.reject(new Error('Blacklister address verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract name.');
+    const chainUsdcContractName = await usdcContractObj.methods.name().call({});
+    if (chainUsdcContractName !== contractConstants.usdcContractName) {
+      logger.error(
+        'Contract name of USDC token -',
+        chainUsdcContractName,
+        'different from database value -',
+        contractConstants.usdcContractName
+      );
+
+      return Promise.reject(new Error('Contract name verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract symbol.');
+    const chainUsdcContractSymbol = await usdcContractObj.methods.symbol().call({});
+    if (chainUsdcContractSymbol !== conversionRateConstants.USDC) {
+      logger.error(
+        'Contract symbol of USDC token -',
+        chainUsdcContractSymbol,
+        'different from database value -',
+        conversionRateConstants.USDC
+      );
+
+      return Promise.reject(new Error('Contract symbol verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract currency.');
+    const chainUsdcContractCurrency = await usdcContractObj.methods.currency().call({});
+    if (chainUsdcContractCurrency !== conversionRateConstants.USD) {
+      logger.error(
+        'Contract currency of USDC token -',
+        chainUsdcContractCurrency,
+        'different from database value -',
+        conversionRateConstants.USD
+      );
+
+      return Promise.reject(new Error('Contract currency verification of USDC token contract failed.'));
+    }
+
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [conversionRateConstants.USDC]
+    });
+
+    let response = await stakeCurrencyBySymbolCache.fetch(),
+      usdcDecimals = response.data[conversionRateConstants.USDC].decimal;
+
+    logger.log('* Validating USDC token contract decimals.');
+    const chainUsdcContractDecimals = await usdcContractObj.methods.decimals().call({});
+    if (Number(chainUsdcContractDecimals) !== usdcDecimals) {
+      logger.error(
+        'Contract decimals of USDC token -',
+        chainUsdcContractDecimals,
+        'different from database value -',
+        usdcDecimals
+      );
+
+      return Promise.reject(new Error('Contract decimals verification of USDC token contract failed.'));
+    }
+
+    logger.log('* Validating USDC token contract total supply.');
+    const chainUsdcContractTotalSupply = await usdcContractObj.methods.totalSupply().call({});
+    if (Number(chainUsdcContractTotalSupply) !== contractConstants.usdcMintAmountInLowestUnit) {
+      logger.error(
+        'Contract total supply of USDC token -',
+        chainUsdcContractTotalSupply,
+        'different from database value -',
+        contractConstants.usdcMintAmountInLowestUnit
+      );
+
+      return Promise.reject(new Error('Contract total supply verification of USDC token contract failed.'));
     }
   }
 
   /**
-   * Validate Simple Token & Origin Anchor organization contracts
+   * Validate Simple Token & Origin Anchor organization contracts.
    *
-   * @param organizationKind
+   * @param {string} organizationKind
+   *
    * @return {Promise<Promise<never> | Promise<any>>}
    * @private
    */
@@ -223,48 +384,51 @@ class OriginChainSetup {
         dbWorkerAddressesMap = oThis.originAnchorOrgContractWorkerAddresses;
         break;
       default:
-        console.error('unhandled organizationKind found: ', organizationKind);
-        Promise.reject();
+        logger.error('unhandled organizationKind found: ', organizationKind);
+        Promise.reject(new Error(`Unhandled organization kind found ${organizationKind}.`));
         break;
     }
 
     logger.log('* Validating the deployed code on the organization address.');
-    let rsp = await oThis.verifiersHelper.validateContract(
+    const rsp = await oThis.verifiersHelper.validateContract(
       dbOrganizationContractAddress,
       oThis.verifiersHelper.getOrganizationContractName
     );
     if (!rsp) {
       logger.error('Deployment verification of', organizationKind, 'organization contract failed.');
-      return Promise.reject();
+
+      Promise.reject(new Error(`Deployment verification of  ${organizationKind} organization contract failed.`));
     }
 
-    let organizationContractObj = await oThis.verifiersHelper.getContractObj(
+    const organizationContractObj = await oThis.verifiersHelper.getContractObj(
       'Organization',
       dbOrganizationContractAddress
     );
 
-    let chainAdmin = await organizationContractObj.methods.admin().call({});
+    const chainAdmin = await organizationContractObj.methods.admin().call({});
 
     logger.log('* Validating the admin address with chain.');
     if (chainAdmin.toLowerCase() !== dbAdminAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, 'failed.');
-      Promise.reject();
+      Promise.reject(new Error(`Deployment verification of ${organizationKind} failed.`));
     }
 
-    let chainOwner = await organizationContractObj.methods.owner().call({});
+    const chainOwner = await organizationContractObj.methods.owner().call({});
 
     logger.log('* Validating the owner address with chain.');
     if (chainOwner.toLowerCase() !== dbAOwnerAddress.toLowerCase()) {
       logger.error('Deployment verification of', organizationKind, 'failed.');
-      Promise.reject();
+      Promise.reject(new Error(`Deployment verification of ${organizationKind} failed.`));
     }
 
     logger.log('* Validating the worker addresses with chain.');
-    for (let i = 0; i < dbWorkerAddressesMap.length; i++) {
-      let isWorkerResult = await organizationContractObj.methods.isWorker(dbWorkerAddressesMap[i].address).call({});
+    for (let index = 0; index < dbWorkerAddressesMap.length; index++) {
+      const isWorkerResult = await organizationContractObj.methods
+        .isWorker(dbWorkerAddressesMap[index].address)
+        .call({});
       if (!isWorkerResult) {
         logger.error('Deployment verification of', organizationKind, 'failed.');
-        Promise.reject();
+        Promise.reject(new Error(`Deployment verification of ${organizationKind} failed.`));
       }
     }
   }
@@ -272,10 +436,9 @@ class OriginChainSetup {
   /**
    * Validate given library deployment
    *
-   * @param libKind
+   * @param {string} libKind
    *
    * @return {Promise<Promise<never> | Promise<any>>}
-   *
    * @private
    */
   async _validateLib(libKind) {
@@ -298,19 +461,20 @@ class OriginChainSetup {
         dbLibAddress = oThis.originGatewayLibContractAddress;
         break;
       default:
-        console.error('unhandled libKind found: ', libKind);
-        Promise.reject();
+        logger.error('Unhandled libKind found: ', libKind);
+        Promise.reject(new Error(`Unhandled libKind found: ${libKind}`));
         break;
     }
 
     logger.log('* Validating the deployed code on the', libKind, 'address.');
-    let rsp = await oThis.verifiersHelper.validateContract(
+    const rsp = await oThis.verifiersHelper.validateContract(
       dbLibAddress,
       oThis.verifiersHelper.getLibNameFromKind(libKind)
     );
     if (!rsp) {
       logger.error('Deployment verification of', libKind, 'organization contract failed.');
-      return Promise.reject();
+
+      return Promise.reject(new Error(`Deployment verification of ${libKind} organization contract failed.`));
     }
   }
 }

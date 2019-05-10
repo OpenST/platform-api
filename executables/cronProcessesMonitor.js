@@ -280,9 +280,10 @@ class CronProcessesMonitorExecutable extends CronBase {
   /**
    * Run validations on input parameters.
    *
+   * @return {Promise<void>}
    * @private
    */
-  _validateAndSanitize() {}
+  async _validateAndSanitize() {}
 
   /**
    * Get cron kind.

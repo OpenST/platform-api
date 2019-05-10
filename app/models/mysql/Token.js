@@ -1,9 +1,9 @@
-'use strict';
 /**
  * This is model for Token table.
  *
  * @module app/models/mysql/Token
  */
+
 const rootPrefix = '../../..',
   util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
@@ -20,11 +20,13 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 /**
  * Class for token model
  *
- * @class
+ * @class Token
  */
 class Token extends ModelBase {
   /**
    * Constructor for token model
+   *
+   * @augments ModelBase
    *
    * @constructor
    */
@@ -44,10 +46,17 @@ class Token extends ModelBase {
     return invertedStatuses;
   }
 
+  /**
+   * Get token details by tokenId.
+   *
+   * @param {number/string} tokenId
+   *
+   * @return {Promise<*|result>}
+   */
   async getDetailsByTokenId(tokenId) {
     const oThis = this;
 
-    let dbRows = await oThis
+    const dbRows = await oThis
       .select('client_id')
       .where({
         id: tokenId
@@ -63,10 +72,17 @@ class Token extends ModelBase {
     });
   }
 
+  /**
+   * Get token details by clientId.
+   *
+   * @param {number/string} clientId
+   *
+   * @return {Promise<*|result>}
+   */
   async getDetailsByClientId(clientId) {
     const oThis = this;
 
-    let dbRows = await oThis
+    const dbRows = await oThis
       .select('*')
       .where({
         client_id: clientId
@@ -81,8 +97,10 @@ class Token extends ModelBase {
   }
 
   /**
+   * Format Db data.
    *
-   * @param dbRow
+   * @param {object} dbRow
+   *
    * @return {object}
    */
   formatDbData(dbRow) {
@@ -95,13 +113,17 @@ class Token extends ModelBase {
       decimal: dbRow.decimal,
       status: dbRow.status,
       delayedRecoveryInterval: dbRow.delayed_recovery_interval,
+      stakeCurrencyId: dbRow.stake_currency_id,
+      properties: dbRow.properties
+        ? util.getStringsForWhichBitsAreSet(dbRow.properties, tokenConstants.invertedPropertiesConfig)
+        : [],
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
   }
 
-  /***
-   * Flush cache
+  /**
+   * Flush cache.
    *
    * @param {object} params
    *

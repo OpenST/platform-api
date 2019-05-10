@@ -7,6 +7,7 @@ const router = express.Router();
 
 require(rootPrefix + '/app/services/token/StartMint');
 require(rootPrefix + '/app/services/token/getDashboardDetails');
+require(rootPrefix + '/app/services/token/PreMint');
 
 router.post('/deploy', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDeployment';
@@ -30,17 +31,45 @@ router.get('/mint-details', function(req, res, next) {
 });
 
 router.get('/mint/grant', function(req, res, next) {
-  req.decodedParams.apiName = 'grantEthOst';
+  req.decodedParams.apiName = 'grantEthStakeCurrency';
   req.decodedParams.clientConfigStrategyRequired = false;
 
-  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GrantEthOst', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GrantEthStakeCurrency', 'r_it_4'));
 });
 
 router.get('/get-dashboard', function(req, res, next) {
   req.decodedParams.apiName = 'tokenDashboard';
   req.decodedParams.clientConfigStrategyRequired = true;
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenDashboardDetail', 'r_it_4'));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenDashboardDetail', 'r_it_5'));
+});
+
+router.get('/generate-known-address', function(req, res, next) {
+  req.decodedParams.apiName = 'generateKnownAddress';
+  req.decodedParams.clientConfigStrategyRequired = false;
+
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GenerateKnownAddress', 'r_it_6'));
+});
+
+router.post('/remove-known-address', function(req, res, next) {
+  req.decodedParams.apiName = 'removeKnownAddress';
+  req.decodedParams.clientConfigStrategyRequired = false;
+
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/RemoveKnownAddress', 'r_it_7'));
+});
+
+router.get('/pre-mint', function(req, res, next) {
+  req.decodedParams.apiName = 'preMint';
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'PreMint', 'r_it_8'));
+});
+
+router.get('/balance', function(req, res, next) {
+  req.decodedParams.apiName = 'getBalance';
+  req.decodedParams.clientConfigStrategyRequired = false;
+
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/GetBalance', 'r_it_9'));
 });
 
 module.exports = router;

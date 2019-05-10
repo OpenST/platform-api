@@ -87,9 +87,7 @@ class GethManager {
     let allocAddress, allocAmount;
     for (let allocationAddress in allocAddressToAmountMap) {
       allocAddress = allocationAddress;
-      allocAmount = basicHelper.convertToWei(
-        basicHelper.convertToBigNumber(allocAddressToAmountMap[allocAddress].toString())
-      );
+      allocAmount = basicHelper.convertToLowerUnit(allocAddressToAmountMap[allocAddress], coreConstants.OST_DECIMALS);
     }
 
     const gasLimit = hexStartsWith + gasLimitOn[chainType].toString(16);

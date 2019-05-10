@@ -55,8 +55,8 @@ asso.perform().then(console.log);
 
 require('./lib/setup/economy/VerifySetup');
 EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
-asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1000});
-asso.perform().then(console.log);
+asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1003, stakeCurrencyContractAddress: '0xdbb1543f2677967eb1a63ebe4ea15b5c4f971a6c'});
+asso.perform().then(console.log).catch(console.log);
 
 
 params = {
@@ -146,7 +146,7 @@ require('./app/models/ddb/sharded/Balance.js');
 BalanceModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel');
 asso = new BalanceModel({shardNumber:1, chainId: 2000});
 asso.updateBalance({
-  blockChainSettledBalance: '1110999999999999913000',
+  blockChainSettledBalance: '0', // should be in respective BT Weis.
   erc20Address: '0x73a59fd69dbf0d9451dd57e894ce71ec718d258d',
   tokenHolderAddress: '0x39c5f8de38f5915d07ef2e74eb28a81ef053f1d3'
 }).then(console.log);
@@ -262,8 +262,8 @@ a = require('./lib/getBalance/Eth');
 b = new a({originChainId: originChainId, addresses: [chainOwner, originDeployer, facilitator]});
 b.perform().then(console.log);
 
-a = require('./lib/getBalance/Ost');
-b = new a({originChainId: 3, addresses: ['0x51f79cc09a4d3464e52a686292c6e9e371095b4b']});
+a = require('./lib/getBalance/Erc20');
+b = new a({originChainId: 3, addresses: ['0x51f79cc09a4d3464e52a686292c6e9e371095b4b'], contractAddress: '0x7Be6406a84Fa6c6D9f9c2B15616096B7712E9DA1'});
 b.perform().then(console.log);
 
 a = require('./lib/getBalance/StPrime');
@@ -331,10 +331,10 @@ managedAddress = managedAddresses[0];
             topic: 'workflow.stPrimeRedeemAndUnstake',
             requestParams: {
                 redeemerAddress: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
-                originChainId: 1000, 
+                originChainId: 3, 
                 auxChainId: 2000, 
                 sourceChainId: 2000,
-                destinationChainId: 1000,
+                destinationChainId: 3,
                 facilitator: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
                 amountToRedeem: '100000000000000000000', 
                 beneficiary: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6'

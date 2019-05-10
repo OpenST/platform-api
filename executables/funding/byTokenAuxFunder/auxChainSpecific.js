@@ -17,6 +17,7 @@ const rootPrefix = '../../..',
   ByTokenAuxFunderBase = require(rootPrefix + '/executables/funding/byTokenAuxFunder/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
@@ -319,7 +320,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     const auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
     return basicHelper
-      .convertToWei(String(fundingConfig[addressKind].oneGWeiMinOSTPrimeAmount))
+      .convertToLowerUnit(String(fundingConfig[addressKind].oneGWeiMinOSTPrimeAmount), coreConstants.OSTPRIME_DECIMALS)
       .mul(basicHelper.convertToBigNumber(auxGasPrice));
   }
 
@@ -336,7 +337,7 @@ class FundByChainOwnerAuxChainSpecific extends ByTokenAuxFunderBase {
     const auxGasPrice = basicHelper.getAuxMaxGasPriceMultiplierWithBuffer();
 
     return basicHelper
-      .convertToWei(String(fundingConfig[addressKind].thresholdAmount))
+      .convertToLowerUnit(String(fundingConfig[addressKind].thresholdAmount), coreConstants.OSTPRIME_DECIMALS)
       .mul(basicHelper.convertToBigNumber(auxGasPrice));
   }
 }

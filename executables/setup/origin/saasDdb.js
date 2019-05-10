@@ -1,34 +1,29 @@
-'use strict';
 /**
- * This script is used for creating initial set of ORIGIN specific DDB tables used by SAAS
+ * This script is used for creating initial set of ORIGIN specific DDB tables used by SAAS.
  *
  * @module executables/setup/origin/saasDdb
  */
-const OSTBase = require('@ostdotcom/base');
+
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/models/ddb/shared/Shard');
 require(rootPrefix + '/app/models/ddb/shared/ShardByToken');
+require(rootPrefix + '/app/models/ddb/shared/BaseCurrency');
 
 /**
+ * Class to create initial DDB tables for SAAS.
  *
- * @class
+ * @class CreateInitialDdbTablesForSaas
  */
 class CreateInitialDdbTablesForSaas {
-  /**
-   * Constructor
-   *
-   * @constructor
-   */
-  constructor() {}
-
   /**
    * Main performer method for the class.
    *
@@ -54,26 +49,31 @@ class CreateInitialDdbTablesForSaas {
    * @returns {Promise<void>}
    */
   async asyncPerform() {
-    const oThis = this,
-      strategyByChainHelper = new StrategyByChainHelper(0, 0),
+    const strategyByChainHelper = new StrategyByChainHelper(0, 0),
       strategyFetchRsp = await strategyByChainHelper.getComplete(),
       configStrategy = strategyFetchRsp.data,
       ic = new InstanceComposer(configStrategy),
       ShardModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ShardModel'),
+      BaseCurrencyModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'BaseCurrency'),
       ShardByTokenModel = ic.getShadowedClassFor(coreConstants.icNameSpace, 'ShardByTokenModel');
 
-    let shardsObject = new ShardModel({}),
+    const shardsObject = new ShardModel({}),
+      baseCurrencyObject = new BaseCurrencyModel({}),
       shardByTokenObject = new ShardByTokenModel({});
 
-    // Create Shards table
+    // Create Shards table.
     await shardsObject.createTable();
 
-    // Create Shard By Tokens table
+    // Create Shard By Tokens table.
     await shardByTokenObject.createTable();
+
+    // Create Base Currencies table.
+    await baseCurrencyObject.createTable();
   }
 }
 
-let setupInit = new CreateInitialDdbTablesForSaas();
+const setupInit = new CreateInitialDdbTablesForSaas();
+
 setupInit
   .perform()
   .then(function() {

@@ -1,18 +1,19 @@
 /**
- * Class to seed aux chain specific cron seeder.
+ * Module to seed aux chain specific cron seeder.
  *
  * @module tools/localSetup/auxChainSpecificCronSeeder
  */
 
 const rootPrefix = '../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
  * Class to seed aux chain specific cron seeder.
  *
- * @class
+ * @class AuxChainSpecificCronSeeder
  */
 class AuxChainSpecificCronSeeder {
   /**
@@ -30,7 +31,8 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry();
     await oThis.insertFundBySealerAuxChainSpecificEntry();
     await oThis.insertFundByTokenAuxFunderAuxChainSpecificEntry();
-    await oThis.insertUpdatePriceOraclePricePointsEntry();
+    await oThis.insertOstUpdatePriceOraclePricePointsEntry();
+    await oThis.insertUsdcUpdatePriceOraclePricePointsEntry();
     await oThis.insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry();
     await oThis.insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry();
     await oThis.insertExecuteTransactionOneEntry();
@@ -159,14 +161,31 @@ class AuxChainSpecificCronSeeder {
   }
 
   /**
-   * Insert updatePriceOraclePricePoints cron entry.
+   * Insert updatePriceOraclePricePoints cron entry for OST as base currency.
    *
    * @return {Promise<*>}
    */
-  async insertUpdatePriceOraclePricePointsEntry() {
+  async insertOstUpdatePriceOraclePricePointsEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.updatePriceOraclePricePoints, {
-        auxChainId: 2000
+        auxChainId: 2000,
+        baseCurrency: 'OST'
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert updatePriceOraclePricePoints cron entry for USDC as base currency.
+   *
+   * @return {Promise<*>}
+   */
+  async insertUsdcUpdatePriceOraclePricePointsEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.updatePriceOraclePricePoints, {
+        auxChainId: 2000,
+        baseCurrency: conversionRateConstants.USDC
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);

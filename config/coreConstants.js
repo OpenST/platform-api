@@ -279,11 +279,11 @@ class CoreConstants {
     return 10;
   }
 
-  get CONVERSION_RATE_DECIMALS() {
+  get STAKE_CURRENCY_TO_BT_CONVERSION_RATE_DECIMALS() {
     return '5';
   }
 
-  get CONVERSION_RATE_MULTIPLIER() {
+  get STAKE_CURRENCY_TO_BT_CONVERSION_RATE_MULTIPLIER() {
     return '100000';
   }
 
@@ -331,6 +331,25 @@ class CoreConstants {
     return 1000000;
   }
 
+  get ETH_DECIMALS() {
+    return 18;
+  }
+
+  get OST_DECIMALS() {
+    return 18;
+  }
+
+  get OSTPRIME_DECIMALS() {
+    return 18;
+  }
+
+  get USD_DECIMALS() {
+    return 18;
+  }
+
+  get USDC_CONVERSION_DECIMALS() {
+    return 6;
+  }
   /**
    * Batch delete retry count
    *

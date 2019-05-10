@@ -1,33 +1,32 @@
-'use strict';
 /**
- * This service grants eth and ost.
+ * Module to grant eth and stake currency.
  *
- * @module app/services/token/GrantEthOs
+ * @module app/services/token/GrantEthStakeCurrency
  */
+
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  GrantEthStakeCurrencyRouter = require(rootPrefix + '/lib/workflow/grantEthStakeCurrency/Router'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 /**
- * Class for granting eth and ost.
+ * Class to grant eth and stake currency.
  *
- * @class
+ * @class GrantEthStakeCurrency
  */
 class GrantEthStakeCurrency extends ServiceBase {
   /**
-   * Constructor for token deployment
+   * Constructor to grant eth and stake currency.
    *
-   * @param {Object} params
-   * @param {Integer} params.client_id
-   * @param {String} params.address
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {string} params.address
    *
    * @constructor
    */
@@ -41,7 +40,7 @@ class GrantEthStakeCurrency extends ServiceBase {
   }
 
   /**
-   * Async perform
+   * Async perform.
    *
    * @return {Promise<any>}
    */
@@ -50,7 +49,7 @@ class GrantEthStakeCurrency extends ServiceBase {
 
     if (basicHelper.isMainSubEnvironment()) {
       return responseHelper.error({
-        internal_error_identifier: 's_t_geo_1',
+        internal_error_identifier: 's_t_gsc_2',
         api_error_identifier: 'route_prohibited_in_main',
         debug_options: {}
       });
@@ -65,7 +64,6 @@ class GrantEthStakeCurrency extends ServiceBase {
    * Fetch origin chainId.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _fetchOriginChainId() {
@@ -88,11 +86,11 @@ class GrantEthStakeCurrency extends ServiceBase {
     // Fetch origin chainId.
     await oThis._fetchOriginChainId();
 
-    const paramsForGrantEthOstRouter = {
-      stepKind: workflowStepConstants.grantEthOstInit,
+    const paramsForGrantEthStakeCurrencyRouter = {
+      stepKind: workflowStepConstants.grantEthStakeCurrencyInit,
       taskStatus: workflowStepConstants.taskReadyToStart,
       chainId: oThis.chainId,
-      topic: workflowTopicConstant.grantEthOst,
+      topic: workflowTopicConstant.grantEthStakeCurrency,
       clientId: oThis.clientId,
       requestParams: {
         tokenId: oThis.tokenId,
@@ -102,9 +100,9 @@ class GrantEthStakeCurrency extends ServiceBase {
       }
     };
 
-    let grantEthOstRouter = new GrantEthOstRouter(paramsForGrantEthOstRouter);
+    const grantEthStakeCurrencyRouter = new GrantEthStakeCurrencyRouter(paramsForGrantEthStakeCurrencyRouter);
 
-    return grantEthOstRouter.perform();
+    return grantEthStakeCurrencyRouter.perform();
   }
 }
 

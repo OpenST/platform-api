@@ -1,5 +1,13 @@
-'use strict';
+/**
+ * Module to define signatures for internal route api parameters.
+ *
+ * @module config/apiParams/internal/signature
+ */
 
+const rootPrefix = '../../..',
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName');
+
+// Declare variables.
 const signature = {
   verifySigner: {
     mandatory: [
@@ -66,27 +74,36 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
+        parameter: 'staker_address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'fe_stake_currency_to_stake',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'fe_bt_to_mint',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'bt_to_mint',
+        validatorMethod: 'validateNonZeroWeiValue'
+      },
+      {
+        parameter: 'stake_currency_to_stake',
+        validatorMethod: 'validateNonZeroWeiValue'
+      }
+    ],
+    optional: [
+      {
         parameter: 'approve_transaction_hash',
         validatorMethod: 'validateTransactionHash'
       },
       {
         parameter: 'request_stake_transaction_hash',
         validatorMethod: 'validateTransactionHash'
-      },
-      {
-        parameter: 'staker_address',
-        validatorMethod: 'validateEthAddress'
-      },
-      {
-        parameter: 'fe_ost_to_stake',
-        validatorMethod: 'validateString'
-      },
-      {
-        parameter: 'fe_bt_to_mint',
-        validatorMethod: 'validateString'
       }
-    ],
-    optional: []
+    ]
   },
 
   mintDetails: {
@@ -103,7 +120,7 @@ const signature = {
     optional: []
   },
 
-  grantEthOst: {
+  grantEthStakeCurrency: {
     mandatory: [
       {
         parameter: 'client_id',
@@ -129,6 +146,79 @@ const signature = {
       }
     ],
     optional: []
+  },
+
+  generateKnownAddress: {
+    mandatory: [],
+    optional: []
+  },
+
+  removeKnownAddress: {
+    mandatory: [
+      {
+        parameter: 'known_address_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
+  },
+
+  preMint: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'bt_to_mint',
+        validatorMethod: 'validateNonZeroWeiValue'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'fetch_request_stake_tx_params',
+        validatorMethod: 'validateBoolean'
+      }
+    ]
+  },
+
+  getBalance: {
+    mandatory: [
+      {
+        parameter: 'address',
+        validatorMethod: 'validateEthAddress'
+      },
+      {
+        parameter: 'currencies',
+        validatorMethod: 'validateStringArray'
+      }
+    ]
+  },
+
+  [apiName.getUserInternal]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   }
 };
 

@@ -18,7 +18,7 @@
 
 ## Create common tables for SAAS DDB
 
-* Create all SAAS Owned DDB Tables - (shards and shard_by_tokens)
+* Create all SAAS Owned DDB Tables - (shards, shard_by_tokens, and base_currencies)
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/saasDdb.js
@@ -63,7 +63,7 @@ NOTE: Copy the ETH funder private key for later use.
 * [Only Development] Setup Origin GETH and fund necessary addresses.	
 ```bash	
     source set_env_vars.sh	
-    node tools/localSetup/origin/setupGeth.js --originChainId 3	
+    node tools/localSetup/origin/setupGeth.js --originChainId 3
 ```
 
 * [Only Development] Start Origin GETH with this script.	
@@ -77,7 +77,7 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --fund-master-internal-funder-address --chain-id 3 --eth-owner-private-key '0x0a___' --amount 10
 ```
 
-* Generate origin address and fund them
+* Generate origin address and fund them.
 ```bash
     source set_env_vars.sh
     node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
@@ -89,19 +89,51 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --setup-simple-token --chain-id 3 --eth-owner-private-key '0xabc___'
 ```
 
-NOTE: Copy the 'Setup Simple Token response' from the script response above and save somewhere offline.
+NOTE: Copy the response from the script above and save somewhere offline.
+
+* Save simple token admin, owner and contract address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___' --stContractAddress '0xabc___'
+```
+
+* Save simple token contract details in stake currencies and base currencies table.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+```
+
+* Setup USDC Token (EXCEPT PRODUCTION MAIN ENV)
+```bash
+    source set_env_vars.sh
+    node devops/exec/chainSetup.js --setup-usdc-token --chain-id 3 --eth-owner-private-key '0xabc___'
+```
+
+NOTE: Copy the response from the script above and save somewhere offline.
+
+* Mint sufficient USDC Tokens (EXCEPT PRODUCTION MAIN ENV)
+```bash
+    source set_env_vars.sh
+    node executables/oneTimers/stableCoinStaking/mintUsdcToken.js --usdcTokenOwnerAddress "0xabc___" --usdcTokenOwnerPrivateKey "0xabc___" --usdcContractAddress "0xabc___" --usdcToMintInWei "200000000000000"
+```
+
+* Save USDC token owner address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveUsdcTokenAddresses.js --owner '0xabc___'
+```
+
+* Save USDC token contract details in stake currencies and base currencies table.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+```
 
 * Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
 Granter address gets ETH and OST in this step.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --stAmount 1000000 --ethAmount 50
-```
-
-* Save simple token admin and owner addresses in database.
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
+    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --usdcOwnerPrivateKey '0xab___' --stAmount 1000000 --ethAmount 50 --usdcAmount 1000000
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
@@ -196,5 +228,5 @@ Granter address gets ETH and OST in this step.
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 7
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 8
 ```

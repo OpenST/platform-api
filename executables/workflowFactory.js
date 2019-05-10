@@ -83,12 +83,11 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
   /**
    * Specific validations
    *
-   * @returns {boolean}
+   * @return {Promise<boolean>}
    * @private
    */
-  _specificValidations() {
+  async _specificValidations() {
     // Add specific validations here
-    return true;
   }
 
   /**
@@ -189,10 +188,10 @@ class WorkflowRouterFactory extends MultiSubscriptionBase {
         return new BTRedeemRouter(msgParams).perform();
       }
 
-      case workflowTopicConstant.grantEthOst: {
-        const GrantEthOstRouter = require(rootPrefix + '/lib/workflow/grantEthOst/Router');
+      case workflowTopicConstant.grantEthStakeCurrency: {
+        const GrantEthStakeCurrencyRouter = require(rootPrefix + '/lib/workflow/grantEthStakeCurrency/Router');
 
-        return new GrantEthOstRouter(msgParams).perform();
+        return new GrantEthStakeCurrencyRouter(msgParams).perform();
       }
 
       default:

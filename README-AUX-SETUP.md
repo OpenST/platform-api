@@ -102,7 +102,7 @@ And add it to tables using following script.
 * Run Auxiliary Transaction Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/balanceSettler.js --cronProcessId 22
+    node executables/blockScanner/balanceSettler.js --cronProcessId 23
 ```
 
 * Run Auxiliary Transaction Parser
@@ -193,63 +193,68 @@ And add it to tables using following script.
 * Fund by master internal funder aux chain specific chain addresses
 ```bash
     source set_env_vars.sh
-    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 12
+    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 13
 ```
 
 * Fund by master internal funder aux chain specific token funder addresses
 ```bash
     source set_env_vars.sh
-    node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 16
+    node executables/funding/byMasterInternalFunder/auxChainSpecific/tokenFunderAddresses.js --cronProcessId 18
 ```
 
 * Fund by master internal funder aux chain specific inter chain facilitator addresses on origin chain.
 ```bash
     source set_env_vars.sh
-    node executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 17
+    node executables/funding/byMasterInternalFunder/auxChainSpecific/interChainFacilitatorAddresses.js --cronProcessId 19
 ```
 
 * Fund by token aux funder aux chain specific
 ```bash
     source set_env_vars.sh
-    node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 14
-```
-
-### Update price points.
-```bash
-    source set_env_vars.sh
-    node executables/updatePricePoints.js --cronProcessId 15
+    node executables/funding/byTokenAuxFunder/auxChainSpecific.js --cronProcessId 15
 ```
 
 ### Start Crons
 * Start Aux Workflow router factory
 ```bash
     source set_env_vars.sh
-    node executables/auxWorkflowFactory.js --cronProcessId 20
+    node executables/auxWorkflowFactory.js --cronProcessId 21
 ```
 * Start execute transaction cron process
 ```bash
     source set_env_vars.sh
-    node executables/executeTransaction.js --cronProcessId 18
+    node executables/executeTransaction.js --cronProcessId 19
 ```
 
 ### Start state root sync cron
 * Start origin to aux state root sync cron.
 ```bash
     source set_env_vars.sh
-    node executables/stateRootSync/originToAux.js --cronProcessId 24
+    node executables/stateRootSync/originToAux.js --cronProcessId 26
 ```
 
 * Start aux to origin state root sync cron.
 ```bash
     source set_env_vars.sh
-    node executables/stateRootSync/auxToOrigin.js --cronProcessId 25
+    node executables/stateRootSync/auxToOrigin.js --cronProcessId 27
+```
+
+### Update price points.
+```bash
+    source set_env_vars.sh
+    node executables/updatePricePoints.js --cronProcessId 16
+```
+
+```bash
+    source set_env_vars.sh
+    node executables/updatePricePoints.js --cronProcessId 17
 ```
 
 ### Start balance Verifier
 * Start balance verifier
 ```bash
     source set_env_vars.sh
-    node executables/balanceVerifier.js --cronProcessId 28
+    node executables/balanceVerifier.js --cronProcessId 29
 ```
 ###### ALWAYS AT THE END
 ### Open up config group for allocation

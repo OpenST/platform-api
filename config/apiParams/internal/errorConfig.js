@@ -51,8 +51,8 @@ const errorConfig = {
     message:
       'Invalid parameter staker_address. Please ensure the input is well formed or visit https://dev.ost.com/platform/docs/api for details on accepted datatypes for API parameters.'
   },
-  invalid_fe_ost_to_stake: {
-    parameter: 'fe_ost_to_stake',
+  invalid_fe_stake_currency_to_stake: {
+    parameter: 'fe_stake_currency_to_stake',
     code: 'invalid',
     message: 'Please enter a valid number.'
   },
@@ -71,6 +71,23 @@ const errorConfig = {
     code: 'invalid',
     message:
       'Invalid parameter address. This field accepts data_type "address" as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit.'
+  },
+  invalid_currencies: {
+    parameter: 'currencies',
+    code: 'invalid',
+    message: 'One or more currencies provided in the currencies array is invalid'
+  },
+
+  invalid_bt_to_mint: {
+    parameter: 'bt_to_mint',
+    code: 'invalid',
+    message: 'Invalid bt to mint amount'
+  },
+
+  invalid_stake_currency_to_stake: {
+    parameter: 'stake_currency_to_stake',
+    code: 'invalid',
+    message: 'Invalid stake currency to stake'
   }
 };
 

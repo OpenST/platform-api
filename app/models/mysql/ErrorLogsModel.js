@@ -8,6 +8,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
+// Declare variables.
 const dbName = coreConstants.OST_INFRA_MYSQL_DB;
 
 /**

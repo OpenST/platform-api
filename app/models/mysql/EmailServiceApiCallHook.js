@@ -7,9 +7,9 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   emailServiceConstants = require(rootPrefix + '/lib/globalConstant/emailServiceApiCallHooks');
 
+// Declare variables.
 const dbName = 'kit_saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
@@ -36,12 +36,12 @@ class EmailServiceApiCallHook extends ModelBase {
   /**
    * This method inserts an entry in the table.
    *
-   * @param {Object} params
-   * @param {Integer} params.receiverEntityId - mail receiver id
-   * @param {Integer} params.receiverEntityKind - mail receiver kind
-   * @param {Integer} params.eventType
-   * @param {Integer} params.customDescription
-   * @param {Integer} params.templateParams - template name and tempalate vars for email
+   * @param {object} params
+   * @param {number} params.receiverEntityId: mail receiver id
+   * @param {number} params.receiverEntityKind: mail receiver kind
+   * @param {number} params.eventType
+   * @param {number} params.customDescription
+   * @param {number} params.templateParams: template name and tempalate vars for email
    *
    * @returns {*}
    */
@@ -54,7 +54,9 @@ class EmailServiceApiCallHook extends ModelBase {
       !params.hasOwnProperty('receiverEntityKind') ||
       !params.hasOwnProperty('eventType')
     ) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {receiverEntityId, receiverEntityKind, eventType }';
+      throw new Error(
+        'Mandatory parameters are missing. Expected an object with the following keys: {receiverEntityId, receiverEntityKind, eventType }.'
+      );
     }
 
     return oThis

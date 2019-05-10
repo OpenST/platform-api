@@ -1,6 +1,5 @@
-'use strict';
 /**
- * Set admin
+ * Module to set admin address in simple token contract.
  *
  * @module tools/chainSetup/origin/simpleToken/SetAdminAddress
  */
@@ -9,37 +8,44 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   SetupSimpleTokenBase = require(rootPrefix + '/tools/chainSetup/origin/simpleToken/Base'),
-  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CoreAbis = require(rootPrefix + '/config/CoreAbis'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs');
 
 /**
+ * Class to set admin address in simple token contract.
  *
- * @class
+ * @class SetSimpleTokenAdmin
  */
 class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
   /**
-   * Constructor
+   * Constructor to set admin address in simple token contract.
    *
-   * @param {Object} params
-   * @param {String} params.signerAddress - address who signs Tx
-   * @param {String} params.signerKey - private key of signerAddress
-   * @param {String} params.adminAddress - address which is to be made admin
+   * @param {object} params
+   * @param {string} params.signerAddress: address who signs Tx
+   * @param {string} params.signerKey: private key of signerAddress
+   * @param {string} params.adminAddress: address which is to be made admin
+   * @param {string} params.simpleTokenContractAddress: simple token contract address
+   *
+   * @augments SetupSimpleTokenBase
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
-    oThis.adminAddress = params['adminAddress'];
+
+    oThis.adminAddress = params.adminAddress;
+    oThis.simpleTokenContractAddress = params.simpleTokenContractAddress;
   }
 
   /**
-   * asyncPerform
+   * Async perform.
    *
    * @ignore
    *
@@ -52,7 +58,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
 
     oThis.addKeyToWallet();
 
-    let setAdminRsp = await oThis._setAdminAddress();
+    const setAdminRsp = await oThis._setAdminAddress();
 
     oThis.removeKeyFromWallet();
 
@@ -61,34 +67,33 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
     return setAdminRsp;
   }
 
-  /***
-   *
-   * set admin address
+  /**
+   * Set admin address.
    *
    * @return {Promise}
-   *
    * @private
    */
   async _setAdminAddress() {
     const oThis = this;
 
-    let nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
+    const nonceRsp = await oThis.fetchNonce(oThis.signerAddress);
 
-    let params = {
+    const params = {
       from: oThis.signerAddress,
-      nonce: nonceRsp.data['nonce'],
+      nonce: nonceRsp.data.nonce,
       gasPrice: oThis.gasPrice,
       gas: contractConstants.setAdminSimpleTokenGas
     };
 
-    let simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
-    simpleTokenContractObj.options.address = await oThis.getSimpleTokenContractAddr();
+    const simpleTokenContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.simpleToken);
+    simpleTokenContractObj.options.address = oThis.simpleTokenContractAddress;
 
-    let transactionReceipt = await simpleTokenContractObj.methods
+    const transactionReceipt = await simpleTokenContractObj.methods
       .setAdminAddress(oThis.adminAddress)
       .send(params)
       .catch(function(errorResponse) {
         logger.error(errorResponse);
+
         return responseHelper.error({
           internal_error_identifier: 't_cs_o_ag_st_saa_1',
           api_error_identifier: 'unhandled_catch_response',
@@ -96,7 +101,7 @@ class SetSimpleTokenAdmin extends SetupSimpleTokenBase {
         });
       });
 
-    let setAdminRsp = responseHelper.successWithData({
+    const setAdminRsp = responseHelper.successWithData({
       transactionHash: transactionReceipt.transactionHash,
       transactionReceipt: transactionReceipt
     });

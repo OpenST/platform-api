@@ -1,9 +1,7 @@
-'use strict';
-
 /**
- * Load all required contract abi files and export them.<br><br>
+ * Load all required contract abi files and export them.
  *
- * @module config/core_abis
+ * @module config/coreAbis
  */
 
 const fs = require('fs'),
@@ -15,40 +13,78 @@ const fs = require('fs'),
 const rootPrefix = '..',
   contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName');
 
+// Declare constants.
 const nameToAbiMap = {};
 
+/**
+ * Function to parse file.
+ *
+ * @param {string} filePath
+ * @param {object} options
+ *
+ * @returns {any}
+ */
 function parseFile(filePath, options) {
   filePath = path.join(__dirname, '/' + filePath);
   const fileContent = fs.readFileSync(filePath, options || 'utf8');
+
   return JSON.parse(fileContent);
 }
 
 /**
- * Constructor for openST core contract abis
+ * Class for OpenST core contract ABIs.
  *
- * @constructor
+ * @class CoreAbis
  */
-
 class CoreAbis {
-  constructor() {}
-
   /**
-   * Value Chain Contract: simple token EIP20 contract ABI.<br><br>
+   * Returns SimpleToken ABI.
    *
-   * @constant {object}
-   *
+   * @return {object}
    */
   static get simpleToken() {
-    if (nameToAbiMap['simpleToken']) return nameToAbiMap['simpleToken'];
-    nameToAbiMap['simpleToken'] = parseFile(rootPrefix + '/contracts/abi/SimpleToken.abi', 'utf8');
-    return nameToAbiMap['simpleToken'];
+    if (nameToAbiMap.simpleToken) {
+      return nameToAbiMap.simpleToken;
+    }
+    nameToAbiMap.simpleToken = parseFile(rootPrefix + '/contracts/abi/SimpleToken.abi', 'utf8');
+
+    return nameToAbiMap.simpleToken;
   }
 
   /**
-   * Get abi
+   * Returns genericERC20 ABI.
    *
-   * @param contractName
-   * @returns {String}
+   * @return {*}
+   */
+  static get genericErc20() {
+    if (nameToAbiMap.genericErc20) {
+      return nameToAbiMap.genericErc20;
+    }
+    nameToAbiMap.genericErc20 = parseFile(rootPrefix + '/contracts/abi/GenericERC20.abi', 'utf8');
+
+    return nameToAbiMap.genericErc20;
+  }
+
+  /**
+   * Returns usdc ABI.
+   *
+   * @return {*}
+   */
+  static get usdc() {
+    if (nameToAbiMap.usdc) {
+      return nameToAbiMap.usdc;
+    }
+    nameToAbiMap.usdc = parseFile(rootPrefix + '/contracts/abi/USDC.abi', 'utf8');
+
+    return nameToAbiMap.usdc;
+  }
+
+  /**
+   * Get ABI.
+   *
+   * @param {string} contractName
+   *
+   * @returns {string}
    */
   static getAbi(contractName) {
     switch (contractName) {
@@ -57,6 +93,7 @@ class CoreAbis {
       case contractNameConstants.userWalletFactoryContractName:
       case contractNameConstants.proxyFactoryContractName:
       case contractNameConstants.gnosisSafeContractName:
+      case contractNameConstants.pricerRuleContractName:
         return new OpenSTJs.AbiBinProvider().getABI(contractName);
 
       case contractNameConstants.utilityBrandedTokenContractName:
@@ -73,6 +110,8 @@ class CoreAbis {
       case contractNameConstants.OSTPrimeContractName:
       case contractNameConstants.AnchorContractName:
         return new MosaicJs.AbiBinProvider().getABI(contractName);
+      default:
+        console.log(`ABI for contract name ${contractName} does not exist.`);
     }
   }
 }

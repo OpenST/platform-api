@@ -23,20 +23,9 @@ const rootPrefix = '..',
  */
 class BasicHelper {
   /**
-   * Convert input to Weis.
+   * Convert wei value to un wei (normal).
    *
-   * @param {String/Number} num
-   *
-   * @return {BigNumber}
-   */
-  convertToWei(num) {
-    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(18));
-  }
-
-  /**
-   * Convert wei value to un wei (normal)
-   *
-   * @param {String} wei
+   * @param {string} wei
    *
    * @return {BigNumber}
    */
@@ -45,54 +34,119 @@ class BasicHelper {
   }
 
   /**
+   * Convert input to lower unit.
    *
-   * convert wei value to un wei (normal)
+   * @param {string/number} num
+   * @param {number} decimals - decimals of the coin
    *
-   * @param wei
    * @return {BigNumber}
    */
-  toPrecessionOst(wei) {
-    return this.toPrecession(wei, 5);
+  convertToLowerUnit(num, decimals) {
+    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(decimals));
   }
 
   /**
+   * Convert lower unit value to normal.
    *
-   * convert wei value to un wei (normal)
+   * @param {string} wei
+   * @param {Number} decimals
    *
-   * @param wei
    * @return {BigNumber}
    */
-  toPrecessionBT(wei) {
-    return this.toPrecession(wei, 5);
+  convertLowerUnitToNormal(wei, decimals) {
+    return this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(decimals));
   }
 
   /**
+   * Convert wei value to un wei (normal).
    *
-   * convert wei value to un wei (normal)
+   * @param {string} wei
    *
-   * @param wei
-   * @return {BigNumber}
+   * @return {string}
    */
-  toPrecessionFiat(wei) {
-    return this.toPrecession(wei, 2);
+  toPrecisionOst(wei) {
+    return this.toPrecision(wei, 5);
   }
 
   /**
+   * Convert wei value to un wei (normal).
    *
-   * convert wei value to un wei (normal)
+   * @param {string} wei
    *
-   * @param wei
-   * @return {BigNumber}
+   * @return {string}
    */
-  toPrecession(wei, precession) {
-    let normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
-    return normalValue.toFixed(precession, BigNumber.ROUND_HALF_UP).toString(10);
+  toPrecisionBT(wei) {
+    return this.toPrecision(wei, 5);
   }
 
   /**
-   * Create a duplicate object
+   * Convert wei value to un wei (normal).
    *
-   * @return {Object}
+   * @param {string} wei
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toNormalPrecisionBT(wei, decimals) {
+    return this.toNormalPrecision(wei, 5, decimals);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   *
+   * @return {string}
+   */
+  toPrecisionFiat(wei) {
+    return this.toPrecision(wei, 2);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toNormalPrecisionFiat(wei, decimals) {
+    return this.toNormalPrecision(wei, 2, decimals);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} precision
+   *
+   * @return {string}
+   */
+  toPrecision(wei, precision) {
+    const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(18));
+
+    return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
+  }
+
+  /**
+   * Convert wei value to un wei (normal).
+   *
+   * @param {string} wei
+   * @param {number} precision
+   * @param {number} decimals
+   *
+   * @return {string}
+   */
+  toNormalPrecision(wei, precision, decimals) {
+    const normalValue = this.convertToBigNumber(wei).div(this.convertToBigNumber(10).toPower(decimals));
+
+    return normalValue.toFixed(precision, BigNumber.ROUND_HALF_UP).toString(10);
+  }
+
+  /**
+   * Create a duplicate object.
+   *
+   * @return {object}
    */
   deepDup(obj) {
     return JSON.parse(JSON.stringify(obj));
@@ -102,7 +156,7 @@ class BasicHelper {
    * Get the multiple of max gas price in origin with some buffer (example: 75Gwei will return '75')
    * Buffer right now is 1 Gwei.
    *
-   * @return {String}
+   * @return {string}
    */
   getOriginMaxGasPriceMultiplierWithBuffer() {
     const maxGasValueInBigNumber = this.convertToBigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE),
@@ -115,7 +169,7 @@ class BasicHelper {
    * Get the multiple of max gas price in aux with some buffer (example: 75Gwei will return '75')
    * Buffer right now is 1 Gwei.
    *
-   * @return {String}
+   * @return {string}
    */
   getAuxMaxGasPriceMultiplierWithBuffer() {
     const maxGasValueInBigNumber = this.convertToBigNumber(contractConstants.auxChainGasPrice),
@@ -125,7 +179,8 @@ class BasicHelper {
   }
 
   /**
-   * Convert the given big number in Gwei to wei
+   * Convert the given big number in Gwei to wei.
+   *
    * @param {BigNumber} num
    */
   convertGweiToWei(num) {
@@ -133,11 +188,11 @@ class BasicHelper {
   }
 
   /**
-   * Convert wei to proper string. Make sure it's a valid number
+   * Convert wei to proper string. Make sure it's a valid number.
    *
-   * @param {Number} amountInWei - amount in wei to be formatted
+   * @param {number} amountInWei: amount in wei to be formatted
    *
-   * @return {String}
+   * @return {string}
    */
   formatWeiToString(amountInWei) {
     const oThis = this;
@@ -146,9 +201,9 @@ class BasicHelper {
   }
 
   /**
-   * Convert number to big number. Make sure it's a valid number
+   * Convert number to big number. Make sure it's a valid number.
    *
-   * @param {Number} number - number to be formatted
+   * @param {number} number: number to be formatted
    *
    * @return {BigNumber}
    */
@@ -157,20 +212,32 @@ class BasicHelper {
   }
 
   /**
-   * Convert number to Hex
+   * Convert number to Hex.
    *
-   * @param {Number} number - number to be formatted
+   * @param {number} number: number to be formatted
    *
-   * @return {BigNumber}
+   * @return {string}
    */
   convertToHex(number) {
     return '0x' + new BigNumber(number).toString(16).toUpperCase();
   }
 
   /**
-   * Check if address is valid or not
+   * Convert Hex to String.
    *
-   * @param {String} address - Address
+   * @param {string} string: Hex string
+   *
+   * @return {string}
+   */
+  convertHexToString(string) {
+    const buf = new Buffer.from(string, 'hex');
+    return buf.toString('utf8');
+  }
+
+  /**
+   * Check if address is valid or not.
+   *
+   * @param {string} address
    *
    * @return {boolean}
    */
@@ -183,9 +250,9 @@ class BasicHelper {
   }
 
   /**
-   * Check if eth address is valid or not
+   * Check if eth address is valid or not.
    *
-   * @param {String} address - address
+   * @param {string} address
    *
    * @return {boolean}
    */
@@ -198,9 +265,9 @@ class BasicHelper {
   }
 
   /**
-   * Check if eth address is valid or not
+   * Check if eth address is valid or not.
    *
-   * @param {String} address - address
+   * @param {string} address
    *
    * @return {boolean}
    */
@@ -213,11 +280,11 @@ class BasicHelper {
   }
 
   /**
-   * Shuffle a array
+   * Shuffle an array.
    *
-   * @param {Array} array
+   * @param {array} array
    *
-   * @return {Array}
+   * @return {array}
    */
   shuffleArray(array) {
     for (let elementOne = array.length - 1; elementOne >= 0; elementOne--) {
@@ -231,12 +298,12 @@ class BasicHelper {
   }
 
   /**
-   * Fetch Error Config
+   * Fetch Error Config.
    *
-   * @param {String} apiVersion
-   * @param {Object} dynamicErrorConfig
+   * @param {string} apiVersion
+   * @param {object} dynamicErrorConfig
    *
-   * @return {Object}
+   * @return {object}
    */
   fetchErrorConfig(apiVersion, dynamicErrorConfig) {
     let paramErrorConfig;
@@ -262,65 +329,65 @@ class BasicHelper {
   }
 
   /**
-   * Convert a common separated string to array
+   * Convert a common separated string to array.
    *
-   * @param {String} str
+   * @param {string} str
    *
-   * @return {Array}
+   * @return {array}
    */
   commaSeperatedStrToArray(str) {
     return str.split(',').map((ele) => ele.trim());
   }
 
   /**
-   * Check if environment is production
+   * Check if environment is production.
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
   isProduction() {
-    return coreConstants.environment == 'production';
+    return coreConstants.environment === 'production';
   }
 
   /**
-   * Check if environment is staging
+   * Check if environment is staging.
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
   isStaging() {
-    return coreConstants.environment == 'staging';
+    return coreConstants.environment === 'staging';
   }
 
   /**
-   * Check if environment is development
+   * Check if environment is development.
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
   isDevelopment() {
-    return coreConstants.environment == 'development';
+    return coreConstants.environment === 'development';
   }
 
   /**
-   * Check if sub environment is main
+   * Check if sub environment is main.
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
   isMainSubEnvironment() {
-    return coreConstants.subEnvironment == 'main';
+    return coreConstants.subEnvironment === 'main';
   }
 
   /**
-   * Check if sub environment is Sandbox
+   * Check if sub environment is Sandbox.
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
   isSandboxSubEnvironment() {
-    return coreConstants.subEnvironment == 'sandbox';
+    return coreConstants.subEnvironment === 'sandbox';
   }
 
   /**
-   * Log date format
+   * Log date format.
    *
-   * @returns {String}
+   * @returns {string}
    */
   logDateFormat() {
     const date = new Date();
@@ -345,7 +412,7 @@ class BasicHelper {
   /**
    * Get current timestamp in seconds.
    *
-   * @return {Number}
+   * @return {number}
    */
   getCurrentTimestampInSeconds() {
     return Math.floor(new Date().getTime() / 1000);
@@ -354,9 +421,9 @@ class BasicHelper {
   /**
    * Checks whether the object is empty or not.
    *
-   * @param {Object} obj
+   * @param {object} obj
    *
-   * @return {Boolean}
+   * @return {boolean}
    */
   isEmptyObject(obj) {
     for (const property in obj) {
@@ -369,11 +436,12 @@ class BasicHelper {
   }
 
   /**
+   * Get random number between the range of min and max.
    *
-   * @param {Number} min
-   * @param {Number} max
+   * @param {number} min
+   * @param {number} max
    *
-   * @return {Number}
+   * @return {number}
    */
   getRandomNumber(min, max) {
     min = Math.ceil(min);
@@ -383,19 +451,21 @@ class BasicHelper {
   }
 
   /**
-   * Encypt page identifier
+   * Encrypt page identifier.
    *
-   * @param object
-   * @return {*}
+   * @param {string} object
+   *
+   * @return {string}
    */
   encryptPageIdentifier(object) {
     return base64Helper.encode(JSON.stringify(object));
   }
 
   /**
-   * Decrypt page identifier
+   * Decrypt page identifier.
    *
-   * @param string
+   * @param {string} string
+   *
    * @return {any}
    */
   decryptPageIdentifier(string) {
@@ -404,21 +474,24 @@ class BasicHelper {
 
   /**
    * Converts conversion rate to contract interpreted string. ex 1.5 -> 150000
-   * @param conversionRate
-   * @return {String}
+   *
+   * @param {string/number} conversionRate
+   *
+   * @return {string}
    */
   computeConversionRateForContract(conversionRate) {
     const conversionFactorFromDB = new BigNumber(conversionRate),
-      conversionMultiplier = new BigNumber(coreConstants.CONVERSION_RATE_MULTIPLIER);
+      conversionMultiplier = new BigNumber(coreConstants.STAKE_CURRENCY_TO_BT_CONVERSION_RATE_MULTIPLIER);
     const conversionRateForContractBigNumber = conversionFactorFromDB.mul(conversionMultiplier);
 
     return conversionRateForContractBigNumber.toString();
   }
 
   /**
-   * Sanitize address
+   * Sanitize address.
    *
-   * @param address
+   * @param {string} address
+   *
    * @return {string | *}
    */
   sanitizeAddress(address) {
@@ -426,9 +499,10 @@ class BasicHelper {
   }
 
   /**
-   * Sanitize uuid
+   * Sanitize uuid.
    *
-   * @param uuid
+   * @param {string} uuid
+   *
    * @return {string | *}
    */
   sanitizeuuid(uuid) {
@@ -436,17 +510,20 @@ class BasicHelper {
   }
 
   /**
+   * Convert date to timestamp.
    *
-   * @param {String} dateStr
-   * @return {Integer} timestamp
+   * @param {string} dateStr
    *
+   * @return {number} timestamp
    */
   dateToSecondsTimestamp(dateStr) {
     return Math.floor(new Date(dateStr).getTime() / 1000);
   }
 
   /**
-   * Promisify JSON parse
+   * Promisify JSON parse.
+   *
+   * @param {object} data
    *
    * @return {Promise<void>}
    */
@@ -455,9 +532,10 @@ class BasicHelper {
   }
 
   /**
-   * Sanitize raw call data
+   * Sanitize raw call data.
    *
    * @param rawCallData
+   *
    * @return {Promise<void>}
    */
   async sanitizeRawCallData(rawCallData) {
@@ -476,7 +554,7 @@ class BasicHelper {
   }
 
   /**
-   * Sanitize meta property data
+   * Sanitize meta property data.
    *
    * @param metaProperty
    *
@@ -498,19 +576,20 @@ class BasicHelper {
   }
 
   /**
-   * Timestamp in seconds
+   * Timestamp in seconds.
    *
-   * @return {Number}
+   * @return {number}
    */
   timestampInSeconds() {
     return Math.floor(new Date() / 1000);
   }
 
   /**
-   * Generate rsv from signature
+   * Generate rsv from signature.
    *
-   * @param signature
-   * @return {{r: *, s: string, v: string}}
+   * @param {string} signature
+   *
+   * @return {{r: string, s: string, v: string}}
    */
   generateRsvFromSignature(signature) {
     return {
@@ -521,14 +600,15 @@ class BasicHelper {
   }
 
   /**
-   * Sleep for particular time
+   * Sleep for particular time.
    *
-   * @param ms {Number}: time in ms
+   * @param {number} ms: time in ms
    *
    * @returns {Promise<any>}
    */
   sleep(ms) {
     console.log('Sleeping for ', ms, ' ms');
+
     return new Promise(function(resolve) {
       setTimeout(resolve, ms);
     });
