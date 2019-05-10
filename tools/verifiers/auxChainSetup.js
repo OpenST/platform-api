@@ -10,14 +10,17 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
 
@@ -93,6 +96,10 @@ class AuxChainSetup {
 
     await oThis._validateGatewayAndCoGateway();
 
+    logger.step('** Validating Price Oracle contracts.');
+    await oThis._validatePriceOracleContract(conversionRateConstants.USDC);
+    await oThis._validatePriceOracleContract(conversionRateConstants.OST);
+
     logger.win('* Auxiliary Chain Setup Verification Done!!');
 
     process.exit(0);
@@ -150,6 +157,17 @@ class AuxChainSetup {
       chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractWorkerKind];
     oThis.auxAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractWorkerKind];
+
+    oThis.auxOstToUsdPriceOracleContractKind =
+      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
+    oThis.auxUsdcToUsdPriceOracleContractKind =
+      chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind].address;
+    oThis.auxPriceOracleContractOwnerKind =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractOwnerKind].address;
+    oThis.auxPriceOracleContractAdminKind =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractAdminKind].address;
+    oThis.auxPriceOracleContractWorkerKind =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractWorkerKind][0].address;
   }
 
   /**
@@ -639,6 +657,75 @@ class AuxChainSetup {
 
     if (dbCoGatewayOrganizationAddress.toLowerCase() !== chainCoGatewayOrganizationAddress.toLowerCase()) {
       logger.error('Verification check co-gateway state root provider failed.');
+      Promise.reject();
+    }
+  }
+
+  async _validatePriceOracleContract(baseCurrency) {
+    const oThis = this;
+
+    logger.info('** Base currency:', baseCurrency);
+    logger.log('* Fetching priceOracleContractAddress for', baseCurrency, ' from database.');
+    let priceOracleContractAddress = '';
+
+    if (baseCurrency === conversionRateConstants.OST) {
+      priceOracleContractAddress = oThis.auxOstToUsdPriceOracleContractKind;
+    } else {
+      priceOracleContractAddress = oThis.auxUsdcToUsdPriceOracleContractKind;
+    }
+
+    let rsp = await oThis.verifiersHelper.validateContract(
+      priceOracleContractAddress,
+      contractNameConstants.PriceOracleContractName
+    );
+    if (!rsp) {
+      logger.error('Deployment verification of price oracle contract failed.');
+      return Promise.reject();
+    }
+
+    const verifierHelperObj = new VerifiersHelper(oThis.auxWeb3Instance);
+    let priceOracleContract = await verifierHelperObj.getContractObj(
+      contractNameConstants.PriceOracleContractName,
+      priceOracleContractAddress
+    );
+
+    logger.log('* Validating the contract admin address.');
+    let adminAddress = await priceOracleContract.methods.adminAddress().call({});
+
+    if (oThis.auxPriceOracleContractAdminKind.toLowerCase() !== adminAddress.toLowerCase()) {
+      logger.error('Verification check for admin address failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract owner address.');
+    let ownerAddress = await priceOracleContract.methods.owner().call({});
+
+    if (oThis.auxPriceOracleContractOwnerKind.toLowerCase() !== ownerAddress.toLowerCase()) {
+      logger.error('Verification check for owner address failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract worker address.');
+    let workerAddress = await priceOracleContract.methods.opsAddress().call({});
+
+    if (oThis.auxPriceOracleContractWorkerKind.toLowerCase() !== workerAddress.toLowerCase()) {
+      logger.error('Verification check for worker address failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract base currency.');
+    let baseCurrencyFromContract = await priceOracleContract.methods.baseCurrency().call({});
+
+    if (baseCurrency !== basicHelper.convertHexToString(baseCurrencyFromContract.substr(2))) {
+      logger.error('Verification check for base currency failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract quote currency.');
+    let quoteCurrency = await priceOracleContract.methods.quoteCurrency().call({});
+
+    if (conversionRateConstants.USD !== basicHelper.convertHexToString(quoteCurrency.substr(2))) {
+      logger.error('Verification check for quote currency failed.');
       Promise.reject();
     }
   }
