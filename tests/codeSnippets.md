@@ -331,10 +331,10 @@ managedAddress = managedAddresses[0];
             topic: 'workflow.stPrimeRedeemAndUnstake',
             requestParams: {
                 redeemerAddress: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
-                originChainId: 1000, 
+                originChainId: 3, 
                 auxChainId: 2000, 
                 sourceChainId: 2000,
-                destinationChainId: 1000,
+                destinationChainId: 3,
                 facilitator: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6', 
                 amountToRedeem: '100000000000000000000', 
                 beneficiary: '0x64b4f5e4de24522fc5cd05883d4c858379ee78f6'

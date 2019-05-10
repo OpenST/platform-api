@@ -21,6 +21,7 @@ const rootPrefix = '../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
+  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic');
 
 // Following require(s) for registering into instance composer
@@ -29,6 +30,7 @@ require(rootPrefix + '/app/models/ddb/sharded/Device');
 require(rootPrefix + '/app/models/ddb/sharded/RecoveryOwner');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
+require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 
 /**
  * Class for creating token holder for user.
@@ -86,6 +88,8 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._validateTokenStatus();
 
+    await oThis._validateExpirationHeight();
+
     await oThis._fetchTokenUsersShards();
 
     await oThis._getUserDeviceDataFromCache();
@@ -131,6 +135,37 @@ class CreateTokenHolder extends ServiceBase {
     }
 
     oThis.sessionAddresses = sanitizedSessionAddresses;
+  }
+
+  /**
+   * Validate expiration height
+   *
+   * @return {Promise<void>}
+   *
+   * @private
+   */
+  async _validateExpirationHeight() {
+    const oThis = this,
+      BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
+      blockTimeDetailsCache = new BlockTimeDetailsCache({ chainId: oThis.auxChainId });
+
+    let block = await blockTimeDetailsCache.fetch();
+
+    let currentBlock = Number(block.data.block),
+      minExpirationBlocks = Math.floor(
+        sessionConstants.sessionKeyExpirationMinimumTime / (Number(block.data.blockGenerationTime) * 1000)
+      );
+
+    if (currentBlock + minExpirationBlocks >= oThis.expirationHeight) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_9',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['invalid_minimum_expiration_height'],
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
