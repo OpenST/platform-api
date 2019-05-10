@@ -6,7 +6,7 @@
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  StakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/StakeCurrencySymbols'),
+  AllStakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/AllStakeCurrencySymbols'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
@@ -69,7 +69,7 @@ class BaseTokens extends ServiceBase {
   async _fetchStakeCurrencySymbols() {
     const oThis = this;
 
-    const stakeCurrencySymbols = await new StakeCurrencySymbolsCache().fetch();
+    const stakeCurrencySymbols = await new AllStakeCurrencySymbolsCache().fetch();
 
     if (stakeCurrencySymbols.isFailure()) {
       return Promise.reject(
