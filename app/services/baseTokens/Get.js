@@ -7,22 +7,13 @@
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
-  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   StakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/StakeCurrencySymbols'),
-  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
-  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
 
 /**
- * Class for token details.
+ * Class for base tokens details.
  *
  * @class
  */
@@ -57,13 +48,15 @@ class BaseTokens extends ServiceBase {
 
     return Promise.resolve(
       responseHelper.successWithData({
-        [resultType.baseTokens]: {}
+        [resultType.baseTokens]: {
+          stakeCurrencyDetails: oThis.stakeCurrencyDetails
+        }
       })
     );
   }
 
   /**
-   * This function fetches stake currency symbol.
+   * This function fetches stake currency symbols.
    *
    * @returns {Promise<never>}
    * @private
@@ -85,6 +78,12 @@ class BaseTokens extends ServiceBase {
     oThis.stakeCurrencySymbols = stakeCurrencySymbols.data;
   }
 
+  /**
+   * This function fetches stake currency details.
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
   async _fetchStakeCurrencyDetails() {
     const oThis = this;
 

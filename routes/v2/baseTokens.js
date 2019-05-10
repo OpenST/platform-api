@@ -9,7 +9,7 @@ const rootPrefix = '../..',
 
 const router = express.Router();
 
-/* Get tokens details*/
+/* Get base tokens details*/
 router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getBaseTokens;
   req.decodedParams.clientConfigStrategyRequired = false;
@@ -19,7 +19,7 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 
     serviceResponse.data = {
       result_type: resultType.baseTokens,
-      [resultType.token]: baseTokensFormatterRsp.data
+      [resultType.baseTokens]: baseTokensFormatterRsp.data
     };
   };
 
