@@ -8,7 +8,8 @@ const fs = require('fs'),
   path = require('path'),
   MosaicJs = require('@openst/mosaic.js'),
   BrandedToken = require('@openst/brandedtoken.js'),
-  OpenSTJs = require('@openst/openst.js');
+  OpenSTJs = require('@openst/openst.js'),
+  PriceOracle = require('@ostdotcom/ost-price-oracle');
 
 const rootPrefix = '..',
   contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName');
@@ -110,6 +111,10 @@ class CoreAbis {
       case contractNameConstants.OSTPrimeContractName:
       case contractNameConstants.AnchorContractName:
         return new MosaicJs.AbiBinProvider().getABI(contractName);
+
+      case contractNameConstants.PriceOracleContractName:
+        return new PriceOracle.AbiBinProvider().getABI(contractName);
+
       default:
         console.log(`ABI for contract name ${contractName} does not exist.`);
     }
