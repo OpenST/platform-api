@@ -7,6 +7,8 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 // Declare variables.
@@ -55,8 +57,9 @@ class StakeCurrency extends ModelBase {
       symbol: dbRow.symbol,
       decimal: dbRow.decimal,
       contractAddress: dbRow.contract_address,
+      constants: CommonValidators.isVarNull(dbRow.constants) ? {} : JSON.parse(dbRow.constants),
       createdAt: dbRow.created_at,
-      updatedTimestamp: dbRow.updated_at
+      updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
   }
 
