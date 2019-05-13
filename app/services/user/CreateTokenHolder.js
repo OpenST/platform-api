@@ -88,7 +88,7 @@ class CreateTokenHolder extends ServiceBase {
 
     await oThis._validateTokenStatus();
 
-    await oThis._validateExpirationHeight();
+    // await oThis._validateExpirationHeight();
 
     await oThis._fetchTokenUsersShards();
 
