@@ -18,12 +18,6 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
       thresholdAmount: '0.1541'
     },
 
-    // stable coin deployer
-    [chainAddressConstants.originStableCoinDeployerKind]: {
-      fundAmount: '0.00498',
-      thresholdAmount: '0.00498'
-    },
-
     // origin anchor owner
     [chainAddressConstants.originAnchorOrgContractOwnerKind]: {
       fundAmount: '0.00006',
@@ -66,16 +60,22 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
       thresholdAmount: '0.00005'
     },
 
-    // usdc owner
-    [chainAddressConstants.usdcContractOwnerKind]: {
-      fundAmount: '0.00048',
-      thresholdAmount: '0.00048'
-    },
-
     // facilitator
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.1044',
       thresholdAmount: '0.0522'
+    },
+
+    // stable coin deployer
+    [chainAddressConstants.originStableCoinDeployerKind]: {
+      fundAmount: '0.00498',
+      thresholdAmount: '0.00498'
+    },
+
+    // usdc owner
+    [chainAddressConstants.usdcContractOwnerKind]: {
+      fundAmount: '0.00054',
+      thresholdAmount: '0.00054'
     }
   },
 
@@ -123,8 +123,8 @@ fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
 
     // token ExTx workers
     [tokenAddressConstants.txWorkerAddressKind]: {
-      fundAmount: '45',
-      thresholdAmount: '30'
+      fundAmount: '30',
+      thresholdAmount: '15'
     },
 
     // token user multisig worker

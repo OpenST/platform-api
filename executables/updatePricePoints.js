@@ -14,13 +14,10 @@ const program = require('commander');
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   UpdatePricePointsRouter = require(rootPrefix + '/lib/workflow/updatePricePoints/Router'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
-  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -124,11 +121,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
           debug_options: { chainId: requestParams.auxChainId }
         });
 
-        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-
-        let errMsg = 'Cron already running for this chain. Exiting the process.';
-        logger.error(errMsg);
-        return Promise.reject(errMsg);
+        logger.error('Cron already running for this chain. Exiting the process.');
+        return Promise.reject(errorObject);
       }
     }
   }
