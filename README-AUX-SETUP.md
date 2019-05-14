@@ -96,31 +96,31 @@ And add it to tables using following script.
 * Run Aggregator. This is done only to initialize the queue.
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/aggregator.js --cronProcessId 11
+    node executables/blockScanner/aggregator.js --cronProcessId 12
 ```
 
 * Run Auxiliary Transaction Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/balanceSettler.js --cronProcessId 23
+    node executables/blockScanner/balanceSettler.js --cronProcessId 24
 ```
 
 * Run Auxiliary Transaction Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/transactionParser.js --cronProcessId 9
+    node executables/blockScanner/transactionParser.js --cronProcessId 10
 ```
 
 * Run Auxiliary Block Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/blockParser.js --cronProcessId 8
+    node executables/blockScanner/blockParser.js --cronProcessId 9
 ```
 
 * Run Auxiliary Block Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/finalizer.js --cronProcessId 10
+    node executables/blockScanner/finalizer.js --cronProcessId 11
 ```
 
 
@@ -179,7 +179,7 @@ And add it to tables using following script.
 ## Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/aggregator.js --cronProcessId 11
+  node executables/blockScanner/aggregator.js --cronProcessId 12
 ```
 
 ### Funding crons
@@ -187,7 +187,7 @@ And add it to tables using following script.
 * Fund by sealer aux chain specific
 ```bash
     source set_env_vars.sh
-    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 13
+    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 14
 ```
 
 * Fund by master internal funder aux chain specific chain addresses
@@ -218,12 +218,12 @@ And add it to tables using following script.
 * Start Aux Workflow router factory
 ```bash
     source set_env_vars.sh
-    node executables/auxWorkflowFactory.js --cronProcessId 21
+    node executables/auxWorkflowFactory.js --cronProcessId 22
 ```
 * Start execute transaction cron process
 ```bash
     source set_env_vars.sh
-    node executables/executeTransaction.js --cronProcessId 19
+    node executables/executeTransaction.js --cronProcessId 20
 ```
 
 ### Start state root sync cron

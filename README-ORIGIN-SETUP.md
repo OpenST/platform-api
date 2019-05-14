@@ -209,19 +209,19 @@ Granter address gets ETH and OST in this step.
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/transactionParser.js --cronProcessId 5
+  node executables/blockScanner/transactionParser.js --cronProcessId 6
 ```
 
 * Run Origin Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/blockParser.js --cronProcessId 4
+  node executables/blockScanner/blockParser.js --cronProcessId 5
 ```
 
 * Run Origin Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/finalizer.js --cronProcessId 6
+  node executables/blockScanner/finalizer.js --cronProcessId 7
 ```
 
 ### Funding crons
