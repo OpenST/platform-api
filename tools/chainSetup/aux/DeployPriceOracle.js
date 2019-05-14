@@ -346,15 +346,6 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
-    const updateResponse = await new StakeCurrenciesModel()
-      .insert({
-        name: oThis.contractDetails['name'],
-        symbol: oThis.contractDetails['symbol'],
-        decimal: oThis.contractDetails['decimals'],
-        contract_address: basicHelper.sanitizeAddress(oThis.contractAddress)
-      })
-      .fire();
-
     await new StakeCurrenciesModel()
       .update({
         price_oracle_contract_address: oThis.contractAddress.toLowerCase()

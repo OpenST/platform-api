@@ -102,7 +102,7 @@ And add it to tables using following script.
 * Run Auxiliary Transaction Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/balanceSettler.js --cronProcessId 23
+    node executables/blockScanner/balanceSettler.js --cronProcessId 24
 ```
 
 * Run Auxiliary Transaction Parser
@@ -120,7 +120,7 @@ And add it to tables using following script.
 * Run Auxiliary Block Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/finalizer.js --cronProcessId 10
+    node executables/blockScanner/finalizer.js --cronProcessId 11
 ```
 
 
@@ -142,14 +142,14 @@ And add it to tables using following script.
                 chainId: 3,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xf5f8f91830fba42229478838e73ef35d3b98e0da', 
+                    stakerAddress: '0x4dafd5a57e81eb4f9aa6f24f4cc75c0038aaed8a', 
                     originChainId: 3, 
                     auxChainId: 2000, 
                     sourceChainId: 3,
                     destinationChainId: 2000,
-                    facilitator: '0xf5f8f91830fba42229478838e73ef35d3b98e0da', 
+                    facilitator: '0x4dafd5a57e81eb4f9aa6f24f4cc75c0038aaed8a', 
                     amountToStake: '1000000000000000000000000', 
-                    beneficiary: '0xf5f8f91830fba42229478838e73ef35d3b98e0da',
+                    beneficiary: '0x4dafd5a57e81eb4f9aa6f24f4cc75c0038aaed8a',
                     firstTimeMint: true //[optional]
                 }
         }

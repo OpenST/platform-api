@@ -9,17 +9,17 @@
 const rootPrefix = '../..',
   CoreAbis = require(rootPrefix + '/config/CoreAbis'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
-  StakeCurrenciesModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  AllStakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/AllStakeCurrencySymbols'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
@@ -49,8 +49,13 @@ class OriginChainSetup {
   async validate() {
     const oThis = this;
 
+    oThis.usdcSymbol = stakeCurrencyConstants.USDC;
+
     logger.step('** Fetch origin chain addresses.');
     await oThis._fetchOriginAddresses();
+
+    logger.step('** Fetch all stake currency details.');
+    await oThis._fetchStakeCurrencyDetails();
 
     logger.step('** Setting up web3 object for origin chain.');
     await oThis._setWeb3Obj();
@@ -99,7 +104,6 @@ class OriginChainSetup {
       );
     }
 
-    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
     oThis.stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
     oThis.stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address;
 
@@ -124,12 +128,37 @@ class OriginChainSetup {
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
 
     oThis.usdcOwnerAddress = chainAddressesRsp.data[chainAddressConstants.usdcContractOwnerKind].address;
+  }
 
-    // Fetch USDC contract address.
-    const stakeCurrenciesModelObj = new StakeCurrenciesModel({}),
-      stakeCurrenciesRsp = await stakeCurrenciesModelObj.fetchStakeCurrenciesBySymbols([conversionRateConstants.USDC]);
+  /**
+   * Fetch details of all stake currencies.
+   *
+   * @returns {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
+  async _fetchStakeCurrencyDetails() {
+    const oThis = this;
 
-    oThis.usdcContractAddress = stakeCurrenciesRsp.data[conversionRateConstants.USDC].contractAddress;
+    const stakeCurrencySymbols = await new AllStakeCurrencySymbolsCache().fetch();
+
+    if (stakeCurrencySymbols.isFailure()) {
+      logger.error('Error in fetching all stake currencies symbols');
+      return Promise.reject();
+    }
+
+    oThis.allStakeCurrencySymbols = stakeCurrencySymbols.data;
+
+    const stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: oThis.allStakeCurrencySymbols
+    }).fetch();
+
+    if (stakeCurrencyDetails.isFailure()) {
+      logger.error('Error in fetch stake currency details');
+      return Promise.reject();
+    }
+
+    oThis.allStakeCurrencyDetails = stakeCurrencyDetails.data;
+    oThis.simpleTokenContractAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].contractAddress;
   }
 
   /**
@@ -231,15 +260,23 @@ class OriginChainSetup {
   async _validateUsdcContract() {
     const oThis = this;
 
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [oThis.usdcSymbol]
+    });
+
+    let response = await stakeCurrencyBySymbolCache.fetch(),
+      usdcDetails = response.data[oThis.usdcSymbol],
+      usdcContractAddress = usdcDetails.contractAddress;
+
     logger.log('* Validating the deployed code on the address.');
-    const rsp = await oThis.verifiersHelper.validateUsdcContract(oThis.usdcContractAddress);
+    const rsp = await oThis.verifiersHelper.validateUsdcContract(usdcContractAddress);
     if (!rsp) {
       logger.error('Deployment verification of USDC contract failed.');
 
       return Promise.reject(new Error('Deployment verification of USDC contract failed.'));
     }
 
-    const usdcContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.usdc, oThis.usdcContractAddress);
+    const usdcContractObj = new oThis.web3Instance.eth.Contract(CoreAbis.usdc, usdcContractAddress);
 
     logger.log('* Validating USDC token master minter address.');
     const chainUsdcMasterMinterAddress = await usdcContractObj.methods.masterMinter().call({});
@@ -280,27 +317,14 @@ class OriginChainSetup {
       return Promise.reject(new Error('Blacklister address verification of USDC token contract failed.'));
     }
 
-    logger.log('* Validating USDC token contract name.');
-    const chainUsdcContractName = await usdcContractObj.methods.name().call({});
-    if (chainUsdcContractName !== contractConstants.usdcContractName) {
-      logger.error(
-        'Contract name of USDC token -',
-        chainUsdcContractName,
-        'different from database value -',
-        contractConstants.usdcContractName
-      );
-
-      return Promise.reject(new Error('Contract name verification of USDC token contract failed.'));
-    }
-
     logger.log('* Validating USDC token contract symbol.');
     const chainUsdcContractSymbol = await usdcContractObj.methods.symbol().call({});
-    if (chainUsdcContractSymbol !== conversionRateConstants.USDC) {
+    if (chainUsdcContractSymbol !== oThis.usdcSymbol) {
       logger.error(
         'Contract symbol of USDC token -',
         chainUsdcContractSymbol,
         'different from database value -',
-        conversionRateConstants.USDC
+        oThis.usdcSymbol
       );
 
       return Promise.reject(new Error('Contract symbol verification of USDC token contract failed.'));
@@ -319,12 +343,7 @@ class OriginChainSetup {
       return Promise.reject(new Error('Contract currency verification of USDC token contract failed.'));
     }
 
-    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
-      stakeCurrencySymbols: [conversionRateConstants.USDC]
-    });
-
-    let response = await stakeCurrencyBySymbolCache.fetch(),
-      usdcDecimals = response.data[conversionRateConstants.USDC].decimal;
+    let usdcDecimals = usdcDetails.decimal;
 
     logger.log('* Validating USDC token contract decimals.');
     const chainUsdcContractDecimals = await usdcContractObj.methods.decimals().call({});

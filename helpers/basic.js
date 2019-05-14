@@ -235,6 +235,18 @@ class BasicHelper {
   }
 
   /**
+   * Convert Hex to String.
+   *
+   * @param {string} string: Hex string
+   *
+   * @return {string}
+   */
+  convertStringToHex(string) {
+    const buf = new Buffer.from(string, 'utf8');
+    return buf.toString('hex');
+  }
+
+  /**
    * Check if address is valid or not.
    *
    * @param {string} address

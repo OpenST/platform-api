@@ -44,6 +44,8 @@ class StakeCurrency extends ModelBase {
    * @param {string} dbRow.symbol
    * @param {number} dbRow.decimal
    * @param {string} dbRow.contract_address
+   * @param {string} dbRow.price_oracle_contract_address
+   * @param {string} dbRow.constants
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
    *
@@ -57,7 +59,8 @@ class StakeCurrency extends ModelBase {
       symbol: dbRow.symbol,
       decimal: dbRow.decimal,
       contractAddress: dbRow.contract_address,
-      constants: CommonValidators.isVarNull(dbRow.constants) ? {} : JSON.parse(dbRow.constants),
+      priceOracleContractAddress: dbRow.price_oracle_contract_address,
+      constants: JSON.parse(dbRow.constants),
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };

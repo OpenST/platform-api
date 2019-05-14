@@ -20,6 +20,9 @@ const rootPrefix = '../..',
   contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
+  AllStakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/AllStakeCurrencySymbols'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
@@ -71,6 +74,9 @@ class AuxChainSetup {
     logger.step('** Fetch origin chain addresses');
     await oThis._fetchOriginAddresses();
 
+    logger.step('** Fetch stake currency details');
+    await oThis._fetchStakeCurrencyDetails();
+
     logger.step('** Setting up web3 object for aux chain.');
     await oThis._setWeb3Obj();
 
@@ -97,13 +103,26 @@ class AuxChainSetup {
     await oThis._validateGatewayAndCoGateway();
 
     logger.step('** Validating Price Oracle contracts.');
-    await oThis._validatePriceOracleContract(conversionRateConstants.USDC);
-    await oThis._validatePriceOracleContract(conversionRateConstants.OST);
+
+    await oThis.validateAllPriceOracleContracts();
 
     logger.win('* Auxiliary Chain Setup Verification Done!!');
 
     process.exit(0);
     //return Promise.resolve();
+  }
+
+  /**
+   * This function validates price oracle of all stake currencies.
+   *
+   * @returns {Promise<Promise<never> | Promise<any>>}
+   */
+  async validateAllPriceOracleContracts() {
+    const oThis = this;
+
+    for (let i = 0; i < oThis.allStakeCurrencySymbols.length; i++) {
+      await oThis._validatePriceOracleContract(oThis.allStakeCurrencySymbols[i]);
+    }
   }
 
   /**
@@ -158,10 +177,6 @@ class AuxChainSetup {
     oThis.auxAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractWorkerKind];
 
-    oThis.auxOstToUsdPriceOracleContractKind =
-      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
-    oThis.auxUsdcToUsdPriceOracleContractKind =
-      chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind].address;
     oThis.auxPriceOracleContractOwnerKind =
       chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractOwnerKind].address;
     oThis.auxPriceOracleContractAdminKind =
@@ -193,10 +208,40 @@ class AuxChainSetup {
       );
     }
 
-    oThis.stContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
     oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
     oThis.originAnchorOrgContractAddress =
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractKind].address;
+  }
+
+  /**
+   * Fetch details of all stake currencies.
+   *
+   * @returns {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
+  async _fetchStakeCurrencyDetails() {
+    const oThis = this;
+
+    const stakeCurrencySymbols = await new AllStakeCurrencySymbolsCache().fetch();
+
+    if (stakeCurrencySymbols.isFailure()) {
+      logger.error('Error in fetching all stake currencies');
+      return Promise.reject();
+    }
+
+    oThis.allStakeCurrencySymbols = stakeCurrencySymbols.data;
+
+    const stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: oThis.allStakeCurrencySymbols
+    }).fetch();
+
+    if (stakeCurrencyDetails.isFailure()) {
+      logger.error('Error in fetch stake currency details');
+      return Promise.reject();
+    }
+
+    oThis.allStakeCurrencyDetails = stakeCurrencyDetails.data;
+    oThis.stContractAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].contractAddress;
   }
 
   /**
@@ -666,13 +711,9 @@ class AuxChainSetup {
 
     logger.info('** Base currency:', baseCurrency);
     logger.log('* Fetching priceOracleContractAddress for', baseCurrency, ' from database.');
-    let priceOracleContractAddress = '';
 
-    if (baseCurrency === conversionRateConstants.OST) {
-      priceOracleContractAddress = oThis.auxOstToUsdPriceOracleContractKind;
-    } else {
-      priceOracleContractAddress = oThis.auxUsdcToUsdPriceOracleContractKind;
-    }
+    let allStakeCurrencyDetails = oThis.allStakeCurrencyDetails,
+      priceOracleContractAddress = allStakeCurrencyDetails[baseCurrency].priceOracleContractAddress;
 
     let rsp = await oThis.verifiersHelper.validateContract(
       priceOracleContractAddress,
@@ -714,18 +755,26 @@ class AuxChainSetup {
     }
 
     logger.log('* Validating the contract base currency.');
-    let baseCurrencyFromContract = await priceOracleContract.methods.baseCurrency().call({});
+    let baseCurrencyFromContractInHex = await priceOracleContract.methods.baseCurrency().call({});
 
-    if (baseCurrency !== basicHelper.convertHexToString(baseCurrencyFromContract.substr(2))) {
+    let baseCurrencyCodeFromDb = allStakeCurrencyDetails[baseCurrency].constants.baseCurrencyCode;
+
+    let baseCurrencyFromContract = basicHelper.convertHexToString(baseCurrencyFromContractInHex.substr(2));
+
+    if (baseCurrencyCodeFromDb != baseCurrencyFromContract) {
       logger.error('Verification check for base currency failed.');
+      logger.error(`====baseCurrencyCodeFromDb:--${baseCurrencyCodeFromDb}--`);
+      logger.error(`====baseCurrencyFromContract:--${baseCurrencyFromContract}--`);
       Promise.reject();
     }
 
     logger.log('* Validating the contract quote currency.');
-    let quoteCurrency = await priceOracleContract.methods.quoteCurrency().call({});
+    let quoteCurrencyHex = await priceOracleContract.methods.quoteCurrency().call({}),
+      quoteCurrencyFromContract = basicHelper.convertHexToString(quoteCurrencyHex.substr(2));
 
-    if (conversionRateConstants.USD !== basicHelper.convertHexToString(quoteCurrency.substr(2))) {
+    if (conversionRateConstants.USD !== quoteCurrencyFromContract) {
       logger.error('Verification check for quote currency failed.');
+      logger.error(`====quoteCurrencyFromContract:--${quoteCurrencyFromContract}--`);
       Promise.reject();
     }
   }

@@ -19,6 +19,7 @@ const rootPrefix = '../../..',
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  AllStakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/AllStakeCurrencySymbols'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   fundingAmounts = require(rootPrefix + '/config/funding'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -28,7 +29,6 @@ const rootPrefix = '../../..',
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
   environmentInfoConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -111,6 +111,9 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     oThis.ethFundingConfig = basicHelper.deepDup(ethFundingConfig);
 
     oThis.alertConfig = basicHelper.deepDup(alertConfig);
+
+    oThis.allStakeCurrencySymbols = null;
+    oThis.stakeCurrencyDetails = null;
   }
 
   /**
@@ -164,6 +167,10 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _start() {
     const oThis = this;
 
+    await oThis._fetchAllStakeCurrencySymbols();
+
+    await oThis._fetchStakeCurrencyDetails();
+
     logger.step('Populating alert config');
     oThis.populateAlertConfig();
 
@@ -180,6 +187,43 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     await oThis._sendAlertIfNeeded();
 
     logger.step('Cron completed.');
+  }
+
+  /**
+   * fetch all stake currency symbols
+   * @private
+   */
+  async _fetchAllStakeCurrencySymbols() {
+    const oThis = this;
+
+    const allStakeCurrencySymbols = await new AllStakeCurrencySymbolsCache().fetch();
+
+    if (allStakeCurrencySymbols.isFailure()) {
+      return Promise.reject(allStakeCurrencySymbols);
+    }
+
+    oThis.allStakeCurrencySymbols = allStakeCurrencySymbols.data;
+  }
+
+  /**
+   * This function fetches stake currency details.
+   *
+   * @sets oThis.stakeCurrencyDetails
+   *
+   * @private
+   */
+  async _fetchStakeCurrencyDetails() {
+    const oThis = this;
+
+    const stakeCurrencyCacheResponse = await new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: oThis.allStakeCurrencySymbols
+    }).fetch();
+
+    if (stakeCurrencyCacheResponse.isFailure()) {
+      return Promise.reject(stakeCurrencyCacheResponse);
+    }
+
+    oThis.stakeCurrencyDetails = stakeCurrencyCacheResponse.data;
   }
 
   /**
@@ -208,20 +252,24 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
       .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
       .mul(basicHelper.convertToBigNumber(0.6));
 
-    const granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei),
-      granterOstRequirement = basicHelper.convertToBigNumber(grantConstants.grantOstValueInWei),
-      granterUsdcRequirement = basicHelper.convertToBigNumber(grantConstants.grantUsdcValueInWei);
+    const granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei);
 
     oThis.alertConfig[chainAddressConstants.originGranterKind].minEthRequirement = granterEthRequirement.mul(
       flowsForGranterMinimumBalance
     );
-    oThis.alertConfig[chainAddressConstants.originGranterKind].minOstRequirement = granterOstRequirement.mul(
-      flowsForGranterMinimumBalance
-    );
 
-    oThis.alertConfig[chainAddressConstants.originGranterKind].minUsdcRequirement = granterUsdcRequirement.mul(
-      flowsForGranterMinimumBalance
-    );
+    let buffer = oThis.alertConfig[chainAddressConstants.originGranterKind];
+    buffer.stakeCurrencies = {};
+
+    for (let i = 0; i < oThis.allStakeCurrencySymbols.length; i++) {
+      let stakeCurrencySymbol = oThis.allStakeCurrencySymbols[i],
+        granterRequirement = basicHelper.convertToBigNumber(
+          oThis.stakeCurrencyDetails[stakeCurrencySymbol]['constants']['grantAmountInWei']
+        );
+      buffer.stakeCurrencies[stakeCurrencySymbol] = {
+        minRequirement: granterRequirement.mul(flowsForGranterMinimumBalance)
+      };
+    }
   }
 
   /**
@@ -417,93 +465,41 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
         }
       }
 
-      if (alertConfigDetails.minOstRequirement) {
-        const addressOstRequirement = alertConfigDetails.minOstRequirement,
-          addressCurrentOstBalance = await oThis._fetchOstBalance(address), // Ost Balance
-          addressCurrentOstBalanceBN = basicHelper.convertToBigNumber(addressCurrentOstBalance),
-          currency = 'OST';
+      if (alertConfigDetails.stakeCurrencies) {
+        for (let stakeCurrencySymbol in alertConfigDetails.stakeCurrencies) {
+          const addressBalanceRequirement = alertConfigDetails.stakeCurrencies[stakeCurrencySymbol]['minRequirement'],
+            addressCurrentBalance = await oThis._fetchErc20Balance(stakeCurrencySymbol, address),
+            addressCurrentBalanceBN = basicHelper.convertToBigNumber(addressCurrentBalance);
 
-        if (addressCurrentOstBalanceBN.lt(addressOstRequirement) && alertConfigDetails.alertRequired) {
-          await oThis._notify(addressKind, address, currency, addressOstRequirement);
-        }
-      }
-
-      if (alertConfigDetails.minUsdcRequirement) {
-        const addressUsdcRequirement = alertConfigDetails.minUsdcRequirement,
-          addressCurrentUsdcBalance = await oThis._fetchUsdcBalance(address), // USDC balance
-          addressCurrentUsdcBalanceBN = basicHelper.convertToBigNumber(addressCurrentUsdcBalance),
-          currency = conversionRateConstants.USDC;
-
-        if (addressCurrentUsdcBalanceBN.lt(addressUsdcRequirement) && alertConfigDetails.alertRequired) {
-          await oThis._notify(addressKind, address, currency, addressUsdcRequirement);
+          if (addressCurrentBalanceBN.lt(addressBalanceRequirement) && alertConfigDetails.alertRequired) {
+            await oThis._notify(addressKind, address, stakeCurrencySymbol, addressBalanceRequirement);
+          }
         }
       }
     }
   }
 
   /**
-   * Fetches OST balance of a given address.
+   * Fetches Erc20 token balance of a given address.
    *
+   * @param {string} symbol
    * @param {string} address
    *
    * @returns {Promise<*>}
    * @private
    */
-  async _fetchOstBalance(address) {
-    const oThis = this;
-
-    // Fetch all addresses associated with origin chain id.
-    const chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
-
-    if (chainAddressesRsp.isFailure()) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'e_f_bmif_ocs_4',
-          api_error_identifier: 'something_went_wrong'
-        })
-      );
-    }
-
-    const simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+  async _fetchErc20Balance(symbol, address) {
+    const oThis = this,
+      stakeCurrencyDetail = oThis.stakeCurrencyDetails[symbol];
 
     const getOstBalanceObj = new GetErc20Balance({
         originChainId: oThis.originChainId,
         addresses: [address],
-        contractAddress: simpleTokenContractAddress
+        contractAddress: stakeCurrencyDetail['contractAddress']
       }),
       getOstBalanceMap = await getOstBalanceObj.perform();
 
     return getOstBalanceMap[address];
-  }
-
-  /**
-   * Fetches USDC balance of a given address.
-   *
-   * @param {string} address
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _fetchUsdcBalance(address) {
-    const oThis = this;
-
-    const stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
-      stakeCurrencySymbols: [conversionRateConstants.USDC]
-    });
-
-    const stakeCurrenciesCacheRsp = await stakeCurrencyBySymbolCache.fetch();
-
-    const usdcContractAddress = stakeCurrenciesCacheRsp.data[conversionRateConstants.USDC].contractAddress;
-
-    const getUsdcBalanceObj = new GetErc20Balance({
-        originChainId: oThis.originChainId,
-        addresses: [address],
-        contractAddress: usdcContractAddress
-      }),
-      getUsdcBalanceMap = await getUsdcBalanceObj.perform();
-
-    return getUsdcBalanceMap[address];
   }
 
   /**

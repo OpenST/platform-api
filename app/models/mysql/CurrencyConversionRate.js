@@ -67,37 +67,6 @@ class CurrencyConversionRateModel extends ModelBase {
   }
 
   /**
-   * Get last active rates.
-   *
-   * @param {Number} chainId
-   * @param {String} currency
-   * @param {String} symbol
-   *
-   * @return {*|void}
-   */
-  async getLastActiveRates(chainId, currency, symbol) {
-    const oThis = this;
-
-    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
-      stakeCurrencySymbols: [symbol]
-    });
-
-    let response = await stakeCurrencyBySymbolCache.fetch(),
-      stakeCurrencyId = response.data[symbol].id;
-
-    return oThis
-      .select('*')
-      .where({
-        chain_id: chainId,
-        quote_currency: conversionRatesConstants.invertedQuoteCurrencies[conversionRatesConstants[currency]],
-        stake_currency_id: stakeCurrencyId
-      })
-      .limit(1)
-      .order_by('timestamp DESC')
-      .fire();
-  }
-
-  /**
    * This function fetches latest conversion rate for given base currencies.
    * NOTE: It is expected that in the latest 10 rows we will be able to find all the base currencies. If data for some
    * base currencies is not found then call the same function again for the remaining base currencies.

@@ -11,44 +11,36 @@ const rootPrefix = '../../..',
   FundGranterAddress = require(rootPrefix + '/lib/setup/originChain/FundGranterAddress');
 
 program
-  .option('--stOwnerPrivateKey <stOwnerPrivateKey>', 'ST Owner Private Key')
   .option('--ethOwnerPrivateKey <ethOwnerPrivateKey>', 'ETH Owner Private Key')
-  .option('--usdcOwnerPrivateKey <usdcOwnerPrivateKey>', 'USDC Owner Private Key')
-  .option('--stAmount <stAmount>', 'ST Amount')
   .option('--ethAmount <ethAmount>', 'ETH Amount')
-  .option('--usdcAmount <usdcAmount>', 'USDC Amount')
+  .option('--stakeCurrencySymbol <stakeCurrencySymbol>', 'stakeCurrency Symbol')
+  .option('--stakeCurrencyOwnerPrivateKey <stakeCurrencyOwnerPrivateKey>', 'stakeCurrency Owner Private Key')
+  .option('--stakeCurrencyAmount <stakeCurrencyAmount>', 'stakeCurrency Amount')
   .parse(process.argv);
 
 program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log(
-    '    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey 0xabc --ethOwnerPrivateKey 0xabc --usdcOwnerPrivateKey 0xabc --stAmount 200000 --ethAmount 50 --usdcAmount 200000'
-  );
+  logger.log('    node executables/setup/origin/fundGranterAddress.js --ethOwnerPrivateKey 0xabc --ethAmount 50');
   logger.log('');
   logger.log('');
 });
 
-// if (
-//   !program.stOwnerPrivateKey ||
-//   !program.ethOwnerPrivateKey ||
-//   !program.usdcOwnerPrivateKey ||
-//   !program.stAmount ||
-//   !program.ethAmount ||
-//   !program.usdcAmount
-// ) {
-//   program.help();
-//   process.exit(1);
-// }
+if (
+  (program.ethAmount && !program.ethOwnerPrivateKey) ||
+  (program.stakeCurrencyAmount && (!program.stakeCurrencySymbol || !program.stakeCurrencyOwnerPrivateKey))
+) {
+  program.help();
+  process.exit(1);
+}
 
 new FundGranterAddress(
-  program.stOwnerPrivateKey,
   program.ethOwnerPrivateKey,
-  program.usdcOwnerPrivateKey,
-  program.stAmount,
   program.ethAmount,
-  program.usdcAmount
+  program.stakeCurrencySymbol,
+  program.stakeCurrencyOwnerPrivateKey,
+  program.stakeCurrencyAmount
 )
   .perform()
   .then(function(response) {

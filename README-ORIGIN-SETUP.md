@@ -83,6 +83,12 @@ NOTE: Copy the ETH funder private key for later use.
     node devops/exec/chainSetup.js --generate-origin-addresses --chain-id 3
 ```
 
+* Insert Simple Token Details in Stake Currencies Mysql Table
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInStakeCurrencies.js --contractSymbol OST --contractName "Simple Token"
+```
+
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
@@ -94,13 +100,19 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Save simple token admin, owner and contract address in database.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___' --stContractAddress '0xabc___'
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
 ```
 
-* Save simple token contract details in stake currencies and base currencies table.
+* Update simple token contract details in stake currencies and insert in base currencies DDB table.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractSymbol OST --contractAddress '0xabc___'
+```
+
+* Insert USDC Details in Stake Currencies Mysql Table
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInStakeCurrencies.js --contractSymbol USDC --contractName "USD Coin"
 ```
 
 * Setup USDC Token (EXCEPT PRODUCTION MAIN ENV)
@@ -123,17 +135,28 @@ NOTE: Copy the response from the script above and save somewhere offline.
     node executables/setup/origin/saveUsdcTokenAddresses.js --owner '0xabc___'
 ```
 
-* Save USDC token contract details in stake currencies and base currencies table.
+* Update USDC token contract details in stake currencies and insert in base currencies DDB table.
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/saveStakeCurrencyDetails.js --contractAddress '0xabc___'
+    node executables/setup/origin/saveStakeCurrencyDetails.js --contractSymbol USDC --contractAddress '0xabc___'
 ```
 
-* Use Simple token Owner Private Key obtained from previous step, to run following command [ONLY FOR SANDBOX].
-Granter address gets ETH and OST in this step.
+* Use ETH Owner Private Key, to run following command. Granter address gets ETH in this step [ONLY FOR SANDBOX].
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stOwnerPrivateKey '0x10___' --ethOwnerPrivateKey '0x3d___' --usdcOwnerPrivateKey '0xab___' --stAmount 1000000 --ethAmount 50 --usdcAmount 1000000
+    node executables/setup/origin/fundGranterAddress.js --ethOwnerPrivateKey '0xab___' --ethAmount 50
+```
+
+* Use Simple token Owner Private Key, to run following command. Granter address gets OST in this step [ONLY FOR SANDBOX].
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/fundGranterAddress.js --stakeCurrencySymbol 'OST' --stakeCurrencyOwnerPrivateKey '0x3d___' --stakeCurrencyAmount 1000000
+```
+
+* Use USDC Owner Private Key, to run following command. Granter address gets USDC in this step [ONLY FOR SANDBOX].
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/fundGranterAddress.js --stakeCurrencySymbol 'USDC' --stakeCurrencyOwnerPrivateKey '0x3d___' --stakeCurrencyAmount 100000
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
@@ -209,19 +232,19 @@ Granter address gets ETH and OST in this step.
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/transactionParser.js --cronProcessId 5
+  node executables/blockScanner/transactionParser.js --cronProcessId 6
 ```
 
 * Run Origin Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/blockParser.js --cronProcessId 4
+  node executables/blockScanner/blockParser.js --cronProcessId 5
 ```
 
 * Run Origin Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/finalizer.js --cronProcessId 6
+  node executables/blockScanner/finalizer.js --cronProcessId 7
 ```
 
 ### Funding crons

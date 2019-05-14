@@ -221,9 +221,9 @@ node helpers/retryWorkflowStep.js <workflowStepId>
 ```node
 
 params = {
-  currentStepId: 46,
-  workflowId: 3,
-  stepKind: 'deployTokenGateway',
+  currentStepId: 81,
+  workflowId: 6,
+  stepKind: 'updateTokenInOstView',
   taskStatus: 'taskReadyToStart',
   requestParams: {},
   topic: 'workflow.economySetup'
