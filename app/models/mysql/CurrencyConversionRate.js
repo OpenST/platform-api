@@ -8,7 +8,8 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
@@ -70,18 +71,26 @@ class CurrencyConversionRateModel extends ModelBase {
    *
    * @param {Number} chainId
    * @param {String} currency
+   * @param {String} symbol
    *
    * @return {*|void}
    */
-  getLastActiveRates(chainId, currency) {
+  async getLastActiveRates(chainId, currency, symbol) {
     const oThis = this;
+
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [symbol]
+    });
+
+    let response = await stakeCurrencyBySymbolCache.fetch(),
+      stakeCurrencyId = response.data[symbol].id;
 
     return oThis
       .select('*')
       .where({
         chain_id: chainId,
         quote_currency: conversionRatesConstants.invertedQuoteCurrencies[conversionRatesConstants[currency]],
-        base_currency: conversionRatesConstants.invertedBaseCurrencies[conversionRatesConstants.OST]
+        stake_currency_id: stakeCurrencyId
       })
       .limit(1)
       .order_by('timestamp DESC')
@@ -94,7 +103,7 @@ class CurrencyConversionRateModel extends ModelBase {
    * base currencies is not found then call the same function again for the remaining base currencies.
    *
    * @param {Number} params.chainId
-   * @param {Array} params.baseCurrencies
+   * @param {Array} params.stakeCurrencyIds
    *
    * @returns {Promise<*>}
    */
@@ -102,12 +111,12 @@ class CurrencyConversionRateModel extends ModelBase {
     const oThis = this;
 
     let chainId = params.chainId,
-      baseCurrenciesArray = params.baseCurrencies,
-      baseCurrenciesIntValueArray = oThis._getIntValueForBaseCurrency(baseCurrenciesArray),
-      whereClause = {
-        quote_currency: conversionRatesConstants.invertedQuoteCurrencies[conversionRatesConstants.USD],
-        base_currency: baseCurrenciesIntValueArray
-      };
+      stakeCurrencyIds = params.stakeCurrencyIds;
+
+    let whereClause = {
+      quote_currency: conversionRatesConstants.invertedQuoteCurrencies[conversionRatesConstants.USD],
+      stake_currency_id: stakeCurrencyIds
+    };
 
     if (chainId) {
       whereClause['chain_id'] = chainId;
@@ -125,7 +134,7 @@ class CurrencyConversionRateModel extends ModelBase {
         responseHelper.error({
           internal_error_identifier: 'a_m_m_ccr_1',
           api_error_identifier: 'something_went_wrong',
-          debug_options: { chainId: chainId, baseCurrenciesArray: baseCurrenciesArray }
+          debug_options: { chainId: chainId, stakeCurrencyIds: stakeCurrencyIds }
         })
       );
     }
@@ -133,31 +142,15 @@ class CurrencyConversionRateModel extends ModelBase {
     let responseData = {};
 
     for (let i = 0; i < records.length; i++) {
-      if (!responseData[records[i].base_currency]) {
+      if (!responseData[records[i].stake_currency_id]) {
         let dataHash = {};
         dataHash[conversionRatesConstants.quoteCurrencies[records[i].quote_currency]] = records[i].conversion_rate;
         dataHash['updated_timestamp'] = records[i].timestamp;
-        responseData[conversionRatesConstants.baseCurrencies[records[i].base_currency]] = dataHash;
+        responseData[records[i].stake_currency_id] = dataHash;
       }
     }
 
     return responseHelper.successWithData(responseData);
-  }
-
-  /**
-   * This function converts array of string value of base currencies to array of integer values of base currencies
-   *
-   * @param {Array} baseCurrenciesArray
-   * @returns {Array}
-   * @private
-   */
-  _getIntValueForBaseCurrency(baseCurrenciesArray) {
-    let baseCurrencyIntValueArray = [];
-    for (let i = 0; i < baseCurrenciesArray.length; i++) {
-      baseCurrencyIntValueArray.push(conversionRatesConstants.invertedBaseCurrencies[baseCurrenciesArray[i]]);
-    }
-
-    return baseCurrencyIntValueArray;
   }
 }
 
