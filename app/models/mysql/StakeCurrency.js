@@ -7,7 +7,7 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
@@ -46,6 +46,7 @@ class StakeCurrency extends ModelBase {
    * @param {string} dbRow.contract_address
    * @param {string} dbRow.price_oracle_contract_address
    * @param {string} dbRow.constants
+   * @param {string} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
    *
@@ -61,6 +62,7 @@ class StakeCurrency extends ModelBase {
       contractAddress: dbRow.contract_address,
       priceOracleContractAddress: dbRow.price_oracle_contract_address,
       constants: JSON.parse(dbRow.constants),
+      status: stakeCurrencyConstants.statuses[dbRow.status],
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
