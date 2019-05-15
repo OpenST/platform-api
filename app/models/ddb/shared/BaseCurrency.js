@@ -12,8 +12,7 @@ const rootPrefix = '../../../..',
   util = require(rootPrefix + '/lib/util'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  sharedMemcached = require(rootPrefix + '/lib/providers/sharedMemcached');
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 /**
  * Class for base currency model.

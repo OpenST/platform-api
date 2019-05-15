@@ -304,7 +304,7 @@ class Shard extends Base {
    * @param {Number} shardNo
    */
   static generateShardNoStr(chainId, shardNo) {
-    return `${chainId}${Shard.shardNoStrDelimitter()}${shardNo}`;
+    return `${chainId}${Shard.shardNoStrDelimiter()}${shardNo}`;
   }
 
   /**
@@ -312,7 +312,7 @@ class Shard extends Base {
    * @param {String} shardNoStr
    */
   static splitShardNoStr(shardNoStr) {
-    let buffer = shardNoStr.split(Shard.shardNoStrDelimitter());
+    let buffer = shardNoStr.split(Shard.shardNoStrDelimiter());
     return {
       chainId: buffer[0],
       shardNumber: buffer[1]
@@ -322,7 +322,7 @@ class Shard extends Base {
   /**
    *
    */
-  static shardNoStrDelimitter() {
+  static shardNoStrDelimiter() {
     return '|';
   }
 }
