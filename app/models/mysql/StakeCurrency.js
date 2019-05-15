@@ -46,6 +46,7 @@ class StakeCurrency extends ModelBase {
    * @param {string} dbRow.contract_address
    * @param {string} dbRow.price_oracle_contract_address
    * @param {string} dbRow.constants
+   * @param {string} dbRow.addresses
    * @param {string} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
@@ -60,8 +61,8 @@ class StakeCurrency extends ModelBase {
       symbol: dbRow.symbol,
       decimal: dbRow.decimal,
       contractAddress: dbRow.contract_address,
-      priceOracleContractAddress: dbRow.price_oracle_contract_address,
       constants: JSON.parse(dbRow.constants),
+      addresses: JSON.parse(dbRow.addresses),
       status: stakeCurrencyConstants.statuses[dbRow.status],
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)

@@ -8,8 +8,7 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates'),
-  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
+  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 

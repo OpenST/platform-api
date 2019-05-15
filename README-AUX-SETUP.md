@@ -231,12 +231,12 @@ And add it to tables using following script.
 * Start Aux Workflow router factory
 ```bash
     source set_env_vars.sh
-    node executables/auxWorkflowFactory.js --cronProcessId 21
+    node executables/auxWorkflowFactory.js --cronProcessId 22
 ```
 * Start execute transaction cron process
 ```bash
     source set_env_vars.sh
-    node executables/executeTransaction.js --cronProcessId 19
+    node executables/executeTransaction.js --cronProcessId 20
 ```
 
 ### Start state root sync cron
