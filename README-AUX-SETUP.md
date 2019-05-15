@@ -200,7 +200,7 @@ And add it to tables using following script.
 * Fund by sealer aux chain specific
 ```bash
     source set_env_vars.sh
-    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 13
+    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 14
 ```
 
 * Fund by master internal funder aux chain specific chain addresses
