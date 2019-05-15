@@ -11,7 +11,7 @@ const rootPrefix = '../..',
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
   ConfigStrategyHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  AllStakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/AllStakeCurrencySymbols'),
+  StakeCurrencyModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -39,6 +39,7 @@ class OriginChainSetup {
     oThis.web3Instance = null;
     oThis.verifiersHelper = null;
     oThis.chainId = null;
+    oThis.allStakeCurrencySymbols = [];
   }
 
   /**
@@ -51,11 +52,11 @@ class OriginChainSetup {
 
     oThis.usdcSymbol = stakeCurrencyConstants.USDC;
 
-    logger.step('** Fetch origin chain addresses.');
-    await oThis._fetchOriginAddresses();
-
     logger.step('** Fetch all stake currency details.');
     await oThis._fetchStakeCurrencyDetails();
+
+    logger.step('** Fetch origin chain addresses.');
+    await oThis._fetchOriginAddresses();
 
     logger.step('** Setting up web3 object for origin chain.');
     await oThis._setWeb3Obj();
@@ -104,9 +105,6 @@ class OriginChainSetup {
       );
     }
 
-    oThis.stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
-    oThis.stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address;
-
     oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
     oThis.stOrgContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractAdminKind].address;
     oThis.stOrgContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractOwnerKind].address;
@@ -126,8 +124,6 @@ class OriginChainSetup {
     oThis.stOrgContractWorkerAddresses = chainAddressesRsp.data[chainAddressConstants.stOrgContractWorkerKind];
     oThis.originAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
-
-    oThis.usdcOwnerAddress = chainAddressesRsp.data[chainAddressConstants.usdcContractOwnerKind].address;
   }
 
   /**
@@ -139,14 +135,14 @@ class OriginChainSetup {
   async _fetchStakeCurrencyDetails() {
     const oThis = this;
 
-    const stakeCurrencySymbols = await new AllStakeCurrencySymbolsCache().fetch();
+    let stakeCurrenciesDetails = await new StakeCurrencyModel()
+      .select('symbol')
+      .where({ status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.setupInProgressStatus] })
+      .fire();
 
-    if (stakeCurrencySymbols.isFailure()) {
-      logger.error('Error in fetching all stake currencies symbols');
-      return Promise.reject();
+    for (let i = 0; i < stakeCurrenciesDetails.length; i++) {
+      oThis.allStakeCurrencySymbols.push(stakeCurrenciesDetails[i].symbol);
     }
-
-    oThis.allStakeCurrencySymbols = stakeCurrencySymbols.data;
 
     const stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: oThis.allStakeCurrencySymbols
@@ -159,6 +155,10 @@ class OriginChainSetup {
 
     oThis.allStakeCurrencyDetails = stakeCurrencyDetails.data;
     oThis.simpleTokenContractAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].contractAddress;
+
+    oThis.stContractAdminAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].addresses.admin;
+    oThis.stContractOwnerAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].addresses.owner;
+    oThis.usdcOwnerAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.USDC].addresses.owner;
   }
 
   /**

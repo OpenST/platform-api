@@ -113,7 +113,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
     oThis.alertConfig = basicHelper.deepDup(alertConfig);
 
     oThis.allStakeCurrencySymbols = null;
-    oThis.stakeCurrencyDetails = null;
+    oThis.stakeCurrencyDetails = {};
   }
 
   /**
@@ -214,6 +214,8 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
    */
   async _fetchStakeCurrencyDetails() {
     const oThis = this;
+
+    if (oThis.allStakeCurrencySymbols.length === 0) return;
 
     const stakeCurrencyCacheResponse = await new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: oThis.allStakeCurrencySymbols

@@ -97,16 +97,16 @@ NOTE: Copy the ETH funder private key for later use.
 
 NOTE: Copy the response from the script above and save somewhere offline.
 
-* Save simple token admin, owner and contract address in database.
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
-```
-
 * Update simple token contract details in stake currencies and insert in base currencies DDB table.
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/saveStakeCurrencyDetails.js --contractSymbol OST --contractAddress '0xabc___'
+```
+
+* Save simple token admin, owner and contract address in database.
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/saveSimpleTokenAddresses.js --admin '0xabc___' --owner '0xabc___'
 ```
 
 * Insert USDC Details in Stake Currencies Mysql Table

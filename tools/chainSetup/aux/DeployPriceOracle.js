@@ -8,10 +8,11 @@ const OpenSTOracle = require('@ostdotcom/ost-price-oracle'),
   deployAndSetOpsAndAdminHelper = new OpenSTOracle.DeployAndSetOpsAndAdminHelper();
 
 const rootPrefix = '../../..',
-  StakeCurrenciesModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
+  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
-  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
@@ -44,8 +45,6 @@ class DeployPriceOracle {
     oThis.auxChainId = params.auxChainId;
     oThis.baseCurrencySymbol = params.baseCurrencySymbol;
     oThis.gasPrice = params.gasPrice || contractConstants.zeroGasPrice;
-
-    oThis.contractAddressKind = params.contractAddressKind;
 
     oThis.quoteCurrency = conversionRateConstants.USD;
     oThis.ownerAddress = '';
@@ -346,23 +345,28 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
-    await new StakeCurrenciesModel()
-      .update({
-        price_oracle_contract_address: oThis.contractAddress.toLowerCase()
-      })
-      .where(['id = ?', oThis.baseCurrencyDetails.id])
-      .fire();
+    let contractAddressKind;
 
-    // Clear cache - this is in-memory cache clear
-    await Promise.all([
-      new StakeCurrencyBySymbolCache({
-        stakeCurrencySymbols: [oThis.baseCurrencySymbol]
-      }).clear(),
+    if (oThis.baseCurrencySymbol === stakeCurrencyConstants.OST) {
+      contractAddressKind = chainAddressConstants.auxOstToUsdPriceOracleContractKind;
+    } else if (oThis.baseCurrencySymbol === stakeCurrencyConstants.USDC) {
+      contractAddressKind = chainAddressConstants.auxUsdcToUsdPriceOracleContractKind;
+    } else {
+      throw new Error(`Invalid baseCurrency ${oThis.baseCurrencySymbol}`);
+    }
 
-      new StakeCurrencyByIdCache({
-        stakeCurrencyIds: [oThis.baseCurrencyDetails.id]
-      }).clear()
-    ]);
+    // Insert priceOracleContractAddress in chainAddresses table.
+    await new ChainAddressModel().insertAddress({
+      address: oThis.contractAddress.toLowerCase(),
+      associatedAuxChainId: oThis.auxChainId,
+      addressKind: contractAddressKind,
+      deployedChainId: oThis.auxChainId,
+      deployedChainKind: coreConstants.auxChainKind,
+      status: chainAddressConstants.activeStatus
+    });
+
+    // Clear chain address cache.
+    await new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }).clear();
 
     logger.step('Price oracle contract address added in table.');
   }

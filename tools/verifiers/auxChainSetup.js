@@ -21,7 +21,7 @@ const rootPrefix = '../..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
-  AllStakeCurrencySymbolsCache = require(rootPrefix + '/lib/cacheManagement/shared/AllStakeCurrencySymbols'),
+  StakeCurrencyModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
@@ -58,6 +58,7 @@ class AuxChainSetup {
     oThis.originWeb3Instance = null;
     oThis.auxWeb3Instance = null;
     oThis.verifiersHelper = null;
+    oThis.allStakeCurrencySymbols = [];
   }
 
   /**
@@ -177,6 +178,11 @@ class AuxChainSetup {
     oThis.auxAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractWorkerKind];
 
+    oThis.auxOstToUsdPriceOracleContractKind =
+      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
+    oThis.auxUsdcToUsdPriceOracleContractKind =
+      chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind].address;
+
     oThis.auxPriceOracleContractOwnerKind =
       chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractOwnerKind].address;
     oThis.auxPriceOracleContractAdminKind =
@@ -222,14 +228,14 @@ class AuxChainSetup {
   async _fetchStakeCurrencyDetails() {
     const oThis = this;
 
-    const stakeCurrencySymbols = await new AllStakeCurrencySymbolsCache().fetch();
+    let stakeCurrenciesDetails = await new StakeCurrencyModel()
+      .select('symbol')
+      .where({ status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.setupInProgressStatus] })
+      .fire();
 
-    if (stakeCurrencySymbols.isFailure()) {
-      logger.error('Error in fetching all stake currencies');
-      return Promise.reject();
+    for (let i = 0; i < stakeCurrenciesDetails.length; i++) {
+      oThis.allStakeCurrencySymbols.push(stakeCurrenciesDetails[i].symbol);
     }
-
-    oThis.allStakeCurrencySymbols = stakeCurrencySymbols.data;
 
     const stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: oThis.allStakeCurrencySymbols
@@ -713,7 +719,13 @@ class AuxChainSetup {
     logger.log('* Fetching priceOracleContractAddress for', baseCurrency, ' from database.');
 
     let allStakeCurrencyDetails = oThis.allStakeCurrencyDetails,
-      priceOracleContractAddress = allStakeCurrencyDetails[baseCurrency].priceOracleContractAddress;
+      priceOracleContractAddress;
+
+    if (baseCurrency === stakeCurrencyConstants.OST) {
+      priceOracleContractAddress = oThis.auxOstToUsdPriceOracleContractKind;
+    } else if (baseCurrency === stakeCurrencyConstants.USDC) {
+      priceOracleContractAddress = oThis.auxUsdcToUsdPriceOracleContractKind;
+    }
 
     let rsp = await oThis.verifiersHelper.validateContract(
       priceOracleContractAddress,
