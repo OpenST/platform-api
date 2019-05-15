@@ -48,18 +48,6 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
       thresholdAmount: '0.001'
     },
 
-    // simple token owner
-    [chainAddressConstants.stContractOwnerKind]: {
-      fundAmount: '0.00138',
-      thresholdAmount: '0.00138'
-    },
-
-    // simple token admin
-    [chainAddressConstants.stContractAdminKind]: {
-      fundAmount: '0.00005',
-      thresholdAmount: '0.00005'
-    },
-
     // facilitator
     [chainAddressConstants.interChainFacilitatorKind]: {
       fundAmount: '0.1044',
@@ -70,12 +58,6 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
     [chainAddressConstants.originStableCoinDeployerKind]: {
       fundAmount: '0.00498',
       thresholdAmount: '0.00498'
-    },
-
-    // usdc owner
-    [chainAddressConstants.usdcContractOwnerKind]: {
-      fundAmount: '0.00054',
-      thresholdAmount: '0.00054'
     }
   },
 

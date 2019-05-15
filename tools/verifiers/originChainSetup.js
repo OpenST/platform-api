@@ -51,11 +51,11 @@ class OriginChainSetup {
 
     oThis.usdcSymbol = stakeCurrencyConstants.USDC;
 
-    logger.step('** Fetch origin chain addresses.');
-    await oThis._fetchOriginAddresses();
-
     logger.step('** Fetch all stake currency details.');
     await oThis._fetchStakeCurrencyDetails();
+
+    logger.step('** Fetch origin chain addresses.');
+    await oThis._fetchOriginAddresses();
 
     logger.step('** Setting up web3 object for origin chain.');
     await oThis._setWeb3Obj();
@@ -104,9 +104,6 @@ class OriginChainSetup {
       );
     }
 
-    oThis.stContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stContractAdminKind].address;
-    oThis.stContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stContractOwnerKind].address;
-
     oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
     oThis.stOrgContractAdminAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractAdminKind].address;
     oThis.stOrgContractOwnerAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractOwnerKind].address;
@@ -126,8 +123,6 @@ class OriginChainSetup {
     oThis.stOrgContractWorkerAddresses = chainAddressesRsp.data[chainAddressConstants.stOrgContractWorkerKind];
     oThis.originAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractWorkerKind];
-
-    oThis.usdcOwnerAddress = chainAddressesRsp.data[chainAddressConstants.usdcContractOwnerKind].address;
   }
 
   /**
@@ -159,6 +154,10 @@ class OriginChainSetup {
 
     oThis.allStakeCurrencyDetails = stakeCurrencyDetails.data;
     oThis.simpleTokenContractAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].contractAddress;
+
+    oThis.stContractAdminAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].addresses.admin;
+    oThis.stContractOwnerAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].addresses.owner;
+    oThis.usdcOwnerAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.USDC].addresses.owner;
   }
 
   /**
