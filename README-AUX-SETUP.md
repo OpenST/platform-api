@@ -85,6 +85,19 @@ And add it to tables using following script.
     node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
+* Mark simple token as active in stake currencies
+```bash
+   source set_env_vars.sh
+   node executables/setup/origin/activateStakeCurrency.js --stakeCurrencySymbol "OST"
+```
+
+* Mark USDC as active in stake currencies
+```bash
+   source set_env_vars.sh
+   node executables/setup/origin/activateStakeCurrency.js --stakeCurrencySymbol "USDC"
+```
+
+
 * [Only Development] Seed the cron processes which are associated to the aux chain using this script.
 ```bash
     source set_env_vars.sh
