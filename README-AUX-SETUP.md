@@ -109,7 +109,7 @@ And add it to tables using following script.
 * Run Aggregator. This is done only to initialize the queue.
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/aggregator.js --cronProcessId 11
+    node executables/blockScanner/aggregator.js --cronProcessId 12
 ```
 
 * Run Auxiliary Transaction Finalizer
@@ -121,13 +121,13 @@ And add it to tables using following script.
 * Run Auxiliary Transaction Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/transactionParser.js --cronProcessId 9
+    node executables/blockScanner/transactionParser.js --cronProcessId 10
 ```
 
 * Run Auxiliary Block Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/blockParser.js --cronProcessId 8
+    node executables/blockScanner/blockParser.js --cronProcessId 9
 ```
 
 * Run Auxiliary Block Finalizer
@@ -192,7 +192,7 @@ And add it to tables using following script.
 ## Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/aggregator.js --cronProcessId 11
+  node executables/blockScanner/aggregator.js --cronProcessId 12
 ```
 
 ### Funding crons
