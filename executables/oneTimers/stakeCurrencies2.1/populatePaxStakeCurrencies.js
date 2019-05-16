@@ -96,7 +96,7 @@ class PopulatePaxStakeCurrencies {
       .update({
         constants: JSON.stringify(oThis._contractConstants),
         addresses: JSON.stringify(oThis._contractAddresses),
-        status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.inactiveStatus]
+        status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.inActiveStatus]
       })
       .where({
         symbol: 'PAX'
