@@ -1,6 +1,6 @@
 // /**
 //  *
-//  * ********This one timer script is more supported ***********
+//  * ********This one timer script is no more supported ***********
 //  *
 //  * Module to insert base currency contract address in economies table.
 //  *
