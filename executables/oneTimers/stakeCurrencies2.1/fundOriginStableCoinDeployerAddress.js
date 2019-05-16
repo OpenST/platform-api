@@ -23,7 +23,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/oneTimers/stableCoinStaking/createOriginStableCoinDeployerAddress.js --originChainId 3'
+    '    node executables/oneTimers/stakeCurrencies2.1/fundOriginStableCoinDeployerAddress.js --originChainId 3'
   );
   logger.log('');
   logger.log('');
