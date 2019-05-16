@@ -102,7 +102,7 @@ new DeletePaxPermanently()
     logger.win('One-timer finished.');
     process.exit(0);
   })
-  .catch(() => {
-    logger.error('One-timer failed.');
+  .catch((err) => {
+    logger.error('One-timer failed.', err);
     process.exit(1);
   });
