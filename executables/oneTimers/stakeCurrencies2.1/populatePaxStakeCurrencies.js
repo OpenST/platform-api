@@ -28,7 +28,7 @@ class PopulatePaxStakeCurrencies {
     const oThis = this;
 
     if (coreConstants.environment === environmentInfoConstants.environment.production) {
-      logger.error('This one-timer should not run in production main.');
+      logger.error('This one-timer should not run in production.');
       process.exit(1);
     }
 
