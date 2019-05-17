@@ -28,7 +28,7 @@ class PopulatePaxStakeCurrencies {
     const oThis = this;
 
     if (coreConstants.environment === environmentInfoConstants.environment.production) {
-      logger.error('This one-timer should not run in production main.');
+      logger.error('This one-timer should not run in production.');
       process.exit(1);
     }
 
@@ -96,7 +96,7 @@ class PopulatePaxStakeCurrencies {
       .update({
         constants: JSON.stringify(oThis._contractConstants),
         addresses: JSON.stringify(oThis._contractAddresses),
-        status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.inactiveStatus]
+        status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.inActiveStatus]
       })
       .where({
         symbol: 'PAX'
@@ -111,7 +111,7 @@ new PopulatePaxStakeCurrencies()
     logger.win('One-timer finished.');
     process.exit(0);
   })
-  .catch(() => {
-    logger.error('One-timer failed.');
+  .catch((err) => {
+    logger.error('One-timer failed.', err);
     process.exit(1);
   });
