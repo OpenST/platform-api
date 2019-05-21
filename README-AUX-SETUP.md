@@ -62,7 +62,7 @@
 
 * Add sealer address.  
   NOTE: Use MyEtherWallet to export private key from keystore file. 
-  Visit the following link [MyEtherWallet](https://www.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
+  Visit the following link [MyEtherWallet](https://vintage.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
   Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
   `testtest`. Pass the address and privateKey (including 0x) in the command below.
 
@@ -155,14 +155,14 @@ And add it to tables using following script.
                 chainId: 3,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0x4dafd5a57e81eb4f9aa6f24f4cc75c0038aaed8a', 
+                    stakerAddress: '0xb3bb6be32abfad59b647d5a40301084db2043f90', 
                     originChainId: 3, 
                     auxChainId: 2000, 
                     sourceChainId: 3,
                     destinationChainId: 2000,
-                    facilitator: '0x4dafd5a57e81eb4f9aa6f24f4cc75c0038aaed8a', 
+                    facilitator: '0xb3bb6be32abfad59b647d5a40301084db2043f90', 
                     amountToStake: '1000000000000000000000000', 
-                    beneficiary: '0x4dafd5a57e81eb4f9aa6f24f4cc75c0038aaed8a',
+                    beneficiary: '0xb3bb6be32abfad59b647d5a40301084db2043f90',
                     firstTimeMint: true //[optional]
                 }
         }
