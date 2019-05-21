@@ -1,7 +1,7 @@
 /**
  * This script will fetch data for all the token ids present in a chain and upload the data in s3.
 
- * Usage: node executables/generateGraph.js --cronProcessId 31
+ * Usage: node executables/generateGraph.js --cronProcessId 30
  *
  * @module executables/generateGraph
  *
@@ -68,6 +68,7 @@ class GenerateGraph extends CronBase {
     const oThis = this;
 
     oThis.canExit = true;
+    oThis.tokenIds = [];
   }
 
   /**
@@ -127,15 +128,17 @@ class GenerateGraph extends CronBase {
     while (true) {
       logger.step('Fetching all token ids for chain id: ', oThis.auxChainId, ' iteration number:', iterationNumber);
 
-      const tokenIds = await oThis._fetchActiveTokenIds(),
-        totalTokenIds = tokenIds.length;
+      // fetch all active token ids and their stake currency decimals
+      const tokenIdToDecimalMap = await oThis._fetchTokenIdToDecimalMap(),
+        totalTokenIds = oThis.tokenIds.length;
       let promiseArray = [];
 
-      logger.log('Token Ids: ', tokenIds);
+      logger.log('Token Ids: ', oThis.tokenIds);
 
       for (let index = 0; index < totalTokenIds; index++) {
-        logger.log('Processing token id: ', tokenIds[index]);
-        promiseArray.push(oThis._performPerTokenOperation(tokenIds[index]));
+        const tokenId = oThis.tokenIds[index];
+        logger.log('Processing token id: ', tokenId);
+        promiseArray.push(oThis._performPerTokenOperation(tokenId, tokenIdToDecimalMap[tokenId]));
 
         if (promiseArray.length >= BATCH_SIZE || totalTokenIds === index + 1) {
           await Promise.all(promiseArray);
@@ -149,12 +152,12 @@ class GenerateGraph extends CronBase {
   }
 
   /**
-   * This function fetches active token ids.
+   * This function fetches active token ids and returns tokenIdToDecimals Map .
    *
-   * @returns {Promise<Array>}
+   * @returns {Promise<*>}
    * @private
    */
-  async _fetchActiveTokenIds() {
+  async _fetchTokenIdToDecimalMap() {
     const oThis = this;
 
     const clientIds = await oThis._fetchClientsOnChain(oThis.auxChainId);
@@ -162,18 +165,10 @@ class GenerateGraph extends CronBase {
     if (clientIds.length === 0) {
       logger.warn('No client ids are present for given chainId: ', oThis.auxChainId);
 
-      return [];
+      return {};
     }
 
-    const tokenIds = await oThis._fetchClientTokenIdsFor(clientIds);
-
-    if (tokenIds.length === 0) {
-      logger.warn('No active token ids present for given chainId: ', oThis.auxChainId);
-
-      return [];
-    }
-
-    return tokenIds;
+    return oThis._fetchClientTokenIdsFor(clientIds);
   }
 
   /**
@@ -206,38 +201,43 @@ class GenerateGraph extends CronBase {
    *
    * @param {array} clientIds
    *
-   * @return {Promise<Array>}
+   * @sets oThis.tokenIds {array}
+   *
+   * @returns {Promise<void>}
    * @private
    */
   async _fetchClientTokenIdsFor(clientIds) {
-    const clientTokenIds = await new TokenModel()
-      .select('id')
-      .where([
-        'client_id IN (?) AND status = (?)',
-        clientIds,
-        new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]
-      ])
-      .fire();
+    const oThis = this,
+      clientTokenIds = await new TokenModel()
+        .select(['id', 'decimal'])
+        .where([
+          'client_id IN (?) AND status = (?)',
+          clientIds,
+          new TokenModel().invertedStatuses[tokenConstants.deploymentCompleted]
+        ])
+        .fire();
 
-    const tokenIds = [];
+    const tokenIdToDecimalsMap = {};
     for (let index = 0; index < clientTokenIds.length; index++) {
       const tokenId = clientTokenIds[index].id;
 
-      tokenIds.push(tokenId);
+      tokenIdToDecimalsMap[tokenId] = clientTokenIds[index].decimal;
+      oThis.tokenIds.push(tokenId);
     }
 
-    return tokenIds;
+    return tokenIdToDecimalsMap;
   }
 
   /**
    * Performs all operations which are to be done for one tokenId.
    *
    * @param {number} tokenId
+   * @param {number} tokenDecimals
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _performPerTokenOperation(tokenId) {
+  async _performPerTokenOperation(tokenId, tokenDecimals) {
     const oThis = this,
       currentTimestamp = Date.now();
 
@@ -245,13 +245,13 @@ class GenerateGraph extends CronBase {
       const durationType = graphConstants.allDurationTypes[index];
 
       logger.step('Preparing TotalTransactions graph for token id: ', tokenId, ' duration:', durationType);
-      await oThis._fetchAndUploadTotalTransactionsGraphData(tokenId, durationType, currentTimestamp);
+      await oThis._fetchAndUploadTotalTransactionsGraphData(tokenId, durationType, currentTimestamp, tokenDecimals);
 
       logger.step('Preparing TransactionsTypes graph for token id: ', tokenId, ' duration:', durationType);
-      await oThis._fetchAndUploadTransactionsByTypeGraphData(tokenId, durationType, currentTimestamp);
+      await oThis._fetchAndUploadTransactionsByTypeGraphData(tokenId, durationType, currentTimestamp, tokenDecimals);
 
       logger.step('Preparing TransactionsNames graph for token id: ', tokenId, ' duration:', durationType);
-      await oThis._fetchAndUploadTransactionsByNameGraphData(tokenId, durationType, currentTimestamp);
+      await oThis._fetchAndUploadTransactionsByNameGraphData(tokenId, durationType, currentTimestamp, tokenDecimals);
     }
   }
 
@@ -261,17 +261,19 @@ class GenerateGraph extends CronBase {
    * @param {number} tokenId
    * @param {string} durationType
    * @param {number} currentTimestamp
+   * @param {number} tokenDecimals
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _fetchAndUploadTotalTransactionsGraphData(tokenId, durationType, currentTimestamp) {
+  async _fetchAndUploadTotalTransactionsGraphData(tokenId, durationType, currentTimestamp, tokenDecimals) {
     const oThis = this,
       params = {
         auxChainId: oThis.auxChainId,
         tokenId: tokenId,
         durationType: durationType,
-        currentTimestamp: currentTimestamp
+        currentTimestamp: currentTimestamp,
+        tokenDecimals: tokenDecimals
       };
 
     const totalTransactionsGraphObj = new TotalTransactionsGraph(params),
@@ -294,17 +296,19 @@ class GenerateGraph extends CronBase {
    * @param {number} tokenId
    * @param {string} durationType
    * @param {number} currentTimestamp
+   * @param {number} tokenDecimals
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _fetchAndUploadTransactionsByTypeGraphData(tokenId, durationType, currentTimestamp) {
+  async _fetchAndUploadTransactionsByTypeGraphData(tokenId, durationType, currentTimestamp, tokenDecimals) {
     const oThis = this,
       params = {
         auxChainId: oThis.auxChainId,
         tokenId: tokenId,
         durationType: durationType,
-        currentTimestamp: currentTimestamp
+        currentTimestamp: currentTimestamp,
+        tokenDecimals: tokenDecimals
       };
 
     const transactionByTypeGraphObj = new TransactionsByTypeGraph(params),
@@ -327,17 +331,19 @@ class GenerateGraph extends CronBase {
    * @param {number} tokenId
    * @param {string} durationType
    * @param {number} currentTimestamp
+   * @param {number} tokenDecimals
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _fetchAndUploadTransactionsByNameGraphData(tokenId, durationType, currentTimestamp) {
+  async _fetchAndUploadTransactionsByNameGraphData(tokenId, durationType, currentTimestamp, tokenDecimals) {
     const oThis = this,
       params = {
         auxChainId: oThis.auxChainId,
         tokenId: tokenId,
         durationType: durationType,
-        currentTimestamp: currentTimestamp
+        currentTimestamp: currentTimestamp,
+        tokenDecimals: tokenDecimals
       };
 
     const transactionByNameGraphObj = new TransactionsByNameGraph(params),
