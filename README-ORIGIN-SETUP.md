@@ -40,7 +40,7 @@
 
 #### [Only DevOps] NOTE: Make sure you review SA_DEFAULT_ORIGIN_GAS_PRICE gas price from https://ethgasstation.info/txPoolReport.php, as dynamic gas price cron is not yet active.
 
-* [Only Development] Add `127.0.0.1    ropsten.developmentost.com` in hosts files 
+* [Only Development] Add `127.0.0.1       ropsten.developmentost.com` in hosts files 
 ```bash
     sudo vim /etc/hosts
 ```
@@ -156,7 +156,7 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Use USDC Owner Private Key, to run following command. Granter address gets USDC in this step [ONLY FOR SANDBOX].
 ```bash
     source set_env_vars.sh
-    node executables/setup/origin/fundGranterAddress.js --stakeCurrencySymbol 'USDC' --stakeCurrencyOwnerPrivateKey '0x3d___' --stakeCurrencyAmount 100000
+    node executables/setup/origin/fundGranterAddress.js --stakeCurrencySymbol 'USDC' --stakeCurrencyOwnerPrivateKey '0x3d___' --stakeCurrencyAmount 1000000
 ```
 
 * Fund master internal funder with OSTs (EXCEPT PRODUCTION MAIN ENV)
