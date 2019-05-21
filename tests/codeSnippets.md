@@ -270,6 +270,10 @@ a = require('./lib/getBalance/StPrime');
 b = new a({auxChainId: 2000, addresses: ['0x9b8497f476ca8c285f69c911f2fc6fb727d5c9c9']});
 b.perform().then(console.log);
 
+a = require('./lib/getBalance/Bt');
+b = new a({originChainId: 1407, tokenId: 1003, addresses: ['0x8bfca77079bbb3da3fb4293c64de3b9010c3948b']});
+b.perform().then(console.log);
+
 a = require('./lib/getBalance/Ubt');
 b = new a({auxChainId: 1407, tokenId: 1003, addresses: ['0x8bfca77079bbb3da3fb4293c64de3b9010c3948b']});
 b.perform().then(console.log);
@@ -312,9 +316,9 @@ managedAddress = managedAddresses[0];
         
         TokenRedeemByCompany = ic.getShadowedClassFor(coreConstants.icNameSpace,'TokenRedeemByCompany');
         
-        a = new TokenRedeemByCompany({token_id: 1009, client_id: 10009, 
-            beneficiary: '0x5f2EA87f3515C608f6d7255082A07Ff7B61d59f1', 
-            amount_to_redeem: '100000000000000000000'})
+        a = new TokenRedeemByCompany({token_id: 1002, client_id: 10002, 
+            beneficiary: '0xf073c99dde62b3c367cb95768009908f668b354d', 
+            amount_to_redeem: '3230000000000'})
         
         a.perform().then(console.log)
 ```
