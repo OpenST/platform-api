@@ -808,7 +808,7 @@ const v2Signature = {
     optional: [
       {
         parameter: 'statuses',
-        validatorMethod: 'validateStringArray'
+        validatorMethod: 'validateAlphaStringArray'
       },
       {
         parameter: 'limit',
@@ -1011,6 +1011,24 @@ const v2Signature = {
       {
         parameter: 'to',
         validatorMethod: 'validateEthAddress'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.createWebhook]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'address',
+        validatorMethod: 'validateString'
+      },
+      {
+        parameter: 'topics',
+        validatorMethod: 'validateStringArray'
       }
     ],
     optional: []

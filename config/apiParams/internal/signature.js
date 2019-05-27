@@ -197,7 +197,7 @@ const signature = {
       },
       {
         parameter: 'currencies',
-        validatorMethod: 'validateStringArray'
+        validatorMethod: 'validateAlphaStringArray'
       }
     ]
   },

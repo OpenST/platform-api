@@ -208,6 +208,11 @@ class ApiAuthentication {
         apiName: apiName.resetRecoveryOwner,
         route: '/users/:user_id/recovery-owners/',
         supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.createWebhook,
+        route: '/webhooks/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];
