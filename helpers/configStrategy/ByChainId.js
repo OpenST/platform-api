@@ -1,29 +1,34 @@
-'use strict';
+/**
+ * Module to fetch config strategy by chainId.
+ *
+ * @module helpers/configStrategy/ByChainId
+ */
+
 const rootPrefix = '../..',
+  ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
+  ConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/ConfigStrategy'),
+  ChainConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/shared/ChainConfigStrategyId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   configValidator = require(rootPrefix + '/helpers/configValidator'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
   configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/shared/ChainConfigStrategyId'),
-  ConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/ConfigStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 /**
- * Class for config strategy by chain id helper.
+ * Class to fetch config strategy by chainId.
  *
- * @class
+ * @class ConfigStrategyByChainId
  */
 class ConfigStrategyByChainId {
   /**
-   * Constructor for config strategy by chain id helper.
+   * Constructor to fetch config strategy by chainId.
    *
-   * @param {Number} [chainId]
-   * @param {Number} [groupId]
+   * @param {number} [chainId]
+   * @param {number} [groupId]
    *
    * @constructor
    */
@@ -35,7 +40,7 @@ class ConfigStrategyByChainId {
   }
 
   /**
-   * Get Hash of Config specific to the chain
+   * Get hash of config specific to the chain.
    *
    * @returns {Promise}
    */
@@ -46,6 +51,7 @@ class ConfigStrategyByChainId {
   }
 
   /**
+   * Get complete config strategy.
    *
    * @returns {Promise<*>}
    */
@@ -56,9 +62,9 @@ class ConfigStrategyByChainId {
   }
 
   /**
-   * Get config for a kind and a chain id
+   * Get config for a kind and a chain id.
    *
-   * @param {String} kind
+   * @param {string} kind
    *
    * @returns {Promise<*>}
    */
@@ -66,7 +72,7 @@ class ConfigStrategyByChainId {
     const oThis = this,
       chainId = oThis.chainId;
 
-    let strategyKindIntValue = await configStrategyValidator.getStrategyKindInt(kind);
+    const strategyKindIntValue = configStrategyValidator.getStrategyKindInt(kind);
 
     await configStrategyValidator.validateChainIdKindCombination(kind, chainId);
 
@@ -74,16 +80,16 @@ class ConfigStrategyByChainId {
   }
 
   /**
-   * Get for kind - rows which have active status
+   * Get for kind: rows which have active status.
    *
-   * @param kind {Number} - kind
+   * @param {string} kind
    *
    * @returns {Promise<any>}
    */
   async getActiveByKind(kind) {
     const oThis = this;
 
-    let strategyKindIntValue = await configStrategyValidator.getStrategyKindInt(kind),
+    const strategyKindIntValue = configStrategyValidator.getStrategyKindInt(kind),
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus];
 
     return oThis._fetchAndCombineConfig([
@@ -95,9 +101,10 @@ class ConfigStrategyByChainId {
   }
 
   /**
-   * Activate by config strategy id
+   * Activate by config strategy id.
    *
-   * @param strategyId
+   * @param {number} strategyId
+   *
    * @returns {Promise<*>}
    */
   activateByStrategyId(strategyId) {
@@ -106,8 +113,7 @@ class ConfigStrategyByChainId {
 
   /**
    * This function checks if mandatory kinds are present for given chain.
-   * If not, then activation can not be performed,
-   * else updates and sets status 'active' for given chain_id.
+   * If not, then activation can not be performed else updates and sets status 'active' for given chain_id.
    *
    * @returns {Promise<*>}
    */
@@ -115,25 +121,25 @@ class ConfigStrategyByChainId {
     const oThis = this,
       activeStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.activeStatus];
 
-    let mandatoryKinds = [],
-      mandatoryKindsMap = configStrategyConstants.mandatoryKinds,
+    let mandatoryKinds = [];
+    const mandatoryKindsMap = configStrategyConstants.mandatoryKinds,
       configResponse = await oThis.getComplete(),
       config = configResponse.data;
 
-    // check which kind of chain, we need to validate and activate
+    // Check which kind of chain, we need to validate and activate
     if (oThis.chainId == 0) {
       mandatoryKinds = mandatoryKindsMap[configStrategyConstants.globalMandatoryKind];
     } else {
       mandatoryKinds = mandatoryKindsMap[configStrategyConstants.auxMandatoryKind];
     }
 
-    for (let i = 0; i < mandatoryKinds.length; i++) {
-      let kindToCheck = mandatoryKinds[i];
+    for (let index = 0; index < mandatoryKinds.length; index++) {
+      const kindToCheck = mandatoryKinds[index];
 
-      // check if config is inserted
+      // Check if config is inserted.
       if (
         config[kindToCheck] === undefined ||
-        !config[kindToCheck] instanceof Object ||
+        !(config[kindToCheck] instanceof Object) ||
         Object.keys(config[kindToCheck]) < 1
       ) {
         return oThis._customError(
@@ -142,14 +148,14 @@ class ConfigStrategyByChainId {
         );
       }
 
-      // Validate config
+      // Validate config.
       if (!configValidator.validateConfigStrategy(kindToCheck, config)) {
         return oThis._customError('h_cs_bgi_19', 'Config params validation failed for: ' + JSON.stringify(config));
       }
     }
 
-    // update if above validations are successful
-    let strategyIdResponse = await new ConfigStrategyModel()
+    // Update if above validations are successful.
+    const strategyIdResponse = await new ConfigStrategyModel()
       .update({ status: activeStatus })
       .where(['chain_id = ?', oThis.chainId])
       .fire();
@@ -162,7 +168,7 @@ class ConfigStrategyByChainId {
   }
 
   /**
-   * Deactivate
+   * Deactivate config strategy.
    *
    * @returns {Promise<*>}
    */
@@ -170,15 +176,12 @@ class ConfigStrategyByChainId {
     const oThis = this,
       chainId = oThis.chainId;
 
-    let whereClause = ['chain_id = ?', chainId],
-      configStrategyIds = await oThis._strategyIdsArrayProvider(whereClause);
+    // TODO:: Check in config strategy association already found, don't deactivate
 
-    //TODO:: Check in config strategy association already found, don't deactivate
+    // Now set status as inactive.
+    const inActiveStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.inActiveStatus];
 
-    //now set status as inactive
-    let inActiveStatus = configStrategyConstants.invertedStatuses[configStrategyConstants.inActiveStatus];
-
-    let queryResponse = await new ConfigStrategyModel()
+    const queryResponse = await new ConfigStrategyModel()
       .update({ status: inActiveStatus })
       .where(['chain_id = ?', chainId])
       .fire();
@@ -188,18 +191,17 @@ class ConfigStrategyByChainId {
     }
     if (queryResponse.affectedRows > 0) {
       logger.info(`Status of chain id: [${chainId}] is now deactive.`);
-      //return Promise.resolve(responseHelper.successWithData({}));
-    } else {
-      return Promise.reject(oThis._customError('h_cs_bgi_21', 'Strategy Id not present in the table'));
+
+      return Promise.resolve(responseHelper.successWithData({}));
     }
 
-    return Promise.resolve(responseHelper.successWithData({}));
+    return Promise.reject(oThis._customError('h_cs_bgi_21', 'Strategy Id not present in the table'));
   }
 
   /**
-   * Get all kinds
+   * Get all kinds.
    *
-   * @returns {Object}
+   * @returns {object}
    */
   getAllKinds() {
     return configStrategyConstants.kinds;
@@ -209,30 +211,22 @@ class ConfigStrategyByChainId {
    * This function adds a strategy in config_strategies table. If the kind being inserted in value_geth or utility_geth then
    * WS provider and RPC provider is also inserted in the chain_geth_providers table.
    *
-   * @param {String} kind (Eg:'dynamo')
-   * @param {Object} params - Hash of config params related to this kind
-   * @param {Number} encryptionSaltId - encryption salt id
+   * @param {string} kind (Eg:'dynamo')
+   * @param {object} allParams: Hash of config params related to this kind
+   * @param {number} encryptionSaltId: encryption salt id
+   *
    * @returns {Promise}
-   */
-  /**
-   * Insert into config_strategies
-   *
-   * @param {String} kind: kind
-   * @param {Object} allParams: all params
-   * @param {Number} encryptionSaltId: encryption salt id
-   *
-   * @returns {Promise<*>}
    */
   async addForKind(kind, allParams, encryptionSaltId) {
     const oThis = this,
       chainId = oThis.chainId;
 
-    let strategyKindInt = await configStrategyValidator.getStrategyKindInt(kind);
+    const strategyKindInt = configStrategyValidator.getStrategyKindInt(kind);
 
     await configStrategyValidator.validateChainIdKindCombination(kind, chainId);
 
     // Check if kind is already present for this chain id. If yes, reject.
-    let whereClause = ['chain_id = ? AND kind = ?', chainId, strategyKindInt],
+    const whereClause = ['chain_id = ? AND kind = ?', chainId, strategyKindInt],
       queryResponse = await oThis._strategyIdsArrayProvider(whereClause);
 
     if (queryResponse.length > 0) {
@@ -247,19 +241,19 @@ class ConfigStrategyByChainId {
   /**
    * Update Strategy by kind and chain id.
    *
-   * @param kind {String}
-   * @param params {Object}
+   * @param {string} kind
+   * @param {object} params
    *
    * @returns {Promise<>}
    */
   async updateForKind(kind, params) {
     const oThis = this;
 
-    let strategyKindInt = await configStrategyValidator.getStrategyKindInt(kind);
+    const strategyKindInt = configStrategyValidator.getStrategyKindInt(kind);
 
     await configStrategyValidator.validateChainIdKindCombination(kind, oThis.chainId);
 
-    let existingData = await new ConfigStrategyModel()
+    const existingData = await new ConfigStrategyModel()
       .select(['id', 'status'])
       .where(['chain_id = ? AND kind = ?', oThis.chainId, strategyKindInt])
       .fire();
@@ -279,52 +273,55 @@ class ConfigStrategyByChainId {
       );
     }
 
-    let existingStrategyId = existingData[0].id;
+    const existingStrategyId = existingData[0].id;
 
     await new ConfigStrategyModel().updateStrategyId(existingStrategyId, params);
 
-    //clearing the cache
-    let configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: [existingStrategyId] });
+    // Clearing the cache.
+    const configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: [existingStrategyId] });
     await configStrategyCacheObj.clear();
 
     return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**
-   *  Get strategy ids of a chain.
+   * Get strategy ids of a chain.
    *
    * @returns {Promise<>}
    */
   async getStrategyIds() {
     const oThis = this;
-    let chainId = oThis.chainId;
+    const chainId = oThis.chainId;
 
     if (chainId === undefined) {
       return oThis._customError('h_cs_bgi_29', 'Chain id is mandatory.');
     }
 
-    let whereClause = ['chain_id = ? OR chain_id = 0', chainId],
+    const whereClause = ['chain_id = ? OR chain_id = 0', chainId],
       strategyIdArray = await oThis._strategyIdsArrayProvider(whereClause);
 
     if (strategyIdArray.length > 0) {
       return Promise.resolve(responseHelper.successWithData(strategyIdArray));
-    } else {
-      return oThis._customError('h_cs_bgi_30', 'Error in fetching strategyIds');
     }
+
+    return oThis._customError('h_cs_bgi_30', 'Error in fetching strategyIds');
   }
 
   /**
-   * This function returns config strategy of the strategy ids passed as argument
-   * @param {Array}strategyIdsArray
+   * This function returns config strategy of the strategy ids passed as argument.
+   *
+   * @param {array} strategyIdsArray
+   *
    * @returns {Promise<*>}
    * @private
    */
   async _getConfigStrategyByStrategyId(strategyIdsArray) {
-    let configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),
+    const configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),
       configStrategyFetchRsp = await configStrategyCacheObj.fetch();
 
     if (configStrategyFetchRsp.isFailure()) {
       logger.error('Error in fetching config strategy from cache');
+
       return Promise.reject(configStrategyFetchRsp);
     }
 
@@ -334,24 +331,26 @@ class ConfigStrategyByChainId {
   /**
    * It returns strategyIdsArray from query on Config Strategy Model.
    *
-   * @param whereClause
+   * @param {array} whereClause
+   *
    * @returns {Promise<>}
    * @private
    */
   async _strategyIdsArrayProvider(whereClause) {
     if (!whereClause || whereClause === undefined) {
       logger.error('whereClause is not provided.');
+
       return Promise.reject(whereClause);
     }
 
-    let strategyIdResponse = await new ConfigStrategyModel()
+    const strategyIdResponse = await new ConfigStrategyModel()
       .select(['id'])
       .where(whereClause)
       .fire();
 
-    let strategyIdsArray = [];
+    const strategyIdsArray = [];
 
-    for (let index in strategyIdResponse) {
+    for (const index in strategyIdResponse) {
       strategyIdsArray.push(strategyIdResponse[index].id);
     }
 
@@ -367,9 +366,9 @@ class ConfigStrategyByChainId {
   async _strategyIdProviderForChain() {
     const oThis = this;
 
-    let chainConfigStrategyCache = new ChainConfigStrategyCache({ chainId: oThis.chainId });
+    const chainConfigStrategyCache = new ChainConfigStrategyCache({ chainId: oThis.chainId });
 
-    let chainConfigCacheRsp = await chainConfigStrategyCache.fetch();
+    const chainConfigCacheRsp = await chainConfigStrategyCache.fetch();
 
     return chainConfigCacheRsp.data.strategyIds;
   }
@@ -377,10 +376,9 @@ class ConfigStrategyByChainId {
   /**
    * Given a where clause, fetch all the config rows and merge them and return the final hash
    *
-   * @param whereClause {Array} - where clause, optional
+   * @param {array} [whereClause]
    *
    * @returns {Promise<any>}
-   *
    * @private
    */
   async _fetchAndCombineConfig(whereClause) {
@@ -393,12 +391,12 @@ class ConfigStrategyByChainId {
       strategyIdsArray = await oThis._strategyIdProviderForChain();
     }
 
-    let finalConfigHash = {},
+    const finalConfigHash = {},
       configCacheResponse = await oThis._getConfigStrategyByStrategyId(strategyIdsArray),
       cacheConfig = configCacheResponse.data;
 
-    for (let i = 0; i < strategyIdsArray.length; i++) {
-      Object.assign(finalConfigHash, cacheConfig[strategyIdsArray[i]]);
+    for (let index = 0; index < strategyIdsArray.length; index++) {
+      Object.assign(finalConfigHash, cacheConfig[strategyIdsArray[index]]);
     }
 
     return responseHelper.successWithData(finalConfigHash);
@@ -412,25 +410,27 @@ class ConfigStrategyByChainId {
   async getAuxProviders() {
     const oThis = this;
 
-    let configResponse = await oThis.getComplete(),
+    const configResponse = await oThis.getComplete(),
       config = configResponse.data,
       readWriteConfig = config[configStrategyConstants.auxGeth][configStrategyConstants.gethReadWrite];
 
-    let providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
+    const providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
 
     return Promise.resolve(responseHelper.successWithData(providers));
   }
 
   /**
-   * Custom error
+   * Custom error.
    *
-   * @param errCode
-   * @param errMsg
+   * @param {string} errCode
+   * @param {string} errMsg
+   *
    * @returns {Promise<never>}
    * @private
    */
   _customError(errCode, errMsg) {
     logger.error(errMsg);
+
     return Promise.reject(
       responseHelper.error({
         internal_error_identifier: errCode,
