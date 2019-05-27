@@ -9,7 +9,9 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
-const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
+  statuses = tokenConstants.statuses,
+  invertedStatuses = util.invert(statuses);
 
 /**
  * Class for workflow step model

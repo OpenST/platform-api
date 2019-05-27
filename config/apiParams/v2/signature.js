@@ -1023,7 +1023,7 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'address',
+        parameter: 'url',
         validatorMethod: 'validateString'
       },
       {
@@ -1031,7 +1031,12 @@ const v2Signature = {
         validatorMethod: 'validateStringArray'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'status',
+        validatorMethod: 'validateString'
+      }
+    ]
   }
 };
 

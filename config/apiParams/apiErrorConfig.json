@@ -558,5 +558,10 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Recovery requests for a client have exceeded the threshold limit."
+  },
+  "endpoint_already_present": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "The endpoint is already registered. Please use update API if need to change into it."
   }
 }
