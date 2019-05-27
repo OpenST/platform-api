@@ -18,8 +18,10 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupLogsConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   DeployGatewayHelper = require(rootPrefix + '/tools/chainSetup/mosaicInteracts/DeployGateway'),
-  GasPriceCache = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice');
+  GasPriceCache = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
 
 /**
  * Class for deploy gateway.
@@ -81,6 +83,8 @@ class DeployGateway {
     await oThis._initializeVars();
 
     await oThis._fetchOriginAddresses();
+
+    await oThis._fetchSimpleTokenContractAddress();
 
     await oThis._fetchAuxAddresses();
 
@@ -154,9 +158,34 @@ class DeployGateway {
 
     oThis.signerAddress = chainAddressesRsp.data[chainAddressConstants.originDeployerKind].address;
     oThis.organizationAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
-    oThis.simpleTokenContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
     oThis.messageBusLibAddress = chainAddressesRsp.data[chainAddressConstants.originMbLibContractKind].address;
     oThis.gatewayLibAddress = chainAddressesRsp.data[chainAddressConstants.originGatewayLibContractKind].address;
+  }
+
+  /**
+   * Fetch simple token contract address from stake currency by symbol cache.
+   *
+   * @returns {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
+  async _fetchSimpleTokenContractAddress() {
+    const oThis = this;
+
+    let stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [stakeCurrencyConstants.OST]
+    }).fetch();
+
+    if (stakeCurrencyDetails.isFailure()) {
+      logger.error('Error in fetch stake currency details');
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 't_cs_o_dg_4',
+          api_error_identifier: 'something_went_wrong'
+        })
+      );
+    }
+
+    oThis.simpleTokenContractAddress = stakeCurrencyDetails.data[stakeCurrencyConstants.OST].contractAddress;
   }
 
   /**

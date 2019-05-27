@@ -54,15 +54,20 @@ class CronBase {
       // If asyncPerform fails, run the below catch block.
       logger.error('Error in executables/CronBase.js: ', err);
 
-      const errorObject = responseHelper.error({
-        internal_error_identifier: 'unhandled_catch_response:e_cb_1',
-        api_error_identifier: 'unhandled_catch_response',
-        debug_options: {
-          cronProcessId: oThis.cronProcessId,
-          cronName: oThis._cronKind
-        }
-      });
+      let errorObject = err;
 
+      if (!responseHelper.isCustomResult(err)) {
+        errorObject = responseHelper.error({
+          internal_error_identifier: 'unhandled_catch_response:e_cb_1',
+          api_error_identifier: 'unhandled_catch_response',
+          debug_options: {
+            cronProcessId: oThis.cronProcessId,
+            cronName: oThis._cronKind
+          }
+        });
+      }
+
+      // Severity is same for all the cron errors. Check if there is a way specific to the error
       await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
 
       process.emit('SIGINT');

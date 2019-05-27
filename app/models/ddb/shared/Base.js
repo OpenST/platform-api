@@ -1,30 +1,30 @@
-'use strict';
 /**
- * Base class for shared models
+ * Module for base class for shared models.
  *
  * @module app/models/ddb/shared/Base
  */
+
 const rootPrefix = '../../../..',
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   BaseModel = require(rootPrefix + '/app/models/ddb/Base'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   storageConstants = require(rootPrefix + '/lib/globalConstant/storage');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/providers/storage');
 
 /**
- * Class for base class of shared models
+ * Class for base class of shared models.
  *
- * @constructor
+ * @class SharedBaseKlass
  */
 class SharedBaseKlass extends BaseModel {
   /**
-   * Constructor for Base class for shared models
+   * Constructor for base class of shared models.
+   *
+   * @param {object} params
+   * @param {number} params.consistentRead: (1,0)
    *
    * @augments BaseModel
-   *
-   * @param {Object} params
-   * @param {Number} params.consistentRead: (1,0)
    *
    * @constructor
    */

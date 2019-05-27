@@ -23,7 +23,7 @@ connection.connect(function(error) {
     return console.error('Error: ' + error.message);
   }
 
-  const createErrorLogs = `CREATE TABLE \`transaction_by_type_graph\` (
+  const createErrorLogs = `CREATE TABLE \`aux_transaction_by_type_graph\` (
   \`id\` bigint(20) NOT NULL AUTO_INCREMENT,
   \`chain_id\` int(11) NOT NULL,
   \`token_id\` int(11) NOT NULL,

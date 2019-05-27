@@ -10,14 +10,20 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   VerifiersHelper = require(rootPrefix + '/tools/verifiers/Helper'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  contractNameConstants = require(rootPrefix + '/lib/globalConstant/contractName'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress');
+  ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
+  StakeCurrencyModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
 
@@ -52,6 +58,7 @@ class AuxChainSetup {
     oThis.originWeb3Instance = null;
     oThis.auxWeb3Instance = null;
     oThis.verifiersHelper = null;
+    oThis.allStakeCurrencySymbols = [];
   }
 
   /**
@@ -67,6 +74,9 @@ class AuxChainSetup {
 
     logger.step('** Fetch origin chain addresses');
     await oThis._fetchOriginAddresses();
+
+    logger.step('** Fetch stake currency details');
+    await oThis._fetchStakeCurrencyDetails();
 
     logger.step('** Setting up web3 object for aux chain.');
     await oThis._setWeb3Obj();
@@ -93,10 +103,27 @@ class AuxChainSetup {
 
     await oThis._validateGatewayAndCoGateway();
 
+    logger.step('** Validating Price Oracle contracts.');
+
+    await oThis.validateAllPriceOracleContracts();
+
     logger.win('* Auxiliary Chain Setup Verification Done!!');
 
     process.exit(0);
     //return Promise.resolve();
+  }
+
+  /**
+   * This function validates price oracle of all stake currencies.
+   *
+   * @returns {Promise<Promise<never> | Promise<any>>}
+   */
+  async validateAllPriceOracleContracts() {
+    const oThis = this;
+
+    for (let i = 0; i < oThis.allStakeCurrencySymbols.length; i++) {
+      await oThis._validatePriceOracleContract(oThis.allStakeCurrencySymbols[i]);
+    }
   }
 
   /**
@@ -150,6 +177,18 @@ class AuxChainSetup {
       chainAddressesRsp.data[chainAddressConstants.stPrimeOrgContractWorkerKind];
     oThis.auxAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractWorkerKind];
+
+    oThis.auxOstToUsdPriceOracleContractKind =
+      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
+    oThis.auxUsdcToUsdPriceOracleContractKind =
+      chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind].address;
+
+    oThis.auxPriceOracleContractOwnerKind =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractOwnerKind].address;
+    oThis.auxPriceOracleContractAdminKind =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractAdminKind].address;
+    oThis.auxPriceOracleContractWorkerKind =
+      chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractWorkerKind][0].address;
   }
 
   /**
@@ -175,10 +214,40 @@ class AuxChainSetup {
       );
     }
 
-    oThis.stContractAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
     oThis.stOrgContractAddress = chainAddressesRsp.data[chainAddressConstants.stOrgContractKind].address;
     oThis.originAnchorOrgContractAddress =
       chainAddressesRsp.data[chainAddressConstants.originAnchorOrgContractKind].address;
+  }
+
+  /**
+   * Fetch details of all stake currencies.
+   *
+   * @returns {Promise<Promise<never> | Promise<any>>}
+   * @private
+   */
+  async _fetchStakeCurrencyDetails() {
+    const oThis = this;
+
+    let stakeCurrenciesDetails = await new StakeCurrencyModel()
+      .select('symbol')
+      .where({ status: stakeCurrencyConstants.invertedStatuses[stakeCurrencyConstants.setupInProgressStatus] })
+      .fire();
+
+    for (let i = 0; i < stakeCurrenciesDetails.length; i++) {
+      oThis.allStakeCurrencySymbols.push(stakeCurrenciesDetails[i].symbol);
+    }
+
+    const stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: oThis.allStakeCurrencySymbols
+    }).fetch();
+
+    if (stakeCurrencyDetails.isFailure()) {
+      logger.error('Error in fetch stake currency details');
+      return Promise.reject();
+    }
+
+    oThis.allStakeCurrencyDetails = stakeCurrencyDetails.data;
+    oThis.stContractAddress = oThis.allStakeCurrencyDetails[stakeCurrencyConstants.OST].contractAddress;
   }
 
   /**
@@ -639,6 +708,85 @@ class AuxChainSetup {
 
     if (dbCoGatewayOrganizationAddress.toLowerCase() !== chainCoGatewayOrganizationAddress.toLowerCase()) {
       logger.error('Verification check co-gateway state root provider failed.');
+      Promise.reject();
+    }
+  }
+
+  async _validatePriceOracleContract(baseCurrency) {
+    const oThis = this;
+
+    logger.info('** Base currency:', baseCurrency);
+    logger.log('* Fetching priceOracleContractAddress for', baseCurrency, ' from database.');
+
+    let allStakeCurrencyDetails = oThis.allStakeCurrencyDetails,
+      priceOracleContractAddress;
+
+    if (baseCurrency === stakeCurrencyConstants.OST) {
+      priceOracleContractAddress = oThis.auxOstToUsdPriceOracleContractKind;
+    } else if (baseCurrency === stakeCurrencyConstants.USDC) {
+      priceOracleContractAddress = oThis.auxUsdcToUsdPriceOracleContractKind;
+    }
+
+    let rsp = await oThis.verifiersHelper.validateContract(
+      priceOracleContractAddress,
+      contractNameConstants.PriceOracleContractName
+    );
+    if (!rsp) {
+      logger.error('Deployment verification of price oracle contract failed.');
+      return Promise.reject();
+    }
+
+    const verifierHelperObj = new VerifiersHelper(oThis.auxWeb3Instance);
+    let priceOracleContract = await verifierHelperObj.getContractObj(
+      contractNameConstants.PriceOracleContractName,
+      priceOracleContractAddress
+    );
+
+    logger.log('* Validating the contract admin address.');
+    let adminAddress = await priceOracleContract.methods.adminAddress().call({});
+
+    if (oThis.auxPriceOracleContractAdminKind.toLowerCase() !== adminAddress.toLowerCase()) {
+      logger.error('Verification check for admin address failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract owner address.');
+    let ownerAddress = await priceOracleContract.methods.owner().call({});
+
+    if (oThis.auxPriceOracleContractOwnerKind.toLowerCase() !== ownerAddress.toLowerCase()) {
+      logger.error('Verification check for owner address failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract worker address.');
+    let workerAddress = await priceOracleContract.methods.opsAddress().call({});
+
+    if (oThis.auxPriceOracleContractWorkerKind.toLowerCase() !== workerAddress.toLowerCase()) {
+      logger.error('Verification check for worker address failed.');
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract base currency.');
+    let baseCurrencyFromContractInHex = await priceOracleContract.methods.baseCurrency().call({});
+
+    let baseCurrencyCodeFromDb = allStakeCurrencyDetails[baseCurrency].constants.baseCurrencyCode;
+
+    let baseCurrencyFromContract = basicHelper.convertHexToString(baseCurrencyFromContractInHex.substr(2));
+
+    if (baseCurrencyCodeFromDb != baseCurrencyFromContract) {
+      logger.error('Verification check for base currency failed.');
+      logger.error(`====baseCurrencyCodeFromDb:--${baseCurrencyCodeFromDb}--`);
+      logger.error(`====baseCurrencyFromContract:--${baseCurrencyFromContract}--`);
+      Promise.reject();
+    }
+
+    logger.log('* Validating the contract quote currency.');
+    let quoteCurrencyHex = await priceOracleContract.methods.quoteCurrency().call({}),
+      quoteCurrencyFromContract = basicHelper.convertHexToString(quoteCurrencyHex.substr(2));
+
+    if (conversionRateConstants.USD !== quoteCurrencyFromContract) {
+      logger.error('Verification check for quote currency failed.');
+      logger.error(`====quoteCurrencyFromContract:--${quoteCurrencyFromContract}--`);
       Promise.reject();
     }
   }

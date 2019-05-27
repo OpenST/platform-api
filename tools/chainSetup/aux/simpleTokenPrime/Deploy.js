@@ -12,12 +12,14 @@ const rootPrefix = '../../../..',
   SetupSTPrimeBase = require(rootPrefix + '/tools/chainSetup/aux/simpleTokenPrime/Base'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   chainSetupConstants = require(rootPrefix + '/lib/globalConstant/chainSetupLogs'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol');
 
 /**
  *
@@ -114,11 +116,13 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
   async _fetchOriginAddresses() {
     const oThis = this;
 
-    // Fetch all addresses associated with origin chain id.
-    let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: 0 }),
-      chainAddressesRsp = await chainAddressCacheObj.fetch();
+    // Fetch simple token contract address
+    let stakeCurrencyDetails = await new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [stakeCurrencyConstants.OST]
+    }).fetch();
 
-    if (chainAddressesRsp.isFailure()) {
+    if (stakeCurrencyDetails.isFailure()) {
+      logger.error('Error in fetch stake currency details');
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 't_cs_a_stp_d_2',
@@ -127,7 +131,7 @@ class DeploySimpleTokenPrime extends SetupSTPrimeBase {
       );
     }
 
-    oThis.simpleTokenAddress = chainAddressesRsp.data[chainAddressConstants.stContractKind].address;
+    oThis.simpleTokenAddress = stakeCurrencyDetails.data[stakeCurrencyConstants.OST].contractAddress;
   }
 
   /**

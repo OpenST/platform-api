@@ -44,6 +44,11 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.getBaseTokens]: {
+    mandatory: [],
+    optional: []
+  },
+
   [apiName.createUser]: {
     mandatory: [
       {

@@ -55,6 +55,11 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
       },
       {
+        apiName: apiName.getBaseTokens,
+        route: '/base-tokens/',
+        supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]
+      },
+      {
         apiName: apiName.getRules,
         route: '/rules/',
         supportedSignatureKinds: [apiSignature.hmacKind, apiSignature.personalSignKind]

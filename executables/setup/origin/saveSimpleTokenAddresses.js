@@ -13,28 +13,23 @@ const rootPrefix = '../../..',
 program
   .option('--admin <admin>', 'admin address')
   .option('--owner <owner>', 'owner address')
-  .option('--stContractAddress <stContractAddress>', 'simple token contract address')
   .parse(process.argv);
 
 program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log(
-    '    node executables/setup/origin/saveSimpleTokenAddresses.js --owner 0xabc --admin 0xabc --stContractAddress 0xabc'
-  );
+  logger.log('    node executables/setup/origin/saveSimpleTokenAddresses.js --owner 0xabc --admin 0xabc');
   logger.log('');
   logger.log('');
 });
 
-if (!program.admin || !program.owner || !program.stContractAddress) {
+if (!program.admin || !program.owner) {
   program.help();
   process.exit(1);
 }
 
-new SaveSimpleTokenAddresses(program.owner, program.admin, program.stContractAddress)
-  .perform()
-  .then(function(response) {
-    logger.log(`Response: ${response}`);
-    process.exit(0);
-  });
+new SaveSimpleTokenAddresses(program.owner, program.admin).perform().then(function(response) {
+  logger.log(`Response: ${response}`);
+  process.exit(0);
+});

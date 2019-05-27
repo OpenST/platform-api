@@ -1,42 +1,47 @@
-'use strict';
 /**
- * This service gets the details of the economy from economy model
+ * This service gets the details of the economy from economy model.
  *
  * @module app/services/token/Detail
  */
+
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
+  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
-  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
  * Class for token details.
  *
- * @class
+ * @class TokenDetail
  */
 class TokenDetail extends ServiceBase {
   /**
+   * Constructor for token details.
    *
-   * @param {Object} params
+   * @param {object} params
+   * @param {number} params.client_id
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -47,11 +52,12 @@ class TokenDetail extends ServiceBase {
     oThis.tokenAddresses = null;
     oThis.economyContractAddress = null;
     oThis.economyDetails = null;
+    oThis.stakeCurrencySymbol = null;
     oThis.companyTokenHolderAddresses = [];
   }
 
   /**
-   * Async perform
+   * Async perform.
    *
    * @return {Promise<any>}
    */
@@ -60,11 +66,14 @@ class TokenDetail extends ServiceBase {
 
     await oThis._fetchTokenDetails();
 
+    await oThis._fetchStakeCurrencySymbol();
+
     await oThis._setChainIds();
 
-    oThis.token['originChainId'] = oThis.originChainId;
-    oThis.token['auxChainId'] = oThis.auxChainId;
-    oThis.token['decimals'] = oThis.token.decimal;
+    oThis.token.originChainId = oThis.originChainId;
+    oThis.token.auxChainId = oThis.auxChainId;
+    oThis.token.decimals = oThis.token.decimal;
+    oThis.token.baseToken = oThis.stakeCurrencySymbol;
 
     await oThis._fetchTokenAddresses();
 
@@ -81,8 +90,36 @@ class TokenDetail extends ServiceBase {
   }
 
   /**
+   * This function fetches stake currency symbol.
    *
-   * Set chain ids
+   * @sets oThis.stakeCurrencySymbol
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _fetchStakeCurrencySymbol() {
+    const oThis = this;
+
+    const stakeCurrencyId = oThis.token.stakeCurrencyId,
+      stakeCurrencyDetails = await new StakeCurrencyById({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
+
+    if (stakeCurrencyDetails.isFailure() || !stakeCurrencyDetails.data) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_d_5',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
+    oThis.stakeCurrencySymbol = stakeCurrencyDetails.data[stakeCurrencyId].symbol;
+  }
+
+  /**
+   * Set chain ids.
+   *
+   * @sets oThis.originChainId, oThis.auxChainId
    *
    * @private
    */
@@ -90,12 +127,14 @@ class TokenDetail extends ServiceBase {
     const oThis = this,
       configStrategy = oThis.ic().configStrategy;
 
-    oThis.originChainId = configStrategy[configStrategyConstants.originGeth]['chainId'];
-    oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth]['chainId'];
+    oThis.originChainId = configStrategy[configStrategyConstants.originGeth].chainId;
+    oThis.auxChainId = configStrategy[configStrategyConstants.auxGeth].chainId;
   }
 
   /**
-   * Fetch Token Addresses for token id
+   * Fetch token addresses for token id.
+   *
+   * @sets oThis.tokenAddresses, oThis.economyContractAddress
    *
    * @return {Promise<never>}
    * @private
@@ -103,12 +142,13 @@ class TokenDetail extends ServiceBase {
   async _fetchTokenAddresses() {
     const oThis = this;
 
-    let cacheResponse = await new TokenAddressCache({
+    const cacheResponse = await new TokenAddressCache({
       tokenId: oThis.tokenId
     }).fetch();
 
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched token address details.');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_t_d_3',
@@ -127,6 +167,7 @@ class TokenDetail extends ServiceBase {
 
     if (!oThis.economyContractAddress) {
       oThis.economyDetails = {};
+
       return Promise.resolve();
     }
 
@@ -138,22 +179,26 @@ class TokenDetail extends ServiceBase {
   /**
    * Get economy details for given token id.
    *
-   * @return {Promise<*|result>}
+   * @sets oThis.economyDetails
+   *
+   * @returns {Promise<Promise<never>|undefined>}
+   * @private
    */
   async _getEconomyDetailsFromDdb() {
     const oThis = this;
 
-    let blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]),
+    const blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]),
       EconomyCache = blockScannerObj.cache.Economy,
       economyCache = new EconomyCache({
         chainId: oThis.auxChainId,
         economyContractAddresses: [oThis.economyContractAddress]
       });
 
-    let cacheResponse = await economyCache.fetch();
+    const cacheResponse = await economyCache.fetch();
 
     if (cacheResponse.isFailure()) {
       logger.error('Could not fetched economy details from DDB.');
+
       return Promise.reject(cacheResponse);
     }
 
@@ -171,6 +216,7 @@ class TokenDetail extends ServiceBase {
   }
 
   /**
+   * Set company token holder address.
    *
    * @return {Promise<void>}
    * @private
@@ -178,27 +224,27 @@ class TokenDetail extends ServiceBase {
   async _setCompanyTokenHolderAddress() {
     const oThis = this;
 
-    let tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
+    const tokenCompanyUserCacheRsp = await new TokenCompanyUserCache({ tokenId: oThis.tokenId }).fetch();
 
     if (
       tokenCompanyUserCacheRsp.isFailure() ||
       !tokenCompanyUserCacheRsp.data ||
-      !tokenCompanyUserCacheRsp.data['userUuids']
+      !tokenCompanyUserCacheRsp.data.userUuids
     ) {
       return Promise.resolve();
     }
 
-    let TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+    const TokenUSerDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUSerDetailsCache({
         tokenId: oThis.tokenId,
-        userIds: tokenCompanyUserCacheRsp.data['userUuids']
+        userIds: tokenCompanyUserCacheRsp.data.userUuids
       }),
       cacheFetchRsp = await tokenUserDetailsCacheObj.fetch();
 
-    let usersData = cacheFetchRsp.data;
+    const usersData = cacheFetchRsp.data;
 
-    for (let uuid in usersData) {
-      let userData = usersData[uuid];
+    for (const uuid in usersData) {
+      const userData = usersData[uuid];
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
     }
   }

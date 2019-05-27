@@ -9,16 +9,19 @@ const OpenSTOracle = require('@ostdotcom/ost-price-oracle'),
 
 const rootPrefix = '../../..',
   ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
 
 /**
  * Class to deploy price oracle contract.
@@ -30,11 +33,9 @@ class DeployPriceOracle {
    * Constructor to deploy price oracle contract.
    *
    * @param {object} params
-   * @param {string/number} params.auxChainId: auxChainId for which origin-gateway needs be deployed.
-   * @param {string} params.baseCurrency: base currency for price oracle contract.
-   * @param {string} params.quoteCurrency: quote currency for price oracle contract.
-   * @param {string} params.gasPrice: gas price for price oracle contract.
-   * @param {string} params.contractAddressKind: contract address kind for price oracle contract.
+   * @param {string/number} params.auxChainId - auxChainId for which price oracle needs be deployed.
+   * @param {string} params.baseCurrencySymbol - base currency symbol.
+   * @param {string} params.gasPrice - gas price used for deployment.
    *
    * @constructor
    */
@@ -42,17 +43,17 @@ class DeployPriceOracle {
     const oThis = this;
 
     oThis.auxChainId = params.auxChainId;
-    oThis.baseCurrency = params.baseCurrency;
-    oThis.quoteCurrency = params.quoteCurrency;
-    oThis.contractAddressKind = params.contractAddressKind;
+    oThis.baseCurrencySymbol = params.baseCurrencySymbol;
     oThis.gasPrice = params.gasPrice || contractConstants.zeroGasPrice;
 
+    oThis.quoteCurrency = conversionRateConstants.USD;
     oThis.ownerAddress = '';
     oThis.adminAddress = '';
     oThis.workerAddress = '';
     oThis.wsProvider = '';
     oThis.web3Instance = {};
     oThis.contractAddress = '';
+    oThis.baseCurrencyDetails = null;
   }
 
   /**
@@ -63,7 +64,9 @@ class DeployPriceOracle {
   async perform() {
     const oThis = this;
 
-    oThis.validateParams();
+    oThis._validateParams();
+
+    await oThis._fetchBaseCurrencyDetails();
 
     await oThis._fetchAddresses();
 
@@ -79,15 +82,36 @@ class DeployPriceOracle {
   }
 
   /**
-   * Validate input parameters.
+   * Validate params
+   *
+   * @private
    */
-  validateParams() {
+  _validateParams() {
     const oThis = this;
-    if (!oThis.auxChainId || !oThis.baseCurrency || !oThis.quoteCurrency || !oThis.contractAddressKind) {
-      throw new Error(
-        'Incorrect parameters. Please check baseCurrency(OST, USDC), quoteCurrency(USD), auxChainId and contract address kind are valid'
-      );
+    if (!oThis.auxChainId) {
+      throw new Error('Aux chain id is mandatory in the parameters.');
     }
+
+    if (!oThis.baseCurrencySymbol || oThis.baseCurrencySymbol.toUpperCase() != oThis.baseCurrencySymbol) {
+      throw new Error('Base currency symbol is mandatory and should be in upper case.');
+    }
+  }
+
+  /**
+   * Fetch base currency details
+   *
+   * @private
+   */
+  async _fetchBaseCurrencyDetails() {
+    const oThis = this;
+
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [oThis.baseCurrencySymbol]
+    });
+
+    let response = await stakeCurrencyBySymbolCache.fetch();
+
+    oThis.baseCurrencyDetails = response.data[oThis.baseCurrencySymbol];
   }
 
   /**
@@ -153,9 +177,9 @@ class DeployPriceOracle {
     const oThis = this;
 
     logger.step(
-      `* Deploying Price Oracle contract for base currency: "${oThis.baseCurrency}" to quote currency "${
-        oThis.quoteCurrency
-      }".`
+      `* Deploying Price Oracle contract for base currency: "${
+        oThis.baseCurrencyDetails.constants.baseCurrencyCode
+      }" to quote currency "${oThis.quoteCurrency}".`
     );
 
     // Prepare txOptions.
@@ -171,7 +195,7 @@ class DeployPriceOracle {
     const txObject = deployAndSetOpsAndAdminHelper.deployRawTx(
       oThis.web3Instance,
       oThis.ownerAddress,
-      oThis.baseCurrency,
+      oThis.baseCurrencyDetails.constants.baseCurrencyCode,
       oThis.quoteCurrency,
       txOptions
     );
@@ -201,9 +225,9 @@ class DeployPriceOracle {
     logger.win('\t Contract Address: ', oThis.contractAddress);
 
     logger.step(
-      `Price oracle contract for base currency:"${oThis.baseCurrency}" to quote currency "${
-        oThis.quoteCurrency
-      }" deployed.`
+      `Price oracle contract for base currency:"${
+        oThis.baseCurrencyDetails.constants.baseCurrencyCode
+      }" to quote currency "${oThis.quoteCurrency}" deployed.`
     );
   }
 
@@ -321,11 +345,21 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
+    let contractAddressKind;
+
+    if (oThis.baseCurrencySymbol === stakeCurrencyConstants.OST) {
+      contractAddressKind = chainAddressConstants.auxOstToUsdPriceOracleContractKind;
+    } else if (oThis.baseCurrencySymbol === stakeCurrencyConstants.USDC) {
+      contractAddressKind = chainAddressConstants.auxUsdcToUsdPriceOracleContractKind;
+    } else {
+      throw new Error(`Invalid baseCurrency ${oThis.baseCurrencySymbol}`);
+    }
+
     // Insert priceOracleContractAddress in chainAddresses table.
     await new ChainAddressModel().insertAddress({
       address: oThis.contractAddress.toLowerCase(),
       associatedAuxChainId: oThis.auxChainId,
-      addressKind: oThis.contractAddressKind,
+      addressKind: contractAddressKind,
       deployedChainId: oThis.auxChainId,
       deployedChainKind: coreConstants.auxChainKind,
       status: chainAddressConstants.activeStatus

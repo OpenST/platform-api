@@ -8,7 +8,7 @@ const rootPrefix = '../../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   TokenByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
-  StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
+  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
@@ -52,7 +52,7 @@ class PricePointsGet extends ServiceBase {
 
     await oThis._validateParams();
 
-    await oThis._fetchStakeCurrencySymbol();
+    await oThis._fetchStakeCurrencyId();
 
     return oThis._fetchPricePointsData();
   }
@@ -110,12 +110,12 @@ class PricePointsGet extends ServiceBase {
   }
 
   /**
-   * This function fetches stake currency symbol.
+   * This function fetches stake currency id
    *
    * @returns {Promise<never>}
    * @private
    */
-  async _fetchStakeCurrencySymbol() {
+  async _fetchStakeCurrencyId() {
     const oThis = this;
 
     if (!oThis.clientId) {
@@ -124,20 +124,7 @@ class PricePointsGet extends ServiceBase {
 
     await oThis._fetchTokenDetails();
 
-    let stakeCurrencyId = oThis.token.stakeCurrencyId,
-      stakeCurrencyDetails = await new StakeCurrencyById({ stakeCurrencyIds: [stakeCurrencyId] }).fetch();
-
-    if (stakeCurrencyDetails.isFailure() || !stakeCurrencyDetails.data) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_c_pp_4',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-
-    oThis.stakeCurrencySymbol = stakeCurrencyDetails.data[stakeCurrencyId].symbol;
+    oThis.stakeCurrencyId = oThis.token.stakeCurrencyId;
   }
 
   /**
@@ -192,9 +179,15 @@ class PricePointsGet extends ServiceBase {
 
     logger.debug('Price points data: ', pricePointData);
 
+    let stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
+      stakeCurrencyIds: [oThis.stakeCurrencyId]
+    }).fetch();
+
+    let stakeCurrencySymbol = stakeCurrencyCacheResponse.data[oThis.stakeCurrencyId].symbol;
+
     let responseData = {};
 
-    responseData[oThis.stakeCurrencySymbol] = pricePointData[oThis.stakeCurrencySymbol];
+    responseData[stakeCurrencySymbol] = pricePointData[oThis.stakeCurrencyId];
     responseData['decimals'] = contractConstants.requiredPriceOracleDecimals;
 
     return responseHelper.successWithData(responseData);

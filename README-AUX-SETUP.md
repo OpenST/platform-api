@@ -62,7 +62,7 @@
 
 * Add sealer address.  
   NOTE: Use MyEtherWallet to export private key from keystore file. 
-  Visit the following link [MyEtherWallet](https://www.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
+  Visit the following link [MyEtherWallet](https://vintage.myetherwallet.com/#view-wallet-info) and select the `Keystore / JSON File` option. 
   Upload the keystore file from `~/openst-setup/geth/aux-2000/keystore` folder. The unlock password is 
   `testtest`. Pass the address and privateKey (including 0x) in the command below.
 
@@ -85,6 +85,19 @@ And add it to tables using following script.
     node tools/verifiers/auxChainSetup.js --auxChainId 2000
 ```
 
+* Mark simple token as active in stake currencies
+```bash
+   source set_env_vars.sh
+   node executables/setup/origin/activateStakeCurrency.js --stakeCurrencySymbol "OST"
+```
+
+* Mark USDC as active in stake currencies
+```bash
+   source set_env_vars.sh
+   node executables/setup/origin/activateStakeCurrency.js --stakeCurrencySymbol "USDC"
+```
+
+
 * [Only Development] Seed the cron processes which are associated to the aux chain using this script.
 ```bash
     source set_env_vars.sh
@@ -96,31 +109,31 @@ And add it to tables using following script.
 * Run Aggregator. This is done only to initialize the queue.
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/aggregator.js --cronProcessId 11
+    node executables/blockScanner/aggregator.js --cronProcessId 12
 ```
 
 * Run Auxiliary Transaction Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/balanceSettler.js --cronProcessId 23
+    node executables/blockScanner/balanceSettler.js --cronProcessId 24
 ```
 
 * Run Auxiliary Transaction Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/transactionParser.js --cronProcessId 9
+    node executables/blockScanner/transactionParser.js --cronProcessId 10
 ```
 
 * Run Auxiliary Block Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/blockParser.js --cronProcessId 8
+    node executables/blockScanner/blockParser.js --cronProcessId 9
 ```
 
 * Run Auxiliary Block Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/finalizer.js --cronProcessId 10
+    node executables/blockScanner/finalizer.js --cronProcessId 11
 ```
 
 
@@ -142,14 +155,14 @@ And add it to tables using following script.
                 chainId: 3,
                 topic: 'workflow.stPrimeStakeAndMint',
                 requestParams: {
-                    stakerAddress: '0xf5f8f91830fba42229478838e73ef35d3b98e0da', 
+                    stakerAddress: '0xb3bb6be32abfad59b647d5a40301084db2043f90', 
                     originChainId: 3, 
                     auxChainId: 2000, 
                     sourceChainId: 3,
                     destinationChainId: 2000,
-                    facilitator: '0xf5f8f91830fba42229478838e73ef35d3b98e0da', 
+                    facilitator: '0xb3bb6be32abfad59b647d5a40301084db2043f90', 
                     amountToStake: '1000000000000000000000000', 
-                    beneficiary: '0xf5f8f91830fba42229478838e73ef35d3b98e0da',
+                    beneficiary: '0xb3bb6be32abfad59b647d5a40301084db2043f90',
                     firstTimeMint: true //[optional]
                 }
         }
@@ -179,7 +192,7 @@ And add it to tables using following script.
 ## Run Aggregator
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/aggregator.js --cronProcessId 11
+  node executables/blockScanner/aggregator.js --cronProcessId 12
 ```
 
 ### Funding crons
@@ -187,7 +200,7 @@ And add it to tables using following script.
 * Fund by sealer aux chain specific
 ```bash
     source set_env_vars.sh
-    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 13
+    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 14
 ```
 
 * Fund by master internal funder aux chain specific chain addresses
@@ -218,12 +231,12 @@ And add it to tables using following script.
 * Start Aux Workflow router factory
 ```bash
     source set_env_vars.sh
-    node executables/auxWorkflowFactory.js --cronProcessId 21
+    node executables/auxWorkflowFactory.js --cronProcessId 22
 ```
 * Start execute transaction cron process
 ```bash
     source set_env_vars.sh
-    node executables/executeTransaction.js --cronProcessId 19
+    node executables/executeTransaction.js --cronProcessId 20
 ```
 
 ### Start state root sync cron

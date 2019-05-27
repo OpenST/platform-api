@@ -30,7 +30,6 @@ class InitializeUsdcToken extends SetupUsdcTokenBase {
    * @param {string} params.signerKey: private key of signerAddress
    * @param {string} params.usdcContractAddress: USDC token contract address
    * @param {string} params.usdcTokenOwnerAddress: USDC token owner address
-   * @param {string} params.contractName: USDC token contract name
    * @param {string} params.contractSymbol: USDC token contract symbol
    * @param {string} params.contractCurrency: USDC token contract fiat currency
    * @param {string} params.contractDecimals: USDC token contract decimals
@@ -47,8 +46,9 @@ class InitializeUsdcToken extends SetupUsdcTokenBase {
     oThis.usdcContractAddress = params.usdcContractAddress;
     oThis.usdcTokenOwnerAddress = params.usdcTokenOwnerAddress;
 
+    oThis.contractName = 'USD//C';
+
     // Contract initialization specific parameters.
-    oThis.contractName = params.contractName;
     oThis.contractSymbol = params.contractSymbol;
     oThis.contractCurrency = params.contractCurrency;
     oThis.contractDecimals = params.contractDecimals;

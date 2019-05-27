@@ -13,7 +13,6 @@ const rootPrefix = '../../..',
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
-  StakeCurrencyByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   GetUbtBalance = require(rootPrefix + '/lib/getBalance/Ubt'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -57,7 +56,6 @@ class GetTokenDashboardDetail extends ServiceBase {
     oThis.tokenHoldersBalanceBn = 0;
     oThis.totalTokenHolders = 0;
 
-    oThis.stableCurrencyDetails = null;
     oThis.stakeCurrencyIsHowManyUSD = null;
     oThis.companyTokenHolderAddresses = [];
     oThis.auxChainId = null;
@@ -75,8 +73,6 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     await oThis._fetchTokenDetails();
 
-    await oThis._fetchStableCurrencyDetails();
-
     await oThis._setAuxChainId();
 
     await oThis._fetchTokenAddresses();
@@ -92,28 +88,6 @@ class GetTokenDashboardDetail extends ServiceBase {
     await oThis._getTokenHoldersBalance();
 
     return oThis.prepareResponse();
-  }
-
-  /**
-   * Fetch stable currency data.
-   *
-   * @sets oThis.stableCurrencyDetails
-   *
-   * @return {Promise<any>}
-   * @private
-   */
-  async _fetchStableCurrencyDetails() {
-    const oThis = this;
-
-    const stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
-      stakeCurrencyIds: [oThis.token.stakeCurrencyId]
-    }).fetch();
-
-    if (stakeCurrencyCacheResponse.isFailure()) {
-      return Promise.reject(stakeCurrencyCacheResponse);
-    }
-
-    oThis.stableCurrencyDetails = stakeCurrencyCacheResponse.data[oThis.token.stakeCurrencyId];
   }
 
   /**
@@ -193,10 +167,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     // NOTE: Here totalVolume is converted into wei first, because basicHelper.toPrecision needs wei value.
     oThis.totalSupplyInWei = economyDetails.totalSupply;
-    oThis.totalVolumeInWei = basicHelper.convertToLowerUnit(
-      economyDetails.totalVolume,
-      oThis.stableCurrencyDetails.decimal
-    );
+    oThis.totalVolumeInWei = basicHelper.convertToLowerUnit(economyDetails.totalVolume, oThis.token.decimal);
     oThis.economyUsers = economyDetails.totalTokenHolders; // Total economy users
   }
 
@@ -281,7 +252,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     }
 
     oThis.stakeCurrencyIsHowManyUSD =
-      pricePointsResponse.data[oThis.stableCurrencyDetails.symbol][conversionRatesConstants.USD];
+      pricePointsResponse.data[oThis.token.stakeCurrencyId][conversionRatesConstants.USD];
   }
 
   /**
@@ -292,12 +263,12 @@ class GetTokenDashboardDetail extends ServiceBase {
   prepareResponse() {
     const oThis = this;
 
-    const totalSupply = basicHelper.toNormalPrecisionBT(oThis.totalSupplyInWei, oThis.stableCurrencyDetails.decimal),
+    const totalSupply = basicHelper.toNormalPrecisionBT(oThis.totalSupplyInWei, oThis.token.decimal),
       totalSupplyDollar = oThis.getBtToDollar(oThis.totalSupplyInWei),
-      totalVolume = basicHelper.toNormalPrecisionBT(oThis.totalVolumeInWei, oThis.stableCurrencyDetails.decimal),
+      totalVolume = basicHelper.toNormalPrecisionBT(oThis.totalVolumeInWei, oThis.token.decimal),
       totalVolumeDollar = oThis.getStakeCurrencyToDollar(oThis.totalVolumeInWei),
       circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalanceBn),
-      circulatingSupply = basicHelper.toNormalPrecisionBT(circulatingSupplyInWei, oThis.stableCurrencyDetails.decimal),
+      circulatingSupply = basicHelper.toNormalPrecisionBT(circulatingSupplyInWei, oThis.token.decimal),
       circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei),
       economyUsers = oThis.economyUsers;
 
@@ -342,7 +313,7 @@ class GetTokenDashboardDetail extends ServiceBase {
 
     const inUSD = new BigNumber(amountInWei).mul(new BigNumber(oThis.stakeCurrencyIsHowManyUSD));
 
-    return basicHelper.toNormalPrecisionFiat(inUSD, oThis.stableCurrencyDetails.decimal);
+    return basicHelper.toNormalPrecisionFiat(inUSD, oThis.token.decimal);
   }
 }
 
