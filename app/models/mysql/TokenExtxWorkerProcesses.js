@@ -1,9 +1,9 @@
-'use strict';
 /**
- * This is model for workflow_setup table.
+ * Model for token extx worker processes table.
  *
  * @module app/models/mysql/TokenExtxWorkerProcesses
  */
+
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
@@ -12,13 +12,15 @@ const rootPrefix = '../../..',
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
- * Class for token address model
+ * Class for token address model.
  *
- * @class
+ * @class TokenExtxWorkerProcesses
  */
 class TokenExtxWorkerProcesses extends ModelBase {
   /**
-   * Constructor for token address model
+   * Constructor for token address model.
+   *
+   * @augments ModelBase
    *
    * @constructor
    */
