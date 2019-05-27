@@ -61,45 +61,12 @@ class BasicHelper {
    * Convert wei value to un wei (normal).
    *
    * @param {string} wei
-   *
-   * @return {string}
-   */
-  toPrecisionOst(wei) {
-    return this.toPrecision(wei, 5);
-  }
-
-  /**
-   * Convert wei value to un wei (normal).
-   *
-   * @param {string} wei
-   *
-   * @return {string}
-   */
-  toPrecisionBT(wei) {
-    return this.toPrecision(wei, 5);
-  }
-
-  /**
-   * Convert wei value to un wei (normal).
-   *
-   * @param {string} wei
    * @param {number} decimals
    *
    * @return {string}
    */
   toNormalPrecisionBT(wei, decimals) {
     return this.toNormalPrecision(wei, 5, decimals);
-  }
-
-  /**
-   * Convert wei value to un wei (normal).
-   *
-   * @param {string} wei
-   *
-   * @return {string}
-   */
-  toPrecisionFiat(wei) {
-    return this.toPrecision(wei, 2);
   }
 
   /**
