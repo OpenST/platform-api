@@ -5,12 +5,12 @@
  */
 
 const rootPrefix = '../../..',
-  kms = require(rootPrefix + '/lib/globalConstant/kms'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   InMemoryCacheProvider = require(rootPrefix + '/lib/providers/inMemoryCache'),
   EncryptionSaltModel = require(rootPrefix + '/app/models/mysql/EncryptionSalt'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  kms = require(rootPrefix + '/lib/globalConstant/kms'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -461,16 +461,18 @@ class ConfigStrategyModel extends ModelBase {
       hashNotToEncrypt[strategyKindName].autoScaling.apiSecret = '{{dynamoAutoscalingApiSecret}}';
       hashToEncrypt.dynamoAutoscalingApiSecret = dynamoAutoscalingApiSecret;
       encryptedKeysFound = true;
-    } else if (strategyKindName == configStrategyConstants.elasticSearch) {
+    } else if (strategyKindName === configStrategyConstants.elasticSearch) {
       const esSecretKey = hashNotToEncrypt[strategyKindName].apiSecret;
 
       hashNotToEncrypt[strategyKindName].apiSecret = '{{apiSecret}}';
       hashToEncrypt.esSecretKey = esSecretKey;
       encryptedKeysFound = true;
     } else if (
-      strategyKindName == configStrategyConstants.rabbitmq ||
-      strategyKindName == configStrategyConstants.globalRabbitmq ||
-      strategyKindName == configStrategyConstants.originRabbitmq
+      strategyKindName === configStrategyConstants.rabbitmq ||
+      strategyKindName === configStrategyConstants.globalRabbitmq ||
+      strategyKindName === configStrategyConstants.originRabbitmq ||
+      strategyKindName === configStrategyConstants.webhooksPreProcessorRabbitmq ||
+      strategyKindName === configStrategyConstants.webhooksProcessorRabbitmq
     ) {
       const rmqPassword = hashNotToEncrypt[strategyKindName].password;
 
