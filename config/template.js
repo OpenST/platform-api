@@ -1,29 +1,35 @@
-'use strict';
+/**
+ * Module fot config strategy template.
+ *
+ * @module config/template
+ */
 
 const rootPrefix = '..',
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-let configTemplate = { entitiesMap: {}, rootLevelEntities: {} };
+const configTemplate = { entitiesMap: {}, rootLevelEntities: {} };
 
-configTemplate['rootLevelEntities'][configStrategyConstants.memcached] = 'memcachedEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.originMemcached] = 'memcachedEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.globalMemcached] = 'memcachedEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.globalNonceMemcached] = 'memcachedEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.inMemoryCache] = 'inMemoryCacheEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.dynamodb] = 'dynamodbEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.originDynamodb] = 'dynamodbEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.globalDynamodb] = 'dynamodbEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.originGeth] = 'originGethEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.auxGeth] = 'auxGethEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.originConstants] = 'originConstantsEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.auxConstants] = 'auxConstantsEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.elasticSearch] = 'elasticSearchEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.rabbitmq] = 'rabbitmqEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.globalRabbitmq] = 'globalRabbitmqEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.originRabbitmq] = 'originRabbitmqEntity';
-configTemplate['rootLevelEntities'][configStrategyConstants.constants] = 'constantsEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.memcached] = 'memcachedEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.originMemcached] = 'memcachedEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.globalMemcached] = 'memcachedEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.globalNonceMemcached] = 'memcachedEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.inMemoryCache] = 'inMemoryCacheEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.dynamodb] = 'dynamodbEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.originDynamodb] = 'dynamodbEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.globalDynamodb] = 'dynamodbEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.originGeth] = 'originGethEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.auxGeth] = 'auxGethEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.originConstants] = 'originConstantsEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.auxConstants] = 'auxConstantsEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.elasticSearch] = 'elasticSearchEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.rabbitmq] = 'rabbitmqEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.webhooksPreProcessorRabbitmq] = 'rabbitmqEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.webhooksProcessorRabbitmq] = 'rabbitmqEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.globalRabbitmq] = 'rabbitmqEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.originRabbitmq] = 'rabbitmqEntity';
+configTemplate.rootLevelEntities[configStrategyConstants.constants] = 'constantsEntity';
 
-configTemplate['entitiesMap'] = {
+configTemplate.entitiesMap = {
   memcachedEntity: {
     entityType: 'object',
     entitiesPresent: {
@@ -38,7 +44,7 @@ configTemplate['entitiesMap'] = {
   },
   serversEntity: {
     entityType: 'array',
-    entitiesPresent: 'serverEntity' //For an array entity this array will contain entity types which that array will hold
+    entitiesPresent: 'serverEntity' // For an array entity this array will contain entity types which that array will hold
   },
   serverEntity: {
     entityType: 'string'
@@ -204,29 +210,7 @@ configTemplate['entitiesMap'] = {
     entityType: 'string'
   },
 
-  globalRabbitmqEntity: {
-    entityType: 'object',
-    entitiesPresent: {
-      username: 'usernameEntity',
-      password: 'passwordEntity',
-      host: 'hostEntity',
-      port: 'portEntity',
-      heartbeats: 'heartbeatsEntity',
-      clusterNodes: 'clusterNodesEntity'
-    }
-  },
   rabbitmqEntity: {
-    entityType: 'object',
-    entitiesPresent: {
-      username: 'usernameEntity',
-      password: 'passwordEntity',
-      host: 'hostEntity',
-      port: 'portEntity',
-      heartbeats: 'heartbeatsEntity',
-      clusterNodes: 'clusterNodesEntity'
-    }
-  },
-  originRabbitmqEntity: {
     entityType: 'object',
     entitiesPresent: {
       username: 'usernameEntity',

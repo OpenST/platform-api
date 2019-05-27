@@ -1,5 +1,3 @@
-'use strict';
-
 /**
  * This script provides config strategy on the basis of client id.
  * This provides functionality to
@@ -7,23 +5,34 @@
  * 2. Get Config Strategy Hash for given kind - getForKind()
  * 3. Get Config Strategy Ids for given kind - getStrategyIdForKind()
  *
- * @type {String}
+ * @module helpers/configStrategy/ByClientId
  */
+
 const rootPrefix = '../..',
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  ConfigStrategyModel = require(rootPrefix + '/app/models/mysql/ConfigStrategy'),
+  ConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/ConfigStrategy'),
   ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
   ChainConfigStrategyIds = require(rootPrefix + '/lib/cacheManagement/shared/ChainConfigStrategyId'),
-  ConfigStrategyCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/ConfigStrategy'),
-  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  configStrategyValidator = require(rootPrefix + '/lib/validators/configStrategy');
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 const errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
+/**
+ * Class to fetch config strategy by client Id.
+ *
+ * @class ConfigStrategyByClientId
+ */
 class ConfigStrategyByClientId {
+  /**
+   * Constructor to fetch config strategy by client Id.
+   *
+   * @param {number} clientId
+   *
+   * @constructor
+   */
   constructor(clientId) {
     const oThis = this;
 
@@ -38,7 +47,7 @@ class ConfigStrategyByClientId {
   async get() {
     const oThis = this;
 
-    let clientId = oThis.clientId;
+    const clientId = oThis.clientId;
 
     if (clientId === undefined) {
       return oThis._customError(
@@ -47,20 +56,20 @@ class ConfigStrategyByClientId {
       );
     }
 
-    let clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
+    const clientConfigStrategyCacheObj = new ClientConfigGroupCache({ clientId: clientId }),
       fetchCacheRsp = await clientConfigStrategyCacheObj.fetch();
 
     if (fetchCacheRsp.isFailure()) {
       return Promise.reject(fetchCacheRsp);
     }
 
-    let cacheData = fetchCacheRsp.data[clientId],
+    const cacheData = fetchCacheRsp.data[clientId],
       cachedChainId = cacheData.chainId;
 
-    let chainConfigStrategyIdsObj = new ChainConfigStrategyIds({ chainId: cachedChainId }),
+    const chainConfigStrategyIdsObj = new ChainConfigStrategyIds({ chainId: cachedChainId }),
       chainConfigStrategyIdsCacheRsp = await chainConfigStrategyIdsObj.fetch();
 
-    let strategyIdsArray = chainConfigStrategyIdsCacheRsp.data.strategyIds,
+    const strategyIdsArray = chainConfigStrategyIdsCacheRsp.data.strategyIds,
       configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdsArray }),
       configStrategyFetchRsp = await configStrategyCacheObj.fetch();
 
@@ -68,92 +77,14 @@ class ConfigStrategyByClientId {
       return Promise.reject(configStrategyFetchRsp);
     }
 
-    let finalConfigHash = {},
+    const finalConfigHash = {},
       configStrategyIdToDetailMap = configStrategyFetchRsp.data;
 
-    for (let configStrategyId in configStrategyIdToDetailMap) {
+    for (const configStrategyId in configStrategyIdToDetailMap) {
       Object.assign(finalConfigHash, configStrategyIdToDetailMap[configStrategyId]);
     }
 
     return Promise.resolve(responseHelper.successWithData(finalConfigHash));
-  }
-
-  /**
-   *
-   * This function will return config strategy hash for the kind passed as an argument.
-   * @param {String} kind - kind should be provided as a string. (Eg. dynamo or dax etc)
-   * @returns {Promise<*>}
-   */
-  async getForKind(kind) {
-    const oThis = this,
-      clientId = oThis.clientId;
-
-    if (clientId === undefined) {
-      return oThis._customError(
-        'h_cs_bci_2',
-        'client Id is not defined. To get complete hash client id is compulsory.'
-      );
-    }
-
-    let clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
-      strategyIdsFetchRsp = await clientConfigStrategyCacheObj.fetch();
-
-    if (strategyIdsFetchRsp.isFailure()) {
-      return Promise.reject(strategyIdsFetchRsp);
-    }
-    let strategyIdsArray = strategyIdsFetchRsp.data[clientId].configStrategyIds;
-
-    let strategyKindInt = await configStrategyValidator.getStrategyKindInt(kind);
-    //Following is to fetch specific strategy id for the kind passed.
-    let specificStrategyIdArray = await new ConfigStrategyModel()
-      .select(['id'])
-      .where(['id in (?) AND kind = ?', strategyIdsArray, strategyKindInt])
-      .fire();
-
-    if (specificStrategyIdArray.length !== 1) {
-      return oThis._customError('h_cs_bci_4', 'Strategy Id for the provided kind not found');
-    }
-
-    let strategyId = specificStrategyIdArray[0].id,
-      strategyIdArray = [strategyId],
-      configStrategyCacheObj = new ConfigStrategyCache({ strategyIds: strategyIdArray }),
-      configStrategyFetchRsp = await configStrategyCacheObj.fetch();
-
-    if (configStrategyFetchRsp.isFailure()) {
-      return Promise.reject(configStrategyFetchRsp);
-    }
-
-    let finalConfigHash = configStrategyFetchRsp.data;
-
-    return Promise.resolve(responseHelper.successWithData(finalConfigHash));
-  }
-
-  async getStrategyIdForKind(kind) {
-    const oThis = this;
-
-    let clientId = oThis.clientId,
-      strategyIdForKind = [],
-      clientConfigStrategyCacheObj = new ClientConfigStrategyCache({ clientIds: [clientId] }),
-      strategyIdsFetchRsp = await clientConfigStrategyCacheObj.fetch();
-
-    if (strategyIdsFetchRsp.isFailure()) {
-      return Promise.reject(strategyIdsFetchRsp);
-    }
-
-    let strategyIdsArray = strategyIdsFetchRsp.data[clientId].configStrategyIds;
-
-    let strategyKindtoIdMapRsp = await new ConfigStrategyModel()
-      .select(['id', 'kind'])
-      .where(['id in (?)', strategyIdsArray])
-      .fire();
-
-    for (let index = 0; index < strategyKindtoIdMapRsp.length; index++) {
-      if (String(strategyKindtoIdMapRsp[index].kind) === configStrategyConstants.invertedKinds[kind]) {
-        strategyIdForKind.push(strategyKindtoIdMapRsp[index].id);
-      }
-    }
-
-    return Promise.resolve(responseHelper.successWithData(strategyIdForKind));
   }
 
   /**
@@ -164,25 +95,27 @@ class ConfigStrategyByClientId {
   async getAuxProviders() {
     const oThis = this;
 
-    let configResponse = await oThis.get(),
+    const configResponse = await oThis.get(),
       config = configResponse.data,
       readWriteConfig = config[configStrategyConstants.auxGeth][configStrategyConstants.gethReadWrite];
 
-    let providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
+    const providers = readWriteConfig.wsProvider ? readWriteConfig.wsProviders : readWriteConfig.rpcProviders;
 
     return Promise.resolve(responseHelper.successWithData(providers));
   }
 
   /**
-   * Custom error
+   * Custom error.
    *
-   * @param errCode
-   * @param errMsg
+   * @param {string} errCode
+   * @param {string} errMsg
+   *
    * @returns {Promise<never>}
    * @private
    */
   _customError(errCode, errMsg) {
     logger.error(errMsg);
+
     return Promise.reject(
       responseHelper.error({
         internal_error_identifier: errCode,

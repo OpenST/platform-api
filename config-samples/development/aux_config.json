@@ -63,6 +63,22 @@
       "heartbeats":"30",
       "clusterNodes":["127.0.0.1"]
     },
+    "webhooksPreProcessorRabbitmq": {
+      "username":"guest",
+      "password":"guest",
+      "host":"127.0.0.1",
+      "port":"5672",
+      "heartbeats":"30",
+      "clusterNodes":["127.0.0.1"]
+    },
+    "webhooksProcessorRabbitmq": {
+      "username":"guest",
+      "password":"guest",
+      "host":"127.0.0.1",
+      "port":"5672",
+      "heartbeats":"30",
+      "clusterNodes":["127.0.0.1"]
+    },
     "elasticSearch": {
       "host":"localhost:9200",
       "region":"localhost",

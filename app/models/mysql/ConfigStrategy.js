@@ -212,7 +212,9 @@ class ConfigStrategyModel extends ModelBase {
     } else if (
       kinds[strategyKind] === configStrategyConstants.rabbitmq ||
       kinds[strategyKind] === configStrategyConstants.globalRabbitmq ||
-      kinds[strategyKind] === configStrategyConstants.originRabbitmq
+      kinds[strategyKind] === configStrategyConstants.originRabbitmq ||
+      kinds[strategyKind] === configStrategyConstants.webhooksPreProcessorRabbitmq ||
+      kinds[strategyKind] === configStrategyConstants.webhooksProcessorRabbitmq
     ) {
       configStrategyHash[kinds[strategyKind]].password = decryptedJsonObj.rmqPassword;
     }

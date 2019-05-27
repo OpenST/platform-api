@@ -65,6 +65,26 @@
         "<rabbitmq cluster node endpoint>", "<rabbitmq cluster node endpoint>"
       ]
     },
+    "webhooksPreProcessorRabbitmq": {
+       "username": "<user name>",
+       "password": "<password>",
+       "host": "<rabbitmq endpoint>",
+       "port": "<rabbitmq port>",
+       "heartbeats": "30",
+       "clusterNodes": [
+         "<rabbitmq cluster node endpoint>", "<rabbitmq cluster node endpoint>"
+       ]
+    },
+    "webhooksProcessorRabbitmq": {
+        "username": "<user name>",
+        "password": "<password>",
+        "host": "<rabbitmq endpoint>",
+        "port": "<rabbitmq port>",
+        "heartbeats": "30",
+        "clusterNodes": [
+          "<rabbitmq cluster node endpoint>", "<rabbitmq cluster node endpoint>"
+        ]
+     },
     "elasticSearch": {
       "host":"localhost:9200",
       "region":"localhost",
