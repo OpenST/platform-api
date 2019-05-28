@@ -1,7 +1,5 @@
-'use strict';
-
 /**
- *  Authorize device multi sig operation
+ * Module to authorize device multi sig operation.
  *
  * @module app/services/device/multisigOperation/AuthorizeDevice
  */
@@ -10,43 +8,47 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
   AuthorizeDeviceRouter = require(rootPrefix + '/lib/workflow/authorizeDevice/Router'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 
 /**
- * Class to authorize device multi sig operation
+ * Class to authorize device multi sig operation.
  *
  * @class AuthorizeDevice
  */
 class AuthorizeDevice extends Base {
   /**
+   * Constructor to authorize device multi sig operation.
    *
-   * @param {Object} params
-   * @param {Object} params.raw_calldata -
-   * @param {String} params.raw_calldata.method - possible value addOwnerWithThreshold
-   * @param {Array} params.raw_calldata.parameters -
-   * @param {String} params.raw_calldata.parameters[0] - new device address
-   * @param {String/Number} params.raw_calldata.parameters[1] - requirement/threshold
+   * @param {object} params
+   * @param {object} params.raw_calldata
+   * @param {string} params.raw_calldata.method: possible value addOwnerWithThreshold
+   * @param {array} params.raw_calldata.parameters:
+   * @param {string} params.raw_calldata.parameters[0]: new device address
+   * @param {string/number} params.raw_calldata.parameters[1]: requirement/threshold
+   *
+   * @augments Base
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
 
     oThis.rawCalldata = params.raw_calldata;
@@ -55,8 +57,11 @@ class AuthorizeDevice extends Base {
   }
 
   /**
-   * Sanitize service specific params
+   * Sanitize service specific params.
    *
+   * @sets oThis.deviceAddress
+   *
+   * @returns {Promise<Promise<never>|undefined>}
    * @private
    */
   async _sanitizeSpecificParams() {
@@ -75,7 +80,7 @@ class AuthorizeDevice extends Base {
       );
     }
 
-    let rawCallDataMethod = oThis.rawCalldata.method;
+    const rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'addOwnerWithThreshold') {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -87,7 +92,7 @@ class AuthorizeDevice extends Base {
       );
     }
 
-    let rawCallDataParameters = oThis.rawCalldata.parameters;
+    const rawCallDataParameters = oThis.rawCalldata.parameters;
     if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -114,7 +119,7 @@ class AuthorizeDevice extends Base {
   }
 
   /**
-   * Performs specific pre checks
+   * Performs specific pre checks.
    *
    * @returns {Promise<void>}
    * @private
@@ -122,9 +127,9 @@ class AuthorizeDevice extends Base {
   async _performSpecificPreChecks() {
     const oThis = this;
 
-    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddress, oThis.signer]);
+    const deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddress, oThis.signer]);
 
-    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddress],
+    const deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddress],
       signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
 
     if (
@@ -159,7 +164,7 @@ class AuthorizeDevice extends Base {
   }
 
   /**
-   * perform operation
+   * Perform operation.
    *
    * @returns {Promise<any>}
    * @private
@@ -167,7 +172,7 @@ class AuthorizeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    let updateResponse = await oThis._updateDeviceStatus(
+    const updateResponse = await oThis._updateDeviceStatus(
       oThis.deviceAddress,
       deviceConstants.registeredStatus,
       deviceConstants.authorizingStatus
@@ -179,7 +184,7 @@ class AuthorizeDevice extends Base {
   }
 
   /**
-   * Starts the workflow to submit authorize device transaction
+   * Starts the workflow to submit authorize device transaction.
    *
    * @returns {Promise}
    * @private
@@ -189,7 +194,7 @@ class AuthorizeDevice extends Base {
 
     logger.debug('****Starting the authorize workflow ');
 
-    let requestParams = {
+    const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
@@ -220,23 +225,21 @@ class AuthorizeDevice extends Base {
         requestParams: requestParams
       };
 
-    let authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
+    const authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
 
     return authorizeDeviceObj.perform();
   }
 
   /**
-   * Prepares the response for Authorize Device service.
+   * Prepares the response for authorize device service.
    *
    * @returns {Promise<any>}
    * @private
    */
   async _prepareResponseEntity(updateResponseData) {
-    const oThis = this;
-
     logger.debug('****Preparing authorize device service response');
 
-    let responseHash = updateResponseData.data;
+    const responseHash = updateResponseData.data;
 
     responseHash.linkedAddress = null;
 
