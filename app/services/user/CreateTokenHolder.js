@@ -362,6 +362,7 @@ class CreateTokenHolder extends ServiceBase {
         auxChainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
+        clientId: oThis.clientId,
         deviceAddress: oThis.deviceAddress,
         recoveryOwnerAddress: oThis.recoveryOwnerAddress,
         sessionAddresses: oThis.sessionAddresses,
