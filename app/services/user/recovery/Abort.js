@@ -222,6 +222,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
     const requestParams = {
         auxChainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
+        clientId: oThis.clientId,
         userId: oThis.userId,
         oldLinkedAddress: oThis.oldLinkedAddress,
         oldDeviceAddress: oThis.oldDeviceAddress,
