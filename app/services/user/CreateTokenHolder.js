@@ -17,11 +17,11 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
-  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic');
 
 // Following require(s) for registering into instance composer
@@ -35,20 +35,20 @@ require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 /**
  * Class for creating token holder for user.
  *
- * @class
+ * @class CreateTokenHolder
  */
 class CreateTokenHolder extends ServiceBase {
   /**
    * Constructor for creating token holder for user.
    *
    * @param params
-   * @param {String} params.user_id: user Id
-   * @param {Number} params.client_id: client Id
-   * @param {String} params.device_address: device address
-   * @param {String} params.recovery_owner_address: Recovery owner address
-   * @param {Array} params.session_addresses: session addresses
-   * @param {Number} params.expiration_height: expiration height
-   * @param {String} params.spending_limit: spending limit
+   * @param {string} params.user_id: user Id
+   * @param {number} params.client_id: client Id
+   * @param {string} params.device_address: device address
+   * @param {string} params.recovery_owner_address: Recovery owner address
+   * @param {array} params.session_addresses: session addresses
+   * @param {number} params.expiration_height: expiration height
+   * @param {string} params.spending_limit: spending limit
    *
    * @constructor
    */
@@ -72,10 +72,9 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Async perform.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _asyncPerform() {
@@ -121,6 +120,8 @@ class CreateTokenHolder extends ServiceBase {
   /**
    * Sanitize input parameters.
    *
+   * @sets oThis.deviceAddress, oThis.recoveryOwnerAddress, oThis.sessionAddresses
+   *
    * @private
    */
   _sanitize() {
@@ -138,10 +139,9 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
-   * Validate expiration height
+   * Validate expiration height.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _validateExpirationHeight() {
@@ -149,9 +149,9 @@ class CreateTokenHolder extends ServiceBase {
       BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
       blockTimeDetailsCache = new BlockTimeDetailsCache({ chainId: oThis.auxChainId });
 
-    let block = await blockTimeDetailsCache.fetch();
+    const block = await blockTimeDetailsCache.fetch();
 
-    let currentBlock = Number(block.data.block),
+    const currentBlock = Number(block.data.block),
       minExpirationBlocks = Math.floor(
         sessionConstants.sessionKeyExpirationMinimumTime / (Number(block.data.blockGenerationTime) * 1000)
       );
@@ -171,8 +171,9 @@ class CreateTokenHolder extends ServiceBase {
   /**
    * Fetch token user shards: Fetch token user shards from cache.
    *
-   * @return {Promise<void>}
+   * @sets oThis.userShardNumber
    *
+   * @return {Promise<void>}
    * @private
    */
   async _fetchTokenUsersShards() {
@@ -189,10 +190,9 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
-   * Get user device details from Cache.
+   * Get user device details from cache.
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _getUserDeviceDataFromCache() {
@@ -235,8 +235,9 @@ class CreateTokenHolder extends ServiceBase {
   /**
    * Update user status from created to activating after performing certain validations.
    *
-   * @return {Promise<void>}
+   * @sets oThis.userStatusUpdateResponse, oThis.deviceShardNumber, oThis.recoveryOwnerShardNumber
    *
+   * @return {Promise<void>}
    * @private
    */
   async _updateUserStatusToActivating() {
@@ -277,7 +278,6 @@ class CreateTokenHolder extends ServiceBase {
    * Validate whether the device address is registered or not.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _updateDeviceStatusToAuthorising() {
@@ -316,7 +316,6 @@ class CreateTokenHolder extends ServiceBase {
    * Create an entry in recovery owner address shard with status as AUTHORIZING.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _authorizingRecoveryOwnerAddress() {
@@ -354,7 +353,6 @@ class CreateTokenHolder extends ServiceBase {
    * Init user set-up workflow.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _initUserSetupWorkflow() {
@@ -398,7 +396,6 @@ class CreateTokenHolder extends ServiceBase {
    * Rollback user status back to created.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _rollbackUserStatusToCreated() {
@@ -443,7 +440,6 @@ class CreateTokenHolder extends ServiceBase {
    * Rollback device status back to registered.
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _rollbackDeviceStatusToRegistered() {
@@ -486,7 +482,7 @@ class CreateTokenHolder extends ServiceBase {
   }
 
   /**
-   * Subclass to return its own class here
+   * Subclass to return its own class here.
    *
    * @returns {object}
    */
