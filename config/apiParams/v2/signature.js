@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Module for API signature validations.
+ *
+ * @module config/apiParams/v2/signature
+ */
 
 const rootPrefix = '../../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
