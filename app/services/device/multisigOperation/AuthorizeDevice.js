@@ -197,6 +197,7 @@ class AuthorizeDevice extends Base {
     const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
+        clientId: oThis.clientId,
         userId: oThis.userId,
         deviceAddress: oThis.deviceAddress,
         to: oThis.to,
