@@ -1,4 +1,8 @@
-'use strict';
+/**
+ * Module to determine authentication types for APIs.
+ *
+ * @module config/apiAuthentication
+ */
 
 const rootPrefix = '..',
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
@@ -11,53 +15,64 @@ let getRequestConfigData,
   deleteRequestConfigData,
   deleteRequestRegexes;
 
+/**
+ * Class to determine authentication types for APIs.
+ *
+ * @class ApiAuthentication
+ */
 class ApiAuthentication {
   /**
    * Get requests regexes & config
    *
-   * @return {Array}
+   * @return {array}
    */
   get getRequestsDataExtractionRegex() {
     const oThis = this;
+
     if (getRequestRegexes) {
       return getRequestRegexes;
     }
     getRequestRegexes = oThis._dataExtractionRegexGenerator(oThis._getRequestConfig);
+
     return getRequestRegexes;
   }
 
   /**
    * Post requests regexes & config
    *
-   * @return {Array}
+   * @return {array}
    */
   get postRequestsDataExtractionRegex() {
     const oThis = this;
+
     if (postRequestRegexes) {
       return postRequestRegexes;
     }
     postRequestRegexes = oThis._dataExtractionRegexGenerator(oThis._postRequestConfig);
+
     return postRequestRegexes;
   }
 
   /**
    * Delete requests regexes & config
    *
-   * @return {Array}
+   * @return {array}
    */
   get deleteRequestsDataExtractionRegex() {
     const oThis = this;
+
     if (deleteRequestRegexes) {
       return deleteRequestRegexes;
     }
     deleteRequestRegexes = oThis._dataExtractionRegexGenerator(oThis._deleteRequestConfig);
+
     return deleteRequestRegexes;
   }
 
   /**
    * Get request config.
    *
-   * @returns {Array}
+   * @returns {array}
    * @private
    */
   get _getRequestConfig() {
@@ -163,13 +178,14 @@ class ApiAuthentication {
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];
+
     return getRequestConfigData;
   }
 
   /**
    * Post request config.
    *
-   * @returns {Array}
+   * @returns {array}
    * @private
    */
   get _postRequestConfig() {
@@ -249,13 +265,14 @@ class ApiAuthentication {
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];
+
     return postRequestConfigData;
   }
 
   /**
    * Delete request config.
    *
-   * @returns {Array}
+   * @returns {array}
    * @private
    */
   get _deleteRequestConfig() {
@@ -275,21 +292,19 @@ class ApiAuthentication {
   }
 
   /**
+   * From the config passed create data which would be used for regex matches later.
    *
-   * from the config passed create data which would be used for regex matches later
+   * @param {array} globalConfig
    *
-   * @param globalConfig
-   * @return {Array}
+   * @return {array}
    */
   _dataExtractionRegexGenerator(globalConfig) {
-    let config,
-      buffer,
-      regexes = [];
+    const regexes = [];
 
     for (let apiIndex = 0; apiIndex < globalConfig.length; apiIndex++) {
-      config = globalConfig[apiIndex];
+      const config = globalConfig[apiIndex];
 
-      buffer = {
+      const buffer = {
         apiName: config.apiName,
         url: config.route,
         supportedSignatureKinds: config.supportedSignatureKinds,
@@ -297,11 +312,11 @@ class ApiAuthentication {
         regExUrl: '^' + config.route + '$'
       };
 
-      let dynamicVariables = config.route.match(RegExp(':([^/]+)', 'gi')) || [];
+      const dynamicVariables = config.route.match(RegExp(':([^/]+)', 'gi')) || [];
 
-      for (let i = 0; i < dynamicVariables.length; i++) {
-        buffer.regExMatches.push(dynamicVariables[i].replace(':', ''));
-        buffer.regExUrl = buffer.regExUrl.replace(dynamicVariables[i], '([^/]+)');
+      for (let index = 0; index < dynamicVariables.length; index++) {
+        buffer.regExMatches.push(dynamicVariables[index].replace(':', ''));
+        buffer.regExUrl = buffer.regExUrl.replace(dynamicVariables[index], '([^/]+)');
       }
 
       buffer.regExUrl = new RegExp(buffer.regExUrl, 'i');
