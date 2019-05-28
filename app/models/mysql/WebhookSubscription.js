@@ -1,9 +1,9 @@
-'use strict';
 /**
- * This is model for webhook subscription.
+ * Module for webhook subscription model.
  *
  * @module app/models/mysql/WebhookSubscription
  */
+
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -22,6 +22,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
 class WebhookSubscription extends ModelBase {
   /**
    * Constructor for webhook subscription model.
+   *
+   * @augments ModelBase
    *
    * @constructor
    */
@@ -63,7 +65,8 @@ class WebhookSubscription extends ModelBase {
   /**
    * Fetch webhook subscriptions by endpoint ids.
    *
-   * @param endpointIds
+   * @param {array} endpointIds
+   *
    * @returns {Promise<*|result>}
    */
   async fetchWebhookSubscriptionsByEndpointIds(endpointIds) {
@@ -73,21 +76,21 @@ class WebhookSubscription extends ModelBase {
         .where([' webhook_endpoint_id IN (?)', endpointIds])
         .fire();
 
-    let response = {};
+    const response = {};
 
-    for (let i = 0; i < endpointIds.length; i++) {
-      response[endpointIds[i]] = { active: [], inActive: [] };
+    for (let index = 0; index < endpointIds.length; index++) {
+      response[endpointIds[index]] = { active: [], inActive: [] };
     }
 
     for (let index = 0; index < dbRows.length; index++) {
-      let dbRow = dbRows[index];
+      const dbRow = dbRows[index];
 
       if (dbRow.status == webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]) {
-        response[dbRow.webhook_endpoint_id]['active'].push(WebhookSubscription._formatDbData(dbRow));
+        response[dbRow.webhook_endpoint_id].active.push(WebhookSubscription._formatDbData(dbRow));
       } else if (
         dbRow.status == webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.inActiveStatus]
       ) {
-        response[dbRow.webhook_endpoint_id]['inActive'].push(WebhookSubscription._formatDbData(dbRow));
+        response[dbRow.webhook_endpoint_id].inActive.push(WebhookSubscription._formatDbData(dbRow));
       }
     }
 
