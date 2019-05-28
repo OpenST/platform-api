@@ -1,7 +1,5 @@
-'use strict';
-
 /**
- *  Authorize session multi sig operation
+ * Module to authorize session multi sig operation.
  *
  * @module app/services/session/multisigOperation/AuthorizeSession
  */
@@ -10,46 +8,50 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ChainDetails = require(rootPrefix + '/app/services/chain/Get'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   AuthorizeSessionRouter = require(rootPrefix + '/lib/workflow/authorizeSession/Router'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
 
 /**
- * Class to authorize session multi sig operation
+ * Class to authorize session multi sig operation.
  *
  * @class AuthorizeSession
  */
 class AuthorizeSession extends Base {
   /**
+   * Constructor to authorize session multi sig operation.
    *
-   * @param {Object} params
-   * @param {Array} params.token_shard_details
-   * @param {Object} params.raw_calldata -
-   * @param {String} params.raw_calldata.method - possible value authorizeSession
-   * @param {Array} params.raw_calldata.parameters -
-   * @param {String} params.raw_calldata.parameters[0] - new session address
-   * @param {String} params.raw_calldata.parameters[1] - spending limit in wei
-   * @param {String/Number} params.raw_calldata.parameters[2] - expiration height
+   * @param {object} params
+   * @param {array} params.token_shard_details
+   * @param {object} params.raw_calldata:
+   * @param {string} params.raw_calldata.method: possible value authorizeSession
+   * @param {array} params.raw_calldata.parameters
+   * @param {string} params.raw_calldata.parameters[0]: new session address
+   * @param {string} params.raw_calldata.parameters[1]: spending limit in wei
+   * @param {string/number} params.raw_calldata.parameters[2]: expiration height
+   *
+   * @augments Base
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
 
     oThis.rawCalldata = params.raw_calldata;
@@ -60,8 +62,11 @@ class AuthorizeSession extends Base {
   }
 
   /**
-   * Sanitize service specific params
+   * Sanitize service specific params.
    *
+   * @sets oThis.sessionKey, oThis.spendingLimit, oThis.expirationHeight
+   *
+   * @returns {Promise<Promise<never>|undefined>}
    * @private
    */
   async _sanitizeSpecificParams() {
@@ -79,7 +84,7 @@ class AuthorizeSession extends Base {
       );
     }
 
-    let rawCallDataMethod = oThis.rawCalldata.method;
+    const rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'authorizeSession') {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -91,7 +96,7 @@ class AuthorizeSession extends Base {
       );
     }
 
-    let rawCallDataParameters = oThis.rawCalldata.parameters;
+    const rawCallDataParameters = oThis.rawCalldata.parameters;
     if (!(rawCallDataParameters instanceof Array) || !CommonValidators.validateEthAddress(rawCallDataParameters[0])) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -131,7 +136,7 @@ class AuthorizeSession extends Base {
   }
 
   /**
-   * Performs specific pre checks
+   * Performs specific pre checks.
    *
    * @returns {Promise<void>}
    * @private
@@ -150,14 +155,14 @@ class AuthorizeSession extends Base {
       );
     }
 
-    let chainDetailsObj = new ChainDetails({ chain_id: oThis._configStrategyObject.auxChainId }),
+    const chainDetailsObj = new ChainDetails({ chain_id: oThis._configStrategyObject.auxChainId }),
       chainDetailsRsp = await chainDetailsObj.perform();
 
     if (chainDetailsRsp.isFailure()) {
       return Promise.reject(chainDetailsRsp);
     }
 
-    let blockHeight = chainDetailsRsp.data.chain.blockHeight;
+    const blockHeight = chainDetailsRsp.data.chain.blockHeight;
 
     if (oThis.expirationHeight < blockHeight + coreConstants.BUFFER_BLOCK_HEIGHT) {
       return Promise.reject(
@@ -174,7 +179,7 @@ class AuthorizeSession extends Base {
   }
 
   /**
-   * perform operation
+   * Perform operation.
    *
    * @returns {Promise<any>}
    * @private
@@ -190,7 +195,7 @@ class AuthorizeSession extends Base {
   }
 
   /**
-   * Adds an entry in sessions table
+   * Adds an entry in sessions table.
    *
    * @returns {Promise<any>}
    * @private
@@ -199,14 +204,14 @@ class AuthorizeSession extends Base {
     const oThis = this;
     logger.debug('****Creating entry in sessions table');
 
-    let paramsForAddSessions = {
+    const paramsForAddSessions = {
       tokenId: oThis.tokenId,
       userId: oThis.userId,
       sessionAddresses: [oThis.sessionKey],
       sessionExpiration: oThis.expirationHeight,
       sessionSpendingLimit: oThis.spendingLimit
     };
-    let AddSessionsAddressKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
+    const AddSessionsAddressKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'AddSessionAddresses'),
       addSessionsAddressObj = new AddSessionsAddressKlass(paramsForAddSessions);
 
     await addSessionsAddressObj.perform();
@@ -215,7 +220,7 @@ class AuthorizeSession extends Base {
   }
 
   /**
-   * Starts the workflow to submit authorize device transaction
+   * Starts the workflow to submit authorize device transaction.
    *
    * @returns {Promise}
    * @private
@@ -225,10 +230,11 @@ class AuthorizeSession extends Base {
 
     logger.debug('****Starting the authorize session workflow ');
 
-    let requestParams = {
+    const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
+        clientId: oThis.clientId,
         sessionKey: oThis.sessionKey,
         to: oThis.to,
         value: oThis.value,
@@ -257,13 +263,13 @@ class AuthorizeSession extends Base {
         requestParams: requestParams
       };
 
-    let authorizeSessionObj = new AuthorizeSessionRouter(authorizeSessionInitParams);
+    const authorizeSessionObj = new AuthorizeSessionRouter(authorizeSessionInitParams);
 
     return authorizeSessionObj.perform();
   }
 
   /**
-   * Prepares the response for Authorize Device service.
+   * Prepares the response for authorize session service.
    *
    * @returns {Promise<any>}
    * @private
@@ -272,7 +278,7 @@ class AuthorizeSession extends Base {
     const oThis = this;
 
     logger.debug('****Preparing authorize session service response');
-    let sessionDetailsAfterUpdateRsp = await super._fetchSessionDetails(oThis.sessionKey),
+    const sessionDetailsAfterUpdateRsp = await super._fetchSessionDetails(oThis.sessionKey),
       response = {};
 
     response[resultType.session] = sessionDetailsAfterUpdateRsp.data[oThis.sessionKey];
@@ -282,3 +288,5 @@ class AuthorizeSession extends Base {
 }
 
 InstanceComposer.registerAsShadowableClass(AuthorizeSession, coreConstants.icNameSpace, 'AuthorizeSession');
+
+module.exports = {};
