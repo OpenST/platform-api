@@ -1,7 +1,5 @@
-'use strict';
-
 /**
- *  Revoke device multi sig operation
+ * Module to revoke device multi sig operation.
  *
  * @module app/services/device/multisigOperation/RevokeDevice
  */
@@ -10,47 +8,51 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  WorkflowModelKlass = require(rootPrefix + '/app/models/mysql/Workflow'),
   Base = require(rootPrefix + '/app/services/device/multisigOperation/Base'),
   RevokeDeviceRouter = require(rootPrefix + '/lib/workflow/revokeDevice/Router'),
-  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  WorkflowModelKlass = require(rootPrefix + '/app/models/mysql/Workflow'),
   UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/device/UpdateStatus');
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
- * Class to revoke device multi sig operation
+ * Class to revoke device multi sig operation.
  *
  * @class RevokeDevice
  */
 class RevokeDevice extends Base {
   /**
+   * Constructor to revoke device multi sig operation.
    *
-   * @param {Object} params
-   * @param {Object} params.raw_calldata -
-   * @param {String} params.raw_calldata.method - possible value removeOwner
-   * @param {Array} params.raw_calldata.parameters -
-   * @param {String} params.raw_calldata.parameters[0] - previous device address (linked address)
-   * @param {String} params.raw_calldata.parameters[1] - old device address
-   * @param {String/Number} params.raw_calldata.parameters[2] - requirement/threshold
+   * @param {object} params
+   * @param {object} params.raw_calldata
+   * @param {string} params.raw_calldata.method: possible value removeOwner
+   * @param {array} params.raw_calldata.parameters
+   * @param {string} params.raw_calldata.parameters[0]: previous device address (linked address)
+   * @param {string} params.raw_calldata.parameters[1]: old device address
+   * @param {string/number} params.raw_calldata.parameters[2]: requirement/threshold
+   *
+   * @augments Base
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
 
     oThis.rawCalldata = params.raw_calldata;
@@ -60,7 +62,9 @@ class RevokeDevice extends Base {
   }
 
   /**
-   * Sanitize action specific params
+   * Sanitize action specific params.
+   *
+   * @sets oThis.previousDeviceAddress, oThis.deviceAddressToRemove
    *
    * @returns {Promise<never>}
    * @private
@@ -80,7 +84,7 @@ class RevokeDevice extends Base {
       );
     }
 
-    let rawCallDataMethod = oThis.rawCalldata.method;
+    const rawCallDataMethod = oThis.rawCalldata.method;
     if (rawCallDataMethod !== 'removeOwner') {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -92,7 +96,7 @@ class RevokeDevice extends Base {
       );
     }
 
-    let rawCallDataParameters = oThis.rawCalldata.parameters;
+    const rawCallDataParameters = oThis.rawCalldata.parameters;
     if (
       !(rawCallDataParameters instanceof Array) ||
       !CommonValidators.validateEthAddress(rawCallDataParameters[0]) ||
@@ -142,9 +146,9 @@ class RevokeDevice extends Base {
       );
     }
 
-    let deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddressToRemove, oThis.signer]);
+    const deviceDetailsRsp = await oThis._fetchDeviceDetails([oThis.deviceAddressToRemove, oThis.signer]);
 
-    let deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddressToRemove],
+    const deviceAddressDetails = deviceDetailsRsp.data[oThis.deviceAddressToRemove],
       signerAddressDetails = deviceDetailsRsp.data[oThis.signer];
 
     if (
@@ -175,7 +179,7 @@ class RevokeDevice extends Base {
       );
     }
 
-    let previousDeviceAddress = await oThis._fetchLinkedDeviceAddress();
+    const previousDeviceAddress = await oThis._fetchLinkedDeviceAddress();
 
     if (previousDeviceAddress !== oThis.previousDeviceAddress) {
       return Promise.reject(
@@ -194,7 +198,7 @@ class RevokeDevice extends Base {
   }
 
   /**
-   * Fetch linked address of given device address
+   * Fetch linked address of given device address.
    *
    * @returns {Promise<*>}
    * @private
@@ -202,12 +206,13 @@ class RevokeDevice extends Base {
   async _fetchLinkedDeviceAddress() {
     const oThis = this;
 
-    let PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
+    const PreviousOwnersMapCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'PreviousOwnersMap'),
       previousOwnersMapObj = new PreviousOwnersMapCache({ userId: oThis.userId, tokenId: oThis.tokenId }),
       previousOwnersMapRsp = await previousOwnersMapObj.fetch();
 
     if (previousOwnersMapRsp.isFailure()) {
       logger.error('Error in fetching linked addresses');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_dm_mo_rd_8',
@@ -223,13 +228,13 @@ class RevokeDevice extends Base {
   /**
    * Validate Device address is part of some pending recovery operation of user.
    *
-   * @returns {Promise<Void>}
+   * @returns {Promise<void>}
    * @private
    */
   async _validatePendingRecoveryOfDeviceUser() {
     const oThis = this;
 
-    let recoveryOperationsResp = await new UserRecoveryOperationsCache({
+    const recoveryOperationsResp = await new UserRecoveryOperationsCache({
         tokenId: oThis.tokenId,
         userId: oThis.userId
       }).fetch(),
@@ -237,18 +242,18 @@ class RevokeDevice extends Base {
 
     // There are pending recovery operations of user, so check for devices involved
     if (recoveryOperations.length > 0) {
-      let workflowIds = [];
-      for (let index in recoveryOperations) {
+      const workflowIds = [];
+      for (const index in recoveryOperations) {
         const operation = recoveryOperations[index];
         workflowIds.push(operation.workflow_id);
       }
       // Fetch workflow details of pending operations
-      let pendingWorkflowDetails = await new WorkflowModelKlass()
+      const pendingWorkflowDetails = await new WorkflowModelKlass()
         .select('*')
         .where(['id IN (?)', workflowIds])
         .fire();
 
-      for (let index in pendingWorkflowDetails) {
+      for (const index in pendingWorkflowDetails) {
         const workflow = pendingWorkflowDetails[index],
           recoveryParams = JSON.parse(workflow.request_params);
         // Check if addresses involved in recovery operation matches with device address which needs to be revoked.
@@ -263,6 +268,7 @@ class RevokeDevice extends Base {
             ' involved in recovery operation workflow ',
             workflow.id
           );
+
           return Promise.reject(
             responseHelper.paramValidationError({
               internal_error_identifier: 'a_s_dm_mo_rd_9',
@@ -277,7 +283,7 @@ class RevokeDevice extends Base {
   }
 
   /**
-   * perform operation
+   * Perform operation.
    *
    * @returns {Promise<any>}
    * @private
@@ -285,7 +291,7 @@ class RevokeDevice extends Base {
   async _performOperation() {
     const oThis = this;
 
-    let updateResponse = await oThis._updateDeviceStatus(
+    const updateResponse = await oThis._updateDeviceStatus(
       oThis.deviceAddressToRemove,
       deviceConstants.authorizedStatus,
       deviceConstants.revokingStatus
@@ -297,7 +303,7 @@ class RevokeDevice extends Base {
   }
 
   /**
-   * Starts the workflow to submit revoke device transaction
+   * Starts the workflow to submit revoke device transaction.
    *
    * @returns {Promise}
    * @private
@@ -307,7 +313,7 @@ class RevokeDevice extends Base {
 
     logger.debug('****Starting the revoke workflow');
 
-    let requestParams = {
+    const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
@@ -338,13 +344,13 @@ class RevokeDevice extends Base {
         requestParams: requestParams
       };
 
-    let revokeDeviceObj = new RevokeDeviceRouter(revokeDeviceInitParams);
+    const revokeDeviceObj = new RevokeDeviceRouter(revokeDeviceInitParams);
 
     return revokeDeviceObj.perform();
   }
 
   /**
-   * Prepares the response for Device multisig operation service.
+   * Prepares the response for device multisig operation service.
    *
    * @returns {Promise<any>}
    * @private
@@ -354,7 +360,7 @@ class RevokeDevice extends Base {
 
     logger.debug('****Preparing revoke device service response');
 
-    let responseHash = updateResponseData.data;
+    const responseHash = updateResponseData.data;
 
     responseHash.linkedAddress = oThis.previousDeviceAddress;
 
