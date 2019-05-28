@@ -315,6 +315,7 @@ class RevokeDevice extends Base {
 
     const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
+        clientId: oThis.clientId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
         deviceAddressToRemove: oThis.deviceAddressToRemove,
