@@ -1041,6 +1041,20 @@ const v2Signature = {
         validatorMethod: 'validateString'
       }
     ]
+  },
+
+  [apiName.deleteWebhook]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'webhook_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
   }
 };
 

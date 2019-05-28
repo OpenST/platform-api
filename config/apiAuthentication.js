@@ -4,11 +4,17 @@ const rootPrefix = '..',
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName');
 
-let getRequestConfigData, getRequestRegexes, postRequestConfigData, postRequestRegexes;
+let getRequestConfigData,
+  getRequestRegexes,
+  postRequestConfigData,
+  postRequestRegexes,
+  deleteRequestConfigData,
+  deleteRequestRegexes;
 
 class ApiAuthentication {
   /**
-   * get requests regexes & config
+   * Get requests regexes & config
+   *
    * @return {Array}
    */
   get getRequestsDataExtractionRegex() {
@@ -21,7 +27,8 @@ class ApiAuthentication {
   }
 
   /**
-   * post requests regexes & config
+   * Post requests regexes & config
+   *
    * @return {Array}
    */
   get postRequestsDataExtractionRegex() {
@@ -33,6 +40,26 @@ class ApiAuthentication {
     return postRequestRegexes;
   }
 
+  /**
+   * Delete requests regexes & config
+   *
+   * @return {Array}
+   */
+  get deleteRequestsDataExtractionRegex() {
+    const oThis = this;
+    if (deleteRequestRegexes) {
+      return deleteRequestRegexes;
+    }
+    deleteRequestRegexes = oThis._dataExtractionRegexGenerator(oThis._deleteRequestConfig);
+    return deleteRequestRegexes;
+  }
+
+  /**
+   * Get request config.
+   *
+   * @returns {Array}
+   * @private
+   */
   get _getRequestConfig() {
     if (getRequestConfigData) {
       return getRequestConfigData;
@@ -139,6 +166,12 @@ class ApiAuthentication {
     return getRequestConfigData;
   }
 
+  /**
+   * Post request config.
+   *
+   * @returns {Array}
+   * @private
+   */
   get _postRequestConfig() {
     if (postRequestConfigData) {
       return postRequestConfigData;
@@ -217,6 +250,28 @@ class ApiAuthentication {
       // Note: - Urls should end with a slash. Add config above this.
     ];
     return postRequestConfigData;
+  }
+
+  /**
+   * Delete request config.
+   *
+   * @returns {Array}
+   * @private
+   */
+  get _deleteRequestConfig() {
+    if (deleteRequestConfigData) {
+      return deleteRequestConfigData;
+    }
+    deleteRequestConfigData = [
+      {
+        apiName: apiName.deleteWebhook,
+        route: '/webhooks/:webhook-id/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
+      }
+      // Note: - Urls should end with a slash. Add config above this.
+    ];
+
+    return deleteRequestConfigData;
   }
 
   /**
