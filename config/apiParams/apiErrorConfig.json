@@ -568,5 +568,16 @@
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
     "message": "The endpoint is already registered. Please use update API if need to change into it."
+  },
+  "max_endpoints_reached": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Max endpoints reached."
+  },
+  "max_topics_in_endpoint": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Max topics per endpoint reached."
   }
+
 }

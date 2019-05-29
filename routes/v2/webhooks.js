@@ -2,12 +2,14 @@ const express = require('express'),
   router = express.Router();
 
 const rootPrefix = '../..',
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   routeHelper = require(rootPrefix + '/routes/helper'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature');
+  WebhookFormatter = require(rootPrefix + '/lib/globalConstant/apiSignature');
+
+require(rootPrefix + '/app/services/webhooks/modify/Create');
+require(rootPrefix + '/app/services/webhooks/modify/Update');
 
 /* Create webhook */
 router.post('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -15,14 +17,31 @@ router.post('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, 
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const webhookFormattedRsp = await new WebhookFormatter(serviceResponse.data[resultType.webhook]).perform();
     serviceResponse.data = {
-      result_type: resultType.user,
-      [resultType.user]: userFormattedRsp.data
+      result_type: resultType.webhook,
+      [resultType.webhook]: webhookFormattedRsp.data
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'CreateWebhook', 'r_v2_u_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'CreateWebhook', 'r_v2_w_1', null, dataFormatterFunc));
+});
+
+/* Update webhook */
+router.post('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.updateWebhook;
+  req.decodedParams.webhook_id = req.params.webhook_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const webhookFormattedRsp = await new WebhookFormatter(serviceResponse.data[resultType.webhook]).perform();
+    serviceResponse.data = {
+      result_type: resultType.webhook,
+      [resultType.webhook]: webhookFormattedRsp.data
+    };
+  };
+
+  Promise.resolve(routeHelper.perform(req, res, next, 'UpdateWebhook', 'r_v2_w_2', null, dataFormatterFunc));
 });
 
 /* Delete a webhook */
@@ -31,12 +50,12 @@ router.delete('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res
   req.decodedParams.clientConfigStrategyRequired = false;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const userFormattedRsp = await new UserFormatter(serviceResponse.data[resultType.user]).perform();
+    const webhookFormattedRsp = await new WebhookFormatter(serviceResponse.data[resultType.webhook]).perform();
     serviceResponse.data = {
       result_type: resultType.webhook,
-      [resultType.webhook]: userFormattedRsp.data
+      [resultType.webhook]: webhookFormattedRsp.data
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeleteWebhook', 'r_v2_u_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'DeleteWebhook', 'r_v2_w_3', null, dataFormatterFunc));
 });
