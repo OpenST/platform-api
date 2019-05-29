@@ -62,10 +62,10 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Constructor for transaction parser.
    *
-   * @augments MultiSubscriptionBase
-   *
    * @param {object} params
    * @param {number} params.cronProcessId: cron_processes table id
+   *
+   * @augments MultiSubscriptionBase
    *
    * @constructor
    */
@@ -87,7 +87,6 @@ class TransactionParser extends MultiSubscriptionBase {
    * Topics to subscribe.
    *
    * @returns {*[]}
-   *
    * @private
    */
   get _topicsToSubscribe() {
@@ -99,7 +98,7 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Queue name.
    *
-   * @returns {string}
+   * @returns string
    * @private
    */
   get _queueName() {
@@ -111,20 +110,23 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Specific validations apart from common validations.
    *
+   * @returns {Promise<never>}
    * @private
    */
   _specificValidations() {
     const oThis = this;
 
     if (!oThis.chainId) {
-      let errMsg = 'Chain ID is un-available in cron params in the database.';
+      const errMsg = 'Chain ID is un-available in cron params in the database.';
       logger.error(errMsg);
+
       return Promise.reject(errMsg);
     }
 
     if (oThis.chainId < 0) {
-      let errMsg = 'Chain ID is invalid.';
+      const errMsg = 'Chain ID is invalid.';
       logger.error(errMsg);
+
       return Promise.reject(errMsg);
     }
   }
@@ -132,7 +134,7 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Cron kind.
    *
-   * @return {string}
+   * @return string
    * @private
    */
   get _cronKind() {
@@ -220,7 +222,7 @@ class TransactionParser extends MultiSubscriptionBase {
       return;
     }
 
-    // Fetch block number and transaction hashes from query response
+    // Fetch block number and transaction hashes from query response.
     const blockNumber = blockParserTasks[0].block_number,
       transactionHashes = JSON.parse(blockParserTasks[0].transaction_hashes);
 
@@ -366,9 +368,8 @@ class TransactionParser extends MultiSubscriptionBase {
    * table in DynamoDB or not. This method internally initialises certain services
    * sets some variables as well.
    *
-   * @private
-   *
    * @returns {Promise<void>}
+   * @private
    */
   async _validateChainId(blockScannerObj) {
     const oThis = this;
@@ -388,7 +389,10 @@ class TransactionParser extends MultiSubscriptionBase {
   /**
    * Initialize transaction parser object.
    *
-   * @param blockScannerObj
+   * @param {object} blockScannerObj
+   *
+   * @sets oThis.TransactionParser, oThis.TokenTransferParser
+   *
    * @private
    */
   _initializeTransactionParser(blockScannerObj) {

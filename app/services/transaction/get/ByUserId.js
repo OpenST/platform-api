@@ -16,7 +16,7 @@ const rootPrefix = '../../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  pendingTransactionConstant = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
   esQueryFormatter = require(rootPrefix + '/lib/elasticsearch/helpers/queryFormatter');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -391,7 +391,7 @@ class GetTransactionsList extends GetTransactionBase {
 
     if (!oThis.status.length) return;
 
-    const validStatuses = pendingTransactionConstant.invertedStatuses;
+    const validStatuses = pendingTransactionConstants.invertedStatuses;
 
     for (let i = 0; i < oThis.status.length; i++) {
       let currStatusInt = validStatuses[oThis.status[i]];
