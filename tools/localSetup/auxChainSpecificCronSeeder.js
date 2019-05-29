@@ -405,6 +405,23 @@ class AuxChainSpecificCronSeeder {
         logger.log('InsertId: ', insertId);
       });
   }
+
+  /**
+   * Insert webhook preprocessor cron entry.
+   *
+   * @returns {Promise<void>}
+   */
+  async insertWebhookPreprocessorEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.webhookPreprocessor, {
+        chainId: 2000,
+        prefetchCount: 5,
+        sequenceNumber: 1
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
 }
 
 module.exports = AuxChainSpecificCronSeeder;
