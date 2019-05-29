@@ -24,15 +24,15 @@ const rootPrefix = '../../..',
 /**
  * Class to delete webhook.
  *
- * @class Delete
+ * @class DeleteWebhook
  */
-class Delete extends ServiceBase {
+class DeleteWebhook extends ServiceBase {
   /**
    * Constructor foe delete webhook class.
    *
    * @param params
-   * @param params
-   * @param params
+   * @param params.client_id
+   * @param params.webhook_id
    *
    *
    * @constructor
@@ -46,7 +46,7 @@ class Delete extends ServiceBase {
     oThis.webhookId = params.webhook_id;
 
     oThis.webhooksEndpointId = null;
-    oThis.response = {};
+    oThis.topics = [];
   }
 
   /**
@@ -65,7 +65,17 @@ class Delete extends ServiceBase {
 
     await oThis._markWebhookEndpointsInactive();
 
-    return responseHelper.successWithData({ [resultType.user]: oThis.response });
+    await oThis._clearCache();
+
+    return responseHelper.successWithData({
+      [resultType.webhook]: {
+        endpoint: oThis.webhookEndpointRsp.endpoint,
+        status: webhookEndpointConstants.inActive,
+        updatedAt: oThis.webhookEndpointRsp.updatedAt,
+        id: oThis.webhookId,
+        topics: oThis.topics
+      }
+    });
   }
 
   /**
@@ -78,7 +88,8 @@ class Delete extends ServiceBase {
     const oThis = this,
       webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
 
-    if (!webhookEndpointCacheRsp.data || !webhookEndpointCacheRsp.data.uuid) {
+    oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
+    if (!oThis.webhookEndpointRsp || !oThis.webhookEndpointRsp.uuid) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_w_d_1',
@@ -87,12 +98,6 @@ class Delete extends ServiceBase {
         })
       );
     }
-
-    console.log('webhookEndpointCacheRsp ==========', webhookEndpointCacheRsp);
-
-    oThis.response.endpoint = webhookEndpointCacheRsp.data.endpoint;
-    oThis.response.status = webhookEndpointConstants.statuses[webhookEndpointCacheRsp.data.status];
-    oThis.response.updatedTimestamp = webhookEndpointCacheRsp.data.updated_at;
   }
 
   /**
@@ -115,9 +120,6 @@ class Delete extends ServiceBase {
     }
 
     console.log('activeWebhooks ==========', activeWebhooks);
-
-    oThis.response.uuid = oThis.webhookId;
-    oThis.response.topics = oThis.topics;
   }
 
   /**
@@ -155,8 +157,13 @@ class Delete extends ServiceBase {
         })
         .fire();
   }
+
+  async _clearCache() {
+    const oThis = this;
+    await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
+  }
 }
 
-InstanceComposer.registerAsShadowableClass(Delete, coreConstants.icNameSpace, 'DeleteWebhook');
+InstanceComposer.registerAsShadowableClass(DeleteWebhook, coreConstants.icNameSpace, 'DeleteWebhook');
 
 module.exports = {};
