@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Module for webhook subscription model.
  *
@@ -67,6 +66,7 @@ class WebhookSubscription extends ModelBase {
    * Fetch webhook subscriptions by endpoint ids.
    *
    * @param {array} endpointUuids
+   *
    * @returns {Promise<*|result>}
    */
   async fetchWebhookSubscriptionsByEndpointUuids(endpointUuids) {
@@ -76,34 +76,35 @@ class WebhookSubscription extends ModelBase {
         .where(['webhook_endpoint_uuid IN (?)', endpointUuids])
         .fire();
 
-    let response = {};
+    const response = {};
 
-    for (let i = 0; i < endpointUuids.length; i++) {
-      response[endpointUuids[i]] = { active: [], inActive: [] };
+    for (let index = 0; index < endpointUuids.length; index++) {
+      response[endpointUuids[index]] = { active: [], inActive: [] };
     }
 
     for (let index = 0; index < dbRows.length; index++) {
-      let dbRow = dbRows[index];
+      const dbRow = dbRows[index];
 
       if (dbRow.status == webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]) {
-        response[dbRow.webhook_endpoint_uuid]['active'].push(WebhookSubscription._formatDbData(dbRow));
+        response[dbRow.webhook_endpoint_uuid].active.push(WebhookSubscription._formatDbData(dbRow));
       } else if (
         dbRow.status == webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.inActiveStatus]
       ) {
-        response[dbRow.webhook_endpoint_uuid]['inActive'].push(WebhookSubscription._formatDbData(dbRow));
+        response[dbRow.webhook_endpoint_uuid].inActive.push(WebhookSubscription._formatDbData(dbRow));
       }
     }
 
     return responseHelper.successWithData(response);
   }
 
-  /***
-   * Flush cache
+  /**
+   * Flush cache.
    *
    * @returns {Promise<*>}
    */
   static async flushCache(webhookEndpointUuids) {
-    let Cache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid');
+    const Cache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid');
+
     await new Cache({ webhookEndpointUuids: webhookEndpointUuids }).clear();
   }
 }

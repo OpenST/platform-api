@@ -32,14 +32,15 @@ class WebhookEndpoint extends ModelBase {
     oThis.tableName = 'webhook_endpoints';
   }
 
-  /***
-   * Fetch webhook endpoints by id
+  /**
+   * Fetch webhook endpoints by id.
    *
-   * @param uuid {String}
-   * @return {Object}
+   * @param uuid
+   * @returns {Promise<any>}
    */
-  fetchByUuid(uuid) {
+  async fetchByUuid(uuid) {
     const oThis = this;
+
     return oThis
       .select('*')
       .where({ uuid: uuid })
