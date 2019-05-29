@@ -469,6 +469,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Workflow failed."
   },
+  "send_preprocessor_webhook_failed": {
+    "http_code": "500",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Send preprocessor webhook failed."
+  },
   "initiated_recovery_mail_failure": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
