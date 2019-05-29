@@ -1,6 +1,5 @@
-'use strict';
 /**
- * This service helps in adding new webhook in our System.
+ * Module to create new webhook.
  *
  * @module app/services/webhooks/Create
  */
@@ -26,19 +25,21 @@ const rootPrefix = '../../..',
   webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
- * Class to create webhook.
+ * Class to create new webhook.
  *
  * @class CreateWebhook
  */
 class CreateWebhook extends ServiceBase {
   /**
-   * Constructor foe create webhook class.
+   * Constructor to create new webhook.
    *
-   * @param params
-   * @param {Number} params.client_id - client id
-   * @param {String} params.url - url
-   * @param {Array} params.topics - topics to subscribe
-   * @param {String} [params.status] - status
+   * @param {object} params
+   * @param {number} params.client_id: client id
+   * @param {string} params.url: url
+   * @param {array} params.topics: topics to subscribe
+   * @param {string} [params.status]: status
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -46,7 +47,7 @@ class CreateWebhook extends ServiceBase {
     super(params);
 
     const oThis = this;
-    oThis.clientId = params.clientId;
+    oThis.clientId = params.client_id;
     oThis.endpointUrl = params.url;
     oThis.eventTopics = params.topics;
     oThis.status = params.status || WebhookEndpointConstants.active;
@@ -59,7 +60,7 @@ class CreateWebhook extends ServiceBase {
   }
 
   /**
-   * perform - perform webhook creation
+   * Async perform: Perform webhook creation.
    *
    * @return {Promise<void>}
    */
@@ -95,12 +96,16 @@ class CreateWebhook extends ServiceBase {
   /**
    * Validate params.
    *
+   * @sets oThis.eventTopics, oThis.status
+   *
    * @returns {Promise<*>}
    */
   async validateParams() {
-    //check topics is not an empty array
+    // Check topics is not an empty array.
     const oThis = this;
+
     oThis.eventTopics = oThis.eventTopics.split(',');
+
     if (oThis.eventTopics.length <= 0) {
       return Promise.reject(
         responseHelper.error({
@@ -110,9 +115,10 @@ class CreateWebhook extends ServiceBase {
       );
     }
 
-    for (let i = 0; i < oThis.eventTopics.length; i++) {
-      oThis.eventTopics[i] = oThis.eventTopics[i].toLowerCase();
-      if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[i]]) {
+    for (let index = 0; index < oThis.eventTopics.length; index++) {
+      oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase();
+
+      if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[index]]) {
         return Promise.reject(
           responseHelper.error({
             internal_error_identifier: 's_w_c_2',
@@ -123,6 +129,7 @@ class CreateWebhook extends ServiceBase {
     }
 
     oThis.status = oThis.status.toLowerCase();
+
     if (!WebhookEndpointConstants.invertedStatuses[oThis.status]) {
       return Promise.reject(
         responseHelper.error({
@@ -136,20 +143,26 @@ class CreateWebhook extends ServiceBase {
   /**
    * Get endpoint.
    *
+   * @sets oThis.endpoint
+   *
    * @returns {Promise<void>}
    */
   async getEndpoint() {
-    // Query and check if endpoint is already present
+    // Query and check if endpoint is already present.
     const oThis = this;
-    let endpoints = await new WebhookEndpointModel()
+
+    const endpoints = await new WebhookEndpointModel()
       .select('*')
       .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
       .fire();
+
     oThis.endpoint = endpoints[0];
   }
 
   /**
    * Create endpoint in webhook endpoints table.
+   *
+   * @sets oThis.endpointId, oThis.uuid, oThis.secret, oThis.uuid
    *
    * @returns {Promise<never>}
    */
@@ -157,42 +170,45 @@ class CreateWebhook extends ServiceBase {
     const oThis = this;
 
     if (oThis.endpoint) {
-      if (WebhookEndpointConstants.statuses[oThis.endpoint.status] == WebhookEndpointConstants.active) {
+      if (WebhookEndpointConstants.statuses[oThis.endpoint.status] === WebhookEndpointConstants.active) {
         return Promise.reject(
           responseHelper.error({
             internal_error_identifier: 's_w_c_2',
             api_error_identifier: 'endpoint_already_present'
           })
         );
-      } else {
-        await new WebhookEndpointModel()
-          .update({
-            status: WebhookEndpointConstants.invertedStatuses[WebhookEndpointConstants.active]
-          })
-          .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
-          .fire();
       }
+      await new WebhookEndpointModel()
+        .update({
+          status: WebhookEndpointConstants.invertedStatuses[WebhookEndpointConstants.active]
+        })
+        .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
+        .fire();
+
       oThis.endpointId = oThis.endpoint.id;
       oThis.uuid = oThis.endpoint.uuid;
     } else {
-      let wEndpoints = await new WebhookEndpointModel()
+      const wEndpoints = await new WebhookEndpointModel()
         .select('*')
         .where({ client_id: oThis.clientId })
         .limit(1)
         .fire();
 
       let secret_salt;
+
       if (wEndpoints[0]) {
         secret_salt = wEndpoints[0].secret_salt;
         oThis.secret = wEndpoints[0].secret;
       } else {
         await oThis._generateSalt();
         secret_salt = oThis.secretSalt.CiphertextBlob;
+
         oThis.secret = oThis._getEncryptedApiSecret();
       }
+
       oThis.uuid = uuidV4();
 
-      let createResp = await new WebhookEndpointModel()
+      const createResp = await new WebhookEndpointModel()
         .insert({
           uuid: oThis.uuid,
           client_id: oThis.clientId,
@@ -209,24 +225,34 @@ class CreateWebhook extends ServiceBase {
   /**
    * Generate secret salt.
    *
+   * @sets oThis.secretSalt
+   *
    * @returns {Promise}
    * @private
    */
   async _generateSalt() {
     const oThis = this;
-    let kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
+
+    const kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
+
     oThis.secretSalt = await kmsObj.generateDataKey();
   }
 
   /**
    * Decrypt salt.
-   * @param encryptedSalt
+   *
+   * @param {string} encryptedSalt
+   *
+   * @sets oThis.secretSalt
+   *
    * @returns {Promise}
    * @private
    */
   async _decryptSalt(encryptedSalt) {
     const oThis = this;
-    let kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
+
+    const kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
+
     oThis.secretSalt = await kmsObj.decrypt(encryptedSalt);
   }
 
@@ -238,66 +264,86 @@ class CreateWebhook extends ServiceBase {
    */
   _getEncryptedApiSecret() {
     const oThis = this;
-    let uniqueStr = crypto.randomBytes(64).toString('hex');
-    let apiSecret = util.createSha256Digest(uniqueStr);
+
+    const uniqueStr = crypto.randomBytes(64).toString('hex');
+    const apiSecret = util.createSha256Digest(uniqueStr);
+
     return localCipher.encrypt(oThis.secretSalt.Plaintext, apiSecret);
   }
 
   /**
    * Segregate endpoint topics into create, update, or delete.
+   *
    * @returns {Promise}
    * @private
    */
   async _segregateEndpointTopics() {
     const oThis = this;
-    let wEndpointTopics = await new WebhookSubscriptionsByUuidCache({
+
+    const wEndpointTopics = await new WebhookSubscriptionsByUuidCache({
       webhookEndpointUuids: [oThis.uuid]
     }).fetch();
-    let endpointTopics = wEndpointTopics.data[oThis.uuid];
+
+    const endpointTopics = wEndpointTopics.data[oThis.uuid];
+
     oThis.activateTopicIds = [];
     oThis.deActivateTopicIds = [];
     oThis.endpointTopicsMap = {};
-    for (let i = 0; i < oThis.eventTopics.length; i++) {
-      oThis.endpointTopicsMap[oThis.eventTopics[i]] = 1;
+
+    for (let index = 0; index < oThis.eventTopics.length; index++) {
+      oThis.endpointTopicsMap[oThis.eventTopics[index]] = 1;
     }
 
-    for (let i = 0; i < endpointTopics['active'].length; i++) {
-      let inactiveTopic = endpointTopics['active'][i];
+    for (let index = 0; index < endpointTopics.active.length; index++) {
+      const inactiveTopic = endpointTopics.active[index];
+
       if (!oThis.endpointTopicsMap[inactiveTopic.topic]) {
         oThis.deActivateTopicIds.push(inactiveTopic.id);
       }
+
       delete oThis.endpointTopicsMap[inactiveTopic.topic];
     }
-    for (let i = 0; i < endpointTopics['inActive'].length; i++) {
-      let inactiveTopic = endpointTopics['inActive'][i];
+    for (let index = 0; index < endpointTopics.inActive.length; index++) {
+      const inactiveTopic = endpointTopics.inActive[index];
+
       if (oThis.endpointTopicsMap[inactiveTopic.topic]) {
         oThis.activateTopicIds.push(inactiveTopic.id);
       }
+
       delete oThis.endpointTopicsMap[inactiveTopic.topic];
     }
   }
 
   /**
+   * Create endpoint topics.
    *
    * @returns {Promise}
    * @private
    */
   async _createEndpointTopics() {
     const oThis = this;
-    for (let topic in oThis.endpointTopicsMap) {
-      await new WebhookSubscriptionModel()
-        .insert({
-          client_id: oThis.clientId,
-          topic: webhookSubscriptionConstants.invertedTopics[topic],
-          webhook_endpoint_uuid: oThis.uuid,
-          status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
-        })
-        .fire();
+
+    const promisesArray = [];
+
+    for (const topic in oThis.endpointTopicsMap) {
+      promisesArray.push(
+        new WebhookSubscriptionModel()
+          .insert({
+            client_id: oThis.clientId,
+            topic: webhookSubscriptionConstants.invertedTopics[topic],
+            webhook_endpoint_uuid: oThis.uuid,
+            status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
+          })
+          .fire()
+      );
     }
+
+    await Promise.all(promisesArray);
   }
 
   /**
    * Mark webhook endpoint topics active.
+   *
    * @returns {Promise<void>}
    * @private
    */
