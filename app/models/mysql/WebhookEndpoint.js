@@ -31,6 +31,20 @@ class WebhookEndpoint extends ModelBase {
 
     oThis.tableName = 'webhook_endpoints';
   }
+
+  /***
+   * Fetch webhook endpoints by id
+   *
+   * @param uuid {String}
+   * @return {Object}
+   */
+  fetchByUuid(uuid) {
+    const oThis = this;
+    return oThis
+      .select('*')
+      .where({ uuid: uuid })
+      .fire();
+  }
 }
 
 module.exports = WebhookEndpoint;

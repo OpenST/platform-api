@@ -1,31 +1,47 @@
 'use strict';
 /**
- * This service helps in adding new webhook in our System
+ * This service helps in adding new webhook in our System.
  *
  * @module app/services/webhooks/Create
  */
 
-const uuidV4 = require('uuid/v4'),
+const crypto = require('crypto'),
+  uuidV4 = require('uuid/v4'),
   OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  util = require(rootPrefix + '/lib/util'),
-  crypto = require('crypto'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
   WebhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
-  KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
-  localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   WebhookSubscriptionModel = require(rootPrefix + '/app/models/mysql/WebhookSubscription'),
-  WebhookSubscriptionsByEndpointIdCache = require(rootPrefix +
-    '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByEndpointId'),
+  WebhookSubscriptionsByUuidCache = require(rootPrefix +
+    '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
+  util = require(rootPrefix + '/lib/util'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
+/**
+ * Class to create webhook.
+ *
+ * @class CreateWebhook
+ */
 class CreateWebhook extends ServiceBase {
+  /**
+   * Constructor foe create webhook class.
+   *
+   * @param params
+   * @param {Number} params.client_id - client id
+   * @param {String} params.url - url
+   * @param {Array} params.topics - topics to subscribe
+   * @param {String} [params.status] - status
+   *
+   * @constructor
+   */
   constructor(params) {
     super(params);
 
@@ -43,7 +59,7 @@ class CreateWebhook extends ServiceBase {
   }
 
   /**
-   * perform - perform user creation
+   * Async performer.
    *
    * @return {Promise<void>}
    */
@@ -51,11 +67,17 @@ class CreateWebhook extends ServiceBase {
     const oThis = this;
 
     await oThis.validateParams();
+
     await oThis.getEndpoint();
+
     await oThis.createEndpoint();
+
     await oThis._segregateEndpointTopics();
+
     await oThis._createEndpointTopics();
+
     await oThis._activateEndpointTopics();
+
     await oThis._deactivateEndpointTopics();
 
     return responseHelper.successWithData({
@@ -70,6 +92,11 @@ class CreateWebhook extends ServiceBase {
     });
   }
 
+  /**
+   * Validate params.
+   *
+   * @returns {Promise<*>}
+   */
   async validateParams() {
     //check topics is not an empty array
     const oThis = this;
@@ -82,6 +109,7 @@ class CreateWebhook extends ServiceBase {
         })
       );
     }
+
     for (let i = 0; i < oThis.eventTopics.length; i++) {
       oThis.eventTopics[i] = oThis.eventTopics[i].toLowerCase();
       if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[i]]) {
@@ -105,6 +133,11 @@ class CreateWebhook extends ServiceBase {
     }
   }
 
+  /**
+   * Get endpoint.
+   *
+   * @returns {Promise<void>}
+   */
   async getEndpoint() {
     // Query and check if endpoint is already present
     const oThis = this;
@@ -115,6 +148,11 @@ class CreateWebhook extends ServiceBase {
     oThis.endpoint = endpoints[0];
   }
 
+  /**
+   * Create endpoint in webhook endpoints table.
+   *
+   * @returns {Promise<never>}
+   */
   async createEndpoint() {
     const oThis = this;
 
@@ -168,18 +206,37 @@ class CreateWebhook extends ServiceBase {
     }
   }
 
+  /**
+   * Generate secret salt.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _generateSalt() {
     const oThis = this;
     let kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
     oThis.secretSalt = await kmsObj.generateDataKey();
   }
 
+  /**
+   * Decrypt secret salt.
+   *
+   * @param encryptedSalt
+   * @returns {Promise<void>}
+   * @private
+   */
   async _decryptSalt(encryptedSalt) {
     const oThis = this;
     let kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
     oThis.secretSalt = await kmsObj.decrypt(encryptedSalt);
   }
 
+  /**
+   * Get encrypted secret.
+   *
+   * @returns {*}
+   * @private
+   */
   _getEncryptedApiSecret() {
     const oThis = this;
     let uniqueStr = crypto.randomBytes(64).toString('hex');
@@ -187,12 +244,18 @@ class CreateWebhook extends ServiceBase {
     return localCipher.encrypt(oThis.secretSalt.Plaintext, apiSecret);
   }
 
+  /**
+   * Segregate topics based on their status.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _segregateEndpointTopics() {
     const oThis = this;
-    let wEndpointTopics = await new WebhookSubscriptionsByEndpointIdCache({
-      webhookEndpointIds: [oThis.endpointId]
+    let wEndpointTopics = await new WebhookSubscriptionsByUuidCache({
+      webhookEndpointUuids: [oThis.uuid]
     }).fetch();
-    let endpointTopics = wEndpointTopics.data[oThis.endpointId];
+    let endpointTopics = wEndpointTopics.data[oThis.uuid];
     oThis.createTopics = {};
     oThis.activateTopicIds = [];
     oThis.deActivateTopicIds = [];
@@ -217,20 +280,32 @@ class CreateWebhook extends ServiceBase {
     }
   }
 
+  /**
+   * Create endpoint topics.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _createEndpointTopics() {
     const oThis = this;
-    for (var topic in oThis.endpointTopicsMap) {
+    for (let topic in oThis.endpointTopicsMap) {
       await new WebhookSubscriptionModel()
         .insert({
           client_id: oThis.clientId,
           topic: webhookSubscriptionConstants.invertedTopics[topic],
-          webhook_endpoint_id: oThis.endpointId,
+          webhook_endpoint_uuid: oThis.uuid,
           status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
         })
         .fire();
     }
   }
 
+  /**
+   * Mark webhook endpoint topics active.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _activateEndpointTopics() {
     const oThis = this;
 
@@ -244,6 +319,12 @@ class CreateWebhook extends ServiceBase {
     }
   }
 
+  /**
+   * Mark webhook endpoint topics inactive.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _deactivateEndpointTopics() {
     const oThis = this;
 
