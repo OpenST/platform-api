@@ -1,8 +1,8 @@
 'use strict';
 /**
- * This service helps in deleting webhook.
+ * This service helps in fetching webhook by webhook id(uuid).
  *
- * @module app/services/webhooks/Delete
+ * @module app/services/webhooks/Get
  */
 
 const OSTBase = require('@ostdotcom/base'),
@@ -10,8 +10,6 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
-  WebhookSubscriptionModel = require(rootPrefix + '/app/models/mysql/WebhookSubscription'),
   WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
@@ -19,17 +17,16 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
-  webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint');
 
 /**
- * Class to delete webhook.
+ * Class to get webhook.
  *
- * @class DeleteWebhook
+ * @class GetWebhook
  */
-class DeleteWebhook extends ServiceBase {
+class GetWebhook extends ServiceBase {
   /**
-   * Constructor for delete webhook class.
+   * Constructor for get webhook class.
    *
    * @param {Object} params
    * @param {Number} params.client_id
@@ -44,7 +41,6 @@ class DeleteWebhook extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.webhookId = params.webhook_id;
-
     oThis.topics = [];
   }
 
@@ -58,19 +54,13 @@ class DeleteWebhook extends ServiceBase {
 
     await oThis._validateWebhookId();
 
-    await oThis._prepareResponseData();
-
-    await oThis._markWebhookSubscriptionsInactive();
-
-    await oThis._markWebhookEndpointsInactive();
-
-    await oThis._clearCache();
+    await oThis._fetchWebhookSubscriptions();
 
     return responseHelper.successWithData({
       [resultType.webhook]: {
         id: oThis.webhookId,
         url: oThis.webhookEndpointRsp.endpoint,
-        status: webhookEndpointConstants.inActive,
+        status: oThis.webhookEndpointRsp.status,
         topics: oThis.topics,
         updatedTimestamp: basicHelper.dateToSecondsTimestamp(oThis.webhookEndpointRsp.updatedAt)
       }
@@ -78,7 +68,7 @@ class DeleteWebhook extends ServiceBase {
   }
 
   /**
-   * Validates webhookId.
+   * Validates webhook id.
    *
    * @returns {Promise<never>}
    * @private
@@ -94,13 +84,13 @@ class DeleteWebhook extends ServiceBase {
     if (
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
-      oThis.webhookEndpointRsp.clientId !== oThis.clientId ||
-      oThis.webhookEndpointRsp.status == webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive] ||
+      oThis.webhookEndpointRsp.status ===
+        webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive] ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_w_d_1',
+          internal_error_identifier: 'a_s_w_g_1',
           api_error_identifier: 'invalid_webhook_uuid',
           debug_options: {}
         })
@@ -113,7 +103,7 @@ class DeleteWebhook extends ServiceBase {
    *
    * @private
    */
-  async _prepareResponseData() {
+  async _fetchWebhookSubscriptions() {
     const oThis = this,
       webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
         webhookEndpointUuids: [oThis.webhookId]
@@ -125,60 +115,8 @@ class DeleteWebhook extends ServiceBase {
       oThis.topics.push(activeWebhooks[i].topic);
     }
   }
-
-  /**
-   * Mark webhook subscriptions inactive.
-   *
-   * @returns {Promise<never>}
-   * @private
-   */
-  async _markWebhookSubscriptionsInactive() {
-    const oThis = this,
-      webhookSubscriptionRsp = await new WebhookSubscriptionModel()
-        .update({
-          status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.inActiveStatus]
-        })
-        .where({
-          webhook_endpoint_uuid: oThis.webhookId
-        })
-        .fire();
-  }
-
-  /**
-   * Mark webhook endpoints inactive.
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _markWebhookEndpointsInactive() {
-    const oThis = this,
-      webhookEndpointRsp = await new WebhookEndpointModel()
-        .update({
-          status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive]
-        })
-        .where({
-          uuid: oThis.webhookId
-        })
-        .fire();
-  }
-
-  /**
-   * Clear cache.
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _clearCache() {
-    const oThis = this;
-
-    // Clear webhook subscriptions cache.
-    await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
-
-    // Clear webhook endpoints cache.
-    await new WebhookEndpointCache({ uuid: oThis.webhookId }).clear();
-  }
 }
 
-InstanceComposer.registerAsShadowableClass(DeleteWebhook, coreConstants.icNameSpace, 'DeleteWebhook');
+InstanceComposer.registerAsShadowableClass(GetWebhook, coreConstants.icNameSpace, 'GetWebhook');
 
 module.exports = {};
