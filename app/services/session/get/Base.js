@@ -1,42 +1,46 @@
-'use strict';
 /**
- *  Fetch session details by userId and addresses.
+ * Module to fetch session details by userId and addresses.
  *
  * @module app/services/session/get/Base
  */
 
 const rootPrefix = '../../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  ServiceBase = require(rootPrefix + '/app/services/Base');
+  sessionConstants = require(rootPrefix + '/lib/globalConstant/session');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/cacheManagement/shared/BlockTimeDetails');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/nonce/contract/TokenHolder');
 
 /**
- * Class for get sessions base.
+ * Class to fetch session details by userId and addresses.
  *
- * @class
+ * @class GetSessionBase
  */
 class GetSessionBase extends ServiceBase {
   /**
+   * Constructor to fetch session details by userId and addresses.
    *
-   * @param {Object} params
-   * @param {String}   params.user_id
-   * @param {Integer} params.client_id
-   * @param {Integer} [params.token_id]
+   * @param {object} params
+   * @param {string}   params.user_id
+   * @param {integer} params.client_id
+   * @param {integer} [params.token_id]
+   *
+   * @augments ServiceBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
+
     oThis.userId = params.user_id;
     oThis.tokenId = params.token_id;
     oThis.clientId = params.client_id;
@@ -49,7 +53,7 @@ class GetSessionBase extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Async perform.
    *
    * @returns {Promise<*|result>}
    */
@@ -74,16 +78,15 @@ class GetSessionBase extends ServiceBase {
   /**
    * Fetch session shard number of user
    *
-   * Sets oThis.sessionShardNumber
+   * @sets oThis.sessionShardNumber
    *
    * @return {Promise<never>}
-   *
    * @private
    */
   async _fetchUserSessionShardNumber() {
     const oThis = this;
 
-    let TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
       tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] }),
       cacheFetchRsp = await tokenUserDetailsCacheObj.fetch(),
       userData = cacheFetchRsp.data[oThis.userId];
@@ -103,12 +106,11 @@ class GetSessionBase extends ServiceBase {
   }
 
   /**
-   * Set last known block details of a specifc chain
+   * Set last known block details of a specific chain.
    *
-   * Sets oThis.lastKnownChainBlockDetails
+   * @sets oThis.lastKnownChainBlockDetails
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _setLastKnownChainBlockDetails() {
@@ -117,7 +119,7 @@ class GetSessionBase extends ServiceBase {
       BlockTimeDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BlockTimeDetailsCache'),
       blockTimeDetailsCache = new BlockTimeDetailsCache({ chainId: chainId });
 
-    let blockDetails = await blockTimeDetailsCache.fetch();
+    const blockDetails = await blockTimeDetailsCache.fetch();
 
     oThis.lastKnownChainBlockDetails = {
       blockGenerationTime: Number(blockDetails.data.blockGenerationTime),
@@ -127,22 +129,21 @@ class GetSessionBase extends ServiceBase {
   }
 
   /**
-   * Fetch session extended details
+   * Fetch session extended details.
    *
    * @returns {Promise<*>}
-   *
    * @private
    */
   async _fetchSessionsExtendedDetails() {
     const oThis = this;
 
-    let sessionsMap = (await oThis._fetchSessionsFromCache()).data;
+    const sessionsMap = (await oThis._fetchSessionsFromCache()).data;
 
-    let noncePromiseArray = [],
+    const noncePromiseArray = [],
       currentTimestamp = Math.floor(new Date() / 1000);
 
-    for (let index in oThis.sessionAddresses) {
-      let sessionAddress = oThis.sessionAddresses[index],
+    for (const index in oThis.sessionAddresses) {
+      const sessionAddress = oThis.sessionAddresses[index],
         session = sessionsMap[sessionAddress];
 
       if (!CommonValidators.validateObject(session)) {
@@ -155,16 +156,16 @@ class GetSessionBase extends ServiceBase {
       if (session.status === sessionConstants.authorizedStatus) {
         session.expirationHeight = Number(session.expirationHeight);
 
-        let blockDifference = session.expirationHeight - oThis.lastKnownChainBlockDetails.lastKnownBlockNumber,
-          timeDifferenceInSecs = blockDifference * oThis.lastKnownChainBlockDetails.blockGenerationTime,
-          approxTimeInSecs = oThis.lastKnownChainBlockDetails.lastKnownBlockTime + timeDifferenceInSecs;
+        const blockDifference = session.expirationHeight - oThis.lastKnownChainBlockDetails.lastKnownBlockNumber,
+          timeDifferenceInSecs = blockDifference * oThis.lastKnownChainBlockDetails.blockGenerationTime;
 
-        session.expirationTimestamp = approxTimeInSecs;
+        session.expirationTimestamp = oThis.lastKnownChainBlockDetails.lastKnownBlockTime + timeDifferenceInSecs;
       }
 
-      // Compare approx expirtaion time with current time and avoid fetching nonce from contract.
+      // Compare approx expiration time with current time and avoid fetching nonce from contract.
       // If session is expired then avoid fetching from contract.
-      let approxExpirationTimestamp = session.expirationTimestamp || 0;
+      const approxExpirationTimestamp = session.expirationTimestamp || 0;
+
       if (Number(approxExpirationTimestamp) > currentTimestamp) {
         noncePromiseArray.push(oThis._fetchSessionTokenHolderNonce(session.address));
       }
@@ -174,8 +175,8 @@ class GetSessionBase extends ServiceBase {
 
     await Promise.all(noncePromiseArray);
 
-    for (let i = 0; i < oThis.sessionDetails.length; i++) {
-      let session = oThis.sessionDetails[i];
+    for (let index = 0; index < oThis.sessionDetails.length; index++) {
+      const session = oThis.sessionDetails[index];
       session.nonce = oThis.sessionNonce[session.address] || null;
     }
   }
@@ -188,7 +189,7 @@ class GetSessionBase extends ServiceBase {
   async _fetchSessionsFromCache() {
     const oThis = this;
 
-    let SessionsByAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
+    const SessionsByAddressCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
       sessionsByAddressCache = new SessionsByAddressCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
@@ -211,16 +212,19 @@ class GetSessionBase extends ServiceBase {
   }
 
   /**
-   * Fetch nonce from contract
+   * Fetch nonce from contract.
    *
-   * Sets oThis.sessionNonce
+   * @param {string} sessionAddress
    *
+   * @sets oThis.sessionNonce
+   *
+   * @returns {Promise<any>}
    * @private
    */
   _fetchSessionTokenHolderNonce(sessionAddress) {
     const oThis = this;
 
-    let TokenHolderNonceKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenHolderNonce'),
+    const TokenHolderNonceKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenHolderNonce'),
       auxChainId = oThis.ic().configStrategy.auxGeth.chainId,
       params = {
         auxChainId: auxChainId,
@@ -229,7 +233,7 @@ class GetSessionBase extends ServiceBase {
         sessionAddress: sessionAddress
       };
 
-    return new Promise(function(onResolve, onReject) {
+    return new Promise(function(onResolve) {
       logger.debug('Fetching nonce session token holder nonce. SessionAddress:', sessionAddress);
       new TokenHolderNonceKlass(params)
         .perform()
@@ -250,26 +254,31 @@ class GetSessionBase extends ServiceBase {
   /**
    * Validate and sanitize input parameters.
    *
-   * @returns {*}
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _validateAndSanitizeParams() {
-    throw 'sub-class to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Set session addresses.
+   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setSessionAddresses() {
-    throw 'sub-class to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Format API response.
+   *
+   * @returns {Promise<void>}
    * @private
    */
   async _formatApiResponse() {
-    throw 'sub-class to implement';
+    throw new Error('Sub-class to implement.');
   }
 }
 

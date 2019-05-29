@@ -1,7 +1,5 @@
-'use strict';
-
 /**
- * Base Execute Tx service
+ * Module for execute transaction base.
  *
  * @module app/services/transaction/execute/Base
  */
@@ -11,9 +9,19 @@ const uuidv4 = require('uuid/v4'),
   TokenHolderHelper = OpenSTJs.Helpers.TokenHolder;
 
 const rootPrefix = '../../../..',
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
+  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
+  ProcessTokenRuleExecutableData = require(rootPrefix +
+    '/lib/executeTransactionManagement/processExecutableData/TokenRule'),
+  ProcessPricerRuleExecutableData = require(rootPrefix +
+    '/lib/executeTransactionManagement/processExecutableData/PricerRule'),
+  TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   kwcConstant = require(rootPrefix + '/lib/globalConstant/kwc'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -22,49 +30,42 @@ const rootPrefix = '../../../..',
   ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   errorConstant = require(rootPrefix + '/lib/globalConstant/error'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
-  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
-  TransactionMetaModel = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
-  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
-  TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
-  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
-  ProcessTokenRuleExecutableData = require(rootPrefix +
-    '/lib/executeTransactionManagement/processExecutableData/TokenRule'),
-  ProcessPricerRuleExecutableData = require(rootPrefix +
-    '/lib/executeTransactionManagement/processExecutableData/PricerRule'),
-  TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
+  errorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
+  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
+  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction');
 
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/app/models/ddb/sharded/Balance');
 require(rootPrefix + '/lib/executeTransactionManagement/GetPublishDetails');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserDetail');
 
 /**
- * Class
+ * Class for execute transaction base.
  *
- * @class
+ * @class ExecuteTxBase
  */
 class ExecuteTxBase extends ServiceBase {
   /**
-   * Constructor
+   * Constructor for execute transaction base.
    *
-   * @param {Object} params
-   * @param {String} params.user_id - user_id
-   * @param {Number} params.token_id - token id
-   * @param {Object} params.client_id - client id
-   * @param {String} params.to - rules address
-   * @param {Object} params.raw_calldata - raw_calldata
-   * @param {Object} [params.meta_property]
+   * @param {object} params
+   * @param {string} params.user_id: user_id
+   * @param {number} params.token_id: token id
+   * @param {object} params.client_id: client id
+   * @param {string} params.to: rules address
+   * @param {object} params.raw_calldata: raw_calldata
+   * @param {object} [params.meta_property]
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -100,7 +101,7 @@ class ExecuteTxBase extends ServiceBase {
     oThis.gasPrice = null;
     oThis.estimatedTransfers = null;
     oThis.failureStatusToUpdateInTxMeta = null;
-    oThis.pessimisticAmountDebitted = null;
+    oThis.pessimisticAmountDebited = null;
     oThis.pendingTransactionInserted = null;
     oThis.transactionMetaId = null;
     oThis.token = null;
@@ -111,14 +112,13 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * Main performer method for the class.
+   * Main performer for class.
    *
    * @returns {Promise<T>}
    */
   perform() {
     const oThis = this;
 
-    // TODO - use perform from service base
     return oThis._asyncPerform().catch(async function(err) {
       let customError;
       if (responseHelper.isCustomResult(err)) {
@@ -139,7 +139,7 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * asyncPerform
+   * Async perform.
    *
    * @return {Promise<any>}
    */
@@ -169,7 +169,7 @@ class ExecuteTxBase extends ServiceBase {
 
     logger.debug('execute_tx_step_: 6', oThis.transactionUuid);
 
-    await oThis._setExecutableTxData();
+    oThis._setExecutableTxData();
 
     logger.debug('execute_tx_step_: 7', oThis.transactionUuid);
 
@@ -205,7 +205,9 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * Initializes web3 and rmq instances and fetches token holder address
+   * Initializes web3 and rmq instances and fetches token holder address.
+   *
+   * @sets oThis.toAddress, oThis.gasPrice, oThis.transactionUuid
    *
    * @return {Promise<void>}
    * @private
@@ -231,18 +233,21 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setTokenHolderAddress();
 
-    await oThis._setCallPrefix();
+    oThis._setCallPrefix();
   }
 
   /**
-   * Process executable data
+   * Process executable data.
    *
+   * @sets oThis.pessimisticDebitAmount, oThis.transferExecutableData, oThis.estimatedTransfers, oThis.gas
+   *
+   * @returns {Promise<Promise|Promise<*|Promise<never>|undefined>>}
    * @private
    */
   async _processExecutableData() {
     const oThis = this;
 
-    let ruleDetails = await oThis._getRulesDetails();
+    const ruleDetails = await oThis._getRulesDetails();
 
     let response;
 
@@ -274,7 +279,8 @@ class ExecuteTxBase extends ServiceBase {
       return Promise.reject(response);
     }
 
-    let responseData = response.data;
+    const responseData = response.data;
+
     oThis.pessimisticDebitAmount = responseData.pessimisticDebitAmount;
     oThis.transferExecutableData = responseData.transferExecutableData;
     oThis.estimatedTransfers = responseData.estimatedTransfers;
@@ -284,16 +290,17 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
+   * Set user uuids.
    *
-   * set user uuids
+   * @param {array} transferToAddresses
    *
-   * @param {Array} transferToAddresses
-   *
+   * @returns {Promise<Promise|Promise<Promise<never>|*|undefined>>}
    * @private
    */
   async _setUserUuidsInEstimatedTransfers(transferToAddresses) {
     const oThis = this;
-    let UserDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
+
+    const UserDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserDetailCache'),
       userDetailRsp = await new UserDetailCache({
         tokenId: oThis.tokenId,
         tokenHolderAddresses: transferToAddresses,
@@ -303,13 +310,14 @@ class ExecuteTxBase extends ServiceBase {
       return Promise.reject(userDetailRsp);
     }
 
-    let userDetailsData = userDetailRsp.data;
+    const userDetailsData = userDetailRsp.data;
 
-    //merge oThis.userId's data in user details
-    userDetailsData[oThis.userData['tokenHolderAddress']] = oThis.userData;
+    // Merge oThis.userId's data in user details.
+    userDetailsData[oThis.userData.tokenHolderAddress] = oThis.userData;
 
-    for (let i = 0; i < transferToAddresses.length; i++) {
-      let userDetail = userDetailsData[transferToAddresses[i]];
+    for (let index = 0; index < transferToAddresses.length; index++) {
+      const userDetail = userDetailsData[transferToAddresses[index]];
+
       if (!CommonValidators.validateObject(userDetail) || userDetail.tokenId != oThis.tokenId) {
         return oThis._validationError('s_et_b_5', ['invalid_raw_calldata_parameter_address'], {
           transferToAddresses: transferToAddresses
@@ -317,22 +325,26 @@ class ExecuteTxBase extends ServiceBase {
       }
     }
 
-    for (let i = 0; i < oThis.estimatedTransfers.length; i++) {
-      let estimatedTransfer = oThis.estimatedTransfers[i],
+    for (let index = 0; index < oThis.estimatedTransfers.length; index++) {
+      const estimatedTransfer = oThis.estimatedTransfers[index],
         fromUserData = userDetailsData[estimatedTransfer.fromAddress],
         toUserData = userDetailsData[estimatedTransfer.toAddress];
-      if (fromUserData && fromUserData['userId']) {
-        estimatedTransfer.fromUserId = fromUserData['userId'];
+
+      if (fromUserData && fromUserData.userId) {
+        estimatedTransfer.fromUserId = fromUserData.userId;
       }
-      if (toUserData && toUserData['userId']) {
-        estimatedTransfer.toUserId = toUserData['userId'];
+      if (toUserData && toUserData.userId) {
+        estimatedTransfer.toUserId = toUserData.userId;
       }
     }
   }
 
   /**
-   * Perform Pessimistic Debit
+   * Perform pessimistic debit.
    *
+   * @sets oThis.pessimisticAmountDebited, oThis.unsettledDebits
+   *
+   * @returns {Promise<void>}
    * @private
    */
   async _performPessimisticDebit() {
@@ -340,10 +352,10 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._setBalanceShardNumber();
 
-    let BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
+    const BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
       balanceObj = new BalanceModel({ shardNumber: oThis.balanceShardNumber });
 
-    let balanceUpdateParams = {
+    const balanceUpdateParams = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
       blockChainUnsettleDebits: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount)
@@ -363,11 +375,11 @@ class ExecuteTxBase extends ServiceBase {
         );
       }
       logger.error('updateBalance error in app/services/transaction/execute/Base', updateBalanceResponse);
+
       return Promise.reject(updateBalanceResponse);
     });
 
-    oThis.pessimisticAmountDebitted = true;
-
+    oThis.pessimisticAmountDebited = true;
     oThis.unsettledDebits = [balanceUpdateParams];
   }
 
@@ -376,13 +388,21 @@ class ExecuteTxBase extends ServiceBase {
    *
    * @private
    */
+  /**
+   * Get balance shard for token id.
+   *
+   * @sets oThis.balanceShardNumber
+   *
+   * @returns {Promise<Promise<never>|undefined>}
+   * @private
+   */
   async _setBalanceShardNumber() {
     const oThis = this,
       TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
 
-    let response = await new TokenShardNumbersCache({ tokenId: oThis.tokenId }).fetch();
+    const response = await new TokenShardNumbersCache({ tokenId: oThis.tokenId }).fetch();
 
-    let balanceShardNumber = response.data[entityConst.balanceEntityKind];
+    const balanceShardNumber = response.data[entityConst.balanceEntityKind];
 
     if (!balanceShardNumber) {
       return Promise.reject(
@@ -400,7 +420,9 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * create entry in tx meta table.
+   * Create entry in tx meta table.
+   *
+   * @sets oThis.transactionMetaId
    *
    * @return {Promise<void>}
    * @private
@@ -408,7 +430,7 @@ class ExecuteTxBase extends ServiceBase {
   async _createTransactionMeta() {
     const oThis = this;
 
-    let createRsp = await new TransactionMetaModel()
+    const createRsp = await new TransactionMetaModel()
       .insert({
         transaction_uuid: oThis.transactionUuid,
         associated_aux_chain_id: oThis.auxChainId,
@@ -425,17 +447,18 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
+   * Rollback pessimistic debit.
    *
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _rollBackPessimisticDebit() {
     const oThis = this;
 
-    let BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
+    const BalanceModel = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'BalanceModel'),
       balanceObj = new BalanceModel({ shardNumber: oThis.balanceShardNumber });
 
-    let buffer = {
+    const buffer = {
       erc20Address: oThis.tokenAddresses[tokenAddressConstants.utilityBrandedTokenContract],
       tokenHolderAddress: oThis.tokenHolderAddress,
       blockChainUnsettleDebits: basicHelper.formatWeiToString(oThis.pessimisticDebitAmount.mul(-1))
@@ -444,17 +467,19 @@ class ExecuteTxBase extends ServiceBase {
     await balanceObj.updateBalance(buffer);
   }
 
-  /***
+  /**
+   * Create pending transaction in Db.
    *
-   * Create Pending transaction in Db
+   * @sets oThis.pendingTransactionInserted, oThis.pendingTransactionData
    *
-   * @return {Promise<*>}
+   * @returns {Promise<Promise<never>|undefined>}
+   * @private
    */
   async _createPendingTransaction() {
     const oThis = this,
       currentTimestamp = basicHelper.getCurrentTimestampInSeconds();
 
-    let insertRsp = await new PendingTransactionCrud(oThis.auxChainId).create({
+    const insertRsp = await new PendingTransactionCrud(oThis.auxChainId).create({
       transactionData: {
         to: oThis.tokenHolderAddress,
         gas: oThis.gas,
@@ -482,12 +507,13 @@ class ExecuteTxBase extends ServiceBase {
       return Promise.reject(insertRsp);
     }
     logger.debug('inserted inTxMeta with id: ', oThis.transactionUuid);
+
     oThis.pendingTransactionInserted = 1;
     oThis.pendingTransactionData = insertRsp.data;
   }
 
   /**
-   * Publish to RMQ
+   * Publish to RMQ.
    *
    * @return {Promise<void>}
    * @private
@@ -500,12 +526,13 @@ class ExecuteTxBase extends ServiceBase {
         ephemeralAddress: oThis.sessionKeyAddress
       });
 
-    let publishDetails = await exTxGetPublishDetails.perform().catch(async function(error) {
+    const publishDetails = await exTxGetPublishDetails.perform().catch(async function(error) {
       logger.error(`In catch block of exTxGetPublishDetails in file: ${__filename}`, error);
+
       return Promise.reject(error);
     });
 
-    let messageParams = {
+    const messageParams = {
       topics: [publishDetails.topicName],
       publisher: 'OST',
       message: {
@@ -518,10 +545,11 @@ class ExecuteTxBase extends ServiceBase {
       }
     };
 
-    let setToRMQ = await oThis.rmqInstance.publishEvent.perform(messageParams);
+    const setToRMQ = await oThis.rmqInstance.publishEvent.perform(messageParams);
 
     if (setToRMQ.isFailure()) {
       oThis.failureStatusToUpdateInTxMeta = transactionMetaConst.queuedFailedStatus;
+
       return Promise.reject(setToRMQ);
     }
 
@@ -529,9 +557,10 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * Revert operations
+   * Revert operations.
    *
-   * @param customError
+   * @param {object} customError
+   *
    * @return {Promise<void>}
    * @private
    */
@@ -569,17 +598,19 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
+   * Revert pessmistic debit.
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _revertPessimisticDebit() {
     const oThis = this;
 
-    if (oThis.pessimisticAmountDebitted) {
+    if (oThis.pessimisticAmountDebited) {
       logger.debug('something_went_wrong rolling back pessimistic debited balances');
 
       await oThis._rollBackPessimisticDebit().catch(async function(rollbackError) {
-        logger.error(`In catch block of _rollBackPessimisticDebit`, rollbackError);
+        logger.error('In catch block of _rollBackPessimisticDebit', rollbackError);
 
         if (oThis.pendingTransactionInserted) {
           // If entry was inserted in pending_tx table, error handler could come and rollback balances later
@@ -595,20 +626,23 @@ class ExecuteTxBase extends ServiceBase {
             }
           });
 
-          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
+          await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
         }
       });
     }
   }
 
   /**
-   * Create a RabbitMQ instance
+   * Create a RabbitMQ instance.
+   *
+   * @sets oThis.rmqInstance
    *
    * @return {Promise<void>}
    * @private
    */
   async _setRmqInstance() {
     const oThis = this;
+
     oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstant.auxRabbitmqKind, {
       connectionWaitSeconds: connectionTimeoutConst.crons,
       switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
@@ -617,18 +651,23 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * Create auxiliary web3 instance
+   * Create auxiliary web3 instance.
+   *
+   * @sets oThis.web3Instance
    *
    * @return {Promise<void>}
    * @private
    */
   async _setWeb3Instance() {
     const oThis = this;
+
     oThis.web3Instance = await web3Provider.getInstance(oThis._configStrategyObject.auxChainWsProvider).web3WsProvider;
   }
 
   /**
-   * Get Token Rule Details from cache
+   * Get token rule details from cache.
+   *
+   * @sets oThis.tokenRuleAddress, oThis.pricerRuleAddress
    *
    * @return {Promise<never>}
    * @private
@@ -636,7 +675,7 @@ class ExecuteTxBase extends ServiceBase {
   async _getRulesDetails() {
     const oThis = this;
 
-    let tokenRuleDetailsCacheRsp = await new TokenRuleDetailsByTokenId({ tokenId: oThis.tokenId }).fetch();
+    const tokenRuleDetailsCacheRsp = await new TokenRuleDetailsByTokenId({ tokenId: oThis.tokenId }).fetch();
 
     if (tokenRuleDetailsCacheRsp.isFailure() || !tokenRuleDetailsCacheRsp.data) {
       return Promise.reject(tokenRuleDetailsCacheRsp);
@@ -644,6 +683,7 @@ class ExecuteTxBase extends ServiceBase {
 
     oThis.tokenRuleAddress = tokenRuleDetailsCacheRsp.data[ruleConstants.tokenRuleName].address;
     oThis.pricerRuleAddress = tokenRuleDetailsCacheRsp.data[ruleConstants.pricerRuleName].address;
+
     return tokenRuleDetailsCacheRsp.data;
   }
 
@@ -652,10 +692,18 @@ class ExecuteTxBase extends ServiceBase {
    *
    * @private
    */
+  /**
+   * Fetch token addresses from cache.
+   *
+   * @sets oThis.tokenAddresses, oThis.erc20Address
+   *
+   * @returns {Promise<Promise<never>|undefined>}
+   * @private
+   */
   async _setTokenAddresses() {
     const oThis = this;
 
-    let getAddrRsp = await new TokenAddressCache({
+    const getAddrRsp = await new TokenAddressCache({
       tokenId: oThis.tokenId
     }).fetch();
 
@@ -673,15 +721,16 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
+   * Return validation error.
    *
    * @param {string} code
    * @param {array} paramErrors
    * @param {object} debugOptions
    *
    * @return {Promise}
+   * @private
    */
   _validationError(code, paramErrors, debugOptions) {
-    const oThis = this;
     return Promise.reject(
       responseHelper.paramValidationError({
         internal_error_identifier: code,
@@ -693,14 +742,18 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * Object of config strategy class
+   * Object of config strategy class.
    *
-   * @return {Object}
+   * @sets oThis.configStrategyObj
+   *
+   * @return {object}
    */
   get _configStrategyObject() {
     const oThis = this;
 
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    if (oThis.configStrategyObj) {
+      return oThis.configStrategyObj;
+    }
 
     oThis.configStrategyObj = new ConfigStrategyObject(oThis.ic().configStrategy);
 
@@ -708,10 +761,13 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * set call prefix
+   * Set call prefix.
+   *
+   * @sets oThis.callPrefix
+   *
    * @private
    */
-  async _setCallPrefix() {
+  _setCallPrefix() {
     const oThis = this,
       tokenHolderHelper = new TokenHolderHelper(oThis.web3Instance, oThis.tokenHolderAddress);
 
@@ -719,15 +775,18 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * set executable tx data
+   * Set executable tx data.
+   *
+   * @sets oThis.executableTxData
+   *
    * @private
    */
-  async _setExecutableTxData() {
+  _setExecutableTxData() {
     const oThis = this;
 
     oThis.executableTxData = {
       from: oThis.web3Instance.utils.toChecksumAddress(oThis.tokenHolderAddress), // TH proxy address
-      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // rule contract address (TR / Pricer)
+      to: oThis.web3Instance.utils.toChecksumAddress(oThis.toAddress), // Rule contract address (TR / Pricer)
       data: oThis.transferExecutableData,
       nonce: oThis.sessionKeyNonce,
       callPrefix: oThis.callPrefix
@@ -736,87 +795,88 @@ class ExecuteTxBase extends ServiceBase {
 
   get auxChainId() {
     const oThis = this;
+
     return oThis._configStrategyObject.auxChainId;
   }
 
   /**
+   * Set current user data.
    *
-   * set current user data
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setCurrentUserData() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Set token holder address.
    *
-   * set token holder address
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setTokenHolderAddress() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Set token shard details.
    *
-   * set token shard details
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setTokenShardDetails() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Set session address which would sign this transaction.
    *
-   * set session address wihch would sign this transaction
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setSessionAddress() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Set nonce.
    *
-   * set nonce
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setNonce() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Set signature.
    *
-   * set signature
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setSignature() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Validate and sanitize params.
    *
-   * validate and sanitize params
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _validateAndSanitize() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
+   * Verify session spending limit.
    *
-   * verify session spending limit
-   *
+   * @returns {Promise<void>}
    * @private
    */
   async _verifySessionSpendingLimit() {
-    throw 'subclass to implement';
+    throw new Error('Sub-class to implement.');
   }
 }
 
