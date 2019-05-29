@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -24,16 +25,15 @@ const rootPrefix = '../../..',
 /**
  * Class to delete webhook.
  *
- * @class Delete
+ * @class DeleteWebhook
  */
-class Delete extends ServiceBase {
+class DeleteWebhook extends ServiceBase {
   /**
-   * Constructor foe delete webhook class.
+   * Constructor for delete webhook class.
    *
-   * @param params
-   * @param params
-   * @param params
-   *
+   * @param {Object} params
+   * @param {Number} params.client_id
+   * @param {String} params.webhook_id - uuid v4
    *
    * @constructor
    */
@@ -46,7 +46,7 @@ class Delete extends ServiceBase {
     oThis.webhookId = params.webhook_id;
 
     oThis.webhooksEndpointId = null;
-    oThis.response = {};
+    oThis.topics = [];
   }
 
   /**
@@ -65,7 +65,17 @@ class Delete extends ServiceBase {
 
     await oThis._markWebhookEndpointsInactive();
 
-    return responseHelper.successWithData({ [resultType.user]: oThis.response });
+    await oThis._clearCache();
+
+    return responseHelper.successWithData({
+      [resultType.webhook]: {
+        id: oThis.webhookId,
+        url: oThis.webhookEndpointRsp.endpoint,
+        status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive],
+        topics: oThis.topics,
+        updatedTimestamp: basicHelper.dateToSecondsTimestamp(oThis.webhookEndpointRsp.updatedAt)
+      }
+    });
   }
 
   /**
@@ -78,7 +88,8 @@ class Delete extends ServiceBase {
     const oThis = this,
       webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
 
-    if (!webhookEndpointCacheRsp.data || !webhookEndpointCacheRsp.data.uuid) {
+    oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
+    if (!oThis.webhookEndpointRsp || !oThis.webhookEndpointRsp.uuid) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_w_d_1',
@@ -87,12 +98,6 @@ class Delete extends ServiceBase {
         })
       );
     }
-
-    console.log('webhookEndpointCacheRsp ==========', webhookEndpointCacheRsp);
-
-    oThis.response.endpoint = webhookEndpointCacheRsp.data.endpoint;
-    oThis.response.status = webhookEndpointConstants.statuses[webhookEndpointCacheRsp.data.status];
-    oThis.response.updatedTimestamp = webhookEndpointCacheRsp.data.updated_at;
   }
 
   /**
@@ -108,16 +113,9 @@ class Delete extends ServiceBase {
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data[oThis.webhookId],
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
-    console.log('webhookSubscriptionCacheRsp ==========', webhookSubscriptionCacheRsp);
-
     for (let i = 0; i < activeWebhooks.length; i++) {
       oThis.topics.push(activeWebhooks[i].topic);
     }
-
-    console.log('activeWebhooks ==========', activeWebhooks);
-
-    oThis.response.uuid = oThis.webhookId;
-    oThis.response.topics = oThis.topics;
   }
 
   /**
@@ -155,8 +153,24 @@ class Delete extends ServiceBase {
         })
         .fire();
   }
+
+  /**
+   * Clear cache.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _clearCache() {
+    const oThis = this;
+
+    // Clear webhook subscriptions cache.
+    await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
+
+    // Clear webhook endpoints cache.
+    await new WebhookEndpointCache({ uuid: oThis.webhookId }).clear();
+  }
 }
 
-InstanceComposer.registerAsShadowableClass(Delete, coreConstants.icNameSpace, 'DeleteWebhook');
+InstanceComposer.registerAsShadowableClass(DeleteWebhook, coreConstants.icNameSpace, 'DeleteWebhook');
 
 module.exports = {};

@@ -36,7 +36,7 @@ class CreateWebhook extends ServiceBase {
    * @param {object} params
    * @param {number} params.client_id: client id
    * @param {string} params.url: url
-   * @param {array} params.topics: topics to subscribe
+   * @param {string} params.topics: comma separated string of topics to subscribe
    * @param {string} [params.status]: status
    *
    * @augments ServiceBase
@@ -67,7 +67,7 @@ class CreateWebhook extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis.validateParams();
+    await oThis._validateAndSanitizeParams();
 
     await oThis.getEndpoint();
 
@@ -80,6 +80,8 @@ class CreateWebhook extends ServiceBase {
     await oThis._activateEndpointTopics();
 
     await oThis._deactivateEndpointTopics();
+
+    await oThis._clearCache();
 
     return responseHelper.successWithData({
       [resultType.webhook]: {
@@ -100,7 +102,7 @@ class CreateWebhook extends ServiceBase {
    *
    * @returns {Promise<*>}
    */
-  async validateParams() {
+  async _validateAndSanitizeParams() {
     // Check topics is not an empty array.
     const oThis = this;
 
@@ -110,7 +112,7 @@ class CreateWebhook extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_w_c_1',
-          api_error_identifier: 'invalid_url'
+          api_error_identifier: 'invalid_topics'
         })
       );
     }
@@ -118,6 +120,10 @@ class CreateWebhook extends ServiceBase {
     for (let index = 0; index < oThis.eventTopics.length; index++) {
       oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase();
 
+      console.log(
+        '--------webhookSubscriptionConstants.invertedTopics-----------',
+        webhookSubscriptionConstants.invertedTopics
+      );
       if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[index]]) {
         return Promise.reject(
           responseHelper.error({
@@ -162,7 +168,7 @@ class CreateWebhook extends ServiceBase {
   /**
    * Create endpoint in webhook endpoints table.
    *
-   * @sets oThis.endpointId, oThis.uuid, oThis.secret, oThis.uuid
+   * @sets oThis.endpointId, oThis.uuid, oThis.secret
    *
    * @returns {Promise<never>}
    */
@@ -173,7 +179,7 @@ class CreateWebhook extends ServiceBase {
       if (WebhookEndpointConstants.statuses[oThis.endpoint.status] === WebhookEndpointConstants.active) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 's_w_c_2',
+            internal_error_identifier: 's_w_c_4',
             api_error_identifier: 'endpoint_already_present'
           })
         );
@@ -286,6 +292,8 @@ class CreateWebhook extends ServiceBase {
 
     const endpointTopics = wEndpointTopics.data[oThis.uuid];
 
+    console.log('--endpointTopics----------', endpointTopics);
+
     oThis.activateTopicIds = [];
     oThis.deActivateTopicIds = [];
     oThis.endpointTopicsMap = {};
@@ -295,23 +303,27 @@ class CreateWebhook extends ServiceBase {
     }
 
     for (let index = 0; index < endpointTopics.active.length; index++) {
-      const inactiveTopic = endpointTopics.active[index];
-
-      if (!oThis.endpointTopicsMap[inactiveTopic.topic]) {
-        oThis.deActivateTopicIds.push(inactiveTopic.id);
+      const activeTopic = endpointTopics.active[index];
+      let topicName = webhookSubscriptionConstants.topics[activeTopic.topic];
+      if (!oThis.endpointTopicsMap[topicName]) {
+        oThis.deActivateTopicIds.push(activeTopic.id);
       }
 
-      delete oThis.endpointTopicsMap[inactiveTopic.topic];
+      delete oThis.endpointTopicsMap[topicName];
     }
     for (let index = 0; index < endpointTopics.inActive.length; index++) {
       const inactiveTopic = endpointTopics.inActive[index];
-
-      if (oThis.endpointTopicsMap[inactiveTopic.topic]) {
+      let topicName = webhookSubscriptionConstants.topics[inactiveTopic.topic];
+      if (oThis.endpointTopicsMap[topicName]) {
         oThis.activateTopicIds.push(inactiveTopic.id);
       }
 
-      delete oThis.endpointTopicsMap[inactiveTopic.topic];
+      delete oThis.endpointTopicsMap[topicName];
     }
+
+    console.log('--oThis.endpointTopicsMap----------', oThis.endpointTopicsMap);
+    console.log('----oThis.activateTopicIds--------', oThis.activateTopicIds);
+    console.log('----oThis.deActivateTopicIds--------', oThis.deActivateTopicIds);
   }
 
   /**
@@ -377,6 +389,11 @@ class CreateWebhook extends ServiceBase {
         .where({ id: oThis.deActivateTopicIds })
         .fire();
     }
+  }
+
+  async _clearCache() {
+    const oThis = this;
+    await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.uuid] }).clear();
   }
 }
 
