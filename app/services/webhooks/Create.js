@@ -59,7 +59,7 @@ class CreateWebhook extends ServiceBase {
   }
 
   /**
-   * Async performer.
+   * perform - perform webhook creation
    *
    * @return {Promise<void>}
    */
@@ -209,7 +209,7 @@ class CreateWebhook extends ServiceBase {
   /**
    * Generate secret salt.
    *
-   * @returns {Promise<void>}
+   * @returns {Promise}
    * @private
    */
   async _generateSalt() {
@@ -219,10 +219,9 @@ class CreateWebhook extends ServiceBase {
   }
 
   /**
-   * Decrypt secret salt.
-   *
+   * Decrypt salt.
    * @param encryptedSalt
-   * @returns {Promise<void>}
+   * @returns {Promise}
    * @private
    */
   async _decryptSalt(encryptedSalt) {
@@ -245,9 +244,8 @@ class CreateWebhook extends ServiceBase {
   }
 
   /**
-   * Segregate topics based on their status.
-   *
-   * @returns {Promise<void>}
+   * Segregate endpoint topics into create, update, or delete.
+   * @returns {Promise}
    * @private
    */
   async _segregateEndpointTopics() {
@@ -256,7 +254,6 @@ class CreateWebhook extends ServiceBase {
       webhookEndpointUuids: [oThis.uuid]
     }).fetch();
     let endpointTopics = wEndpointTopics.data[oThis.uuid];
-    oThis.createTopics = {};
     oThis.activateTopicIds = [];
     oThis.deActivateTopicIds = [];
     oThis.endpointTopicsMap = {};
@@ -281,9 +278,8 @@ class CreateWebhook extends ServiceBase {
   }
 
   /**
-   * Create endpoint topics.
    *
-   * @returns {Promise<void>}
+   * @returns {Promise}
    * @private
    */
   async _createEndpointTopics() {
@@ -302,14 +298,13 @@ class CreateWebhook extends ServiceBase {
 
   /**
    * Mark webhook endpoint topics active.
-   *
    * @returns {Promise<void>}
    * @private
    */
   async _activateEndpointTopics() {
     const oThis = this;
 
-    if (oThis.activateTopicIds.length < 0) {
+    if (oThis.activateTopicIds.length > 0) {
       await new WebhookSubscriptionModel()
         .update({
           status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
@@ -328,7 +323,7 @@ class CreateWebhook extends ServiceBase {
   async _deactivateEndpointTopics() {
     const oThis = this;
 
-    if (oThis.deActivateTopicIds.length < 0) {
+    if (oThis.deActivateTopicIds.length > 0) {
       await new WebhookSubscriptionModel()
         .update({
           status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.inActiveStatus]
