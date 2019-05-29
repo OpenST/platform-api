@@ -1,7 +1,5 @@
-'use strict';
-
 /**
- *  Logout all sessions multi sig operation
+ * Module to logout all sessions multi sig operation.
  *
  * @module app/services/session/multisigOperation/Logout
  */
@@ -10,41 +8,45 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  LogoutRouter = require(rootPrefix + '/lib/workflow/logoutSessions/Router'),
+  Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  Base = require(rootPrefix + '/app/services/session/multisigOperation/Base'),
-  LogoutRouter = require(rootPrefix + '/lib/workflow/logoutSessions/Router'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/models/ddb/sharded/User');
 
 /**
- * Class to logout all sessions multi sig operation
+ * Class to logout all sessions multi sig operation.
  *
  * @class SessionsLogout
  */
 class SessionsLogout extends Base {
   /**
+   * Constructor to logout all sessions multi sig operation.
    *
-   * @param {Object} params
-   * @param {Object} params.raw_calldata -
-   * @param {String} params.raw_calldata.method - possible value logout
-   * @param {Array} params.raw_calldata.parameters
-   * @param {Array} params.token_shard_details
+   * @param {object} params
+   * @param {object} params.raw_calldata
+   * @param {string} params.raw_calldata.method: possible value logout
+   * @param {array} params.raw_calldata.parameters
+   * @param {array} params.token_shard_details
+   *
+   * @augments Base
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
     const oThis = this;
 
     oThis.rawCalldata = params.raw_calldata;
@@ -53,14 +55,18 @@ class SessionsLogout extends Base {
   }
 
   /**
-   * Sanitize service specific params
+   * Sanitize service specific params.
    *
+   * @sets oThis.rawCalldata
+   *
+   * @returns {Promise<Promise<never>|undefined>}
    * @private
    */
   async _sanitizeSpecificParams() {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+
     if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -72,7 +78,8 @@ class SessionsLogout extends Base {
       );
     }
 
-    let rawCallDataMethod = oThis.rawCalldata.method;
+    const rawCallDataMethod = oThis.rawCalldata.method;
+
     if (rawCallDataMethod !== 'logout') {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -86,7 +93,7 @@ class SessionsLogout extends Base {
   }
 
   /**
-   * Performs specific pre checks
+   * Performs specific pre checks.
    *
    * @returns {Promise<void>}
    * @private
@@ -118,7 +125,7 @@ class SessionsLogout extends Base {
   }
 
   /**
-   * perform operation
+   * Perform operation.
    *
    * @returns {Promise<any>}
    * @private
@@ -134,7 +141,9 @@ class SessionsLogout extends Base {
   }
 
   /**
-   * Update user token holder statuses
+   * Update user token holder statuses.
+   *
+   * @sets oThis.formattedEntity
    *
    * @returns {Promise<*|result>}
    * @private
@@ -146,7 +155,7 @@ class SessionsLogout extends Base {
         shardNumber: oThis.tokenShardDetails[shardConstant.userEntityKind]
       });
 
-    let updateParams = {
+    const updateParams = {
       tokenId: oThis.tokenId,
       userId: oThis.userId,
       tokenHolderStatus: tokenUserConstants.tokenHolderLoggingOutStatus
@@ -171,7 +180,7 @@ class SessionsLogout extends Base {
   }
 
   /**
-   * Start logout workflow
+   * Start logout workflow.
    *
    * @returns {Promise}
    * @private
@@ -181,7 +190,7 @@ class SessionsLogout extends Base {
 
     logger.debug('**** Starting logout workflow ');
 
-    let requestParams = {
+    const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
         userId: oThis.userId,
@@ -212,7 +221,7 @@ class SessionsLogout extends Base {
         requestParams: requestParams
       };
 
-    let logoutObj = new LogoutRouter(logoutInitParams);
+    const logoutObj = new LogoutRouter(logoutInitParams);
 
     return logoutObj.perform();
   }
