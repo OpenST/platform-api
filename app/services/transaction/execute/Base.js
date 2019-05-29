@@ -576,7 +576,7 @@ class ExecuteTxBase extends ServiceBase {
     await oThis._revertPessimisticDebit();
 
     if (oThis.pendingTransactionInserted) {
-      new PendingTransactionCrud(oThis.chainId)
+      await new PendingTransactionCrud(oThis.chainId)
         .update({
           transactionUuid: oThis.transactionUuid,
           status: pendingTransactionConstants.failedStatus
