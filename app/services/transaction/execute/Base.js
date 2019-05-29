@@ -33,14 +33,16 @@ const rootPrefix = '../../../..',
   shardConstant = require(rootPrefix + '/lib/globalConstant/shard'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   errorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  preProcessorPublish = require(rootPrefix + '/lib/webhooks/preProcessorPublish'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
-  connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
-  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction');
+  connectionTimeoutConstants = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
+  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
@@ -195,7 +197,11 @@ class ExecuteTxBase extends ServiceBase {
 
     await oThis._publishToRMQ();
 
-    logger.debug('Final_Step_execute_tx_step_: 13', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
+    logger.debug('execute_tx_step_: 13', oThis.transactionUuid);
+
+    await oThis._sendPreprocessorWebhook();
+
+    logger.debug('Final_Step_execute_tx_step_: 14', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -270,7 +276,7 @@ class ExecuteTxBase extends ServiceBase {
         rawCallData: oThis.rawCalldata
       }).perform();
     } else {
-      return oThis._validationError('s_et_b_4', ['invalid_to'], {
+      return oThis._validationError('s_et_b_2', ['invalid_to'], {
         toAddress: oThis.toAddress
       });
     }
@@ -319,7 +325,7 @@ class ExecuteTxBase extends ServiceBase {
       const userDetail = userDetailsData[transferToAddresses[index]];
 
       if (!CommonValidators.validateObject(userDetail) || userDetail.tokenId != oThis.tokenId) {
-        return oThis._validationError('s_et_b_5', ['invalid_raw_calldata_parameter_address'], {
+        return oThis._validationError('s_et_b_3', ['invalid_raw_calldata_parameter_address'], {
           transferToAddresses: transferToAddresses
         });
       }
@@ -366,7 +372,7 @@ class ExecuteTxBase extends ServiceBase {
       if (updateBalanceResponse.internalErrorCode.endsWith(errorConstant.insufficientFunds)) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: `s_et_b_9:${updateBalanceResponse.internalErrorCode}`,
+            internal_error_identifier: `s_et_b_4:${updateBalanceResponse.internalErrorCode}`,
             api_error_identifier: 'insufficient_funds',
             debug_options: {
               balanceUpdateParams: balanceUpdateParams
@@ -407,7 +413,7 @@ class ExecuteTxBase extends ServiceBase {
     if (!balanceShardNumber) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_b_6',
+          internal_error_identifier: 's_et_b_5',
           api_error_identifier: 'something_went_wrong',
           debug_options: {
             shards: response.data
@@ -575,8 +581,8 @@ class ExecuteTxBase extends ServiceBase {
           transactionUuid: oThis.transactionUuid,
           status: pendingTransactionConstants.failedStatus
         })
-        .catch(async function(updatePendingTxError) {
-          // Do nothing as UUid wouldn't be returned to user and no get calls would come hence forth
+        .catch(async function() {
+          // Do nothing as UUid wouldn't be returned to user and no get calls would come hence forth.
         });
     }
 
@@ -598,7 +604,7 @@ class ExecuteTxBase extends ServiceBase {
   }
 
   /**
-   * Revert pessmistic debit.
+   * Revert pessimistic debit.
    *
    * @returns {Promise<void>}
    * @private
@@ -619,7 +625,7 @@ class ExecuteTxBase extends ServiceBase {
           // Notify so that devs can manually revert balance
 
           const errorObject = responseHelper.error({
-            internal_error_identifier: 's_et_b_7',
+            internal_error_identifier: 's_et_b_6',
             api_error_identifier: 'balance_rollback_failed',
             debug_options: {
               unsettledDebits: oThis.unsettledDebits
@@ -643,9 +649,9 @@ class ExecuteTxBase extends ServiceBase {
   async _setRmqInstance() {
     const oThis = this;
 
-    oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstant.auxRabbitmqKind, {
-      connectionWaitSeconds: connectionTimeoutConst.crons,
-      switchConnectionWaitSeconds: connectionTimeoutConst.switchConnectionCrons,
+    oThis.rmqInstance = await rabbitmqProvider.getInstance(rabbitmqConstants.auxRabbitmqKind, {
+      connectionWaitSeconds: connectionTimeoutConstants.crons,
+      switchConnectionWaitSeconds: connectionTimeoutConstants.switchConnectionCrons,
       auxChainId: oThis.auxChainId
     });
   }
@@ -710,7 +716,7 @@ class ExecuteTxBase extends ServiceBase {
     if (getAddrRsp.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_et_b_2',
+          internal_error_identifier: 's_et_b_7',
           api_error_identifier: 'something_went_wrong'
         })
       );
@@ -797,6 +803,25 @@ class ExecuteTxBase extends ServiceBase {
     const oThis = this;
 
     return oThis._configStrategyObject.auxChainId;
+  }
+
+  /**
+   * Send webhook message to Preprocessor.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _sendPreprocessorWebhook() {
+    const oThis = this;
+
+    const payload = {
+      webhookKind: webhookSubscriptionsConstants.transactionsCreateTopic,
+      clientId: oThis.clientId,
+      userId: oThis.userId,
+      transactionUuid: oThis.transactionUuid
+    };
+
+    await preProcessorPublish().perform(oThis.auxChainId, payload);
   }
 
   /**
