@@ -15,6 +15,7 @@ const rootPrefix = '../../..',
   WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -28,12 +29,11 @@ const rootPrefix = '../../..',
  */
 class DeleteWebhook extends ServiceBase {
   /**
-   * Constructor foe delete webhook class.
+   * Constructor for delete webhook class.
    *
-   * @param params
-   * @param params.client_id
-   * @param params.webhook_id
-   *
+   * @param {Object} params
+   * @param {Number} params.client_id
+   * @param {String} params.webhook_id - uuid v4
    *
    * @constructor
    */
@@ -69,11 +69,11 @@ class DeleteWebhook extends ServiceBase {
 
     return responseHelper.successWithData({
       [resultType.webhook]: {
-        endpoint: oThis.webhookEndpointRsp.endpoint,
-        status: webhookEndpointConstants.inActive,
-        updatedAt: oThis.webhookEndpointRsp.updatedAt,
         id: oThis.webhookId,
-        topics: oThis.topics
+        url: oThis.webhookEndpointRsp.endpoint,
+        status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive],
+        topics: oThis.topics,
+        updatedTimestamp: basicHelper.dateToSecondsTimestamp(oThis.webhookEndpointRsp.updatedAt)
       }
     });
   }
@@ -113,13 +113,9 @@ class DeleteWebhook extends ServiceBase {
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data[oThis.webhookId],
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
-    console.log('webhookSubscriptionCacheRsp ==========', webhookSubscriptionCacheRsp);
-
     for (let i = 0; i < activeWebhooks.length; i++) {
       oThis.topics.push(activeWebhooks[i].topic);
     }
-
-    console.log('activeWebhooks ==========', activeWebhooks);
   }
 
   /**
@@ -158,9 +154,20 @@ class DeleteWebhook extends ServiceBase {
         .fire();
   }
 
+  /**
+   * Clear cache.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _clearCache() {
     const oThis = this;
+
+    // Clear webhook subscriptions cache.
     await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
+
+    // Clear webhook endpoints cache.
+    await new WebhookEndpointCache({ uuid: oThis.webhookId }).clear();
   }
 }
 
