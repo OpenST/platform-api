@@ -1,9 +1,9 @@
-'use strict';
 /**
- * This is model for workflow_setup table.
+ * Module for webhook queue model.
  *
  * @module app/models/mysql/WebhookQueue
  */
+
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
@@ -12,13 +12,15 @@ const rootPrefix = '../../..',
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
- * Class for workflow step model
+ * Class for webhook queue model.
  *
- * @class
+ * @class WebhookQueue
  */
 class WebhookQueue extends ModelBase {
   /**
-   * Constructor for workflow step model
+   * Constructor for webhook queue model.
+   *
+   * @augments ModelBase
    *
    * @constructor
    */

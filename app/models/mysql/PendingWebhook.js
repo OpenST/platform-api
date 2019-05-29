@@ -1,9 +1,9 @@
-'use strict';
 /**
- * This is model for workflow_setup table.
+ * Module for pending webhooks model.
  *
  * @module app/models/mysql/PendingWebhook
  */
+
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
@@ -12,13 +12,15 @@ const rootPrefix = '../../..',
 const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
- * Class for workflow step model
+ * Class for pending webhooks model.
  *
- * @class
+ * @class PendingWebhook
  */
 class PendingWebhook extends ModelBase {
   /**
-   * Constructor for workflow step model
+   * Constructor for pending webhooks model.
+   *
+   * @augments ModelBase
    *
    * @constructor
    */
