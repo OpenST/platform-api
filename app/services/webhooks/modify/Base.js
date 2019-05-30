@@ -1,15 +1,13 @@
 /**
  * Module to create new webhook.
  *
- * @module app/services/webhooks/Create
+ * @module app/services/webhooks/modify/Base
  */
 
 const crypto = require('crypto'),
-  uuidV4 = require('uuid/v4'),
-  OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
+  uuidV4 = require('uuid/v4');
 
-const rootPrefix = '../../..',
+const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
@@ -27,19 +25,11 @@ const rootPrefix = '../../..',
 /**
  * Class to create new webhook.
  *
- * @class CreateWebhook
+ * @class CreateUpdateWebhookBase
  */
-class CreateWebhook extends ServiceBase {
+class CreateUpdateWebhookBase extends ServiceBase {
   /**
-   * Constructor to create new webhook.
-   *
-   * @param {object} params
-   * @param {number} params.client_id: client id
-   * @param {string} params.url: url
-   * @param {string} params.topics: comma separated string of topics to subscribe
-   * @param {string} [params.status]: status
-   *
-   * @augments ServiceBase
+   * Constructor to create update webhook.
    *
    * @constructor
    */
@@ -48,7 +38,6 @@ class CreateWebhook extends ServiceBase {
 
     const oThis = this;
     oThis.clientId = params.client_id;
-    oThis.endpointUrl = params.url;
     oThis.eventTopics = params.topics;
     oThis.status = params.status || WebhookEndpointConstants.active;
 
@@ -108,26 +97,26 @@ class CreateWebhook extends ServiceBase {
 
     oThis.eventTopics = oThis.eventTopics.split(',');
 
-    if (oThis.eventTopics.length <= 0) {
+    oThis.eventTopics = oThis.eventTopics.filter(function(el) {
+      return el;
+    });
+
+    if (oThis.eventTopics.length > webhookSubscriptionConstants.maxTopicsPerEndpoint) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_w_c_1',
-          api_error_identifier: 'invalid_topics'
+          internal_error_identifier: 's_w_m_b_4',
+          api_error_identifier: 'max_topics_in_endpoint'
         })
       );
     }
 
     for (let index = 0; index < oThis.eventTopics.length; index++) {
-      oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase();
+      oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase().trim();
 
-      console.log(
-        '--------webhookSubscriptionConstants.invertedTopics-----------',
-        webhookSubscriptionConstants.invertedTopics
-      );
       if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[index]]) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 's_w_c_2',
+            internal_error_identifier: 's_w_m_b_2',
             api_error_identifier: 'invalid_topics'
           })
         );
@@ -139,7 +128,7 @@ class CreateWebhook extends ServiceBase {
     if (!WebhookEndpointConstants.invertedStatuses[oThis.status]) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_w_c_3',
+          internal_error_identifier: 's_w_m_b_3',
           api_error_identifier: 'invalid_status'
         })
       );
@@ -154,15 +143,7 @@ class CreateWebhook extends ServiceBase {
    * @returns {Promise<void>}
    */
   async getEndpoint() {
-    // Query and check if endpoint is already present.
-    const oThis = this;
-
-    const endpoints = await new WebhookEndpointModel()
-      .select('*')
-      .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
-      .fire();
-
-    oThis.endpoint = endpoints[0];
+    throw 'child class to implement this method.';
   }
 
   /**
@@ -176,17 +157,9 @@ class CreateWebhook extends ServiceBase {
     const oThis = this;
 
     if (oThis.endpoint) {
-      if (WebhookEndpointConstants.statuses[oThis.endpoint.status] === WebhookEndpointConstants.active) {
-        return Promise.reject(
-          responseHelper.error({
-            internal_error_identifier: 's_w_c_4',
-            api_error_identifier: 'endpoint_already_present'
-          })
-        );
-      }
       await new WebhookEndpointModel()
         .update({
-          status: WebhookEndpointConstants.invertedStatuses[WebhookEndpointConstants.active]
+          status: WebhookEndpointConstants.invertedStatuses[oThis.status]
         })
         .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
         .fire();
@@ -197,8 +170,16 @@ class CreateWebhook extends ServiceBase {
       const wEndpoints = await new WebhookEndpointModel()
         .select('*')
         .where({ client_id: oThis.clientId })
-        .limit(1)
         .fire();
+
+      if (wEndpoints.length >= WebhookEndpointConstants.maxEndpointsPerClient) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 's_w_m_b_4',
+            api_error_identifier: 'max_endpoints_reached'
+          })
+        );
+      }
 
       let secret_salt;
 
@@ -397,6 +378,4 @@ class CreateWebhook extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(CreateWebhook, coreConstants.icNameSpace, 'CreateWebhook');
-
-module.exports = {};
+module.exports = CreateUpdateWebhookBase;

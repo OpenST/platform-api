@@ -1032,7 +1032,30 @@ const v2Signature = {
       },
       {
         parameter: 'topics',
-        validatorMethod: 'validateStringArray'
+        validatorMethod: 'validateString'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'status',
+        validatorMethod: 'validateString'
+      }
+    ]
+  },
+
+  [apiName.updateWebhook]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'webhook_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'topics',
+        validatorMethod: 'validateString'
       }
     ],
     optional: [

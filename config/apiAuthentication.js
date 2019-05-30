@@ -262,6 +262,11 @@ class ApiAuthentication {
         apiName: apiName.createWebhook,
         route: '/webhooks/',
         supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.updateWebhook,
+        route: '/webhooks/:webhook_id/',
+        supportedSignatureKinds: [apiSignature.hmacKind]
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];
