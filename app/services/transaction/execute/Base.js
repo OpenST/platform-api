@@ -576,6 +576,7 @@ class ExecuteTxBase extends ServiceBase {
     await oThis._revertPessimisticDebit();
 
     if (oThis.pendingTransactionInserted) {
+      // We are not sending transaction failure webhook as transactionUuid is not returned to the user yet.
       await new PendingTransactionCrud(oThis.chainId)
         .update({
           transactionUuid: oThis.transactionUuid,
@@ -817,7 +818,6 @@ class ExecuteTxBase extends ServiceBase {
     const payload = {
       webhookKind: webhookSubscriptionsConstants.transactionsCreateTopic,
       clientId: oThis.clientId,
-      userId: oThis.userId,
       transactionUuid: oThis.transactionUuid
     };
 
