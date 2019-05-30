@@ -98,6 +98,34 @@ class WebhookSubscription extends ModelBase {
   }
 
   /**
+   * Fetch webhook subscriptions by client id.
+   *
+   * @param {Number} clientId
+   *
+   * @returns {Promise<*|result>}
+   */
+  async fetchWebhookSubscriptionsByClientId(clientId) {
+    const oThis = this,
+      dbRows = await oThis
+        .select('*')
+        .where({
+          client_id: clientId,
+          status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
+        })
+        .fire();
+
+    const responseData = {};
+
+    for (let index = 0; index < dbRows.length; index++) {
+      const dbRow = dbRows[index];
+      responseData[dbRow.topic] = responseData[dbRow.topic] || [];
+      responseData[dbRow.topic].push(dbRow.webhook_endpoint_uuid);
+    }
+
+    return responseHelper.successWithData(responseData);
+  }
+
+  /**
    * Flush cache.
    *
    * @returns {Promise<*>}
