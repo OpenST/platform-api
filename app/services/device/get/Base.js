@@ -1,35 +1,33 @@
-'use strict';
-
 /**
- *  Fetch device details by userId and wallet addresses.
+ * Module to fetch device details by userId and wallet addresses.
  *
  * @module app/services/device/get/Base
  */
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/PreviousOwnersMap');
 
 /**
- * Class for get devices base.
+ * Class to fetch device details by userId and wallet addresses.
  *
- * @class
+ * @class GetDeviceBase
  */
 class GetDeviceBase extends ServiceBase {
   /**
-   * Constructor for get devices base.
+   * Constructor to fetch device details by userId and wallet addresses.
    *
-   * @param {Object} params
-   * @param {Integer} params.client_id
-   * @param {String} params.user_id
-   * @param {Integer} [params.token_id]
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {string} params.user_id
+   * @param {number} [params.token_id]
    *
    * @augments ServiceBase
    *
@@ -49,9 +47,10 @@ class GetDeviceBase extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Async perform.
    *
    * @returns {Promise<*|result>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -68,19 +67,20 @@ class GetDeviceBase extends ServiceBase {
   }
 
   /**
-   * Get user device extended details
+   * Get user device extended details.
    *
    * @returns {Promise<*|result>}
+   * @private
    */
   async _fetchDevicesExtendedDetails() {
     const oThis = this;
 
-    let response = await oThis._fetchDevicesFromCache(),
+    const response = await oThis._fetchDevicesFromCache(),
       devices = response.data,
       linkedAddressesMap = await oThis._fetchLinkedDeviceAddressMap();
 
-    for (let index in oThis.walletAddresses) {
-      let deviceAddr = oThis.walletAddresses[index],
+    for (const index in oThis.walletAddresses) {
+      const deviceAddr = oThis.walletAddresses[index],
         device = devices[deviceAddr];
 
       if (!CommonValidators.validateObject(device)) {
@@ -92,14 +92,15 @@ class GetDeviceBase extends ServiceBase {
   }
 
   /**
-   * Get devices from cache
+   * Get devices from cache.
    *
    * @returns {Promise<*|result>}
+   * @private
    */
   async _fetchDevicesFromCache() {
     const oThis = this;
 
-    let DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
+    const DeviceDetailCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'DeviceDetailCache'),
       deviceDetailCache = new DeviceDetailCache({
         userId: oThis.userId,
         tokenId: oThis.tokenId,
@@ -121,7 +122,7 @@ class GetDeviceBase extends ServiceBase {
   }
 
   /**
-   * fetch linked device addresses for specified user id
+   * Fetch linked device addresses for specified user id.
    *
    * @returns {Promise<*>}
    * @private
@@ -135,6 +136,7 @@ class GetDeviceBase extends ServiceBase {
 
     if (previousOwnersMapRsp.isFailure()) {
       logger.error('Error in fetching linked addresses');
+
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_d_g_b_2',
@@ -148,32 +150,33 @@ class GetDeviceBase extends ServiceBase {
   }
 
   /**
-   * Validate and samitnize params
+   * Validate and sanitize params.
    *
    * @return {Promise<void>}
    * @private
    */
   async _validateAndSanitizeParams() {
-    throw 'sub-class to implement';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
    * Set wallet addresses.
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _setWalletAddresses() {
-    throw 'sub-class to implement and set oThis.walletAddresses';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
-   * Format response
+   * Format API response.
    *
    * @return {Promise<void>}
    * @private
    */
   async _formatApiResponse() {
-    throw 'sub-class to implement';
+    throw new Error('Sub-class to implement.');
   }
 }
 
