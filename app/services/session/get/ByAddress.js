@@ -1,65 +1,77 @@
-'use strict';
 /**
- *  Fetch session details of specific session address.
+ * Module to fetch session details of specific session address.
  *
  * @module app/services/session/get/ByAddress
  */
 
-const OSTBase = require('@ostdotcom/base');
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  GetSessionBase = require(rootPrefix + '/app/services/session/get/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  GetSessionBase = require(rootPrefix + '/app/services/session/get/Base'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
 /**
- * Class to get session details of specific session address
+ * Class to get session details of specific session address.
  *
  * @class GetSessionByAddress
  */
 class GetSessionByAddress extends GetSessionBase {
   /**
+   * Constructor to get session details of specific session address.
+   *
    * @param {object} params
-   * @param {String} params.session_address - Session address.
+   * @param {string} params.user_id
+   * @param {integer} params.client_id
+   * @param {integer} [params.token_id]
+   * @param {string} params.session_address: session address.
+   *
+   * @augments GetSessionBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
+
     oThis.address = params.session_address;
   }
 
   /**
    * Validate and sanitize input parameters.
    *
-   * @returns {*}
+   * @sets oThis.address
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _validateAndSanitizeParams() {
     const oThis = this;
+
     oThis.address = basicHelper.sanitizeAddress(oThis.address);
   }
 
   /**
    * Set addresses
    *
-   * Sets oThis.sessionAddresses
+   * @sets oThis.sessionAddresses
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _setSessionAddresses() {
     const oThis = this;
+
     oThis.sessionAddresses = [oThis.address];
   }
 
   /**
-   * Format API response
+   * Format API response.
    *
    * @return {*}
    * @private
@@ -67,7 +79,7 @@ class GetSessionByAddress extends GetSessionBase {
   _formatApiResponse() {
     const oThis = this;
 
-    let session = oThis.sessionDetails[0];
+    const session = oThis.sessionDetails[0];
 
     if (!CommonValidators.validateObject(session)) {
       return Promise.reject(

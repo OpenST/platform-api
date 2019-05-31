@@ -28,7 +28,7 @@ class GetSessionBase extends ServiceBase {
    * Constructor to fetch session details by userId and addresses.
    *
    * @param {object} params
-   * @param {string}   params.user_id
+   * @param {string} params.user_id
    * @param {integer} params.client_id
    * @param {integer} [params.token_id]
    *
