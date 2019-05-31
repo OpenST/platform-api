@@ -66,7 +66,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   }
 
   /**
-   * Process name prefix
+   * Get process name prefix.
    *
    * @returns {string}
    * @private
@@ -76,7 +76,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   }
 
   /**
-   * Topics to subscribe
+   * Get topics to subscribe.
    *
    * @returns {*[]}
    * @private
@@ -86,7 +86,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   }
 
   /**
-   * Queue name.
+   * Get queue name.
    *
    * @returns {string}
    * @private
@@ -96,7 +96,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   }
 
   /**
-   * Specific validations
+   * Specific validations.
    *
    * @return {Promise<boolean>}
    * @private
@@ -106,7 +106,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   }
 
   /**
-   * Cron kind.
+   * Get cron kind.
    *
    * @returns {string}
    * @private
