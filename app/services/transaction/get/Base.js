@@ -1,15 +1,14 @@
-'use strict';
 /**
- * This service helps in fetching transaction
+ * Module to fetch transactions.
  *
  * @module app/services/transaction/get/Base
  */
 
-const OSTBase = require('@ostdotcom/base');
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -17,32 +16,37 @@ const rootPrefix = '../../../..',
   esServices = require(rootPrefix + '/lib/elasticsearch/manifest'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
+  errorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
-const InstanceComposer = OSTBase.InstanceComposer,
-  ESTransactionService = esServices.services.transactions;
+const ESTransactionService = esServices.services.transactions;
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/transactions/GetTransactionDetails');
 
 /**
- * Get transaction base class
+ * Get to fetch transactions.
  *
- * @class
+ * @class GetTransactionBase
  */
 class GetTransactionBase extends ServiceBase {
   /**
+   * Constructor to fetch transactions.
    *
-   * @param {Object} params
-   * @param {Integer} params.user_id
-   * @param {Integer} params.client_id
+   * @param {object} params
+   * @param {number} params.user_id
+   * @param {number} params.client_id
    *
+   * @augments ServiceBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
+
     oThis.userId = params.user_id;
     oThis.clientId = params.client_id;
 
@@ -55,9 +59,10 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Async perform.
    *
    * @return {Promise<void>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -82,7 +87,7 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
-   * Get service config
+   * Get service config.
    *
    * Eg finalConfig = {
    *             "chainId": 123, //Aux chainId
@@ -101,7 +106,7 @@ class GetTransactionBase extends ServiceBase {
   _getEsConfig() {
     const oThis = this;
 
-    let configStrategy = oThis._configStrategyObject,
+    const configStrategy = oThis._configStrategyObject,
       esConfig = configStrategy.elasticSearchConfig,
       elasticSearchKey = configStrategyConstants.elasticSearch;
 
@@ -114,20 +119,23 @@ class GetTransactionBase extends ServiceBase {
   /**
    * Fetch user details.
    *
+   * @sets oThis.tokenHolderAddress
+   *
    * @return {Promise<string>}
+   * @private
    */
   async _fetchUserFromCache() {
     const oThis = this;
 
-    let instanceComposer = new InstanceComposer(oThis._configStrategy);
+    const instanceComposer = new InstanceComposer(oThis._configStrategy);
 
-    let TokenUserDetailsCache = instanceComposer.getShadowedClassFor(
+    const TokenUserDetailsCache = instanceComposer.getShadowedClassFor(
         coreConstants.icNameSpace,
         'TokenUserDetailsCache'
       ),
       tokenUserDetailsCacheObj = new TokenUserDetailsCache({ tokenId: oThis.tokenId, userIds: [oThis.userId] });
 
-    let userCacheResponse = await tokenUserDetailsCacheObj.fetch(),
+    const userCacheResponse = await tokenUserDetailsCacheObj.fetch(),
       userCacheResponseData = userCacheResponse.data[oThis.userId];
 
     oThis.tokenHolderAddress = userCacheResponseData.tokenHolderAddress;
@@ -147,14 +155,15 @@ class GetTransactionBase extends ServiceBase {
   /**
    * Search in ES.
    *
-   * @returns {Promise<void>}
+   * @sets oThis.esSearchResponse
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _searchInEs() {
     const oThis = this;
 
-    let esService = new ESTransactionService(oThis.esConfig),
+    const esService = new ESTransactionService(oThis.esConfig),
       esQuery = oThis._getEsQueryObject();
 
     oThis.esSearchResponse = await esService.search(esQuery);
@@ -165,7 +174,7 @@ class GetTransactionBase extends ServiceBase {
         api_error_identifier: 'elastic_search_service_down',
         debug_options: {}
       });
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.highSeverity);
 
       return Promise.reject(
         responseHelper.error({
@@ -182,14 +191,15 @@ class GetTransactionBase extends ServiceBase {
   /**
    * Fetch tx details.
    *
-   * @returns {Promise<void>}
+   * @sets oThis.txDetails
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _fetchTxDetails() {
     const oThis = this;
 
-    let GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
+    const GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
       transactionsResponse = await new GetTransactionDetails({
         chainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
@@ -200,10 +210,9 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
-   * Config strategy
+   * Config strategy.
    *
-   * @return {Object}
-   *
+   * @returns {object}
    * @private
    */
   get _configStrategy() {
@@ -213,16 +222,19 @@ class GetTransactionBase extends ServiceBase {
   }
 
   /**
-   * Object of config strategy class
+   * Object of config strategy class.
    *
-   * @return {Object}
+   * @sets oThis.configStrategyObj
    *
+   * @return {object}
    * @private
    */
   get _configStrategyObject() {
     const oThis = this;
 
-    if (oThis.configStrategyObj) return oThis.configStrategyObj;
+    if (oThis.configStrategyObj) {
+      return oThis.configStrategyObj;
+    }
 
     oThis.configStrategyObj = new ConfigStrategyObject(oThis._configStrategy);
 
@@ -235,7 +247,7 @@ class GetTransactionBase extends ServiceBase {
    * @private
    */
   _validateAndSanitizeParams() {
-    throw 'sub-class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
@@ -244,7 +256,7 @@ class GetTransactionBase extends ServiceBase {
    * @private
    */
   _validateSearchResults() {
-    throw 'sub-class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
@@ -253,27 +265,26 @@ class GetTransactionBase extends ServiceBase {
    * @private
    */
   _setMeta() {
-    throw 'sub-class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
-   * Format api response.
+   * Format API response.
    *
    * @private
    */
   _formatApiResponse() {
-    throw 'sub-class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
-   * Get ES query object
+   * Get ES query object.
    *
    * @returns {{query: {terms: {_id: *[]}}}}
-   *
    * @private
    */
   _getEsQueryObject() {
-    throw 'sub-class to implement.';
+    throw new Error('Sub-class to implement.');
   }
 }
 

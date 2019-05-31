@@ -1,10 +1,11 @@
-'use strict';
 /**
- * This service helps in fetching transaction by user id and transaction id.
+ * Module to fetch transaction by user id and transaction id.
  *
  * @module app/services/transaction/get/ById
  */
-const OSTBase = require('@ostdotcom/base');
+
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
   GetTransactionBase = require(rootPrefix + '/app/services/transaction/get/Base'),
@@ -12,18 +13,21 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
 /**
- * Class to Get transaction by transactionId and userId
+ * Class to fetch transaction by user id and transaction id.
  *
- * @class
+ * @class GetTransaction
  */
 class GetTransaction extends GetTransactionBase {
   /**
-   * Constructor for execute transaction
+   * Constructor to fetch transaction by user id and transaction id.
    *
-   * @param params
+   * @param {object} params
+   * @param {number} params.user_id
+   * @param {number} params.client_id
+   * @param {string} params.transaction_id
+   *
+   * @augments GetTransactionBase
    *
    * @constructor
    */
@@ -31,10 +35,12 @@ class GetTransaction extends GetTransactionBase {
     super(params);
 
     const oThis = this;
+
     oThis.transactionId = params.transaction_id;
   }
 
   /**
+   * Validate and sanitize parameters.
    *
    * @private
    */
@@ -45,15 +51,16 @@ class GetTransaction extends GetTransactionBase {
   /**
    * Validate transaction uuid.
    *
+   * @returns {Promise<Promise<never>|undefined>}
    * @private
    */
   async _validateSearchResults() {
     const oThis = this;
 
-    let transactionDetailsData = oThis.esSearchResponse.data[oThis.auxChainId + '_transactions'];
+    const transactionDetailsData = oThis.esSearchResponse.data[oThis.auxChainId + '_transactions'];
 
     // NOTE: Here tokenHolder address should be present in data coming from es,
-    // else it is invalid as the query is done only on transaction uuid.
+    // Else it is invalid as the query is done only on transaction uuid.
     if (
       oThis.esSearchResponse.isFailure() ||
       transactionDetailsData.length === 0 ||
@@ -83,25 +90,25 @@ class GetTransaction extends GetTransactionBase {
    * Format API response
    *
    * @return {*}
-   *
    * @private
    */
   _formatApiResponse() {
     const oThis = this;
+
     return responseHelper.successWithData({
       [resultType.transaction]: oThis.txDetails[0]
     });
   }
 
   /**
-   * Get ES query object
+   * Get ES query object.
    *
    * @returns {{query: {terms: {_id: *[]}}}}
-   *
    * @private
    */
   _getEsQueryObject() {
     const oThis = this;
+
     return {
       query: {
         terms: {
