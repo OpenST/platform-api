@@ -6,6 +6,7 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  PendingWebhooksCache = require(rootPrefix + '/lib/cacheManagement/shared/PendingWebhooks'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
@@ -35,14 +36,14 @@ class PendingWebhook extends ModelBase {
   /**
    * Inserts record.
    *
-   * @param {Object} params
-   * @param {Number} params.clientId: client id
-   * @param {String} params.eventUuid: event uuid (uuid v4)
-   * @param {Number} params.topic: topic
-   * @param {Number} params.status: status
-   * @param {String} [params.extraData]: extra data
+   * @param {object} params
+   * @param {number} params.clientId: client id
+   * @param {string} params.eventUuid: event uuid (uuid v4)
+   * @param {number} params.topic: topic
+   * @param {number} params.status: status
+   * @param {string} [params.extraData]: extra data
    *
-   * @returns {Promise<*>}
+   * @returns {Promise<number>}
    */
   async insertRecord(params) {
     const oThis = this;
@@ -54,20 +55,30 @@ class PendingWebhook extends ModelBase {
       !params.hasOwnProperty('topic') ||
       !params.hasOwnProperty('status')
     ) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {clientId, chainId, groupId, status}';
+      throw new Error(
+        'Mandatory parameters are missing. Expected an object with the following keys: {clientId, chainId, groupId, status}'
+      );
     }
 
-    return oThis
-      .insert({
-        client_id: params.clientId,
-        event_uuid: params.eventUuid,
-        topic: params.topic,
-        extra_data: params.extraData || null,
-        status: params.status,
-        retry_count: 0,
-        last_attempted_at: Date.now() / 1000
-      })
-      .fire();
+    const insertParams = {
+      client_id: params.clientId,
+      event_uuid: params.eventUuid,
+      topic: params.topic,
+      extra_data: params.extraData || null,
+      status: params.status,
+      retry_count: 0,
+      last_attempted_at: Date.now() / 1000
+    };
+
+    const insertResponse = await oThis.insert(insertParams).fire();
+
+    const pendingWebhooksCache = new PendingWebhooksCache({
+      pendingWebhookId: insertResponse.insertId
+    });
+
+    await pendingWebhooksCache._setCache(insertParams);
+
+    return insertResponse.insertId;
   }
 }
 
