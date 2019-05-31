@@ -29,7 +29,7 @@ class WebhookQueue extends ModelBase {
 
     const oThis = this;
 
-    oThis.tableName = 'webhook_queue';
+    oThis.tableName = 'webhook_queues';
   }
 }
 
