@@ -15,8 +15,9 @@ const rootPrefix = '../../../..',
   WebhookSubscriptionModel = require(rootPrefix + '/app/models/mysql/WebhookSubscription'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
+  WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
+  WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
   util = require(rootPrefix + '/lib/util'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -375,6 +376,8 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _clearCache() {
     const oThis = this;
     await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.uuid] }).clear();
+    await new WebhookEndpointCache({ uuid: oThis.uuid }).clear();
+    await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
   }
 }
 
