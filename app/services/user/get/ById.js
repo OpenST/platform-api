@@ -1,22 +1,40 @@
-'use strict';
+/**
+ * Module to get user by id.
+ *
+ * @module app/services/user/get/ById
+ */
 
-const OSTBase = require('@ostdotcom/base');
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
   GetUserBase = require(rootPrefix + '/app/services/user/get/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
-const InstanceComposer = OSTBase.InstanceComposer;
-
+/**
+ * Class to get user by id.
+ *
+ * @class GetUser
+ */
 class GetUser extends GetUserBase {
   /**
-   * @constructor
+   * Constructor to get user by id.
    *
-   * @param params
+   * @param {object} params
+   * @param {number} params.client_id: client Id
+   * @param {number} [params.token_id]: token Id
+   * @param {array} [params.ids]: filter by user uuids.
+   * @param {array} [params.limit]: limit
+   * @param {string} [params.pagination_identifier]: pagination identifier to fetch page
+   * @param {string} params.user_id
+   *
+   * @augments GetUserBase
+   *
+   * @constructor
    */
   constructor(params) {
     super(params);
@@ -27,18 +45,23 @@ class GetUser extends GetUserBase {
   }
 
   /**
-   * validate and sanitize params
+   * Validate and sanitize params.
+   *
+   * @sets oThis.userId
    *
    * @return {Promise<void>}
    * @private
    */
   async _validateAndSanitizeParams() {
     const oThis = this;
+
     oThis.userId = basicHelper.sanitizeuuid(oThis.userId);
   }
 
   /**
-   * set user ids
+   * Set user ids.
+   *
+   * @sets oThis.userIds
    *
    * @return {Promise<void>}
    * @private
@@ -50,7 +73,7 @@ class GetUser extends GetUserBase {
   }
 
   /**
-   * format api response
+   * Format API response.
    *
    * @return {Promise<*>}
    * @private
@@ -58,7 +81,7 @@ class GetUser extends GetUserBase {
   async _formatApiResponse() {
     const oThis = this;
 
-    let user = oThis.userDetails[0];
+    const user = oThis.userDetails[0];
 
     if (!CommonValidators.validateObject(user)) {
       return Promise.reject(
@@ -78,3 +101,5 @@ class GetUser extends GetUserBase {
 }
 
 InstanceComposer.registerAsShadowableClass(GetUser, coreConstants.icNameSpace, 'GetUser');
+
+module.exports = {};
