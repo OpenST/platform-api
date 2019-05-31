@@ -54,7 +54,7 @@ class WebhookSubscription extends ModelBase {
     return {
       id: dbRow.id,
       clientId: dbRow.client_id,
-      topic: dbRow.topic,
+      webhook_topic_kind: dbRow.webhook_topic_kind,
       webhookEndpointId: dbRow.webhook_endpoint_id,
       status: dbRow.status,
       createdAt: dbRow.created_at,
