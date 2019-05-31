@@ -821,7 +821,7 @@ class ExecuteTxBase extends ServiceBase {
       transactionUuid: oThis.transactionUuid
     };
 
-    await preProcessorPublish().perform(oThis.auxChainId, payload);
+    await preProcessorPublish.perform(oThis.auxChainId, payload);
   }
 
   /**
