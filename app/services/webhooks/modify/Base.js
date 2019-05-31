@@ -286,7 +286,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     for (let index = 0; index < endpointTopics.active.length; index++) {
       const activeTopic = endpointTopics.active[index];
-      let topicName = webhookSubscriptionConstants.topics[activeTopic.topic];
+      let topicName = webhookSubscriptionConstants.topics[activeTopic.webhook_topic_kind];
       if (!oThis.endpointTopicsMap[topicName]) {
         oThis.deActivateTopicIds.push(activeTopic.id);
       }
@@ -295,7 +295,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
     }
     for (let index = 0; index < endpointTopics.inActive.length; index++) {
       const inactiveTopic = endpointTopics.inActive[index];
-      let topicName = webhookSubscriptionConstants.topics[inactiveTopic.topic];
+      let topicName = webhookSubscriptionConstants.topics[inactiveTopic.webhook_topic_kind];
       if (oThis.endpointTopicsMap[topicName]) {
         oThis.activateTopicIds.push(inactiveTopic.id);
       }
@@ -324,7 +324,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
         new WebhookSubscriptionModel()
           .insert({
             client_id: oThis.clientId,
-            topic: webhookSubscriptionConstants.invertedTopics[topic],
+            webhook_topic_kind: webhookSubscriptionConstants.invertedTopics[topic],
             webhook_endpoint_uuid: oThis.uuid,
             status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
           })

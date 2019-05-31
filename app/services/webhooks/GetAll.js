@@ -136,7 +136,9 @@ class GetAllWebhook extends ServiceBase {
 
       webhookEndpoint['topics'] = [];
       for (let j = 0; j < activeTopicList.length; j++) {
-        webhookEndpoint['topics'].push(webhookSubscriptionConstants.invertedTopics[activeTopicList[j].topic]);
+        webhookEndpoint['topics'].push(
+          webhookSubscriptionConstants.invertedTopics[activeTopicList[j].webhook_topic_kind]
+        );
       }
     }
   }
