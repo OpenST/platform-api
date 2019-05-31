@@ -6,6 +6,7 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
@@ -45,6 +46,36 @@ class WebhookEndpoint extends ModelBase {
       .select('*')
       .where({ uuid: uuid })
       .fire();
+  }
+
+  async fetchAllByClientId(params) {
+    const oThis = this;
+    let page = params.page || 1,
+      limit = params.limit || pagination.defaultWebhookListPageSize,
+      offset = (page - 1) * limit;
+
+    console.log('params------1------1-----', params);
+
+    const webhookEndpointsData = await oThis
+      .select('*')
+      .where({ client_id: params.clientId })
+      .limit(limit)
+      .offset(offset)
+      .order_by('id DESC')
+      .fire();
+
+    const webhookEndpointsDataMap = {};
+    for (let i = 0; i < webhookEndpointsData.length; i++) {
+      let webhookEndpoint = webhookEndpointsData[i];
+      webhookEndpointsDataMap[webhookEndpoint.uuid] = {
+        uuid: webhookEndpoint.uuid,
+        clientId: webhookEndpoint.client_id,
+        endpoint: webhookEndpoint.endpoint,
+        status: webhookEndpoint.status
+      };
+    }
+
+    return webhookEndpointsDataMap;
   }
 }
 

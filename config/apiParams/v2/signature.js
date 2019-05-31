@@ -1078,6 +1078,39 @@ const v2Signature = {
       }
     ],
     optional: []
+  },
+
+  [apiName.getWebhook]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'webhook_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getAllWebhook]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateDdbPaginationIdentifier'
+      }
+    ]
   }
 };
 
