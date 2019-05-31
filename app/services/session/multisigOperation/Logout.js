@@ -176,7 +176,7 @@ class SessionsLogout extends Base {
 
     oThis.formattedEntity = userModelObj._sanitizeRowFromDynamo(updateQueryResponse);
 
-    return responseHelper.successWithData();
+    return responseHelper.successWithData({});
   }
 
   /**
