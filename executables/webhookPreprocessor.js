@@ -183,7 +183,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
 
     // Send the webhooks only if client has subscribed to particular topic.
     if (activeWebhookKindsForCurrentClient.data[webhookKindInt]) {
-      // Call factory and fetch response in entityResponse.
+      // Call webhooks delegator factory and fetch response in entityResponse.
       const entityResponse = await webhooksDelegatorFactory.perform(msgPayload);
 
       if (entityResponse.isFailure()) {
@@ -191,11 +191,15 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       }
 
       // Create data to insert into pending webhooks.
-      const pendingWebhooksParams = {
+      const extraData = JSON.stringify({
+          webhookEndpointUuid: activeWebhookKindsForCurrentClient.data[webhookKindInt],
+          entity: entityResponse
+        }),
+        pendingWebhooksParams = {
           clientId: clientId,
           eventUuid: uuidV4(),
           webhookTopicKind: webhookKindInt,
-          extraData: JSON.stringify(entityResponse),
+          extraData: extraData,
           status: pendingWebhookConstants.invertedStatuses[pendingWebhookConstants.queuedStatus]
         },
         pendingWebhooksId = await new PendingWebhookModel().insertRecord(pendingWebhooksParams),
