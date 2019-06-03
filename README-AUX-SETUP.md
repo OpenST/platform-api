@@ -263,6 +263,12 @@ And add it to tables using following script.
     node executables/updatePricePoints.js --cronProcessId 17
 ```
 
+### Start webhooks preprocessor.
+```bash
+    source set_env_vars.sh
+    node executables/webhookPreprocessor.js --cronProcessId 31
+```
+
 ### Start balance Verifier
 * Start balance verifier
 ```bash
