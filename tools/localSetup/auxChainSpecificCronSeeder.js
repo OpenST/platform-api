@@ -24,29 +24,29 @@ class AuxChainSpecificCronSeeder {
   async perform() {
     const oThis = this;
 
-    // await oThis.insertBlockParserEntry();
-    // await oThis.insertTransactionParserEntry();
-    // await oThis.insertBlockFinalizerEntry();
-    // await oThis.insertEconomyAggregatorEntry();
-    // await oThis.insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry();
-    // await oThis.insertFundBySealerAuxChainSpecificEntry();
-    // await oThis.insertFundByTokenAuxFunderAuxChainSpecificEntry();
-    // await oThis.insertOstUpdatePriceOraclePricePointsEntry();
-    // await oThis.insertUsdcUpdatePriceOraclePricePointsEntry();
-    // await oThis.insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry();
-    // await oThis.insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry();
-    // await oThis.insertExecuteTransactionOneEntry();
-    // await oThis.insertExecuteTransactionTwoEntry();
-    // await oThis.insertAuxWorkflowWorkerTwoEntry();
-    // await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
-    // await oThis.insertBalanceSettlerEntry();
-    // await oThis.insertExecuteRecoveryEntry();
-    // await oThis.insertStateRootSyncFromOriginToAux();
-    // await oThis.insertStateRootSyncFromAuxToOrigin();
-    // await oThis.insertTransactionErrorHandlerEntry();
-    // await oThis.insertBalanceVerifierEntry();
-    // await oThis.insertGenerateGraphEntry();
-    // await oThis.insertWebhookPreprocessorEntry();
+    await oThis.insertBlockParserEntry();
+    await oThis.insertTransactionParserEntry();
+    await oThis.insertBlockFinalizerEntry();
+    await oThis.insertEconomyAggregatorEntry();
+    await oThis.insertFundByMasterInternalFunderAuxChainSpecificChainAddressesEntry();
+    await oThis.insertFundBySealerAuxChainSpecificEntry();
+    await oThis.insertFundByTokenAuxFunderAuxChainSpecificEntry();
+    await oThis.insertOstUpdatePriceOraclePricePointsEntry();
+    await oThis.insertUsdcUpdatePriceOraclePricePointsEntry();
+    await oThis.insertFundByMasterInternalFunderAuxChainSpecificTokenFunderAddressesEntry();
+    await oThis.insertFundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddressesEntry();
+    await oThis.insertExecuteTransactionOneEntry();
+    await oThis.insertExecuteTransactionTwoEntry();
+    await oThis.insertAuxWorkflowWorkerTwoEntry();
+    await oThis.insertFundByTokenAuxFunderToExTxWorkersEntry();
+    await oThis.insertBalanceSettlerEntry();
+    await oThis.insertExecuteRecoveryEntry();
+    await oThis.insertStateRootSyncFromOriginToAux();
+    await oThis.insertStateRootSyncFromAuxToOrigin();
+    await oThis.insertTransactionErrorHandlerEntry();
+    await oThis.insertBalanceVerifierEntry();
+    await oThis.insertGenerateGraphEntry();
+    await oThis.insertWebhookPreprocessorEntry();
     await oThis.insertWebhookProcessorEntry();
   }
 
@@ -416,7 +416,7 @@ class AuxChainSpecificCronSeeder {
   async insertWebhookPreprocessorEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.webhookPreprocessor, {
-        chainId: 2000,
+        auxChainId: 2000,
         prefetchCount: 5,
         sequenceNumber: 1
       })
