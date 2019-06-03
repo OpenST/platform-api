@@ -76,7 +76,18 @@ class PendingWebhook extends ModelBase {
       pendingWebhookId: insertResponse.insertId
     });
 
-    await pendingWebhooksCache._setCache(insertParams);
+    // Set pending webhooks cache.
+    const cacheParams = {
+      clientId: insertParams.client_id,
+      eventUuid: insertParams.event_uuid,
+      topic: insertParams.topic,
+      extraData: insertParams.extra_data,
+      status: insertParams.status,
+      retryCount: insertParams.retry_count,
+      lastAttemptedAt: insertParams.last_attempted_at
+    };
+
+    await pendingWebhooksCache._setCache(cacheParams);
 
     return insertResponse.insertId;
   }
