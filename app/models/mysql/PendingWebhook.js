@@ -39,7 +39,7 @@ class PendingWebhook extends ModelBase {
    * @param {object} params
    * @param {number} params.clientId: client id
    * @param {string} params.eventUuid: event uuid (uuid v4)
-   * @param {number} params.topic: topic
+   * @param {number} params.webhookTopicKind: webhook topic kind
    * @param {number} params.status: status
    * @param {string} [params.extraData]: extra data
    *
@@ -52,7 +52,7 @@ class PendingWebhook extends ModelBase {
     if (
       !params.hasOwnProperty('clientId') ||
       !params.hasOwnProperty('eventUuid') ||
-      !params.hasOwnProperty('topic') ||
+      !params.hasOwnProperty('webhookTopicKind') ||
       !params.hasOwnProperty('status')
     ) {
       throw new Error(
@@ -63,7 +63,7 @@ class PendingWebhook extends ModelBase {
     const insertParams = {
       client_id: params.clientId,
       event_uuid: params.eventUuid,
-      topic: params.topic,
+      webhook_topic_kind: params.webhookTopicKind,
       extra_data: params.extraData || null,
       status: params.status,
       retry_count: 0,
@@ -80,7 +80,7 @@ class PendingWebhook extends ModelBase {
     const cacheParams = {
       clientId: insertParams.client_id,
       eventUuid: insertParams.event_uuid,
-      topic: insertParams.topic,
+      webhookTopicKind: insertParams.webhook_topic_kind,
       extraData: insertParams.extra_data,
       status: insertParams.status,
       retryCount: insertParams.retry_count,

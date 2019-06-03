@@ -41,7 +41,7 @@ class WebhookSubscription extends ModelBase {
    * @param {object} dbRow
    * @param {number} dbRow.id
    * @param {string} dbRow.client_id
-   * @param {string} dbRow.topic
+   * @param {string} dbRow.webhook_topic_kind
    * @param {number} dbRow.webhook_endpoint_id
    * @param {string} dbRow.status
    * @param {string} dbRow.created_at
@@ -54,7 +54,7 @@ class WebhookSubscription extends ModelBase {
     return {
       id: dbRow.id,
       clientId: dbRow.client_id,
-      webhook_topic_kind: dbRow.webhook_topic_kind,
+      webhookTopicKind: dbRow.webhook_topic_kind,
       webhookEndpointId: dbRow.webhook_endpoint_id,
       status: dbRow.status,
       createdAt: dbRow.created_at,
@@ -119,8 +119,8 @@ class WebhookSubscription extends ModelBase {
 
     for (let index = 0; index < dbRows.length; index++) {
       const dbRow = dbRows[index];
-      responseData[dbRow.topic] = responseData[dbRow.topic] || [];
-      responseData[dbRow.topic].push(dbRow.webhook_endpoint_uuid);
+      responseData[dbRow.webhook_topic_kind] = responseData[dbRow.webhook_topic_kind] || [];
+      responseData[dbRow.webhook_topic_kind].push(dbRow.webhook_endpoint_uuid);
     }
 
     return responseHelper.successWithData(responseData);

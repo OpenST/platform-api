@@ -8,19 +8,21 @@ const uuidV4 = require('uuid/v4'),
   program = require('commander');
 
 const rootPrefix = '..',
+  WebhookQueueModel = require(rootPrefix + '/app/models/mysql/WebhookQueue'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   PendingWebhookModel = require(rootPrefix + '/app/models/mysql/PendingWebhook'),
   TokenByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   WebhookSubscriptionsByClientIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaas/WebhookSubscriptionsByClientId'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   errorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  webhookQueueConstants = require(rootPrefix + '/lib/globalConstant/webhookQueue'),
   webhooksDelegatorFactory = require(rootPrefix + '/lib/webhooks/delegator/Factory'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   pendingWebhookConstants = require(rootPrefix + '/lib/globalConstant/pendingWebhook'),
@@ -63,6 +65,9 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
    */
   constructor(params) {
     super(params);
+
+    const oThis = this;
+    oThis.webhookQueues = [];
   }
 
   /**
@@ -157,7 +162,6 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       tokenIdToClientIdMap = {};
 
     let clientId = msgPayload.clientId;
-
     logger.debug('msgPayload ========', msgPayload);
 
     // In some cases, we may not have client id so we will fetch it using cache
@@ -190,15 +194,15 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       const pendingWebhooksParams = {
           clientId: clientId,
           eventUuid: uuidV4(),
-          topic: webhookKindInt,
+          webhookTopicKind: webhookKindInt,
           extraData: JSON.stringify(entityResponse),
           status: pendingWebhookConstants.invertedStatuses[pendingWebhookConstants.queuedStatus]
         },
-        pendingWebhooksRsp = await new PendingWebhookModel().insertRecord(pendingWebhooksParams),
-        pendingWebhooksId = pendingWebhooksRsp.insertId;
+        pendingWebhooksId = await new PendingWebhookModel().insertRecord(pendingWebhooksParams),
+        webhookSubTopic = webhookSubscriptionConstants.webhookQueueTopicName[webhookKind];
 
       // Get the id of pending webhooks and insert into respective queue.
-      await oThis._insertIntoWebhookProcessor(pendingWebhooksId);
+      await oThis._insertIntoWebhookProcessor(pendingWebhooksId, webhookSubTopic);
     }
   }
 
@@ -215,13 +219,35 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   }
 
   /**
-   * This function inserts into webhook processor queue.
+   * Get active webhook queues.
    *
-   * @param pendingWebhooksId
    * @returns {Promise<void>}
    * @private
    */
-  async _insertIntoWebhookProcessor(pendingWebhooksId) {
+  async _getActiveWebhookQueues() {
+    const oThis = this,
+      webhookQueues = await new WebhookQueueModel()
+        .select('queue_topic_suffix')
+        .where({
+          chain_id: oThis.chainId,
+          status: webhookQueueConstants.invertedStatuses[webhookQueueConstants.activeStatus]
+        })
+        .fire();
+
+    for (let index = 0; index < webhookQueues.length; index++) {
+      oThis.webhookQueues.push(webhookQueues[index].queue_topic_suffix);
+    }
+  }
+
+  /**
+   * This function inserts into webhook processor queue.
+   *
+   * @param pendingWebhooksId
+   * @param subTopic
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _insertIntoWebhookProcessor(pendingWebhooksId, subTopic) {
     const oThis = this,
       rmqConnection = await rabbitmqProvider.getInstance(rabbitmqConstants.auxWebhooksProcessorRabbitmqKind, {
         auxChainId: oThis.chainId,
@@ -229,22 +255,26 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
         switchConnectionWaitSeconds: connectionTimeoutConstants.switchConnectionCrons
       });
 
-    const messageParams = {
-      topics: webhookProcessorConstants.topics,
-      publisher: webhookProcessorConstants.publisher,
-      message: {
-        kind: webhookProcessorConstants.messageKind,
-        payload: {
-          pendingWebhooksId: pendingWebhooksId
+    if (oThis.webhookQueues.length === 0) {
+      await oThis._getActiveWebhookQueues();
+    }
+
+    const queueTopics = basicHelper.shuffleArray(oThis.webhookQueues),
+      topicName = webhookProcessorConstants.processorTopicName(oThis.chainId, queueTopics[0], subTopic),
+      messageParams = {
+        topics: [topicName],
+        publisher: webhookProcessorConstants.publisher,
+        message: {
+          kind: webhookProcessorConstants.messageKind,
+          payload: {
+            pendingWebhooksId: pendingWebhooksId
+          }
         }
-      }
-    };
+      };
 
     logger.debug('======= messageParams ========', messageParams);
 
     const setToRMQ = await rmqConnection.publishEvent.perform(messageParams);
-
-    logger.debug('======= setToRMQ ========', setToRMQ);
 
     if (setToRMQ.isFailure() || setToRMQ.data.publishedToRmq === 0) {
       logger.error('Could not publish the message to RMQ.');
