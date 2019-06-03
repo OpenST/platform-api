@@ -144,7 +144,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       topic: oThis._topicsToSubscribe[0],
       queue: oThis._queueName,
       prefetchCount: oThis.prefetchCount,
-      auxChainId: oThis.chainId
+      auxChainId: oThis.auxChainId
     });
   }
 
@@ -233,7 +233,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       webhookQueues = await new WebhookQueueModel()
         .select('queue_topic_suffix')
         .where({
-          chain_id: oThis.chainId,
+          chain_id: oThis.auxChainId,
           status: webhookQueueConstants.invertedStatuses[webhookQueueConstants.activeStatus]
         })
         .fire();
@@ -255,7 +255,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   async _insertIntoWebhookProcessor(pendingWebhooksId, subTopic) {
     const oThis = this,
       rmqConnection = await rabbitmqProvider.getInstance(rabbitmqConstants.auxWebhooksProcessorRabbitmqKind, {
-        auxChainId: oThis.chainId,
+        auxChainId: oThis.auxChainId,
         connectionWaitSeconds: connectionTimeoutConstants.crons,
         switchConnectionWaitSeconds: connectionTimeoutConstants.switchConnectionCrons
       });
@@ -265,7 +265,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
     }
 
     const queueTopics = basicHelper.shuffleArray(oThis.webhookQueues),
-      topicName = webhookProcessorConstants.processorTopicName(oThis.chainId, queueTopics[0], subTopic),
+      topicName = webhookProcessorConstants.processorTopicName(oThis.auxChainId, queueTopics[0], subTopic),
       messageParams = {
         topics: [topicName],
         publisher: webhookProcessorConstants.publisher,
