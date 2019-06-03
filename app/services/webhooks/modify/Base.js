@@ -11,7 +11,6 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   KmsWrapper = require(rootPrefix + '/lib/authentication/KmsWrapper'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
-  WebhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
   WebhookSubscriptionModel = require(rootPrefix + '/app/models/mysql/WebhookSubscription'),
   WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
   WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
@@ -21,6 +20,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
   webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
@@ -48,7 +48,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.eventTopics = params.topics;
-    oThis.status = params.status || WebhookEndpointConstants.active;
+    oThis.status = params.status || webhookEndpointConstants.active;
 
     oThis.endpoint = null;
     oThis.endpointId = null;
@@ -134,7 +134,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.status = oThis.status.toLowerCase();
 
-    if (!WebhookEndpointConstants.invertedStatuses[oThis.status]) {
+    if (!webhookEndpointConstants.invertedStatuses[oThis.status]) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_w_m_b_3',
@@ -166,9 +166,11 @@ class CreateUpdateWebhookBase extends ServiceBase {
     const oThis = this;
 
     if (oThis.endpoint) {
+      oThis.endpoint = oThis.endpoint.toLowerCase();
+
       await new WebhookEndpointModel()
         .update({
-          status: WebhookEndpointConstants.invertedStatuses[oThis.status]
+          status: webhookEndpointConstants.invertedStatuses[oThis.status]
         })
         .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
         .fire();
@@ -176,12 +178,12 @@ class CreateUpdateWebhookBase extends ServiceBase {
       oThis.endpointId = oThis.endpoint.id;
       oThis.uuid = oThis.endpoint.uuid;
     } else {
-      const wEndpoints = await new WebhookEndpointModel()
+      const webhookEndpointsModel = await new WebhookEndpointModel()
         .select('*')
         .where({ client_id: oThis.clientId })
         .fire();
 
-      if (wEndpoints.length >= WebhookEndpointConstants.maxEndpointsPerClient) {
+      if (webhookEndpointsModel.length >= webhookEndpointConstants.maxEndpointsPerClient) {
         return Promise.reject(
           responseHelper.error({
             internal_error_identifier: 's_w_m_b_4',
@@ -192,9 +194,9 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
       let secret_salt;
 
-      if (wEndpoints[0]) {
-        secret_salt = wEndpoints[0].secret_salt;
-        oThis.secret = wEndpoints[0].secret;
+      if (webhookEndpointsModel[0]) {
+        secret_salt = webhookEndpointsModel[0].secret_salt;
+        oThis.secret = webhookEndpointsModel[0].secret;
       } else {
         await oThis._generateSalt();
         secret_salt = oThis.secretSalt.CiphertextBlob;
@@ -211,9 +213,10 @@ class CreateUpdateWebhookBase extends ServiceBase {
           endpoint: oThis.endpointUrl,
           secret: oThis.secret,
           secret_salt: secret_salt,
-          status: WebhookEndpointConstants.invertedStatuses[oThis.status]
+          status: webhookEndpointConstants.invertedStatuses[oThis.status]
         })
         .fire();
+
       oThis.endpointId = createResp.insertId;
     }
   }
@@ -229,7 +232,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _generateSalt() {
     const oThis = this;
 
-    const kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
+    const kmsObj = new KmsWrapper(webhookEndpointConstants.encryptionPurpose);
 
     oThis.secretSalt = await kmsObj.generateDataKey();
   }
@@ -247,7 +250,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _decryptSalt(encryptedSalt) {
     const oThis = this;
 
-    const kmsObj = new KmsWrapper(WebhookEndpointConstants.encryptionPurpose);
+    const kmsObj = new KmsWrapper(webhookEndpointConstants.encryptionPurpose);
 
     oThis.secretSalt = await kmsObj.decrypt(encryptedSalt);
   }

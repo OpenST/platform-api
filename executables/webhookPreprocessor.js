@@ -246,9 +246,10 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   /**
    * This function inserts into webhook processor queue.
    *
-   * @param pendingWebhooksId
-   * @param subTopic
-   * @returns {Promise<*>}
+   * @param {string} pendingWebhooksId
+   * @param {number/string} pendingWebhooksId
+   *
+   * @returns {Promise<void>}
    * @private
    */
   async _insertIntoWebhookProcessor(pendingWebhooksId, subTopic) {
