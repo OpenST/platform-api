@@ -46,6 +46,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertTransactionErrorHandlerEntry();
     await oThis.insertBalanceVerifierEntry();
     await oThis.insertGenerateGraphEntry();
+    await oThis.insertWebhookPreprocessorEntry();
   }
 
   /**
