@@ -8,27 +8,28 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
+  CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 /**
- * Class to create new webhook.
+ * Class to update a webhook.
  *
  * @class UpdateWebhook
  */
 class UpdateWebhook extends CreateUpdateWebhookBase {
   /**
-   * Constructor to create new webhook.
+   * Constructor to update a webhook.
    *
    * @param {object} params
    * @param {number} params.client_id: client id
    * @param {string} params.endpoint_id: endpoint id in case of existing endpoint
    * @param {string} params.topics: comma separated string of topics to subscribe
+   * @param {string} params.webhook_id: webhook id
    * @param {string} [params.status]: status
    *
-   * @augments ServiceBase
+   * @augments CreateUpdateWebhookBase
    *
    * @constructor
    */
@@ -36,6 +37,7 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
     super(params);
 
     const oThis = this;
+
     oThis.endpointUuId = params.webhook_id;
   }
 

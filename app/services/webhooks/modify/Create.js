@@ -8,11 +8,11 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
-  WebhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
+  CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint');
 
 /**
  * Class to create new webhook.
@@ -29,7 +29,7 @@ class CreateWebhook extends CreateUpdateWebhookBase {
    * @param {string} params.topics: comma separated string of topics to subscribe
    * @param {string} [params.status]: status
    *
-   * @augments ServiceBase
+   * @augments CreateUpdateWebhookBase
    *
    * @constructor
    */
@@ -37,6 +37,7 @@ class CreateWebhook extends CreateUpdateWebhookBase {
     super(params);
 
     const oThis = this;
+
     oThis.endpointUrl = params.url;
   }
 
@@ -60,7 +61,7 @@ class CreateWebhook extends CreateUpdateWebhookBase {
 
     if (
       oThis.endpoint &&
-      WebhookEndpointConstants.statuses[oThis.endpoint.status] === WebhookEndpointConstants.active
+      webhookEndpointConstants.statuses[oThis.endpoint.status] === webhookEndpointConstants.active
     ) {
       return Promise.reject(
         responseHelper.error({

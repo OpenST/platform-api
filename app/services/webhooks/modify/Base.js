@@ -13,10 +13,10 @@ const rootPrefix = '../../../..',
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
   WebhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
   WebhookSubscriptionModel = require(rootPrefix + '/app/models/mysql/WebhookSubscription'),
+  WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
+  WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
-  WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
-  WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
   util = require(rootPrefix + '/lib/util'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
@@ -32,12 +32,20 @@ class CreateUpdateWebhookBase extends ServiceBase {
   /**
    * Constructor to create update webhook.
    *
+   * @param {object} params
+   * @param {number} params.client_id: client id
+   * @param {string} params.topics: comma separated string of topics to subscribe
+   * @param {string} [params.status]: status
+   *
+   * @augments ServiceBase
+   *
    * @constructor
    */
   constructor(params) {
     super(params);
 
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.eventTopics = params.topics;
     oThis.status = params.status || WebhookEndpointConstants.active;
@@ -144,7 +152,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
    * @returns {Promise<void>}
    */
   async getEndpoint() {
-    throw 'child class to implement this method.';
+    throw new Error('Sub-class to implement.');
   }
 
   /**
@@ -274,8 +282,6 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     const endpointTopics = wEndpointTopics.data[oThis.uuid];
 
-    console.log('--endpointTopics----------', endpointTopics);
-
     oThis.activateTopicIds = [];
     oThis.deActivateTopicIds = [];
     oThis.endpointTopicsMap = {};
@@ -286,7 +292,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     for (let index = 0; index < endpointTopics.active.length; index++) {
       const activeTopic = endpointTopics.active[index];
-      let topicName = webhookSubscriptionConstants.topics[activeTopic.webhook_topic_kind];
+      const topicName = webhookSubscriptionConstants.topics[activeTopic.webhook_topic_kind];
       if (!oThis.endpointTopicsMap[topicName]) {
         oThis.deActivateTopicIds.push(activeTopic.id);
       }
@@ -295,17 +301,13 @@ class CreateUpdateWebhookBase extends ServiceBase {
     }
     for (let index = 0; index < endpointTopics.inActive.length; index++) {
       const inactiveTopic = endpointTopics.inActive[index];
-      let topicName = webhookSubscriptionConstants.topics[inactiveTopic.webhook_topic_kind];
+      const topicName = webhookSubscriptionConstants.topics[inactiveTopic.webhook_topic_kind];
       if (oThis.endpointTopicsMap[topicName]) {
         oThis.activateTopicIds.push(inactiveTopic.id);
       }
 
       delete oThis.endpointTopicsMap[topicName];
     }
-
-    console.log('--oThis.endpointTopicsMap----------', oThis.endpointTopicsMap);
-    console.log('----oThis.activateTopicIds--------', oThis.activateTopicIds);
-    console.log('----oThis.deActivateTopicIds--------', oThis.deActivateTopicIds);
   }
 
   /**
