@@ -99,20 +99,20 @@ fundingAmounts[tokenAddressConstants.auxFunderAddressKind] = {
 
     // token aux workers
     [tokenAddressConstants.auxWorkerAddressKind]: {
-      fundAmount: '0.7078',
-      thresholdAmount: '0.3539'
+      fundAmount: '0.1678',
+      thresholdAmount: '0.0839'
     },
 
     // token ExTx workers
     [tokenAddressConstants.txWorkerAddressKind]: {
-      fundAmount: '30',
-      thresholdAmount: '15'
+      fundAmount: '3',
+      thresholdAmount: '1.5'
     },
 
     // token user multisig worker
     [tokenAddressConstants.tokenUserOpsWorkerKind]: {
-      fundAmount: '14.1661',
-      thresholdAmount: '7.08305'
+      fundAmount: '2.4661',
+      thresholdAmount: '1.23305'
     },
 
     // recovery controller
