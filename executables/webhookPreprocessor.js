@@ -1,5 +1,5 @@
 /**
- * Executable for webhook preprocessor.
+ * Module for webhook preprocessor executable.
  *
  * @module executables/webhookPreprocessor
  */
@@ -54,10 +54,10 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   /**
    * Constructor for webhook preprocessor.
    *
-   * @augments MultiSubscriptionBase
-   *
    * @param {object} params: params object
    * @param {number} params.cronProcessId: cron_processes table id
+   *
+   * @augments MultiSubscriptionBase
    *
    * @constructor
    */
@@ -161,7 +161,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
     logger.debug('msgPayload ========', msgPayload);
 
     // In some cases, we may not have client id so we will fetch it using cache
-    // and store it in local memory to reduce cache hits.
+    // And store it in local memory to reduce cache hits.
     if (!clientId && tokenId && !tokenIdToClientIdMap[tokenId]) {
       const clientIdByTokenCacheRsp = await new TokenByTokenIdCache({ tokenId: tokenId }).fetch();
       tokenIdToClientIdMap[tokenId] = clientIdByTokenCacheRsp.data.clientId;
