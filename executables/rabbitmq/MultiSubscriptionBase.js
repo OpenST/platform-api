@@ -327,6 +327,7 @@ class MultiSubscriptionBase extends CronBase {
    * @return {Promise<void>}
    * @private
    */
+
   async _sequentialExecutor(messageParams) {
     // Default behaviour - nothing to do.
     return responseHelper.successWithData({});
@@ -349,7 +350,7 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   get _processNamePrefix() {
-    throw 'sub class to implement.';
+    throw '_processNamePrefix sub class to implement.';
   }
 
   /**
@@ -359,7 +360,7 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   async _specificValidations() {
-    throw 'sub class to implement.';
+    throw '_specificValidations sub class to implement.';
   }
 
   /**
@@ -368,7 +369,7 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   _processMessage() {
-    throw 'sub class to implement.';
+    throw '_processMessage sub class to implement.';
   }
 
   /**
@@ -377,7 +378,7 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   _beforeSubscribe() {
-    throw 'sub class to implement.';
+    throw '_processMessage sub class to implement.';
   }
 
   /**
@@ -386,7 +387,7 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   _prepareSubscriptionData() {
-    throw 'sub class to implement.';
+    throw '_processMessage sub class to implement.';
   }
 
   /**
@@ -395,7 +396,7 @@ class MultiSubscriptionBase extends CronBase {
    * @private
    */
   _startSubscription() {
-    throw 'sub class to implement.';
+    throw '_processMessage sub class to implement.';
   }
 }
 
