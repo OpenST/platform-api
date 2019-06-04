@@ -16,7 +16,7 @@ require(rootPrefix + '/app/services/webhooks/GetAll');
 require(rootPrefix + '/app/services/webhooks/Delete');
 
 /* Create webhook */
-router.post('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createWebhook;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -32,7 +32,7 @@ router.post('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, 
 });
 
 /* Update webhook */
-router.post('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.post('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.updateWebhook;
   req.decodedParams.webhook_id = req.params.webhook_id;
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -49,7 +49,7 @@ router.post('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, functio
 });
 
 /* Update webhook */
-router.get('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getWebhook;
   req.decodedParams.webhook_id = req.params.webhook_id;
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -66,7 +66,7 @@ router.get('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function
 });
 
 /* Delete a webhook */
-router.delete('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.delete('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.deleteWebhook;
   req.decodedParams.clientConfigStrategyRequired = false;
 
@@ -82,7 +82,7 @@ router.delete('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res
 });
 
 /* Create webhook */
-router.get('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getAllWebhook;
   req.decodedParams.clientConfigStrategyRequired = true;
 
