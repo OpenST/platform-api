@@ -26,7 +26,12 @@ if (!program.quoteCurrencySymbol) {
   process.exit(1);
 }
 
-new ActivateQuoteCurrency(program.quoteCurrencySymbol).perform().then(function(response) {
-  logger.log('Response:', response);
-  process.exit(0);
-});
+new ActivateQuoteCurrency(program.quoteCurrencySymbol)
+  .perform()
+  .then(function(response) {
+    process.exit(0);
+  })
+  .catch(function(err) {
+    logger.log('Error:', err);
+    process.exit(1);
+  });
