@@ -171,7 +171,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
 
       tokenIdToClientIdMap[tokenId] = clientIdByTokenCacheRsp.data.clientId;
       clientId = clientIdByTokenCacheRsp.data.clientId;
-    } else {
+    } else if (!clientId && tokenId && tokenIdToClientIdMap[tokenId]) {
       clientId = tokenIdToClientIdMap[tokenId];
     }
 
