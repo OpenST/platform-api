@@ -101,15 +101,15 @@ class ExecuteRecovery extends CronBase {
   }
 
   /**
-   * Specific validations.
+   * Validate and sanitize.
    *
    * @return {Promise<void>}
    * @private
    */
-  async _specificValidations() {
+  async _validateAndSanitize() {
     const oThis = this;
 
-    // Validate chainId
+    // Validate chainId.
     if (!oThis.chainId) {
       const errMsg = 'Invalid chainId. Exiting the cron.';
 
