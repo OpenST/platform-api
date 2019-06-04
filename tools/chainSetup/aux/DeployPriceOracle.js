@@ -37,6 +37,7 @@ class DeployPriceOracle {
    * @param {object} params
    * @param {string/number} params.auxChainId - auxChainId for which price oracle needs be deployed.
    * @param {string} params.baseCurrencySymbol - base currency symbol.
+   * @param {string} params.quoteCurrencySymbol - quote currency symbol.
    * @param {string} params.gasPrice - gas price used for deployment.
    *
    * @constructor
@@ -48,7 +49,7 @@ class DeployPriceOracle {
     oThis.baseCurrencySymbol = params.baseCurrencySymbol;
     oThis.gasPrice = params.gasPrice || contractConstants.zeroGasPrice;
 
-    oThis.quoteCurrency = conversionRateConstants.USD;
+    oThis.quoteCurrencySymbol = params.quoteCurrencySymbol;
     oThis.ownerAddress = '';
     oThis.adminAddress = '';
     oThis.workerAddress = '';
@@ -74,7 +75,13 @@ class DeployPriceOracle {
 
     await oThis._setWeb3Instance();
 
-    await oThis._deployPriceOraclesAndSetOpsAndAdmin();
+    await oThis._deployPriceOracleContract();
+
+    await oThis._setOpsAddress();
+
+    await oThis._setAdminAddress();
+
+    await oThis._saveContractAddress();
   }
 
   /**
@@ -162,42 +169,6 @@ class DeployPriceOracle {
   }
 
   /**
-   * Deploy price oracles and set ops and admin
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _deployPriceOraclesAndSetOpsAndAdmin() {
-    const oThis = this;
-
-    let allQuoteCurrencySymbols = new AllQuoteCurrencySymbols({});
-
-    let cacheRsp = await allQuoteCurrencySymbols.fetch();
-
-    let quoteCurrencies = cacheRsp.data;
-
-    let quoteCurrencyBySymbolCache = new QuoteCurrencyBySymbolCache({
-      quoteCurrencySymbols: quoteCurrencies
-    });
-
-    let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
-
-    oThis.quoteCurrencyDetails = quoteCurrencyCacheRsp.data;
-
-    for (let i = 0; i < quoteCurrencies.length; i++) {
-      oThis.quoteCurrency = quoteCurrencies[i];
-
-      await oThis._deployPriceOracleContract();
-
-      await oThis._setOpsAddress();
-
-      await oThis._setAdminAddress();
-
-      await oThis._saveContractAddress();
-    }
-  }
-
-  /**
    * Deploy price oracle contract.
    *
    * @sets oThis.contractAddress
@@ -211,7 +182,7 @@ class DeployPriceOracle {
     logger.step(
       `* Deploying Price Oracle contract for base currency: "${
         oThis.baseCurrencyDetails.constants.baseCurrencyCode
-      }" to quote currency "${oThis.quoteCurrency}".`
+      }" to quote currency "${oThis.quoteCurrencySymbol}".`
     );
 
     // Prepare txOptions.
@@ -228,7 +199,7 @@ class DeployPriceOracle {
       oThis.web3Instance,
       oThis.ownerAddress,
       oThis.baseCurrencyDetails.constants.baseCurrencyCode,
-      oThis.quoteCurrency,
+      oThis.quoteCurrencySymbol,
       txOptions
     );
 
@@ -259,7 +230,7 @@ class DeployPriceOracle {
     logger.step(
       `Price oracle contract for base currency:"${
         oThis.baseCurrencyDetails.constants.baseCurrencyCode
-      }" to quote currency "${oThis.quoteCurrency}" deployed.`
+      }" to quote currency "${oThis.quoteCurrencySymbol}" deployed.`
     );
   }
 
@@ -377,12 +348,15 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
-    let quoteCurrencyId = oThis.quoteCurrencyDetails[oThis.quoteCurrency].id;
+    let quoteCurrencyDetails = await new QuoteCurrencyBySymbolCache({
+        quoteCurrencySymbols: [oThis.quoteCurrencySymbol]
+      }).fetch(),
+      quoteCurrencyId = quoteCurrencyDetails.data[oThis.quoteCurrencySymbol].id;
 
     let auxPriceOracleModelObj = new AuxPriceOracleModel({});
 
     await auxPriceOracleModelObj.insertPriceOracle({
-      chainId: oThis.chainId,
+      chainId: oThis.auxChainId,
       stakeCurrencyId: oThis.baseCurrencyDetails.id,
       quoteCurrencyId: quoteCurrencyId,
       contractAddress: oThis.contractAddress,
@@ -390,7 +364,7 @@ class DeployPriceOracle {
     });
 
     let auxPriceOracleCache = new AuxPriceOracleCache({
-      auxChainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
       stakeCurrencyId: oThis.baseCurrencyDetails.id,
       quoteCurrencyId: quoteCurrencyId
     });
