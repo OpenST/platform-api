@@ -1,6 +1,5 @@
-'use strict';
 /**
- * This service helps in deleting webhook.
+ * Module to delete webhook.
  *
  * @module app/services/webhooks/Delete
  */
@@ -16,6 +15,8 @@ const rootPrefix = '../../..',
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
   WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
+  WebhookSubscriptionsByClientIdCache = require(rootPrefix +
+    '/lib/cacheManagement/kitSaas/WebhookSubscriptionsByClientId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -32,9 +33,11 @@ class DeleteWebhook extends ServiceBase {
   /**
    * Constructor for delete webhook class.
    *
-   * @param {Object} params
-   * @param {Number} params.client_id
-   * @param {String} params.webhook_id - uuid v4
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {string} params.webhook_id: uuid v4
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -50,9 +53,10 @@ class DeleteWebhook extends ServiceBase {
   }
 
   /**
-   * Async performer method.
+   * Async perform.
    *
    * @return {Promise<void>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -91,7 +95,7 @@ class DeleteWebhook extends ServiceBase {
     oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
 
     // If client id from cache doesn't match or status of webhook id is inactive,
-    // then we can say that webhook uuid is invalid.
+    // Then we can say that webhook uuid is invalid.
     if (
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
@@ -112,6 +116,7 @@ class DeleteWebhook extends ServiceBase {
   /**
    * Prepare response to return.
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _prepareResponseData() {
@@ -122,8 +127,8 @@ class DeleteWebhook extends ServiceBase {
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data[oThis.webhookId],
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
-    for (let i = 0; i < activeWebhooks.length; i++) {
-      oThis.topics.push(activeWebhooks[i].webhook_topic_kind);
+    for (let index = 0; index < activeWebhooks.length; index++) {
+      oThis.topics.push(activeWebhooks[index].webhook_topic_kind);
     }
   }
 
@@ -134,15 +139,16 @@ class DeleteWebhook extends ServiceBase {
    * @private
    */
   async _markWebhookSubscriptionsInactive() {
-    const oThis = this,
-      webhookSubscriptionRsp = await new WebhookSubscriptionModel()
-        .update({
-          status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.inActiveStatus]
-        })
-        .where({
-          webhook_endpoint_uuid: oThis.webhookId
-        })
-        .fire();
+    const oThis = this;
+
+    await new WebhookSubscriptionModel()
+      .update({
+        status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.inActiveStatus]
+      })
+      .where({
+        webhook_endpoint_uuid: oThis.webhookId
+      })
+      .fire();
   }
 
   /**
@@ -152,15 +158,16 @@ class DeleteWebhook extends ServiceBase {
    * @private
    */
   async _markWebhookEndpointsInactive() {
-    const oThis = this,
-      webhookEndpointRsp = await new WebhookEndpointModel()
-        .update({
-          status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive]
-        })
-        .where({
-          uuid: oThis.webhookId
-        })
-        .fire();
+    const oThis = this;
+
+    await new WebhookEndpointModel()
+      .update({
+        status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive]
+      })
+      .where({
+        uuid: oThis.webhookId
+      })
+      .fire();
   }
 
   /**
@@ -178,6 +185,7 @@ class DeleteWebhook extends ServiceBase {
     // Clear webhook endpoints cache.
     await new WebhookEndpointCache({ uuid: oThis.webhookId }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
+    await new WebhookSubscriptionsByClientIdCache({ clientId: oThis.clientId }).clear();
   }
 }
 
