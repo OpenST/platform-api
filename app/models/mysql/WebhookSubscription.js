@@ -131,10 +131,16 @@ class WebhookSubscription extends ModelBase {
    *
    * @returns {Promise<*>}
    */
-  static async flushCache(webhookEndpointUuids) {
-    const Cache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid');
+  static async flushCache(webhookEndpointUuids, clientId) {
+    const Cache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
+      WebhookSubscriptionsByClientId = require(rootPrefix +
+        '/lib/cacheManagement/kitSaas/WebhookSubscriptionsByClientId');
 
+    // Clear webhook subscriptions by uuid cache.
     await new Cache({ webhookEndpointUuids: webhookEndpointUuids }).clear();
+
+    // Clear webhook subscriptions by client id cache.
+    await new WebhookSubscriptionsByClientId({ clientId: clientId }).clear();
   }
 }
 
