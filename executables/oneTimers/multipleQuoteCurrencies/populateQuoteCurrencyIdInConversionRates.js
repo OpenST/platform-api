@@ -10,7 +10,7 @@ const rootPrefix = '../../..',
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint');
 
-const auxChainId = process.argv[1];
+const auxChainId = process.argv[2];
 
 class PopulateQuoteCurrencyId {
   constructor() {}

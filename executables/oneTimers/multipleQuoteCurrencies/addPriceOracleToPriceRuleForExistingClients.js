@@ -7,17 +7,17 @@
  */
 
 const rootPrefix = '../../..',
-  ConfigStrategyByChainId = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
+  chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
-const auxChainId = process.argv[1],
-  quoteCurrency = process.argv[2];
+const auxChainId = process.argv[2],
+  quoteCurrency = process.argv[3];
 
 require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 
@@ -50,7 +50,7 @@ class AddPriceOracleToPricerRuleForExistingClients {
   async _fetchConfig() {
     const oThis = this;
 
-    let configMap = await new ConfigStrategyByChainId.getFor([chainId]);
+    let configMap = await chainConfigProvider.getFor([auxChainId]);
 
     let configStrategy = configMap[auxChainId];
 
@@ -144,7 +144,9 @@ class AddPriceOracleToPricerRuleForExistingClients {
       }
     }
 
-    await Promise.all(promiseArray);
+    if (promiseArray.length > 0) {
+      await Promise.all(promiseArray);
+    }
   }
 }
 

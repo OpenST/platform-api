@@ -14,7 +14,7 @@ const rootPrefix = '../../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   auxPriceOracleConstants = require(rootPrefix + '/lib/globalConstant/auxPriceOracle');
 
-const auxChainId = process.argv[1];
+const auxChainId = process.argv[2];
 
 class PopulateAuxPriceOracles {
   constructor() {}
@@ -80,15 +80,17 @@ class PopulateAuxPriceOracles {
       stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.OST].id,
       quoteCurrencyId: quoteCurrencyData['USD'].id,
       contractAddress: oThis.ostToUsdPriceOracleContractAddress,
-      status: auxPriceOracleConstants.invertedStatuses[auxPriceOracleConstants.activeStatus]
+      status: auxPriceOracleConstants.activeStatus
     });
+
+    auxPriceOracleModel = new AuxPriceOracleModel({});
 
     await auxPriceOracleModel.insertPriceOracle({
       chainId: auxChainId,
       stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.USDC].id,
       quoteCurrencyId: quoteCurrencyData['USD'].id,
       contractAddress: oThis.usdcToUsdPriceOracleContractAddress,
-      status: auxPriceOracleConstants.invertedStatuses[auxPriceOracleConstants.activeStatus]
+      status: auxPriceOracleConstants.activeStatus
     });
   }
 }
