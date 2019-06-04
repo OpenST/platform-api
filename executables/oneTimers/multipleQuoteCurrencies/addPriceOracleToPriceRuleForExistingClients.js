@@ -93,7 +93,7 @@ class AddPriceOracleToPricerRuleForExistingClients {
 
     let tokenModel = new TokenModel({});
 
-    let Rows = tokenModel
+    let Rows = await tokenModel
       .select('id, client_id')
       .where({
         status: tokenConstants.invertedStatuses[tokenConstants.deploymentCompleted]
@@ -156,7 +156,9 @@ addPriceOracleToPricerRuleForExistingClients
   .perform()
   .then(function(resp) {
     console.log(resp);
+    process.exit(0);
   })
   .catch(function(err) {
     console.log(err);
+    process.exit(1);
   });

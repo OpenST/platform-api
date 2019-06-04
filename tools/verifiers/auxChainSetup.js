@@ -774,7 +774,7 @@ class AuxChainSetup {
       quoteCurrencyId: quoteCurrencyId
     });
 
-    let priceOracleContractAddress = priceOracleRsp.data['contract_address'];
+    let priceOracleContractAddress = priceOracleRsp.data['contractAddress'];
 
     let rsp = await oThis.verifiersHelper.validateContract(
       priceOracleContractAddress,
