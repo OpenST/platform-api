@@ -13,9 +13,10 @@ require(rootPrefix + '/app/services/webhooks/modify/Create');
 require(rootPrefix + '/app/services/webhooks/modify/Update');
 require(rootPrefix + '/app/services/webhooks/Get');
 require(rootPrefix + '/app/services/webhooks/GetAll');
+require(rootPrefix + '/app/services/webhooks/Delete');
 
 /* Create webhook */
-router.post('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createWebhook;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -31,7 +32,7 @@ router.post('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, 
 });
 
 /* Update webhook */
-router.post('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.post('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.updateWebhook;
   req.decodedParams.webhook_id = req.params.webhook_id;
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -48,7 +49,7 @@ router.post('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, functio
 });
 
 /* Update webhook */
-router.get('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getWebhook;
   req.decodedParams.webhook_id = req.params.webhook_id;
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -61,11 +62,11 @@ router.get('/webhooks/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetWebhook', 'r_v2_w_2', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetWebhook', 'r_v2_w_3', null, dataFormatterFunc));
 });
 
 /* Delete a webhook */
-router.delete('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.delete('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.deleteWebhook;
   req.decodedParams.clientConfigStrategyRequired = false;
 
@@ -77,11 +78,11 @@ router.delete('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'DeleteWebhook', 'r_v2_w_3', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'DeleteWebhook', 'r_v2_w_4', null, dataFormatterFunc));
 });
 
 /* Create webhook */
-router.get('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getAllWebhook;
   req.decodedParams.clientConfigStrategyRequired = true;
 
@@ -101,5 +102,5 @@ router.get('/webhooks', sanitizer.sanitizeDynamicUrlParams, function(req, res, n
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetAllWebhook', 'r_v2_w_1', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetAllWebhook', 'r_v2_w_5', null, dataFormatterFunc));
 });
