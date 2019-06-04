@@ -7,8 +7,8 @@
 const program = require('commander');
 
 const rootPrefix = '..',
+  CronBase = require(rootPrefix + '/executables/CronBase'),
   ChainDetails = require(rootPrefix + '/app/services/chain/Get'),
-  PublisherBase = require(rootPrefix + '/executables/rabbitmq/PublisherBase'),
   RecoveryOperationModel = require(rootPrefix + '/app/models/mysql/RecoveryOperation'),
   ProcessRecoveryRequest = require(rootPrefix +
     '/lib/deviceRecovery/byRecoveryController/executeRecovery/ProcessRecoveryRequest'),
@@ -41,14 +41,14 @@ if (!cronProcessId) {
  *
  * @class ExecuteRecovery
  */
-class ExecuteRecovery extends PublisherBase {
+class ExecuteRecovery extends CronBase {
   /**
    * Constructor for execute recovery  cron.
    *
-   * @augments PublisherBase
+   * @param {object} params: params object
+   * @param {number} params.cronProcessId: cron_processes table id
    *
-   * @param {Object} params: params object
-   * @param {Number} params.cronProcessId: cron_processes table id
+   * @augments CronBase
    *
    * @constructor
    */
@@ -62,6 +62,12 @@ class ExecuteRecovery extends PublisherBase {
     oThis.currentBlockNumber = null;
   }
 
+  /**
+   * Start the cron.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _start() {
     const oThis = this;
 
@@ -73,10 +79,9 @@ class ExecuteRecovery extends PublisherBase {
   }
 
   /**
-   * Cron kind
+   * Cron kind.
    *
-   * @returns {String}
-   *
+   * @returns {string}
    * @private
    */
   get _cronKind() {
@@ -84,10 +89,9 @@ class ExecuteRecovery extends PublisherBase {
   }
 
   /**
-   * Pending tasks done
+   * Pending tasks done.
    *
-   * @return {Boolean}
-   *
+   * @return {boolean}
    * @private
    */
   _pendingTasksDone() {
@@ -97,7 +101,7 @@ class ExecuteRecovery extends PublisherBase {
   }
 
   /**
-   * Specific validations
+   * Specific validations.
    *
    * @return {Promise<void>}
    * @private
@@ -107,9 +111,10 @@ class ExecuteRecovery extends PublisherBase {
 
     // Validate chainId
     if (!oThis.chainId) {
-      let errMsg = 'Invalid chainId. Exiting the cron.';
+      const errMsg = 'Invalid chainId. Exiting the cron.';
 
       logger.error(errMsg);
+
       return Promise.reject(errMsg);
     }
 
@@ -119,8 +124,9 @@ class ExecuteRecovery extends PublisherBase {
   /**
    * This method fetches the current block number of the chain after performing validations on the chainId.
    *
-   * @return {Promise<void>}
+   * @sets oThis.currentBlockNumber
    *
+   * @return {Promise<void>}
    * @private
    */
   async _fetchCurrentBlockNumber() {
@@ -140,7 +146,6 @@ class ExecuteRecovery extends PublisherBase {
    * Fetch recovery operations which need to be executed.
    *
    * @return {Promise<void>}
-   *
    * @private
    */
   async _startExecuteRecovery() {
@@ -160,6 +165,7 @@ class ExecuteRecovery extends PublisherBase {
     logger.log('Processing ', oThis.recoveryOperations.length, ' recovery requests.');
 
     oThis.canExit = false;
+
     for (let index = 0; index < oThis.recoveryOperations.length; index++) {
       const recoveryOperationEntity = oThis.recoveryOperations[index];
 
@@ -178,7 +184,7 @@ class ExecuteRecovery extends PublisherBase {
   }
 }
 
-// Perform action
+// Perform action.
 new ExecuteRecovery({ cronProcessId: +program.cronProcessId })
   .perform()
   .then(function() {
