@@ -193,6 +193,7 @@ class SessionsLogout extends Base {
     const requestParams = {
         auxChainId: oThis._configStrategyObject.auxChainId,
         tokenId: oThis.tokenId,
+        clientId: oThis.clientId,
         userId: oThis.userId,
         to: oThis.to,
         value: oThis.value,
