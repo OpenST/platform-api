@@ -54,8 +54,8 @@ class AuxPriceOracle extends ModelBase {
   static _formatDbData(dbRow) {
     return {
       id: dbRow.id,
-      stake_currency_id: dbRow.stake_currency_id,
-      quote_currency_id: dbRow.quote_currency_id,
+      stakeCurrencyId: dbRow.stake_currency_id,
+      quoteCurrencyId: dbRow.quote_currency_id,
       contractAddress: dbRow.contract_address,
       status: auxPriceOracleConstants.statuses[dbRow.status],
       createdAt: dbRow.created_at,
