@@ -92,6 +92,34 @@ class AuxPriceOracle extends ModelBase {
 
     return responseHelper.successWithData(AuxPriceOracle._formatDbData(dbRow[0]));
   }
+
+  /**
+   * Insert price oracle contract details
+   *
+   * @param {Object} params
+   * @param {Number} params.chainId - chain id
+   * @param {Number} params.stakeCurrencyId - stake currency id
+   * @param {Number} params.quoteCurrencyId - quote currency id
+   * @param {Number} params.contractAddress - price oracle contract address
+   * @param {Number} params.status - status
+   *
+   * @return {Promise<any>}
+   */
+  async insertPriceOracle(params) {
+    const oThis = this;
+
+    let response = await oThis
+      .insert({
+        chain_id: params.chainId,
+        stake_currency_id: params.stakeCurrencyId,
+        quote_currency_id: params.quoteCurrencyId,
+        contract_address: params.contractAddress,
+        status: auxPriceOracleConstants.invertedStatuses[params.status]
+      })
+      .fire();
+
+    return Promise.resolve(responseHelper.successWithData(response.insertId));
+  }
 }
 
 module.exports = AuxPriceOracle;

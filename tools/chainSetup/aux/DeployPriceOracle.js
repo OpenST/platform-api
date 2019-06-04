@@ -14,6 +14,11 @@ const rootPrefix = '../../..',
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  AllQuoteCurrencySymbols = require(rootPrefix + '/lib/cacheManagement/shared/AllQuoteCurrencySymbols'),
+  QuoteCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/QuoteCurrencyBySymbol'),
+  AuxPriceOracleModel = require(rootPrefix + '/app/models/mysql/AuxPriceOracle'),
+  AuxPriceOracleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/AuxPriceOracle'),
+  auxPriceOracleConstants = require(rootPrefix + '/lib/globalConstant/auxPriceOracle'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -72,13 +77,7 @@ class DeployPriceOracle {
 
     await oThis._setWeb3Instance();
 
-    await oThis._deployPriceOracleContract();
-
-    await oThis._setOpsAddress();
-
-    await oThis._setAdminAddress();
-
-    await oThis._saveContractAddress();
+    await oThis._deployPriceOraclesAndSetOpsAndAdmin();
   }
 
   /**
@@ -166,6 +165,42 @@ class DeployPriceOracle {
   }
 
   /**
+   * Deploy price oracles and set ops and admin
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _deployPriceOraclesAndSetOpsAndAdmin() {
+    const oThis = this;
+
+    let allQuoteCurrencySymbols = new AllQuoteCurrencySymbols({});
+
+    let cacheRsp = await allQuoteCurrencySymbols.fetch();
+
+    let quoteCurrencies = cacheRsp.data;
+
+    let quoteCurrencyBySymbolCache = new QuoteCurrencyBySymbolCache({
+      quoteCurrencySymbols: quoteCurrencies
+    });
+
+    let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
+
+    oThis.quoteCurrencyDetails = quoteCurrencyCacheRsp.data;
+
+    for (let i = 0; i < quoteCurrencies.length; i++) {
+      oThis.quoteCurrency = quoteCurrencies[i];
+
+      await oThis._deployPriceOracleContract();
+
+      await oThis._setOpsAddress();
+
+      await oThis._setAdminAddress();
+
+      await oThis._saveContractAddress();
+    }
+  }
+
+  /**
    * Deploy price oracle contract.
    *
    * @sets oThis.contractAddress
@@ -240,7 +275,7 @@ class DeployPriceOracle {
   async _setOpsAddress() {
     const oThis = this;
 
-    logger.step('* Setting opsAddress in Price oracle contract.');
+    logger.step(`* Setting opsAddress in Price oracle contract ${oThis.contractAddress}`);
 
     // Prepare txOptions.
     const txOptions = {
@@ -281,7 +316,7 @@ class DeployPriceOracle {
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
 
-    logger.step('Ops address set in price oracle contract.');
+    logger.step(`Ops address set in price oracle contract ${oThis.contractAddress}`);
   }
 
   /**
@@ -293,7 +328,7 @@ class DeployPriceOracle {
   async _setAdminAddress() {
     const oThis = this;
 
-    logger.step('* Setting admin address in price oracle contract.');
+    logger.step(`* Setting admin address in price oracle contract ${oThis.contractAddress}`);
 
     // Prepare txOptions.
     const txOptions = {
@@ -333,7 +368,7 @@ class DeployPriceOracle {
 
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
-    logger.step('Admin address set in price oracle contract.');
+    logger.step(`Admin address set in price oracle contract ${oThis.contractAddress}`);
   }
 
   /**
@@ -345,30 +380,27 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
-    let contractAddressKind;
+    let quoteCurrencyId = oThis.quoteCurrencyDetails[oThis.quoteCurrency].id;
 
-    if (oThis.baseCurrencySymbol === stakeCurrencyConstants.OST) {
-      contractAddressKind = chainAddressConstants.auxOstToUsdPriceOracleContractKind;
-    } else if (oThis.baseCurrencySymbol === stakeCurrencyConstants.USDC) {
-      contractAddressKind = chainAddressConstants.auxUsdcToUsdPriceOracleContractKind;
-    } else {
-      throw new Error(`Invalid baseCurrency ${oThis.baseCurrencySymbol}`);
-    }
+    let auxPriceOracleModelObj = new AuxPriceOracleModel({});
 
-    // Insert priceOracleContractAddress in chainAddresses table.
-    await new ChainAddressModel().insertAddress({
-      address: oThis.contractAddress.toLowerCase(),
-      associatedAuxChainId: oThis.auxChainId,
-      addressKind: contractAddressKind,
-      deployedChainId: oThis.auxChainId,
-      deployedChainKind: coreConstants.auxChainKind,
-      status: chainAddressConstants.activeStatus
+    await auxPriceOracleModelObj.insertPriceOracle({
+      chainId: oThis.chainId,
+      stakeCurrencyId: oThis.baseCurrencyDetails.id,
+      quoteCurrencyId: quoteCurrencyId,
+      contractAddress: oThis.contractAddress,
+      status: auxPriceOracleConstants.activeStatus
     });
 
-    // Clear chain address cache.
-    await new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }).clear();
+    let auxPriceOracleCache = new AuxPriceOracleCache({
+      auxChainId: oThis.chainId,
+      stakeCurrencyId: oThis.baseCurrencyDetails.id,
+      quoteCurrencyId: quoteCurrencyId
+    });
 
-    logger.step('Price oracle contract address added in table.');
+    await auxPriceOracleCache.clear();
+
+    logger.step(`Price oracle contract address - ${oThis.contractAddress} added in table.`);
   }
 }
 

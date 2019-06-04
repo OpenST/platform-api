@@ -89,6 +89,17 @@ NOTE: Copy the ETH funder private key for later use.
     node executables/setup/origin/insertInStakeCurrencies.js --contractSymbol OST --contractName "Simple Token"
 ```
 
+* Insert Quote Currency Details in Quote Currencies Mysql Table
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInQuoteCurrencies.js --symbol USD --name "US Dollar"
+```
+
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInQuoteCurrencies.js --symbol EUR --name "Euro"
+```
+
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh
@@ -171,6 +182,17 @@ NOTE: Copy the response from the script above and save somewhere offline.
 ```bash
     source set_env_vars.sh
     node executables/setup/origin/contracts.js --originChainId 3
+```
+
+* Activate Quote currencies
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "USD"
+```
+
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "EUR"
 ```
 
 #### [Only DevOps] NOTE: Revert SA_DEFAULT_ORIGIN_GAS_PRICE gas price
