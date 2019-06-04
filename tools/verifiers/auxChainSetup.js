@@ -733,7 +733,9 @@ class AuxChainSetup {
       quoteCurrencySymbols: quoteCurrencies
     });
 
-    let quoteCurrencyData = quoteCurrencyBySymbolCache.data;
+    let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
+
+    let quoteCurrencyData = quoteCurrencyCacheRsp.data;
 
     for (let quoteCurrency in quoteCurrencyData) {
       let quoteCurrencyId = quoteCurrencyData[quoteCurrency].id,

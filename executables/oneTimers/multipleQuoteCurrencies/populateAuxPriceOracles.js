@@ -63,7 +63,9 @@ class PopulateAuxPriceOracles {
       quoteCurrencySymbols: ['USD']
     });
 
-    let quoteCurrencyData = quoteCurrencyBySymbolCache.data;
+    let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
+
+    let quoteCurrencyData = quoteCurrencyCacheRsp.data;
 
     let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: [stakeCurrencyConstants.OST, stakeCurrencyConstants.USDC]
