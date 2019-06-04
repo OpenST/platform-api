@@ -168,11 +168,14 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
     // And store it in local memory to reduce cache hits.
     if (!clientId && tokenId && !tokenIdToClientIdMap[tokenId]) {
       const clientIdByTokenCacheRsp = await new TokenByTokenIdCache({ tokenId: tokenId }).fetch();
+
       tokenIdToClientIdMap[tokenId] = clientIdByTokenCacheRsp.data.clientId;
       clientId = clientIdByTokenCacheRsp.data.clientId;
-    } else if (!clientId && tokenId && tokenIdToClientIdMap[tokenId]) {
+    } else {
       clientId = tokenIdToClientIdMap[tokenId];
     }
+
+    msgPayload.clientId = clientId;
 
     msgPayload.topic = messageParams.topics[0];
 
