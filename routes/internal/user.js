@@ -15,4 +15,8 @@ router.get('/get', function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'GetUser', 'r_i_u_1', null, null));
 });
 
+router.post('/testW', function(req, res, next) {
+  res.status(200).json({ my: 'response done' });
+});
+
 module.exports = router;

@@ -32,6 +32,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  AuthenticateApiByWebhookKeySecret = require(rootPrefix + '/lib/validateApiSignature/ByWebhookKeySecret'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 const requestSharedNameSpace = createNamespace('saasApiNameSpace'),
@@ -133,6 +134,26 @@ const validateApiSignature = function(req, res, next) {
   })
     .perform()
     .then(handleParamValidationResult);
+};
+
+const validateWebhookSignature = function(req, res, next) {
+  console.log('I am in app.js validateWebhookSignature');
+  let inputParams = getRequestParams(req);
+  console.log('---------inputParams---', inputParams);
+  // Following line always gives resolution. In case this assumption changes, please add catch here.
+  return new AuthenticateApiByWebhookKeySecret({
+    inputParams: inputParams,
+    requestPath: customUrlParser.parse(req.originalUrl).pathname
+  })
+    .perform()
+    .then(function(resp) {
+      if (resp.isSuccess()) {
+        console.log('----------validateWebhookSignature-------resp--------------', resp);
+        next();
+      } else {
+        return resp.renderResponse(res, errorConfig);
+      }
+    });
 };
 
 // before action for verifying the jwt token and setting the decoded info in req obj
@@ -381,6 +402,16 @@ if (cluster.isMaster) {
 
   // Following are the routes
   app.use('/health-checker', elbHealthCheckerRoute);
+
+  app.use(
+    '/test_webhook',
+    startRequestLogLine,
+    appendRequestDebugInfo,
+    validateWebhookSignature,
+    sanitizer.sanitizeBodyAndQuery,
+    assignParams,
+    internalRoutes
+  );
 
   /*
     The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
