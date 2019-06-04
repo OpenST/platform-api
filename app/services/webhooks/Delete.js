@@ -181,11 +181,11 @@ class DeleteWebhook extends ServiceBase {
 
     // Clear webhook subscriptions cache.
     await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
+    await new WebhookSubscriptionsByClientIdCache({ clientId: oThis.clientId }).clear();
 
     // Clear webhook endpoints cache.
     await new WebhookEndpointCache({ uuid: oThis.webhookId }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
-    await new WebhookSubscriptionsByClientIdCache({ clientId: oThis.clientId }).clear();
   }
 }
 

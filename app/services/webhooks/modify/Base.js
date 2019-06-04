@@ -388,10 +388,14 @@ class CreateUpdateWebhookBase extends ServiceBase {
    */
   async _clearCache() {
     const oThis = this;
+
+    // Clear webhook subscriptions cache.
     await new WebhookSubscriptionsByUuidCache({ webhookEndpointUuids: [oThis.uuid] }).clear();
+    await new WebhookSubscriptionsByClientIdCache({ clientId: oThis.clientId }).clear();
+
+    // Clear webhook endpoints cache.
     await new WebhookEndpointCache({ uuid: oThis.uuid }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
-    await new WebhookSubscriptionsByClientIdCache({ clientId: oThis.clientId }).clear();
   }
 }
 
