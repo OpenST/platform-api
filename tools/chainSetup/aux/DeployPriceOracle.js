@@ -8,9 +8,6 @@ const OpenSTOracle = require('@ostdotcom/ost-price-oracle'),
   deployAndSetOpsAndAdminHelper = new OpenSTOracle.DeployAndSetOpsAndAdminHelper();
 
 const rootPrefix = '../../..',
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),

@@ -23,7 +23,9 @@ const rootPrefix = '../..',
   stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   StakeCurrencyModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  AuxPriceOracleModel = require(rootPrefix + '/app/models/mysql/AuxPriceOracle'),
+  AllQuoteCurrencySymbols = require(rootPrefix + '/lib/cacheManagement/shared/AllQuoteCurrencySymbols'),
+  QuoteCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/QuoteCurrencyBySymbol');
 
 program.option('--auxChainId <auxChainId>', 'aux ChainId').parse(process.argv);
 
@@ -721,16 +723,62 @@ class AuxChainSetup {
     let allStakeCurrencyDetails = oThis.allStakeCurrencyDetails,
       priceOracleContractAddress;
 
-    if (baseCurrency === stakeCurrencyConstants.OST) {
-      priceOracleContractAddress = oThis.auxOstToUsdPriceOracleContractKind;
-    } else if (baseCurrency === stakeCurrencyConstants.USDC) {
-      priceOracleContractAddress = oThis.auxUsdcToUsdPriceOracleContractKind;
+    // Fetch quote currencies
+    let allQuoteCurrencySymbols = new AllQuoteCurrencySymbols({});
+
+    let cacheRsp = await allQuoteCurrencySymbols.fetch();
+    let quoteCurrencies = cacheRsp.data;
+
+    let quoteCurrencyBySymbolCache = new QuoteCurrencyBySymbolCache({
+      quoteCurrencySymbols: quoteCurrencies
+    });
+
+    let quoteCurrencyData = quoteCurrencyBySymbolCache.data;
+
+    for (let quoteCurrency in quoteCurrencyData) {
+      let quoteCurrencyId = quoteCurrencyData[quoteCurrency].id,
+        stakeCurrencyId = oThis.allStakeCurrencyDetails[baseCurrency].id;
+
+      oThis.priceOracleContract = await oThis._verifyPriceOracleContract(stakeCurrencyId, quoteCurrencyId);
+
+      await oThis._validatePriceOracleAdmin();
+
+      await oThis._validatePriceOracleOwner();
+
+      await oThis._validatePriceOracleWorker();
+
+      await oThis._validateBaseCurrency(baseCurrency);
+
+      await oThis._validateQuoteCurrency(quoteCurrency);
     }
+  }
+
+  /**
+   * Verify price oracle contract
+   *
+   * @param stakeCurrencyId
+   * @param quoteCurrencyId
+   * @return {Promise<*>}
+   * @private
+   */
+  async _verifyPriceOracleContract(stakeCurrencyId, quoteCurrencyId) {
+    const oThis = this;
+
+    let auxPriceOracleModel = new AuxPriceOracleModel({});
+
+    let priceOracleRsp = await auxPriceOracleModel.fetchPriceOracleDetails({
+      chainId: oThis.chainId,
+      stakeCurrencyId: stakeCurrencyId,
+      quoteCurrencyId: quoteCurrencyId
+    });
+
+    let priceOracleContractAddress = priceOracleRsp.data['contract_address'];
 
     let rsp = await oThis.verifiersHelper.validateContract(
       priceOracleContractAddress,
       contractNameConstants.PriceOracleContractName
     );
+
     if (!rsp) {
       logger.error('Deployment verification of price oracle contract failed.');
       return Promise.reject();
@@ -742,32 +790,75 @@ class AuxChainSetup {
       priceOracleContractAddress
     );
 
+    return priceOracleContract;
+  }
+
+  /**
+   * Validate price oracle admin
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validatePriceOracleAdmin() {
+    const oThis = this;
+
     logger.log('* Validating the contract admin address.');
-    let adminAddress = await priceOracleContract.methods.adminAddress().call({});
+    let adminAddress = await oThis.priceOracleContract.methods.adminAddress().call({});
 
     if (oThis.auxPriceOracleContractAdminKind.toLowerCase() !== adminAddress.toLowerCase()) {
       logger.error('Verification check for admin address failed.');
       Promise.reject();
     }
+  }
+
+  /**
+   * Validate price oracle owner
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validatePriceOracleOwner() {
+    const oThis = this;
 
     logger.log('* Validating the contract owner address.');
-    let ownerAddress = await priceOracleContract.methods.owner().call({});
+    let ownerAddress = await oThis.priceOracleContract.methods.owner().call({});
 
     if (oThis.auxPriceOracleContractOwnerKind.toLowerCase() !== ownerAddress.toLowerCase()) {
       logger.error('Verification check for owner address failed.');
       Promise.reject();
     }
+  }
+
+  /**
+   * Validate price oracle worker
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validatePriceOracleWorker() {
+    const oThis = this;
 
     logger.log('* Validating the contract worker address.');
-    let workerAddress = await priceOracleContract.methods.opsAddress().call({});
+    let workerAddress = await oThis.priceOracleContract.methods.opsAddress().call({});
 
     if (oThis.auxPriceOracleContractWorkerKind.toLowerCase() !== workerAddress.toLowerCase()) {
       logger.error('Verification check for worker address failed.');
       Promise.reject();
     }
+  }
+
+  /**
+   * Validate base currency in price oracle
+   *
+   * @param baseCurrency
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateBaseCurrency(baseCurrency) {
+    const oThis = this;
 
     logger.log('* Validating the contract base currency.');
-    let baseCurrencyFromContractInHex = await priceOracleContract.methods.baseCurrency().call({});
+    let baseCurrencyFromContractInHex = await oThis.priceOracleContract.methods.baseCurrency().call({});
 
     let baseCurrencyCodeFromDb = allStakeCurrencyDetails[baseCurrency].constants.baseCurrencyCode;
 
@@ -779,12 +870,23 @@ class AuxChainSetup {
       logger.error(`====baseCurrencyFromContract:--${baseCurrencyFromContract}--`);
       Promise.reject();
     }
+  }
+
+  /**
+   * Validate quote currency in price oracle
+   *
+   * @param quoteCurrency
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateQuoteCurrency(quoteCurrency) {
+    const oThis = this;
 
     logger.log('* Validating the contract quote currency.');
-    let quoteCurrencyHex = await priceOracleContract.methods.quoteCurrency().call({}),
+    let quoteCurrencyHex = await oThis.priceOracleContract.methods.quoteCurrency().call({}),
       quoteCurrencyFromContract = basicHelper.convertHexToString(quoteCurrencyHex.substr(2));
 
-    if (conversionRateConstants.USD !== quoteCurrencyFromContract) {
+    if (quoteCurrency !== quoteCurrencyFromContract) {
       logger.error('Verification check for quote currency failed.');
       logger.error(`====quoteCurrencyFromContract:--${quoteCurrencyFromContract}--`);
       Promise.reject();
