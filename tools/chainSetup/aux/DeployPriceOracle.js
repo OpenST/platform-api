@@ -356,7 +356,7 @@ class DeployPriceOracle {
     let auxPriceOracleModelObj = new AuxPriceOracleModel({});
 
     await auxPriceOracleModelObj.insertPriceOracle({
-      chainId: oThis.chainId,
+      chainId: oThis.auxChainId,
       stakeCurrencyId: oThis.baseCurrencyDetails.id,
       quoteCurrencyId: quoteCurrencyId,
       contractAddress: oThis.contractAddress,
@@ -364,7 +364,7 @@ class DeployPriceOracle {
     });
 
     let auxPriceOracleCache = new AuxPriceOracleCache({
-      auxChainId: oThis.chainId,
+      auxChainId: oThis.auxChainId,
       stakeCurrencyId: oThis.baseCurrencyDetails.id,
       quoteCurrencyId: quoteCurrencyId
     });
