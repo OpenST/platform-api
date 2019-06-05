@@ -6,8 +6,9 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination');
 
 // Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -36,7 +37,8 @@ class WebhookEndpoint extends ModelBase {
   /**
    * Fetch webhook endpoints by id.
    *
-   * @param uuid
+   * @param {string} uuid
+   *
    * @returns {Promise<any>}
    */
   async fetchByUuid(uuid) {
@@ -48,13 +50,22 @@ class WebhookEndpoint extends ModelBase {
       .fire();
   }
 
+  /**
+   * Fetch all webhook endpoints by client id.
+   *
+   * @param {object} params
+   * @param {number} params.clientId
+   * @param {number} [params.page]
+   * @param {number} [params.limit]
+   *
+   * @returns {Promise<void>}
+   */
   async fetchAllByClientId(params) {
     const oThis = this;
-    let page = params.page || 1,
+
+    const page = params.page || 1,
       limit = params.limit || pagination.defaultWebhookListPageSize,
       offset = (page - 1) * limit;
-
-    console.log('params------1------1-----', params);
 
     const webhookEndpointsData = await oThis
       .select('*')
@@ -65,13 +76,15 @@ class WebhookEndpoint extends ModelBase {
       .fire();
 
     const webhookEndpointsDataMap = {};
-    for (let i = 0; i < webhookEndpointsData.length; i++) {
-      let webhookEndpoint = webhookEndpointsData[i];
+
+    for (let index = 0; index < webhookEndpointsData.length; index++) {
+      const webhookEndpoint = webhookEndpointsData[index];
       webhookEndpointsDataMap[webhookEndpoint.uuid] = {
-        uuid: webhookEndpoint.uuid,
+        id: webhookEndpoint.uuid,
         clientId: webhookEndpoint.client_id,
-        endpoint: webhookEndpoint.endpoint,
-        status: webhookEndpoint.status
+        url: webhookEndpoint.endpoint,
+        status: webhookEndpoint.status,
+        updatedTimestamp: basicHelper.dateToSecondsTimestamp(webhookEndpoint.updated_at)
       };
     }
 

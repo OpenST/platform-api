@@ -135,19 +135,15 @@ class GetAllWebhook extends ServiceBase {
       }).fetch(),
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data;
 
-    console.log('----webhookSubscriptionCacheRspData-------', webhookSubscriptionCacheRspData);
-
     for (let index = 0; index < oThis.webhookEndpoints.length; index++) {
       const webhookEndpoint = oThis.webhookEndpoints[index],
-        activeTopicList = webhookSubscriptionCacheRspData[webhookEndpoint.uuid].active;
-
-      console.log('----webhookEndpoint.uuid-------', webhookEndpoint.uuid);
-      console.log('----activeTopicList-------', activeTopicList);
+        activeTopicList = webhookSubscriptionCacheRspData[webhookEndpoint.id].active;
 
       webhookEndpoint.topics = [];
+
       for (let activeTopicsIndex = 0; activeTopicsIndex < activeTopicList.length; activeTopicsIndex++) {
         webhookEndpoint.topics.push(
-          webhookSubscriptionConstants.invertedTopics[activeTopicList[activeTopicsIndex].webhook_topic_kind]
+          webhookSubscriptionConstants.topics[activeTopicList[activeTopicsIndex].webhookTopicKind]
         );
       }
     }

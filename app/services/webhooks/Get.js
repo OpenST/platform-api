@@ -42,6 +42,7 @@ class GetWebhook extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.webhookId = params.webhook_id;
+
     oThis.topics = [];
   }
 
