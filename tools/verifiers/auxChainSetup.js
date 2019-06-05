@@ -180,11 +180,6 @@ class AuxChainSetup {
     oThis.auxAnchorOrgContractWorkerAddresses =
       chainAddressesRsp.data[chainAddressConstants.auxAnchorOrgContractWorkerKind];
 
-    oThis.auxOstToUsdPriceOracleContractKind =
-      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
-    oThis.auxUsdcToUsdPriceOracleContractKind =
-      chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind].address;
-
     oThis.auxPriceOracleContractOwnerKind =
       chainAddressesRsp.data[chainAddressConstants.auxPriceOracleContractOwnerKind].address;
     oThis.auxPriceOracleContractAdminKind =
@@ -769,7 +764,7 @@ class AuxChainSetup {
     let auxPriceOracleModel = new AuxPriceOracleModel({});
 
     let priceOracleRsp = await auxPriceOracleModel.fetchPriceOracleDetails({
-      chainId: oThis.chainId,
+      chainId: oThis.auxChainId,
       stakeCurrencyId: stakeCurrencyId,
       quoteCurrencyId: quoteCurrencyId
     });
@@ -862,7 +857,7 @@ class AuxChainSetup {
     logger.log('* Validating the contract base currency.');
     let baseCurrencyFromContractInHex = await oThis.priceOracleContract.methods.baseCurrency().call({});
 
-    let baseCurrencyCodeFromDb = allStakeCurrencyDetails[baseCurrency].constants.baseCurrencyCode;
+    let baseCurrencyCodeFromDb = oThis.allStakeCurrencyDetails[baseCurrency].constants.baseCurrencyCode;
 
     let baseCurrencyFromContract = basicHelper.convertHexToString(baseCurrencyFromContractInHex.substr(2));
 
