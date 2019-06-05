@@ -22,7 +22,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
   webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**

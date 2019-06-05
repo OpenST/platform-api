@@ -12,7 +12,7 @@ const rootPrefix = '../../../..',
   CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint');
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
 
 /**
  * Class to create new webhook.

@@ -16,7 +16,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
   webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
@@ -40,6 +40,7 @@ class GetWebhook extends ServiceBase {
     super();
 
     const oThis = this;
+
     oThis.clientId = params.client_id;
     oThis.webhookId = params.webhook_id;
 
