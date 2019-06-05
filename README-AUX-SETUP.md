@@ -97,6 +97,18 @@ And add it to tables using following script.
    node executables/setup/origin/activateStakeCurrency.js --stakeCurrencySymbol "USDC"
 ```
 
+* Activate USD Quote currency
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "USD"
+```
+
+* Activate EUR Quote currency
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "EUR"
+```
+
 
 * [Only Development] Seed the cron processes which are associated to the aux chain using this script.
 ```bash
