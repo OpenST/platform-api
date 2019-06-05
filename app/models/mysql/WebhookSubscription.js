@@ -42,7 +42,7 @@ class WebhookSubscription extends ModelBase {
    * @param {number} dbRow.id
    * @param {string} dbRow.client_id
    * @param {string} dbRow.webhook_topic_kind
-   * @param {number} dbRow.webhook_endpoint_id
+   * @param {number} dbRow.webhook_endpoint_uuid
    * @param {string} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
@@ -55,7 +55,7 @@ class WebhookSubscription extends ModelBase {
       id: dbRow.id,
       clientId: dbRow.client_id,
       webhookTopicKind: dbRow.webhook_topic_kind,
-      webhookEndpointId: dbRow.webhook_endpoint_id,
+      webhookEndpointUuid: dbRow.webhook_endpoint_uuid,
       status: dbRow.status,
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
