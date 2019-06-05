@@ -67,6 +67,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
     super(params);
 
     const oThis = this;
+
     oThis.webhookQueues = [];
   }
 
@@ -195,21 +196,24 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
 
       // Create data to insert into pending webhooks.
       const extraData = JSON.stringify({
-          webhookEndpointUuid: activeWebhookKindsForCurrentClient.data[webhookKindInt],
-          entity: entityResponse
-        }),
-        pendingWebhooksParams = {
+        webhookEndpointUuid: activeWebhookKindsForCurrentClient.data[webhookKindInt],
+        rawEntity: entityResponse
+      });
+
+      const pendingWebhooksParams = {
           clientId: clientId,
           eventUuid: uuidV4(),
           webhookTopicKind: webhookKindInt,
           extraData: extraData,
           status: pendingWebhookConstants.invertedStatuses[pendingWebhookConstants.queuedStatus]
         },
-        pendingWebhooksId = await new PendingWebhookModel().insertRecord(pendingWebhooksParams),
         webhookSubTopic = webhookSubscriptionConstants.webhookQueueTopicName[webhookKind];
 
+      // Insert into pending webooks table.
+      const pendingWebhooksId = await new PendingWebhookModel().insertRecord(pendingWebhooksParams);
+
       // Get the id of pending webhooks and insert into respective queue.
-      await oThis._insertIntoWebhookProcessor(pendingWebhooksId, webhookSubTopic);
+      await oThis._publishToWebhookProcessor(pendingWebhooksId, webhookSubTopic);
     }
   }
 
@@ -228,18 +232,21 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   /**
    * Get active webhook queues.
    *
+   * @sets oThis.webhookQueues
+   *
    * @returns {Promise<void>}
    * @private
    */
   async _getActiveWebhookQueues() {
-    const oThis = this,
-      webhookQueues = await new WebhookQueueModel()
-        .select('queue_topic_suffix')
-        .where({
-          chain_id: oThis.auxChainId,
-          status: webhookQueueConstants.invertedStatuses[webhookQueueConstants.activeStatus]
-        })
-        .fire();
+    const oThis = this;
+
+    const webhookQueues = await new WebhookQueueModel()
+      .select('queue_topic_suffix')
+      .where({
+        chain_id: oThis.auxChainId,
+        status: webhookQueueConstants.invertedStatuses[webhookQueueConstants.activeStatus]
+      })
+      .fire();
 
     for (let index = 0; index < webhookQueues.length; index++) {
       oThis.webhookQueues.push(webhookQueues[index].queue_topic_suffix);
@@ -249,19 +256,20 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
   /**
    * This function inserts into webhook processor queue.
    *
-   * @param {string} pendingWebhooksId
    * @param {number/string} pendingWebhooksId
+   * @param {string} subTopic
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _insertIntoWebhookProcessor(pendingWebhooksId, subTopic) {
-    const oThis = this,
-      rmqConnection = await rabbitmqProvider.getInstance(rabbitmqConstants.auxWebhooksProcessorRabbitmqKind, {
-        auxChainId: oThis.auxChainId,
-        connectionWaitSeconds: connectionTimeoutConstants.crons,
-        switchConnectionWaitSeconds: connectionTimeoutConstants.switchConnectionCrons
-      });
+  async _publishToWebhookProcessor(pendingWebhooksId, subTopic) {
+    const oThis = this;
+
+    const rmqConnection = await rabbitmqProvider.getInstance(rabbitmqConstants.auxWebhooksProcessorRabbitmqKind, {
+      auxChainId: oThis.auxChainId,
+      connectionWaitSeconds: connectionTimeoutConstants.crons,
+      switchConnectionWaitSeconds: connectionTimeoutConstants.switchConnectionCrons
+    });
 
     if (oThis.webhookQueues.length === 0) {
       await oThis._getActiveWebhookQueues();
@@ -288,7 +296,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       logger.error('Could not publish the message to RMQ.');
 
       const errorObject = responseHelper.error({
-        internal_error_identifier: 'send_preprocessor_webhook_failed:e_wp',
+        internal_error_identifier: 'send_preprocessor_webhook_failed:e_wpp_1',
         api_error_identifier: 'send_preprocessor_webhook_failed',
         debug_options: { messageParams: messageParams }
       });

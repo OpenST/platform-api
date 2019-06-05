@@ -1,5 +1,6 @@
 /**
- * Module for recovery requests monitoring cron.
+ * Module for recovery requests monitoring cron. This module checks whether the recovery requests
+ * for a client exceed the set threshold.
  *
  * @module executables/recoveryRequestsMonitor
  */
@@ -111,7 +112,9 @@ class RecoveryRequestsMonitor extends CronBase {
 
     await oThis._fetchRecoveryOperations();
 
-    if (oThis.tokenIds.length === 0) return;
+    if (oThis.tokenIds.length === 0) {
+      return;
+    }
 
     await oThis._fetchTokenDetails();
 
