@@ -15,13 +15,14 @@ const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   WorkflowModel = require(rootPrefix + '/app/models/mysql/Workflow'),
   UpdatePricePointsRouter = require(rootPrefix + '/lib/workflow/updatePricePoints/Router'),
+  AllQuoteCurrencySymbols = require(rootPrefix + '/lib/cacheManagement/shared/AllQuoteCurrencySymbols'),
+  StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowConstants = require(rootPrefix + '/lib/globalConstant/workflow'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
 
@@ -92,17 +93,29 @@ class UpdatePriceOraclePricePoints extends CronBase {
       );
     }
 
-    if (oThis.quoteCurrency && !conversionRateConstants.invertedKinds[oThis.quoteCurrency]) {
-      logger.error('Please pass a valid quote currency.');
+    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+      stakeCurrencySymbols: [oThis.baseCurrency]
+    });
+
+    let cacheResponse = await stakeCurrencyBySymbolCache.fetch();
+
+    if (!cacheResponse.data.hasOwnProperty(oThis.baseCurrency)) {
+      logger.error('Please pass a valid base currency.');
 
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'e_upp_2',
           api_error_identifier: 'something_went_wrong',
-          debug_options: { auxChainId: oThis.auxChainId }
+          debug_options: { auxChainId: oThis.auxChainId, baseCurrency: oThis.baseCurrency }
         })
       );
     }
+
+    let allQuoteCurrencySymbolsCache = new AllQuoteCurrencySymbols({});
+
+    let quoteCurrencyData = await allQuoteCurrencySymbolsCache.fetch();
+
+    oThis.quoteCurrencies = quoteCurrencyData.data;
 
     const workflowModelQueryRsp = await new WorkflowModel()
       .select('*')
@@ -112,17 +125,23 @@ class UpdatePriceOraclePricePoints extends CronBase {
       })
       .fire();
 
+    let activeWorkflowsMap = {};
+
     for (let index = 0; index < workflowModelQueryRsp.length; index++) {
       const requestParams = JSON.parse(workflowModelQueryRsp[index].request_params);
       if (requestParams.auxChainId === oThis.auxChainId && requestParams.baseCurrency == oThis.baseCurrency) {
-        const errorObject = responseHelper.error({
-          internal_error_identifier: 'cron_already_running:e_upp_3',
-          api_error_identifier: 'cron_already_running',
-          debug_options: { chainId: requestParams.auxChainId }
-        });
+        if (activeWorkflowsMap.hasOwnProperty(requestParams.quoteCurrency)) {
+          const errorObject = responseHelper.error({
+            internal_error_identifier: 'cron_already_running:e_upp_3',
+            api_error_identifier: 'cron_already_running',
+            debug_options: { chainId: requestParams.auxChainId }
+          });
 
-        logger.error('Cron already running for this chain. Exiting the process.');
-        return Promise.reject(errorObject);
+          logger.error('Cron already running for this chain. Exiting the process.');
+          return Promise.reject(errorObject);
+        } else {
+          activeWorkflowsMap[requestParams.quoteCurrency] = true;
+        }
       }
     }
   }
@@ -167,23 +186,26 @@ class UpdatePriceOraclePricePoints extends CronBase {
   async _updatePricePoint() {
     const oThis = this;
 
-    const updatePricePointParams = {
-        stepKind: workflowStepConstants.updatePricePointInit,
-        taskStatus: workflowStepConstants.taskReadyToStart,
-        chainId: oThis.auxChainId,
-        topic: workflowTopicConstants.updatePricePoint,
-        requestParams: {
-          auxChainId: oThis.auxChainId,
-          baseCurrency: oThis.baseCurrency
-        }
-      },
-      updatePricePointsRouterObj = new UpdatePricePointsRouter(updatePricePointParams);
+    let promiseArray = [];
 
-    const updatePricePointsInitResponse = await updatePricePointsRouterObj.perform();
+    for (let i = 0; i < oThis.quoteCurrencies.length; i++) {
+      const updatePricePointParams = {
+          stepKind: workflowStepConstants.updatePricePointInit,
+          taskStatus: workflowStepConstants.taskReadyToStart,
+          chainId: oThis.auxChainId,
+          topic: workflowTopicConstants.updatePricePoint,
+          requestParams: {
+            auxChainId: oThis.auxChainId,
+            baseCurrency: oThis.baseCurrency,
+            quoteCurrency: oThis.quoteCurrencies[i]
+          }
+        },
+        updatePricePointsRouterObj = new UpdatePricePointsRouter(updatePricePointParams);
 
-    if (updatePricePointsInitResponse.isSuccess()) {
-      return true;
+      promiseArray.push(updatePricePointsRouterObj.perform());
     }
+
+    await Promise.all(promiseArray);
   }
 }
 
