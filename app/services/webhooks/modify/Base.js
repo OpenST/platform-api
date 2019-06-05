@@ -50,7 +50,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.eventTopics = params.topics;
-    oThis.status = params.status || webhookEndpointConstants.active;
+    oThis.status = params.status || webhookEndpointConstants.activeStatus;
 
     oThis.endpoint = null;
     oThis.endpointId = null;

@@ -7,8 +7,8 @@ const rootPrefix = '../..',
   chainRoutes = require(rootPrefix + '/routes/v2/chains'),
   tokenRoutes = require(rootPrefix + '/routes/v2/tokens'),
   rulesRoutes = require(rootPrefix + '/routes/v2/rules'),
-  baseTokenRoutes = require(rootPrefix + '/routes/v2/baseTokens');
-// webhookRoutes = require(rootPrefix + '/routes/v2/webhooks');
+  baseTokenRoutes = require(rootPrefix + '/routes/v2/baseTokens'),
+  webhookRoutes = require(rootPrefix + '/routes/v2/webhooks');
 
 const router = express.Router();
 
@@ -17,6 +17,6 @@ router.use('/chains', chainRoutes);
 router.use('/tokens', tokenRoutes);
 router.use('/rules', rulesRoutes);
 router.use('/base-tokens', baseTokenRoutes);
-// router.use('/webhooks', webhookRoutes);
+router.use('/webhooks', webhookRoutes);
 
 module.exports = router;

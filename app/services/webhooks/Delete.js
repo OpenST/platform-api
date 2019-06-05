@@ -75,7 +75,7 @@ class DeleteWebhook extends ServiceBase {
       [resultType.webhook]: {
         id: oThis.webhookId,
         url: oThis.webhookEndpointRsp.endpoint,
-        status: webhookEndpointConstants.inActive,
+        status: webhookEndpointConstants.inActiveStatus,
         topics: oThis.topics,
         updatedTimestamp: basicHelper.dateToSecondsTimestamp(oThis.webhookEndpointRsp.updatedAt)
       }
@@ -100,7 +100,8 @@ class DeleteWebhook extends ServiceBase {
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId ||
-      oThis.webhookEndpointRsp.status == webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive] ||
+      oThis.webhookEndpointRsp.status ==
+        webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActiveStatus] ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
       return Promise.reject(
@@ -162,7 +163,7 @@ class DeleteWebhook extends ServiceBase {
 
     await new WebhookEndpointModel()
       .update({
-        status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive]
+        status: webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActiveStatus]
       })
       .where({
         uuid: oThis.webhookId

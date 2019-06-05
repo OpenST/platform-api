@@ -61,7 +61,7 @@ class CreateWebhook extends CreateUpdateWebhookBase {
 
     if (
       oThis.endpoint &&
-      webhookEndpointConstants.statuses[oThis.endpoint.status] === webhookEndpointConstants.active
+      webhookEndpointConstants.statuses[oThis.endpoint.status] === webhookEndpointConstants.activeStatus
     ) {
       return Promise.reject(
         responseHelper.error({

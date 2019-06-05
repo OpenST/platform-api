@@ -2,12 +2,12 @@ const express = require('express'),
   router = express.Router();
 
 const rootPrefix = '../..',
+  WebhookFormatter = require(rootPrefix + '/lib/formatter/entity/Webhook'),
+  WebhookListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/WebhookList'),
   routeHelper = require(rootPrefix + '/routes/helper'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  WebhookListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/WebhookList'),
-  WebhookFormatter = require(rootPrefix + '/lib/globalConstant/apiSignature');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 require(rootPrefix + '/app/services/webhooks/modify/Create');
 require(rootPrefix + '/app/services/webhooks/modify/Update');
@@ -104,3 +104,5 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 
   Promise.resolve(routeHelper.perform(req, res, next, 'GetAllWebhook', 'r_v2_w_5', null, dataFormatterFunc));
 });
+
+module.exports = router;

@@ -85,7 +85,7 @@ class GetWebhook extends ServiceBase {
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
       oThis.webhookEndpointRsp.status ===
-        webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActive] ||
+        webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActiveStatus] ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
       return Promise.reject(
