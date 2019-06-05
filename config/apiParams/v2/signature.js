@@ -1032,7 +1032,7 @@ const v2Signature = {
       },
       {
         parameter: 'topics',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateStringArray'
       }
     ],
     optional: [
@@ -1055,7 +1055,7 @@ const v2Signature = {
       },
       {
         parameter: 'topics',
-        validatorMethod: 'validateString'
+        validatorMethod: 'validateStringArray'
       }
     ],
     optional: [

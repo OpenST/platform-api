@@ -36,7 +36,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
    *
    * @param {object} params
    * @param {number} params.client_id: client id
-   * @param {string} params.topics: comma separated string of topics to subscribe
+   * @param {array} params.topics: Array topics to subscribe
    * @param {string} [params.status]: status
    *
    * @augments ServiceBase
@@ -105,12 +105,6 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _validateAndSanitizeParams() {
     // Check topics is not an empty array.
     const oThis = this;
-
-    oThis.eventTopics = oThis.eventTopics.split(',');
-
-    oThis.eventTopics = oThis.eventTopics.filter(function(el) {
-      return el;
-    });
 
     if (oThis.eventTopics.length > webhookSubscriptionConstants.maxTopicsPerEndpoint) {
       return Promise.reject(
