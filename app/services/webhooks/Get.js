@@ -16,7 +16,8 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint');
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
  * Class to fetch webhook by webhook id(uuid).
@@ -39,7 +40,6 @@ class GetWebhook extends ServiceBase {
     super();
 
     const oThis = this;
-
     oThis.clientId = params.client_id;
     oThis.webhookId = params.webhook_id;
 
@@ -119,7 +119,7 @@ class GetWebhook extends ServiceBase {
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
     for (let index = 0; index < activeWebhooks.length; index++) {
-      oThis.topics.push(activeWebhooks[index].webhook_topic_kind);
+      oThis.topics.push(webhookSubscriptionsConstants.topics[activeWebhooks[index].webhookTopicKind]);
     }
   }
 }
