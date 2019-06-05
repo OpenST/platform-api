@@ -1108,7 +1108,7 @@ const v2Signature = {
       },
       {
         parameter: pagination.paginationIdentifierKey,
-        validatorMethod: 'validateDdbPaginationIdentifier'
+        validatorMethod: 'validateMysqlPaginationIdentifier'
       }
     ]
   }
