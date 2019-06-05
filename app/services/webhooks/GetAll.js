@@ -29,7 +29,8 @@ class GetAllWebhook extends ServiceBase {
    *
    * @param {object} params
    * @param {number} params.client_id
-   * @param {number} params.limit: limit
+   * @param {number} [params.limit]: limit
+   * @param {string} [params.pagination_identifier]: pagination identifier
    *
    * @augments ServiceBase
    *
@@ -42,7 +43,7 @@ class GetAllWebhook extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.limit = params.limit || oThis._defaultPageLimit();
-    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey] || null;
 
     oThis.webhookEndpoints = [];
     oThis.webhookIds = [];
@@ -55,6 +56,7 @@ class GetAllWebhook extends ServiceBase {
    * Async perform.
    *
    * @return {Promise}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;

@@ -31,6 +31,8 @@ class GetWebhook extends ServiceBase {
    * @param {number} params.client_id
    * @param {string} params.webhook_id: uuid v4
    *
+   * @augments ServiceBase
+   *
    * @constructor
    */
   constructor(params) {
@@ -47,6 +49,7 @@ class GetWebhook extends ServiceBase {
    * Async perform.
    *
    * @return {Promise<void>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
