@@ -25,7 +25,7 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
    * @param {object} params
    * @param {number} params.client_id: client id
    * @param {string} params.endpoint_id: endpoint id in case of existing endpoint
-   * @param {string} params.topics: comma separated string of topics to subscribe
+   * @param {array} params.topics: array of topics to subscribe
    * @param {string} params.webhook_id: webhook id
    * @param {string} [params.status]: status
    *

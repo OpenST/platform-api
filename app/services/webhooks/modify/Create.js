@@ -25,8 +25,8 @@ class CreateWebhook extends CreateUpdateWebhookBase {
    *
    * @param {object} params
    * @param {number} params.client_id: client id
+   * @param {array} params.topics: array of topics to subscribe
    * @param {string} params.url: url
-   * @param {string} params.topics: comma separated string of topics to subscribe
    * @param {string} [params.status]: status
    *
    * @augments CreateUpdateWebhookBase

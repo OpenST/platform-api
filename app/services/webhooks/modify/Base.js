@@ -36,7 +36,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
    *
    * @param {object} params
    * @param {number} params.client_id: client id
-   * @param {array} params.topics: Array topics to subscribe
+   * @param {array} params.topics: array of topics to subscribe
    * @param {string} [params.status]: status
    *
    * @augments ServiceBase

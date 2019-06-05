@@ -9,6 +9,7 @@ const rootPrefix = '../..',
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/services/webhooks/modify/Create');
 require(rootPrefix + '/app/services/webhooks/modify/Update');
 require(rootPrefix + '/app/services/webhooks/Get');
@@ -48,7 +49,7 @@ router.post('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, re
   Promise.resolve(routeHelper.perform(req, res, next, 'UpdateWebhook', 'r_v2_w_2', null, dataFormatterFunc));
 });
 
-/* Update webhook */
+/* Get webhook */
 router.get('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getWebhook;
   req.decodedParams.webhook_id = req.params.webhook_id;
@@ -81,7 +82,7 @@ router.delete('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) 
   Promise.resolve(routeHelper.perform(req, res, next, 'DeleteWebhook', 'r_v2_w_4', null, dataFormatterFunc));
 });
 
-/* Create webhook */
+/* Get all webhooks */
 router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getAllWebhook;
   req.decodedParams.clientConfigStrategyRequired = true;
