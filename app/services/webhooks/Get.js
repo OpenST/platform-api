@@ -16,7 +16,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
   webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
@@ -91,7 +91,7 @@ class GetWebhook extends ServiceBase {
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
       oThis.webhookEndpointRsp.status ===
-        webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.inActiveStatus] ||
+        webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.inActiveStatus] ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
       return Promise.reject(

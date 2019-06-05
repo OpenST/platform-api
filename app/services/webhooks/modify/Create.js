@@ -12,7 +12,7 @@ const rootPrefix = '../../../..',
   CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
 
 /**
  * Class to create new webhook.
@@ -61,7 +61,7 @@ class CreateWebhook extends CreateUpdateWebhookBase {
 
     if (
       oThis.endpoint &&
-      webhookEndpointConstants.statuses[oThis.endpoint.status] === webhookEndpointConstants.activeStatus
+      webhookEndpointsConstants.statuses[oThis.endpoint.status] === webhookEndpointsConstants.activeStatus
     ) {
       return Promise.reject(
         responseHelper.error({

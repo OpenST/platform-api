@@ -22,7 +22,7 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
   webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
@@ -50,7 +50,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.eventTopics = params.topics;
-    oThis.status = params.status || webhookEndpointConstants.activeStatus;
+    oThis.status = params.status || webhookEndpointsConstants.activeStatus;
 
     oThis.endpoint = null;
     oThis.endpointId = null;
@@ -130,7 +130,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.status = oThis.status.toLowerCase();
 
-    if (!webhookEndpointConstants.invertedStatuses[oThis.status]) {
+    if (!webhookEndpointsConstants.invertedStatuses[oThis.status]) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 's_w_m_b_3',
@@ -166,7 +166,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
       await new WebhookEndpointModel()
         .update({
-          status: webhookEndpointConstants.invertedStatuses[oThis.status]
+          status: webhookEndpointsConstants.invertedStatuses[oThis.status]
         })
         .where({ client_id: oThis.clientId, endpoint: oThis.endpointUrl })
         .fire();
@@ -179,7 +179,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
         .where({ client_id: oThis.clientId })
         .fire();
 
-      if (webhookEndpointsModel.length >= webhookEndpointConstants.maxEndpointsPerClient) {
+      if (webhookEndpointsModel.length >= webhookEndpointsConstants.maxEndpointsPerClient) {
         return Promise.reject(
           responseHelper.error({
             internal_error_identifier: 's_w_m_b_4',
@@ -209,7 +209,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
           endpoint: oThis.endpointUrl,
           secret: oThis.secret,
           secret_salt: secret_salt,
-          status: webhookEndpointConstants.invertedStatuses[oThis.status]
+          status: webhookEndpointsConstants.invertedStatuses[oThis.status]
         })
         .fire();
 
@@ -228,7 +228,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _generateSalt() {
     const oThis = this;
 
-    const kmsObj = new KmsWrapper(webhookEndpointConstants.encryptionPurpose);
+    const kmsObj = new KmsWrapper(webhookEndpointsConstants.encryptionPurpose);
 
     oThis.secretSalt = await kmsObj.generateDataKey();
   }
@@ -246,7 +246,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _decryptSalt(encryptedSalt) {
     const oThis = this;
 
-    const kmsObj = new KmsWrapper(webhookEndpointConstants.encryptionPurpose);
+    const kmsObj = new KmsWrapper(webhookEndpointsConstants.encryptionPurpose);
 
     oThis.secretSalt = await kmsObj.decrypt(encryptedSalt);
   }
