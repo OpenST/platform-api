@@ -1,5 +1,5 @@
 /**
- * Module to create new webhook.
+ * Module to update an existing webhook.
  *
  * @module app/services/webhooks/modify/Update
  */
@@ -24,7 +24,6 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
    *
    * @param {object} params
    * @param {number} params.client_id: client id
-   * @param {string} params.endpoint_id: endpoint id in case of existing endpoint
    * @param {array} params.topics: array of topics to subscribe
    * @param {string} params.webhook_id: webhook id
    * @param {string} [params.status]: status
@@ -38,7 +37,7 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
 
     const oThis = this;
 
-    oThis.endpointUuId = params.webhook_id;
+    oThis.endpointUuid = params.webhook_id;
   }
 
   /**
@@ -54,7 +53,7 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
 
     const endpoints = await new WebhookEndpointModel()
       .select('*')
-      .where({ client_id: oThis.clientId, uuid: oThis.endpointUuId })
+      .where({ client_id: oThis.clientId, uuid: oThis.endpointUuid })
       .fire();
 
     oThis.endpoint = endpoints[0];
