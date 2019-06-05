@@ -72,8 +72,10 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '43': workflowStepConstants.savePricerRule,
     '44': workflowStepConstants.registerPricerRule,
     '45': workflowStepConstants.verifyRegisterPricerRule,
-    '46': workflowStepConstants.addPriceOracleInPricerRule,
-    '47': workflowStepConstants.verifyAddPriceOracleInPricerRule,
+    '46': workflowStepConstants.addUsdPriceOracleInPricerRule,
+    '355': workflowStepConstants.addEurPriceOracleInPricerRule,
+    '47': workflowStepConstants.verifyAddUsdPriceOracleInPricerRule,
+    '356': workflowStepConstants.verifyAddEurPriceOracleInPricerRule,
     '48': workflowStepConstants.setAcceptedMarginInPricerRule,
     '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
     '59': workflowStepConstants.postTokenRuleDeploy,
@@ -228,6 +230,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '352': workflowStepConstants.fetchPricePointFromCoinMarketCapApi,
     '353': workflowStepConstants.setPriceInPriceOracleContract,
     '354': workflowStepConstants.verifySetPriceInPriceOracleContract
+    // Till 356 used
   },
   invertedKinds = util.invert(kinds);
 
