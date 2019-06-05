@@ -184,17 +184,6 @@ NOTE: Copy the response from the script above and save somewhere offline.
     node executables/setup/origin/contracts.js --originChainId 3
 ```
 
-* Activate Quote currencies
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "USD"
-```
-
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "EUR"
-```
-
 #### [Only DevOps] NOTE: Revert SA_DEFAULT_ORIGIN_GAS_PRICE gas price
 
 * Verifier script for origin chain setup
