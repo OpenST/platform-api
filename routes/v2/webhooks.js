@@ -67,9 +67,10 @@ router.get('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res
 });
 
 /* Delete a webhook */
-router.delete('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.delete('/:webhook_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.deleteWebhook;
-  req.decodedParams.clientConfigStrategyRequired = false;
+  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.webhook_id = req.params.webhook_id;
 
   const dataFormatterFunc = async function(serviceResponse) {
     const webhookFormattedRsp = await new WebhookFormatter(serviceResponse.data[resultType.webhook]).perform();
