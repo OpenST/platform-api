@@ -197,7 +197,7 @@ class WebhookPreprocessor extends MultiSubscriptionBase {
       // Create data to insert into pending webhooks.
       const extraData = JSON.stringify({
         webhookEndpointUuid: activeWebhookKindsForCurrentClient.data[webhookKindInt],
-        rawEntity: entityResponse
+        rawEntity: entityResponse.data
       });
 
       const pendingWebhooksParams = {
