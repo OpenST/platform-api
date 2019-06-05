@@ -1,6 +1,5 @@
-'use strict';
 /**
- * This service helps in fetching webhook by webhook id(uuid).
+ * Module to fetch webhook by webhook id(uuid).
  *
  * @module app/services/webhooks/Get
  */
@@ -20,22 +19,22 @@ const rootPrefix = '../../..',
   webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoint');
 
 /**
- * Class to get webhook.
+ * Class to fetch webhook by webhook id(uuid).
  *
  * @class GetWebhook
  */
 class GetWebhook extends ServiceBase {
   /**
-   * Constructor for get webhook class.
+   * Constructor to fetch webhook by webhook id(uuid).
    *
-   * @param {Object} params
-   * @param {Number} params.client_id
-   * @param {String} params.webhook_id - uuid v4
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {string} params.webhook_id: uuid v4
    *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -45,7 +44,7 @@ class GetWebhook extends ServiceBase {
   }
 
   /**
-   * Async performer method.
+   * Async perform.
    *
    * @return {Promise<void>}
    */
@@ -70,6 +69,8 @@ class GetWebhook extends ServiceBase {
   /**
    * Validates webhook id.
    *
+   * @sets oThis.webhookEndpointRsp
+   *
    * @returns {Promise<never>}
    * @private
    */
@@ -80,7 +81,7 @@ class GetWebhook extends ServiceBase {
     oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
 
     // If client id from cache doesn't match or status of webhook id is inactive,
-    // then we can say that webhook uuid is invalid.
+    // Then we can say that webhook uuid is invalid.
     if (
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
@@ -99,20 +100,22 @@ class GetWebhook extends ServiceBase {
   }
 
   /**
-   * Prepare response to return.
+   * Fetch webhook subscriptions.
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _fetchWebhookSubscriptions() {
-    const oThis = this,
-      webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
+    const oThis = this;
+
+    const webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
         webhookEndpointUuids: [oThis.webhookId]
       }).fetch(),
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data[oThis.webhookId],
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
-    for (let i = 0; i < activeWebhooks.length; i++) {
-      oThis.topics.push(activeWebhooks[i].webhook_topic_kind);
+    for (let index = 0; index < activeWebhooks.length; index++) {
+      oThis.topics.push(activeWebhooks[index].webhook_topic_kind);
     }
   }
 }

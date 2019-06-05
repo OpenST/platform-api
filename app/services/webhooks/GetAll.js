@@ -1,6 +1,5 @@
-'use strict';
 /**
- * This service helps in fetching webhook by webhook id(uuid).
+ * Module to get all webhooks.
  *
  * @module app/services/webhooks/Get
  */
@@ -14,28 +13,30 @@ const rootPrefix = '../../..',
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 /**
- * Class to get webhook.
+ * Class to get all webhooks.
  *
  * @class GetAllWebhook
  */
 class GetAllWebhook extends ServiceBase {
   /**
-   * Constructor for get webhook class.
+   * Constructor to get all webhooks.
    *
-   * @param {Object} params
-   * @param {Number} params.client_id
-   * @param {Integer} params.limit - limit
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} params.limit: limit
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -51,7 +52,7 @@ class GetAllWebhook extends ServiceBase {
   }
 
   /**
-   * Async performer method.
+   * Async perform.
    *
    * @return {Promise}
    */
@@ -73,7 +74,9 @@ class GetAllWebhook extends ServiceBase {
   }
 
   /**
-   * Validate and sanitize specific params
+   * Validate and sanitize specific params.
+   *
+   * @sets oThis.page
    *
    * @returns {Promise<never>}
    * @private
@@ -83,14 +86,15 @@ class GetAllWebhook extends ServiceBase {
 
     // Parameters in paginationIdentifier take higher precedence
     if (oThis.paginationIdentifier) {
-      let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      oThis.page = parsedPaginationParams.page; //override page
+      const parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+
+      oThis.page = parsedPaginationParams.page; // Override page
     } else {
       oThis.page = 1;
     }
 
-    //Validate limit
-    return await oThis._validatePageSize();
+    // Validate limit
+    return oThis._validatePageSize();
   }
 
   /**
@@ -100,44 +104,48 @@ class GetAllWebhook extends ServiceBase {
    * @private
    */
   async _getWebhookEndpoints() {
-    const oThis = this,
-      webhookEndpointCacheRsp = await new WebhookEndpointCacheByClientId({
+    const oThis = this;
+
+    const webhookEndpointCacheRsp = await new WebhookEndpointCacheByClientId({
         clientId: oThis.clientId,
         limit: oThis.limit,
         page: oThis.page
       }).fetch(),
       webhookEndpointsData = webhookEndpointCacheRsp.data;
 
-    for (let uuid in webhookEndpointsData) {
+    for (const uuid in webhookEndpointsData) {
       oThis.webhookIds.push(uuid);
       oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
     }
   }
 
   /**
-   * Prepare response to return.
+   * Fetch webhook subscriptions.
    *
+   * @returns {Promise<void>}
    * @private
    */
   async _fetchWebhookSubscriptions() {
-    const oThis = this,
-      webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
+    const oThis = this;
+
+    const webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
         webhookEndpointUuids: oThis.webhookIds
       }).fetch(),
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data;
 
     console.log('----webhookSubscriptionCacheRspData-------', webhookSubscriptionCacheRspData);
-    for (let i = 0; i < oThis.webhookEndpoints.length; i++) {
-      let webhookEndpoint = oThis.webhookEndpoints[i],
+
+    for (let index = 0; index < oThis.webhookEndpoints.length; index++) {
+      const webhookEndpoint = oThis.webhookEndpoints[index],
         activeTopicList = webhookSubscriptionCacheRspData[webhookEndpoint.uuid].active;
 
       console.log('----webhookEndpoint.uuid-------', webhookEndpoint.uuid);
       console.log('----activeTopicList-------', activeTopicList);
 
-      webhookEndpoint['topics'] = [];
-      for (let j = 0; j < activeTopicList.length; j++) {
-        webhookEndpoint['topics'].push(
-          webhookSubscriptionConstants.invertedTopics[activeTopicList[j].webhook_topic_kind]
+      webhookEndpoint.topics = [];
+      for (let activeTopicsIndex = 0; activeTopicsIndex < activeTopicList.length; activeTopicsIndex++) {
+        webhookEndpoint.topics.push(
+          webhookSubscriptionConstants.invertedTopics[activeTopicList[activeTopicsIndex].webhook_topic_kind]
         );
       }
     }
