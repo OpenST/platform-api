@@ -88,9 +88,9 @@ const assignParams = function(req, res, next) {
  */
 const getRequestParams = function(req) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
-  if (req.method === 'POST') {
+  if (req.method === 'POST' || req.method === 'DELETE') {
     return req.body;
-  } else if (req.method === 'GET' || req.method === 'DELETE') {
+  } else if (req.method === 'GET') {
     return req.query;
   } else {
     return {};

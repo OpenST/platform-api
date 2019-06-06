@@ -106,6 +106,10 @@ class CreateUpdateWebhookBase extends ServiceBase {
     // Check topics is not an empty array.
     const oThis = this;
 
+    oThis.eventTopics = oThis.eventTopics.filter(function(element) {
+      return element;
+    });
+
     for (let index = 0; index < oThis.eventTopics.length; index++) {
       oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase().trim();
 
