@@ -16,7 +16,7 @@ const rootPrefix = '../..',
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   WebhookQueueModel = require(rootPrefix + '/app/models/mysql/WebhookQueue'),
   webhookProcessorConstants = require(rootPrefix + '/lib/globalConstant/webhookProcessor'),
-  publishWebhook = require(rootPrefix + '/lib/webhooks/publishWebhook'),
+  PublishWebhook = require(rootPrefix + '/lib/webhooks/PublishWebhook'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -192,7 +192,7 @@ class WebhookPublisherExecutable extends MultiSubscriptionBase {
     console.log('-1--messageParams--------', messageParams);
     //const msgParams = messageParams.message.payload;
     //console.log('-2--msgParams--------', msgParams);
-    let publishWebhookResp = await new publishWebhook({ pendingWebhookId: 1 }).perform();
+    let publishWebhookResp = await new PublishWebhook({ pendingWebhookId: 1 }).perform();
   }
 }
 
