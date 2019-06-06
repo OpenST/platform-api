@@ -54,6 +54,7 @@ class TokenDetail extends ServiceBase {
     oThis.economyDetails = null;
     oThis.stakeCurrencySymbol = null;
     oThis.companyTokenHolderAddresses = [];
+    oThis.companyUuids = [];
   }
 
   /**
@@ -83,7 +84,8 @@ class TokenDetail extends ServiceBase {
           tokenDetails: oThis.token,
           tokenAddresses: oThis.tokenAddresses,
           economyDetails: oThis.economyDetails,
-          companyTokenHolderAddresses: oThis.companyTokenHolderAddresses
+          companyTokenHolderAddresses: oThis.companyTokenHolderAddresses,
+          companyUuids: oThis.companyUuids
         }
       })
     );
@@ -246,6 +248,7 @@ class TokenDetail extends ServiceBase {
     for (const uuid in usersData) {
       const userData = usersData[uuid];
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
+      oThis.companyUuids.push(uuid);
     }
   }
 }
