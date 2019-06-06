@@ -139,10 +139,12 @@ const validateApiSignature = function(req, res, next) {
 const validateWebhookSignature = function(req, res, next) {
   console.log('I am in app.js validateWebhookSignature');
   let inputParams = getRequestParams(req);
+  //Object.assign(inputParams, req.headers);
   console.log('---------inputParams---', inputParams);
   // Following line always gives resolution. In case this assumption changes, please add catch here.
   return new AuthenticateApiByWebhookKeySecret({
     inputParams: inputParams,
+    requestHeaders: req.headers,
     requestPath: customUrlParser.parse(req.originalUrl).pathname
   })
     .perform()

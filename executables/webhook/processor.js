@@ -3,7 +3,7 @@
 /**
  * Executable transaction executable
  *
- * @module executables/executeTransaction
+ * @module executables/webhook/processor
  */
 const program = require('commander'),
   OSTBase = require('@ostdotcom/base');
@@ -16,6 +16,7 @@ const rootPrefix = '../..',
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   WebhookQueueModel = require(rootPrefix + '/app/models/mysql/WebhookQueue'),
   webhookProcessorConstants = require(rootPrefix + '/lib/globalConstant/webhookProcessor'),
+  publishWebhook = require(rootPrefix + '/lib/webhooks/publishWebhook'),
   rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq');
 
 const InstanceComposer = OSTBase.InstanceComposer;
@@ -189,8 +190,9 @@ class WebhookPublisherExecutable extends MultiSubscriptionBase {
    */
   async _processMessage(messageParams) {
     console.log('-1--messageParams--------', messageParams);
-    const msgParams = messageParams.message.payload;
-    console.log('-2--msgParams--------', msgParams);
+    //const msgParams = messageParams.message.payload;
+    //console.log('-2--msgParams--------', msgParams);
+    let publishWebhookResp = await new publishWebhook({ pendingWebhookId: 1 }).perform();
   }
 }
 
