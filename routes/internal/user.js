@@ -2,7 +2,8 @@ const express = require('express');
 
 const rootPrefix = '../..',
   routeHelper = require(rootPrefix + '/routes/helper'),
-  apiName = require(rootPrefix + '/lib/globalConstant/apiName');
+  apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 const router = express.Router();
 
@@ -16,7 +17,7 @@ router.get('/get', function(req, res, next) {
 });
 
 router.post('/testW', function(req, res, next) {
-  res.status(200).json({ my: 'response done' });
+  res.status(200).json(responseHelper.successWithData({ my: 'response done' }));
 });
 
 module.exports = router;
