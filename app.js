@@ -160,9 +160,9 @@ const validateWebhookSignature = function(req, res, next) {
 const decodeJwt = function(req, res, next) {
   let token;
 
-  if (req.method === 'POST') {
+  if (req.method === 'POST' || req.method === 'DELETE') {
     token = req.body.token || '';
-  } else if (req.method === 'GET' || req.method === 'DELETE') {
+  } else if (req.method === 'GET') {
     token = req.query.token || '';
   }
 
