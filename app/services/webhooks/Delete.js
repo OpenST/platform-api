@@ -129,7 +129,7 @@ class DeleteWebhook extends ServiceBase {
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
     for (let index = 0; index < activeWebhooks.length; index++) {
-      oThis.topics.push(activeWebhooks[index].webhook_topic_kind);
+      oThis.topics.push(webhookSubscriptionConstants.topics[activeWebhooks[index].webhookTopicKind]);
     }
   }
 

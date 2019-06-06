@@ -90,7 +90,7 @@ const getRequestParams = function(req) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
   if (req.method === 'POST') {
     return req.body;
-  } else if (req.method === 'GET') {
+  } else if (req.method === 'GET' || req.method === 'DELETE') {
     return req.query;
   } else {
     return {};
@@ -162,7 +162,7 @@ const decodeJwt = function(req, res, next) {
 
   if (req.method === 'POST') {
     token = req.body.token || '';
-  } else if (req.method === 'GET') {
+  } else if (req.method === 'GET' || req.method === 'DELETE') {
     token = req.query.token || '';
   }
 
