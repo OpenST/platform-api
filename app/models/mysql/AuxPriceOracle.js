@@ -113,7 +113,7 @@ class AuxPriceOracle extends ModelBase {
         chain_id: params.chainId,
         stake_currency_id: params.stakeCurrencyId,
         quote_currency_id: params.quoteCurrencyId,
-        contract_address: params.contractAddress,
+        contract_address: params.contractAddress.toLowerCase(),
         status: auxPriceOracleConstants.invertedStatuses[params.status]
       })
       .fire();
