@@ -21,8 +21,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
  * Class to deploy price oracle contract.

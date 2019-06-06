@@ -21,7 +21,7 @@ const rootPrefix = '../../..',
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  conversionRatesConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
@@ -251,8 +251,7 @@ class GetTokenDashboardDetail extends ServiceBase {
       );
     }
 
-    oThis.stakeCurrencyIsHowManyUSD =
-      pricePointsResponse.data[oThis.token.stakeCurrencyId][conversionRatesConstants.USD];
+    oThis.stakeCurrencyIsHowManyUSD = pricePointsResponse.data[oThis.token.stakeCurrencyId][quoteCurrencyConstants.USD];
   }
 
   /**
