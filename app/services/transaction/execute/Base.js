@@ -37,7 +37,7 @@ const rootPrefix = '../../../..',
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   errorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  preProcessorPublish = require(rootPrefix + '/lib/webhooks/preProcessorPublish'),
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
   connectionTimeoutConstants = require(rootPrefix + '/lib/globalConstant/connectionTimeout'),
@@ -823,7 +823,7 @@ class ExecuteTxBase extends ServiceBase {
       transactionUuid: oThis.transactionUuid
     };
 
-    await preProcessorPublish.perform(oThis.auxChainId, payload);
+    await publishToPreProcessor.perform(oThis.auxChainId, payload);
   }
 
   /**
