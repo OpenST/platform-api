@@ -106,22 +106,13 @@ class CreateUpdateWebhookBase extends ServiceBase {
     // Check topics is not an empty array.
     const oThis = this;
 
-    if (oThis.eventTopics.length > webhookSubscriptionConstants.maxTopicsPerEndpoint) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 's_w_m_b_4',
-          api_error_identifier: 'max_topics_in_endpoint'
-        })
-      );
-    }
-
     for (let index = 0; index < oThis.eventTopics.length; index++) {
       oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase().trim();
 
       if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[index]]) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 's_w_m_b_2',
+            internal_error_identifier: 's_w_m_b_1',
             api_error_identifier: 'invalid_topics'
           })
         );
@@ -133,7 +124,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
     if (!webhookEndpointsConstants.invertedStatuses[oThis.status]) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 's_w_m_b_3',
+          internal_error_identifier: 's_w_m_b_2',
           api_error_identifier: 'invalid_status'
         })
       );
@@ -182,7 +173,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
       if (webhookEndpointsModel.length >= webhookEndpointsConstants.maxEndpointsPerClient) {
         return Promise.reject(
           responseHelper.error({
-            internal_error_identifier: 's_w_m_b_4',
+            internal_error_identifier: 's_w_m_b_3',
             api_error_identifier: 'max_endpoints_reached'
           })
         );
