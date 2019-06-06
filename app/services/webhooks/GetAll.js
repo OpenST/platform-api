@@ -15,8 +15,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookSubscriptionConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 /**
  * Class to get all webhooks.
@@ -142,9 +141,7 @@ class GetAllWebhook extends ServiceBase {
       webhookEndpoint.topics = [];
 
       for (let activeTopicsIndex = 0; activeTopicsIndex < activeTopicList.length; activeTopicsIndex++) {
-        webhookEndpoint.topics.push(
-          webhookSubscriptionConstants.topics[activeTopicList[activeTopicsIndex].webhookTopicKind]
-        );
+        webhookEndpoint.topics.push(activeTopicList[activeTopicsIndex].webhookTopicKind);
       }
     }
   }

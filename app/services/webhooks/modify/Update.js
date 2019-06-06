@@ -60,9 +60,11 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
 
     if (!oThis.endpoint) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 's_w_m_u_1',
-          api_error_identifier: 'invalid_endpoint_id'
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_webhook_id'],
+          debug_options: {}
         })
       );
     }

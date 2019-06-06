@@ -75,7 +75,7 @@ class DeleteWebhook extends ServiceBase {
       [resultType.webhook]: {
         id: oThis.webhookId,
         url: oThis.webhookEndpointRsp.endpoint,
-        status: webhookEndpointsConstants.inActiveStatus,
+        status: webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.inActiveStatus],
         topics: oThis.topics,
         updatedTimestamp: basicHelper.dateToSecondsTimestamp(oThis.webhookEndpointRsp.updatedAt)
       }
@@ -85,12 +85,15 @@ class DeleteWebhook extends ServiceBase {
   /**
    * Validates webhookId.
    *
+   * @sets oThis.webhookEndpointRsp
+   *
    * @returns {Promise<never>}
    * @private
    */
   async _validateWebhookId() {
-    const oThis = this,
-      webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
+    const oThis = this;
+
+    const webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
 
     oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
 
@@ -100,7 +103,7 @@ class DeleteWebhook extends ServiceBase {
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId ||
-      oThis.webhookEndpointRsp.status ==
+      oThis.webhookEndpointRsp.status ===
         webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.inActiveStatus] ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
@@ -121,15 +124,16 @@ class DeleteWebhook extends ServiceBase {
    * @private
    */
   async _prepareResponseData() {
-    const oThis = this,
-      webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
+    const oThis = this;
+
+    const webhookSubscriptionCacheRsp = await new WebhookSubscriptionsByUuidCache({
         webhookEndpointUuids: [oThis.webhookId]
       }).fetch(),
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data[oThis.webhookId],
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
     for (let index = 0; index < activeWebhooks.length; index++) {
-      oThis.topics.push(webhookSubscriptionConstants.topics[activeWebhooks[index].webhookTopicKind]);
+      oThis.topics.push(activeWebhooks[index].webhookTopicKind);
     }
   }
 

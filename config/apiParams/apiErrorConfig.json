@@ -567,7 +567,7 @@
   "endpoint_already_present": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "The endpoint is already registered. Please use update API if need to change into it."
+    "message": "The endpoint is already registered. Please use update API if you need to change it."
   },
   "max_endpoints_reached": {
     "http_code": "422",

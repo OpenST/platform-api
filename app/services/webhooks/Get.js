@@ -16,8 +16,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
-  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
 
 /**
  * Class to fetch webhook by webhook id(uuid).
@@ -80,8 +79,9 @@ class GetWebhook extends ServiceBase {
    * @private
    */
   async _validateWebhookId() {
-    const oThis = this,
-      webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
+    const oThis = this;
+
+    const webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
 
     oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
 
@@ -95,9 +95,10 @@ class GetWebhook extends ServiceBase {
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_w_g_1',
-          api_error_identifier: 'invalid_webhook_uuid',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_webhook_id'],
           debug_options: {}
         })
       );
@@ -120,7 +121,7 @@ class GetWebhook extends ServiceBase {
       activeWebhooks = webhookSubscriptionCacheRspData.active;
 
     for (let index = 0; index < activeWebhooks.length; index++) {
-      oThis.topics.push(webhookSubscriptionsConstants.topics[activeWebhooks[index].webhookTopicKind]);
+      oThis.topics.push(activeWebhooks[index].webhookTopicKind);
     }
   }
 }

@@ -83,12 +83,14 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     await oThis._clearCache();
 
+    const invertedTopics = oThis._formatTopics();
+
     return responseHelper.successWithData({
       [resultType.webhook]: {
         id: oThis.uuid,
         url: oThis.endpointUrl,
-        status: oThis.status,
-        topics: oThis.eventTopics,
+        status: webhookEndpointsConstants.invertedStatuses[oThis.status],
+        topics: invertedTopics,
         updatedTimestamp: Date.now() / 1000,
         secret: oThis.secret
       }
@@ -115,9 +117,11 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
       if (!webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[index]]) {
         return Promise.reject(
-          responseHelper.error({
+          responseHelper.paramValidationError({
             internal_error_identifier: 's_w_m_b_1',
-            api_error_identifier: 'invalid_topics'
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_topics'],
+            debug_options: {}
           })
         );
       }
@@ -127,9 +131,11 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     if (!webhookEndpointsConstants.invertedStatuses[oThis.status]) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 's_w_m_b_2',
-          api_error_identifier: 'invalid_status'
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_status'],
+          debug_options: {}
         })
       );
     }
@@ -385,6 +391,24 @@ class CreateUpdateWebhookBase extends ServiceBase {
     // Clear webhook endpoints cache.
     await new WebhookEndpointCache({ uuid: oThis.uuid }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
+  }
+
+  /**
+   * Convert topics to inverted topics.
+   *
+   * @returns {array}
+   * @private
+   */
+  _formatTopics() {
+    const oThis = this;
+
+    const tempArray = [];
+
+    for (let index = 0; index < oThis.eventTopics.length; index++) {
+      tempArray.push(webhookSubscriptionConstants.invertedTopics[oThis.eventTopics[index]]);
+    }
+
+    return tempArray;
   }
 }
 
