@@ -38,7 +38,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '25': cronProcessesConstants.generateGraph,
     '26': cronProcessesConstants.recoveryRequestsMonitor,
     '27': cronProcessesConstants.webhookPreprocessor,
-    '28': cronProcessesConstants.webhookProcessor
+    '28': cronProcessesConstants.webhookProcessor,
+    '29': cronProcessesConstants.webhooksErrorHandler
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
