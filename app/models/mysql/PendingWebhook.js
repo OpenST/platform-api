@@ -66,8 +66,7 @@ class PendingWebhook extends ModelBase {
       webhook_topic_kind: params.webhookTopicKind,
       extra_data: params.extraData || null,
       status: params.status,
-      retry_count: 0,
-      last_attempted_at: Date.now() / 1000
+      retry_count: 0
     };
 
     const insertResponse = await oThis.insert(insertParams).fire();
