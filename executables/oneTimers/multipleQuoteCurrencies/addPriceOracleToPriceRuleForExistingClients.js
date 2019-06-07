@@ -93,6 +93,8 @@ class AddPriceOracleToPricerRuleForExistingClients {
 
     let tokenModel = new TokenModel({});
 
+    if (oThis.clientIds.length == 0) return;
+
     let Rows = await tokenModel
       .select('id, client_id')
       .where({
@@ -119,6 +121,8 @@ class AddPriceOracleToPricerRuleForExistingClients {
    */
   async _addPriceOracleToPriceRule() {
     const oThis = this;
+
+    if (oThis.clientIds.length == 0) return;
 
     let AddPriceOracleToPricerRule = oThis.ic.getShadowedClassFor(
       coreConstants.icNameSpace,

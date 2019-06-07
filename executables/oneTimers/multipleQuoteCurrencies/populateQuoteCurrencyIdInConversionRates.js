@@ -78,7 +78,9 @@ populateQuoteCurrencyId
   .perform()
   .then(function(resp) {
     console.log(resp);
+    process.exit(0);
   })
   .catch(function(err) {
     console.error(err);
+    process.exit(1);
   });
