@@ -406,7 +406,7 @@ if (cluster.isMaster) {
   app.use('/health-checker', elbHealthCheckerRoute);
 
   app.use(
-    '/test_webhook',
+    '/' + environmentInfo.urlPrefix + '/test_webhook',
     startRequestLogLine,
     appendRequestDebugInfo,
     validateWebhookSignature,
