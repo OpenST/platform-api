@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- *  Base for device related multi sig operations
+ * Base for device related multi sig operations
  *
  * @module app/services/device/multisigOperation/Base
  */
@@ -10,16 +10,17 @@ const OpenSTJs = require('@openst/openst.js'),
   GnosisSafeHelper = OpenSTJs.Helpers.GnosisSafe;
 
 const rootPrefix = '../../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
-  ServiceBase = require(rootPrefix + '/app/services/Base'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Following require(s) for registering into instance composer
@@ -345,6 +346,26 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   get _configStrategy() {
     const oThis = this;
     return oThis.ic().configStrategy;
+  }
+
+  /**
+   * Send webhook message to Preprocessor.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _sendPreprocessorWebhook(webhookKind) {
+    const oThis = this;
+
+    const payload = {
+      userId: oThis.userId,
+      webhookKind: webhookKind,
+      clientId: oThis.clientId,
+      tokenId: oThis.tokenId,
+      deviceAddress: oThis.deviceAddress || oThis.deviceAddressToRemove
+    };
+
+    await publishToPreProcessor.perform(oThis.auxChainId, payload);
   }
 
   _sanitizeSpecificParams() {
