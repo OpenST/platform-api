@@ -9,7 +9,7 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
+  WebhookEndpointsByUuidCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookEndpointsByUuid'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -81,9 +81,11 @@ class GetWebhook extends ServiceBase {
   async _validateWebhookId() {
     const oThis = this;
 
-    const webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
+    const webhookEndpointsCacheResp = await new WebhookEndpointsByUuidCache({
+      webhookEndpointUuids: [oThis.webhookId]
+    }).fetch();
 
-    oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
+    oThis.webhookEndpointRsp = webhookEndpointsCacheResp.data[oThis.webhookId];
 
     // If client id from cache doesn't match or status of webhook id is inactive,
     // Then we can say that webhook uuid is invalid.

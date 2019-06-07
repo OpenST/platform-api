@@ -11,7 +11,7 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
   WebhookSubscriptionModel = require(rootPrefix + '/app/models/mysql/WebhookSubscription'),
-  WebhookEndpointCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpoint'),
+  WebhookEndpointsByUuidCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookEndpointsByUuid'),
   WebhookSubscriptionsByUuidCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
   WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
@@ -93,9 +93,11 @@ class DeleteWebhook extends ServiceBase {
   async _validateWebhookId() {
     const oThis = this;
 
-    const webhookEndpointCacheRsp = await new WebhookEndpointCache({ uuid: oThis.webhookId }).fetch();
+    const webhookEndpointsCacheResp = await new WebhookEndpointsByUuidCache({
+      webhookEndpointUuids: [oThis.webhookId]
+    }).fetch();
 
-    oThis.webhookEndpointRsp = webhookEndpointCacheRsp.data;
+    oThis.webhookEndpointRsp = webhookEndpointsCacheResp.data[oThis.webhookId];
 
     // If client id from cache doesn't match or status of webhook id is inactive,
     // Then we can say that webhook uuid is invalid.
@@ -189,7 +191,7 @@ class DeleteWebhook extends ServiceBase {
     await new WebhookSubscriptionsByClientIdCache({ clientId: oThis.clientId }).clear();
 
     // Clear webhook endpoints cache.
-    await new WebhookEndpointCache({ uuid: oThis.webhookId }).clear();
+    await new WebhookEndpointsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
   }
 }
