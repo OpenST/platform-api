@@ -78,6 +78,18 @@ And add it to tables using following script.
     node executables/setup/aux/contracts.js --originChainId 3 --auxChainId 2000
 ```
 
+* Activate USD Quote currency
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "USD"
+```
+
+* Activate EUR Quote currency
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "EUR"
+```
+
 * Verifier script for auxiliary chain setup
     - You can verify local chain setup and contract deployment using following script.
 ```bash
@@ -95,18 +107,6 @@ And add it to tables using following script.
 ```bash
    source set_env_vars.sh
    node executables/setup/origin/activateStakeCurrency.js --stakeCurrencySymbol "USDC"
-```
-
-* Activate USD Quote currency
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "USD"
-```
-
-* Activate EUR Quote currency
-```bash
-    source set_env_vars.sh
-    node executables/setup/origin/activateQuoteCurrency.js --quoteCurrencySymbol "EUR"
 ```
 
 
