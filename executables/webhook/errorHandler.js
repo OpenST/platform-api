@@ -1,7 +1,7 @@
 /**
  * Module for webhooks error handler cron.
  *
- * @module executables/webhook/webhookErrorHandler
+ * @module executables/webhook/errorHandler
  */
 
 const rootPrefix = '../..';
@@ -20,7 +20,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/webhook/webhookErrorHandler.js --cronProcessId 33');
+  logger.log('    node executables/webhook/errorHandler.js --cronProcessId 33');
   logger.log('');
   logger.log('');
 });
