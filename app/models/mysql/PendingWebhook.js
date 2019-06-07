@@ -68,7 +68,7 @@ class PendingWebhook extends ModelBase {
       status: params.status,
       retry_count: 0,
       lock_id: 0,
-      last_attempted_at: 0
+      next_retry_at: 0
     };
 
     const insertResponse = await oThis.insert(insertParams).fire();
@@ -86,7 +86,7 @@ class PendingWebhook extends ModelBase {
       status: insertParams.status,
       retryCount: insertParams.retry_count,
       lockId: insertParams.lock_id,
-      lastAttemptedAt: insertParams.last_attempted_at
+      nextRetryAt: insertParams.next_retry_at
     };
 
     await pendingWebhooksCache._setCache(cacheParams);
