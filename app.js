@@ -141,6 +141,7 @@ const validateWebhookSignature = function(req, res, next) {
   let inputParams = getRequestParams(req);
   //Object.assign(inputParams, req.headers);
   console.log('---------inputParams---', inputParams);
+  console.log('---------req.headers---', req.headers);
   // Following line always gives resolution. In case this assumption changes, please add catch here.
   return new AuthenticateApiByWebhookKeySecret({
     inputParams: inputParams,
