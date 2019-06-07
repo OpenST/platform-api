@@ -91,8 +91,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
         url: oThis.endpointUrl,
         status: webhookEndpointsConstants.invertedStatuses[oThis.status],
         topics: invertedTopics,
-        updatedTimestamp: Date.now() / 1000,
-        secret: oThis.secret
+        updatedTimestamp: Date.now() / 1000
       }
     });
   }
