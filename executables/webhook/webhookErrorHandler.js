@@ -91,7 +91,7 @@ class WebhookErrorHandlerCron extends CronBase {
    * @private
    */
   get _cronKind() {
-    return cronProcessesConstants.webhooksErrorHandler;
+    return cronProcessesConstants.webhookErrorHandler;
   }
 
   /**

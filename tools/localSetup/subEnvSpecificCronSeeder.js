@@ -23,10 +23,11 @@ class SubEnvSpecificCronSeeder {
   async perform() {
     const oThis = this;
 
-    await oThis.insertWorkflowWorkerEntry();
-    await oThis.insertUpdateRealtimeGasPriceEntry();
-    await oThis.insertCronProcessesMonitorEntry();
-    await oThis.insertRecoveryRequestsMonitorEntry();
+    // await oThis.insertWorkflowWorkerEntry();
+    // await oThis.insertUpdateRealtimeGasPriceEntry();
+    // await oThis.insertCronProcessesMonitorEntry();
+    // await oThis.insertRecoveryRequestsMonitorEntry();
+    await oThis.insertWebhookErrorHandlerEntry();
   }
 
   /**
@@ -81,6 +82,19 @@ class SubEnvSpecificCronSeeder {
     return new InsertCrons().perform(cronProcessConstants.recoveryRequestsMonitor, {}).then(function(insertId) {
       logger.log('InsertId: ', insertId);
     });
+  }
+
+  /**
+   * Insert Webhook Error Handler cron entry.
+   *
+   * @return {Promise<*>}
+   */
+  async insertWebhookErrorHandlerEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.webhookErrorHandler, { sequenceNumber: 1 })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
   }
 }
 
