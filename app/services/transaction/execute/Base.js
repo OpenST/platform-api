@@ -817,7 +817,7 @@ class ExecuteTxBase extends ServiceBase {
 
     const payload = {
       userId: oThis.userId,
-      webhookKind: webhookSubscriptionsConstants.transactionsCreateTopic,
+      webhookKind: webhookSubscriptionsConstants.transactionsInitiateTopic,
       clientId: oThis.clientId,
       tokenId: oThis.tokenId,
       transactionUuid: oThis.transactionUuid
