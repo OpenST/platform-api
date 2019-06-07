@@ -145,8 +145,7 @@ const validateWebhookSignature = function(req, res, next) {
   // Following line always gives resolution. In case this assumption changes, please add catch here.
   return new AuthenticateApiByWebhookKeySecret({
     inputParams: inputParams,
-    requestHeaders: req.headers,
-    requestPath: customUrlParser.parse(req.originalUrl).pathname
+    requestHeaders: req.headers
   })
     .perform()
     .then(function(resp) {
