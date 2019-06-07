@@ -22,7 +22,9 @@ const rootPrefix = '../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   recoveryOwnerConstants = require(rootPrefix + '/lib/globalConstant/recoveryOwner'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic');
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/models/ddb/sharded/User');
@@ -109,6 +111,8 @@ class CreateTokenHolder extends ServiceBase {
     });
 
     await oThis._initUserSetupWorkflow();
+
+    await oThis._sendPreprocessorWebhook();
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -391,6 +395,25 @@ class CreateTokenHolder extends ServiceBase {
         })
       );
     }
+  }
+
+  /**
+   * Send webhook message to Preprocessor.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _sendPreprocessorWebhook() {
+    const oThis = this;
+
+    const payload = {
+      userId: oThis.userId,
+      webhookKind: webhookSubscriptionsConstants.usersActivationInitiateTopic,
+      clientId: oThis.clientId,
+      tokenId: oThis.tokenId
+    };
+
+    await publishToPreProcessor.perform(oThis.auxChainId, payload);
   }
 
   /**
