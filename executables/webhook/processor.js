@@ -9,15 +9,15 @@ const program = require('commander'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../..',
-  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
-  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  WebhookQueueModel = require(rootPrefix + '/app/models/mysql/WebhookQueue'),
-  webhookProcessorConstants = require(rootPrefix + '/lib/globalConstant/webhookProcessor'),
   PublishWebhook = require(rootPrefix + '/lib/webhooks/PublishWebhook'),
-  rabbitmqConstant = require(rootPrefix + '/lib/globalConstant/rabbitmq');
+  WebhookQueueModel = require(rootPrefix + '/app/models/mysql/WebhookQueue'),
+  RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
+  StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
+  MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  webhookProcessorConstants = require(rootPrefix + '/lib/globalConstant/webhookProcessor');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/transactions/ProcessRmqMessage');
@@ -28,7 +28,7 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/executeTransaction.js --cronProcessId 18');
+  logger.log('    node executables/webhook/processor.js --cronProcessId 18');
   logger.log('');
   logger.log('');
 });
@@ -48,10 +48,10 @@ class WebhookPublisherExecutable extends MultiSubscriptionBase {
   /**
    * Constructor for webhook processor executable.
    *
-   * @augments MultiSubscriptionBase
-   *
    * @param {object} params: params object
    * @param {number} params.cronProcessId: cron_processes table id
+   *
+   * @augments MultiSubscriptionBase
    *
    * @constructor
    */
@@ -159,7 +159,7 @@ class WebhookPublisherExecutable extends MultiSubscriptionBase {
 
     // Set rabbitmq subscription object.
     oThis.subscriptionTopicToDataMap[oThis.processorTopicName] = new RabbitmqSubscription({
-      rabbitmqKind: rabbitmqConstant.auxWebhooksProcessorRabbitmqKind,
+      rabbitmqKind: rabbitmqConstants.auxWebhooksProcessorRabbitmqKind,
       topic: oThis.processorTopicName,
       queue: processorQueueName,
       prefetchCount: oThis.prefetchCount,
@@ -192,7 +192,9 @@ class WebhookPublisherExecutable extends MultiSubscriptionBase {
    */
   async _processMessage(messageParams) {
     const msgPayload = messageParams.message.payload;
-    console.log('-2--msgParams--------', msgPayload);
+
+    logger.log('---msgParams--------', msgPayload);
+
     await new PublishWebhook({ pendingWebhookId: msgPayload.pendingWebhookId }).perform();
   }
 }
