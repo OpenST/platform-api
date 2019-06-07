@@ -77,7 +77,7 @@ class PendingWebhook extends ModelBase {
       clientId: insertParams.client_id,
       eventUuid: insertParams.event_uuid,
       webhookTopicKind: insertParams.webhook_topic_kind,
-      extraData: insertParams.extra_data,
+      extraData: JSON.parse(insertParams.extra_data),
       status: insertParams.status,
       retryCount: insertParams.retry_count,
       lockId: insertParams.lock_id,
