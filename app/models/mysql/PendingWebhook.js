@@ -6,7 +6,6 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  PendingWebhooksCache = require(rootPrefix + '/lib/cacheManagement/shared/PendingWebhooks'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
@@ -43,7 +42,7 @@ class PendingWebhook extends ModelBase {
    * @param {number} params.status: status
    * @param {string} [params.extraData]: extra data
    *
-   * @returns {Promise<number>}
+   * @returns {Promise<object>}
    */
   async insertRecord(params) {
     const oThis = this;
@@ -73,10 +72,6 @@ class PendingWebhook extends ModelBase {
 
     const insertResponse = await oThis.insert(insertParams).fire();
 
-    const pendingWebhooksCache = new PendingWebhooksCache({
-      pendingWebhookId: insertResponse.insertId
-    });
-
     // Set pending webhooks cache.
     const cacheParams = {
       clientId: insertParams.client_id,
@@ -89,9 +84,10 @@ class PendingWebhook extends ModelBase {
       nextRetryAt: insertParams.next_retry_at
     };
 
-    await pendingWebhooksCache._setCache(cacheParams);
-
-    return insertResponse.insertId;
+    return {
+      cacheParams: cacheParams,
+      pendingWebhooksId: insertResponse.insertId
+    };
   }
 }
 
