@@ -232,7 +232,7 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/transactionParser.js --cronProcessId 6
+  node executables/blockScanner/transactionParser.js --cronProcessId 7
 ```
 
 * Run Origin Block Parser
@@ -244,12 +244,12 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Run Origin Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/finalizer.js --cronProcessId 7
+  node executables/blockScanner/finalizer.js --cronProcessId 8
 ```
 
 ### Funding crons
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 8
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 9
 ```
