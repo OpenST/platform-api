@@ -191,10 +191,9 @@ class WebhookPublisherExecutable extends MultiSubscriptionBase {
    * @private
    */
   async _processMessage(messageParams) {
-    console.log('-1--messageParams--------', messageParams);
-    // Const msgParams = messageParams.message.payload;
-    // Console.log('-2--msgParams--------', msgParams);
-    const publishWebhookResp = await new PublishWebhook({ pendingWebhookId: 1 }).perform();
+    const msgPayload = messageParams.message.payload;
+    console.log('-2--msgParams--------', msgPayload);
+    await new PublishWebhook({ pendingWebhookId: msgPayload.pendingWebhookId }).perform();
   }
 }
 

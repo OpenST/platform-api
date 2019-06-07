@@ -37,7 +37,7 @@ class WebhookEndpoint extends ModelBase {
   /**
    * Fetch webhook endpoints by id.
    *
-   * @param {string} uuid
+   * @param {string/array} uuid(s)
    *
    * @returns {Promise<any>}
    */
