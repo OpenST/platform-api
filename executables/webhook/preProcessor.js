@@ -138,10 +138,7 @@ class WebhookPreProcessor extends MultiSubscriptionBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    await new PublishToProcessor({
-      messageParams: messageParams,
-      chainId: oThis.auxChainId
-    }).perform();
+    await PublishToProcessor.perform(messageParams, oThis.auxChainId);
   }
 
   /**
