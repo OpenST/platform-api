@@ -368,6 +368,8 @@ class MultisigOpertationBaseKlass extends ServiceBase {
   /**
    * Send webhook message to Preprocessor.
    *
+   * @param {string} webhookKind
+   *
    * @returns {Promise<*>}
    * @private
    */
@@ -382,7 +384,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       deviceAddress: oThis.deviceAddress || oThis.deviceAddressToRemove
     };
 
-    await publishToPreProcessor.perform(oThis.auxChainId, payload);
+    await publishToPreProcessor.perform(oThis._configStrategyObject.auxChainId, payload);
   }
 
   _sanitizeSpecificParams() {
