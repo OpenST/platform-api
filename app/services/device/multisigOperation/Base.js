@@ -369,11 +369,12 @@ class MultisigOpertationBaseKlass extends ServiceBase {
    * Send webhook message to Preprocessor.
    *
    * @param {string} webhookKind
+   * @param {string} deviceAddress
    *
    * @returns {Promise<*>}
    * @private
    */
-  async _sendPreprocessorWebhook(webhookKind) {
+  async _sendPreprocessorWebhook(webhookKind, deviceAddress) {
     const oThis = this;
 
     const payload = {
@@ -381,7 +382,7 @@ class MultisigOpertationBaseKlass extends ServiceBase {
       webhookKind: webhookKind,
       clientId: oThis.clientId,
       tokenId: oThis.tokenId,
-      deviceAddress: oThis.deviceAddress || oThis.deviceAddressToRemove
+      deviceAddress: deviceAddress
     };
 
     await publishToPreProcessor.perform(oThis._configStrategyObject.auxChainId, payload);

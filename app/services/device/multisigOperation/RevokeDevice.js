@@ -74,6 +74,7 @@ class RevokeDevice extends Base {
     const oThis = this;
 
     oThis.rawCalldata = await basicHelper.sanitizeRawCallData(oThis.rawCalldata);
+
     if (!CommonValidators.validateRawCallData(oThis.rawCalldata)) {
       return Promise.reject(
         responseHelper.paramValidationError({
@@ -300,7 +301,10 @@ class RevokeDevice extends Base {
 
     await oThis._startWorkflow();
 
-    await oThis._sendPreprocessorWebhook(webhookSubscriptionsConstants.devicesRevocationInitiateTopic);
+    await oThis._sendPreprocessorWebhook(
+      webhookSubscriptionsConstants.devicesRevocationInitiateTopic,
+      oThis.deviceAddressToRemove
+    );
 
     return oThis._prepareResponseEntity(updateResponse);
   }

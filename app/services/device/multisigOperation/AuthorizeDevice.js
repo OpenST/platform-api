@@ -181,7 +181,10 @@ class AuthorizeDevice extends Base {
 
     await oThis._startWorkflow();
 
-    await oThis._sendPreprocessorWebhook(webhookSubscriptionsConstants.devicesAuthorizationInitiateTopic);
+    await oThis._sendPreprocessorWebhook(
+      webhookSubscriptionsConstants.devicesAuthorizationInitiateTopic,
+      oThis.deviceAddress
+    );
 
     return oThis._prepareResponseEntity(updateResponse);
   }
