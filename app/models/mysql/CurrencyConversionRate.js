@@ -84,7 +84,7 @@ class CurrencyConversionRateModel extends ModelBase {
       quoteCurrencyIds = params.quoteCurrencyIds;
 
     let whereClause = {
-      quote_currency: quoteCurrencyIds,
+      quote_currency_id: quoteCurrencyIds,
       stake_currency_id: stakeCurrencyIds
     };
 
