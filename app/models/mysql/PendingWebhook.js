@@ -6,6 +6,7 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
@@ -59,6 +60,8 @@ class PendingWebhook extends ModelBase {
       );
     }
 
+    const time = new Date();
+
     const insertParams = {
       client_id: params.clientId,
       event_uuid: params.eventUuid,
@@ -67,7 +70,8 @@ class PendingWebhook extends ModelBase {
       status: params.status,
       retry_count: 0,
       lock_id: 0,
-      next_retry_at: 0
+      next_retry_at: 0,
+      created_at: time
     };
 
     const insertResponse = await oThis.insert(insertParams).fire();
@@ -81,7 +85,8 @@ class PendingWebhook extends ModelBase {
       status: insertParams.status,
       retryCount: insertParams.retry_count,
       lockId: insertParams.lock_id,
-      nextRetryAt: insertParams.next_retry_at
+      nextRetryAt: insertParams.next_retry_at,
+      createdAt: basicHelper.dateToSecondsTimestamp(time)
     };
 
     return {
