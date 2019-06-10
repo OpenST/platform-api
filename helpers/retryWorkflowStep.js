@@ -37,6 +37,7 @@ const workflowKindToRouterPathMap = {
   [workflowConstants.resetRecoveryOwnerKind]: 'lib/workflow/deviceRecovery/byOwner/resetRecoveryOwner/Router',
   [workflowConstants.executeRecoveryKind]: 'lib/workflow/deviceRecovery/byRecoveryController/executeRecovery/Router',
   [workflowConstants.abortRecoveryByRecoveryControllerKind]: 'lib/workflow/deviceRecovery/byOwner/abortRecovery/Router',
+  [workflowConstants.updatePricePointKind]: 'lib/workflow/updatePricePoints/Router',
   [workflowConstants.logoutSessionsKind]: 'lib/workflow/logoutSessions/Router'
 };
 
@@ -58,6 +59,7 @@ const workflowKindToTopic = {
   [workflowConstants.resetRecoveryOwnerKind]: workflowTopicConstant.resetRecoveryOwner,
   [workflowConstants.executeRecoveryKind]: workflowTopicConstant.executeRecovery,
   [workflowConstants.abortRecoveryByRecoveryControllerKind]: workflowTopicConstant.abortRecoveryByRecoveryController,
+  [workflowConstants.updatePricePointKind]: workflowTopicConstant.updatePricePoint,
   [workflowConstants.logoutSessionsKind]: workflowTopicConstant.logoutSession
 };
 

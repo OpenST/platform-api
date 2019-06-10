@@ -31,6 +31,7 @@ const rootPrefix = '../../..',
   StakeCurrencyModel = require(rootPrefix + '/app/models/mysql/StakeCurrency'),
   stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   DeployPriceOracle = require(rootPrefix + '/tools/chainSetup/aux/DeployPriceOracle'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
@@ -95,6 +96,7 @@ class DeployPriceOracleForQuoteCurrency {
       await new DeployPriceOracle({
         auxChainId: oThis.auxChainId,
         baseCurrencySymbol: baseCurrency,
+        gasPrice: contractConstants.auxChainGasPrice,
         quoteCurrencySymbol: oThis.quoteCurrencySymbol
       }).perform();
 
