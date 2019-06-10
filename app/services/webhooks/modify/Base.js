@@ -176,7 +176,10 @@ class CreateUpdateWebhookBase extends ServiceBase {
     } else {
       const webhookEndpointsModel = await new WebhookEndpointModel()
         .select('*')
-        .where({ client_id: oThis.clientId })
+        .where({
+          client_id: oThis.clientId,
+          status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
+        })
         .fire();
 
       if (webhookEndpointsModel.length >= webhookEndpointsConstants.maxEndpointsPerClient) {
