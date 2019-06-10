@@ -20,7 +20,9 @@ const rootPrefix = '../../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/models/ddb/sharded/User');
@@ -137,6 +139,8 @@ class SessionsLogout extends Base {
 
     await oThis._startWorkflow();
 
+    await oThis._sendPreprocessorWebhook();
+
     return responseHelper.successWithData({ [resultType.tokenHolder]: oThis.formattedEntity });
   }
 
@@ -225,6 +229,25 @@ class SessionsLogout extends Base {
     const logoutObj = new LogoutRouter(logoutInitParams);
 
     return logoutObj.perform();
+  }
+
+  /**
+   * Send webhook message to Preprocessor.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _sendPreprocessorWebhook() {
+    const oThis = this;
+
+    const payload = {
+      userId: oThis.userId,
+      webhookKind: webhookSubscriptionsConstants.sessionsLogoutAllInitiateTopic,
+      clientId: oThis.clientId,
+      tokenId: oThis.tokenId
+    };
+
+    await publishToPreProcessor.perform(oThis._configStrategyObject.auxChainId, payload);
   }
 }
 

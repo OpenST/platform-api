@@ -8,18 +8,19 @@ const OpenSTJs = require('@openst/openst.js'),
   GnosisSafeHelper = OpenSTJs.Helpers.GnosisSafe;
 
 const rootPrefix = '../../../..',
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   signatureVerification = require(rootPrefix + '/lib/validators/Sign'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
-  ConfigStrategyObject = require(rootPrefix + '/helpers/configStrategy/Object'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
-  ServiceBase = require(rootPrefix + '/app/services/Base'),
-  basicHelper = require(rootPrefix + '/helpers/basic');
+  tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/DeviceDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
@@ -51,6 +52,8 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
    * @param {array} params.signers: array of authorized device addresses who signed this transaction
    * @param {string/number} params.nonce: multisig contract nonce
    * @param {array} params.token_shard_details
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -214,7 +217,7 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
   /**
    * Return specific device details.
    *
-   * @param {array<string>}deviceAddresses
+   * @param {array<string>} deviceAddresses
    *
    * @returns {Promise<*>}
    * @private
@@ -354,6 +357,28 @@ class MultisigSessionsOpertationBaseKlass extends ServiceBase {
     const oThis = this;
 
     return oThis.ic().configStrategy;
+  }
+
+  /**
+   * Send webhook message to Preprocessor.
+   *
+   * @param {string} webhookKind
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _sendPreprocessorWebhook(webhookKind) {
+    const oThis = this;
+
+    const payload = {
+      userId: oThis.userId,
+      webhookKind: webhookKind,
+      clientId: oThis.clientId,
+      tokenId: oThis.tokenId,
+      sessionAddress: oThis.sessionKey
+    };
+
+    await publishToPreProcessor.perform(oThis._configStrategyObject.auxChainId, payload);
   }
 
   _sanitizeSpecificParams() {

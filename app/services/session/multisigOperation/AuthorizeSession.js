@@ -21,7 +21,8 @@ const rootPrefix = '../../../..',
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
   workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
@@ -190,6 +191,8 @@ class AuthorizeSession extends Base {
     await oThis._addEntryInSessionsTable();
 
     await oThis._startWorkflow();
+
+    await oThis._sendPreprocessorWebhook(webhookSubscriptionsConstants.sessionsAuthorizationInitiateTopic);
 
     return oThis._prepareResponseEntity();
   }
