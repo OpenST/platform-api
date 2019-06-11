@@ -67,7 +67,7 @@ class DeleteWebhook extends ServiceBase {
 
     await oThis._markWebhookSubscriptionsInactive();
 
-    await oThis._markWebhookEndpointsInactive();
+    await oThis._markWebhookEndpointsDeleted();
 
     await oThis._clearCache();
 
@@ -75,7 +75,7 @@ class DeleteWebhook extends ServiceBase {
       [resultType.webhook]: {
         id: oThis.webhookId,
         url: oThis.webhookEndpointRsp.endpoint,
-        status: webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.inActiveStatus],
+        status: webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.deleteStatus],
         topics: oThis.topics,
         updatedTimestamp: basicHelper.dateToSecondsTimestamp(oThis.webhookEndpointRsp.updatedAt)
       }
@@ -99,20 +99,18 @@ class DeleteWebhook extends ServiceBase {
 
     oThis.webhookEndpointRsp = webhookEndpointsCacheResp.data[oThis.webhookId];
 
-    // If client id from cache doesn't match or status of webhook id is inactive,
+    // If client id from cache doesn't match,
     // Then we can say that webhook uuid is invalid.
     if (
       !oThis.webhookEndpointRsp ||
       !oThis.webhookEndpointRsp.uuid ||
-      oThis.webhookEndpointRsp.clientId !== oThis.clientId ||
-      oThis.webhookEndpointRsp.status ===
-        webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.inActiveStatus] ||
       oThis.webhookEndpointRsp.clientId !== oThis.clientId
     ) {
       return Promise.reject(
-        responseHelper.error({
+        responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_w_d_1',
-          api_error_identifier: 'invalid_webhook_uuid',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_webhook_id'],
           debug_options: {}
         })
       );
@@ -159,17 +157,17 @@ class DeleteWebhook extends ServiceBase {
   }
 
   /**
-   * Mark webhook endpoints inactive.
+   * Mark webhook endpoints deleted.
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _markWebhookEndpointsInactive() {
+  async _markWebhookEndpointsDeleted() {
     const oThis = this;
 
     await new WebhookEndpointModel()
       .update({
-        status: webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.inActiveStatus]
+        status: webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.deleteStatus]
       })
       .where({
         uuid: oThis.webhookId

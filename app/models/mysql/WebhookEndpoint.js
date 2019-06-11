@@ -8,7 +8,8 @@ const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination');
+  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
 
 // Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -46,7 +47,11 @@ class WebhookEndpoint extends ModelBase {
 
     return oThis
       .select('*')
-      .where({ uuid: uuid })
+      .where([
+        'uuid = ? AND status NOT IN (?)',
+        uuid,
+        webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.deleteStatus]
+      ])
       .fire();
   }
 

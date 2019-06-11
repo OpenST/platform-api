@@ -120,10 +120,15 @@ class GetWebhook extends ServiceBase {
         webhookEndpointUuids: [oThis.webhookId]
       }).fetch(),
       webhookSubscriptionCacheRspData = webhookSubscriptionCacheRsp.data[oThis.webhookId],
-      activeWebhooks = webhookSubscriptionCacheRspData.active;
+      activeWebhooks = webhookSubscriptionCacheRspData.active,
+      inActiveWebhooks = webhookSubscriptionCacheRspData.inActive;
 
     for (let index = 0; index < activeWebhooks.length; index++) {
       oThis.topics.push(activeWebhooks[index].webhookTopicKind);
+    }
+
+    for (let index = 0; index < inActiveWebhooks.length; index++) {
+      oThis.topics.push(inActiveWebhooks[index].webhookTopicKind);
     }
   }
 }

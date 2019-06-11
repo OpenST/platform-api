@@ -15,7 +15,8 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  webhookEndpointConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
 
 /**
  * Class to get all webhooks.
@@ -115,8 +116,13 @@ class GetAllWebhook extends ServiceBase {
       webhookEndpointsData = webhookEndpointCacheRsp.data;
 
     for (const uuid in webhookEndpointsData) {
-      oThis.webhookIds.push(uuid);
-      oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
+      if (
+        webhookEndpointsData[uuid].status !==
+        +webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.deleteStatus]
+      ) {
+        oThis.webhookIds.push(uuid);
+        oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
+      }
     }
   }
 

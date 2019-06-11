@@ -19,6 +19,7 @@ const rootPrefix = '../../../..',
   WebhookSubscriptionsByClientIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaas/WebhookSubscriptionsByClientId'),
   util = require(rootPrefix + '/lib/util'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   localCipher = require(rootPrefix + '/lib/encryptors/localCipher'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -128,7 +129,11 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.status = oThis.status.toLowerCase();
 
-    if (!webhookEndpointsConstants.invertedStatuses[oThis.status]) {
+    let validStatuses = basicHelper.deepDup(webhookEndpointsConstants.invertedStatuses);
+
+    delete validStatuses[webhookEndpointsConstants.deleteStatus];
+
+    if (!validStatuses[oThis.status]) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 's_w_m_b_2',
@@ -174,7 +179,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
       oThis.endpointId = oThis.endpoint.id;
       oThis.uuid = oThis.endpoint.uuid;
     } else {
-      const webhookEndpointsModel = await new WebhookEndpointModel()
+      const webhookEndpoints = await new WebhookEndpointModel()
         .select('*')
         .where({
           client_id: oThis.clientId,
@@ -182,7 +187,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
         })
         .fire();
 
-      if (webhookEndpointsModel.length >= webhookEndpointsConstants.maxEndpointsPerClient) {
+      if (webhookEndpoints.length >= webhookEndpointsConstants.maxEndpointsPerClient) {
         return Promise.reject(
           responseHelper.error({
             internal_error_identifier: 's_w_m_b_3',
@@ -193,9 +198,9 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
       let secret_salt;
 
-      if (webhookEndpointsModel[0]) {
-        secret_salt = webhookEndpointsModel[0].secret_salt;
-        oThis.secret = webhookEndpointsModel[0].secret;
+      if (webhookEndpoints[0]) {
+        secret_salt = webhookEndpoints[0].secret_salt;
+        oThis.secret = webhookEndpoints[0].secret;
       } else {
         await oThis._generateSalt();
         secret_salt = oThis.secretSalt.CiphertextBlob;

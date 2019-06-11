@@ -8,6 +8,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
   CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -53,7 +54,12 @@ class UpdateWebhook extends CreateUpdateWebhookBase {
 
     const endpoints = await new WebhookEndpointModel()
       .select('*')
-      .where({ client_id: oThis.clientId, uuid: oThis.endpointUuid })
+      .where([
+        'client_id = ? AND uuid = ? AND status NOT IN (?)',
+        oThis.clientId,
+        oThis.endpointUuid,
+        webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.deleteStatus]
+      ])
       .fire();
 
     oThis.endpoint = endpoints[0];
