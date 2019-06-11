@@ -219,6 +219,26 @@ const signature = {
         validatorMethod: 'validateNonZeroInteger'
       }
     ]
+  },
+
+  [apiName.rotateWebhookSecretInternal]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.deleteWebhookGraceSecretInternal]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
   }
 };
 

@@ -263,8 +263,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
   _getEncryptedApiSecret() {
     const oThis = this;
 
-    const uniqueStr = crypto.randomBytes(64).toString('hex');
-    const apiSecret = util.createSha256Digest(uniqueStr);
+    const apiSecret = util.generateWebhookSecret();
 
     return localCipher.encrypt(oThis.secretSalt.Plaintext, apiSecret);
   }
