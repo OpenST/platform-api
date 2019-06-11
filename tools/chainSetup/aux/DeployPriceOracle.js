@@ -46,8 +46,8 @@ class DeployPriceOracle {
     oThis.auxChainId = params.auxChainId;
     oThis.baseCurrencySymbol = params.baseCurrencySymbol;
     oThis.gasPrice = params.gasPrice || contractConstants.zeroGasPrice;
-
     oThis.quoteCurrencySymbol = params.quoteCurrencySymbol;
+
     oThis.ownerAddress = '';
     oThis.adminAddress = '';
     oThis.workerAddress = '';
@@ -68,6 +68,8 @@ class DeployPriceOracle {
     oThis._validateParams();
 
     await oThis._fetchBaseCurrencyDetails();
+
+    // TODO - Santhosh - _fetchQuoteCurrencyDetails here
 
     await oThis._fetchAddresses();
 
@@ -93,9 +95,11 @@ class DeployPriceOracle {
       throw new Error('Aux chain id is mandatory in the parameters.');
     }
 
-    if (!oThis.baseCurrencySymbol || oThis.baseCurrencySymbol.toUpperCase() != oThis.baseCurrencySymbol) {
+    if (!oThis.baseCurrencySymbol || oThis.baseCurrencySymbol.toUpperCase() !== oThis.baseCurrencySymbol) {
       throw new Error('Base currency symbol is mandatory and should be in upper case.');
     }
+
+    // TODO - Santhosh - validate oThis.quoteCurrencySymbol
   }
 
   /**

@@ -39,9 +39,7 @@ class PopulateQuoteCurrencyId {
   async _fetchTokens() {
     const oThis = this;
 
-    let tokenModelObj = new TokenModel({});
-
-    oThis.tokenRows = await tokenModelObj.select('id, client_id').fire();
+    oThis.tokenRows = await new TokenModel({}).select('id, client_id').fire();
   }
 
   /**
@@ -63,9 +61,7 @@ class PopulateQuoteCurrencyId {
     let quoteCurrencyData = quoteCurrencyCacheRsp.data;
 
     // update quote currency id
-    let tokenModelObj = new TokenModel({});
-
-    await tokenModelObj
+    await new TokenModel({})
       .update({ preferred_display_currency_id: quoteCurrencyData[quoteCurrencyConstants.USD].id })
       .fire();
   }

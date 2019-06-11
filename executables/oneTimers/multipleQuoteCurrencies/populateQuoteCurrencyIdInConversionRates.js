@@ -38,11 +38,13 @@ class PopulateQuoteCurrencyId {
     const oThis = this;
 
     let quoteCurrencyBySymbolCache = new QuoteCurrencyBySymbolCache({
+      // TODO - Santhosh - remove hardcoding
       quoteCurrencySymbols: ['USD']
     });
 
     let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
 
+    // TODO - Santhosh - remove hardcoding
     oThis.quoteCurrencyId = quoteCurrencyCacheRsp.data['USD'].id;
   }
 

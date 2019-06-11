@@ -22,7 +22,9 @@ const auxChainId = process.argv[2],
 require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 
 class AddPriceOracleToPricerRuleForExistingClients {
-  constructor() {}
+  constructor() {
+    // TODO - Santhosh - why deviating from convention?
+  }
 
   /**
    * Perform
@@ -91,11 +93,9 @@ class AddPriceOracleToPricerRuleForExistingClients {
   async _fetchClientData() {
     const oThis = this;
 
-    let tokenModel = new TokenModel({});
+    if (oThis.clientIds.length === 0) return;
 
-    if (oThis.clientIds.length == 0) return;
-
-    let Rows = await tokenModel
+    let rows = await new TokenModel({})
       .select('id, client_id')
       .where({
         status: tokenConstants.invertedStatuses[tokenConstants.deploymentCompleted]
@@ -105,10 +105,12 @@ class AddPriceOracleToPricerRuleForExistingClients {
 
     oThis.clientData = [];
 
-    for (let i = 0; i < Rows.length; i++) {
+    // TODO - Santhosh - add logging here.
+
+    for (let i = 0; i < rows.length; i++) {
       oThis.clientData.push({
-        tokenId: Rows[i].id,
-        clientId: Rows[i].client_id
+        tokenId: rows[i].id,
+        clientId: rows[i].client_id
       });
     }
   }
@@ -122,7 +124,7 @@ class AddPriceOracleToPricerRuleForExistingClients {
   async _addPriceOracleToPriceRule() {
     const oThis = this;
 
-    if (oThis.clientIds.length == 0) return;
+    if (oThis.clientIds.length === 0) return;
 
     let AddPriceOracleToPricerRule = oThis.ic.getShadowedClassFor(
       coreConstants.icNameSpace,
@@ -142,7 +144,7 @@ class AddPriceOracleToPricerRuleForExistingClients {
 
       promiseArray.push(addPriceOracleToPricerRule.perform());
 
-      if (i % 100 == 0) {
+      if (i % 10 == 0) {
         await Promise.all(promiseArray);
         promiseArray = [];
       }

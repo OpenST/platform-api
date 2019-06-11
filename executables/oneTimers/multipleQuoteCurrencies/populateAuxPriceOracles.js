@@ -65,6 +65,8 @@ class PopulateAuxPriceOracles {
 
     let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
 
+    // TODO - Santhosh - handle failure
+
     let quoteCurrencyData = quoteCurrencyCacheRsp.data;
 
     let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
@@ -73,21 +75,27 @@ class PopulateAuxPriceOracles {
 
     let cacheResponse = await stakeCurrencyBySymbolCache.fetch();
 
+    // TODO - Santhosh - handle failure
+
     let auxPriceOracleModel = new AuxPriceOracleModel({});
 
     await auxPriceOracleModel.insertPriceOracle({
       chainId: auxChainId,
       stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.OST].id,
+      // TODO - Santhosh - remove hardcoding
       quoteCurrencyId: quoteCurrencyData['USD'].id,
       contractAddress: oThis.ostToUsdPriceOracleContractAddress,
       status: auxPriceOracleConstants.activeStatus
     });
+
+    // TODO - Santhosh - clear cache here
 
     auxPriceOracleModel = new AuxPriceOracleModel({});
 
     await auxPriceOracleModel.insertPriceOracle({
       chainId: auxChainId,
       stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.USDC].id,
+      // TODO - Santhosh - remove hardcoding
       quoteCurrencyId: quoteCurrencyData['USD'].id,
       contractAddress: oThis.usdcToUsdPriceOracleContractAddress,
       status: auxPriceOracleConstants.activeStatus
