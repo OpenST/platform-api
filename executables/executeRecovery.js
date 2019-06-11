@@ -156,7 +156,8 @@ class ExecuteRecovery extends CronBase {
     oThis.recoveryOperations = await recoveryOperationObj
       .select('*')
       .where([
-        'execute_after_blocks < (?) AND status = (?)',
+        'chain_id = (?) AND execute_after_blocks < (?) AND status = (?)',
+        oThis.chainId,
         oThis.currentBlockNumber,
         recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.waitingForAdminActionStatus]
       ])
