@@ -125,7 +125,7 @@ class UpdateRealTimeGasPrice extends CronBase {
           maxGasPriceGWei: maxGasPriceGWei
         }
       });
-      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
     }
 
     // All constants will be stored in Gwei.
