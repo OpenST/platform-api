@@ -4,8 +4,7 @@
  * @module app/services/webhooks/modify/Base
  */
 
-const crypto = require('crypto'),
-  uuidV4 = require('uuid/v4');
+const uuidV4 = require('uuid/v4');
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
@@ -129,7 +128,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
 
     oThis.status = oThis.status.toLowerCase();
 
-    let validStatuses = basicHelper.deepDup(webhookEndpointsConstants.invertedStatuses);
+    const validStatuses = basicHelper.deepDup(webhookEndpointsConstants.invertedStatuses);
 
     delete validStatuses[webhookEndpointsConstants.deleteStatus];
 
