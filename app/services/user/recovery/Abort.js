@@ -200,6 +200,7 @@ class AbortRecovery extends UserRecoveryServiceBase {
     const recOperation = await new RecoveryOperationModel().insertOperation({
       token_id: oThis.tokenId,
       user_id: oThis.userId,
+      chain_id: oThis.auxChainId,
       kind: recoveryOperationConstants.invertedKinds[recoveryOperationConstants.abortRecoveryByUserKind],
       status: recoveryOperationConstants.invertedStatuses[recoveryOperationConstants.inProgressStatus]
     });
