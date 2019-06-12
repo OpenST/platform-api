@@ -12,13 +12,15 @@ const rootPrefix = '../../..',
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const auxChainId = process.argv[2],
-  quoteCurrency = process.argv[3];
+  quoteCurrency = process.argv[3],
+  clientIds = process.argv[4];
 
 require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 
@@ -26,8 +28,11 @@ class AddPriceOracleToPricerRuleForExistingClients {
   constructor() {
     const oThis = this;
 
-    oThis.clientIds = [];
+    oThis.clientIds = clientIds || [];
     oThis.clientData = [];
+    oThis.clientsSkipped = [];
+
+    oThis.clientIds = JSON.parse(oThis.clientIds);
   }
 
   /**
@@ -42,9 +47,15 @@ class AddPriceOracleToPricerRuleForExistingClients {
 
     await oThis._fetchClientIdsFromConfigGroups();
 
+    await oThis._fetchDeployingClients();
+
     await oThis._fetchClientData();
 
     await oThis._addPriceOracleToPriceRule();
+
+    return responseHelper.successWithData({
+      clientsSkipped: oThis.clientsSkipped
+    });
   }
 
   /**
@@ -72,6 +83,8 @@ class AddPriceOracleToPricerRuleForExistingClients {
   async _fetchClientIdsFromConfigGroups() {
     const oThis = this;
 
+    if (oThis.clientIds.length > 0) return;
+
     let clientConfigGroup = new ClientConfigGroup({});
 
     let Rows = await clientConfigGroup
@@ -86,6 +99,33 @@ class AddPriceOracleToPricerRuleForExistingClients {
     for (let i = 0; i < Rows.length; i++) {
       oThis.clientIds.push(Rows[i].client_id);
     }
+  }
+
+  /**
+   * Fetch clients which are in deploying status
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _fetchDeployingClients() {
+    const oThis = this;
+
+    if (oThis.clientIds.length === 0) return;
+
+    let rows = await new TokenModel({})
+      .select('id, client_id')
+      .where({
+        status: tokenConstants.invertedStatuses[tokenConstants.deploymentStarted]
+      })
+      .where(['client_id in (?)', oThis.clientIds])
+      .fire();
+
+    oThis.clientsSkipped = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      oThis.clientsSkipped.push(rows[i].client_id);
+    }
+    logger.log('====Skipping for clients====', oThis.clientsSkipped);
   }
 
   /**
@@ -110,7 +150,7 @@ class AddPriceOracleToPricerRuleForExistingClients {
     oThis.clientData = [];
 
     logger.info('==== Performing Add price oracle for clients=====');
-    logger.info('===Clients==', oThis.clientIds);
+    logger.info('===All Clients==', oThis.clientIds);
 
     for (let i = 0; i < rows.length; i++) {
       oThis.clientData.push({
