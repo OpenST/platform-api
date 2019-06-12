@@ -73,7 +73,11 @@ class QuoteCurrency extends ModelBase {
 
     const dbRows = await oThis
       .select('*')
-      .where([' id IN (?)', quoteCurrencyIds])
+      .where([
+        ' id IN (?) AND status = ?',
+        quoteCurrencyIds,
+        quoteCurrencyConstants.invertedStatuses[quoteCurrencyConstants.activeStatus]
+      ])
       .fire();
 
     if (dbRows.length === 0) {
@@ -100,7 +104,11 @@ class QuoteCurrency extends ModelBase {
 
     const dbRows = await oThis
       .select('*')
-      .where([' symbol IN (?)', quoteCurrencySymbols])
+      .where([
+        ' symbol IN (?) AND status = ?',
+        quoteCurrencySymbols,
+        quoteCurrencyConstants.invertedStatuses[quoteCurrencyConstants.activeStatus]
+      ])
       .fire();
 
     if (dbRows.length === 0) {

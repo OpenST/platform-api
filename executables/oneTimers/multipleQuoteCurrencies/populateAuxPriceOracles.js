@@ -65,8 +65,6 @@ class PopulateAuxPriceOracles {
 
     let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
 
-    // TODO - Santhosh - handle failure
-
     let quoteCurrencyData = quoteCurrencyCacheRsp.data;
 
     let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({

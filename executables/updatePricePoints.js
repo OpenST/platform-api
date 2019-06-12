@@ -125,25 +125,17 @@ class UpdatePriceOraclePricePoints extends CronBase {
       })
       .fire();
 
-    let activeWorkflowsMap = {};
-
     for (let index = 0; index < workflowModelQueryRsp.length; index++) {
       const requestParams = JSON.parse(workflowModelQueryRsp[index].request_params);
       if (requestParams.auxChainId === oThis.auxChainId && requestParams.baseCurrency == oThis.baseCurrency) {
-        // TODO - simplify
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'cron_already_running:e_upp_3',
+          api_error_identifier: 'cron_already_running',
+          debug_options: { chainId: requestParams.auxChainId, baseCurrency: oThis.baseCurrency }
+        });
 
-        if (activeWorkflowsMap.hasOwnProperty(requestParams.quoteCurrency)) {
-          const errorObject = responseHelper.error({
-            internal_error_identifier: 'cron_already_running:e_upp_3',
-            api_error_identifier: 'cron_already_running',
-            debug_options: { chainId: requestParams.auxChainId }
-          });
-
-          logger.error('Cron already running for this chain. Exiting the process.');
-          return Promise.reject(errorObject);
-        } else {
-          activeWorkflowsMap[requestParams.quoteCurrency] = true;
-        }
+        logger.error('Cron already running for this chain. Exiting the process.');
+        return Promise.reject(errorObject);
       }
     }
   }
