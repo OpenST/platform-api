@@ -74,7 +74,11 @@ class WebhookEndpoint extends ModelBase {
 
     const webhookEndpointsData = await oThis
       .select('*')
-      .where({ client_id: params.clientId })
+      .where([
+        'client_id = ? AND status NOT IN (?)',
+        params.clientId,
+        webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.deleteStatus]
+      ])
       .limit(limit)
       .offset(offset)
       .order_by('id DESC')

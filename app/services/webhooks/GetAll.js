@@ -115,15 +115,8 @@ class GetAllWebhook extends ServiceBase {
       }).fetch(),
       webhookEndpointsData = webhookEndpointCacheRsp.data;
 
-    for (const uuid in webhookEndpointsData) {
-      if (
-        webhookEndpointsData[uuid].status !==
-        +webhookEndpointConstants.invertedStatuses[webhookEndpointConstants.deleteStatus]
-      ) {
-        oThis.webhookIds.push(uuid);
-        oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
-      }
-    }
+    oThis.webhookIds.push(uuid);
+    oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
   }
 
   /**
