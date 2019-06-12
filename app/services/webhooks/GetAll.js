@@ -115,8 +115,10 @@ class GetAllWebhook extends ServiceBase {
       }).fetch(),
       webhookEndpointsData = webhookEndpointCacheRsp.data;
 
-    oThis.webhookIds.push(uuid);
-    oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
+    for (const uuid in webhookEndpointsData) {
+      oThis.webhookIds.push(uuid);
+      oThis.webhookEndpoints.push(webhookEndpointsData[uuid]);
+    }
   }
 
   /**
