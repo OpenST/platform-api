@@ -112,22 +112,23 @@ class CurrencyConversionRateModel extends ModelBase {
     let responseData = {};
 
     for (let i = 0; i < records.length; i++) {
-      let noStakeCurrencyId = !responseData[records[i].stake_currency_id],
-        noQuoteCurrencyId =
-          noStakeCurrencyId || !responseData[records[i].stake_currency_id][records[i].quote_currency_id];
+      let currRecord = records[i];
+      let unprocessedStakeCurrencyId = !responseData[currRecord.stake_currency_id],
+        unprocessedQuoteCurrencyId =
+          unprocessedStakeCurrencyId || !responseData[currRecord.stake_currency_id][currRecord.quote_currency_id];
 
-      if (noStakeCurrencyId || noQuoteCurrencyId) {
+      if (unprocessedStakeCurrencyId || unprocessedQuoteCurrencyId) {
         let dataHash = {};
-        dataHash[records[i].quote_currency_id] = records[i].conversion_rate;
-        dataHash['updated_timestamp'] = records[i].timestamp;
+        dataHash[currRecord.quote_currency_id] = currRecord.conversion_rate;
+        dataHash['updated_timestamp'] = currRecord.timestamp;
 
-        if (noStakeCurrencyId) {
-          responseData[records[i].stake_currency_id] = dataHash;
+        if (unprocessedStakeCurrencyId) {
+          responseData[currRecord.stake_currency_id] = dataHash;
         } else {
-          responseData[records[i].stake_currency_id][records[i].quote_currency_id] = records[i].conversion_rate;
-          responseData[records[i].stake_currency_id]['updated_timestamp'] = Math.max(
-            responseData[records[i].stake_currency_id]['updated_timestamp'],
-            records[i].timestamp
+          responseData[currRecord.stake_currency_id][currRecord.quote_currency_id] = currRecord.conversion_rate;
+          responseData[currRecord.stake_currency_id]['updated_timestamp'] = Math.max(
+            responseData[currRecord.stake_currency_id]['updated_timestamp'],
+            currRecord.timestamp
           );
         }
       }
