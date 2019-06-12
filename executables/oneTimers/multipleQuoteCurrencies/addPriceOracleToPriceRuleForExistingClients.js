@@ -28,7 +28,7 @@ class AddPriceOracleToPricerRuleForExistingClients {
   constructor() {
     const oThis = this;
 
-    oThis.clientIds = clientIds || [];
+    oThis.clientIds = clientIds || '[]';
     oThis.clientData = [];
     oThis.clientsSkipped = [];
 
