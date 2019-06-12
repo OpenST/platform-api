@@ -38,18 +38,18 @@ class WebhookEndpoint extends ModelBase {
   /**
    * Fetch webhook endpoints by id.
    *
-   * @param {string/array} uuid(s)
+   * @param {array} uuids
    *
    * @returns {Promise<any>}
    */
-  async fetchByUuid(uuid) {
+  async fetchByUuids(uuids) {
     const oThis = this;
 
     return oThis
       .select('*')
       .where([
-        'uuid = ? AND status NOT IN (?)',
-        uuid,
+        'uuid IN (?) AND status NOT IN (?)',
+        uuids,
         webhookEndpointsConstants.invertedStatuses[webhookEndpointsConstants.deleteStatus]
       ])
       .fire();
