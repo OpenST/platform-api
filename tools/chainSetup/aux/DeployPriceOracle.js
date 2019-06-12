@@ -69,7 +69,7 @@ class DeployPriceOracle {
 
     await oThis._fetchBaseCurrencyDetails();
 
-    // TODO - Santhosh - _fetchQuoteCurrencyDetails here
+    await oThis._fetchQuoteCurrencyDetails();
 
     await oThis._fetchAddresses();
 
@@ -99,7 +99,9 @@ class DeployPriceOracle {
       throw new Error('Base currency symbol is mandatory and should be in upper case.');
     }
 
-    // TODO - Santhosh - validate oThis.quoteCurrencySymbol
+    if (!oThis.quoteCurrencySymbol || oThis.quoteCurrencySymbol.toUpperCase() !== oThis.quoteCurrencySymbol) {
+      throw new Error('Quote currency symbol is mandatory and should be in upper case.');
+    }
   }
 
   /**
@@ -117,6 +119,21 @@ class DeployPriceOracle {
     let response = await stakeCurrencyBySymbolCache.fetch();
 
     oThis.baseCurrencyDetails = response.data[oThis.baseCurrencySymbol];
+  }
+
+  /**
+   * Fetch quote currency details
+   *
+   * @private
+   */
+  async _fetchQuoteCurrencyDetails() {
+    const oThis = this;
+
+    let quoteCurrencyDetails = await new QuoteCurrencyBySymbolCache({
+      quoteCurrencySymbols: [oThis.quoteCurrencySymbol]
+    }).fetch();
+
+    oThis.quoteCurrencyId = quoteCurrencyDetails.data[oThis.quoteCurrencySymbol].id;
   }
 
   /**
@@ -350,17 +367,12 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
-    let quoteCurrencyDetails = await new QuoteCurrencyBySymbolCache({
-        quoteCurrencySymbols: [oThis.quoteCurrencySymbol]
-      }).fetch(),
-      quoteCurrencyId = quoteCurrencyDetails.data[oThis.quoteCurrencySymbol].id;
-
     let auxPriceOracleModelObj = new AuxPriceOracleModel({});
 
     await auxPriceOracleModelObj.insertPriceOracle({
       chainId: oThis.auxChainId,
       stakeCurrencyId: oThis.baseCurrencyDetails.id,
-      quoteCurrencyId: quoteCurrencyId,
+      quoteCurrencyId: oThis.quoteCurrencyId,
       contractAddress: oThis.contractAddress,
       status: auxPriceOracleConstants.activeStatus
     });
@@ -368,7 +380,7 @@ class DeployPriceOracle {
     let auxPriceOracleCache = new AuxPriceOracleCache({
       auxChainId: oThis.auxChainId,
       stakeCurrencyId: oThis.baseCurrencyDetails.id,
-      quoteCurrencyId: quoteCurrencyId
+      quoteCurrencyId: oThis.quoteCurrencyId
     });
 
     await auxPriceOracleCache.clear();

@@ -11,6 +11,7 @@ const rootPrefix = '../../..',
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 const OSTBase = require('@ostdotcom/base'),
@@ -23,7 +24,10 @@ require(rootPrefix + '/lib/setup/economy/AddPriceOracleToPricerRule');
 
 class AddPriceOracleToPricerRuleForExistingClients {
   constructor() {
-    // TODO - Santhosh - why deviating from convention?
+    const oThis = this;
+
+    oThis.clientIds = [];
+    oThis.clientData = [];
   }
 
   /**
@@ -105,7 +109,8 @@ class AddPriceOracleToPricerRuleForExistingClients {
 
     oThis.clientData = [];
 
-    // TODO - Santhosh - add logging here.
+    logger.info('==== Performing Add price oracle for clients=====');
+    logger.info('===Clients==', oThis.clientIds);
 
     for (let i = 0; i < rows.length; i++) {
       oThis.clientData.push({

@@ -8,6 +8,7 @@
 const rootPrefix = '../../..',
   QuoteCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/QuoteCurrencyBySymbol'),
   CurrencyConversionRateModel = require(rootPrefix + '/app/models/mysql/CurrencyConversionRate'),
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint');
 
 const auxChainId = process.argv[2];
@@ -25,7 +26,7 @@ class PopulateQuoteCurrencyId {
 
     await oThis._fetchQuoteCurrencyId();
 
-    await oThis._populateQuoteCurrencyInConversionRates();
+    await oThis._populateQuoteCurrencyInCurrencyConversionRates();
   }
 
   /**
@@ -38,14 +39,12 @@ class PopulateQuoteCurrencyId {
     const oThis = this;
 
     let quoteCurrencyBySymbolCache = new QuoteCurrencyBySymbolCache({
-      // TODO - Santhosh - remove hardcoding
-      quoteCurrencySymbols: ['USD']
+      quoteCurrencySymbols: [quoteCurrencyConstants.USD]
     });
 
     let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
 
-    // TODO - Santhosh - remove hardcoding
-    oThis.quoteCurrencyId = quoteCurrencyCacheRsp.data['USD'].id;
+    oThis.quoteCurrencyId = quoteCurrencyCacheRsp.data[quoteCurrencyConstants.USD].id;
   }
 
   /**
@@ -54,7 +53,7 @@ class PopulateQuoteCurrencyId {
    * @return {Promise<void>}
    * @private
    */
-  async _populateQuoteCurrencyInConversionRates() {
+  async _populateQuoteCurrencyInCurrencyConversionRates() {
     const oThis = this;
 
     let currencyConversionRateModelObj = new CurrencyConversionRateModel({});

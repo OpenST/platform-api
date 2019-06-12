@@ -96,7 +96,7 @@ class CurrencyConversionRateModel extends ModelBase {
       .select('*')
       .where(whereClause)
       .order_by('timestamp DESC')
-      .limit(10)
+      .limit(20)
       .fire();
 
     if (records.length === 0) {

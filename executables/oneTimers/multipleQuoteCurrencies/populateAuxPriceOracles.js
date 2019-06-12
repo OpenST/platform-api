@@ -10,8 +10,11 @@ const rootPrefix = '../../..',
   AuxPriceOracleModel = require(rootPrefix + '/app/models/mysql/AuxPriceOracle'),
   QuoteCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/QuoteCurrencyBySymbol'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  AuxPriceOracleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/AuxPriceOracle'),
   stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   auxPriceOracleConstants = require(rootPrefix + '/lib/globalConstant/auxPriceOracle');
 
 const auxChainId = process.argv[2];
@@ -59,45 +62,73 @@ class PopulateAuxPriceOracles {
   async _populateAuxPriceOracles() {
     const oThis = this;
 
+    // Fetch quote currency data
     let quoteCurrencyBySymbolCache = new QuoteCurrencyBySymbolCache({
-      quoteCurrencySymbols: ['USD']
+      quoteCurrencySymbols: [quoteCurrencyConstants.USD]
     });
 
     let quoteCurrencyCacheRsp = await quoteCurrencyBySymbolCache.fetch();
 
+    if (quoteCurrencyCacheRsp.isFailure() || !quoteCurrencyCacheRsp.data) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_o_mqq_papp_1',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
+
     let quoteCurrencyData = quoteCurrencyCacheRsp.data;
 
+    // Fetch stake currency data
     let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: [stakeCurrencyConstants.OST, stakeCurrencyConstants.USDC]
     });
 
     let cacheResponse = await stakeCurrencyBySymbolCache.fetch();
 
-    // TODO - Santhosh - handle failure
+    if (cacheResponse.isFailure() || !cacheResponse.data) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'e_o_mqq_papp_2',
+          api_error_identifier: 'something_went_wrong',
+          debug_options: {}
+        })
+      );
+    }
 
-    let auxPriceOracleModel = new AuxPriceOracleModel({});
-
-    await auxPriceOracleModel.insertPriceOracle({
+    // Insert price oracle
+    await new AuxPriceOracleModel({}).insertPriceOracle({
       chainId: auxChainId,
       stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.OST].id,
-      // TODO - Santhosh - remove hardcoding
-      quoteCurrencyId: quoteCurrencyData['USD'].id,
+      quoteCurrencyId: quoteCurrencyData[quoteCurrencyConstants.USD].id,
       contractAddress: oThis.ostToUsdPriceOracleContractAddress,
       status: auxPriceOracleConstants.activeStatus
     });
 
-    // TODO - Santhosh - clear cache here
+    // clear cache
+    new AuxPriceOracleCache({
+      auxChainId: auxChainId,
+      stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.OST].id,
+      quoteCurrencyId: quoteCurrencyData[quoteCurrencyConstants.USD].id
+    }).clear();
 
-    auxPriceOracleModel = new AuxPriceOracleModel({});
-
-    await auxPriceOracleModel.insertPriceOracle({
+    // Insert price oracle
+    await new AuxPriceOracleModel({}).insertPriceOracle({
       chainId: auxChainId,
       stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.USDC].id,
-      // TODO - Santhosh - remove hardcoding
-      quoteCurrencyId: quoteCurrencyData['USD'].id,
+      quoteCurrencyId: quoteCurrencyData[quoteCurrencyConstants.USD].id,
       contractAddress: oThis.usdcToUsdPriceOracleContractAddress,
       status: auxPriceOracleConstants.activeStatus
     });
+
+    // clear cache
+    new AuxPriceOracleCache({
+      auxChainId: auxChainId,
+      stakeCurrencyId: cacheResponse.data[stakeCurrencyConstants.USDC].id,
+      quoteCurrencyId: quoteCurrencyData[quoteCurrencyConstants.USD].id
+    }).clear();
   }
 }
 
