@@ -480,6 +480,11 @@ const v2ErrorConfig = {
     parameter: 'expiration_height',
     code: 'invalid',
     message: 'Expiration height should be a block at least 2hrs from now.'
+  },
+  invalid_webhook_id: {
+    parameter: 'webhook_id',
+    code: 'invalid',
+    message: 'Invalid webhook_id'
   }
 };
 
