@@ -124,7 +124,8 @@ class UpdatePricePoints {
         currencyConversionTableId: oThis.setPricePointData.taskResponseData.currencyConversionTableId,
         currentErc20Value: oThis.pricePointData.taskResponseData.currentErc20Value,
         transactionHash: oThis.setPricePointData.taskResponseData.transactionHash,
-        priceOracleContractAddress: oThis.setPricePointData.taskResponseData.priceOracleContractAddress
+        priceOracleContractAddress: oThis.setPricePointData.taskResponseData.priceOracleContractAddress,
+        dontCheckTxStatus: true
       });
 
     return verifySetPriceInPriceOracleContract.perform();
