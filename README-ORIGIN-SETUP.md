@@ -100,6 +100,11 @@ NOTE: Copy the ETH funder private key for later use.
     node executables/setup/origin/insertInQuoteCurrencies.js --symbol EUR --name "Euro"
 ```
 
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInQuoteCurrencies.js --symbol GBP --name "Great Britain Pound"
+```
+
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh

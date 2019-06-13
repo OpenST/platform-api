@@ -42,7 +42,7 @@ const rootPrefix = '../../..',
  */
 class DeployPriceOracleForQuoteCurrency {
   /**
-   * Constructor to deploy price oracle contract for EURO quote currency.
+   * Constructor to deploy price oracle contract for quote currency.
    *
    * @param {object} params
    * @param {string/number} params.auxChainId - auxChainId for which price oracle needs be deployed.
