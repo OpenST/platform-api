@@ -111,6 +111,9 @@ class CreateUpdateWebhookBase extends ServiceBase {
       return element;
     });
 
+    // Convert an array to a set and then convert it back to an array, to remove duplicate elements.
+    oThis.eventTopics = [...new Set(oThis.eventTopics)];
+
     for (let index = 0; index < oThis.eventTopics.length; index++) {
       oThis.eventTopics[index] = oThis.eventTopics[index].toLowerCase().trim();
 
