@@ -484,7 +484,17 @@ const v2ErrorConfig = {
   invalid_webhook_id: {
     parameter: 'webhook_id',
     code: 'invalid',
-    message: 'Invalid webhook_id'
+    message: 'Invalid webhook id.'
+  },
+  invalid_topics: {
+    parameter: 'topics',
+    code: 'invalid',
+    message: 'Invalid topics.'
+  },
+  invalid_status: {
+    parameter: 'status',
+    code: 'invalid',
+    message: 'Invalid status.'
   }
 };
 
