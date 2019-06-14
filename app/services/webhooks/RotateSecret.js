@@ -11,6 +11,7 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
   WebhookEndpointsByUuidCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/WebhookEndpointsByUuid'),
+  WebhookSecretByClientIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookSecret'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -159,6 +160,8 @@ class RotateWebhookSecret extends ServiceBase {
 
     // Clear webhook endpoints cache.
     await new WebhookEndpointsByUuidCache({ webhookEndpointUuids: oThis.clientEndpointUuids }).clear();
+
+    await new WebhookSecretByClientIdCache({ clientId: oThis.clientId }).clear();
   }
 }
 

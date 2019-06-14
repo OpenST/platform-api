@@ -17,6 +17,7 @@ const rootPrefix = '../../..',
   WebhookEndpointCacheByClientId = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookEndpointByClientId'),
   WebhookSubscriptionsByClientIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaas/WebhookSubscriptionsByClientId'),
+  WebhookSecretByClientIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookSecret'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -191,6 +192,8 @@ class DeleteWebhook extends ServiceBase {
     // Clear webhook endpoints cache.
     await new WebhookEndpointsByUuidCache({ webhookEndpointUuids: [oThis.webhookId] }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
+
+    await new WebhookSecretByClientIdCache({ clientId: oThis.clientId }).clear();
   }
 }
 

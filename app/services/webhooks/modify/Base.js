@@ -17,6 +17,7 @@ const rootPrefix = '../../../..',
     '/lib/cacheManagement/kitSaasMulti/WebhookSubscriptionsByUuid'),
   WebhookSubscriptionsByClientIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaas/WebhookSubscriptionsByClientId'),
+  WebhookSecretByClientIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/WebhookSecret'),
   util = require(rootPrefix + '/lib/util'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -399,6 +400,8 @@ class CreateUpdateWebhookBase extends ServiceBase {
     // Clear webhook endpoints cache.
     await new WebhookEndpointsByUuidCache({ webhookEndpointUuids: [oThis.uuid] }).clear();
     await new WebhookEndpointCacheByClientId({ clientId: oThis.clientId }).clear();
+
+    await new WebhookSecretByClientIdCache({ clientId: oThis.clientId }).clear();
   }
 
   /**
