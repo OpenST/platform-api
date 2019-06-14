@@ -136,7 +136,12 @@ class RotateWebhookSecret extends ServiceBase {
     }
 
     await new WebhookEndpointModel()
-      .update({ secret: oThis.newSecret, grace_secret: oThis.secret, grace_expiry_at: oThis.graceExpiryAt })
+      .update({
+        secret: oThis.newSecret,
+        grace_secret: oThis.secret,
+        secret_salt: oThis.secretSalt,
+        grace_expiry_at: oThis.graceExpiryAt
+      })
       .where({ client_id: oThis.clientId })
       .fire();
 
