@@ -328,7 +328,11 @@ class CreateUpdateWebhookBase extends ServiceBase {
   async _createEndpointTopics() {
     const oThis = this;
 
-    const promisesArray = [];
+    const promisesArray = [],
+      topicStatus =
+        oThis.status === webhookEndpointsConstants.activeStatus
+          ? webhookSubscriptionConstants.activeStatus
+          : webhookSubscriptionConstants.inActiveStatus;
 
     for (const topic in oThis.endpointTopicsMap) {
       promisesArray.push(
@@ -337,7 +341,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
             client_id: oThis.clientId,
             webhook_topic_kind: webhookSubscriptionConstants.invertedTopics[topic],
             webhook_endpoint_uuid: oThis.uuid,
-            status: webhookSubscriptionConstants.invertedStatuses[webhookSubscriptionConstants.activeStatus]
+            status: webhookSubscriptionConstants.invertedStatuses[topicStatus]
           })
           .fire()
       );
