@@ -567,12 +567,12 @@
   "endpoint_already_present": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "The endpoint is already registered. Please use update API if you need to change it."
+    "message": "The URL is already registered."
   },
   "max_endpoints_reached": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
-    "message": "Max endpoints reached."
+    "message": "Max endpoints reached. Contact our support team to increase this limit."
   },
   "max_topics_in_endpoint": {
     "http_code": "422",

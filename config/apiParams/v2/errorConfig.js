@@ -484,17 +484,17 @@ const v2ErrorConfig = {
   invalid_webhook_id: {
     parameter: 'webhook_id',
     code: 'invalid',
-    message: 'Invalid webhook id.'
+    message: 'Webhook not found with this id.'
   },
   invalid_topics: {
     parameter: 'topics',
     code: 'invalid',
-    message: 'Invalid topics.'
+    message: 'Topic is not valid, please check the list of available topics on https://dev.ost.com.'
   },
   invalid_status: {
     parameter: 'status',
     code: 'invalid',
-    message: 'Invalid status.'
+    message: 'Invalid status. Please check the list of available status on https://dev.ost.com.'
   }
 };
 
