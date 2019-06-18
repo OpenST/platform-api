@@ -8,20 +8,20 @@ const OpenSTOracle = require('@ostdotcom/ost-price-oracle'),
   deployAndSetOpsAndAdminHelper = new OpenSTOracle.DeployAndSetOpsAndAdminHelper();
 
 const rootPrefix = '../../..',
-  ChainAddressModel = require(rootPrefix + '/app/models/mysql/ChainAddress'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
   SubmitTransaction = require(rootPrefix + '/lib/transactions/SignSubmitTrxOnChain'),
   ChainAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/ChainAddress'),
   StakeCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyBySymbol'),
+  QuoteCurrencyBySymbolCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/QuoteCurrencyBySymbol'),
+  AuxPriceOracleModel = require(rootPrefix + '/app/models/mysql/AuxPriceOracle'),
+  AuxPriceOracleCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/AuxPriceOracle'),
+  auxPriceOracleConstants = require(rootPrefix + '/lib/globalConstant/auxPriceOracle'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   web3Provider = require(rootPrefix + '/lib/providers/web3'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   chainConfigProvider = require(rootPrefix + '/lib/providers/chainConfig'),
-  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress');
 
 /**
  * Class to deploy price oracle contract.
@@ -35,6 +35,7 @@ class DeployPriceOracle {
    * @param {object} params
    * @param {string/number} params.auxChainId - auxChainId for which price oracle needs be deployed.
    * @param {string} params.baseCurrencySymbol - base currency symbol.
+   * @param {string} params.quoteCurrencySymbol - quote currency symbol.
    * @param {string} params.gasPrice - gas price used for deployment.
    *
    * @constructor
@@ -45,8 +46,8 @@ class DeployPriceOracle {
     oThis.auxChainId = params.auxChainId;
     oThis.baseCurrencySymbol = params.baseCurrencySymbol;
     oThis.gasPrice = params.gasPrice || contractConstants.zeroGasPrice;
+    oThis.quoteCurrencySymbol = params.quoteCurrencySymbol;
 
-    oThis.quoteCurrency = conversionRateConstants.USD;
     oThis.ownerAddress = '';
     oThis.adminAddress = '';
     oThis.workerAddress = '';
@@ -67,6 +68,8 @@ class DeployPriceOracle {
     oThis._validateParams();
 
     await oThis._fetchBaseCurrencyDetails();
+
+    await oThis._fetchQuoteCurrencyDetails();
 
     await oThis._fetchAddresses();
 
@@ -92,8 +95,12 @@ class DeployPriceOracle {
       throw new Error('Aux chain id is mandatory in the parameters.');
     }
 
-    if (!oThis.baseCurrencySymbol || oThis.baseCurrencySymbol.toUpperCase() != oThis.baseCurrencySymbol) {
+    if (!oThis.baseCurrencySymbol || oThis.baseCurrencySymbol.toUpperCase() !== oThis.baseCurrencySymbol) {
       throw new Error('Base currency symbol is mandatory and should be in upper case.');
+    }
+
+    if (!oThis.quoteCurrencySymbol || oThis.quoteCurrencySymbol.toUpperCase() !== oThis.quoteCurrencySymbol) {
+      throw new Error('Quote currency symbol is mandatory and should be in upper case.');
     }
   }
 
@@ -112,6 +119,21 @@ class DeployPriceOracle {
     let response = await stakeCurrencyBySymbolCache.fetch();
 
     oThis.baseCurrencyDetails = response.data[oThis.baseCurrencySymbol];
+  }
+
+  /**
+   * Fetch quote currency details
+   *
+   * @private
+   */
+  async _fetchQuoteCurrencyDetails() {
+    const oThis = this;
+
+    let quoteCurrencyDetails = await new QuoteCurrencyBySymbolCache({
+      quoteCurrencySymbols: [oThis.quoteCurrencySymbol]
+    }).fetch();
+
+    oThis.quoteCurrencyId = quoteCurrencyDetails.data[oThis.quoteCurrencySymbol].id;
   }
 
   /**
@@ -179,7 +201,7 @@ class DeployPriceOracle {
     logger.step(
       `* Deploying Price Oracle contract for base currency: "${
         oThis.baseCurrencyDetails.constants.baseCurrencyCode
-      }" to quote currency "${oThis.quoteCurrency}".`
+      }" to quote currency "${oThis.quoteCurrencySymbol}".`
     );
 
     // Prepare txOptions.
@@ -196,7 +218,7 @@ class DeployPriceOracle {
       oThis.web3Instance,
       oThis.ownerAddress,
       oThis.baseCurrencyDetails.constants.baseCurrencyCode,
-      oThis.quoteCurrency,
+      oThis.quoteCurrencySymbol,
       txOptions
     );
 
@@ -227,7 +249,7 @@ class DeployPriceOracle {
     logger.step(
       `Price oracle contract for base currency:"${
         oThis.baseCurrencyDetails.constants.baseCurrencyCode
-      }" to quote currency "${oThis.quoteCurrency}" deployed.`
+      }" to quote currency "${oThis.quoteCurrencySymbol}" deployed.`
     );
   }
 
@@ -240,7 +262,7 @@ class DeployPriceOracle {
   async _setOpsAddress() {
     const oThis = this;
 
-    logger.step('* Setting opsAddress in Price oracle contract.');
+    logger.step(`* Setting opsAddress in Price oracle contract ${oThis.contractAddress}`);
 
     // Prepare txOptions.
     const txOptions = {
@@ -281,7 +303,7 @@ class DeployPriceOracle {
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
 
-    logger.step('Ops address set in price oracle contract.');
+    logger.step(`Ops address set in price oracle contract ${oThis.contractAddress}`);
   }
 
   /**
@@ -293,7 +315,7 @@ class DeployPriceOracle {
   async _setAdminAddress() {
     const oThis = this;
 
-    logger.step('* Setting admin address in price oracle contract.');
+    logger.step(`* Setting admin address in price oracle contract ${oThis.contractAddress}`);
 
     // Prepare txOptions.
     const txOptions = {
@@ -333,7 +355,7 @@ class DeployPriceOracle {
 
     logger.win('\t Transaction hash: ', transactionHash);
     logger.win('\t Transaction receipt: ', transactionReceipt);
-    logger.step('Admin address set in price oracle contract.');
+    logger.step(`Admin address set in price oracle contract ${oThis.contractAddress}`);
   }
 
   /**
@@ -345,30 +367,25 @@ class DeployPriceOracle {
   async _saveContractAddress() {
     const oThis = this;
 
-    let contractAddressKind;
+    let auxPriceOracleModelObj = new AuxPriceOracleModel({});
 
-    if (oThis.baseCurrencySymbol === stakeCurrencyConstants.OST) {
-      contractAddressKind = chainAddressConstants.auxOstToUsdPriceOracleContractKind;
-    } else if (oThis.baseCurrencySymbol === stakeCurrencyConstants.USDC) {
-      contractAddressKind = chainAddressConstants.auxUsdcToUsdPriceOracleContractKind;
-    } else {
-      throw new Error(`Invalid baseCurrency ${oThis.baseCurrencySymbol}`);
-    }
-
-    // Insert priceOracleContractAddress in chainAddresses table.
-    await new ChainAddressModel().insertAddress({
-      address: oThis.contractAddress.toLowerCase(),
-      associatedAuxChainId: oThis.auxChainId,
-      addressKind: contractAddressKind,
-      deployedChainId: oThis.auxChainId,
-      deployedChainKind: coreConstants.auxChainKind,
-      status: chainAddressConstants.activeStatus
+    await auxPriceOracleModelObj.insertPriceOracle({
+      chainId: oThis.auxChainId,
+      stakeCurrencyId: oThis.baseCurrencyDetails.id,
+      quoteCurrencyId: oThis.quoteCurrencyId,
+      contractAddress: oThis.contractAddress,
+      status: auxPriceOracleConstants.activeStatus
     });
 
-    // Clear chain address cache.
-    await new ChainAddressCache({ associatedAuxChainId: oThis.auxChainId }).clear();
+    let auxPriceOracleCache = new AuxPriceOracleCache({
+      auxChainId: oThis.auxChainId,
+      stakeCurrencyId: oThis.baseCurrencyDetails.id,
+      quoteCurrencyId: oThis.quoteCurrencyId
+    });
 
-    logger.step('Price oracle contract address added in table.');
+    await auxPriceOracleCache.clear();
+
+    logger.step(`Price oracle contract address - ${oThis.contractAddress} added in table.`);
   }
 }
 

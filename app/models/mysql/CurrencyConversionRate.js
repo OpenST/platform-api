@@ -72,6 +72,7 @@ class CurrencyConversionRateModel extends ModelBase {
    *
    * @param {Number} params.chainId
    * @param {Array} params.stakeCurrencyIds
+   * @param {Array} params.quoteCurrencyIds
    *
    * @returns {Promise<*>}
    */
@@ -79,10 +80,11 @@ class CurrencyConversionRateModel extends ModelBase {
     const oThis = this;
 
     let chainId = params.chainId,
-      stakeCurrencyIds = params.stakeCurrencyIds;
+      stakeCurrencyIds = params.stakeCurrencyIds,
+      quoteCurrencyIds = params.quoteCurrencyIds;
 
     let whereClause = {
-      quote_currency: conversionRatesConstants.invertedQuoteCurrencies[conversionRatesConstants.USD],
+      quote_currency_id: quoteCurrencyIds,
       stake_currency_id: stakeCurrencyIds
     };
 
@@ -94,7 +96,7 @@ class CurrencyConversionRateModel extends ModelBase {
       .select('*')
       .where(whereClause)
       .order_by('timestamp DESC')
-      .limit(10)
+      .limit(20)
       .fire();
 
     if (records.length === 0) {
@@ -102,7 +104,7 @@ class CurrencyConversionRateModel extends ModelBase {
         responseHelper.error({
           internal_error_identifier: 'a_m_m_ccr_1',
           api_error_identifier: 'something_went_wrong',
-          debug_options: { chainId: chainId, stakeCurrencyIds: stakeCurrencyIds }
+          debug_options: { chainId: chainId, stakeCurrencyIds: stakeCurrencyIds, quoteCurrencyIds: quoteCurrencyIds }
         })
       );
     }
@@ -110,11 +112,25 @@ class CurrencyConversionRateModel extends ModelBase {
     let responseData = {};
 
     for (let i = 0; i < records.length; i++) {
-      if (!responseData[records[i].stake_currency_id]) {
+      let currRecord = records[i];
+      let unprocessedStakeCurrencyId = !responseData[currRecord.stake_currency_id],
+        unprocessedQuoteCurrencyId =
+          unprocessedStakeCurrencyId || !responseData[currRecord.stake_currency_id][currRecord.quote_currency_id];
+
+      if (unprocessedStakeCurrencyId || unprocessedQuoteCurrencyId) {
         let dataHash = {};
-        dataHash[conversionRatesConstants.quoteCurrencies[records[i].quote_currency]] = records[i].conversion_rate;
-        dataHash['updated_timestamp'] = records[i].timestamp;
-        responseData[records[i].stake_currency_id] = dataHash;
+        dataHash[currRecord.quote_currency_id] = currRecord.conversion_rate;
+        dataHash['updated_timestamp'] = currRecord.timestamp;
+
+        if (unprocessedStakeCurrencyId) {
+          responseData[currRecord.stake_currency_id] = dataHash;
+        } else {
+          responseData[currRecord.stake_currency_id][currRecord.quote_currency_id] = currRecord.conversion_rate;
+          responseData[currRecord.stake_currency_id]['updated_timestamp'] = Math.max(
+            responseData[currRecord.stake_currency_id]['updated_timestamp'],
+            currRecord.timestamp
+          );
+        }
       }
     }
 

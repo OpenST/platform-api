@@ -11,7 +11,8 @@ const rootPrefix = '../..',
   DeployPriceOracle = require(rootPrefix + '/tools/chainSetup/aux/DeployPriceOracle'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  contractConstants = require(rootPrefix + '/lib/globalConstant/contract');
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
 
 program
   .option('--auxChainId <auxChainId>', 'aux chainId')
@@ -88,6 +89,7 @@ class DeployPriceOracleExecutable {
     await new DeployPriceOracle({
       auxChainId: oThis.auxChainId,
       baseCurrencySymbol: oThis.baseCurrencySymbol,
+      quoteCurrencySymbol: quoteCurrencyConstants.USD,
       gasPrice: contractConstants.auxChainGasPrice
     }).perform();
   }

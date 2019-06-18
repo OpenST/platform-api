@@ -20,10 +20,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    "    node executables/setup/origin/saveStakeCurrencyDetails.js --contractSymbol OST --contractName 'Simple Token'"
-  );
-  logger.log(
-    "    node executables/setup/origin/saveStakeCurrencyDetails.js --contractSymbol USDC --contractName 'USD Coin'"
+    "    node executables/setup/origin/insertInStakeCurrencies.js --contractSymbol OST --contractName 'Simple Token'"
   );
   logger.log('');
   logger.log('');

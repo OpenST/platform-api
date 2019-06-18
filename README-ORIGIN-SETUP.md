@@ -89,6 +89,22 @@ NOTE: Copy the ETH funder private key for later use.
     node executables/setup/origin/insertInStakeCurrencies.js --contractSymbol OST --contractName "Simple Token"
 ```
 
+* Insert Quote Currency Details in Quote Currencies Mysql Table
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInQuoteCurrencies.js --symbol USD --name "US Dollar"
+```
+
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInQuoteCurrencies.js --symbol EUR --name "Euro"
+```
+
+```bash
+    source set_env_vars.sh
+    node executables/setup/origin/insertInQuoteCurrencies.js --symbol GBP --name "Great Britain Pound"
+```
+
 * Setup Simple Token (EXCEPT PRODUCTION MAIN ENV)
 ```bash
     source set_env_vars.sh

@@ -72,10 +72,18 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '43': workflowStepConstants.savePricerRule,
     '44': workflowStepConstants.registerPricerRule,
     '45': workflowStepConstants.verifyRegisterPricerRule,
-    '46': workflowStepConstants.addPriceOracleInPricerRule,
-    '47': workflowStepConstants.verifyAddPriceOracleInPricerRule,
-    '48': workflowStepConstants.setAcceptedMarginInPricerRule,
-    '49': workflowStepConstants.verifySetAcceptedMarginInPricerRule,
+    '46': workflowStepConstants.addUsdPriceOracleInPricerRule,
+    '47': workflowStepConstants.verifyAddUsdPriceOracleInPricerRule,
+    '355': workflowStepConstants.addEurPriceOracleInPricerRule,
+    '356': workflowStepConstants.verifyAddEurPriceOracleInPricerRule,
+    '359': workflowStepConstants.addGbpPriceOracleInPricerRule,
+    '360': workflowStepConstants.verifyAddGbpPriceOracleInPricerRule,
+    '48': workflowStepConstants.setUsdAcceptedMarginInPricerRule,
+    '49': workflowStepConstants.verifySetUsdAcceptedMarginInPricerRule,
+    '357': workflowStepConstants.setEurAcceptedMarginInPricerRule,
+    '358': workflowStepConstants.verifySetEurAcceptedMarginInPricerRule,
+    '361': workflowStepConstants.setGbpAcceptedMarginInPricerRule,
+    '362': workflowStepConstants.verifySetGbpAcceptedMarginInPricerRule,
     '59': workflowStepConstants.postTokenRuleDeploy,
 
     '52': workflowStepConstants.deployProxyFactory,
@@ -228,6 +236,7 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '352': workflowStepConstants.fetchPricePointFromCoinMarketCapApi,
     '353': workflowStepConstants.setPriceInPriceOracleContract,
     '354': workflowStepConstants.verifySetPriceInPriceOracleContract
+    // Till 362 used
   },
   invertedKinds = util.invert(kinds);
 

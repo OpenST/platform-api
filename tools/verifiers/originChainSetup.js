@@ -20,7 +20,7 @@ const rootPrefix = '../..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
   stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
-  conversionRateConstants = require(rootPrefix + '/lib/globalConstant/conversionRates');
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
 
 /**
  * Class to verify the table data with the chain data.
@@ -332,12 +332,12 @@ class OriginChainSetup {
 
     logger.log('* Validating USDC token contract currency.');
     const chainUsdcContractCurrency = await usdcContractObj.methods.currency().call({});
-    if (chainUsdcContractCurrency !== conversionRateConstants.USD) {
+    if (chainUsdcContractCurrency !== quoteCurrencyConstants.USD) {
       logger.error(
         'Contract currency of USDC token -',
         chainUsdcContractCurrency,
         'different from database value -',
-        conversionRateConstants.USD
+        quoteCurrencyConstants.USD
       );
 
       return Promise.reject(new Error('Contract currency verification of USDC token contract failed.'));
