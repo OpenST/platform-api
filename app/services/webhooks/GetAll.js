@@ -70,7 +70,7 @@ class GetAllWebhook extends ServiceBase {
     await oThis._setMeta();
 
     return responseHelper.successWithData({
-      [resultType.webhook]: oThis.webhookEndpoints,
+      [resultType.webhooks]: oThis.webhookEndpoints,
       [resultType.meta]: oThis.responseMetaData
     });
   }

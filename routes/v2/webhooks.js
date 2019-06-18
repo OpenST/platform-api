@@ -89,7 +89,7 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const webhooks = serviceResponse.data[resultType.webhook],
+    const webhooks = serviceResponse.data[resultType.webhooks],
       formattedWebhooks = [],
       metaPayload = await new WebhookListMetaFormatter(serviceResponse.data).perform().data;
 
@@ -98,8 +98,8 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
     }
 
     serviceResponse.data = {
-      result_type: resultType.webhook,
-      [resultType.webhook]: formattedWebhooks,
+      result_type: resultType.webhooks,
+      [resultType.webhooks]: formattedWebhooks,
       [resultType.meta]: metaPayload
     };
   };
