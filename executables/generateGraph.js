@@ -14,6 +14,7 @@ const rootPrefix = '..',
   S3Upload = require(rootPrefix + '/lib/s3/UploadBody'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
   TokenModel = require(rootPrefix + '/app/models/mysql/Token'),
+  GraphDataModel = require(rootPrefix + '/app/models/mysql/GraphData'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   ClientConfigGroup = require(rootPrefix + '/app/models/mysql/ClientConfigGroup'),
   TotalTransactionsGraph = require(rootPrefix + '/lib/analytics/graph/TotalTransactions'),
@@ -282,9 +283,17 @@ class GenerateGraph extends CronBase {
     logger.info('TotalTransactions data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      const s3FilePath =
-        coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/total-transactions-by-' + durationType + '.json';
-      await oThis.uploadOnS3(s3FilePath, responseData);
+      // TODO - s3 upload change for graph data
+      //const s3FilePath =
+      //coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/total-transactions-by-' + durationType + '.json';
+      //await oThis.uploadOnS3(s3FilePath, responseData);
+      let insertParams = {
+        tokenId: tokenId,
+        graphType: graphConstants.totalTransactionsGraphType,
+        durationType: durationType,
+        graphData: responseData.toHash()
+      };
+      await oThis._insertInGraphData(insertParams);
     } else {
       await createErrorLogsEntry.perform(responseData, ErrorLogsConstants.highSeverity);
     }
@@ -317,9 +326,17 @@ class GenerateGraph extends CronBase {
     logger.info('TransactionsByType data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      const s3FilePath =
-        coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-type-by-' + durationType + '.json';
-      await oThis.uploadOnS3(s3FilePath, responseData);
+      // TODO - s3 upload change for graph data
+      //const s3FilePath =
+      //coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-type-by-' + durationType + '.json';
+      //await oThis.uploadOnS3(s3FilePath, responseData);
+      let insertParams = {
+        tokenId: tokenId,
+        graphType: graphConstants.totalTransactionsByTypeGraphType,
+        durationType: durationType,
+        graphData: responseData.toHash()
+      };
+      await oThis._insertInGraphData(insertParams);
     } else {
       await createErrorLogsEntry.perform(responseData, ErrorLogsConstants.highSeverity);
     }
@@ -352,12 +369,47 @@ class GenerateGraph extends CronBase {
     logger.info('TransactionsByName data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      const s3FilePath =
-        coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-name-by-' + durationType + '.json';
-      await oThis.uploadOnS3(s3FilePath, responseData);
+      // TODO - s3 upload change for graph data
+      //const s3FilePath =
+      //coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-name-by-' + durationType + '.json';
+      //await oThis.uploadOnS3(s3FilePath, responseData);
+      let insertParams = {
+        tokenId: tokenId,
+        graphType: graphConstants.totalTransactionsByNameGraphType,
+        durationType: durationType,
+        graphData: responseData.toHash()
+      };
+      await oThis._insertInGraphData(insertParams);
     } else {
       await createErrorLogsEntry.perform(responseData, ErrorLogsConstants.highSeverity);
     }
+  }
+
+  /**
+   *
+   * @param params {Object}
+   * @param {Number} params.tokenId
+   * @param {String} params.graphType
+   * @param {String} params.durationType
+   * @param {Object} params.graphData
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _insertInGraphData(params) {
+    const oThis = this;
+
+    //Insert in graph data table.
+    let insertResponse = await new GraphDataModel()
+      .insert({
+        token_id: params.tokenId,
+        graph_type: graphConstants.invertedGraphTypes[params.graphType],
+        duration_type: graphConstants.invertedDurationTypes[params.durationType],
+        data: JSON.stringify(params.graphData)
+      })
+      .fire();
+
+    //Todo: Flush cache here.
   }
 
   /**
