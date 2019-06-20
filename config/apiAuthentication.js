@@ -206,7 +206,8 @@ class ApiAuthentication {
       {
         apiName: apiName.createUser,
         route: '/users/',
-        supportedSignatureKinds: [apiSignature.hmacKind]
+        supportedSignatureKinds: [apiSignature.hmacKind],
+        disableReplayAttackCheck: 1
       },
       {
         apiName: apiName.activateUser,
