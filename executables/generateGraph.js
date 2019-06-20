@@ -399,15 +399,47 @@ class GenerateGraph extends CronBase {
   async _insertInGraphData(params) {
     const oThis = this;
 
-    //Insert in graph data table.
-    let insertResponse = await new GraphDataModel()
-      .insert({
+    let existingRows = await new GraphDataModel()
+      .select('id')
+      .where({
         token_id: params.tokenId,
         graph_type: graphConstants.invertedGraphTypes[params.graphType],
-        duration_type: graphConstants.invertedDurationTypes[params.durationType],
-        data: JSON.stringify(params.graphData)
+        duration_type: graphConstants.invertedDurationTypes[params.durationType]
       })
       .fire();
+
+    console.log('existingRows-------', existingRows);
+
+    if (existingRows.length > 0) {
+      let updateResponse = await new GraphDataModel()
+        .update({
+          data: JSON.stringify(params.graphData)
+        })
+        .where({
+          token_id: params.tokenId,
+          graph_type: graphConstants.invertedGraphTypes[params.graphType],
+          duration_type: graphConstants.invertedDurationTypes[params.durationType]
+        })
+        .fire();
+      console.log('updateResponse-------', updateResponse);
+      if (updateResponse.affectedRows === 0) {
+        await createErrorLogsEntry.perform(updateResponse, ErrorLogsConstants.highSeverity);
+      }
+    } else {
+      //Insert in graph data table.
+      let insertResponse = await new GraphDataModel()
+        .insert({
+          token_id: params.tokenId,
+          graph_type: graphConstants.invertedGraphTypes[params.graphType],
+          duration_type: graphConstants.invertedDurationTypes[params.durationType],
+          data: JSON.stringify(params.graphData)
+        })
+        .fire();
+      console.log('insertResponse-------', insertResponse);
+      if (insertResponse.affectedRows === 0) {
+        await createErrorLogsEntry.perform(insertResponse, ErrorLogsConstants.highSeverity);
+      }
+    }
 
     //Todo: Flush cache here.
   }
