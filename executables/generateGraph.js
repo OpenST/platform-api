@@ -283,7 +283,7 @@ class GenerateGraph extends CronBase {
     logger.info('TotalTransactions data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      // TODO - s3 upload change for graph data
+      // NOTE (GRAPH-DISABLE-S3)
       //const s3FilePath =
       //coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/total-transactions-by-' + durationType + '.json';
       //await oThis.uploadOnS3(s3FilePath, responseData);
@@ -291,7 +291,7 @@ class GenerateGraph extends CronBase {
         tokenId: tokenId,
         graphType: graphConstants.totalTransactionsGraphType,
         durationType: durationType,
-        graphData: responseData.toHash()
+        graphData: responseData
       };
       await oThis._insertInGraphData(insertParams);
     } else {
@@ -326,7 +326,7 @@ class GenerateGraph extends CronBase {
     logger.info('TransactionsByType data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      // TODO - s3 upload change for graph data
+      // NOTE (GRAPH-DISABLE-S3)
       //const s3FilePath =
       //coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-type-by-' + durationType + '.json';
       //await oThis.uploadOnS3(s3FilePath, responseData);
@@ -334,7 +334,7 @@ class GenerateGraph extends CronBase {
         tokenId: tokenId,
         graphType: graphConstants.totalTransactionsByTypeGraphType,
         durationType: durationType,
-        graphData: responseData.toHash()
+        graphData: responseData
       };
       await oThis._insertInGraphData(insertParams);
     } else {
@@ -369,7 +369,7 @@ class GenerateGraph extends CronBase {
     logger.info('TransactionsByName data fetch status for token id: ', tokenId, ' status:', responseData.isSuccess());
 
     if (responseData.isSuccess()) {
-      // TODO - s3 upload change for graph data
+      // NOTE (GRAPH-DISABLE-S3)
       //const s3FilePath =
       //coreConstants.S3_ANALYTICS_GRAPH_FOLDER + '/' + tokenId + '/transactions-by-name-by-' + durationType + '.json';
       //await oThis.uploadOnS3(s3FilePath, responseData);
@@ -377,7 +377,7 @@ class GenerateGraph extends CronBase {
         tokenId: tokenId,
         graphType: graphConstants.totalTransactionsByNameGraphType,
         durationType: durationType,
-        graphData: responseData.toHash()
+        graphData: responseData
       };
       await oThis._insertInGraphData(insertParams);
     } else {
@@ -408,19 +408,19 @@ class GenerateGraph extends CronBase {
       })
       .fire();
 
+    let stringifiedGraphData = JSON.stringify(params.graphData.toHash());
+
     if (existingRows.length > 0) {
       let updateResponse = await new GraphDataModel()
         .update({
-          data: JSON.stringify(params.graphData)
+          data: stringifiedGraphData
         })
         .where({
-          token_id: params.tokenId,
-          graph_type: graphConstants.invertedGraphTypes[params.graphType],
-          duration_type: graphConstants.invertedDurationTypes[params.durationType]
+          id: existingRows[0].id
         })
         .fire();
       if (updateResponse.affectedRows === 0) {
-        await createErrorLogsEntry.perform(updateResponse, ErrorLogsConstants.highSeverity);
+        await createErrorLogsEntry.perform(updateResponse, ErrorLogsConstants.lowSeverity);
       }
     } else {
       //Insert in graph data table.
@@ -429,11 +429,11 @@ class GenerateGraph extends CronBase {
           token_id: params.tokenId,
           graph_type: graphConstants.invertedGraphTypes[params.graphType],
           duration_type: graphConstants.invertedDurationTypes[params.durationType],
-          data: JSON.stringify(params.graphData)
+          data: stringifiedGraphData
         })
         .fire();
       if (insertResponse.affectedRows === 0) {
-        await createErrorLogsEntry.perform(insertResponse, ErrorLogsConstants.highSeverity);
+        await createErrorLogsEntry.perform(insertResponse, ErrorLogsConstants.lowSeverity);
       }
     }
   }
