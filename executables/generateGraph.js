@@ -408,8 +408,6 @@ class GenerateGraph extends CronBase {
       })
       .fire();
 
-    console.log('existingRows-------', existingRows);
-
     if (existingRows.length > 0) {
       let updateResponse = await new GraphDataModel()
         .update({
@@ -421,7 +419,6 @@ class GenerateGraph extends CronBase {
           duration_type: graphConstants.invertedDurationTypes[params.durationType]
         })
         .fire();
-      console.log('updateResponse-------', updateResponse);
       if (updateResponse.affectedRows === 0) {
         await createErrorLogsEntry.perform(updateResponse, ErrorLogsConstants.highSeverity);
       }
@@ -435,13 +432,10 @@ class GenerateGraph extends CronBase {
           data: JSON.stringify(params.graphData)
         })
         .fire();
-      console.log('insertResponse-------', insertResponse);
       if (insertResponse.affectedRows === 0) {
         await createErrorLogsEntry.perform(insertResponse, ErrorLogsConstants.highSeverity);
       }
     }
-
-    //Todo: Flush cache here.
   }
 
   /**
