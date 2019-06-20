@@ -158,7 +158,7 @@ class GetUserBalance extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_b_u_2',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['invalid_user_id']
+          params_error_identifiers: ['inactive_user_id']
         })
       );
     }
