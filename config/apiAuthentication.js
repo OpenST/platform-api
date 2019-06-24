@@ -206,7 +206,8 @@ class ApiAuthentication {
       {
         apiName: apiName.createUser,
         route: '/users/',
-        supportedSignatureKinds: [apiSignature.hmacKind]
+        supportedSignatureKinds: [apiSignature.hmacKind],
+        disableReplayAttackCheck: 1
       },
       {
         apiName: apiName.activateUser,
@@ -324,7 +325,8 @@ class ApiAuthentication {
         url: config.route,
         supportedSignatureKinds: config.supportedSignatureKinds,
         regExMatches: ['url'],
-        regExUrl: '^' + config.route + '$'
+        regExUrl: '^' + config.route + '$',
+        disableReplayAttackCheck: config.disableReplayAttackCheck
       };
 
       const dynamicVariables = config.route.match(RegExp(':([^/]+)', 'gi')) || [];
