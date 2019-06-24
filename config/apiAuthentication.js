@@ -325,7 +325,8 @@ class ApiAuthentication {
         url: config.route,
         supportedSignatureKinds: config.supportedSignatureKinds,
         regExMatches: ['url'],
-        regExUrl: '^' + config.route + '$'
+        regExUrl: '^' + config.route + '$',
+        disableReplayAttackCheck: config.disableReplayAttackCheck
       };
 
       const dynamicVariables = config.route.match(RegExp(':([^/]+)', 'gi')) || [];
