@@ -175,10 +175,11 @@ class TransactionMetaObserver extends CronBase {
     return new TransactionMetaModel()
       .update(['lock_id=?', oThis.lockId])
       .where([
-        'status IN (?) AND next_action_at < ? AND next_action_at > 0 AND retry_count < ? AND lock_id IS NULL',
+        'status IN (?) AND next_action_at < ? AND next_action_at > 0 AND retry_count < ? AND lock_id IS NULL AND associated_aux_chain_id = (?)',
         oThis.statusesToObserve,
         oThis.currentTime,
-        oThis.maxRetry
+        oThis.maxRetry,
+        oThis.auxChainId
       ])
       .limit(oThis.noOfRowsToProcess)
       .fire();
