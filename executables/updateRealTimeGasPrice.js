@@ -18,9 +18,11 @@ const program = require('commander'),
 
 const rootPrefix = '..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
+  HttpRequest = require(rootPrefix + '/lib/providers/HttpRequest.js'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
   CronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   OriginChainGasPriceCache = require(rootPrefix + '/lib/cacheManagement/shared/EstimateOriginChainGasPrice'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -99,6 +101,10 @@ class UpdateRealTimeGasPrice extends CronBase {
       retryCount -= 1;
     }
 
+    if (estimatedGasPriceFloat == 0) {
+      estimatedGasPriceFloat = await oThis._getGasPriceFromEtherScan();
+    }
+
     // If estimated gas price is zero, this means none of the services used to fetch gas prices work. Send an alert in this scenario.
     if (estimatedGasPriceFloat == 0) {
       logger.error('e_urtgp_1', 'Dynamic gas price zero from services.');
@@ -162,6 +168,49 @@ class UpdateRealTimeGasPrice extends CronBase {
     oThis.canExit = true;
 
     return responseHelper.successWithData({});
+  }
+
+  /**
+   * Get gas price from ether scan api.
+   *
+   * @returns {Promise<number>}
+   * @private
+   */
+  async _getGasPriceFromEtherScan() {
+    const oThis = this;
+
+    let responseGasPrice = 0;
+
+    let request = new HttpRequest({ resource: 'https://api.etherscan.io/api' }),
+      response = await request
+        .get({ module: 'proxy', action: 'eth_gasPrice', apiKey: coreConstants.ETHERSCAN_API_KEY })
+        .catch(function(err) {
+          return responseHelper.error({
+            internal_error_identifier: 'e_urtgp_3',
+            api_error_identifier: 'something_went_wrong',
+            debug_options: err
+          });
+        });
+
+    if (response.isFailure() || response.data.response.status != 200) {
+      logger.error('Error from etherscan API: ', response);
+      return responseGasPrice;
+    }
+
+    let parsedResponse = null;
+
+    try {
+      parsedResponse = JSON.parse(response.data.responseData);
+    } catch {
+      logger.error('Error in parsing response data. Response data', parsedResponse);
+      return responseGasPrice;
+    }
+
+    //Converting hex value in wei to integer value in wei. Then converting it to Gwei.
+    responseGasPrice = basicHelper.convertLowerUnitToNormal(parseInt(parsedResponse.result, 16), 9).toString(10);
+
+    console.log('EtherScan Gas Price In GWei ', responseGasPrice);
+    return responseGasPrice;
   }
 
   /**
