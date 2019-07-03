@@ -55,6 +55,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     oThis.totalVolumeInWei = 0;
     oThis.tokenHoldersBalanceBn = 0;
     oThis.totalTokenHolders = 0;
+    oThis.totalTokenTransfers = 0;
 
     oThis.stakeCurrencyIsHowManyUSD = null;
     oThis.companyTokenHolderAddresses = [];
@@ -169,6 +170,7 @@ class GetTokenDashboardDetail extends ServiceBase {
     oThis.totalSupplyInWei = economyDetails.totalSupply;
     oThis.totalVolumeInWei = basicHelper.convertToLowerUnit(economyDetails.totalVolume, oThis.token.decimal);
     oThis.economyUsers = economyDetails.totalTokenHolders; // Total economy users
+    oThis.totalTokenTransfers = economyDetails.totalTokenTransfers;
   }
 
   /**
@@ -277,6 +279,7 @@ class GetTokenDashboardDetail extends ServiceBase {
         totalSupplyDollar: totalSupplyDollar,
         totalVolume: totalVolume,
         totalVolumeDollar: totalVolumeDollar,
+        totalTokenTransfers: oThis.totalTokenTransfers,
         circulatingSupply: circulatingSupply,
         circulatingSupplyDollar: circulatingSupplyDollar,
         economyUsers: economyUsers
