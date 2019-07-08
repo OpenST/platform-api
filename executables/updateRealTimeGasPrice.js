@@ -93,6 +93,7 @@ class UpdateRealTimeGasPrice extends CronBase {
       oneGWei = new BigNumber('1000000000'),
       defaultGasPriceGWei = new BigNumber(coreConstants.DEFAULT_ORIGIN_GAS_PRICE).div(oneGWei).toNumber(10),
       maxGasPriceGWei = new BigNumber(coreConstants.MAX_ORIGIN_GAS_PRICE).div(oneGWei).toNumber(10),
+      minGasPriceInGWei = new BigNumber(coreConstants.MIN_ORIGIN_GAS_PRICE).div(oneGWei).toNumber(10),
       originChainGasPriceCacheObj = new OriginChainGasPriceCache(),
       retryCount = 10;
 
@@ -101,7 +102,11 @@ class UpdateRealTimeGasPrice extends CronBase {
       retryCount -= 1;
     }
 
-    if (estimatedGasPriceFloat == 0) {
+    if (
+      estimatedGasPriceFloat == 0 ||
+      estimatedGasPriceFloat > maxGasPriceGWei ||
+      estimatedGasPriceFloat < minGasPriceInGWei
+    ) {
       estimatedGasPriceFloat = await oThis._getGasPriceFromEtherScan();
     }
 
