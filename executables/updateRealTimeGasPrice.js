@@ -125,7 +125,6 @@ class UpdateRealTimeGasPrice extends CronBase {
     }
 
     // If estimated gas price is greater than max gas price, send an alert in this scenario.
-    // TODO - remove following hardcoding
     if (estimatedGasPriceFloat > maxGasPriceGWei) {
       logger.error('e_urtgp_2', 'Dynamic gas price is greater than max gas price.');
       const errorObject = responseHelper.error({
