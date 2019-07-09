@@ -201,8 +201,8 @@ class UpdateRealTimeGasPrice extends CronBase {
 
     try {
       parsedResponse = JSON.parse(response.data.responseData);
-    } catch {
-      logger.error('Error in parsing response data. Response data', parsedResponse);
+    } catch (err) {
+      logger.error('Error in parsing response data. ', err);
       return responseGasPrice;
     }
 
