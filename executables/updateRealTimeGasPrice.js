@@ -102,11 +102,7 @@ class UpdateRealTimeGasPrice extends CronBase {
       retryCount -= 1;
     }
 
-    if (
-      estimatedGasPriceFloat == 0 ||
-      estimatedGasPriceFloat > maxGasPriceGWei ||
-      estimatedGasPriceFloat < minGasPriceInGWei
-    ) {
+    if (estimatedGasPriceFloat == 0 || estimatedGasPriceFloat > maxGasPriceGWei) {
       estimatedGasPriceFloat = await oThis._getGasPriceFromEtherScan();
     }
 
