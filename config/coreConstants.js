@@ -387,6 +387,10 @@ class CoreConstants {
 
     return oThis.S3_AWS_MASTER_FOLDER + '/' + process.env.SA_S3_ANALYTICS_GRAPH_FOLDER;
   }
+
+  get ETHERSCAN_API_KEY() {
+    return process.env.SA_ETHERSCAN_API_KEY;
+  }
 }
 
 module.exports = new CoreConstants();
