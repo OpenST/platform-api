@@ -49,8 +49,13 @@ if (!program.cronProcessId) {
 // Declare variables.
 const FAILURE_CODE = -1,
   MAX_TXS_PER_WORKER = 60,
-  MIN_TXS_PER_WORKER = 10,
+  MIN_TXS_PER_WORKER = 10;
+
+let BLOCKS_OFFSET = 40;
+
+if (basicHelper.isProduction() && basicHelper.isMainSubEnvironment()) {
   BLOCKS_OFFSET = 20;
+}
 
 let parserStuckForBlocks = 0,
   notifierCalled = false;
