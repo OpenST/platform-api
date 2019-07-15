@@ -7,11 +7,11 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
-  PublishToProcessor = require(rootPrefix + '/lib/webhooks/PublishToProcessor'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   rabbitmqConstants = require(rootPrefix + '/lib/globalConstant/rabbitmq'),
+  publishToProcessor = require(rootPrefix + '/lib/webhooks/publishToProcessor'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   webhookPreprocessorConstants = require(rootPrefix + '/lib/globalConstant/webhookPreprocessor');
 
@@ -138,7 +138,7 @@ class WebhookPreProcessor extends MultiSubscriptionBase {
   async _processMessage(messageParams) {
     const oThis = this;
 
-    await PublishToProcessor.perform(messageParams, oThis.auxChainId);
+    await publishToProcessor.perform(messageParams, oThis.auxChainId);
   }
 
   /**
