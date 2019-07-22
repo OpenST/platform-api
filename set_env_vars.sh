@@ -86,3 +86,6 @@ export SA_DEFAULT_AUX_GAS_PRICE='0x3B9ACA00';
 
 # Etherscan API key
 export SA_ETHERSCAN_API_KEY='P4C1623S8AG7HSXY3SJN6BN8J8WMBI81TJ';
+
+# View base url
+export SA_VIEW_BASE_URL='http://view.stagingost.com/'
