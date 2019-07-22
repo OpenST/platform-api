@@ -85,14 +85,14 @@ class PricePointsGet extends ServiceBase {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_c_pp_7',
-          api_error_identifier: 'something_went_wrong', //Not returning param validation error because client_id and token_id are internal parameters and are not expected as part of external api.
+          api_error_identifier: 'something_went_wrong', // Not returning param validation error because client_id and token_id are internal parameters and are not expected as part of external api.
           debug_options: {}
         })
       );
     }
 
     /*
-    Check if it is auxChainId or not. We are not specifically checking the auxChainId value 
+    Check if it is auxChainId or not. We are not specifically checking the auxChainId value
     because if chainConfig has the 'auxGeth' property, the chainId will obviously be the same.
      */
     if (!chainConfig.hasOwnProperty('auxGeth')) {
@@ -136,12 +136,12 @@ class PricePointsGet extends ServiceBase {
   async _fetchClientIdByTokenId() {
     const oThis = this;
 
-    let clientIdByTokenIdCacheObj = new TokenByTokenId({ tokenId: oThis.tokenId }),
+    const clientIdByTokenIdCacheObj = new TokenByTokenId({ tokenId: oThis.tokenId }),
       cacheResponse = await clientIdByTokenIdCacheObj.fetch();
 
     if (cacheResponse.isFailure() || !cacheResponse.data) {
       return Promise.reject(
-        //This is not a param validation error because we are fetching token id and/or client id internally.
+        // This is not a param validation error because we are fetching token id and/or client id internally.
         responseHelper.error({
           internal_error_identifier: 'a_s_c_pp_5',
           api_error_identifier: 'something_went_wrong',
@@ -179,16 +179,16 @@ class PricePointsGet extends ServiceBase {
 
     logger.debug('Price points data: ', pricePointData);
 
-    let stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
+    const stakeCurrencyCacheResponse = await new StakeCurrencyByIdCache({
       stakeCurrencyIds: [oThis.stakeCurrencyId]
     }).fetch();
 
-    let stakeCurrencySymbol = stakeCurrencyCacheResponse.data[oThis.stakeCurrencyId].symbol;
+    const stakeCurrencySymbol = stakeCurrencyCacheResponse.data[oThis.stakeCurrencyId].symbol;
 
-    let responseData = {};
+    const responseData = {};
 
     responseData[stakeCurrencySymbol] = pricePointData[oThis.stakeCurrencyId];
-    responseData['decimals'] = contractConstants.requiredPriceOracleDecimals;
+    responseData.decimals = contractConstants.requiredPriceOracleDecimals;
 
     return responseHelper.successWithData(responseData);
   }

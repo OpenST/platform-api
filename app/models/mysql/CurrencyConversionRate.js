@@ -67,7 +67,7 @@ class CurrencyConversionRateModel extends ModelBase {
 
   /**
    * This function fetches latest conversion rate for given base currencies.
-   * NOTE: It is expected that in the latest 10 rows we will be able to find all the base currencies. If data for some
+   * NOTE: It is expected that in the latest 20 rows we will be able to find all the base currencies. If data for some
    * base currencies is not found then call the same function again for the remaining base currencies.
    *
    * @param {Number} params.chainId
