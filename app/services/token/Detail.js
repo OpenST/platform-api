@@ -11,12 +11,15 @@ const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
+  ClientMileStoneHook = require(rootPrefix + '/lib/email/hookCreator/ClientMileStone'),
   StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  emailServiceConstants = require(rootPrefix + '/lib/globalConstant/emailServiceApiCallHooks'),
+  pepoCampaignsConstants = require(rootPrefix + '/lib/globalConstant/pepoCampaigns'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
@@ -77,6 +80,8 @@ class TokenDetail extends ServiceBase {
     oThis.token.baseToken = oThis.stakeCurrencySymbol;
 
     await oThis._fetchTokenAddresses();
+
+    await oThis._createFirstApiCallHook();
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -250,6 +255,28 @@ class TokenDetail extends ServiceBase {
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
       oThis.companyUuids.push(uuid);
     }
+  }
+
+  /**
+   * Create first api call mile stone hook
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _createFirstApiCallHook() {
+    const oThis = this;
+
+    let clientMileStoneHook = new ClientMileStoneHook({
+      receiverEntityId: oThis.clientId,
+      receiverEntityKind: emailServiceConstants.clientReceiverEntityKind,
+      customAttributes: {
+        [pepoCampaignsConstants.firstApiCallAttribute]: pepoCampaignsConstants.attributeSet
+      },
+      userSettings: {},
+      mileStone: pepoCampaignsConstants.firstApiCallAttribute
+    });
+
+    await clientMileStoneHook.perform();
   }
 }
 
