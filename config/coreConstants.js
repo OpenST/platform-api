@@ -395,10 +395,6 @@ class CoreConstants {
   get SA_VIEW_BASE_URL() {
     return process.env.SA_VIEW_BASE_URL;
   }
-
-  get SA_CW_DOMAIN() {
-    return process.env.SA_CW_DOMAIN;
-  }
 }
 
 module.exports = new CoreConstants();
