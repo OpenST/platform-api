@@ -89,3 +89,6 @@ export SA_ETHERSCAN_API_KEY='P4C1623S8AG7HSXY3SJN6BN8J8WMBI81TJ';
 
 # View base url
 export SA_VIEW_BASE_URL='http://view.stagingost.com/'
+
+# Company web domain - should be same as the one in KIT Api
+export SA_CW_DOMAIN='developmentost.com'
