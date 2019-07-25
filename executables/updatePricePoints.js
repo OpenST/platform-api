@@ -62,6 +62,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
     const oThis = this;
 
     oThis.canExit = true;
+
+    oThis.stakeCurrencyId = null;
   }
 
   /**
@@ -93,11 +95,11 @@ class UpdatePriceOraclePricePoints extends CronBase {
       );
     }
 
-    let stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
+    const stakeCurrencyBySymbolCache = new StakeCurrencyBySymbolCache({
       stakeCurrencySymbols: [oThis.baseCurrency]
     });
 
-    let cacheResponse = await stakeCurrencyBySymbolCache.fetch();
+    const cacheResponse = await stakeCurrencyBySymbolCache.fetch();
 
     if (!cacheResponse.data.hasOwnProperty(oThis.baseCurrency)) {
       logger.error('Please pass a valid base currency.');
@@ -111,9 +113,11 @@ class UpdatePriceOraclePricePoints extends CronBase {
       );
     }
 
-    let allQuoteCurrencySymbolsCache = new AllQuoteCurrencySymbols({});
+    oThis.stakeCurrencyId = cacheResponse.data[oThis.baseCurrency].id;
 
-    let quoteCurrencyData = await allQuoteCurrencySymbolsCache.fetch();
+    const allQuoteCurrencySymbolsCache = new AllQuoteCurrencySymbols({});
+
+    const quoteCurrencyData = await allQuoteCurrencySymbolsCache.fetch();
 
     oThis.quoteCurrencies = quoteCurrencyData.data;
 
@@ -135,6 +139,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
         });
 
         logger.error('Cron already running for this chain. Exiting the process.');
+
         return Promise.reject(errorObject);
       }
     }
@@ -180,9 +185,9 @@ class UpdatePriceOraclePricePoints extends CronBase {
   async _updatePricePoint() {
     const oThis = this;
 
-    let promiseArray = [];
+    const promiseArray = [];
 
-    for (let i = 0; i < oThis.quoteCurrencies.length; i++) {
+    for (let index = 0; index < oThis.quoteCurrencies.length; index++) {
       const updatePricePointParams = {
           stepKind: workflowStepConstants.updatePricePointInit,
           taskStatus: workflowStepConstants.taskReadyToStart,
@@ -191,7 +196,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
           requestParams: {
             auxChainId: oThis.auxChainId,
             baseCurrency: oThis.baseCurrency,
-            quoteCurrency: oThis.quoteCurrencies[i]
+            quoteCurrency: oThis.quoteCurrencies[index],
+            stakeCurrencyId: oThis.stakeCurrencyId
           }
         },
         updatePricePointsRouterObj = new UpdatePricePointsRouter(updatePricePointParams);

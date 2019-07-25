@@ -8,11 +8,11 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints'),
   WebhookEndpointModel = require(rootPrefix + '/app/models/mysql/WebhookEndpoint'),
   CreateUpdateWebhookBase = require(rootPrefix + '/app/services/webhooks/modify/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  webhookEndpointsConstants = require(rootPrefix + '/lib/globalConstant/webhookEndpoints');
 
 /**
  * Class to update a webhook.

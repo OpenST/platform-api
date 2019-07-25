@@ -319,7 +319,9 @@ class Deployment extends ServiceBase {
           auxChainId: oThis.chainId,
           originChainId: oThis.originChainId,
           clientId: oThis.clientId,
-          stakeCurrencyContractAddress: oThis.stakeCurrencyContractAddress
+          stakeCurrencyContractAddress: oThis.stakeCurrencyContractAddress,
+          baseCurrency: oThis.stakeCurrencySymbol,
+          stakeCurrencyId: oThis.stakeCurrencyId
         }
       };
 
@@ -391,7 +393,7 @@ class Deployment extends ServiceBase {
   /**
    * This function fetches and sets stake currency contract address.
    *
-   * @sets oThis.stakeCurrencyContractAddress
+   * @sets oThis.stakeCurrencyContractAddress, oThis.stakeCurrencySymbol, oThis.stakeCurrencyId
    *
    * @returns {Promise<void>}
    * @private
@@ -404,6 +406,8 @@ class Deployment extends ServiceBase {
       stakeCurrencyDetails = await oThis._fetchStakeCurrencyDetails(stakeCurrencyId);
 
     oThis.stakeCurrencyContractAddress = stakeCurrencyDetails.contractAddress;
+    oThis.stakeCurrencySymbol = stakeCurrencyDetails.symbol;
+    oThis.stakeCurrencyId = stakeCurrencyId;
   }
 
   /**
