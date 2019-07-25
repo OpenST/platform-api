@@ -391,10 +391,6 @@ class CoreConstants {
   get ETHERSCAN_API_KEY() {
     return process.env.SA_ETHERSCAN_API_KEY;
   }
-
-  get SA_VIEW_BASE_URL() {
-    return process.env.SA_VIEW_BASE_URL;
-  }
 }
 
 module.exports = new CoreConstants();
