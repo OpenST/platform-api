@@ -81,8 +81,6 @@ class TokenDetail extends ServiceBase {
 
     await oThis._fetchTokenAddresses();
 
-    await oThis._createFirstApiCallHook();
-
     return Promise.resolve(
       responseHelper.successWithData({
         [resultType.token]: {
@@ -255,28 +253,6 @@ class TokenDetail extends ServiceBase {
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
       oThis.companyUuids.push(uuid);
     }
-  }
-
-  /**
-   * Create first api call mile stone hook
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _createFirstApiCallHook() {
-    const oThis = this;
-
-    let clientMileStoneHook = new ClientMileStoneHook({
-      receiverEntityId: oThis.clientId,
-      receiverEntityKind: emailServiceConstants.clientReceiverEntityKind,
-      customAttributes: {
-        [pepoCampaignsConstants.firstApiCallAttribute]: pepoCampaignsConstants.attributeSet
-      },
-      userSettings: {},
-      mileStone: pepoCampaignsConstants.firstApiCallAttribute
-    });
-
-    await clientMileStoneHook.perform();
   }
 }
 
