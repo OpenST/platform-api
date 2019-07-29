@@ -41,7 +41,7 @@ class EmailServiceApiCallHook extends ModelBase {
    * @param {number} params.receiverEntityKind: mail receiver kind
    * @param {number} params.eventType
    * @param {number} params.customDescription
-   * @param {number} params.templateParams: template name and tempalate vars for email
+   * @param {number} params.params: custom attributes, settings, etc.
    *
    * @returns {*}
    */
@@ -66,7 +66,7 @@ class EmailServiceApiCallHook extends ModelBase {
         event_type: emailServiceConstants.getInvertedEventTypes[params.eventType],
         execution_timestamp: params.executionTimestamp || Math.floor(Date.now() / 1000),
         custom_description: params.customDescription || null,
-        params: JSON.stringify(params.templateParams)
+        params: JSON.stringify(params.params)
       })
       .fire();
   }
