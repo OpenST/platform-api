@@ -282,7 +282,8 @@ class GetTokenDashboardDetail extends ServiceBase {
         totalTokenTransfers: oThis.totalTokenTransfers,
         circulatingSupply: circulatingSupply,
         circulatingSupplyDollar: circulatingSupplyDollar,
-        economyUsers: economyUsers
+        economyUsers: economyUsers,
+        tokenHoldersBalance: oThis.tokenHoldersBalanceBn
       })
     );
   }
