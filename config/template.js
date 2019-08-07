@@ -221,7 +221,6 @@ configTemplate.entitiesMap = {
       clusterNodes: 'clusterNodesEntity'
     }
   },
-
   usernameEntity: {
     entityType: 'string'
   },

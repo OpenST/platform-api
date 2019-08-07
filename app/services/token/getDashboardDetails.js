@@ -271,6 +271,7 @@ class GetTokenDashboardDetail extends ServiceBase {
       circulatingSupplyInWei = new BigNumber(oThis.totalSupplyInWei).minus(oThis.tokenHoldersBalanceBn),
       circulatingSupply = basicHelper.toNormalPrecisionBT(circulatingSupplyInWei, oThis.token.decimal),
       circulatingSupplyDollar = oThis.getBtToDollar(circulatingSupplyInWei),
+      tokenHolderBalance = basicHelper.toNormalPrecisionBT(oThis.tokenHoldersBalanceBn, oThis.token.decimal),
       economyUsers = oThis.economyUsers;
 
     return Promise.resolve(
@@ -282,7 +283,8 @@ class GetTokenDashboardDetail extends ServiceBase {
         totalTokenTransfers: oThis.totalTokenTransfers,
         circulatingSupply: circulatingSupply,
         circulatingSupplyDollar: circulatingSupplyDollar,
-        economyUsers: economyUsers
+        economyUsers: economyUsers,
+        tokenHoldersBalance: tokenHolderBalance
       })
     );
   }
