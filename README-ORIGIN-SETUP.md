@@ -36,6 +36,11 @@
     node executables/setup/blockScanner/addChain.js --chainId 3 --networkId 3 --blockShardCount 1 --transactionShardCount 1 --economyAddressShardCount 2 
 ```
 
+## Create latest price points table in DDB.
+* Give aux chain id.
+```bash
+    node executables/oneTimers/createLatestPricePoint.js --chainId 2000
+```
 ## Origin Chain Setup
 
 #### [Only DevOps] NOTE: Make sure you review SA_DEFAULT_ORIGIN_GAS_PRICE gas price from https://ethgasstation.info/txPoolReport.php, as dynamic gas price cron is not yet active.

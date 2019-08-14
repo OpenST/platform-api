@@ -47,6 +47,16 @@ class PopulateAuxPriceOracles {
     let chainAddressCacheObj = new ChainAddressCache({ associatedAuxChainId: auxChainId }),
       chainAddressesRsp = await chainAddressCacheObj.fetch();
 
+    console.log('chainAddressesRsp =========', chainAddressesRsp);
+    console.log(
+      'chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind] =========',
+      chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind]
+    );
+    console.log(
+      'chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind] =========',
+      chainAddressesRsp.data[chainAddressConstants.auxUsdcToUsdPriceOracleContractKind]
+    );
+
     oThis.ostToUsdPriceOracleContractAddress =
       chainAddressesRsp.data[chainAddressConstants.auxOstToUsdPriceOracleContractKind].address;
     oThis.usdcToUsdPriceOracleContractAddress =

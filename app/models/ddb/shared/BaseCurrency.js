@@ -226,6 +226,38 @@ class BaseCurrency extends Base {
   }
 
   /**
+   * Get base currencies.
+   *
+   * @returns {Promise<result>}
+   */
+  async getBaseCurrencies() {
+    const oThis = this;
+
+    const scanParams = {
+      TableName: oThis.tableName(),
+      ConsistentRead: false
+    };
+
+    const response = await oThis.ddbServiceObj.scan(scanParams);
+
+    console.log('response ========', JSON.stringify(response));
+
+    if (response.isFailure()) {
+      return response;
+    }
+
+    const finalResponse = {};
+
+    for (let i = 0; i < response.data.Items.length; i++) {
+      let formattedRow = oThis._formatRowFromDynamo(response.data.Items[i]);
+      finalResponse[formattedRow.symbol] = formattedRow;
+    }
+
+    console.log('finalResponse ========', JSON.stringify(finalResponse));
+
+    return responseHelper.successWithData(finalResponse);
+  }
+  /**
    * Update item.
    *
    * @returns {Promise<*>}
