@@ -226,6 +226,8 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
       .delete()
       .where(['id NOT IN (?)', latestTxIds])
       .fire();
+
+    LatestTransaction.flushCache();
   }
 
   /**

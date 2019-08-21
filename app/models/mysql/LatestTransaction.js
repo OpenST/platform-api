@@ -64,6 +64,16 @@ class LatestTransaction extends ModelBase {
       updatedAt: dbRow.updated_at
     };
   }
+
+  /**
+   * Flush cache
+   *
+   */
+  static flushCache() {
+    const LatestTransactionCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/LatestTransactions');
+
+    new LatestTransactionCache({}).clear();
+  }
 }
 
 module.exports = LatestTransaction;
