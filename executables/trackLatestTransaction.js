@@ -157,9 +157,11 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
 
     console.log('--txHashToLatestTxMap----', txHashToLatestTxMap);
 
-    await oThis._insertTransactions(txHashToLatestTxMap);
+    if (Object.keys(txHashToLatestTxMap).length > 0) {
+      await oThis._insertTransactions(txHashToLatestTxMap);
 
-    await oThis._deleteOldTransactions();
+      await oThis._deleteOldTransactions();
+    }
   }
 
   /**
