@@ -8,6 +8,7 @@ const program = require('commander');
 
 const rootPrefix = '..',
   LatestTransaction = require(rootPrefix + '/app/models/mysql/LatestTransaction'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   workflowTopicConstant = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
@@ -157,8 +158,17 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
     console.log('--txHashToLatestTxMap----', txHashToLatestTxMap);
 
     await oThis._insertTransactions(txHashToLatestTxMap);
+
+    await oThis._deleteOldTransactions();
   }
 
+  /**
+   * Inserts transaction in table.
+   *
+   * @param txHashToLatestTxMap
+   * @returns {Promise<void>}
+   * @private
+   */
   async _insertTransactions(txHashToLatestTxMap) {
     const oThis = this;
 
@@ -173,12 +183,16 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
       rowsDataArray = [];
 
     for (let transactionHash in txHashToLatestTxMap) {
-      //Calculate tx fees in wei;
-      let rowData = [];
+      let transactionFees = oThis._calculateTransactionFees(
+          txHashToLatestTxMap[transactionHash].gasUsed,
+          txHashToLatestTxMap[transactionHash].gasPrice
+        ),
+        rowData = [];
+
       rowData[0] = transactionHash;
       rowData[1] = txHashToLatestTxMap[transactionHash].chainId;
       rowData[2] = txHashToLatestTxMap[transactionHash].tokenId;
-      rowData[3] = txHashToLatestTxMap[transactionHash].gasUsed.toString(); //TODO: Change
+      rowData[3] = transactionFees;
       rowData[4] = txHashToLatestTxMap[transactionHash].amount;
       rowData[5] = txHashToLatestTxMap[transactionHash].blockTimestamp;
 
@@ -186,6 +200,32 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
     }
 
     await new LatestTransaction().insertMultiple(columnNamesArray, rowsDataArray).fire();
+  }
+
+  /**
+   * Delete old transactions
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _deleteOldTransactions() {
+    const oThis = this;
+
+    let latestTxIds = [],
+      rsp = await new LatestTransaction()
+        .select(['id'])
+        .order_by('created_at DESC')
+        .limit(50)
+        .fire();
+
+    for (let i = 0; i < rsp.length; i++) {
+      latestTxIds.push(rsp[i].id);
+    }
+
+    let queryRsp = await new LatestTransaction()
+      .delete()
+      .where(['id NOT IN (?)', latestTxIds])
+      .fire();
   }
 
   /**
@@ -198,6 +238,24 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
     const oThis = this;
 
     await oThis._startSubscriptionFor(oThis._topicsToSubscribe[0]);
+  }
+
+  /**
+   * Calculates transaction fees.
+   *
+   * @param gasUsed
+   * @param gasPrice
+   * @returns {string}
+   * @private
+   */
+  _calculateTransactionFees(gasUsed, gasPrice) {
+    const oThis = this;
+
+    let gasPriceBN = basicHelper.convertToBigNumber(gasPrice),
+      gasUsedBN = basicHelper.convertToBigNumber(gasUsed),
+      transactionFeesBN = gasPriceBN.mul(gasUsedBN);
+
+    return transactionFeesBN.toString(10);
   }
 }
 
