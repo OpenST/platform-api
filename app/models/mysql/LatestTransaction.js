@@ -6,10 +6,7 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;

@@ -23,11 +23,11 @@ class SubEnvSpecificCronSeeder {
   async perform() {
     const oThis = this;
 
-    // await oThis.insertWorkflowWorkerEntry();
-    // await oThis.insertUpdateRealtimeGasPriceEntry();
-    // await oThis.insertCronProcessesMonitorEntry();
-    // await oThis.insertRecoveryRequestsMonitorEntry();
-    // await oThis.insertWebhookErrorHandlerEntry();
+    await oThis.insertWorkflowWorkerEntry();
+    await oThis.insertUpdateRealtimeGasPriceEntry();
+    await oThis.insertCronProcessesMonitorEntry();
+    await oThis.insertRecoveryRequestsMonitorEntry();
+    await oThis.insertWebhookErrorHandlerEntry();
     await oThis.insertTrackLatestTransaction();
   }
 
