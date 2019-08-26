@@ -170,7 +170,7 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
    * @returns {Promise<void>}
    * @private
    */
-  async _insertTransactions(txHashToLatestTxMap) {
+  async _insertTransactions(latestTransactionArray) {
     const oThis = this;
 
     let columnNamesArray = [
@@ -183,19 +183,19 @@ class TrackLatestTransaction extends MultiSubscriptionBase {
       ],
       rowsDataArray = [];
 
-    for (let transactionHash in txHashToLatestTxMap) {
+    for (let index = 0; index < latestTransactionArray.length; index++) {
       let transactionFees = oThis._calculateTransactionFees(
-          txHashToLatestTxMap[transactionHash].gasUsed,
-          txHashToLatestTxMap[transactionHash].gasPrice
+          latestTransactionArray[index].gasUsed,
+          latestTransactionArray[index].gasPrice
         ),
         rowData = [];
 
-      rowData[0] = transactionHash;
-      rowData[1] = txHashToLatestTxMap[transactionHash].chainId;
-      rowData[2] = txHashToLatestTxMap[transactionHash].tokenId;
+      rowData[0] = latestTransactionArray[index].transactionHash;
+      rowData[1] = latestTransactionArray[index].chainId;
+      rowData[2] = latestTransactionArray[index].tokenId;
       rowData[3] = transactionFees;
-      rowData[4] = txHashToLatestTxMap[transactionHash].amount;
-      rowData[5] = txHashToLatestTxMap[transactionHash].blockTimestamp;
+      rowData[4] = latestTransactionArray[index].amount;
+      rowData[5] = latestTransactionArray[index].blockTimestamp;
 
       rowsDataArray.push(rowData);
     }
