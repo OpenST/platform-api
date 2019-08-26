@@ -293,7 +293,13 @@ class AuthorizeSession extends Base {
 
     const authorizeSessionObj = new AuthorizeSessionRouter(authorizeSessionInitParams);
 
-    return authorizeSessionObj.perform();
+    let authSessionRsp = await authorizeSessionObj.perform();
+
+    if (authSessionRsp.isFailure()) {
+      return Promise.reject(authSessionRsp);
+    }
+
+    return authSessionRsp;
   }
 
   /**

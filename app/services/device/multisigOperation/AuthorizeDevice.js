@@ -234,7 +234,18 @@ class AuthorizeDevice extends Base {
 
     const authorizeDeviceObj = new AuthorizeDeviceRouter(authorizeDeviceInitParams);
 
-    return authorizeDeviceObj.perform();
+    let authorizeDeviceRsp = await authorizeDeviceObj.perform();
+
+    if (authorizeDeviceRsp.isFailure()) {
+      await oThis._updateDeviceStatus(
+        oThis.deviceAddress,
+        deviceConstants.authorizingStatus,
+        deviceConstants.registeredStatus
+      );
+      return Promise.reject(authorizeDeviceRsp);
+    }
+
+    return authorizeDeviceRsp;
   }
 
   /**
