@@ -107,6 +107,12 @@ const v2ErrorConfig = {
     message:
       "Invalid parameter session_address. This field accepts data_type 'address' as input which holds a 20 byte value. Please inspect for what is being sent, rectify and re-submit."
   },
+  invalid_session_addresses_length: {
+    parameter: 'session_addresses',
+    code: 'invalid',
+    message:
+      "Invalid parameter session_address. This field accepts data_type 'address' as input whose length should not be greater than 5. Please inspect for what is being sent, rectify and re-submit."
+  },
   invalid_expiration_height: {
     parameter: 'expiration_height',
     code: 'invalid',

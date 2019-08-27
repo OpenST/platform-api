@@ -18,6 +18,7 @@ const rootPrefix = '../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   deviceConstants = require(rootPrefix + '/lib/globalConstant/device'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
+  contractConstants = require(rootPrefix + '/lib/globalConstant/contract'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -82,6 +83,8 @@ class CreateTokenHolder extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._validate();
+
     oThis._sanitize();
 
     const fetchCacheRsp = await oThis._fetchClientConfigStrategy(oThis.clientId);
@@ -119,6 +122,27 @@ class CreateTokenHolder extends ServiceBase {
         [resultType.user]: oThis.userStatusUpdateResponse.data
       })
     );
+  }
+
+  /**
+   * Validate
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _validate() {
+    const oThis = this;
+
+    if (oThis.sessionAddresses.length > contractConstants.maxAllowedSessionsForAddUserInUserWallet) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_cth_12',
+          api_error_identifier: 'invalid_params',
+          params_error_identifiers: ['invalid_session_addresses_length'],
+          debug_options: {}
+        })
+      );
+    }
   }
 
   /**
