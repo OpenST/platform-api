@@ -179,7 +179,17 @@ class AuthorizeDevice extends Base {
       deviceConstants.authorizingStatus
     );
 
-    await oThis._startWorkflow();
+    await oThis._startWorkflow().catch(function(err) {
+      if (responseHelper.isCustomResult(err)) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'a_s_dm_mo_ad_7',
+            api_error_identifier: 'could_not_proceed',
+            debug_options: err.debug_options
+          })
+        );
+      }
+    });
 
     await oThis._sendPreprocessorWebhook(
       webhookSubscriptionsConstants.devicesAuthorizationInitiateTopic,

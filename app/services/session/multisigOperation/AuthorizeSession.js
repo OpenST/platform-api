@@ -215,7 +215,17 @@ class AuthorizeSession extends Base {
 
     await oThis._addEntryInSessionsTable();
 
-    await oThis._startWorkflow();
+    await oThis._startWorkflow().catch(function(err) {
+      if (responseHelper.isCustomResult(err)) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'a_s_s_mo_as_9',
+            api_error_identifier: 'could_not_proceed',
+            debug_options: err.debug_options
+          })
+        );
+      }
+    });
 
     await oThis._sendPreprocessorWebhook(webhookSubscriptionsConstants.sessionsAuthorizationInitiateTopic);
 
