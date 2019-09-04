@@ -71,7 +71,8 @@ class InitialSetup {
       ShardByBlock = blockScannerObj.model.ShardByBlock,
       ShardByTransactions = blockScannerObj.model.ShardByTransaction,
       ShardByEconomyAddress = blockScannerObj.model.ShardByEconomyAddress,
-      ChainCronData = blockScannerObj.model.ChainCronData;
+      ChainCronData = blockScannerObj.model.ChainCronData,
+      LatestPricePoint = blockScannerObj.model.LatestPricePoint;
 
     let chainObject = new Chain({}),
       shardsObject = new Shards({}),
@@ -79,7 +80,8 @@ class InitialSetup {
       shardByBlockObject = new ShardByBlock({}),
       shardByTransactionsObject = new ShardByTransactions({}),
       shardByEconomyAddressObject = new ShardByEconomyAddress({}),
-      chainCronDataObject = new ChainCronData({});
+      chainCronDataObject = new ChainCronData({}),
+      LatestPricePointObject = new LatestPricePoint({});
 
     // Create Chain table
     await chainObject.createTable();
@@ -95,6 +97,8 @@ class InitialSetup {
     await economyObject.createTable();
     // Create ChainCronData table
     await chainCronDataObject.createTable();
+    // Create  LatestPricePoint table.
+    await new LatestPricePointObject.createTable();
   }
 }
 

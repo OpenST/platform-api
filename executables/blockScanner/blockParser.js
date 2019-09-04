@@ -349,8 +349,11 @@ class BlockParserExecutable extends PublisherBase {
           debug_options: {}
         });
 
-        await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-
+        if (oThis.isOriginChain) {
+          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
+        } else {
+          await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
+        }
         notifierCalled = true;
       }
 

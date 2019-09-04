@@ -235,7 +235,8 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
     '351': workflowStepConstants.updatePricePointInit,
     '352': workflowStepConstants.fetchPricePointFromCoinMarketCapApi,
     '353': workflowStepConstants.setPriceInPriceOracleContract,
-    '354': workflowStepConstants.verifySetPriceInPriceOracleContract
+    '354': workflowStepConstants.verifySetPriceInPriceOracleContract,
+    '363': workflowStepConstants.updatePricePointsInBlockScanner
     // Till 362 used
   },
   invertedKinds = util.invert(kinds);

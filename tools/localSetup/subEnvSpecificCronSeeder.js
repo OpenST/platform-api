@@ -28,6 +28,7 @@ class SubEnvSpecificCronSeeder {
     await oThis.insertCronProcessesMonitorEntry();
     await oThis.insertRecoveryRequestsMonitorEntry();
     await oThis.insertWebhookErrorHandlerEntry();
+    await oThis.insertTrackLatestTransaction();
   }
 
   /**
@@ -92,6 +93,23 @@ class SubEnvSpecificCronSeeder {
   async insertWebhookErrorHandlerEntry() {
     return new InsertCrons()
       .perform(cronProcessConstants.webhookErrorHandler, { sequenceNumber: 1 })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert track latest transaction cron entry.
+   *
+   * @return {Promise<*>}
+   */
+  async insertTrackLatestTransaction() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.trackLatestTransaction, {
+        chainId: 0,
+        prefetchCount: 5,
+        sequenceNumber: 1
+      })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
       });
