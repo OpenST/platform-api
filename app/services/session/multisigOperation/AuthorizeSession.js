@@ -27,7 +27,7 @@ const rootPrefix = '../../../..',
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/setup/user/AddSessionAddresses');
-
+require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 /**
  * Class to authorize session multi sig operation.
  *
@@ -176,6 +176,31 @@ class AuthorizeSession extends Base {
       );
     }
 
+    const SessionsByAddressKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'SessionsByAddressCache'),
+      sessionsByAddressObj = new SessionsByAddressKlass({
+        tokenId: oThis.tokenId,
+        userId: oThis.userId,
+        addresses: [oThis.sessionKey]
+      });
+
+    let sessionByAddressRsp = await sessionsByAddressObj.fetch();
+
+    if (sessionByAddressRsp.isFailure()) {
+      return Promise.reject(sessionByAddressRsp);
+    }
+
+    if (sessionByAddressRsp.data[oThis.sessionKey].userId) {
+      //If same session key is found. then reject this request.
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_s_mo_as_8',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['invalid_raw_calldata_parameter_address'],
+          debug_options: {}
+        })
+      );
+    }
+
     return responseHelper.successWithData({});
   }
 
@@ -190,7 +215,17 @@ class AuthorizeSession extends Base {
 
     await oThis._addEntryInSessionsTable();
 
-    await oThis._startWorkflow();
+    await oThis._startWorkflow().catch(function(err) {
+      if (responseHelper.isCustomResult(err)) {
+        return Promise.reject(
+          responseHelper.error({
+            internal_error_identifier: 'a_s_s_mo_as_9',
+            api_error_identifier: 'could_not_proceed',
+            debug_options: err.debug_options
+          })
+        );
+      }
+    });
 
     await oThis._sendPreprocessorWebhook(webhookSubscriptionsConstants.sessionsAuthorizationInitiateTopic);
 
@@ -268,7 +303,13 @@ class AuthorizeSession extends Base {
 
     const authorizeSessionObj = new AuthorizeSessionRouter(authorizeSessionInitParams);
 
-    return authorizeSessionObj.perform();
+    let authSessionRsp = await authorizeSessionObj.perform();
+
+    if (authSessionRsp.isFailure()) {
+      return Promise.reject(authSessionRsp);
+    }
+
+    return authSessionRsp;
   }
 
   /**
