@@ -277,7 +277,7 @@ class EconomyBillingVerification {
    *
    * @param {array<string>} transactionHashes
    *
-   * @sets oThis.totalVolume
+   * @sets oThis.totalTransactions, oThis.totalVolume
    *
    * @returns {Promise<void>}
    * @private
