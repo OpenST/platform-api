@@ -7,6 +7,7 @@ const rootPrefix = '../../',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner');
 
 // Following require(s) for registering into instance composer.
@@ -21,17 +22,19 @@ const tokenId = '1185',
 // Declare query related variables.
 const startDate = new Date('2019, 06, 01'),
   endDate = new Date('2019, 07, 01'),
-  queryLimit = 10;
-
-let totalTransactions = 0,
-  totalVolume = 0;
+  queryLimit = 100;
 
 /**
  * Class to verify transaction amount and count for economies.
  *
- * @class HornetVerification
+ * @class EconomyBillingVerification
  */
-class HornetVerification {
+class EconomyBillingVerification {
+  /**
+   * Constructor to verify transaction amount and count for economies.
+   *
+   * @constructor
+   */
   constructor() {
     const oThis = this;
 
@@ -39,8 +42,14 @@ class HornetVerification {
     oThis.totalVolume = null;
     oThis.ic = null;
     oThis.sessionAddresses = [];
+    oThis.totalTransactions = 0;
   }
 
+  /**
+   * Main performer for class.
+   *
+   * @returns {Promise<void>}
+   */
   perform() {
     const oThis = this;
 
@@ -65,6 +74,14 @@ class HornetVerification {
     await oThis.fetchCompanySessionAddress();
 
     await oThis.getTransactionHashes();
+
+    logger.info('Total transactions: ', oThis.totalTransactions);
+    logger.info('Total Volume in OST: ', oThis.totalVolume.toString(10));
+
+    return responseHelper.successWithData({
+      totalTransactions: oThis.totalTransactions,
+      totalVolume: oThis.totalVolume.toString(10)
+    });
   }
 
   /**
@@ -143,16 +160,11 @@ class HornetVerification {
         for (let index = 0; index < dbRows.length; index++) {
           transactionHashes.push(dbRows[index].transaction_hash);
         }
-        logger.log('transactionHashes---', transactionHashes);
         await oThis._fetchTransactionDetails(transactionHashes);
-        logger.log('====oThis.totalVolume=====11111========', oThis.totalVolume.toString(10));
         moreDataPresent = false;
       }
       page++;
     }
-
-    logger.log('totalTransactions--------', totalTransactions);
-    logger.log('====oThis.totalVolume=====2222222========', oThis.totalVolume.toString(10));
   }
 
   /**
@@ -185,7 +197,7 @@ class HornetVerification {
       const transactionHash = transactionHashes[ind];
 
       if (transactionDetails[transactionHash] && transactionDetails[transactionHash].transactionStatus === '1') {
-        totalTransactions += 1;
+        oThis.totalTransactions += 1;
       }
 
       const transferEventsMap = transactionTransfersMap[transactionHash];
@@ -193,26 +205,17 @@ class HornetVerification {
       for (const eventIndex in transferEventsMap) {
         const transferEvent = transferEventsMap[eventIndex],
           currentAmount = basicHelper.convertToBigNumber(transferEvent.amount);
-        logger.log('===currentAmount========', currentAmount.toString(10));
+
         transactionHashTotalAmount = transactionHashTotalAmount.add(currentAmount);
-        logger.log('===transactionHashTotalAmount======111111==', transactionHashTotalAmount.toString(10));
       }
 
-      logger.log('===transactionHashTotalAmount=====22222222===', transactionHashTotalAmount.toString(10));
-
       batchTotalVolume = batchTotalVolume.add(transactionHashTotalAmount);
-
-      logger.log('===batchTotalVolume=====1111111===', transactionHashTotalAmount.toString(10));
     }
 
-    logger.log('===batchTotalVolume=====22222222===', batchTotalVolume.toString(10));
-
-    totalVolume = basicHelper
+    const totalVolume = basicHelper
       .convertLowerUnitToNormal(batchTotalVolume, 18)
       .div(basicHelper.convertToBigNumber(conversionFactor))
       .toFixed(5);
-
-    logger.log('===totalVolume========', totalVolume.toString(10));
 
     oThis.totalVolume = oThis.totalVolume.add(totalVolume);
   }
@@ -238,4 +241,4 @@ class HornetVerification {
   }
 }
 
-module.exports = HornetVerification;
+module.exports = EconomyBillingVerification;
