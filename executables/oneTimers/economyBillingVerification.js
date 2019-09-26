@@ -24,20 +24,20 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/oneTimers/economyBillingVerification.js --clientId 10267');
+  logger.log(
+    "    node executables/oneTimers/economyBillingVerification.js --clientId 10267 --startDate '2019, 06, 27' --endDate '2019, 07, 01'"
+  );
   logger.log('');
   logger.log('');
 });
 
-if (!program.clientId) {
+if (!program.clientId || !program.startDate || !program.endDate) {
   program.help();
   process.exit(1);
 }
 
 // Declare query related variables.
-const startDate = new Date('2019, 06, 27'),
-  endDate = new Date('2019, 07, 01'),
-  queryLimit = 100;
+const queryLimit = 100;
 
 /**
  * Class to verify transaction amount and count for economies.
@@ -240,8 +240,8 @@ class EconomyBillingVerification {
         6,
         1,
         oThis.sessionAddresses,
-        startDate,
-        endDate
+        new Date(program.startDate),
+        new Date(program.endDate)
       ];
 
       const dbRows = await new TransactionMetaModel()
