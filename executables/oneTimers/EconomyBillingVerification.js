@@ -20,8 +20,8 @@ const tokenId = '1185',
   conversionFactor = 10;
 
 // Declare query related variables.
-const startDate = new Date('2019, 06, 01'),
-  endDate = new Date('2019, 07, 01'),
+const startDate = new Date('2019, 06, 10'),
+  endDate = new Date('2019, 06, 19'),
   queryLimit = 100;
 
 /**
@@ -80,7 +80,7 @@ class EconomyBillingVerification {
 
     return responseHelper.successWithData({
       totalTransactions: oThis.totalTransactions,
-      totalVolume: oThis.totalVolume.toString(10)
+      ostValue: oThis.totalVolume.toString(10)
     });
   }
 
@@ -161,7 +161,6 @@ class EconomyBillingVerification {
           transactionHashes.push(dbRows[index].transaction_hash);
         }
         await oThis._fetchTransactionDetails(transactionHashes);
-        moreDataPresent = false;
       }
       page++;
     }
