@@ -18,7 +18,11 @@ const rootPrefix = '../../',
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chain/UserSessionAddress');
 
-program.option('--clientId <clientId>', 'Client ID of economy.').parse(process.argv);
+program
+  .option('--clientId <clientId>', 'Client ID of economy.')
+  .option('--startDate <startDate>', 'Start date for query.')
+  .option('--endDate <endDate>', 'End date for query.')
+  .parse(process.argv);
 
 program.on('--help', function() {
   logger.log('');
@@ -50,6 +54,8 @@ class EconomyBillingVerification {
    *
    * @param {object} params
    * @param {string/number} params.clientId
+   * @param {string} params.startDate
+   * @param {string} params.endDate
    *
    * @constructor
    */
@@ -57,6 +63,8 @@ class EconomyBillingVerification {
     const oThis = this;
 
     oThis.clientId = params.clientId;
+    oThis.startDate = new Date(params.startDate);
+    oThis.endDate = new Date(params.endDate);
 
     oThis.blockScannerObj = null;
     oThis.totalVolume = null;
@@ -240,8 +248,8 @@ class EconomyBillingVerification {
         6,
         1,
         oThis.sessionAddresses,
-        new Date(program.startDate),
-        new Date(program.endDate)
+        oThis.startDate,
+        oThis.endDate
       ];
 
       const dbRows = await new TransactionMetaModel()
@@ -339,7 +347,7 @@ class EconomyBillingVerification {
 }
 
 // Perform action.
-new EconomyBillingVerification({ clientId: program.clientId })
+new EconomyBillingVerification({ clientId: program.clientId, startDate: program.startDate, endDate: program.endDate })
   .perform()
   .then(function() {
     process.exit(0);
