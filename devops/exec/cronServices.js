@@ -31,12 +31,16 @@ const Main = async function() {
     performerObj = new InsertCronKlass(command.inFile, command.outFile);
   }
   else if(command.update) {
-    if (command.status!=cronProcessesConstants.stoppedStatus && command.status!=cronProcessesConstants.runningStatus){
+    let ids=(command.identifier).split(" ");
+    if (command.status!=cronProcessesConstants.stoppedStatus && command.status!=cronProcessesConstants.runningStatus && command.status!=cronProcessesConstants.inactiveStatus){
       throw "validation failed --status should be running,stopped or inactive"
+    }
+    if (ids.length>0){
+      throw "ids cannot be empty"
     }
     performerObj = new UpdateCronKlass(
       {
-        ids:(command.identifier).split(" "),
+        ids:ids,
         status:command.status
     }
     );
