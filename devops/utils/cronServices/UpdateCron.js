@@ -15,8 +15,13 @@ class UpdateCron {
    *
    * @constructor
    */
-  constructor() {
+  constructor(ids,status) {
     const oThis = this;
+    console.log("********ids******",ids);
+    console.log("********status******",status);
+
+    oThis.ids = ids;
+    oThis.status = status;
   }
 
   /**
@@ -40,20 +45,18 @@ class UpdateCron {
 
   /**
    * Async perform
-   * options.ids : array of identifiers to be updated
-   * options.status : status to be set in DB
    * @return {Promise<result>}
    */
   async _asyncPerform(options) {
     const oThis = this;
     let CronProcessModelObj=new CronProcessModel();
-    let rowData=await CronProcessModelObj.getById(options.ids);
+    let rowData=await CronProcessModelObj.getById(oThis.ids);
     if(rowData.length < 1){
       throw "unable to get rows by ids do_u_cs_uc_ap1"
     }
     let idsToBeUpdated=[];
     for(let i=0;i<rowData.length;i++){
-      if(rowData[i][status]!=options.status){
+      if(rowData[i][status]!=oThis.status){
         idsToBeUpdated.push(rowData[i][id])
       }
     }
@@ -62,7 +65,7 @@ class UpdateCron {
       let updateResponse=await updateCronProcessModelObj.updateLastEndTimeAndStatus({
         newLastEndTime:  oThis._convertFromEpochToLocalTime(Date.now()),
         id:idsToBeUpdated[i],
-        newStatus:options.status
+        newStatus:oThis.status
       });
       if(!updateResponse){
         throw "unable to update for id idsToBeUpdated[i] do_u_cs_uc_ap2"
