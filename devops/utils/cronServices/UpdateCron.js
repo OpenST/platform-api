@@ -15,13 +15,12 @@ class UpdateCron {
    *
    * @constructor
    */
-  constructor(ids,status) {
+  constructor(params) {
     const oThis = this;
-    console.log("********ids******",ids);
-    console.log("********status******",status);
 
-    oThis.ids = ids;
-    oThis.status = status;
+
+    oThis.ids = params.ids;
+    oThis.status = params.status;
   }
 
   /**
@@ -47,16 +46,20 @@ class UpdateCron {
    * Async perform
    * @return {Promise<result>}
    */
-  async _asyncPerform(options) {
+  async _asyncPerform() {
     const oThis = this;
     let CronProcessModelObj=new CronProcessModel();
     let rowData=await CronProcessModelObj.getById(oThis.ids);
     if(rowData.length < 1){
-      throw "unable to get rows by ids do_u_cs_uc_ap1"
+      return Promise.reject(responseHelper.error({
+        internal_error_identifier: 'do_u_cs_uc_ap1',
+        api_error_identifier:  "unable to get rows by ids ",
+        debug_options: {}
+      }));
     }
     let idsToBeUpdated=[];
     for(let i=0;i<rowData.length;i++){
-      if(rowData[i][status]!=oThis.status){
+      if(rowData[i]['status']!=oThis.status){
         idsToBeUpdated.push(rowData[i][id])
       }
     }
@@ -68,9 +71,14 @@ class UpdateCron {
         newStatus:oThis.status
       });
       if(!updateResponse){
-        throw "unable to update for id idsToBeUpdated[i] do_u_cs_uc_ap2"
+        return Promise.reject(responseHelper.error({
+          internal_error_identifier: 'do_u_cs_uc_ap2',
+          api_error_identifier:  "unable to update rows ",
+          debug_options: {}
+        }));
       }
     }
+    return Promise.resolve(responseHelper.successWithData({}));
   }
 
   /**
