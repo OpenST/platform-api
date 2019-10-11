@@ -31,7 +31,7 @@ const Main = async function() {
     performerObj = new InsertCronKlass(command.inFile, command.outFile);
   }
   else if(command.update) {
-    if (command.status!=cronProcessesConstants.stoppedStatus() || command.status!=cronProcessesConstants.runningStatus()){
+    if (command.status!=cronProcessesConstants.stoppedStatus && command.status!=cronProcessesConstants.runningStatus){
       throw "validation failed --status should be running,stopped or inactive"
     }
     performerObj = new UpdateCronKlass(
