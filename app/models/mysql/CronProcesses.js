@@ -90,18 +90,17 @@ class CronProcessesModel extends ModelBaseKlass {
    *
    * @param {Number} id
    *
-   * @returns {Promise<>}
+   * @returns {rows of db }
    */
-  get(id) {
+  async getById(id) {
     const oThis = this;
-
-    let response = oThis
-      .select(['kind', 'ip_address', 'group_id', 'params', 'status', 'last_started_at', 'last_ended_at'])
+    let response= await oThis
+      .select(['id', 'kind','kind_name','ip_address', 'params', 'status', 'last_started_at', 'last_ended_at'])
       .where({ id: id })
       .fire();
-
-    return Promise.resolve(response);
+    return response;
   }
+
 
   /**
    * This method inserts an entry in the table.
