@@ -35,7 +35,7 @@ const Main = async function() {
     if (command.status!=cronProcessesConstants.stoppedStatus && command.status!=cronProcessesConstants.runningStatus && command.status!=cronProcessesConstants.inactiveStatus){
       throw "validation failed --status should be running,stopped or inactive"
     }
-    if (ids.length>0){
+    if (ids.length < 1){
       throw "ids cannot be empty"
     }
     performerObj = new UpdateCronKlass(
