@@ -95,7 +95,7 @@ class CronProcessesModel extends ModelBaseKlass {
   async getById(id) {
     const oThis = this;
     let response= await oThis
-      .select(['id', 'kind', 'ip_address', 'group_id', 'params', 'status', 'last_started_at', 'last_ended_at'])
+      .select(['id', 'kind','kind_name','ip_address', 'params', 'status', 'last_started_at', 'last_ended_at'])
       .where({ id: id })
       .fire();
     return response;
