@@ -4,7 +4,8 @@
 const rootPrefix = '../..',
   command = require('commander'),
   InsertCronKlass = require(rootPrefix + '/devops/utils/cronServices/CreateCron.js'),
-  UpdateCronKlass = require(rootPrefix + '/devops/utils/cronServices/UpdateCron.js');
+  UpdateCronKlass = require(rootPrefix + '/devops/utils/cronServices/UpdateCron.js'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 
 command
@@ -30,6 +31,9 @@ const Main = async function() {
     performerObj = new InsertCronKlass(command.inFile, command.outFile);
   }
   else if(command.update) {
+    if (command.status!=cronProcessesConstants.stoppedStatus() || command.status!=cronProcessesConstants.runningStatus()){
+      throw "validation failed --status should be running,stopped or inactive"
+    }
     performerObj = new UpdateCronKlass(
       {
         ids:(command.identifier).split(" "),
