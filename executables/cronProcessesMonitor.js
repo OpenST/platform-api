@@ -203,18 +203,18 @@ class CronProcessesMonitorExecutable extends CronBase {
 
         // Check last ended time for periodic crons.
         // If last running instance ended before specified offset, notify.
-        if (
-          +cronEntity.status === +invertedStoppedStatus &&
-          currentTimeInMSecs - lastEndedAtInMSecs > OFFSET_TIME_IN_MSEC + restartIntervalForCron
-        ) {
-          const errorIdentifierStr = `${cronKind}:cron_stopped:e_cpm_3`,
-            debugOptions = {
-              cronId: cronEntity.id,
-              cronKind: cronKind,
-              lastEndTimeFromCron: cronEntity.last_ended_at
-            };
-          await oThis._notifyStopState(errorIdentifierStr, debugOptions);
-        }
+        // if (
+        //   +cronEntity.status === +invertedStoppedStatus &&
+        //   currentTimeInMSecs - lastEndedAtInMSecs > OFFSET_TIME_IN_MSEC + restartIntervalForCron
+        // ) {
+        //   const errorIdentifierStr = `${cronKind}:cron_stopped:e_cpm_3`,
+        //     debugOptions = {
+        //       cronId: cronEntity.id,
+        //       cronKind: cronKind,
+        //       lastEndTimeFromCron: cronEntity.last_ended_at
+        //     };
+        //   await oThis._notifyStopState(errorIdentifierStr, debugOptions);
+        // }
         // Check last started time for periodic crons.
         // If currently running instance has wrong last started at time, notify [very rare case].
         if (
