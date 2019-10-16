@@ -172,7 +172,7 @@ class UpdatePriceOraclePricePoints extends CronBase {
     oThis.canExit = false;
 
     logger.step('Update price points.');
-    await oThis._updatePricePoint();
+    // await oThis._updatePricePoint();
 
     logger.step('Cron completed.');
 
