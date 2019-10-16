@@ -1,3 +1,5 @@
+// TODO: Company_to_user exclude if session addresses deleted.
+
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
