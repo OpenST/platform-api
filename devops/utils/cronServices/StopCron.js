@@ -1,27 +1,26 @@
-const fs = require('fs');
-
 const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
-  CronProcessesHandler=require(rootPrefix + '/lib/CronProcessesHandler');
+  CronProcessesHandler=require(rootPrefix + '/lib/CronProcessesHandler'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 /**
- * Class for inserting cron entries into saas db
+ * Class for updating status in cron table
  *
  * @class
  */
-class UpdateCron {
+class StopCron {
   /**
    * Constructor
    *
    * @constructor
    */
-  constructor(params) {
+  constructor(ids) {
     const oThis = this;
 
 
-    oThis.ids = params.ids;
-    oThis.status = params.status;
+    oThis.ids = ids;
+    oThis.status = cronProcessesConstants.stoppedStatus;
   }
 
   /**
@@ -38,7 +37,7 @@ class UpdateCron {
       if (responseHelper.isCustomResult(error)) {
         return error;
       }
-      logger.error('devops/utils/UpdateCron.js::perform::catch', error);
+      logger.error('devops/utils/StopCron.js::perform::catch', error);
       return oThis._getRespError('do_u_cs_uc_p1');
     });
   }
@@ -52,11 +51,7 @@ class UpdateCron {
     let CronProcessModelObj=new CronProcessModel();
     let rowData=await CronProcessModelObj.getById(oThis.ids);
     if(rowData.length < 1){
-      return Promise.reject(responseHelper.error({
-        internal_error_identifier: 'do_u_cs_uc_ap1',
-        api_error_identifier:  "unable to get rows by ids ",
-        debug_options: {}
-      }));
+      return oThis._getRespError('do_u_cs_uc_ap1');
     }
     let idsToBeUpdated=[];
     for(let i=0;i<rowData.length;i++){
@@ -93,4 +88,4 @@ class UpdateCron {
   }
 }
 
-module.exports = UpdateCron;
+module.exports = StopCron;
