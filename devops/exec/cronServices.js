@@ -32,11 +32,7 @@ const Main = async function() {
     if (ids.length < 1){
       throw "ids cannot be empty"
     }
-    performerObj = new StopCronKlass(
-      {
-        ids: ids,
-      }
-    );
+    performerObj = new StopCronKlass(ids);
   }
   else {
     handleError();
