@@ -85,6 +85,9 @@ class UpdatePriceOraclePricePoints extends CronBase {
   async _validateAndSanitize() {
     const oThis = this;
 
+    // TODO - temp commit
+    return;
+
     if (!oThis.auxChainId) {
       return Promise.reject(
         responseHelper.error({
@@ -202,7 +205,8 @@ class UpdatePriceOraclePricePoints extends CronBase {
         },
         updatePricePointsRouterObj = new UpdatePricePointsRouter(updatePricePointParams);
 
-      promiseArray.push(updatePricePointsRouterObj.perform());
+      // TODO - temp commit
+      // promiseArray.push(updatePricePointsRouterObj.perform());
     }
 
     await Promise.all(promiseArray);
