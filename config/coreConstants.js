@@ -382,6 +382,10 @@ class CoreConstants {
     return process.env.SA_S3_ANALYTICS_BUCKET;
   }
 
+  get SA_S3_PRICEPOINTS_BUCKET() {
+    return process.env.SA_S3_PRICEPOINTS_BUCKET;
+  }
+
   get S3_ANALYTICS_GRAPH_FOLDER() {
     const oThis = this;
 

@@ -67,6 +67,7 @@ export SA_S3_AWS_REGION='us-east-1'
 export SA_S3_AWS_MASTER_FOLDER='d-sandbox'
 export SA_S3_ANALYTICS_BUCKET='graphs.stagingost.com'
 export SA_S3_ANALYTICS_GRAPH_FOLDER='graphs'
+export SA_S3_PRICEPOINTS_BUCKET='https://s3-eu-west-1.amazonaws.com/public.ost.com'
 
 # JWT details
 export SA_INTERNAL_API_SECRET_KEY='1somethingsarebetterkeptinenvironemntvariables'
