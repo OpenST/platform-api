@@ -33,31 +33,6 @@ class TransactionMetaModel extends ModelBase {
   }
 
   /**
-   * Acquire lock on rows
-   *
-   * @param params
-   * @return {*|void}
-   */
-  acquireLockWithTxHashes(params) {
-    const oThis = this,
-      currentTime = Date.now();
-
-    return oThis
-      .update({
-        lock_id: params.lockId,
-        status: transactionMetaConst.invertedStatuses[params.updateStatusTo]
-      })
-      .where([
-        'transaction_hash IN (?) AND status = ? AND next_action_at < ? AND retry_count < ?',
-        params.transactionHashes,
-        transactionMetaConst.invertedStatuses[params.selectWithStatus],
-        currentTime,
-        params.retryLimit
-      ])
-      .fire();
-  }
-
-  /**
    * Fetch transactions by lockId
    *
    * @param lock_id
@@ -175,12 +150,12 @@ class TransactionMetaModel extends ModelBase {
       queryObj = queryObj.where({ lock_id: params.lockId });
     } else if (params.id) {
       queryObj = queryObj.where({ id: params.id });
+    } else if (params.ids) {
+      queryObj = queryObj.where(['id IN (?)', params.ids]);
     } else if (params.transactionHashes && params.chainId) {
       queryObj = queryObj
         .where({ associated_aux_chain_id: params.chainId })
         .where(['transaction_hash IN (?)', params.transactionHashes]);
-    } else if (params.ids) {
-      queryObj = queryObj.where(['id IN (?)', params.ids]);
     } else if (params.transactionHash && params.chainId) {
       queryObj = queryObj.where({ transaction_hash: params.transactionHash, associated_aux_chain_id: params.chainId });
     } else {

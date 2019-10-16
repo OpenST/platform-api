@@ -3,14 +3,17 @@
 
 const rootPrefix = '../..',
   command = require('commander'),
-  InsertCronKlass = require(rootPrefix + '/devops/utils/cronServices/CreateCron.js');
+  InsertCronKlass = require(rootPrefix + '/devops/utils/cronServices/CreateCron.js'),
+  StopCronKlass = require(rootPrefix + '/devops/utils/cronServices/StopCron.js');
 
 command
   .version('0.1.0')
   .usage('[options]')
-  .option('-c, --create', 'Make an entry for cron job')
-  .option('-f, --in-file <required>', 'Input JSON for task')
-  .option('-o, --out-file <required>', 'Output JSON for task')
+  .option('--create', 'Make an entry for cron job')
+  .option('--stop-stuck-cron', 'Make an entry for update job')
+  .option('--identifiers <required>', 'identifier array ')
+  .option('--in-file <required>', 'Input JSON for task')
+  .option('--out-file <required>', 'Output JSON for task')
   .parse(process.argv);
 
 const handleError = function() {
@@ -23,7 +26,15 @@ const Main = async function() {
 
   if (command.create) {
     performerObj = new InsertCronKlass(command.inFile, command.outFile);
-  } else {
+  }
+  else if(command.stopStuckCron) {
+    let ids=(command.identifiers).split(" ");
+    if (ids.length < 1){
+      throw "ids cannot be empty"
+    }
+    performerObj = new StopCronKlass(ids);
+  }
+  else {
     handleError();
   }
 

@@ -471,15 +471,31 @@ class TransactionParser extends MultiSubscriptionBase {
   async _updateStatusesInDb(txHashes, transactionReceiptMap) {
     const oThis = this;
 
+    // Fetch pending transactions and transaction meta for given transaction hashes
+    let promisesArr = [];
     const pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
-    let fetchPendingTxResp = await new FetchPendingTxData(oThis.chainId, txHashes, false).perform();
+    promisesArr.push(
+        new FetchPendingTxData(oThis.chainId, txHashes, false).perform(),
+        new TransactionMeta().fetchByTransactionHashes(oThis.chainId, txHashes)
+    );
+    let promiseResponses = await Promise.all(promisesArr);
+    let fetchPendingTxResp = promiseResponses[0];
     if (fetchPendingTxResp.isFailure()) {
       return fetchPendingTxResp;
     }
     fetchPendingTxResp = fetchPendingTxResp.data;
 
-    const receiptSuccessTxHashes = [],
-      receiptFailureTxHashes = [],
+    // Make a map of transaction hash and txMeta
+    let txMetaHashMap = {},
+        txMetaObjects = promiseResponses[1];
+    for(let i=0;i<txMetaObjects.length;i++){
+      let rec = txMetaObjects[i];
+      txMetaHashMap[rec.transaction_hash] = rec;
+    }
+
+    const receiptSuccessTxMetaIds = [],
+      receiptFailureTxMetaIds = [],
+      unknownTxHashes = [],
       flushNonceCacheForSessionAddresses = [];
     let promiseArray = [];
 
@@ -490,13 +506,18 @@ class TransactionParser extends MultiSubscriptionBase {
         transactionReceipt = transactionReceiptMap[transactionHash];
 
       const transactionStatus = !(transactionReceipt.status == '0x0' || transactionReceipt.status === false);
-      if (transactionStatus) {
-        receiptSuccessTxHashes.push(transactionHash);
-      } else {
-        receiptFailureTxHashes.push(transactionHash);
-        if (pendingTxData.sessionKeyAddress) {
-          flushNonceCacheForSessionAddresses.push(pendingTxData.sessionKeyAddress);
+      // Look if transaction meta is present for transaction hash to update
+      if(txMetaHashMap[transactionHash]){
+        if(transactionStatus){
+          receiptSuccessTxMetaIds.push(txMetaHashMap[transactionHash].id);
+        } else {
+          receiptFailureTxMetaIds.push(txMetaHashMap[transactionHash].id);
+          if (pendingTxData.sessionKeyAddress) {
+            flushNonceCacheForSessionAddresses.push(pendingTxData.sessionKeyAddress);
+          }
         }
+      } else {
+        unknownTxHashes.push(transactionHash);
       }
 
       const updateParams = {
@@ -528,23 +549,28 @@ class TransactionParser extends MultiSubscriptionBase {
     }
 
     // Mark tx meta status as success.
-    if (receiptSuccessTxHashes.length > 0) {
+    if (receiptSuccessTxMetaIds.length > 0) {
       await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
         receiptStatus: transactionMetaConst.successReceiptStatus,
-        transactionHashes: receiptSuccessTxHashes,
+        ids: receiptSuccessTxMetaIds,
         chainId: oThis.chainId
       });
     }
 
     // Mark tx meta status as failure.
-    if (receiptFailureTxHashes.length > 0) {
+    if (receiptFailureTxMetaIds.length > 0) {
       await new TransactionMeta().updateRecordsWithoutReleasingLock({
         status: transactionMetaConst.minedStatus,
         receiptStatus: transactionMetaConst.failureReceiptStatus,
-        transactionHashes: receiptFailureTxHashes,
+        ids: receiptFailureTxMetaIds,
         chainId: oThis.chainId
       });
+    }
+
+    // If unknown transactions are present then nothing needs to be done for them as of now
+    if(unknownTxHashes.length > 0){
+      logger.info('_updateStatusesInDb has some unknown transactions: ', unknownTxHashes);
     }
 
     // Flush session nonce cache
