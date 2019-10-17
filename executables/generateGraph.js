@@ -147,7 +147,12 @@ class GenerateGraph extends CronBase {
         }
       }
 
-      await basicHelper.sleep(1000 * 60);
+      if (basicHelper.isStaging()) {
+        await basicHelper.sleep(1000 * 60 * 5); // 5 mins
+      } else {
+        await basicHelper.sleep(1000 * 60 ); // 1 min
+      }
+
       iterationNumber++;
     }
   }
