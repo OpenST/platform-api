@@ -168,7 +168,7 @@ class GetTransactionBase extends ServiceBase {
 
     oThis.esSearchResponse = await esService.search(esQuery);
 
-    if (oThis.esSearchResponse.isFailure()) {
+    if (oThis.esSearchResponse.isFailure() && !oThis.transactionId) {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'elastic_search_service_down:a_s_t_g_b_2',
         api_error_identifier: 'elastic_search_service_down',
@@ -203,7 +203,8 @@ class GetTransactionBase extends ServiceBase {
       transactionsResponse = await new GetTransactionDetails({
         chainId: oThis.auxChainId,
         tokenId: oThis.tokenId,
-        esSearchResponse: oThis.esSearchResponse
+        esSearchResponse: oThis.esSearchResponse,
+        txUuids: [oThis.transactionId]
       }).perform();
 
     oThis.txDetails = transactionsResponse.data;
