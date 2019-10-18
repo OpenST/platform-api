@@ -59,7 +59,8 @@ class GetTransaction extends GetTransactionBase {
 
     //const transactionDetailsData = oThis.esSearchResponse.data[oThis.auxChainId + '_transactions'];
 
-    console.log('oThis.txDetails ===========', oThis.txDetails);
+    console.log('oThis.txDetails ===========', JSON.stringify(oThis.txDetails.transfers));
+
     console.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
 
     // NOTE: Here tokenHolder address should be present in data coming from es,
