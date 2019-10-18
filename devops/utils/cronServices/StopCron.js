@@ -2,7 +2,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CronProcessModel = require(rootPrefix + '/app/models/mysql/CronProcesses'),
-  CronProcessesHandler=require(rootPrefix + '/lib/CronProcessesHandler'),
+  CronProcessesHandler = require(rootPrefix + '/lib/CronProcessesHandler'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 /**
  * Class for updating status in cron table
@@ -18,9 +18,8 @@ class StopCron {
   constructor(ids) {
     const oThis = this;
 
-
     oThis.ids = ids;
-    oThis.status = cronProcessesConstants.stoppedStatus;
+    oThis.status = new CronProcessModel().invertedStatuses[cronProcessesConstants.stoppedStatus];
   }
 
   /**
@@ -48,24 +47,24 @@ class StopCron {
    */
   async _asyncPerform() {
     const oThis = this;
-    let CronProcessModelObj=new CronProcessModel();
-    let rowData=await CronProcessModelObj.getById(oThis.ids);
-    if(rowData.length < 1){
+    let CronProcessModelObj = new CronProcessModel();
+    let rowData = await CronProcessModelObj.getById(oThis.ids);
+    if (rowData.length < 1) {
       return oThis._getRespError('do_u_cs_uc_ap1');
     }
-    let idsToBeUpdated=[];
-    for(let i=0;i<rowData.length;i++){
-      if(rowData[i]['status']!=oThis.status){
-        idsToBeUpdated.push(rowData[i]['id'])
+    let idsToBeUpdated = [];
+    for (let i = 0; i < rowData.length; i++) {
+      if (rowData[i]['status'] != oThis.status) {
+        idsToBeUpdated.push(rowData[i]['id']);
       }
     }
-    let CronProcessesHandlerObj=new CronProcessesHandler();
-    for(let i=0;i<idsToBeUpdated.length;i++){
-      let updateCronProcessModelObj=new CronProcessModel();
+    let CronProcessesHandlerObj = new CronProcessesHandler();
+    for (let i = 0; i < idsToBeUpdated.length; i++) {
+      let updateCronProcessModelObj = new CronProcessModel();
       await updateCronProcessModelObj.updateLastEndTimeAndStatus({
-        newLastEndTime:  CronProcessesHandlerObj._convertFromEpochToLocalTime(Date.now()),
-        id:idsToBeUpdated[i],
-        newStatus:oThis.status
+        newLastEndTime: CronProcessesHandlerObj._convertFromEpochToLocalTime(Date.now()),
+        id: idsToBeUpdated[i],
+        newStatus: oThis.status
       });
     }
     return Promise.resolve(responseHelper.successWithData({}));
