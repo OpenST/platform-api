@@ -77,11 +77,11 @@ class GetTransactionBase extends ServiceBase {
 
     await oThis._searchInEs();
 
-    await oThis._validateSearchResults();
-
     oThis._setMeta();
 
     await oThis._fetchTxDetails();
+
+    await oThis._validateSearchResults();
 
     return oThis._formatApiResponse();
   }
