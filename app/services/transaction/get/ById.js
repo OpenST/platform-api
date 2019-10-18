@@ -57,13 +57,25 @@ class GetTransaction extends GetTransactionBase {
   async _validateSearchResults() {
     const oThis = this;
 
-    //const transactionDetailsData = oThis.esSearchResponse.data[oThis.auxChainId + '_transactions'];
-
-    console.log('oThis.txDetails ===========', JSON.stringify(oThis.txDetails));
+    console.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
 
     console.log('oThis.txDetails.transfers==========', JSON.stringify(oThis.txDetails[0].transfers));
 
-    console.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
+    for (let index = 0; index < oThis.txDetails[0].transfers.length; index++) {
+      const transfer = oThis.txDetails[0].transfers[index];
+      if (transfer.fromAddress === oThis.tokenHolderAddress || transfer.toAddress === oThis.tokenHolderAddress) {
+        return;
+      }
+    }
+
+    return Promise.reject(
+      responseHelper.paramValidationError({
+        internal_error_identifier: 'a_s_t_g_bi_1',
+        api_error_identifier: 'resource_not_found',
+        params_error_identifiers: ['invalid_transaction_id'],
+        debug_options: { esData: oThis.esSearchResponse }
+      })
+    );
 
     // NOTE: Here tokenHolder address should be present in data coming from es,
     // Else it is invalid as the query is done only on transaction uuid.
