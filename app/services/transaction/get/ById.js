@@ -11,6 +11,7 @@ const rootPrefix = '../../../..',
   GetTransactionBase = require(rootPrefix + '/app/services/transaction/get/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 /**
@@ -56,10 +57,9 @@ class GetTransaction extends GetTransactionBase {
    */
   async _validateSearchResults() {
     const oThis = this;
-    console.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
+    logger.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
     if (oThis.txDetails[0] && oThis.txDetails[0].transfers) {
-      console.log('oThis.txDetails.transfers==========', JSON.stringify(oThis.txDetails[0].transfers));
-
+      logger.log('oThis.txDetails.transfers==========', JSON.stringify(oThis.txDetails[0].transfers));
       for (let index = 0; index < oThis.txDetails[0].transfers.length; index++) {
         const transfer = oThis.txDetails[0].transfers[index];
         if (transfer.fromAddress === oThis.tokenHolderAddress || transfer.toAddress === oThis.tokenHolderAddress) {
@@ -76,23 +76,6 @@ class GetTransaction extends GetTransactionBase {
         debug_options: { esData: oThis.esSearchResponse }
       })
     );
-
-    // NOTE: Here tokenHolder address should be present in data coming from es,
-    // Else it is invalid as the query is done only on transaction uuid.
-    // if (
-    //   oThis.esSearchResponse.isFailure() ||
-    //   transactionDetailsData.length === 0 ||
-    //   !transactionDetailsData[0].user_addresses_status.includes(oThis.tokenHolderAddress)
-    // ) {
-    //   return Promise.reject(
-    //     responseHelper.paramValidationError({
-    //       internal_error_identifier: 'a_s_t_g_bi_1',
-    //       api_error_identifier: 'resource_not_found',
-    //       params_error_identifiers: ['invalid_transaction_id'],
-    //       debug_options: { esData: oThis.esSearchResponse }
-    //     })
-    //   );
-    // }
   }
 
   /**
