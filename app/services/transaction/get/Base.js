@@ -203,7 +203,7 @@ class GetTransactionBase extends ServiceBase {
         tokenId: oThis.tokenId
       };
 
-    if (oThis.esSearchResponse) {
+    if (oThis.esSearchResponse.isSuccess() && oThis.esSearchResponse.data.meta.total_records !== 0) {
       params.esSearchResponse = oThis.esSearchResponse;
     }
 
