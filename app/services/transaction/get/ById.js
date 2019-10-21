@@ -57,8 +57,9 @@ class GetTransaction extends GetTransactionBase {
   async _validateSearchResults() {
     const oThis = this;
     console.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
-    console.log('oThis.txDetails.transfers==========', JSON.stringify(oThis.txDetails[0].transfers));
     if (oThis.txDetails[0] && oThis.txDetails[0].transfers) {
+      console.log('oThis.txDetails.transfers==========', JSON.stringify(oThis.txDetails[0].transfers));
+
       for (let index = 0; index < oThis.txDetails[0].transfers.length; index++) {
         const transfer = oThis.txDetails[0].transfers[index];
         if (transfer.fromAddress === oThis.tokenHolderAddress || transfer.toAddress === oThis.tokenHolderAddress) {

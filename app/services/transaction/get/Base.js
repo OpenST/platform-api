@@ -197,15 +197,22 @@ class GetTransactionBase extends ServiceBase {
    * @private
    */
   async _fetchTxDetails() {
-    const oThis = this;
+    const oThis = this,
+      params = {
+        chainId: oThis.auxChainId,
+        tokenId: oThis.tokenId
+      };
+
+    if (oThis.esSearchResponse) {
+      params.esSearchResponse = oThis.esSearchResponse;
+    }
+
+    if (oThis.transactionId) {
+      params.txUuids = [oThis.transactionId];
+    }
 
     const GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
-      transactionsResponse = await new GetTransactionDetails({
-        chainId: oThis.auxChainId,
-        tokenId: oThis.tokenId,
-        esSearchResponse: oThis.esSearchResponse,
-        txUuids: [oThis.transactionId]
-      }).perform();
+      transactionsResponse = await new GetTransactionDetails(params).perform();
 
     oThis.txDetails = transactionsResponse.data;
   }
