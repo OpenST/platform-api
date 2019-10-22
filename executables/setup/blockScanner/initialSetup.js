@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This script is used for initial setup i.e.  to create shared tables.
  *
@@ -23,13 +22,16 @@ program.on('--help', () => {
 });
 
 /**
- * Class for initial setup
+ * Class for initial setup.
  *
- * @class
+ * @class InitialSetup
  */
 class InitialSetup {
   /**
-   * Constructor for initial setup
+   * Constructor for initial setup.
+   *
+   * @param {object} params
+   * @param {string/number} params.chainId
    *
    * @constructor
    */
@@ -49,6 +51,7 @@ class InitialSetup {
 
     return oThis.asyncPerform().catch(function(err) {
       logger.error(`In catch block of ${__filename}`);
+
       return responseHelper.error({
         internal_error_identifier: 't_ls_bs_is_1',
         api_error_identifier: 'something_went_wrong',
@@ -97,7 +100,7 @@ class InitialSetup {
     await economyObject.createTable();
     // Create ChainCronData table
     await chainCronDataObject.createTable();
-    // Create  LatestPricePoint table.
+    // Create LatestPricePoint table.
     await latestPricePointObject.createTable();
   }
 }
@@ -114,7 +117,7 @@ const validateAndSanitize = function() {
 
 validateAndSanitize();
 
-let setupInit = new InitialSetup(program);
+const setupInit = new InitialSetup(program);
 setupInit
   .perform()
   .then(function() {
