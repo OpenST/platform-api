@@ -57,6 +57,8 @@ class GetTransaction extends GetTransactionBase {
    */
   async _validateSearchResults() {
     const oThis = this;
+
+    // Validate if transfers contain current users token-holder address or not.
     logger.log('oThis.tokenHolderAddress ===========', oThis.tokenHolderAddress);
     if (oThis.txDetails[0] && oThis.txDetails[0].transfers) {
       logger.log('oThis.txDetails.transfers==========', JSON.stringify(oThis.txDetails[0].transfers));
