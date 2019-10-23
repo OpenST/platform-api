@@ -77,11 +77,11 @@ class GetTransactionBase extends ServiceBase {
 
     await oThis._searchInEs();
 
-    await oThis._validateSearchResults();
-
     oThis._setMeta();
 
     await oThis._fetchTxDetails();
+
+    await oThis._validateSearchResults();
 
     return oThis._formatApiResponse();
   }
@@ -168,7 +168,7 @@ class GetTransactionBase extends ServiceBase {
 
     oThis.esSearchResponse = await esService.search(esQuery);
 
-    if (oThis.esSearchResponse.isFailure()) {
+    if (oThis.esSearchResponse.isFailure() && !oThis.transactionId) {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'elastic_search_service_down:a_s_t_g_b_2',
         api_error_identifier: 'elastic_search_service_down',
@@ -197,14 +197,22 @@ class GetTransactionBase extends ServiceBase {
    * @private
    */
   async _fetchTxDetails() {
-    const oThis = this;
+    const oThis = this,
+      params = {
+        chainId: oThis.auxChainId,
+        tokenId: oThis.tokenId
+      };
+
+    if (oThis.esSearchResponse.isSuccess() && oThis.esSearchResponse.data.meta.total_records !== 0) {
+      params.esSearchResponse = oThis.esSearchResponse;
+    }
+
+    if (oThis.transactionId) {
+      params.txUuids = [oThis.transactionId];
+    }
 
     const GetTransactionDetails = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'GetTransactionDetails'),
-      transactionsResponse = await new GetTransactionDetails({
-        chainId: oThis.auxChainId,
-        tokenId: oThis.tokenId,
-        esSearchResponse: oThis.esSearchResponse
-      }).perform();
+      transactionsResponse = await new GetTransactionDetails(params).perform();
 
     oThis.txDetails = transactionsResponse.data;
   }
