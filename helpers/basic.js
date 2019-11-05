@@ -42,7 +42,9 @@ class BasicHelper {
    * @return {BigNumber}
    */
   convertToLowerUnit(num, decimals) {
-    return this.convertToBigNumber(num).mul(this.convertToBigNumber(10).toPower(decimals));
+    return this.convertToBigNumber(num)
+      .mul(this.convertToBigNumber(10).toPower(decimals))
+      .floor();
   }
 
   /**
