@@ -11,7 +11,6 @@ const rootPrefix = '../../../..',
   basicHelper = require(rootPrefix + '/helpers/basic');
 
 // Following require(s) for registering into instance composer.
-require(rootPrefix + '/app/models/ddb/sharded/User');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
