@@ -411,8 +411,6 @@ class User extends Base {
 
     let updateQueryResponse = await oThis.ddbServiceObj.updateItem(updateQuery);
 
-    console.log('==updateQueryResponse=======1111111111==', updateQueryResponse);
-
     if (updateQueryResponse.internalErrorCode.endsWith('ConditionalCheckFailedException')) {
       return responseHelper.error({
         internal_error_identifier: 'a_m_d_s_u_1',
@@ -428,9 +426,6 @@ class User extends Base {
         apiErrorIdentifier: 'user_status_update_failed'
       });
     }
-
-    console.log('==updateQueryResponse=======22222222==', updateQueryResponse.data);
-    console.log('==updateQueryResponse=======3333333==', updateQueryResponse.data.Attributes);
 
     // Clear cache
     await User.afterUpdate(oThis.ic(), { tokenId: tokenId, userId: userId, shardNumber: oThis.shardNumber });
