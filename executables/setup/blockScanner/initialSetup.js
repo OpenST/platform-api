@@ -74,31 +74,22 @@ class InitialSetup {
       ChainCronData = blockScannerObj.model.ChainCronData,
       LatestPricePoint = blockScannerObj.model.LatestPricePoint;
 
-    let chainObject = new Chain({}),
-      shardsObject = new Shards({}),
-      economyObject = new Economy({}),
-      shardByBlockObject = new ShardByBlock({}),
-      shardByTransactionsObject = new ShardByTransactions({}),
-      shardByEconomyAddressObject = new ShardByEconomyAddress({}),
-      chainCronDataObject = new ChainCronData({}),
-      LatestPricePointObject = new LatestPricePoint({});
-
     // Create Chain table
-    await chainObject.createTable();
+    await new Chain({}).createTable();
     // Create Shard table
-    await shardsObject.createTable();
+    await new Shards({}).createTable();
     // Create ShardByBlock table
-    await shardByBlockObject.createTable();
+    await new ShardByBlock({}).createTable();
     // Create ShardByTransactions table
-    await shardByTransactionsObject.createTable();
+    await new ShardByTransactions({}).createTable();
     // Create ShardByEconomyAddress table
-    await shardByEconomyAddressObject.createTable();
+    await new ShardByEconomyAddress({}).createTable();
     // Create Economy table
-    await economyObject.createTable();
+    await new Economy({}).createTable();
     // Create ChainCronData table
-    await chainCronDataObject.createTable();
+    await new ChainCronData({}).createTable();
     // Create  LatestPricePoint table.
-    await new LatestPricePointObject.createTable();
+    await new LatestPricePoint({}).createTable();
   }
 }
 

@@ -97,7 +97,7 @@ function onError(error) {
  * Event listener for HTTP server "listening" event.
  */
 
-function onListening(server) {
+function onListening() {
   let addr = server.address();
   let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
   logger.log('Listening on ' + bind);

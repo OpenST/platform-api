@@ -56,7 +56,7 @@
 let address = '0x123___'; // master internal funder address
 let rootPrefix = '.';
 addressPrivateKeyCache = new (require(rootPrefix + '/lib/cacheManagement/shared/AddressPrivateKey'))({ address: address});
-addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner PK: ", res.data.private_key_d)});
+addressPrivateKeyCache.fetchDecryptedData().then(function (res) {console.log("ETH Owner(masterInternalFunder) PK: ", res.data.private_key_d)});
 ```
 NOTE: Copy the ETH funder private key for later use.
 
@@ -248,24 +248,24 @@ NOTE: Copy the response from the script above and save somewhere offline.
 * Run Origin Transaction Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/transactionParser.js --cronProcessId 7
+  node executables/blockScanner/transactionParser.js --cronProcessId 8
 ```
 
 * Run Origin Block Parser
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/blockParser.js --cronProcessId 5
+  node executables/blockScanner/blockParser.js --cronProcessId 7
 ```
 
 * Run Origin Finalizer
 ```bash
   source set_env_vars.sh
-  node executables/blockScanner/finalizer.js --cronProcessId 8
+  node executables/blockScanner/finalizer.js --cronProcessId 9
 ```
 
 ### Funding crons
 * Fund by master internal funder origin chain specific
 ```bash
   source set_env_vars.sh
-  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 9
+  node executables/funding/byMasterInternalFunder/originChainSpecific.js --cronProcessId 10
 ```
