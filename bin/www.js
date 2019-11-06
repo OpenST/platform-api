@@ -36,7 +36,7 @@ function normalizePort(val) {
  * Get port from environment and store in Express.
  */
 
-let port = normalizePort(process.env.PA_PORT || '7001');
+let port = normalizePort(process.env.PORT || '7001');
 app.set('port', port);
 
 /**
