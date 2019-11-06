@@ -87,17 +87,17 @@ class InitialSetup {
       latestPricePointObject = new LatestPricePoint({});
 
     // Create Chain table
-    await chainObject.createTable();
+    await new Chain({}).createTable();
     // Create Shard table
-    await shardsObject.createTable();
+    await new Shards({}).createTable();
     // Create ShardByBlock table
-    await shardByBlockObject.createTable();
+    await new ShardByBlock({}).createTable();
     // Create ShardByTransactions table
-    await shardByTransactionsObject.createTable();
+    await new ShardByTransactions({}).createTable();
     // Create ShardByEconomyAddress table
-    await shardByEconomyAddressObject.createTable();
+    await new ShardByEconomyAddress({}).createTable();
     // Create Economy table
-    await economyObject.createTable();
+    await new Economy({}).createTable();
     // Create ChainCronData table
     await chainCronDataObject.createTable();
     // Create LatestPricePoint table.
