@@ -27,6 +27,7 @@ const rootPrefix = '../..',
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  PostTransactionMinedSteps = require(rootPrefix + '/lib/transactions/PostTransactionMinedSteps'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -271,6 +272,17 @@ class Finalizer extends PublisherBase {
                 processedBlockNumber = finalizerResponse.data.processedBlock;
 
               if (processedTransactionHashes.length > 0) {
+                // If block is reprocessed then redo things, which needs to be done after transaction is mined
+                if(true){
+                  let postTrxMinedObj = new PostTransactionMinedSteps({chainId: oThis.chainId,
+                    transactionHashes: processedTransactionHashes, transactionReceiptMap: {}});
+
+                  await postTrxMinedObj.perform().catch(function(error) {
+                    // If transaction is not mined properly from here, then balance settler would be blocked for it.
+                    logger.error('PostTransactionMinedSteps failed in finalizer.', error);
+                  });
+                }
+
                 if (oThis.isOriginChain) {
                   const postTxFinalizeSteps = new PostTxFinalizeSteps({
                     chainId: oThis.chainId,
