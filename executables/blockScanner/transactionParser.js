@@ -13,14 +13,10 @@
 const program = require('commander');
 
 const rootPrefix = '../..',
-  NonceForSession = require(rootPrefix + '/lib/nonce/get/ForSession'),
   ErrorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
-  TransactionMeta = require(rootPrefix + '/app/models/mysql/TransactionMeta'),
   RabbitmqSubscription = require(rootPrefix + '/lib/entity/RabbitSubscription'),
   StrategyByChainHelper = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  PendingTransactionCrud = require(rootPrefix + '/lib/transactions/PendingTransactionCrud'),
   MultiSubscriptionBase = require(rootPrefix + '/executables/rabbitmq/MultiSubscriptionBase'),
-  FetchPendingTxData = require(rootPrefix + '/lib/transactions/FetchPendingTransactionsByHash'),
   BlockParserPendingTaskModel = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -30,9 +26,8 @@ const rootPrefix = '../..',
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
-  transactionMetaConst = require(rootPrefix + '/lib/globalConstant/transactionMeta'),
-  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
-  pendingTransactionConstants = require(rootPrefix + '/lib/globalConstant/pendingTransaction');
+  PostTransactionMinedSteps = require(rootPrefix + '/lib/transactions/PostTransactionMinedSteps'),
+  configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy');
 
 // Declare variables.
 const TX_BATCH_SIZE = 20;
@@ -295,7 +290,10 @@ class TransactionParser extends MultiSubscriptionBase {
       }
     }
 
-    await oThis._updateStatusesInDb(txHashList, transactionReceiptMap).catch(function(error) {
+    let postTrxMinedObj = new PostTransactionMinedSteps({chainId: oThis.chainId,
+      transactionHashes: txHashList, transactionReceiptMap: transactionReceiptMap});
+
+    await postTrxMinedObj.perform().catch(function(error) {
       // As we have code in finalizer to check and update statuses (if needed) we ignore any errors from here and proceed.
       logger.error('_updateStatusesInDb failed in transactionParser', error);
     });
@@ -457,155 +455,6 @@ class TransactionParser extends MultiSubscriptionBase {
       blockVerified: blockVerified,
       rawBlock: rawBlock
     });
-  }
-
-  /**
-   * Update statuses in pending tx and tx meta.
-   *
-   * @param {array} txHashes
-   * @param {object} transactionReceiptMap
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _updateStatusesInDb(txHashes, transactionReceiptMap) {
-    const oThis = this;
-
-    // Fetch pending transactions and transaction meta for given transaction hashes
-    let promisesArr = [];
-    const pendingTransactionObj = new PendingTransactionCrud(oThis.chainId);
-    promisesArr.push(
-        new FetchPendingTxData(oThis.chainId, txHashes, false).perform(),
-        new TransactionMeta().fetchByTransactionHashes(oThis.chainId, txHashes)
-    );
-    let promiseResponses = await Promise.all(promisesArr);
-    let fetchPendingTxResp = promiseResponses[0];
-    if (fetchPendingTxResp.isFailure()) {
-      return fetchPendingTxResp;
-    }
-    fetchPendingTxResp = fetchPendingTxResp.data;
-
-    // Make a map of transaction hash and txMeta
-    let txMetaHashMap = {},
-        txMetaObjects = promiseResponses[1];
-    for(let i=0;i<txMetaObjects.length;i++){
-      let rec = txMetaObjects[i];
-      txMetaHashMap[rec.transaction_hash] = rec;
-    }
-
-    const receiptSuccessTxMetaIds = [],
-      receiptFailureTxMetaIds = [],
-      unknownTxHashes = [],
-      flushNonceCacheForSessionAddresses = [];
-    let promiseArray = [];
-
-    // Update Pending tx.
-    for (const pendingTxUuid in fetchPendingTxResp) {
-      const pendingTxData = fetchPendingTxResp[pendingTxUuid],
-        transactionHash = pendingTxData.transactionHash,
-        transactionReceipt = transactionReceiptMap[transactionHash];
-
-      const transactionStatus = !(transactionReceipt.status == '0x0' || transactionReceipt.status === false);
-      // Look if transaction meta is present for transaction hash to update
-      if(txMetaHashMap[transactionHash]){
-        if(transactionStatus){
-          receiptSuccessTxMetaIds.push(txMetaHashMap[transactionHash].id);
-        } else {
-          receiptFailureTxMetaIds.push(txMetaHashMap[transactionHash].id);
-          if (pendingTxData.sessionKeyAddress) {
-            flushNonceCacheForSessionAddresses.push(pendingTxData.sessionKeyAddress);
-          }
-        }
-      } else {
-        unknownTxHashes.push(transactionHash);
-      }
-
-      const updateParams = {
-        chainId: oThis.chainId,
-        transactionUuid: pendingTxData.transactionUuid,
-        status:
-          transactionStatus && transactionReceipt.internalStatus
-            ? pendingTransactionConstants.minedStatus
-            : pendingTransactionConstants.failedStatus,
-        blockNumber: transactionReceipt.blockNumber,
-        blockTimestamp: transactionReceipt.blockTimestamp
-      };
-
-      promiseArray.push(
-        pendingTransactionObj.update(updateParams).catch(function(error) {
-          // As we have code in finalizer to check and update status (if needed) we ignore any errors from here and proceed
-          logger.error('_updateStatusesInDb failed in transactionParser', updateParams, error);
-        })
-      );
-
-      if (promiseArray.length === TX_BATCH_SIZE) {
-        await Promise.all(promiseArray);
-        promiseArray = [];
-      }
-    }
-
-    if (promiseArray.length > 0) {
-      await Promise.all(promiseArray);
-    }
-
-    // Mark tx meta status as success.
-    if (receiptSuccessTxMetaIds.length > 0) {
-      await new TransactionMeta().updateRecordsWithoutReleasingLock({
-        status: transactionMetaConst.minedStatus,
-        receiptStatus: transactionMetaConst.successReceiptStatus,
-        ids: receiptSuccessTxMetaIds,
-        chainId: oThis.chainId
-      });
-    }
-
-    // Mark tx meta status as failure.
-    if (receiptFailureTxMetaIds.length > 0) {
-      await new TransactionMeta().updateRecordsWithoutReleasingLock({
-        status: transactionMetaConst.minedStatus,
-        receiptStatus: transactionMetaConst.failureReceiptStatus,
-        ids: receiptFailureTxMetaIds,
-        chainId: oThis.chainId
-      });
-    }
-
-    // If unknown transactions are present then nothing needs to be done for them as of now
-    if(unknownTxHashes.length > 0){
-      logger.info('_updateStatusesInDb has some unknown transactions: ', unknownTxHashes);
-    }
-
-    // Flush session nonce cache
-    if (flushNonceCacheForSessionAddresses.length > 0) {
-      await oThis._flushNonceCacheForSessionAddresses(flushNonceCacheForSessionAddresses);
-    }
-  }
-
-  /**
-   * Flush nonce cache.
-   *
-   * @param {array} addresses
-   * @private
-   */
-  async _flushNonceCacheForSessionAddresses(addresses) {
-    const oThis = this;
-
-    const promises = [];
-
-    if (!oThis.chainId) {
-      logger.error('_flushNonceCacheForSessionAddresses chainIdNotFound TransactionParser');
-
-      return;
-    }
-
-    for (let index = 0; index < addresses.length; index++) {
-      promises.push(
-        new NonceForSession({
-          address: addresses[index],
-          chainId: oThis.chainId
-        }).clear()
-      );
-    }
-
-    await Promise.all(promises);
   }
 }
 
