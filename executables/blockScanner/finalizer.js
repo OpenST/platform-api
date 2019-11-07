@@ -273,9 +273,10 @@ class Finalizer extends PublisherBase {
 
               if (processedTransactionHashes.length > 0) {
                 // If block is reprocessed then redo things, which needs to be done after transaction is mined
-                if(true){
+                if(finalizerResponse.data.blockReProcessed){
                   let postTrxMinedObj = new PostTransactionMinedSteps({chainId: oThis.chainId,
-                    transactionHashes: processedTransactionHashes, transactionReceiptMap: {}});
+                    transactionHashes: processedTransactionHashes,
+                    transactionReceiptMap: finalizerResponse.data.processedTransactionsReceipts});
 
                   await postTrxMinedObj.perform().catch(function(error) {
                     // If transaction is not mined properly from here, then balance settler would be blocked for it.
