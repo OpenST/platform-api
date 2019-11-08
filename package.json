@@ -14,7 +14,7 @@
     "@ostdotcom/base": "1.0.0",
     "@ostdotcom/cache": "1.0.6",
     "@ostdotcom/notification": "1.0.7-beta.3",
-    "@ostdotcom/ost-block-scanner": "1.0.1-beta.13",
+    "@ostdotcom/ost-block-scanner": "1.0.1-beta.15",
     "@ostdotcom/ost-dynamic-gas-price": "1.0.4-beta.1",
     "@ostdotcom/ost-price-oracle": "1.0.6",
     "@ostdotcom/ost-sdk-js": "2.0.0-beta.1",
