@@ -3,7 +3,8 @@ export SA_ENVIRONMENT='development'
 export SA_SUB_ENVIRONMENT='sandbox'
 export DEVOPS_ENV_ID='dev1-sandbox';
 
-export OST_DEBUG_ENABLED='1';
+export SA_DEFAULT_LOG_LEVEL='info';
+export SA_ES_DEBUG_ENABLED='1';
 
 export DEVOPS_IP_ADDRESS='127.0.0.1';
 export DEVOPS_APP_NAME='saas';
