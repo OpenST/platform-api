@@ -10,6 +10,11 @@
 
 const program = require('commander');
 
+// To reduce the log level in non development environment.
+if (process.env.SA_ENVIRONMENT !== 'development') {
+  process.env.SA_DEFAULT_LOG_LEVEL = 'warn';
+}
+
 const rootPrefix = '..',
   S3Upload = require(rootPrefix + '/lib/s3/UploadBody'),
   CronBase = require(rootPrefix + '/executables/CronBase'),
@@ -150,7 +155,7 @@ class GenerateGraph extends CronBase {
       if (basicHelper.isStaging()) {
         await basicHelper.sleep(1000 * 60 * 5); // 5 mins
       } else {
-        await basicHelper.sleep(1000 * 60 ); // 1 min
+        await basicHelper.sleep(1000 * 60); // 1 min
       }
 
       iterationNumber++;
