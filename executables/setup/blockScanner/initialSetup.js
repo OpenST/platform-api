@@ -1,4 +1,3 @@
-'use strict';
 /**
  * This script is used for initial setup i.e.  to create shared tables.
  *
@@ -23,13 +22,16 @@ program.on('--help', () => {
 });
 
 /**
- * Class for initial setup
+ * Class for initial setup.
  *
- * @class
+ * @class InitialSetup
  */
 class InitialSetup {
   /**
-   * Constructor for initial setup
+   * Constructor for initial setup.
+   *
+   * @param {object} params
+   * @param {string/number} params.chainId
    *
    * @constructor
    */
@@ -49,6 +51,7 @@ class InitialSetup {
 
     return oThis.asyncPerform().catch(function(err) {
       logger.error(`In catch block of ${__filename}`);
+
       return responseHelper.error({
         internal_error_identifier: 't_ls_bs_is_1',
         api_error_identifier: 'something_went_wrong',
@@ -74,31 +77,31 @@ class InitialSetup {
       ChainCronData = blockScannerObj.model.ChainCronData,
       LatestPricePoint = blockScannerObj.model.LatestPricePoint;
 
-    let chainObject = new Chain({}),
+    const chainObject = new Chain({}),
       shardsObject = new Shards({}),
       economyObject = new Economy({}),
       shardByBlockObject = new ShardByBlock({}),
       shardByTransactionsObject = new ShardByTransactions({}),
       shardByEconomyAddressObject = new ShardByEconomyAddress({}),
       chainCronDataObject = new ChainCronData({}),
-      LatestPricePointObject = new LatestPricePoint({});
+      latestPricePointObject = new LatestPricePoint({});
 
     // Create Chain table
-    await chainObject.createTable();
+    await new Chain({}).createTable();
     // Create Shard table
-    await shardsObject.createTable();
+    await new Shards({}).createTable();
     // Create ShardByBlock table
-    await shardByBlockObject.createTable();
+    await new ShardByBlock({}).createTable();
     // Create ShardByTransactions table
-    await shardByTransactionsObject.createTable();
+    await new ShardByTransactions({}).createTable();
     // Create ShardByEconomyAddress table
-    await shardByEconomyAddressObject.createTable();
+    await new ShardByEconomyAddress({}).createTable();
     // Create Economy table
-    await economyObject.createTable();
+    await new Economy({}).createTable();
     // Create ChainCronData table
     await chainCronDataObject.createTable();
-    // Create  LatestPricePoint table.
-    await new LatestPricePointObject.createTable();
+    // Create LatestPricePoint table.
+    await latestPricePointObject.createTable();
   }
 }
 
@@ -114,7 +117,7 @@ const validateAndSanitize = function() {
 
 validateAndSanitize();
 
-let setupInit = new InitialSetup(program);
+const setupInit = new InitialSetup(program);
 setupInit
   .perform()
   .then(function() {

@@ -8,13 +8,7 @@ const express = require('express'),
   morgan = require('morgan'),
   bodyParser = require('body-parser'),
   helmet = require('helmet'),
-  customUrlParser = require('url'),
-  cluster = require('cluster'),
-  http = require('http');
-
-let bind, port;
-
-let onlineWorker = 0;
+  customUrlParser = require('url');
 
 const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
@@ -272,298 +266,116 @@ const appendV2Version = function(req, res, next) {
   next();
 };
 
-/**
- * Kill master after online worker count reaches 0
- */
-const killMasterIfAllWorkersDied = function() {
-  if (onlineWorker === 0) {
-    logger.log('Killing master as all workers are dead.');
-    process.exit(1);
-  }
-};
+// Set worker process title
+process.title = 'Company Restful API node worker';
 
-// if the process is a master.
-if (cluster.isMaster) {
-  // Set worker process title
-  process.title = 'Company Restful API node master';
+// Create express application instance
+const app = express();
 
-  // Fork workers equal to number of CPUs
-  const numWorkers = process.env.OST_CACHING_ENGINE === 'none' ? 1 : process.env.WORKERS || require('os').cpus().length;
+// Add id and startTime to request
+app.use(customMiddleware());
 
-  //. Rachin: Potential problem here.
-  //    Fork should be the last thing that should be done.
-  //.   First all event handlers should be registered.
-  //.   To do for validation: Check if onlineWorker count changes changes.
-  for (let i = 0; i < numWorkers; i++) {
-    // Spawn a new worker process.
-    cluster.fork();
-  }
+// Load Morgan
+app.use(
+  morgan(
+    '[:id][:endTime] Completed with ":status" in :response-time ms at :endDateTime -  ":res[content-length] bytes" - ":remote-addr" ":remote-user" - "HTTP/:http-version :method :url" - ":referrer" - ":user-agent"'
+  )
+);
 
-  // Worker started listening and is ready
-  cluster.on('listening', function(worker, address) {
-    logger.info(`[worker-${worker.id} ] is listening to ${address.port}`);
+// Helmet helps secure Express apps by setting various HTTP headers.
+app.use(helmet());
+
+// Node.js body parsing middleware.
+app.use(bodyParser.json());
+
+// Parsing the URL-encoded data with the qs library (extended: true)
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Mark older routes as UNSUPPORTED_VERSION
+app.use('/transaction-types', handleDepricatedRoutes);
+app.use('/users', handleDepricatedRoutes);
+app.use('/v1', handleDepricatedRoutes);
+app.use('/v1.1', handleDepricatedRoutes);
+
+// Following are the routes
+app.use('/health-checker', elbHealthCheckerRoute);
+
+app.use(
+  '/' + environmentInfo.urlPrefix + '/test_webhook',
+  startRequestLogLine,
+  appendRequestDebugInfo,
+  validateWebhookSignature,
+  sanitizer.sanitizeBodyAndQuery,
+  assignParams,
+  internalRoutes
+);
+
+/*
+  The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
+  Docs: https://www.npmjs.com/package/sanitize-html
+*/
+app.use(
+  '/' + environmentInfo.urlPrefix + '/internal',
+  startRequestLogLine,
+  checkSystemServiceStatuses,
+  appendRequestDebugInfo,
+  sanitizer.sanitizeBodyAndQuery,
+  decodeJwt,
+  appendInternalVersion,
+  internalRoutes
+);
+
+app.use(
+  '/' + environmentInfo.urlPrefix + '/v2',
+  startRequestLogLine,
+  checkSystemServiceStatuses,
+  appendRequestDebugInfo,
+  validateApiSignature,
+  sanitizer.sanitizeBodyAndQuery,
+  assignParams,
+  appendV2Version,
+  v2Routes
+);
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  let message =
+    "Started '" +
+    customUrlParser.parse(req.originalUrl).pathname +
+    "'  '" +
+    req.method +
+    "' at " +
+    basicHelper.logDateFormat();
+  logger.info(message);
+
+  return responseHelper
+    .error({
+      internal_error_identifier: 'a_5',
+      api_error_identifier: 'resource_not_found',
+      debug_options: {}
+    })
+    .renderResponse(res, errorConfig);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  const errorObject = responseHelper.error({
+    internal_error_identifier: `a_6`,
+    api_error_identifier: 'something_went_wrong',
+    debug_options: { err: err }
   });
-  // Worker came online. Will start listening shortly
-  cluster.on('online', function(worker) {
-    logger.info(`[worker-${worker.id}] is online`);
-    // when a worker comes online, increment the online worker count
-    onlineWorker = onlineWorker + 1;
-  });
-
-  //  Called when all workers are disconnected and handles are closed.
-  //. Rachin: Change above comment to 'called when the specific worker has disconnected.'
-  cluster.on('disconnect', function(worker) {
-    const errorObject = responseHelper.error({
-      internal_error_identifier: 'worker_disconnected:a_3',
-      api_error_identifier: 'worker_disconnected',
-      debug_options: { worker: worker.id }
-    });
-    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
-    logger.error('a_3', `[worker-${worker.id}] is disconnected`);
-    // when a worker disconnects, decrement the online worker count
-    onlineWorker = onlineWorker - 1;
-  });
-
-  // When any of the workers die the cluster module will emit the 'exit' event.
-  cluster.on('exit', function(worker, code, signal) {
-    if (worker.exitedAfterDisconnect === true) {
-      // don't restart worker as voluntary exit
-      logger.info(`[worker-${worker.id}] voluntary exit. signal: ${signal}. code: ${code}`);
-    } else {
-      // Restart worker as died unexpectedly
-      const errorObject = responseHelper.error({
-        internal_error_identifier: `worker_died_restarting:${code}`,
-        api_error_identifier: 'worker_died_restarting',
-        debug_options: { worker: worker.id, code: code, signal: signal }
-      });
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
-      logger.error(code, `[worker-${worker.id}] restarting died. signal: ${signal}. code: ${code}`);
-      cluster.fork();
-    }
-  });
-  // Exception caught
-  // Rachin: Should the workers try to die gracefully ?
-  process.on('uncaughtException', function(err) {
-    const errorObject = responseHelper.error({
-      internal_error_identifier: `app_server_crash:app_crash_1`,
-      api_error_identifier: 'app_server_crash',
-      debug_options: { err: err }
-    });
-    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-    logger.error('app_crash_1', 'App server exited unexpectedly. Reason: ', err);
-    process.exit(1);
-  });
-
-  // When someone try to kill the master process
-  // kill <master process id>
-  process.on('SIGTERM', function() {
-    for (let id in cluster.workers) {
-      cluster.workers[id].exitedAfterDisconnect = true;
-    }
-    setInterval(killMasterIfAllWorkersDied, 10);
-    // Rachin: will calling disconnect method also trigger 'disconnect' event on cluster?
-    cluster.disconnect(function() {
-      logger.info('Master received SIGTERM. Killing/disconnecting it.');
-    });
-  });
-} else if (cluster.isWorker) {
-  // if the process is not a master
-
-  // Set worker process title
-  process.title = 'Company Restful API node worker-' + cluster.worker.id;
-
-  // Create express application instance
-  const app = express();
-
-  // Add id and startTime to request
-  app.use(customMiddleware({ worker_id: cluster.worker.id }));
-
-  // Load Morgan
-  app.use(
-    morgan(
-      '[:id][:endTime] Completed with ":status" in :response-time ms at :endDateTime -  ":res[content-length] bytes" - ":remote-addr" ":remote-user" - "HTTP/:http-version :method :url" - ":referrer" - ":user-agent"'
-    )
-  );
-
-  // Helmet helps secure Express apps by setting various HTTP headers.
-  app.use(helmet());
-
-  // Node.js body parsing middleware.
-  app.use(bodyParser.json());
-
-  // Parsing the URL-encoded data with the qs library (extended: true)
-  app.use(bodyParser.urlencoded({ extended: true }));
-
-  app.use(express.static(path.join(__dirname, 'public')));
-
-  // Mark older routes as UNSUPPORTED_VERSION
-  app.use('/transaction-types', handleDepricatedRoutes);
-  app.use('/users', handleDepricatedRoutes);
-  app.use('/v1', handleDepricatedRoutes);
-  app.use('/v1.1', handleDepricatedRoutes);
-
-  // Following are the routes
-  app.use('/health-checker', elbHealthCheckerRoute);
-
-  app.use(
-    '/' + environmentInfo.urlPrefix + '/test_webhook',
-    startRequestLogLine,
-    appendRequestDebugInfo,
-    validateWebhookSignature,
-    sanitizer.sanitizeBodyAndQuery,
-    assignParams,
-    internalRoutes
-  );
-
-  /*
-    The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
-    Docs: https://www.npmjs.com/package/sanitize-html
-  */
-  app.use(
-    '/' + environmentInfo.urlPrefix + '/internal',
-    startRequestLogLine,
-    checkSystemServiceStatuses,
-    appendRequestDebugInfo,
-    sanitizer.sanitizeBodyAndQuery,
-    decodeJwt,
-    appendInternalVersion,
-    internalRoutes
-  );
-
-  app.use(
-    '/' + environmentInfo.urlPrefix + '/v2',
-    startRequestLogLine,
-    checkSystemServiceStatuses,
-    appendRequestDebugInfo,
-    validateApiSignature,
-    sanitizer.sanitizeBodyAndQuery,
-    assignParams,
-    appendV2Version,
-    v2Routes
-  );
-
-  // catch 404 and forward to error handler
-  app.use(function(req, res, next) {
-    let message =
-      "Started '" +
-      customUrlParser.parse(req.originalUrl).pathname +
-      "'  '" +
-      req.method +
-      "' at " +
-      basicHelper.logDateFormat();
-    logger.info(message);
-
-    return responseHelper
-      .error({
-        internal_error_identifier: 'a_5',
-        api_error_identifier: 'resource_not_found',
-        debug_options: {}
-      })
-      .renderResponse(res, errorConfig);
-  });
-
-  // error handler
-  app.use(function(err, req, res, next) {
-    // set locals, only providing error in development
-    const errorObject = responseHelper.error({
-      internal_error_identifier: `a_6`,
+  createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
+  logger.error('a_6', 'Something went wrong', err);
+  return responseHelper
+    .error({
+      internal_error_identifier: 'a_6',
       api_error_identifier: 'something_went_wrong',
-      debug_options: { err: err }
-    });
-    createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
-    logger.error('a_6', 'Something went wrong', err);
-    return responseHelper
-      .error({
-        internal_error_identifier: 'a_6',
-        api_error_identifier: 'something_went_wrong',
-        debug_options: {}
-      })
-      .renderResponse(res, errorConfig);
-  });
+      debug_options: {}
+    })
+    .renderResponse(res, errorConfig);
+});
 
-  /**
-   * Get port from environment and store in Express.
-   */
-
-  port = normalizePort(process.env.PORT || '7001');
-  app.set('port', port);
-
-  // Creating the server EventEmitter using the app request handler.
-  let server = http.createServer(app);
-
-  // Start listening to port
-  server.listen(port);
-  server.on('error', onError);
-  server.on('listening', function() {
-    return onListening(server);
-  });
-}
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES': {
-      const errorObject = responseHelper.error({
-        internal_error_identifier: `elevated_privilege_required:a_7`,
-        api_error_identifier: 'elevated_privilege_required',
-        debug_options: { port: bind }
-      });
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-      logger.error('a_7', bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    }
-    case 'EADDRINUSE': {
-      const errorObject = responseHelper.error({
-        internal_error_identifier: `port_in_use:a_8`,
-        api_error_identifier: 'port_in_use',
-        debug_options: { port: bind }
-      });
-      createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.highSeverity);
-      logger.error('a_8', bind + ' is already in use');
-      process.exit(1);
-      break;
-    }
-    default:
-      throw error;
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening(server) {
-  let addr = server.address();
-  bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-}
+module.exports = app;

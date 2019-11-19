@@ -27,6 +27,7 @@ const rootPrefix = '../..',
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
   configStrategyConstants = require(rootPrefix + '/lib/globalConstant/configStrategy'),
+  PostTransactionMinedSteps = require(rootPrefix + '/lib/transactions/PostTransactionMinedSteps'),
   connectionTimeoutConst = require(rootPrefix + '/lib/globalConstant/connectionTimeout');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -266,44 +267,7 @@ class Finalizer extends PublisherBase {
             await createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.mediumSeverity);
             await basicHelper.sleep(2000);
           } else {
-            if (finalizerResponse.data.processedBlock) {
-              const processedTransactionHashes = finalizerResponse.data.processedTransactions,
-                processedBlockNumber = finalizerResponse.data.processedBlock;
-
-              if (processedTransactionHashes.length > 0) {
-                if (oThis.isOriginChain) {
-                  const postTxFinalizeSteps = new PostTxFinalizeSteps({
-                    chainId: oThis.chainId,
-                    blockNumber: processedBlockNumber,
-                    transactionHashes: processedTransactionHashes
-                  });
-
-                  await postTxFinalizeSteps.perform();
-                } else {
-                  const txFinalizeDelegator = new TxFinalizeDelegator({
-                    auxChainId: oThis.chainId,
-                    blockNumber: processedBlockNumber,
-                    transactionHashes: processedTransactionHashes
-                  });
-
-                  const txFinalizeDelegatorRsp = await txFinalizeDelegator.perform();
-
-                  if (txFinalizeDelegatorRsp.isFailure()) {
-                    return Promise.reject(txFinalizeDelegatorRsp);
-                  }
-
-                  logger.info('===== Processed block', finalizerResponse.data.processedBlock, '=======');
-                }
-              }
-
-              await oThis._updateLastProcessedBlock(processedBlockNumber);
-
-              logger.info('===== Processed block', processedBlockNumber, '=======');
-
-              if (!oThis.isOriginChain) {
-                await oThis._publishBlock(processedBlockNumber);
-              }
-            }
+            await oThis._onFinalizeSuccess(finalizerResponse);
 
             logger.log('===Waiting for 10 milli-secs');
             await basicHelper.sleep(10);
@@ -335,6 +299,78 @@ class Finalizer extends PublisherBase {
     };
 
     return chainCronDataObj.updateItem(updateParams);
+  }
+
+  /**
+   * Things to do after finalizer success
+   *
+   * @param finalizerResponse
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _onFinalizeSuccess(finalizerResponse){
+    const oThis = this,
+      finalizerResponseData = finalizerResponse.data;
+
+    if (finalizerResponseData.processedBlock) {
+      const processedTransactionHashes = finalizerResponseData.processedTransactions,
+        processedBlockNumber = finalizerResponseData.processedBlock;
+
+      if (processedTransactionHashes.length > 0) {
+        // If block is reprocessed then redo things, which needs to be done after transaction is mined
+        if(finalizerResponseData.blockReProcessed){
+          let postTrxMinedObj = new PostTransactionMinedSteps({chainId: oThis.chainId,
+            transactionHashes: processedTransactionHashes,
+            transactionReceiptMap: finalizerResponseData.processedTransactionsReceipts});
+
+          await postTrxMinedObj.perform().catch(function(error) {
+            // If transaction is not mined properly from here, then balance settler would be blocked for it.
+            logger.error('PostTransactionMinedSteps failed in finalizer.', error);
+          });
+        }
+
+        if (oThis.isOriginChain) {
+          await new PostTxFinalizeSteps({
+            chainId: oThis.chainId, blockNumber: processedBlockNumber,
+            transactionHashes: processedTransactionHashes
+          }).perform();
+        } else {
+          await oThis._delegateTaskAfterBlockProcessed(processedBlockNumber, processedTransactionHashes);
+        }
+      }
+
+      await oThis._updateLastProcessedBlock(processedBlockNumber);
+
+      logger.info('===== Processed block', processedBlockNumber, '=======');
+
+      if (!oThis.isOriginChain) {
+        await oThis._publishBlock(processedBlockNumber);
+      }
+    }
+  }
+
+  /**
+   * Delegate task after block processed.
+   *
+   * @param processedBlockNumber
+   * @param processedTransactionHashes
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _delegateTaskAfterBlockProcessed(processedBlockNumber, processedTransactionHashes){
+    const oThis = this;
+
+    const txFinalizeDelegator = new TxFinalizeDelegator({
+      auxChainId: oThis.chainId,
+      blockNumber: processedBlockNumber,
+      transactionHashes: processedTransactionHashes
+    });
+
+    const txFinalizeDelegatorRsp = await txFinalizeDelegator.perform();
+
+    if (txFinalizeDelegatorRsp.isFailure()) {
+      return Promise.reject(txFinalizeDelegatorRsp);
+    }
   }
 
   /**

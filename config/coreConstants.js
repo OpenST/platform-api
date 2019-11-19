@@ -207,8 +207,8 @@ class CoreConstants {
     return process.env.SA_CACHE_DATA_SHA_KEY;
   }
 
-  get DEBUG_ENABLED() {
-    return process.env.OST_DEBUG_ENABLED;
+  get DEFAULT_LOG_LEVEL() {
+    return process.env.SA_DEFAULT_LOG_LEVEL;
   }
 
   get SHARED_MEMCACHE_KEY_PREFIX() {

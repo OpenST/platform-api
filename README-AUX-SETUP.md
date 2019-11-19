@@ -115,25 +115,25 @@ And add it to tables using following script.
 * Run Auxiliary Transaction Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/balanceSettler.js --cronProcessId 25
+    node executables/blockScanner/balanceSettler.js --cronProcessId 26
 ```
 
 * Run Auxiliary Transaction Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/transactionParser.js --cronProcessId 11
+    node executables/blockScanner/transactionParser.js --cronProcessId 12
 ```
 
 * Run Auxiliary Block Parser
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/blockParser.js --cronProcessId 10
+    node executables/blockScanner/blockParser.js --cronProcessId 11
 ```
 
 * Run Auxiliary Block Finalizer
 ```bash
     source set_env_vars.sh
-    node executables/blockScanner/finalizer.js --cronProcessId 12
+    node executables/blockScanner/finalizer.js --cronProcessId 13
 ```
 
 
@@ -200,13 +200,13 @@ And add it to tables using following script.
 * Fund by sealer aux chain specific
 ```bash
     source set_env_vars.sh
-    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 15
+    node executables/funding/bySealer/auxChainSpecific.js --cronProcessId 16
 ```
 
 * Fund by master internal funder aux chain specific chain addresses
 ```bash
     source set_env_vars.sh
-    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 14
+    node executables/funding/byMasterInternalFunder/auxChainSpecific/chainAddresses.js --cronProcessId 15
 ```
 
 * Fund by master internal funder aux chain specific token funder addresses
