@@ -170,19 +170,13 @@ class GetTransactionBase extends ServiceBase {
 
     if (oThis.esSearchResponse.isFailure() && !oThis.transactionId) {
       const errorObject = responseHelper.error({
-        internal_error_identifier: 'elastic_search_service_down:a_s_t_g_b_2',
-        api_error_identifier: 'elastic_search_service_down',
+        internal_error_identifier: 'elastic_search_failure:a_s_t_g_b_2',
+        api_error_identifier: 'elastic_search_failure',
         debug_options: {}
       });
-      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.highSeverity);
+      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
 
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_g_b_2',
-          api_error_identifier: 'elastic_search_service_down',
-          debug_options: {}
-        })
-      );
+      return Promise.reject(errorObject);
     }
 
     logger.debug('User transactions from Elastic search ', oThis.esSearchResponse);
