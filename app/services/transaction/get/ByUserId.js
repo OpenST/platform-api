@@ -72,13 +72,13 @@ class GetTransactionsList extends GetTransactionBase {
     // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-
-      oThis.status = parsedPaginationParams.status; // override status
-      oThis.metaProperty = parsedPaginationParams.meta_property; // override meta_property
-      oThis.limit = parsedPaginationParams.limit; // override limit
-      oThis.from = parsedPaginationParams.from; // override from
-      oThis.startTime = parsedPaginationParams.start_time; // override startTime
-      oThis.endTime = parsedPaginationParams.end_time; // override endTime
+      logger.log('======= Parsed Pagination Params =======', JSON.stringify(parsedPaginationParams));
+      oThis.status = parsedPaginationParams.status; // Override status
+      oThis.metaProperty = parsedPaginationParams.meta_property; // Override meta_property
+      oThis.limit = parsedPaginationParams.limit; // Override limit
+      oThis.from = parsedPaginationParams.from; // Override from
+      oThis.startTime = parsedPaginationParams.start_time; // Override startTime
+      oThis.endTime = parsedPaginationParams.end_time; // Override endTime
     } else {
       oThis.status = oThis.status || [];
 
@@ -270,7 +270,13 @@ class GetTransactionsList extends GetTransactionBase {
    * @private
    */
   _getStartTimeEndTimeQueryString(startTime, endTime) {
-    return `created_at:(>=${startTime} AND <=${endTime}) `;
+    if (startTime && endTime) {
+      return `created_at:(>=${startTime} AND <=${endTime}) `;
+    } else if (startTime) {
+      return `created_at:(>=${startTime}) `;
+    } else if (endTime) {
+      return `created_at:(<=${endTime}) `;
+    }
   }
 
   /**
