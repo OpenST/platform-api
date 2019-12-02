@@ -34,6 +34,8 @@ class GetTransactionsList extends GetTransactionBase {
    * @param {Integer} params.limit - limit
    * @param {Array} params.statuses - statuses
    * @param {Array} params.meta_properties - meta_properties
+   * @param {Integer} [params.start_time] - Start time
+   * @param {Integer} [params.end_time] - End time
    *
    */
   constructor(params) {
@@ -44,6 +46,8 @@ class GetTransactionsList extends GetTransactionBase {
     oThis.status = params.statuses;
     oThis.limit = params.limit;
     oThis.metaProperty = params.meta_properties;
+    oThis.startTime = params.start_time || null;
+    oThis.endTime = params.end_time || null;
     oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
 
     oThis.auxChainId = null;
@@ -65,14 +69,16 @@ class GetTransactionsList extends GetTransactionBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
-    // Parameters in paginationIdentifier take higher precedence
+    // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
       let parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
 
-      oThis.status = parsedPaginationParams.status; //override status
-      oThis.metaProperty = parsedPaginationParams.meta_property; //override meta_property
-      oThis.limit = parsedPaginationParams.limit; //override limit
-      oThis.from = parsedPaginationParams.from; //override from
+      oThis.status = parsedPaginationParams.status; // override status
+      oThis.metaProperty = parsedPaginationParams.meta_property; // override meta_property
+      oThis.limit = parsedPaginationParams.limit; // override limit
+      oThis.from = parsedPaginationParams.from; // override from
+      oThis.startTime = parsedPaginationParams.start_time; // override startTime
+      oThis.endTime = parsedPaginationParams.end_time; // override endTime
     } else {
       oThis.status = oThis.status || [];
 
@@ -130,7 +136,9 @@ class GetTransactionsList extends GetTransactionBase {
           from: esNextPagePayload.from,
           limit: oThis.limit,
           meta_property: oThis.metaProperty,
-          status: oThis.status
+          status: oThis.status,
+          start_time: oThis.startTime || null,
+          end_time: oThis.endTime || null
         }
       };
     }
@@ -196,6 +204,11 @@ class GetTransactionsList extends GetTransactionBase {
       esQueryVals.push(metaQueryString);
     }
 
+    if (oThis.startTime || oThis.endTime) {
+      const startEndTimeQueryString = oThis._getStartTimeEndTimeQueryString(oThis.startTime, oThis.endTime);
+      esQueryVals.push(startEndTimeQueryString);
+    }
+
     esQuery = esQueryFormatter.getAndQuery(esQueryVals);
 
     queryBody.query = esQuery;
@@ -246,6 +259,18 @@ class GetTransactionsList extends GetTransactionBase {
       ],
       query = esQueryFormatter.getORQuery(address);
     return esQueryFormatter.getQuerySubString(query);
+  }
+
+  /**
+   * Get start time and end time query string.
+   *
+   * @param {Integer} startTime
+   * @param {Integer} endTime
+   * @returns {string}
+   * @private
+   */
+  _getStartTimeEndTimeQueryString(startTime, endTime) {
+    return `created_at:(>=${startTime} AND <=${endTime}) `;
   }
 
   /**
