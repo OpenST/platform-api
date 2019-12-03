@@ -104,6 +104,17 @@ class GetTransactionsList extends GetTransactionBase {
       oThis.from = 0;
     }
 
+    if (oThis.from + oThis.limit >= 10000) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_t_g_bu_3',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['query_not_supported'],
+          debug_options: {}
+        })
+      );
+    }
+
     // Validate status
     await oThis._validateAndSanitizeStatus();
 

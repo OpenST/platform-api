@@ -172,7 +172,7 @@ class GetTransactionBase extends ServiceBase {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'elastic_search_failure:a_s_t_g_b_2',
         api_error_identifier: 'elastic_search_failure',
-        debug_options: {}
+        debug_options: { esSearchResponse: oThis.esSearchResponse }
       });
       await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
 

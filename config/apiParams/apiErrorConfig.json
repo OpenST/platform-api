@@ -539,10 +539,10 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Dynamic gas price zero."
   },
-  "elastic_search_service_down": {
+  "elastic_search_failure": {
     "http_code": "500",
     "code": "INTERNAL_SERVER_ERROR",
-    "message": "Transaction search service is down."
+    "message": "Transaction search service could not fetch required data."
   },
   "rmq_publish_failed": {
     "http_code": "422",
