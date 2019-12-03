@@ -174,7 +174,7 @@ class GetTransactionBase extends ServiceBase {
         api_error_identifier: 'elastic_search_failure',
         debug_options: { esSearchResponse: oThis.esSearchResponse }
       });
-      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
+      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.highSeverity);
 
       return Promise.reject(errorObject);
     }
