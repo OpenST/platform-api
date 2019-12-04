@@ -5,8 +5,6 @@
 /.idea
 /.idea/*
 
-package-lock.json
-
 # Runtime data
 pids
 *.pid
