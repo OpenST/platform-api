@@ -167,6 +167,11 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _start() {
     const oThis = this;
 
+    if(coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+      logger.step('Cron execution terminated due to Origin Network Update.');
+      return;
+    }
+
     await oThis._fetchAllStakeCurrencySymbols();
 
     await oThis._fetchStakeCurrencyDetails();

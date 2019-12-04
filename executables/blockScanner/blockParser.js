@@ -96,6 +96,11 @@ class BlockParserExecutable extends PublisherBase {
     // Fetch config strategy.
     await oThis._fetchConfigStrategy();
 
+    if(oThis.isOriginChain && coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+      logger.step('Cron execution terminated due to Origin Network Update.');
+      return;
+    }
+
     // Get blockScanner object.
     const blockScanner = await blockScannerProvider.getInstance([oThis.chainId]);
 
