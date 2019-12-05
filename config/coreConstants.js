@@ -397,7 +397,7 @@ class CoreConstants {
   }
 
   get SA_ORIGIN_NETWORK_UPGRADE(){
-    return process.env.SA_ORIGIN_NETWORK_UPGRADE;
+    return Number(process.env.SA_ORIGIN_NETWORK_UPGRADE);
   }
 }
 
