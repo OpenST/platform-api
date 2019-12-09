@@ -19,6 +19,7 @@ const rootPrefix = '../..',
   BlockParserPendingTask = require(rootPrefix + '/app/models/mysql/BlockParserPendingTask'),
   PostTxFinalizeSteps = require(rootPrefix + '/lib/transactions/PostTransactionFinalizeSteps'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   rabbitmqProvider = require(rootPrefix + '/lib/providers/rabbitmq'),
@@ -73,6 +74,11 @@ class Finalizer extends PublisherBase {
 
     // Validate whether chainId exists in the chains table.
     await oThis._validateChainId();
+
+    if(oThis.isOriginChain && coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+      logger.step('Cron execution terminated due to Origin Network Update.');
+      return;
+    }
 
     await oThis._startFinalizer();
   }
