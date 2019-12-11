@@ -501,6 +501,11 @@ const v2ErrorConfig = {
     parameter: 'status',
     code: 'invalid',
     message: 'Invalid status. Please check the list of available status on https://dev.ost.com.'
+  },
+  query_not_supported: {
+    parameter: 'pagination_identifier',
+    code: 'invalid',
+    message: 'Please change the query as more than 10000 records are not supported.'
   }
 };
 

@@ -11,6 +11,7 @@ const rootPrefix = '../..',
   CronBase = require(rootPrefix + '/executables/CronBase'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   StateRootSyncRouter = require(rootPrefix + '/lib/workflow/stateRootSync/Router'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
@@ -70,6 +71,11 @@ class StateRootSyncBase extends CronBase {
    */
   async _start() {
     const oThis = this;
+
+    if(coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+      logger.step('Cron execution terminated due to Origin Network Update.');
+      return;
+    }
 
     oThis.canExit = false;
 

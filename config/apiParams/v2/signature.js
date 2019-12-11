@@ -825,6 +825,14 @@ const v2Signature = {
       {
         parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateEsPaginationIdentifier'
+      },
+      {
+        parameter: 'start_time',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'end_time',
+        validatorMethod: 'validateNonZeroInteger'
       }
     ]
   },
