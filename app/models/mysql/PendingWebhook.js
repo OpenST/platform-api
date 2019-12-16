@@ -69,7 +69,7 @@ class PendingWebhook extends ModelBase {
       extra_data: params.extraData || null,
       status: params.status,
       retry_count: 0,
-      lock_id: 0,
+      lock_id: null,
       next_retry_at: 0,
       created_at: time
     };
