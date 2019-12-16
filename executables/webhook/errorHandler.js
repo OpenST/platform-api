@@ -71,7 +71,7 @@ class WebhookErrorHandlerCron extends CronBase {
       oThis.canExit = true;
 
       logger.step('** Sleeping...');
-      await basicHelper.sleep(2000);
+      await basicHelper.sleep(10000);
     }
   }
 
