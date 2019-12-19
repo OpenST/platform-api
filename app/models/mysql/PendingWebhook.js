@@ -40,6 +40,8 @@ class PendingWebhook extends ModelBase {
    * @param {number} params.clientId: client id
    * @param {string} params.eventUuid: event uuid (uuid v4)
    * @param {number} params.webhookTopicKind: webhook topic kind
+   * @param {number} params.nextRetryAt: Next retry at
+   * @param {number} params.retryCount: Retry count
    * @param {number} params.status: status
    * @param {string} [params.extraData]: extra data
    *
@@ -68,9 +70,9 @@ class PendingWebhook extends ModelBase {
       webhook_topic_kind: params.webhookTopicKind,
       extra_data: params.extraData || null,
       status: params.status,
-      retry_count: 0,
-      lock_id: 0,
-      next_retry_at: 0,
+      retry_count: params.retryCount || 0,
+      lock_id: null,
+      next_retry_at: params.nextRetryAt || 0,
       created_at: time
     };
 
