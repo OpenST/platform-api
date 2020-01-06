@@ -15,7 +15,8 @@ const rootPrefix = '../..',
   blockScannerProvider = require(rootPrefix + '/lib/providers/blockScanner'),
   StateRootSyncRouter = require(rootPrefix + '/lib/workflow/stateRootSync/Router'),
   workflowStepConstants = require(rootPrefix + '/lib/globalConstant/workflowStep'),
-  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic');
+  workflowTopicConstants = require(rootPrefix + '/lib/globalConstant/workflowTopic'),
+  cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 /**
  *
@@ -72,7 +73,7 @@ class StateRootSyncBase extends CronBase {
   async _start() {
     const oThis = this;
 
-    if(coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+    if (coreConstants.SA_ORIGIN_NETWORK_UPGRADE === cronProcessesConstants.networkStatusUpgradeOngoing) {
       logger.step('Cron execution terminated due to Origin Network Update.');
       return;
     }
@@ -99,7 +100,7 @@ class StateRootSyncBase extends CronBase {
    *
    * @private
    */
-   // Rachin: Should this be set chainIds?
+  // Rachin: Should this be set chainIds?
   _setChainId() {
     throw 'sub class to implement.';
   }

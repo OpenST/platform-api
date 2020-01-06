@@ -167,7 +167,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
   async _start() {
     const oThis = this;
 
-    if(coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+    if (coreConstants.SA_ORIGIN_NETWORK_UPGRADE === cronProcessesConstants.networkStatusUpgradeOngoing) {
       logger.step('Cron execution terminated due to Origin Network Update.');
       return;
     }
