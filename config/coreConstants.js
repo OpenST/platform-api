@@ -396,8 +396,8 @@ class CoreConstants {
     return process.env.SA_ETHERSCAN_API_KEY;
   }
 
-  get SA_ORIGIN_NETWORK_UPGRADE(){
-    return Number(process.env.SA_ORIGIN_NETWORK_UPGRADE);
+  get SA_ORIGIN_NETWORK_UPGRADE() {
+    return process.env.SA_ORIGIN_NETWORK_UPGRADE;
   }
 }
 

@@ -96,7 +96,10 @@ class BlockParserExecutable extends PublisherBase {
     // Fetch config strategy.
     await oThis._fetchConfigStrategy();
 
-    if(oThis.isOriginChain && coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
+    if (
+      oThis.isOriginChain &&
+      coreConstants.SA_ORIGIN_NETWORK_UPGRADE === cronProcessesConstants.networkStatusUpgradeOngoing
+    ) {
       logger.step('Cron execution terminated due to Origin Network Update.');
       return;
     }

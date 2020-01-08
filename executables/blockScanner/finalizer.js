@@ -75,8 +75,12 @@ class Finalizer extends PublisherBase {
     // Validate whether chainId exists in the chains table.
     await oThis._validateChainId();
 
-    if(oThis.isOriginChain && coreConstants.SA_ORIGIN_NETWORK_UPGRADE){
-      logger.step('Cron execution terminated due to Origin Network Update.');
+    if (
+      oThis.isOriginChain &&
+      (coreConstants.SA_ORIGIN_NETWORK_UPGRADE === cronProcessesConstants.networkStatusUpgradeOngoing ||
+        coreConstants.SA_ORIGIN_NETWORK_UPGRADE === cronProcessesConstants.networkStatusPostUpgradeCatchUp)
+    ) {
+      logger.step('Cron execution terminated due to Origin Network Update or post network upgrade catch up.');
       return;
     }
 
@@ -314,7 +318,7 @@ class Finalizer extends PublisherBase {
    * @returns {Promise<void>}
    * @private
    */
-  async _onFinalizeSuccess(finalizerResponse){
+  async _onFinalizeSuccess(finalizerResponse) {
     const oThis = this,
       finalizerResponseData = finalizerResponse.data;
 
@@ -324,10 +328,12 @@ class Finalizer extends PublisherBase {
 
       if (processedTransactionHashes.length > 0) {
         // If block is reprocessed then redo things, which needs to be done after transaction is mined
-        if(finalizerResponseData.blockReProcessed){
-          let postTrxMinedObj = new PostTransactionMinedSteps({chainId: oThis.chainId,
+        if (finalizerResponseData.blockReProcessed) {
+          let postTrxMinedObj = new PostTransactionMinedSteps({
+            chainId: oThis.chainId,
             transactionHashes: processedTransactionHashes,
-            transactionReceiptMap: finalizerResponseData.processedTransactionsReceipts});
+            transactionReceiptMap: finalizerResponseData.processedTransactionsReceipts
+          });
 
           await postTrxMinedObj.perform().catch(function(error) {
             // If transaction is not mined properly from here, then balance settler would be blocked for it.
@@ -337,7 +343,8 @@ class Finalizer extends PublisherBase {
 
         if (oThis.isOriginChain) {
           await new PostTxFinalizeSteps({
-            chainId: oThis.chainId, blockNumber: processedBlockNumber,
+            chainId: oThis.chainId,
+            blockNumber: processedBlockNumber,
             transactionHashes: processedTransactionHashes
           }).perform();
         } else {
@@ -363,7 +370,7 @@ class Finalizer extends PublisherBase {
    * @returns {Promise<never>}
    * @private
    */
-  async _delegateTaskAfterBlockProcessed(processedBlockNumber, processedTransactionHashes){
+  async _delegateTaskAfterBlockProcessed(processedBlockNumber, processedTransactionHashes) {
     const oThis = this;
 
     const txFinalizeDelegator = new TxFinalizeDelegator({
