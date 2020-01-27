@@ -170,7 +170,7 @@ class CreateUpdateWebhookBase extends ServiceBase {
     const oThis = this;
 
     if (oThis.endpoint) {
-      oThis.endpointUrl = oThis.endpoint.endpoint.toLowerCase();
+      oThis.endpointUrl = oThis.endpoint.endpoint;
 
       await new WebhookEndpointModel()
         .update({
