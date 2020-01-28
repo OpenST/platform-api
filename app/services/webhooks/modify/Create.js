@@ -38,7 +38,7 @@ class CreateWebhook extends CreateUpdateWebhookBase {
 
     const oThis = this;
 
-    oThis.endpointUrl = params.url.toLowerCase();
+    oThis.endpointUrl = params.url;
   }
 
   /**
