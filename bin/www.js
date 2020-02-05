@@ -102,3 +102,26 @@ function onListening() {
   let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
   logger.log('Listening on ' + bind);
 }
+
+function onTerminationSignal() {
+  logger.info('SIGINT signal received.');
+  logger.log('Closing http server.');
+  server.close(() => {
+    logger.log('Current concurrent connections:', server.connections);
+    logger.log('Http server closing. Bye.');
+    process.exit(0);
+  });
+
+  setTimeout(function() {
+    logger.log('Timeout occurred for server.close(). Current concurrent connections:', server.connections);
+    process.exit(1);
+  }, 60000);
+}
+
+process.on('SIGTERM', function() {
+  onTerminationSignal();
+});
+
+process.on('SIGINT', function() {
+  onTerminationSignal();
+});
