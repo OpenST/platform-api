@@ -54,11 +54,12 @@ class ValidDomain extends ModelBase {
 
     for (let index = 0; index < details.length; index++) {
       const detail = details[index];
-      responseData[detail.token_id] = {
+      responseData[detail.token_id] = responseData[detail.token_id] || [];
+      responseData[detail.token_id].push({
         id: detail.id,
         tokenId: detail.token_id,
         domain: detail.domain
-      };
+      });
     }
 
     return responseHelper.successWithData(responseData);

@@ -27,6 +27,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
   AuthenticateApiByWebhookKeySecret = require(rootPrefix + '/lib/validateApiSignature/ByWebhookKeySecret'),
+  apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 const requestSharedNameSpace = createNamespace('saasApiNameSpace'),
@@ -266,6 +267,18 @@ const appendV2Version = function(req, res, next) {
   next();
 };
 
+/**
+ * Add default signature kind in request params
+ *
+ * @param req
+ * @param res
+ * @param next
+ */
+const addDefaultSignatureKind = function(req, res, next) {
+  req.decodedParams.api_signature_kind = req.decodedParams.api_signature_kind || apiSignature.noAuthKind;
+  next();
+};
+
 // Set worker process title
 process.title = 'Company Restful API node worker';
 
@@ -326,6 +339,8 @@ app.use(
   appendInternalVersion,
   internalRoutes
 );
+
+app.use(addDefaultSignatureKind);
 
 app.use(
   '/' + environmentInfo.urlPrefix + '/v2',
