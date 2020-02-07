@@ -188,7 +188,7 @@ class ApiAuthentication {
       },
       {
         apiName: apiName.verifyTokenDomain,
-        route: '/tokens/:token_id/validate-domain',
+        route: '/tokens/:token_id/validate-domain/',
         supportedSignatureKinds: [apiSignature.noAuthKind]
       }
       // Note: - Urls should end with a slash. Add config above this.

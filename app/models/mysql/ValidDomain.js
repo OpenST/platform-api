@@ -28,7 +28,7 @@ class ValidDomain extends ModelBase {
   constructor() {
     super({ dbName: dbName });
     const oThis = this;
-    oThis.tableName = 'valid_domain';
+    oThis.tableName = 'valid_domains';
   }
 
   /**

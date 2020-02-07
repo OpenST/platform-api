@@ -21,13 +21,18 @@ class VerifyDomain extends ServiceBase {
    * Constructor for VerifyDomain
    *
    * @param params
-   * @param params.tokenId {number} - token id of the client
+   * @param params.token_id {number} - token id of the client
    * @param params.domain {string} - domain to be verified
    *
    * @constructor
    */
   constructor(params) {
     super(params);
+
+    const oThis = this;
+
+    oThis.tokenId = params.token_id;
+    oThis.domain = params.domain;
   }
 
   /**

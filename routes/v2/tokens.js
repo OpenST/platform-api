@@ -32,6 +32,7 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 router.get('/:token_id/validate-domain', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.verifyTokenDomain;
   req.decodedParams.clientConfigStrategyRequired = false;
+  req.decodedParams.token_id = req.params.token_id;
 
   Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/VerifyDomain', 'r_v2_t_2', null, null));
 });
