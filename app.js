@@ -275,6 +275,7 @@ const appendV2Version = function(req, res, next) {
  * @param next
  */
 const addDefaultSignatureKind = function(req, res, next) {
+  req.decodedParams = req.decodedParams || {};
   req.decodedParams.api_signature_kind = req.decodedParams.api_signature_kind || apiSignature.noAuthKind;
   next();
 };
