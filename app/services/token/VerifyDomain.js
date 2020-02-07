@@ -60,7 +60,8 @@ class VerifyDomain extends ServiceBase {
 
     const domainData = response.data[oThis.tokenId];
 
-    for (const row in domainData) {
+    for (let ind = 0; ind < domainData.length; ind++) {
+      const row = domainData[ind];
       if (row.domain === oThis.domain) {
         return responseHelper.successWithData({ valid: true });
       }
