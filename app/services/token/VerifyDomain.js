@@ -8,8 +8,11 @@
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   ValidDomainByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/ValidDomainByTokenId'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
 /**
  * Class to verify token domain
@@ -63,11 +66,18 @@ class VerifyDomain extends ServiceBase {
     for (let ind = 0; ind < domainData.length; ind++) {
       const row = domainData[ind];
       if (row.domain === oThis.domain) {
-        return responseHelper.successWithData({ valid: true });
+        return responseHelper.successWithData({});
       }
     }
 
-    return responseHelper.successWithData({ valid: false });
+    return Promise.reject(
+      responseHelper.error({
+        internal_error_identifier: 'a_s_t_vd_1',
+        api_error_identifier: 'invalid_domain_name',
+        debug_options: {},
+        error_config: errorConfig
+      })
+    );
   }
 }
 

@@ -199,6 +199,11 @@
     "code": "UNPROCESSABLE_ENTITY",
     "message": "Invalid Shard Name"
   },
+  "invalid_domain_name": {
+    "http_code": "422",
+    "code": "UNPROCESSABLE_ENTITY",
+    "message": "Invalid domain Name"
+  },
   "invalid_transaction_hash": {
     "http_code": "422",
     "code": "UNPROCESSABLE_ENTITY",
