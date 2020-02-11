@@ -39,27 +39,27 @@ class ValidDomain extends ModelBase {
   async getDetailsByTokenIds(tokenIds) {
     const oThis = this;
 
-    const details = await oThis
+    const validDomainDetails = await oThis
       .select('*')
       .where({
         token_id: tokenIds
       })
       .fire();
 
-    if (details.length === 0) {
+    if (validDomainDetails.length === 0) {
       return responseHelper.successWithData({});
     }
 
     const responseData = {};
 
-    for (let index = 0; index < details.length; index++) {
-      const detail = details[index];
-      responseData[detail.token_id] = responseData[detail.token_id] || [];
-      responseData[detail.token_id].push({
-        id: detail.id,
-        tokenId: detail.token_id,
-        domain: detail.domain
-      });
+    for (let index = 0; index < validDomainDetails.length; index++) {
+      const validDomainObj = validDomainDetails[index];
+      responseData[validDomainObj.token_id] = responseData[validDomainObj.token_id] || {};
+      responseData[validDomainObj.token_id][validDomainObj.domain.toLowerCase()] = {
+        id: validDomainObj.id,
+        tokenId: validDomainObj.token_id,
+        domain: validDomainObj.domain
+      };
     }
 
     return responseHelper.successWithData(responseData);
