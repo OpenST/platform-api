@@ -12,7 +12,6 @@
     "@openst/openst.js": "0.10.0",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@ostdotcom/base": "^2.0.0",
-    "@ostdotcom/xweb3": "1.0.0",
     "@ostdotcom/cache": "1.0.8-beta.4",
     "@ostdotcom/notification": "1.0.7",
     "@ostdotcom/ost-block-scanner": "1.0.2-beta.3",
@@ -41,7 +40,8 @@
     "nodemailer": "4.7.0",
     "qs": "6.6.0",
     "request-promise": "4.2.2",
-    "sanitize-html": "1.19.3"
+    "sanitize-html": "1.19.3",
+    "slack": "11.0.2"
   },
   "devDependencies": {
     "eslint": "6.5.1",

@@ -26,6 +26,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  webhookRoutes = require(rootPrefix + '/routes/webhooks/index'),
   AuthenticateApiByWebhookKeySecret = require(rootPrefix + '/lib/validateApiSignature/ByWebhookKeySecret'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
@@ -282,6 +283,17 @@ app.use(
   )
 );
 
+app.use(function(req, res, next) {
+  var data = '';
+  req.on('data', function(chunk) {
+    data += chunk;
+  });
+  req.on('end', function() {
+    req.rawBody = data;
+  });
+  next();
+});
+
 // Helmet helps secure Express apps by setting various HTTP headers.
 app.use(helmet());
 
@@ -311,6 +323,12 @@ app.use(
   assignParams,
   internalRoutes
 );
+
+/**
+ * NOTE: SLACK webhooks
+ */
+
+app.use('/webhooks', webhookRoutes);
 
 /*
   The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
