@@ -6,7 +6,9 @@
 
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  redemptionProductConstants = require(rootPrefix + '/lib/globalConstant/redemptionProduct');
 
 // Declare variables.
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -30,6 +32,29 @@ class RedemptionProduct extends ModelBase {
     const oThis = this;
 
     oThis.tableName = 'redemption_products';
+  }
+
+  /**
+   * Insert record.
+   *
+   * @param params
+   * @returns {Promise<*|result>}
+   */
+  async insertRecord(params) {
+    const oThis = this;
+
+    let insertResponse = await oThis
+      .insert({
+        name: params.name,
+        description: params.description,
+        image: params.image || null,
+        denomination: JSON.stringify(params.denomination),
+        expiry_in_days: params.expiry_in_days,
+        status: redemptionProductConstants.invertedStatuses[params.status]
+      })
+      .fire();
+
+    return responseHelper.successWithData(insertResponse.insertId);
   }
 
   /**
