@@ -185,6 +185,11 @@ class ApiAuthentication {
         apiName: apiName.getAllWebhook,
         route: '/webhooks/',
         supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.verifyTokenDomain,
+        route: '/tokens/:token_id/validate-domain/',
+        supportedSignatureKinds: [apiSignature.noAuthKind]
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];

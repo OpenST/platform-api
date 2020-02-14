@@ -1119,6 +1119,19 @@ const v2Signature = {
         validatorMethod: 'validateMysqlPaginationIdentifier'
       }
     ]
+  },
+  [apiName.verifyTokenDomain]: {
+    mandatory: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'domain',
+        validatorMethod: 'validateString'
+      }
+    ],
+    optional: []
   }
 };
 
