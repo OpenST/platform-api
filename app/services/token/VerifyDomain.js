@@ -14,6 +14,8 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
+const url = require('url');
+
 /**
  * Class to verify token domain
  *
@@ -47,7 +49,19 @@ class VerifyDomain extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
+    await oThis._validateAndSanitize();
+
     return oThis._verifyDomainForToken();
+  }
+
+  /**
+   * Validate and sanitize
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _validateAndSanitize() {
+    const oThis = this;
+    oThis.domain = url.parse(oThis.domain).hostname;
   }
 
   /**
@@ -69,7 +83,7 @@ class VerifyDomain extends ServiceBase {
 
     return Promise.reject(
       responseHelper.error({
-        internal_error_identifier: 'a_s_t_vd_1',
+        internal_error_identifier: 'a_s_t_vd_2',
         api_error_identifier: 'invalid_domain_name',
         debug_options: {},
         error_config: errorConfig
