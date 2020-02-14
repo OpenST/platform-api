@@ -99,7 +99,7 @@ class GetRedemptionProductById extends ServiceBase {
     oThis.tokenRedemptionProductDetails = response.data[oThis.tokenRedemptionProductId];
 
     // If token id from signature is not equal to token redemption table.
-    if (oThis.tokenRedemptionProductDetails.tokenId !== oThis.tokenId) {
+    if (oThis.tokenRedemptionProductDetails.tokenId != oThis.tokenId) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbd_2',
@@ -165,8 +165,8 @@ class GetRedemptionProductById extends ServiceBase {
       id: oThis.tokenRedemptionProductDetails.id,
       name: oThis.tokenRedemptionProductDetails.name || oThis.redemptionProductDetails.name,
       description: oThis.tokenRedemptionProductDetails.description || oThis.redemptionProductDetails.description,
-      images: oThis.tokenRedemptionProductDetails.images || oThis.redemptionProductDetails.images,
-      denominations: oThis.tokenRedemptionProductDetails.denominations || oThis.redemptionProductDetails.denominations,
+      image: oThis.tokenRedemptionProductDetails.image || oThis.redemptionProductDetails.image,
+      denomination: oThis.tokenRedemptionProductDetails.denomination || oThis.redemptionProductDetails.denomination,
       expiryInDays: oThis.tokenRedemptionProductDetails.expiryInDays || oThis.redemptionProductDetails.expiryInDays,
       status: oThis.tokenRedemptionProductDetails.status || oThis.redemptionProductDetails.status,
       uts: oThis.tokenRedemptionProductDetails.uts || oThis.redemptionProductDetails.uts

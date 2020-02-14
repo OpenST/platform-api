@@ -9,6 +9,7 @@ const rootPrefix = '../../..',
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  urlHelper = require(rootPrefix + '/lib/redemption/UrlHelper'),
   redemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/redemptionProducts');
 
 // Declare variables.
@@ -111,6 +112,10 @@ class RedemptionProduct extends ModelBase {
 
     for (let index = 0; index < dbRows.length; index++) {
       response[dbRows[index].id] = RedemptionProduct._formatDbData(dbRows[index]);
+
+      if (response[dbRows[index].id].image) {
+        response[dbRows[index].id].image = urlHelper.createLongResolutions(response[dbRows[index].id].image);
+      }
     }
 
     return responseHelper.successWithData(response);
