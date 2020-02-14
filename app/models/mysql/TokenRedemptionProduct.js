@@ -152,6 +152,18 @@ class TokenRedemptionProduct extends ModelBase {
 
     return responseHelper.successWithData(productIds);
   }
+
+  /**
+   * Flush cache.
+   *
+   * @returns {Promise<void>}
+   */
+  static async flushCache(params) {
+    const promisesArray = [];
+
+    // TODO: Add clear cache here.
+    await Promise.all(promisesArray);
+  }
 }
 
 module.exports = TokenRedemptionProduct;
