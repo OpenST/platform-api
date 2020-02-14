@@ -270,6 +270,16 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.personalSignKind]
       },
       {
+        apiName: apiName.redemptionList,
+        route: '/users/:user_id/redemptions/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.redemptionGet,
+        route: '/users/:user_id/redemptions/:redemption_id',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
         apiName: apiName.createWebhook,
         route: '/webhooks/',
         supportedSignatureKinds: [apiSignature.hmacKind]

@@ -97,7 +97,7 @@ class UserRecoveryBase extends ServiceBase {
 
     await oThis._performRecoveryOperation();
 
-    return await oThis._returnResponse();
+    return oThis._returnResponse();
   }
 
   /**

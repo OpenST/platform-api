@@ -26,36 +26,36 @@ ic = new InstanceComposer(config)
 
 require('./app/services/user/Create');
 CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateUser');
-asso = new CreateUser({client_id:1, token_id: 1, kind: 'user'});
+asso = new CreateUser({client_id:10000, token_id: 1000, kind: 'user'});
 asso.perform().then(console.log);
 
 require('./app/services/device/Create');
 CreateDevice = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateDevice');
-asso = new CreateDevice({client_id:1, user_id: '61e7a797-f7e4-4760-bd6d-2516b6b1e7ff', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c'});
+asso = new CreateDevice({client_id:10000, user_id: 'cda9e2e4-64f9-49c8-af5f-23f0a0b9dfa9', address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', api_signer_address: '0x27888C1b03E9D00aF3CbbE470442f8221e1E940c'});
 asso.perform().then(console.log);
 
 require('./app/services/user/CreateTokenHolder');
 CreateTokenHolder = ic.getShadowedClassFor(coreConstants.icNameSpace, 'CreateTokenHolder');
-asso = new CreateTokenHolder({client_id:1, user_id: '61e7a797-f7e4-4760-bd6d-2516b6b1e7ff', device_address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', recovery_owner_address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', session_addresses: ['0x595e45045c31438b95f9e38965d88de8f8879676'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
+asso = new CreateTokenHolder({client_id:10000, user_id: 'cda9e2e4-64f9-49c8-af5f-23f0a0b9dfa9', device_address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', recovery_owner_address: '0x734D3f5E8E51C40dD5e166FdA7b8329655d49eF6', session_addresses: ['0x595e45045c31438b95f9e38965d88de8f8879676'], expiration_height: '100000000', spending_limit: '10000000000000000000000'});
 asso.perform().then(console.log);
 
 a = require('./lib/executeTransactionManagement/FundExTxWorker.js')
-b = new a({tokenId: 1001, chainId: 2000, exTxWorkerAddresses: ['0xb953bf26c311cf1f6d07091f5db26558140176e7']})
+b = new a({tokenId: 10000, chainId: 2000, exTxWorkerAddresses: ['0xb953bf26c311cf1f6d07091f5db26558140176e7']})
 b.perform().then(console.log)
 
 
 ForSession = require('./lib/nonce/get/ForSession');
-asso = new ForSession({tokenId: '1063', chainId:200, address: '0x2db56678b1f95272e55650bddbcf1ee32ab2b027', userId: '053bbb8a-534a-44ef-8af1-cec9084be8f9'});
+asso = new ForSession({tokenId: '1000', chainId:2000, address: '0x595e45045c31438b95f9e38965d88de8f8879676', userId: 'cda9e2e4-64f9-49c8-af5f-23f0a0b9dfa9'});
 asso.getNonce().then(console.log);
 
 require('./lib/nonce/contract/TokenHolder.js');
 CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenHolderNonce');
-asso = new CreateUser({auxChainId: 199, sessionAddress:'0x521e1488888d026c982ef0b871cbb8bbc0cba760', tokenId: 1063, userId: '0209c1a0-e4e7-446c-a1cd-df9acd0e45a3'});
+asso = new CreateUser({auxChainId: 2000, sessionAddress:'0x595e45045c31438b95f9e38965d88de8f8879676', tokenId: 1000, userId: 'cda9e2e4-64f9-49c8-af5f-23f0a0b9dfa9'});
 asso.perform().then(console.log);
 
 require('./lib/setup/economy/VerifySetup');
 EconomySetupVerifier = ic.getShadowedClassFor(coreConstants.icNameSpace, 'EconomySetupVerifier');
-asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1003, stakeCurrencyContractAddress: '0xdbb1543f2677967eb1a63ebe4ea15b5c4f971a6c'});
+asso = new EconomySetupVerifier({originChainId: 3, auxChainId: 2000, tokenId: 1000, stakeCurrencyContractAddress: '0xdbb1543f2677967eb1a63ebe4ea15b5c4f971a6c'});
 asso.perform().then(console.log).catch(console.log);
 
 

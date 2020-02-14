@@ -21,7 +21,8 @@ const rootPrefix = '../..',
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList'),
-  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner');
+  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner'),
+  RedemptionFormatter = require(rootPrefix + '/lib/formatter/entity/Redemption');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -580,6 +581,52 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
 
   return Promise.resolve(
     routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v2_u_23', null, dataFormatterFunc)
+  );
+});
+
+router.post('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.redemptionList;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const redemptions = serviceResponse.data[resultType.userRedemptions],
+      formatterRedemptions = [];
+
+    for (let ind = 0; ind < redemptions.length; ind++) {
+      const formattedRsp = new RedemptionFormatter(redemptions[ind]).perform();
+      formatterRedemptions.push(formattedRsp);
+    }
+
+    serviceResponse.data = {
+      result_type: resultType.userRedemptions,
+      [resultType.userRedemptions]: formatterRedemptions
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'UserRedemptionList', 'r_v2_u_24', null, dataFormatterFunc)
+  );
+});
+
+router.post('/:user_id/redemptions/:redemption_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.redemptionGet;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.redemption_id = req.params.redemption_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const redemption = serviceResponse.data[resultType.userRedemption],
+      formattedRsp = new RedemptionFormatter(redemption).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.userRedemption,
+      [resultType.userRedemption]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'UserRedemptionList', 'r_v2_u_25', null, dataFormatterFunc)
   );
 });
 
