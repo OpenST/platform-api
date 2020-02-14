@@ -609,6 +609,7 @@ router.post('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, functio
   );
 });
 
+// TODO - change the var name to user_redemption_uuid
 router.post('/:user_id/redemptions/:redemption_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.redemptionGet;
   req.decodedParams.user_id = req.params.user_id;
@@ -626,7 +627,7 @@ router.post('/:user_id/redemptions/:redemption_id', sanitizer.sanitizeDynamicUrl
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'UserRedemptionList', 'r_v2_u_25', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'UserRedemptionGet', 'r_v2_u_25', null, dataFormatterFunc)
   );
 });
 

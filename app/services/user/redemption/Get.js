@@ -21,7 +21,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/RedemptionsById');
  *
  * @class GetUserRedemption
  */
-class GetUserRedemption extends RedemptionBase {
+class UserRedemptionGet extends RedemptionBase {
   /**
    * Constructor to fetch user redemption list
    *
@@ -100,6 +100,6 @@ class GetUserRedemption extends RedemptionBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(GetUserRedemption, coreConstants.icNameSpace, 'UserRedemptionGet');
+InstanceComposer.registerAsShadowableClass(UserRedemptionGet, coreConstants.icNameSpace, 'UserRedemptionGet');
 
 module.exports = {};
