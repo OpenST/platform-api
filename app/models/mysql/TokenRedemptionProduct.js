@@ -69,6 +69,30 @@ class TokenRedemptionProduct extends ModelBase {
   }
 
   /**
+   * Insert record.
+   *
+   * @param params
+   * @returns {Promise<*|result>}
+   */
+  async insertRecord(params) {
+    const oThis = this;
+
+    let insertResponse = await oThis
+      .insert({
+        token_id: params.tokenId,
+        redemption_product_id: params.redemptionProductId,
+        name: params.name || null,
+        description: params.description || null,
+        image: params.image || null,
+        sequence_number: params.sequenceNumber,
+        status: tokenRedemptionProductsConstants.invertedStatuses[params.status]
+      })
+      .fire();
+
+    return responseHelper.successWithData(insertResponse.insertId);
+  }
+
+  /**
    * Fetch redemption product details by ids.
    *
    * @param {array<string/number>} ids
