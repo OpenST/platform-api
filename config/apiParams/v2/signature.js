@@ -1028,6 +1028,46 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.redemptionList]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.redemptionGet]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'redemption_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: []
+  },
+
   [apiName.createWebhook]: {
     mandatory: [
       {

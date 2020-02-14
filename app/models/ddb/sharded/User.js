@@ -578,7 +578,7 @@ class User extends Base {
       responseData[pagination.nextPagePayloadKey] = {
         [pagination.paginationIdentifierKey]: {
           lastEvaluatedKey: response.data.LastEvaluatedKey,
-          page: page + 1, //NOTE: page number is used for pagination cache. Not for client communication or query
+          page: page + 1, // NOTE: page number is used for pagination cache. Not for client communication or query
           limit: limit
         }
       };
