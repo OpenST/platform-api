@@ -8,7 +8,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  RedemptionBase = require(rootPrefix + '/app/services/user/redemption/Base'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
@@ -21,7 +21,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/RedemptionsById');
  *
  * @class GetUserRedemption
  */
-class UserRedemptionGet extends RedemptionBase {
+class UserRedemptionGet extends ServiceBase {
   /**
    * Constructor to fetch user redemption list
    *
@@ -29,7 +29,7 @@ class UserRedemptionGet extends RedemptionBase {
    * @param {number} params.client_id
    * @param {number} params.token_id
    * @param {number} params.user_id
-   * @param {number} params.redemption_id
+   * @param {number} params.user_redemption_uuid
    *
    * @constructor
    */
@@ -41,7 +41,7 @@ class UserRedemptionGet extends RedemptionBase {
     oThis.tokenId = params.token_id;
 
     oThis.userId = params.user_id;
-    oThis.redemptionUuid = params.redemption_id;
+    oThis.userRedemptionUuid = params.user_redemption_uuid;
     oThis.userRedemption = {};
   }
 
@@ -55,10 +55,6 @@ class UserRedemptionGet extends RedemptionBase {
     const oThis = this;
 
     await oThis._validateTokenStatus();
-
-    await oThis._setTokenShardDetails();
-
-    await oThis._setCurrentUserData();
 
     await oThis._fetchRedemption();
 
@@ -77,7 +73,7 @@ class UserRedemptionGet extends RedemptionBase {
     const RedemptionsByIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionsById');
 
     const response = await new RedemptionsByIdCache({
-      uuids: [oThis.redemptionUuid]
+      uuids: [oThis.userRedemptionUuid]
     }).fetch();
 
     oThis.userRedemption = response.data.redemptions[0];

@@ -8,7 +8,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  RedemptionBase = require(rootPrefix + '/app/services/user/redemption/Base'),
+  ServiceBase = require(rootPrefix + '/app/services/Base'),
   UserRedemptionModel = require(rootPrefix + '/app/models/mysql/UserRedemption'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -24,7 +24,7 @@ require(rootPrefix + '/lib/cacheManagement/chainMulti/RedemptionsById');
  *
  * @class UserRedemptionList
  */
-class UserRedemptionList extends RedemptionBase {
+class UserRedemptionList extends ServiceBase {
   /**
    * Constructor to fetch user redemption list
    *
@@ -70,10 +70,6 @@ class UserRedemptionList extends RedemptionBase {
     await oThis._validateAndSanitizeParams();
 
     await oThis._validateTokenStatus();
-
-    await oThis._setTokenShardDetails();
-
-    await oThis._setCurrentUserData();
 
     await oThis._setRedemptionUuids();
 

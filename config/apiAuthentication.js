@@ -276,7 +276,7 @@ class ApiAuthentication {
       },
       {
         apiName: apiName.redemptionGet,
-        route: '/users/:user_id/redemptions/:redemption_id',
+        route: '/users/:user_id/redemptions/:user_redemption_uuid',
         supportedSignatureKinds: [apiSignature.personalSignKind]
       },
       {

@@ -1049,6 +1049,10 @@ const v2Signature = {
   [apiName.redemptionGet]: {
     mandatory: [
       {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
         parameter: 'token_id',
         validatorMethod: 'validateNonZeroInteger'
       },
@@ -1057,7 +1061,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'redemption_id',
+        parameter: 'user_redemption_uuid',
         validatorMethod: 'validateUuidV4'
       }
     ],
