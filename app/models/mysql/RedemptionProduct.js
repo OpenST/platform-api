@@ -82,7 +82,7 @@ class RedemptionProduct extends ModelBase {
         image: params.image || null,
         denomination: JSON.stringify(params.denomination),
         expiry_in_days: params.expiry_in_days,
-        status: redemptionProductConstants.invertedStatuses[params.status]
+        status: redemptionProductsConstants.invertedStatuses[params.status]
       })
       .fire();
 
@@ -121,7 +121,16 @@ class RedemptionProduct extends ModelBase {
    *
    * @returns {Promise<void>}
    */
-  static async flushCache(params) {}
+  static async flushCache(params) {
+    const promisesArray = [];
+
+    if (params.ids) {
+      const RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct');
+      promisesArray.push(new RedemptionProductCache({ ids: [params.ids] }).clear());
+    }
+
+    await Promise.all(promisesArray);
+  }
 }
 
 module.exports = RedemptionProduct;
