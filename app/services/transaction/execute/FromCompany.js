@@ -347,6 +347,16 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
 
     return addressPrivateKeyCacheFetchRsp.data['private_key_d'];
   }
+
+  /**
+   * Custom validations over executable data
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _customValidationsOnExecutableData() {
+    // do nothing as all validations are already done.
+  }
 }
 
 InstanceComposer.registerAsShadowableClass(ExecuteCompanyToUserTx, coreConstants.icNameSpace, 'ExecuteCompanyToUserTx');

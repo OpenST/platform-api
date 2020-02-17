@@ -23,6 +23,7 @@ const rootPrefix = '../../../..',
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
+require(rootPrefix + '/lib/redemption/ValidateUserRedemptionTx');
 
 /**
  * Class
@@ -40,6 +41,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    * @param {Number} params.signature
    * @param {Number} params.signer
    * @param {Object} params.token
+   * @param {Object} params.redemption_details
    *
    * @constructor
    */
@@ -54,6 +56,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
+    oThis.redemptionDetails = params.redemption_details;
 
     oThis.sessionData = null;
   }
@@ -255,6 +258,28 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         sessionData: oThis.sessionData
       });
     }
+  }
+
+  /**
+   * Custom validations over executable data
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _customValidationsOnExecutableData() {
+    // In this we will apply further validations on user to company transactions like Redemptions
+    const oThis = this;
+
+    const ValidateUserRedemptionTx = oThis
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'ValidateUserRedemptionTx');
+    await new ValidateUserRedemptionTx({
+      clientId: oThis.clientId,
+      tokenId: oThis.tokenId,
+      redemptionDetails: oThis.redemptionDetails,
+      transfersData: oThis.estimatedTransfers,
+      metaProperty: oThis.metaProperty
+    }).perform();
   }
 }
 
