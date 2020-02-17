@@ -511,6 +511,26 @@ const v2ErrorConfig = {
     parameter: 'pagination_identifier',
     code: 'invalid',
     message: 'Please change the query as more than 10000 records are not supported.'
+  },
+  invalid_redemption_product_name: {
+    parameter: 'name',
+    code: 'invalid',
+    message: 'Invalid redemption product name .'
+  },
+  invalid_redemption_product_description: {
+    parameter: 'description',
+    code: 'invalid',
+    message: 'Invalid redemption product description. Description length should be less than 1000.'
+  },
+  invalid_redemption_product_denomination: {
+    parameter: 'denomination',
+    code: 'invalid',
+    message: 'Invalid redemption product denomination.'
+  },
+  invalid_redemption_product_instructions: {
+    parameter: 'denomination',
+    code: 'invalid',
+    message: 'Invalid redemption product instructions.'
   }
 };
 

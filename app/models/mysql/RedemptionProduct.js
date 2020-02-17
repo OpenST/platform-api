@@ -83,7 +83,7 @@ class RedemptionProduct extends ModelBase {
         instructions: JSON.stringify(params.instructions),
         image: params.image || null,
         denomination: JSON.stringify(params.denomination),
-        expiry_in_days: params.expiry_in_days,
+        expiry_in_days: params.expiry_in_days || redemptionProductsConstants.defaultExpiryInDays(),
         status: redemptionProductsConstants.invertedStatuses[params.status]
       })
       .fire();
