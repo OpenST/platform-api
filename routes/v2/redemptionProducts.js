@@ -4,14 +4,14 @@ const express = require('express'),
 const rootPrefix = '../..',
   routeHelper = require(rootPrefix + '/routes/helper'),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
-  UserFormatter = require(rootPrefix + '/lib/formatter/entity/User'),
-  UserListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserList'),
+  RedemptionProductFormatter = require(rootPrefix + '/lib/formatter/entity/RedemptionProduct'),
+  RedemptionProductListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/RedemptionProductList'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 // Following require(s) for registering into instance composer
-require(rootPrefix + '/app/services/redemptionProduct/GetList');
-require(rootPrefix + '/app/services/redemptionProduct/GetByProductId');
+require(rootPrefix + '/app/services/redemption/product/GetById');
+require(rootPrefix + '/app/services/redemption/product/GetList');
 
 /* Get all redemption products*/
 router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -19,37 +19,46 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let users = serviceResponse.data[resultType.users],
+    let redeemableSkus = serviceResponse.data[resultType.redeemableSkus],
       formattedRedemptionProducts = [],
-      metaPayload = await new UserListMetaFormatter(serviceResponse.data).perform().data;
+      metaPayload = await new RedemptionProductListMetaFormatter(serviceResponse.data).perform().data;
 
-    for (let index in users) {
-      formattedRedemptionProducts.push(await new UserFormatter(users[index]).perform().data);
+    for (let index in redeemableSkus) {
+      formattedRedemptionProducts.push(await new RedemptionProductFormatter(redeemableSkus[index]).perform().data);
     }
 
     serviceResponse.data = {
-      result_type: resultType.redemptionProducts,
-      [resultType.redemptionProducts]: formattedRedemptionProducts,
+      result_type: resultType.redeemableSkus,
+      [resultType.redeemableSkus]: formattedRedemptionProducts,
       [resultType.meta]: metaPayload
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetUserList', 'r_v2_rp_1', null, dataFormatterFunc));
+  Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetRedemptionProductList', 'r_v2_rp_1', null, dataFormatterFunc)
+  );
 });
 
 /* Get redemption product by product id*/
-router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
-  req.decodedParams.apiName = apiName.getRedemptionProducts;
+router.get('/:redeemable_sku_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.getRedemptionProduct;
   req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.redemption_product_id = req.params.redeemable_sku_id; // The redeemable_sku_id from URL params
 
   const dataFormatterFunc = async function(serviceResponse) {
+    let formattedRedemptionProduct = await new RedemptionProductFormatter(
+      serviceResponse.data[resultType.redeemableSku]
+    ).perform().data;
+
     serviceResponse.data = {
-      result_type: resultType.redemptionProduct,
-      [resultType.redemptionProduct]: serviceResponse.data[resultType.redemptionProduct]
+      result_type: resultType.redeemableSku,
+      [resultType.redeemableSku]: formattedRedemptionProduct
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetUserList', 'r_v2_rp_2', null, dataFormatterFunc));
+  Promise.resolve(
+    routeHelper.perform(req, res, next, 'GetRedemptionProductById', 'r_v2_rp_2', null, dataFormatterFunc)
+  );
 });
 
 module.exports = router;

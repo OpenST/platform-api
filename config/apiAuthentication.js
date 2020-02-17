@@ -185,6 +185,16 @@ class ApiAuthentication {
         apiName: apiName.getAllWebhook,
         route: '/webhooks/',
         supportedSignatureKinds: [apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.getRedemptionProduct,
+        route: '/redeemable-skus/:redeemable_sku_id',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.getRedemptionProductsList,
+        route: '/redeemable-skus/',
+        supportedSignatureKinds: [apiSignature.personalSignKind]
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];

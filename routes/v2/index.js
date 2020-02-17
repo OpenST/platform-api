@@ -19,6 +19,6 @@ router.use('/tokens', tokenRoutes);
 router.use('/rules', rulesRoutes);
 router.use('/base-tokens', baseTokenRoutes);
 router.use('/webhooks', webhookRoutes);
-router.use('/redemption-products', redemptionProductRoutes);
+router.use('/redeemable-skus', redemptionProductRoutes);
 
 module.exports = router;
