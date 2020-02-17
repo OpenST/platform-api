@@ -55,7 +55,7 @@ class GetRedemptionProductById extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._fetchTokenDetails();
+    await oThis._validateTokenStatus();
 
     await oThis._fetchTokenRedemptionProductDetails();
 
@@ -169,7 +169,7 @@ class GetRedemptionProductById extends ServiceBase {
       denomination: oThis.tokenRedemptionProductDetails.denomination || oThis.redemptionProductDetails.denomination,
       expiryInDays: oThis.tokenRedemptionProductDetails.expiryInDays || oThis.redemptionProductDetails.expiryInDays,
       status: oThis.tokenRedemptionProductDetails.status || oThis.redemptionProductDetails.status,
-      uts: oThis.tokenRedemptionProductDetails.uts || oThis.redemptionProductDetails.uts
+      uts: oThis.tokenRedemptionProductDetails.updatedTimestamp || oThis.redemptionProductDetails.updatedTimestamp
     };
 
     return responseHelper.successWithData({

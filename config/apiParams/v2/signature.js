@@ -1159,6 +1159,39 @@ const v2Signature = {
         validatorMethod: 'validateMysqlPaginationIdentifier'
       }
     ]
+  },
+
+  [apiName.getRedemptionProduct]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'redemption_product_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getRedemptionProductsList]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateMysqlPaginationIdentifier'
+      }
+    ]
   }
 };
 

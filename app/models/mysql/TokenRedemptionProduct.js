@@ -156,7 +156,7 @@ class TokenRedemptionProduct extends ModelBase {
       productIds.push(dbRows[index].id);
     }
 
-    return responseHelper.successWithData(productIds);
+    return responseHelper.successWithData({ tokenId: tokenId, productIds: productIds });
   }
 
   /**
