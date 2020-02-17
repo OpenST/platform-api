@@ -80,6 +80,7 @@ class RedemptionProduct extends ModelBase {
       .insert({
         name: params.name,
         description: params.description,
+        instructions: JSON.stringify(params.instructions),
         image: params.image || null,
         denomination: JSON.stringify(params.denomination),
         expiry_in_days: params.expiry_in_days,
