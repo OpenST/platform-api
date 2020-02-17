@@ -76,7 +76,7 @@ class UserRedemptionGet extends ServiceBase {
       uuids: [oThis.userRedemptionUuid]
     }).fetch();
 
-    oThis.userRedemption = response.data.redemptions[0];
+    oThis.userRedemption = response.data.redemptions[oThis.userRedemptionUuid];
   }
 
   /**

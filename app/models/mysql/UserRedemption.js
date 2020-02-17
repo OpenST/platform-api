@@ -92,21 +92,21 @@ class UserRedemptionModel extends ModelBase {
   async fetchByUuids(uuids) {
     const oThis = this;
 
-    const Rows = oThis
+    const Rows = await oThis
       .select('*')
       .where({
         uuid: uuids
       })
       .fire();
 
-    const redemptions = [];
+    const redemptions = {};
 
     for (let ind = 0; ind < Rows.length; ind++) {
-      const formattedRow = oThis.formatDbData(Rows[ind]);
-      redemptions.push(formattedRow);
+      let formattedRow = oThis.formatDbData(Rows[ind]);
+      redemptions[formattedRow.uuid] = formattedRow;
     }
 
-    return responseHelper.successWithData({ redemptions: redemptions });
+    return responseHelper.successWithData(redemptions);
   }
 }
 

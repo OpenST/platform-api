@@ -58,6 +58,9 @@ require(rootPrefix + '/app/services/session/multisigOperation/Logout');
 
 require(rootPrefix + '/app/services/recoveryOwner/get/ByRecoveryOwnerAddress');
 
+require(rootPrefix + '/app/services/user/redemption/Get');
+require(rootPrefix + '/app/services/user/redemption/GetList');
+
 /* Create user*/
 router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.createUser;

@@ -191,7 +191,14 @@ class UserRedemptionList extends ServiceBase {
       uuids: oThis.redemptionUuids
     }).fetch();
 
-    oThis.userRedemptions = response.data.redemptions;
+    let redemptionsMap = response.data;
+    for (let i = 0; i < oThis.redemptionUuids.length; i++) {
+      let redemptionDetail = redemptionsMap[oThis.redemptionUuids[i]];
+
+      if (redemptionDetail) {
+        oThis.userRedemptions.push(redemptionDetail);
+      }
+    }
   }
 
   /**
