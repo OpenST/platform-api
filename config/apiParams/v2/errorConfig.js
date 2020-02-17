@@ -526,11 +526,6 @@ const v2ErrorConfig = {
     parameter: 'denomination',
     code: 'invalid',
     message: 'Invalid redemption product denomination.'
-  },
-  invalid_redemption_product_instructions: {
-    parameter: 'denomination',
-    code: 'invalid',
-    message: 'Invalid redemption product instructions.'
   }
 };
 
