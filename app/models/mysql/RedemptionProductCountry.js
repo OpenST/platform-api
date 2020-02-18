@@ -7,6 +7,7 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
   coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Declare variables.
@@ -56,6 +57,34 @@ class RedemptionProductCountry extends ModelBase {
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
+  }
+
+  /**
+   * Fetch redemption product countries data for given productId and countryId.
+   *
+   * @param productId
+   * @param countryId
+   * @returns {Promise<void>}
+   * @private
+   */
+  async fetchDetailsByProductIdAndCountryId(productId, countryId) {
+    const oThis = this;
+
+    let response = {};
+
+    const dbRows = await oThis
+      .select('*')
+      .where({
+        redemption_product_id: productId,
+        country_id: countryId
+      })
+      .fire();
+
+    if (dbRows.length > 0) {
+      response = RedemptionProductCountry._formatDbData(dbRows[0]);
+    }
+
+    return responseHelper.successWithData(response);
   }
 }
 
