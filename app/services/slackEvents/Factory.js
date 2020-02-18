@@ -124,16 +124,27 @@ class SlackEventFactory extends ServiceBase {
 
     let eventResponse = null;
 
-    switch (oThis.eventType) {
-      case slackConstants.fulfilRedemptionEventType: {
-        // const ApproveUserEvent = require(rootPrefix + '/app/services/slackEvents/ApproveUser');
-        // eventResponse = await new ApproveUserEvent({
-        //   eventDataPayload: oThis.eventData.payload,
-        //   eventParams: oThis.eventParams,
-        //   currentAdmin: oThis.currentAdmin
-        // }).perform();
+    console.log('HERE==================', oThis.eventData, oThis.eventParams, oThis.currentAdmin);
 
-        console.log('HERE==================', oThis.eventData, oThis.eventParams, oThis.currentAdmin);
+    switch (oThis.eventType) {
+      case slackConstants.fulfillRedemptionEventType: {
+        const FulfillRedemptionEvent = require(rootPrefix + '/app/services/slackEvents/FulfillRedemption');
+        eventResponse = await new FulfillRedemptionEvent({
+          eventDataPayload: oThis.eventData.payload,
+          eventParams: oThis.eventParams,
+          currentAdmin: oThis.currentAdmin
+        }).perform();
+
+        break;
+      }
+      case slackConstants.cancelRedemptionEventType: {
+        const CancelRedemptionEvent = require(rootPrefix + '/app/services/slackEvents/CancelRedemption');
+        eventResponse = await new CancelRedemptionEvent({
+          eventDataPayload: oThis.eventData.payload,
+          eventParams: oThis.eventParams,
+          currentAdmin: oThis.currentAdmin
+        }).perform();
+
         break;
       }
       default: {
