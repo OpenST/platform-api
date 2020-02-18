@@ -512,6 +512,27 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Please change the query as more than 10000 records are not supported.'
   },
+  invalid_redemption_product_id: {
+    parameter: 'redemption_details',
+    code: 'invalid',
+    message: 'Invalid parameter redemption_details redeemable_sku_id. Please try redemption for active sku.'
+  },
+  invalid_redemption_amount: {
+    parameter: 'redemption_details',
+    code: 'invalid',
+    message: 'Invalid parameter redemption_details amount. Amount must have been changed as per current prices.'
+  },
+  invalid_redemption_currency: {
+    parameter: 'redemption_details',
+    code: 'invalid',
+    message: 'Invalid parameter redemption_details currency. Currency must be in our list of applicable currencies.'
+  },
+  invalid_redemption_transfers: {
+    parameter: 'redemption_details',
+    code: 'invalid',
+    message:
+      'Invalid parameter redemption_details. For redemptions only one transfer can happen between user and company.'
+  },
   invalid_redemption_product_name: {
     parameter: 'name',
     code: 'invalid',

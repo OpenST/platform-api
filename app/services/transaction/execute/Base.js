@@ -163,45 +163,49 @@ class ExecuteTxBase extends ServiceBase {
 
     logger.debug('execute_tx_step_: 4', oThis.transactionUuid);
 
-    await oThis._setSessionAddress();
+    await oThis._customValidationsOnExecutableData();
 
     logger.debug('execute_tx_step_: 5', oThis.transactionUuid);
 
-    await oThis._setNonce();
+    await oThis._setSessionAddress();
 
     logger.debug('execute_tx_step_: 6', oThis.transactionUuid);
 
-    oThis._setExecutableTxData();
+    await oThis._setNonce();
 
     logger.debug('execute_tx_step_: 7', oThis.transactionUuid);
 
-    await oThis._setSignature();
+    oThis._setExecutableTxData();
 
     logger.debug('execute_tx_step_: 8', oThis.transactionUuid);
 
-    await oThis._verifySessionSpendingLimit();
+    await oThis._setSignature();
 
     logger.debug('execute_tx_step_: 9', oThis.transactionUuid);
 
-    await oThis._createTransactionMeta();
+    await oThis._verifySessionSpendingLimit();
 
     logger.debug('execute_tx_step_: 10', oThis.transactionUuid);
 
-    await oThis._performPessimisticDebit();
+    await oThis._createTransactionMeta();
 
     logger.debug('execute_tx_step_: 11', oThis.transactionUuid);
 
-    await oThis._createPendingTransaction();
+    await oThis._performPessimisticDebit();
 
     logger.debug('execute_tx_step_: 12', oThis.transactionUuid);
 
-    await oThis._publishToRMQ();
+    await oThis._createPendingTransaction();
 
     logger.debug('execute_tx_step_: 13', oThis.transactionUuid);
 
+    await oThis._publishToRMQ();
+
+    logger.debug('execute_tx_step_: 14', oThis.transactionUuid);
+
     await oThis._sendPreprocessorWebhook();
 
-    logger.debug('Final_Step_execute_tx_step_: 14', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
+    logger.debug('Final_Step_execute_tx_step_: 15', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -903,6 +907,16 @@ class ExecuteTxBase extends ServiceBase {
    * @private
    */
   async _verifySessionSpendingLimit() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Custom validations over executable data
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _customValidationsOnExecutableData() {
     throw new Error('Sub-class to implement.');
   }
 }
