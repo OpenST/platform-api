@@ -43,11 +43,11 @@ class FulfillRedemption extends SlackEventBase {
       current_admin: oThis.currentAdmin
     };
 
-    const serviceResponse = await new FulfillRedemptionService(serviceParams).perform();
-
-    if (serviceResponse.isFailure()) {
-      oThis._setError(serviceResponse);
-    }
+    // const serviceResponse = await new FulfillRedemptionService(serviceParams).perform();
+    //
+    // if (serviceResponse.isFailure()) {
+    //   oThis._setError(serviceResponse);
+    // }
   }
 
   /**

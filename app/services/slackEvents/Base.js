@@ -1,5 +1,5 @@
 const rootPrefix = '../../..',
-  HttpLibrary = require(rootPrefix + '/lib/HttpRequest'),
+  HttpLibrary = require(rootPrefix + '/lib/providers/HttpRequest'),
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -7,7 +7,8 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions');
 
-const errorConfig = basicHelper.fetchErrorConfig(apiVersions.v1);
+//TODO:: what should be the error version file in use here
+const errorConfig = basicHelper.fetchErrorConfig(apiVersions.v2);
 
 /**
  * Class for slack related webhooks events base.

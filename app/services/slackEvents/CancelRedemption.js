@@ -43,11 +43,11 @@ class CancelRedemption extends SlackEventBase {
       current_admin: oThis.currentAdmin
     };
 
-    const serviceResponse = await new CancelRedemptionService(serviceParams).perform();
-
-    if (serviceResponse.isFailure()) {
-      oThis._setError(serviceResponse);
-    }
+    // const serviceResponse = await new CancelRedemptionService(serviceParams).perform();
+    //
+    // if (serviceResponse.isFailure()) {
+    //   oThis._setError(serviceResponse);
+    // }
   }
 
   /**
