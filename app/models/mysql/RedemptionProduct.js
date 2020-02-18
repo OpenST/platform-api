@@ -13,7 +13,7 @@ const rootPrefix = '../../..',
   redemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/redemptionProducts');
 
 // Declare variables.
-const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_redemption_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
  * Class for redemption product model.

@@ -6,7 +6,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response');
 
-const dbName = 'saas_big_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_redemption_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 class UserRedemptionModel extends ModelBase {
   constructor() {
