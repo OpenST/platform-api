@@ -521,11 +521,6 @@ const v2ErrorConfig = {
     parameter: 'description',
     code: 'invalid',
     message: 'Invalid redemption product description. Description length should be less than 1000.'
-  },
-  invalid_redemption_product_denomination: {
-    parameter: 'denomination',
-    code: 'invalid',
-    message: 'Invalid redemption product denomination.'
   }
 };
 

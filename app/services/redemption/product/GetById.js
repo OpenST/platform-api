@@ -166,8 +166,6 @@ class GetRedemptionProductById extends ServiceBase {
       name: oThis.tokenRedemptionProductDetails.name || oThis.redemptionProductDetails.name,
       description: oThis.tokenRedemptionProductDetails.description || oThis.redemptionProductDetails.description,
       image: oThis.tokenRedemptionProductDetails.image || oThis.redemptionProductDetails.image,
-      denomination: oThis.tokenRedemptionProductDetails.denomination || oThis.redemptionProductDetails.denomination,
-      expiryInDays: oThis.tokenRedemptionProductDetails.expiryInDays || oThis.redemptionProductDetails.expiryInDays,
       status: oThis.tokenRedemptionProductDetails.status || oThis.redemptionProductDetails.status,
       uts: oThis.tokenRedemptionProductDetails.updatedTimestamp || oThis.redemptionProductDetails.updatedTimestamp
     };

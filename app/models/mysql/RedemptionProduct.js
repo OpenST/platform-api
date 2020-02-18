@@ -44,8 +44,6 @@ class RedemptionProduct extends ModelBase {
    * @param {string} dbRow.name
    * @param {string} dbRow.description
    * @param {Object} dbRow.image
-   * @param {Object} dbRow.denomination
-   * @param {string} dbRow.expiry_in_days
    * @param {string} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
@@ -59,8 +57,6 @@ class RedemptionProduct extends ModelBase {
       name: dbRow.name,
       description: dbRow.description,
       image: JSON.parse(dbRow.image) || null,
-      denomination: JSON.parse(dbRow.denomination),
-      expiryInDays: dbRow.expiry_in_days,
       status: redemptionProductsConstants.statuses[dbRow.status],
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
@@ -81,8 +77,6 @@ class RedemptionProduct extends ModelBase {
         name: params.name,
         description: params.description,
         image: params.image || null,
-        denomination: JSON.stringify(params.denomination),
-        expiry_in_days: params.expiry_in_days || redemptionProductsConstants.defaultExpiryInDays(),
         status: redemptionProductsConstants.invertedStatuses[params.status]
       })
       .fire();
