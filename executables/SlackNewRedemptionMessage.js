@@ -16,6 +16,7 @@ class SlackNewRedemptionMessage {
    * @param {string} params.redemptionId
    * @param {integer} params.userId
    * @param {decimal} params.amount
+   * @param {string} params.tokenName
    *
    * @constructor
    */
@@ -26,6 +27,7 @@ class SlackNewRedemptionMessage {
     oThis.redemptionId = params.redemptionId;
     oThis.userId = params.userId;
     oThis.amount = params.amount;
+    oThis.tokenName = params.tokenName;
   }
 
   /**
@@ -53,7 +55,7 @@ class SlackNewRedemptionMessage {
     //todo: edit message data as needed
     let data = {
       email: oThis.email,
-      tokenName: 'TEST Token',
+      tokenName: oThis.tokenName,
       userId: oThis.userId,
       amount: oThis.amount,
       redemptionId: oThis.redemptionId

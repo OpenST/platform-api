@@ -4,7 +4,7 @@ const rootPrefix = '../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   adminConstants = require(rootPrefix + '/lib/globalConstant/admin');
 
-const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const dbName = 'kit_saas_' + coreConstants.environment;
 
 /**
  * Class for admin model.
