@@ -9,11 +9,11 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
   pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
@@ -96,7 +96,7 @@ class GetRedemptionProductList extends ServiceBase {
       oThis.limit = oThis.limit || pagination.defaultRedemptionProductListPageSize;
     }
 
-    console.log('oThis.limit------', oThis.limit);
+    logger.log('oThis.limit------', oThis.limit);
 
     await oThis._validatePageSize();
   }
@@ -123,7 +123,7 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     oThis.tokenRedemptionProductIds = response.data.productIds;
-    console.log('oThis.tokenRedemptionProductIds-----11-----', oThis.tokenRedemptionProductIds);
+    logger.log('oThis.tokenRedemptionProductIds-----11-----', oThis.tokenRedemptionProductIds);
   }
 
   /**
@@ -137,11 +137,11 @@ class GetRedemptionProductList extends ServiceBase {
     const startPosition = (oThis.page - 1) * oThis.limit,
       offset = startPosition + oThis.limit;
 
-    console.log('startPosition-----', startPosition);
-    console.log('offset-----', offset);
+    logger.log('startPosition-----', startPosition);
+    logger.log('offset-----', offset);
 
     oThis.tokenRedemptionProductIds = oThis.tokenRedemptionProductIds.slice(startPosition, offset);
-    console.log('oThis.tokenRedemptionProductIds----22------', oThis.tokenRedemptionProductIds);
+    logger.log('oThis.tokenRedemptionProductIds----22------', oThis.tokenRedemptionProductIds);
   }
 
   /**
@@ -171,7 +171,7 @@ class GetRedemptionProductList extends ServiceBase {
 
     oThis.tokenRedemptionProductDetailsMap = response.data;
 
-    console.log('oThis.tokenRedemptionProductDetailsMap------', oThis.tokenRedemptionProductDetailsMap);
+    logger.log('oThis.tokenRedemptionProductDetailsMap------', oThis.tokenRedemptionProductDetailsMap);
   }
 
   /**
@@ -203,7 +203,7 @@ class GetRedemptionProductList extends ServiceBase {
 
     oThis.redemptionProductDetailsMap = redemptionProductCacheRsp.data;
 
-    console.log('oThis.redemptionProductDetailsMap------', oThis.redemptionProductDetailsMap);
+    logger.log('oThis.redemptionProductDetailsMap------', JSON.stringify(oThis.redemptionProductDetailsMap));
   }
 
   /**
