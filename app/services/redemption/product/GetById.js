@@ -218,12 +218,16 @@ class GetRedemptionProductById extends ServiceBase {
       let productCountry = productCountriesDetails[countryId],
         redemptionOptions = productCountry.redemptionOptions,
         countryDetails = countriesDetails[countryId],
+        fiatToUSDConversion = countryDetails.conversions[quoteCurrencyConstants.USD],
         denominations = [];
 
       for (let i = 0; i < redemptionOptions.length; i++) {
         let amountInFiat = redemptionOptions[i],
+          amountInUSD = basicHelper
+            .convertToBigNumber(amountInFiat)
+            .div(basicHelper.convertToBigNumber(fiatToUSDConversion)),
           amountInTokenWei = basicHelper.getNumberOfBTFromFiat(
-            amountInFiat,
+            amountInUSD,
             oThis.stakeCurrencyIsHowManyUSD,
             oThis.token.conversionFactor,
             oThis.token.decimal
