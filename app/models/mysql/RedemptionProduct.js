@@ -1,9 +1,3 @@
-/**
- * Module for redemption product model.
- *
- * @module app/models/mysql/RedemptionProduct
- */
-
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -43,12 +37,12 @@ class RedemptionProduct extends ModelBase {
    * @param {number} dbRow.id
    * @param {string} dbRow.name
    * @param {string} dbRow.description
-   * @param {Object} dbRow.image
+   * @param {string} dbRow.image
    * @param {string} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
    *
-   * @return {object}
+   * @returns {object}
    * @private
    */
   static _formatDbData(dbRow) {
@@ -57,7 +51,6 @@ class RedemptionProduct extends ModelBase {
       name: dbRow.name,
       description: dbRow.description,
       image: JSON.parse(dbRow.image) || null,
-      status: redemptionProductsConstants.statuses[dbRow.status],
       createdAt: dbRow.created_at,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
@@ -66,13 +59,18 @@ class RedemptionProduct extends ModelBase {
   /**
    * Insert record.
    *
-   * @param params
+   * @param {object} params
+   * @param {string} params.name
+   * @param {string} params.description
+   * @param {string} params.image
+   * @param {string} params.status
+   *
    * @returns {Promise<*|result>}
    */
   async insertRecord(params) {
     const oThis = this;
 
-    let insertResponse = await oThis
+    const insertResponse = await oThis
       .insert({
         name: params.name,
         description: params.description,
@@ -89,7 +87,7 @@ class RedemptionProduct extends ModelBase {
    *
    * @param {array<string/number>} ids
    *
-   * @return {Promise<any>}
+   * @returns {Promise<any>}
    */
   async fetchRedemptionProductsByIds(ids) {
     const oThis = this,
@@ -113,6 +111,9 @@ class RedemptionProduct extends ModelBase {
 
   /**
    * Flush cache.
+   *
+   * @param {object} params
+   * @param {array<number>} params.ids
    *
    * @returns {Promise<void>}
    */

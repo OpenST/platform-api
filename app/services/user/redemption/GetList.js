@@ -1,9 +1,3 @@
-/**
- * Module to get list of user redemptions
- *
- * @module app/services/user/redemption/List
- */
-
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -20,13 +14,13 @@ require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
- * Class to fetch user redemption list
+ * Class to fetch user redemptions list.
  *
  * @class UserRedemptionList
  */
 class UserRedemptionList extends ServiceBase {
   /**
-   * Constructor to fetch user redemption list
+   * Constructor to fetch user redemptions list.
    *
    * @param {object} params
    * @param {number} params.client_id
@@ -36,10 +30,13 @@ class UserRedemptionList extends ServiceBase {
    * @param {string} params.limit
    * @param {string} params.status
    *
+   * @augments ServiceBase
+   *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
+
     const oThis = this;
 
     oThis.clientId = params.client_id;
@@ -86,11 +83,11 @@ class UserRedemptionList extends ServiceBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
-    // Parameters in paginationIdentifier take higher precedence
+    // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
       const parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      oThis.page = parsedPaginationParams.page; // Override page
-      oThis.limit = parsedPaginationParams.limit; // Override limit
+      oThis.page = parsedPaginationParams.page; // Override page.
+      oThis.limit = parsedPaginationParams.limit; // Override limit.
     } else {
       oThis.page = 1;
       oThis.limit = oThis.limit || pagination.defaultRedemptionListPageSize;
@@ -100,8 +97,9 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * _defaultPageLimit
+   * Returns default page limit.
    *
+   * @returns {number}
    * @private
    */
   _defaultPageLimit() {
@@ -109,8 +107,9 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * _minPageLimit
+   * Returns minimum page limit.
    *
+   * @returns {number}
    * @private
    */
   _minPageLimit() {
@@ -118,8 +117,9 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * _maxPageLimit
+   * Returns maximum page limit.
    *
+   * @returns {number}
    * @private
    */
   _maxPageLimit() {
@@ -127,8 +127,9 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * _currentPageLimit
+   * Returns default page limit.
    *
+   * @returns {number}
    * @private
    */
   _currentPageLimit() {
@@ -147,7 +148,14 @@ class UserRedemptionList extends ServiceBase {
 
     let response = null;
 
-    if (!oThis.status) {
+    if (oThis.status) {
+      response = await new UserRedemptionModel().fetchUuidsByUserId({
+        userId: oThis.userId,
+        page: oThis.page,
+        limit: oThis.limit,
+        status: oThis.status
+      });
+    } else {
       const RedemptionsByUserIdCache = oThis
         .ic()
         .getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionIdsByUserId');
@@ -157,16 +165,9 @@ class UserRedemptionList extends ServiceBase {
         page: oThis.page,
         limit: oThis.limit
       }).fetch();
-    } else {
-      response = await new UserRedemptionModel().fetchUuidsByUserId({
-        userId: oThis.userId,
-        page: oThis.page,
-        limit: oThis.limit,
-        status: oThis.status
-      });
     }
 
-    if (response.data.uuids.length == oThis.limit) {
+    if (response.data.uuids.length === oThis.limit) {
       oThis.responseMetaData[pagination.nextPagePayloadKey] = {
         page: oThis.page + 1,
         limit: oThis.limit
@@ -191,9 +192,9 @@ class UserRedemptionList extends ServiceBase {
       uuids: oThis.redemptionUuids
     }).fetch();
 
-    let redemptionsMap = response.data;
-    for (let i = 0; i < oThis.redemptionUuids.length; i++) {
-      let redemptionDetail = redemptionsMap[oThis.redemptionUuids[i]];
+    const redemptionsMap = response.data;
+    for (let index = 0; index < oThis.redemptionUuids.length; index++) {
+      const redemptionDetail = redemptionsMap[oThis.redemptionUuids[index]];
 
       if (redemptionDetail) {
         oThis.userRedemptions.push(redemptionDetail);
