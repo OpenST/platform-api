@@ -102,8 +102,8 @@ class RedemptionProduct extends ModelBase {
     for (let index = 0; index < dbRows.length; index++) {
       response[dbRows[index].id] = RedemptionProduct._formatDbData(dbRows[index]);
 
-      if (response[dbRows[index].id].image) {
-        response[dbRows[index].id].image = urlHelper.createLongResolutions(response[dbRows[index].id].image);
+      if (response[dbRows[index].id].images) {
+        response[dbRows[index].id].images = urlHelper.createLongResolutions(response[dbRows[index].id].images);
       }
     }
 

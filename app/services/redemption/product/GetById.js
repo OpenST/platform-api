@@ -155,6 +155,7 @@ class GetRedemptionProductById extends ServiceBase {
   /**
    * Prepare final response.
    *
+   * @returns {*|result}
    * @private
    */
   _prepareResponse() {
