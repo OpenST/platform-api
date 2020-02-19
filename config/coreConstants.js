@@ -382,8 +382,8 @@ class CoreConstants {
     return process.env.SA_S3_ANALYTICS_BUCKET;
   }
 
-  get SA_S3_PRICEPOINTS_BUCKET() {
-    return process.env.SA_S3_PRICEPOINTS_BUCKET;
+  get SA_S3_PRICEPOINTS_URL() {
+    return process.env.SA_S3_PRICEPOINTS_URL;
   }
 
   get S3_ANALYTICS_GRAPH_FOLDER() {
