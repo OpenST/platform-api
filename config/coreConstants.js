@@ -399,6 +399,18 @@ class CoreConstants {
   get SA_ORIGIN_NETWORK_UPGRADE() {
     return process.env.SA_ORIGIN_NETWORK_UPGRADE;
   }
+
+  get SA_SLACK_OAUTH_TOKEN() {
+    return process.env.SA_SLACK_OAUTH_TOKEN;
+  }
+
+  get SA_SLACK_API_APP_ID() {
+    return process.env.SA_SLACK_API_APP_ID;
+  }
+
+  get SA_SLACK_SIGNING_SECRET() {
+    return process.env.SA_SLACK_SIGNING_SECRET;
+  }
 }
 
 module.exports = new CoreConstants();

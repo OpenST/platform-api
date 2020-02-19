@@ -42,7 +42,8 @@
     "nodemailer": "4.7.0",
     "qs": "6.6.0",
     "request-promise": "4.2.2",
-    "sanitize-html": "1.19.3"
+    "sanitize-html": "1.19.3",
+    "slack": "11.0.2"
   },
   "devDependencies": {
     "eslint": "6.5.1",
