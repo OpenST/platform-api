@@ -20,7 +20,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/redemptionProducts/createImages --auxChainId 2000 --images \'{"list":{"original":{"url":"https://s3.amazonaws.com/uassets.stagingpepo.com/pepo-staging1000/ua/rsku/images/1-b0fb183f452e288c42a6d2b18788551f-original.jpeg","size":123,"width":123,"height":123},"144w":{"url":"https://s3.amazonaws.com/uassets.stagingpepo.com/pepo-staging1000/ua/rsku/images/1-b0fb183f452e288c42a6d2b18788551f-144w.jpeg","size":123,"width":123,"height":123}},"product":{"original":{"url":"https://s3.amazonaws.com/uassets.stagingpepo.com/pepo-staging1000/ua/rsku/images/1-abcd-original.jpeg","size":123,"width":123,"height":123},"144w":{"url":"https://s3.amazonaws.com/uassets.stagingpepo.com/pepo-staging1000/ua/rsku/images/1-abcd-144w.jpeg","size":123,"width":123,"height":123}}}\'\n --redemptionProductId 1'
+    '    node executables/redemptionProducts/createImages --auxChainId 2000 --images \'{"product":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-l-original.jpg","size":90821,"width":321,"height":182}},"list":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-p-original.jpg","size":193141,"width":320,"height":320}}}\' --redemptionProductId 1'
   );
   logger.log('');
   logger.log('');
