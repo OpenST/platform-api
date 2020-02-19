@@ -18,6 +18,7 @@ class SlackNewRedemptionMessage {
    * @param {decimal} params.amount
    * @param {string} params.tokenName
    * @param {string} params.clientId
+   * @param {string} params.productName
    *
    * @constructor
    */
@@ -30,6 +31,7 @@ class SlackNewRedemptionMessage {
     oThis.amount = params.amount;
     oThis.tokenName = params.tokenName;
     oThis.clientId = params.clientId;
+    oThis.productName = params.productName;
   }
 
   /**
@@ -60,7 +62,8 @@ class SlackNewRedemptionMessage {
       tokenName: oThis.tokenName,
       userId: oThis.userId,
       amount: oThis.amount,
-      redemptionId: oThis.redemptionId
+      redemptionId: oThis.redemptionId,
+      productName: oThis.productName
     };
 
     blocks.push(slackConstants.addRedemptionInfoSection(data));
