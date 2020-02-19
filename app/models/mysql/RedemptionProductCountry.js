@@ -86,6 +86,34 @@ class RedemptionProductCountry extends ModelBase {
 
     return responseHelper.successWithData(response);
   }
+
+  /**
+   * Fetch redemption product countries data for given productId and countryId.
+   *
+   * @param productIds
+   * @returns {Promise<void>}
+   * @private
+   */
+  async fetchDetailsByProductIds(productIds) {
+    const oThis = this,
+      redemptionProductCountryData = {};
+
+    const redemptionProductCountriesData = await oThis
+      .select('*')
+      .where({ redemption_product_id: productIds })
+      .fire();
+
+    for (let i = 0; i < redemptionProductCountriesData.length; i++) {
+      let formatedDbData = RedemptionProductCountry._formatDbData(redemptionProductCountriesData[i]);
+      redemptionProductCountryData[formatedDbData.redemptionProductId] =
+        redemptionProductCountryData[formatedDbData.redemptionProductId] || {};
+      redemptionProductCountryData[formatedDbData.redemptionProductId][formatedDbData.countryId] = {
+        redemptionOptions: formatedDbData.redemptionOptions
+      };
+    }
+
+    return responseHelper.successWithData(redemptionProductCountryData);
+  }
 }
 
 module.exports = RedemptionProductCountry;

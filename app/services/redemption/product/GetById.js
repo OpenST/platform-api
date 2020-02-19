@@ -5,10 +5,15 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
+  RedemptionProductCountryByProductIdCache = require(rootPrefix +
+    '/lib/cacheManagement/kitSaasMulti/RedemptionProductCountryByProductId'),
+  RedemptionCountryByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RedemptionCountryById'),
+  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultTypeConstants = require(rootPrefix + '/lib/globalConstant/resultType'),
-  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts'),
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
@@ -40,6 +45,7 @@ class GetRedemptionProductById extends ServiceBase {
 
     oThis.tokenRedemptionProductDetails = {};
     oThis.redemptionProductDetails = {};
+    oThis.availability = [];
   }
 
   /**
@@ -56,6 +62,10 @@ class GetRedemptionProductById extends ServiceBase {
     await oThis._fetchTokenRedemptionProductDetails();
 
     await oThis._fetchProductDetailsFromMasterList();
+
+    await oThis._fetchPricePointsData();
+
+    await oThis._fetchProductAvailability();
 
     return oThis._prepareResponse();
   }
@@ -153,6 +163,82 @@ class GetRedemptionProductById extends ServiceBase {
   }
 
   /**
+   * This function fetches price points for a particular chainId.
+   *
+   * @returns {Promise<*>}
+   * @private
+   */
+  async _fetchPricePointsData() {
+    const oThis = this,
+      auxChainId = oThis.ic().configStrategy.auxGeth.chainId;
+
+    const pricePointsCacheObj = new PricePointsCache({ chainId: auxChainId }),
+      pricePointsResponse = await pricePointsCacheObj.fetch();
+
+    if (pricePointsResponse.isFailure()) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_gdd_2',
+          api_error_identifier: 'cache_issue',
+          debug_options: { chainId: oThis.auxChainId }
+        })
+      );
+    }
+
+    oThis.stakeCurrencyIsHowManyUSD = pricePointsResponse.data[oThis.token.stakeCurrencyId][quoteCurrencyConstants.USD];
+  }
+
+  /**
+   * get availability of given product for all countries
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _fetchProductAvailability() {
+    const oThis = this,
+      countryIds = [];
+
+    const productCountryCacheResp = await new RedemptionProductCountryByProductIdCache({
+      productIds: [oThis.tokenRedemptionProductId]
+    }).fetch();
+    if (productCountryCacheResp.isFailure()) {
+      return Promise.reject(productCountryCacheResp);
+    }
+
+    const productCountriesDetails = productCountryCacheResp.data[oThis.tokenRedemptionProductId];
+    for (let countryId in productCountriesDetails) {
+      countryIds.push(countryId);
+    }
+
+    const redemptionCountryCacheResp = await new RedemptionCountryByIdCache({ countryIds: countryIds }).fetch();
+    const countriesDetails = redemptionCountryCacheResp.data;
+
+    for (let countryId in productCountriesDetails) {
+      let productCountry = productCountriesDetails[countryId],
+        redemptionOptions = productCountry.redemptionOptions,
+        countryDetails = countriesDetails[countryId],
+        denominations = [];
+
+      for (let i = 0; i < redemptionOptions.length; i++) {
+        let amountInFiat = redemptionOptions[i],
+          amountInTokenWei = amountInFiat;
+
+        denominations.push({
+          amount_in_fiat: amountInFiat,
+          amount_in_wei: amountInTokenWei
+        });
+      }
+
+      oThis.availability.push({
+        country: countryDetails.name,
+        country_iso_code: countryDetails.countryIsoCode,
+        currency_iso_code: countryDetails.currencyIsoCode,
+        denominations: denominations
+      });
+    }
+  }
+
+  /**
    * Prepare final response.
    *
    * @returns {*|result}
@@ -167,11 +253,12 @@ class GetRedemptionProductById extends ServiceBase {
       description: oThis.tokenRedemptionProductDetails.description || oThis.redemptionProductDetails.description,
       images: oThis.tokenRedemptionProductDetails.images || oThis.redemptionProductDetails.images,
       status: oThis.tokenRedemptionProductDetails.status,
+      availability: oThis.availability,
       uts: oThis.tokenRedemptionProductDetails.updatedTimestamp
     };
 
     return responseHelper.successWithData({
-      [resultTypeConstants.redeemableSku]: finalRedemptionProductDetails
+      [resultType.redeemableSku]: finalRedemptionProductDetails
     });
   }
 }
