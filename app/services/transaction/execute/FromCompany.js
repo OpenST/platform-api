@@ -357,6 +357,16 @@ class ExecuteCompanyToUserTx extends ExecuteTxBase {
   async _customValidationsOnExecutableData() {
     // do nothing as all validations are already done.
   }
+
+  /**
+   * Create User Redemption request, if transaction is for redemption
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _createUserRedemptionRequest() {
+    // do nothing as redemption can only be done for user transactions.
+  }
 }
 
 InstanceComposer.registerAsShadowableClass(ExecuteCompanyToUserTx, coreConstants.icNameSpace, 'ExecuteCompanyToUserTx');

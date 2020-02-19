@@ -199,13 +199,17 @@ class ExecuteTxBase extends ServiceBase {
 
     logger.debug('execute_tx_step_: 13', oThis.transactionUuid);
 
-    await oThis._publishToRMQ();
+    await oThis._createUserRedemptionRequest();
 
     logger.debug('execute_tx_step_: 14', oThis.transactionUuid);
 
+    await oThis._publishToRMQ();
+
+    logger.debug('execute_tx_step_: 15', oThis.transactionUuid);
+
     await oThis._sendPreprocessorWebhook();
 
-    logger.debug('Final_Step_execute_tx_step_: 15', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
+    logger.debug('Final_Step_execute_tx_step_: 16', oThis.transactionUuid, ' in ', Date.now() - timeNow, 'ms');
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -510,6 +514,7 @@ class ExecuteTxBase extends ServiceBase {
       tokenId: oThis.tokenId,
       kind: pendingTransactionConstants.executeRuleKind,
       toBeSyncedInEs: 1,
+      redemptionDetails: oThis.redemptionDetails || null,
       createdTimestamp: currentTimestamp,
       updatedTimestamp: currentTimestamp
     });
@@ -917,6 +922,16 @@ class ExecuteTxBase extends ServiceBase {
    * @private
    */
   async _customValidationsOnExecutableData() {
+    throw new Error('Sub-class to implement.');
+  }
+
+  /**
+   * Create User Redemption request, if transaction is for redemption
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _createUserRedemptionRequest() {
     throw new Error('Sub-class to implement.');
   }
 }

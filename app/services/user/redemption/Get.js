@@ -14,7 +14,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 // Following require(s) for registering into instance composer.
-require(rootPrefix + '/lib/cacheManagement/chainMulti/RedemptionsById');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
  * Class to fetch user redemption
@@ -70,7 +70,7 @@ class UserRedemptionGet extends ServiceBase {
   async _fetchRedemption() {
     const oThis = this;
 
-    const RedemptionsByIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionsById');
+    const RedemptionsByIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
 
     const response = await new RedemptionsByIdCache({
       uuids: [oThis.userRedemptionUuid]

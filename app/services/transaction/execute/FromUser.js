@@ -19,11 +19,14 @@ const rootPrefix = '../../../..',
   signValidator = require(rootPrefix + '/lib/validators/Sign'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  UserRedemptionModel = require(rootPrefix + '/app/models/mysql/UserRedemption'),
+  userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption'),
   UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/redemption/ValidateUserRedemptionTx');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
  * Class
@@ -273,13 +276,42 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const ValidateUserRedemptionTx = oThis
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'ValidateUserRedemptionTx');
-    await new ValidateUserRedemptionTx({
+    let redemptionResponse = await new ValidateUserRedemptionTx({
       clientId: oThis.clientId,
       tokenId: oThis.tokenId,
       redemptionDetails: oThis.redemptionDetails,
       transfersData: oThis.estimatedTransfers,
       metaProperty: oThis.metaProperty
     }).perform();
+
+    if (redemptionResponse.isSuccess() && redemptionResponse.data.redemptionDetails) {
+      oThis.redemptionDetails = redemptionResponse.data.redemptionDetails;
+    }
+  }
+
+  /**
+   * Create User Redemption request, if transaction is for redemption
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _createUserRedemptionRequest() {
+    const oThis = this;
+
+    if (CommonValidators.validateObject(oThis.redemptionDetails)) {
+      await new UserRedemptionModel({}).insertRedemptionRequest({
+        uuid: oThis.redemptionDetails.redemption_id,
+        userId: oThis.userId,
+        redemptionProductId: oThis.redemptionDetails['redeemable_sku_id'],
+        transactionUuid: oThis.transactionUuid,
+        amount: oThis.redemptionDetails['amount'],
+        currency: oThis.redemptionDetails['currency'],
+        status: userRedemptionConstants.redemptionProcessingStatus
+      });
+
+      const cacheKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
+      await new cacheKlass({ uuids: [oThis.redemptionDetails.redemption_id] }).clear();
+    }
   }
 }
 

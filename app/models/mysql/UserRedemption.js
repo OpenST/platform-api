@@ -108,6 +108,30 @@ class UserRedemptionModel extends ModelBase {
 
     return responseHelper.successWithData(redemptions);
   }
+
+  /**
+   * Insert redemption request of user
+   *
+   * @param params
+   * @returns {Promise<*|result>}
+   */
+  async insertRedemptionRequest(params) {
+    const oThis = this;
+
+    let insertRsp = await oThis
+      .insert({
+        uuid: params.uuid,
+        user_uuid: params.userId,
+        token_redemption_product_id: params.redemptionProductId,
+        transaction_uuid: params.transactionUuid,
+        amount: params.amount,
+        currency: params.currency,
+        status: userRedemptionConstants.invertedStatuses[params.status]
+      })
+      .fire();
+
+    return responseHelper.successWithData(insertRsp);
+  }
 }
 
 module.exports = UserRedemptionModel;
