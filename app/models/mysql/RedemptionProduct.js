@@ -100,10 +100,6 @@ class RedemptionProduct extends ModelBase {
       .where(['id IN (?)', ids])
       .fire();
 
-    if (dbRows.length === 0) {
-      return Promise.reject(new Error(`No entries found for ids: ${ids}.`));
-    }
-
     for (let index = 0; index < dbRows.length; index++) {
       response[dbRows[index].id] = RedemptionProduct._formatDbData(dbRows[index]);
 

@@ -147,10 +147,6 @@ class TokenRedemptionProduct extends ModelBase {
       ])
       .fire();
 
-    if (dbRows.length === 0) {
-      return Promise.reject(new Error(`No entries found for token id: ${tokenId}.`));
-    }
-
     for (let index = 0; index < dbRows.length; index++) {
       productIds.push(dbRows[index].id);
     }
