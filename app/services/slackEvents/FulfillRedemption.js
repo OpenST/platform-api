@@ -44,7 +44,7 @@ class FulfillRedemption extends SlackEventBase {
     const oThis = this;
 
     const serviceParams = {
-      userRedemptionId: [oThis.eventParams.redemption_id],
+      userRedemptionId: oThis.eventParams.redemption_id,
       currentAdmin: oThis.currentAdmin
     };
 
@@ -52,7 +52,11 @@ class FulfillRedemption extends SlackEventBase {
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'FulfillUserRedemptionRequest');
 
-    const fulfillUserRedemptionRsp = await new FulfillUserRedemptionRequestLib(serviceParams).perform();
+    const fulfillUserRedemptionRsp = await new FulfillUserRedemptionRequestLib(serviceParams)
+      .perform()
+      .catch(function(err) {
+        return err;
+      });
 
     if (fulfillUserRedemptionRsp.isFailure()) {
       oThis._setError(fulfillUserRedemptionRsp);

@@ -44,7 +44,7 @@ class CancelRedemption extends SlackEventBase {
     const oThis = this;
 
     const serviceParams = {
-      userRedemptionId: [oThis.eventParams.redemption_id],
+      userRedemptionId: oThis.eventParams.redemption_id,
       currentAdmin: oThis.currentAdmin
     };
 
@@ -52,7 +52,11 @@ class CancelRedemption extends SlackEventBase {
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'CancelUserRedemptionRequest');
 
-    const cancelUserRedemptionRsp = await new CancelUserRedemptionRequestLib(serviceParams).perform();
+    const cancelUserRedemptionRsp = await new CancelUserRedemptionRequestLib(serviceParams)
+      .perform()
+      .catch(function(err) {
+        return err;
+      });
 
     if (cancelUserRedemptionRsp.isFailure()) {
       oThis._setError(cancelUserRedemptionRsp);
