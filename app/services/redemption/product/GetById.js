@@ -1,9 +1,3 @@
-/**
- * Api to get single redemption product by id.
- *
- * @module app/services/redemption/product/GetById
- */
-
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -11,11 +5,12 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
-  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
 
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
 
 /**
@@ -31,12 +26,12 @@ class GetRedemptionProductById extends ServiceBase {
    * @param {number} params.client_id: client Id
    * @param {number} params.redemption_product_id: Token Redemption Product table Id
    *
-   * @augments GetUserBase
+   * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -50,7 +45,8 @@ class GetRedemptionProductById extends ServiceBase {
   /**
    * Main performer for the class.
    *
-   * @return {Promise<void>}
+   * @returns {Promise<void>}
+   * @private
    */
   async _asyncPerform() {
     const oThis = this;
@@ -66,6 +62,8 @@ class GetRedemptionProductById extends ServiceBase {
 
   /**
    * Fetch token redemption product.
+   *
+   * @sets oThis.tokenRedemptionProductDetails
    *
    * @returns {Promise<void>}
    * @private
@@ -125,6 +123,7 @@ class GetRedemptionProductById extends ServiceBase {
   /**
    * Fetch product details from master list.
    *
+   * @sets oThis.redemptionProductDetails
    *
    * @returns {Promise<void>}
    * @private
