@@ -38,7 +38,7 @@ class RedemptionProduct extends ModelBase {
    * @param {string} dbRow.name
    * @param {string} dbRow.description
    * @param {string} dbRow.image
-   * @param {string} dbRow.status
+   * @param {number} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
    *
@@ -52,6 +52,7 @@ class RedemptionProduct extends ModelBase {
       description: dbRow.description,
       image: JSON.parse(dbRow.image) || null,
       createdAt: dbRow.created_at,
+      status: dbRow.status,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
   }
