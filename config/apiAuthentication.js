@@ -187,6 +187,11 @@ class ApiAuthentication {
         supportedSignatureKinds: [apiSignature.hmacKind]
       },
       {
+        apiName: apiName.verifyTokenDomain,
+        route: '/tokens/:token_id/validate-domain/',
+        supportedSignatureKinds: [apiSignature.noAuthKind]
+      },
+      {
         apiName: apiName.getRedemptionProduct,
         route: '/redeemable-skus/:redeemable_sku_id',
         supportedSignatureKinds: [apiSignature.personalSignKind]
