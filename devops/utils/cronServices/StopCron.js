@@ -19,7 +19,7 @@ class StopCron {
     const oThis = this;
 
     oThis.ids = ids;
-    oThis.status = new CronProcessModel().invertedStatuses[cronProcessesConstants.stoppedStatus];
+    oThis.status = cronProcessesConstants.stoppedStatus;
   }
 
   /**
@@ -54,7 +54,7 @@ class StopCron {
     }
     let idsToBeUpdated = [];
     for (let i = 0; i < rowData.length; i++) {
-      if (rowData[i]['status'] != oThis.status) {
+      if (rowData[i]['status'] != new CronProcessModel().invertedStatuses[oThis.status]) {
         idsToBeUpdated.push(rowData[i]['id']);
       }
     }
