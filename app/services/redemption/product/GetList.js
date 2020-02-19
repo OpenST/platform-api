@@ -242,7 +242,7 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     return responseHelper.successWithData({
-      [resultType.redeemableSku]: finalRedemptionProducts,
+      [resultType.redeemableSkus]: finalRedemptionProducts,
       [resultType.meta]: oThis.responseMetaData
     });
   }
