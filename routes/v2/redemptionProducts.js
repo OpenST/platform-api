@@ -19,13 +19,13 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let redeemableSkus = serviceResponse.data[resultType.redeemableSkus],
+    const redeemableSkus = serviceResponse.data[resultType.redeemableSkus],
       formattedRedemptionProducts = [],
       metaPayload = await new RedemptionProductListMetaFormatter(serviceResponse.data).perform().data;
 
     console.log('redeemableSkus----', redeemableSkus);
 
-    for (let index in redeemableSkus) {
+    for (const index in redeemableSkus) {
       formattedRedemptionProducts.push(await new RedemptionProductFormatter(redeemableSkus[index]).perform().data);
     }
 
@@ -45,14 +45,14 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   );
 });
 
-/* Get redemption product by product id*/
+/* Get redemption product by product id. */
 router.get('/:redeemable_sku_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProduct;
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.redemption_product_id = req.params.redeemable_sku_id; // The redeemable_sku_id from URL params
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let formattedRedemptionProduct = await new RedemptionProductFormatter(
+    const formattedRedemptionProduct = await new RedemptionProductFormatter(
       serviceResponse.data[resultType.redeemableSku]
     ).perform().data;
 

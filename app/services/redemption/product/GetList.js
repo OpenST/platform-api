@@ -185,6 +185,7 @@ class GetRedemptionProductList extends ServiceBase {
   /**
    * Fetch product details from master list.
    *
+   * @sets oThis.redemptionProductDetailsMap
    *
    * @returns {Promise<void>}
    * @private
@@ -217,6 +218,7 @@ class GetRedemptionProductList extends ServiceBase {
   /**
    * Prepare final response.
    *
+   * @returns {*|result}
    * @private
    */
   _prepareResponse() {
@@ -233,7 +235,7 @@ class GetRedemptionProductList extends ServiceBase {
         id: tokenRedemptionProductDetails.id,
         name: tokenRedemptionProductDetails.name || redemptionProductDetails.name,
         description: tokenRedemptionProductDetails.description || redemptionProductDetails.description,
-        image: tokenRedemptionProductDetails.images || redemptionProductDetails.images,
+        images: tokenRedemptionProductDetails.images || redemptionProductDetails.images,
         status: tokenRedemptionProductDetails.status,
         uts: tokenRedemptionProductDetails.updatedTimestamp
       };
