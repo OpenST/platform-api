@@ -1,9 +1,14 @@
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../..',
   SlackEventBase = require(rootPrefix + '/app/services/slackEvents/Base'),
-  // CancelRedemptionService = require(rootPrefix + '/app/services/admin/ApproveUsersAsCreator'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   slackConstants = require(rootPrefix + '/lib/globalConstant/slack');
+
+require(rootPrefix + '/lib/redemption/userRequests/Cancel');
 
 /**
  * Class to process approve user event.
@@ -39,15 +44,19 @@ class CancelRedemption extends SlackEventBase {
     const oThis = this;
 
     const serviceParams = {
-      user_ids: [oThis.eventParams.user_id],
-      current_admin: oThis.currentAdmin
+      userRedemptionId: [oThis.eventParams.redemption_id],
+      currentAdmin: oThis.currentAdmin
     };
 
-    // const serviceResponse = await new CancelRedemptionService(serviceParams).perform();
-    //
-    // if (serviceResponse.isFailure()) {
-    //   oThis._setError(serviceResponse);
-    // }
+    const CancelUserRedemptionRequestLib = oThis
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'CancelUserRedemptionRequest');
+
+    const cancelUserRedemptionRsp = await new CancelUserRedemptionRequestLib(serviceParams).perform();
+
+    if (cancelUserRedemptionRsp.isFailure()) {
+      oThis._setError(cancelUserRedemptionRsp);
+    }
   }
 
   /**
@@ -90,4 +99,6 @@ class CancelRedemption extends SlackEventBase {
   }
 }
 
-module.exports = CancelRedemption;
+InstanceComposer.registerAsShadowableClass(CancelRedemption, coreConstants.icNameSpace, 'CancelRedemption');
+
+module.exports = {};
