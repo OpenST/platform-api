@@ -7,7 +7,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  resultTypeConstants = require(rootPrefix + '/lib/globalConstant/resultType'),
   paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
 
 // Following require(s) for registering into instance composer.
@@ -87,11 +87,11 @@ class GetRedemptionProductList extends ServiceBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
-    // Parameters in paginationIdentifier take higher precedence
+    // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
       const parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
-      oThis.page = parsedPaginationParams.page; // Override page
-      oThis.limit = parsedPaginationParams.limit; // Override limit
+      oThis.page = parsedPaginationParams.page; // Override page.
+      oThis.limit = parsedPaginationParams.limit; // Override limit.
     } else {
       oThis.page = 1;
       oThis.limit = oThis.limit || paginationConstants.defaultRedemptionProductListPageSize;
@@ -252,8 +252,8 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     return responseHelper.successWithData({
-      [resultType.redeemableSkus]: finalRedemptionProducts,
-      [resultType.meta]: oThis.responseMetaData
+      [resultTypeConstants.redeemableSkus]: finalRedemptionProducts,
+      [resultTypeConstants.meta]: oThis.responseMetaData
     });
   }
 

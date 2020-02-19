@@ -7,7 +7,7 @@ const rootPrefix = '../../../..',
   RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  resultTypeConstants = require(rootPrefix + '/lib/globalConstant/resultType'),
   tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
 
 // Following require(s) for registering into instance composer.
@@ -171,7 +171,7 @@ class GetRedemptionProductById extends ServiceBase {
     };
 
     return responseHelper.successWithData({
-      [resultType.redeemableSku]: finalRedemptionProductDetails
+      [resultTypeConstants.redeemableSku]: finalRedemptionProductDetails
     });
   }
 }
