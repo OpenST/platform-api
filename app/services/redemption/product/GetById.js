@@ -12,6 +12,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts'),
   quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
 
@@ -221,11 +222,16 @@ class GetRedemptionProductById extends ServiceBase {
 
       for (let i = 0; i < redemptionOptions.length; i++) {
         let amountInFiat = redemptionOptions[i],
-          amountInTokenWei = amountInFiat;
+          amountInTokenWei = basicHelper.getNumberOfBTFromFiat(
+            amountInFiat,
+            oThis.stakeCurrencyIsHowManyUSD,
+            oThis.token.conversionFactor,
+            oThis.token.decimal
+          );
 
         denominations.push({
           amount_in_fiat: amountInFiat,
-          amount_in_wei: amountInTokenWei
+          amount_in_wei: amountInTokenWei.toString(10)
         });
       }
 
