@@ -55,7 +55,7 @@ class TokenRedemptionProduct extends ModelBase {
       redemptionProductId: dbRow.redemption_product_id,
       name: dbRow.name || null,
       description: dbRow.description || null,
-      image: JSON.parse(dbRow.image) || null,
+      images: JSON.parse(dbRow.image) || null,
       sequenceNumber: dbRow.sequence_number,
       status: tokenRedemptionProductsConstants.statuses[dbRow.status],
       createdAt: dbRow.created_at,

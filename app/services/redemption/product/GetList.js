@@ -169,10 +169,9 @@ class GetRedemptionProductList extends ServiceBase {
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
 
-    const tokenRedemptionProductCache = new TokenRedemptionProductCache({
-        ids: oThis.tokenRedemptionProductIds
-      }),
-      response = await tokenRedemptionProductCache.fetch();
+    const response = await new TokenRedemptionProductCache({
+      ids: oThis.tokenRedemptionProductIds
+    }).fetch();
 
     if (response.isFailure()) {
       return Promise.reject(response);
@@ -234,7 +233,7 @@ class GetRedemptionProductList extends ServiceBase {
         id: tokenRedemptionProductDetails.id,
         name: tokenRedemptionProductDetails.name || redemptionProductDetails.name,
         description: tokenRedemptionProductDetails.description || redemptionProductDetails.description,
-        image: tokenRedemptionProductDetails.image || redemptionProductDetails.images,
+        image: tokenRedemptionProductDetails.images || redemptionProductDetails.images,
         status: tokenRedemptionProductDetails.status || redemptionProductDetails.status,
         uts: tokenRedemptionProductDetails.updatedTimestamp || redemptionProductDetails.updatedTimestamp
       };

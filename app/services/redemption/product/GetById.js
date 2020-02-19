@@ -72,18 +72,18 @@ class GetRedemptionProductById extends ServiceBase {
     const oThis = this;
 
     const TokenRedemptionProductCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache'),
-      tokenRedemptionProductCache = new TokenRedemptionProductCache({
-        ids: [oThis.tokenRedemptionProductId]
-      }),
-      response = await tokenRedemptionProductCache.fetch();
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
 
-    if (response.isFailure()) {
-      return Promise.reject(response);
+    const tokenRedemptionProductCacheResponse = await new TokenRedemptionProductCache({
+      ids: [oThis.tokenRedemptionProductId]
+    }).fetch();
+
+    if (tokenRedemptionProductCacheResponse.isFailure()) {
+      return Promise.reject(tokenRedemptionProductCacheResponse);
     }
 
-    if (!CommonValidators.validateObject(response.data[oThis.tokenRedemptionProductId])) {
+    if (!CommonValidators.validateObject(tokenRedemptionProductCacheResponse.data[oThis.tokenRedemptionProductId])) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbd_1',
@@ -94,7 +94,7 @@ class GetRedemptionProductById extends ServiceBase {
       );
     }
 
-    oThis.tokenRedemptionProductDetails = response.data[oThis.tokenRedemptionProductId];
+    oThis.tokenRedemptionProductDetails = tokenRedemptionProductCacheResponse.data[oThis.tokenRedemptionProductId];
 
     // If token id from signature is not equal to token redemption table.
     if (oThis.tokenRedemptionProductDetails.tokenId != oThis.tokenId) {
@@ -164,7 +164,7 @@ class GetRedemptionProductById extends ServiceBase {
       id: oThis.tokenRedemptionProductDetails.id,
       name: oThis.tokenRedemptionProductDetails.name || oThis.redemptionProductDetails.name,
       description: oThis.tokenRedemptionProductDetails.description || oThis.redemptionProductDetails.description,
-      image: oThis.tokenRedemptionProductDetails.image || oThis.redemptionProductDetails.images,
+      image: oThis.tokenRedemptionProductDetails.images || oThis.redemptionProductDetails.images,
       status: oThis.tokenRedemptionProductDetails.status || oThis.redemptionProductDetails.status,
       uts: oThis.tokenRedemptionProductDetails.updatedTimestamp || oThis.redemptionProductDetails.updatedTimestamp
     };
