@@ -1,9 +1,16 @@
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  ConfigCrudByClientId = require(rootPrefix + '/helpers/configStrategy/ByClientId'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   slackConstants = require(rootPrefix + '/lib/globalConstant/slack');
+
+require(rootPrefix + '/app/services/slackEvents/CancelRedemption');
 
 /**
  * Class to process slack event.
@@ -126,6 +133,10 @@ class SlackEventFactory extends ServiceBase {
 
     console.log('HERE==================', oThis.eventData, oThis.eventParams, oThis.currentAdmin);
 
+    // Fetch client strategy
+    let configStrategyRsp = await new ConfigCrudByClientId(oThis.eventParams.client_id).get();
+    oThis.ic = new InstanceComposer(configStrategyRsp.data);
+
     switch (oThis.eventType) {
       case slackConstants.fulfillRedemptionEventType: {
         const FulfillRedemptionEvent = require(rootPrefix + '/app/services/slackEvents/FulfillRedemption');
@@ -138,7 +149,11 @@ class SlackEventFactory extends ServiceBase {
         break;
       }
       case slackConstants.cancelRedemptionEventType: {
-        const CancelRedemptionEvent = require(rootPrefix + '/app/services/slackEvents/CancelRedemption');
+
+        const CancelRedemptionEvent = oThis
+          .ic
+          .getShadowedClassFor(coreConstants.icNameSpace, 'CancelRedemption');
+
         eventResponse = await new CancelRedemptionEvent({
           eventDataPayload: oThis.eventData.payload,
           eventParams: oThis.eventParams,

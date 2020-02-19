@@ -5,7 +5,7 @@ const rootPrefix = '../../..',
   SlackEventFactory = require(rootPrefix + '/app/services/slackEvents/Factory'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  errorConfig = basicHelper.fetchErrorConfig(apiVersions.general),
+  errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
 
 const router = express.Router();
