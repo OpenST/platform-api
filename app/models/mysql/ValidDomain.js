@@ -27,13 +27,17 @@ class ValidDomain extends ModelBase {
    */
   constructor() {
     super({ dbName: dbName });
+
     const oThis = this;
+
     oThis.tableName = 'valid_domains';
   }
 
   /**
-   *  Get details by token ids.
-   * @param tokenIds
+   * Get details by token ids.
+   *
+   * @param {array<number>} tokenIds
+   *
    * @return {Promise<*|result>}
    */
   async getDetailsByTokenIds(tokenIds) {
@@ -66,9 +70,9 @@ class ValidDomain extends ModelBase {
   }
 
   /**
-   * Flush cache
+   * Flush cache.
    *
-   * @param clientId
+   * @param {array<number>} tokenIds
    *
    * @returns {Promise<*>}
    */
