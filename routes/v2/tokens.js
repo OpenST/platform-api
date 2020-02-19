@@ -28,4 +28,13 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   Promise.resolve(routeHelper.perform(req, res, next, 'TokenDetail', 'r_v2_t_1', null, dataFormatterFunc));
 });
 
+/* Token domain validation */
+router.get('/:token_id/validate-domain', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.verifyTokenDomain;
+  req.decodedParams.clientConfigStrategyRequired = false;
+  req.decodedParams.token_id = req.params.token_id;
+
+  Promise.resolve(routeHelper.perform(req, res, next, '/app/services/token/VerifyDomain', 'r_v2_t_2', null, null));
+});
+
 module.exports = router;
