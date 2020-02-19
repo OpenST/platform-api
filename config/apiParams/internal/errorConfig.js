@@ -88,6 +88,12 @@ const errorConfig = {
     parameter: 'stake_currency_to_stake',
     code: 'invalid',
     message: 'Invalid stake currency to stake'
+  },
+
+  invalid_redemption_id: {
+    parameter: 'redemption_id',
+    code: 'invalid',
+    message: 'Invalid redemption id.'
   }
 };
 

@@ -1,9 +1,14 @@
+const OSTBase = require('@ostdotcom/base'),
+  InstanceComposer = OSTBase.InstanceComposer;
+
 const rootPrefix = '../../..',
   SlackEventBase = require(rootPrefix + '/app/services/slackEvents/Base'),
-  // FulfillRedemptionService = require(rootPrefix + '/app/services/admin/ApproveUsersAsCreator'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   slackConstants = require(rootPrefix + '/lib/globalConstant/slack');
+
+require(rootPrefix + '/lib/redemption/userRequests/Fulfill');
 
 /**
  * Class to process approve user event.
@@ -39,15 +44,19 @@ class FulfillRedemption extends SlackEventBase {
     const oThis = this;
 
     const serviceParams = {
-      user_ids: [oThis.eventParams.user_id],
-      current_admin: oThis.currentAdmin
+      userRedemptionId: [oThis.eventParams.redemption_id],
+      currentAdmin: oThis.currentAdmin
     };
 
-    // const serviceResponse = await new FulfillRedemptionService(serviceParams).perform();
-    //
-    // if (serviceResponse.isFailure()) {
-    //   oThis._setError(serviceResponse);
-    // }
+    const FulfillUserRedemptionRequestLib = oThis
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'FulfillUserRedemptionRequest');
+
+    const fulfillUserRedemptionRsp = await new FulfillUserRedemptionRequestLib(serviceParams).perform();
+
+    if (fulfillUserRedemptionRsp.isFailure()) {
+      oThis._setError(fulfillUserRedemptionRsp);
+    }
   }
 
   /**
@@ -90,4 +99,6 @@ class FulfillRedemption extends SlackEventBase {
   }
 }
 
-module.exports = FulfillRedemption;
+InstanceComposer.registerAsShadowableClass(FulfillRedemption, coreConstants.icNameSpace, 'FulfillRedemption');
+
+module.exports = {};

@@ -7,8 +7,7 @@ const rootPrefix = '../../..',
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions');
 
-//TODO:: what should be the error version file in use here
-const errorConfig = basicHelper.fetchErrorConfig(apiVersions.v2);
+const errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal);
 
 /**
  * Class for slack related webhooks events base.
@@ -158,7 +157,7 @@ class SlackEventBase extends ServiceBase {
    * @returns {Promise<void>}
    * @private
    */
-  async _setError(serviceResponse) {
+  _setError(serviceResponse) {
     const oThis = this;
 
     logger.error('_setError start');
