@@ -234,8 +234,8 @@ class GetRedemptionProductList extends ServiceBase {
         name: tokenRedemptionProductDetails.name || redemptionProductDetails.name,
         description: tokenRedemptionProductDetails.description || redemptionProductDetails.description,
         image: tokenRedemptionProductDetails.images || redemptionProductDetails.images,
-        status: tokenRedemptionProductDetails.status || redemptionProductDetails.status,
-        uts: tokenRedemptionProductDetails.updatedTimestamp || redemptionProductDetails.updatedTimestamp
+        status: tokenRedemptionProductDetails.status,
+        uts: tokenRedemptionProductDetails.updatedTimestamp
       };
       finalRedemptionProducts.push(redemptionProduct);
     }
