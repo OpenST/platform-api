@@ -23,15 +23,21 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
       formattedRedemptionProducts = [],
       metaPayload = await new RedemptionProductListMetaFormatter(serviceResponse.data).perform().data;
 
+    console.log('redeemableSkus----', redeemableSkus);
+
     for (let index in redeemableSkus) {
       formattedRedemptionProducts.push(await new RedemptionProductFormatter(redeemableSkus[index]).perform().data);
     }
+
+    console.log('formattedRedemptionProducts-----', formattedRedemptionProducts);
 
     serviceResponse.data = {
       result_type: resultType.redeemableSkus,
       [resultType.redeemableSkus]: formattedRedemptionProducts,
       [resultType.meta]: metaPayload
     };
+
+    console.log('serviceResponse------', JSON.stringify(serviceResponse));
   };
 
   Promise.resolve(
