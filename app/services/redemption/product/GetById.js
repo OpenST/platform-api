@@ -165,8 +165,8 @@ class GetRedemptionProductById extends ServiceBase {
       name: oThis.tokenRedemptionProductDetails.name || oThis.redemptionProductDetails.name,
       description: oThis.tokenRedemptionProductDetails.description || oThis.redemptionProductDetails.description,
       image: oThis.tokenRedemptionProductDetails.images || oThis.redemptionProductDetails.images,
-      status: oThis.tokenRedemptionProductDetails.status || oThis.redemptionProductDetails.status,
-      uts: oThis.tokenRedemptionProductDetails.updatedTimestamp || oThis.redemptionProductDetails.updatedTimestamp
+      status: oThis.tokenRedemptionProductDetails.status,
+      uts: oThis.tokenRedemptionProductDetails.updatedTimestamp
     };
 
     return responseHelper.successWithData({
