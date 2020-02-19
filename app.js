@@ -46,7 +46,7 @@ morgan.token('endDateTime', function getEndDateTime(req) {
   return basicHelper.logDateFormat();
 });
 
-const startRequestLogLine = function(req, res, next) {
+const startRequestLogLine = function (req, res, next) {
   let message =
     "Started '" +
     customUrlParser.parse(req.originalUrl).pathname +
@@ -66,7 +66,7 @@ const startRequestLogLine = function(req, res, next) {
  * @param res
  * @param next
  */
-const assignParams = function(req, res, next) {
+const assignParams = function (req, res, next) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
   // Also override any request params, related to signatures
   // And finally assign it to req.decodedParams
@@ -81,7 +81,7 @@ const assignParams = function(req, res, next) {
  * @param req
  * @return {*}
  */
-const getRequestParams = function(req) {
+const getRequestParams = function (req) {
   // IMPORTANT NOTE: Don't assign parameters before sanitization
   if (req.method === 'POST') {
     return req.body;
@@ -100,10 +100,10 @@ const getRequestParams = function(req) {
  * @param next
  * @return {Promise|*|{$ref}|PromiseLike<T>|Promise<T>}
  */
-const validateApiSignature = function(req, res, next) {
+const validateApiSignature = function (req, res, next) {
   let inputParams = getRequestParams(req);
 
-  const handleParamValidationResult = function(result) {
+  const handleParamValidationResult = function (result) {
     if (result.isSuccess()) {
       if (!req.decodedParams) {
         req.decodedParams = {};
@@ -131,7 +131,7 @@ const validateApiSignature = function(req, res, next) {
     .then(handleParamValidationResult);
 };
 
-const validateWebhookSignature = function(req, res, next) {
+const validateWebhookSignature = function (req, res, next) {
   console.log('I am in app.js validateWebhookSignature');
   let inputParams = getRequestParams(req);
   //Object.assign(inputParams, req.headers);
@@ -143,7 +143,7 @@ const validateWebhookSignature = function(req, res, next) {
     requestHeaders: req.headers
   })
     .perform()
-    .then(function(resp) {
+    .then(function (resp) {
       if (resp.isSuccess()) {
         console.log('----------validateWebhookSignature-------resp--------------', resp);
         next();
@@ -154,7 +154,7 @@ const validateWebhookSignature = function(req, res, next) {
 };
 
 // before action for verifying the jwt token and setting the decoded info in req obj
-const decodeJwt = function(req, res, next) {
+const decodeJwt = function (req, res, next) {
   let token;
 
   if (req.method === 'POST' || req.method === 'DELETE') {
@@ -164,7 +164,7 @@ const decodeJwt = function(req, res, next) {
   }
 
   // Set the decoded params in the re and call the next in control flow.
-  const jwtOnResolve = function(reqParams) {
+  const jwtOnResolve = function (reqParams) {
     req.decodedParams = sanitizer.sanitizeParams(reqParams.data);
     req.decodedParams['app_validated_api_name'] = apiName.allInternalRoutes;
     // Validation passed.
@@ -172,7 +172,7 @@ const decodeJwt = function(req, res, next) {
   };
 
   // send error, if token is invalid
-  const jwtOnReject = function(err) {
+  const jwtOnReject = function (err) {
     return responseHelper
       .error({
         internal_error_identifier: 'a_1',
@@ -183,14 +183,14 @@ const decodeJwt = function(req, res, next) {
   };
 
   // Verify token
-  Promise.resolve(jwtAuth.verifyToken(token, 'saasApi').then(jwtOnResolve, jwtOnReject)).catch(function(err) {
+  Promise.resolve(jwtAuth.verifyToken(token, 'saasApi').then(jwtOnResolve, jwtOnReject)).catch(function (err) {
     const errorObject = responseHelper.error({
       internal_error_identifier: 'jwt_decide_failed:a_2',
       api_error_identifier: 'jwt_decide_failed',
-      debug_options: { token: token }
+      debug_options: {token: token}
     });
     createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
-    logger.error('a_2', 'JWT Decide Failed', { token: token });
+    logger.error('a_2', 'JWT Decide Failed', {token: token});
 
     return responseHelper
       .error({
@@ -203,8 +203,8 @@ const decodeJwt = function(req, res, next) {
 };
 
 // Set request debugging/logging details to shared namespace
-const appendRequestDebugInfo = function(req, res, next) {
-  requestSharedNameSpace.run(function() {
+const appendRequestDebugInfo = function (req, res, next) {
+  requestSharedNameSpace.run(function () {
     requestSharedNameSpace.set('reqId', req.id);
     requestSharedNameSpace.set('startTime', req.startTime);
     next();
@@ -212,7 +212,7 @@ const appendRequestDebugInfo = function(req, res, next) {
 };
 
 // In order to put Saas into maintenance, set systemServiceStatusesCache with saas_api_available = 0
-const checkSystemServiceStatuses = async function(req, res, next) {
+const checkSystemServiceStatuses = async function (req, res, next) {
   const statusRsp = await systemServiceStatusesCache.fetch();
   if (statusRsp.isSuccess && statusRsp.data && statusRsp.data['saas_api_available'] != 1) {
     return responseHelper
@@ -233,7 +233,7 @@ const checkSystemServiceStatuses = async function(req, res, next) {
  * @param res
  * @param next
  */
-const handleDepricatedRoutes = function(req, res, next) {
+const handleDepricatedRoutes = function (req, res, next) {
   return responseHelper
     .error({
       internal_error_identifier: 'a_8',
@@ -250,7 +250,7 @@ const handleDepricatedRoutes = function(req, res, next) {
  * @param res
  * @param next
  */
-const appendInternalVersion = function(req, res, next) {
+const appendInternalVersion = function (req, res, next) {
   req.decodedParams.apiVersion = apiVersions.internal;
   next();
 };
@@ -262,7 +262,7 @@ const appendInternalVersion = function(req, res, next) {
  * @param res
  * @param next
  */
-const appendV2Version = function(req, res, next) {
+const appendV2Version = function (req, res, next) {
   req.decodedParams.apiVersion = apiVersions.v2;
   next();
 };
@@ -283,12 +283,12 @@ app.use(
   )
 );
 
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   var data = '';
-  req.on('data', function(chunk) {
+  req.on('data', function (chunk) {
     data += chunk;
   });
-  req.on('end', function() {
+  req.on('end', function () {
     req.rawBody = data;
   });
   next();
@@ -301,7 +301,7 @@ app.use(helmet());
 app.use(bodyParser.json());
 
 // Parsing the URL-encoded data with the qs library (extended: true)
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -328,7 +328,7 @@ app.use(
  * NOTE: SLACK webhooks
  */
 
-app.use('/webhooks', webhookRoutes);
+app.use('/' + environmentInfo.urlPrefix + '/webhooks', webhookRoutes);
 
 /*
   The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
@@ -358,7 +358,7 @@ app.use(
 );
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (req, res, next) {
   let message =
     "Started '" +
     customUrlParser.parse(req.originalUrl).pathname +
@@ -378,12 +378,12 @@ app.use(function(req, res, next) {
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   const errorObject = responseHelper.error({
     internal_error_identifier: `a_6`,
     api_error_identifier: 'something_went_wrong',
-    debug_options: { err: err }
+    debug_options: {err: err}
   });
   createErrorLogsEntry.perform(errorObject, ErrorLogsConstants.lowSeverity);
   logger.error('a_6', 'Something went wrong', err);
