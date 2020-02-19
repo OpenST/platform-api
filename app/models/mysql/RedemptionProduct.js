@@ -50,7 +50,7 @@ class RedemptionProduct extends ModelBase {
       id: dbRow.id,
       name: dbRow.name,
       description: dbRow.description,
-      image: JSON.parse(dbRow.image) || null,
+      images: JSON.parse(dbRow.image) || null,
       createdAt: dbRow.created_at,
       status: dbRow.status,
       updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)

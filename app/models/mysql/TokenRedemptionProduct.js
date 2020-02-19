@@ -1,15 +1,9 @@
-/**
- * Module for token redemption product model.
- *
- * @module app/models/mysql/TokenRedemptionProduct
- */
-
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  urlHelper = require(rootPrefix + '/lib/redemption/UrlHelper'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  urlHelper = require(rootPrefix + '/lib/redemption/UrlHelper'),
   tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
 
 // Declare variables.
@@ -45,13 +39,13 @@ class TokenRedemptionProduct extends ModelBase {
    * @param {number} dbRow.redemption_product_id
    * @param {string} dbRow.name
    * @param {string} dbRow.description
-   * @param {Object} dbRow.image
+   * @param {string} dbRow.image
    * @param {number} dbRow.sequence_number
    * @param {string} dbRow.status
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
    *
-   * @return {object}
+   * @returns {object}
    * @private
    */
   static _formatDbData(dbRow) {
@@ -72,13 +66,21 @@ class TokenRedemptionProduct extends ModelBase {
   /**
    * Insert record.
    *
-   * @param params
+   * @param {object} params
+   * @param {number} params.tokenId
+   * @param {number} params.redemptionProductId
+   * @param {string} [params.name]
+   * @param {string} [params.description]
+   * @param {string} [params.image]
+   * @param {number} [params.sequenceNumber]
+   * @param {string} params.status
+   *
    * @returns {Promise<*|result>}
    */
   async insertRecord(params) {
     const oThis = this;
 
-    let insertResponse = await oThis
+    const insertResponse = await oThis
       .insert({
         token_id: params.tokenId,
         redemption_product_id: params.redemptionProductId,
@@ -131,12 +133,14 @@ class TokenRedemptionProduct extends ModelBase {
   /**
    * Fetch redemption product ids by token id.
    *
-   * @param tokenId
+   * @param {number} tokenId
+   *
    * @returns {Promise<*|result>}
    */
   async fetchProductIdsByTokenId(tokenId) {
-    const oThis = this,
-      productIds = [];
+    const oThis = this;
+
+    const productIds = [];
 
     const dbRows = await oThis
       .select('id')
@@ -156,6 +160,8 @@ class TokenRedemptionProduct extends ModelBase {
 
   /**
    * Flush cache.
+   *
+   * @param {object} params
    *
    * @returns {Promise<void>}
    */
