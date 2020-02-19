@@ -589,6 +589,26 @@ class BasicHelper {
   }
 
   /**
+   * Get number of BT from fiat amount.
+   *
+   * @param {string} fiatAmount
+   * @param {string} stakeCurrencyIsHowManyFiat
+   * @param {string} tokenConversionFactor
+   * @param {string} tokenDecimals
+   *
+   * @returns {BigNumber}
+   */
+  getNumberOfBTFromFiat(fiatAmount, stakeCurrencyIsHowManyFiat, tokenConversionFactor, tokenDecimals) {
+    // This will give number of stake currency tokens from fiat amount.
+    const inStakeCurrency = new BigNumber(fiatAmount).div(new BigNumber(stakeCurrencyIsHowManyFiat));
+
+    // From number of stake currency tokens fetch BT amount.
+    const numberOfBts = new BigNumber(inStakeCurrency).mul(new BigNumber(tokenConversionFactor));
+
+    return numberOfBts.mul(new BigNumber(10).toPower(tokenDecimals)).floor();
+  }
+
+  /**
    * Timestamp in seconds.
    *
    * @return {number}
