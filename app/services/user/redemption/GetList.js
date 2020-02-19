@@ -97,48 +97,6 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * Returns default page limit.
-   *
-   * @returns {number}
-   * @private
-   */
-  _defaultPageLimit() {
-    return pagination.defaultRedemptionListPageSize;
-  }
-
-  /**
-   * Returns minimum page limit.
-   *
-   * @returns {number}
-   * @private
-   */
-  _minPageLimit() {
-    return pagination.minRedemptionListPageSize;
-  }
-
-  /**
-   * Returns maximum page limit.
-   *
-   * @returns {number}
-   * @private
-   */
-  _maxPageLimit() {
-    return pagination.maxRedemptionListPageSize;
-  }
-
-  /**
-   * Returns default page limit.
-   *
-   * @returns {number}
-   * @private
-   */
-  _currentPageLimit() {
-    const oThis = this;
-
-    return oThis.limit;
-  }
-
-  /**
    * Fetch user redemption uuids
    * @returns {Promise}
    * @private
@@ -238,6 +196,48 @@ class UserRedemptionList extends ServiceBase {
         [resultType.meta]: oThis.responseMetaData
       })
     );
+  }
+
+  /**
+   * Returns default page limit.
+   *
+   * @returns {number}
+   * @private
+   */
+  _defaultPageLimit() {
+    return pagination.defaultRedemptionListPageSize;
+  }
+
+  /**
+   * Returns minimum page limit.
+   *
+   * @returns {number}
+   * @private
+   */
+  _minPageLimit() {
+    return pagination.minRedemptionListPageSize;
+  }
+
+  /**
+   * Returns maximum page limit.
+   *
+   * @returns {number}
+   * @private
+   */
+  _maxPageLimit() {
+    return pagination.maxRedemptionListPageSize;
+  }
+
+  /**
+   * Returns current page limit.
+   *
+   * @returns {number}
+   * @private
+   */
+  _currentPageLimit() {
+    const oThis = this;
+
+    return oThis.limit;
   }
 }
 

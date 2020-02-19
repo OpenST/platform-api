@@ -1,21 +1,16 @@
-/**
- * Api to get single redemption product list.
- *
- * @module app/services/redemption/product/GetList
- */
-
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
 
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
 require(rootPrefix + '/lib/cacheManagement/chain/TokenRedemptionProductIdsByTokenId');
 
@@ -34,15 +29,18 @@ class GetRedemptionProductList extends ServiceBase {
    * @param {string} params.limit
    * @param {string} params.status
    *
+   * @augments ServiceBase
+   *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
+
     const oThis = this;
 
     oThis.clientId = params.client_id;
 
-    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+    oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
     oThis.limit = params.limit;
     oThis.tokenRedemptionProductIds = [];
     oThis.tokenRedemptionProductDetailsMap = {};
@@ -50,7 +48,7 @@ class GetRedemptionProductList extends ServiceBase {
 
     oThis.page = null;
     oThis.responseMetaData = {
-      [pagination.nextPagePayloadKey]: {}
+      [paginationConstants.nextPagePayloadKey]: {}
     };
   }
 
@@ -79,7 +77,10 @@ class GetRedemptionProductList extends ServiceBase {
   }
 
   /**
-   * Sets pagination params
+   * Validate and sanitize input parameters.
+   *
+   * @sets oThis.page, oThis.limit
+   *
    * @returns {Promise}
    * @private
    */
@@ -93,7 +94,7 @@ class GetRedemptionProductList extends ServiceBase {
       oThis.limit = parsedPaginationParams.limit; // Override limit
     } else {
       oThis.page = 1;
-      oThis.limit = oThis.limit || pagination.defaultRedemptionProductListPageSize;
+      oThis.limit = oThis.limit || paginationConstants.defaultRedemptionProductListPageSize;
     }
 
     logger.log('oThis.limit------', oThis.limit);
@@ -104,6 +105,8 @@ class GetRedemptionProductList extends ServiceBase {
   /**
    * Fetch token redemption product ids.
    *
+   * @sets oThis.tokenRedemptionProductIds
+   *
    * @returns {Promise<never>}
    * @private
    */
@@ -111,9 +114,10 @@ class GetRedemptionProductList extends ServiceBase {
     const oThis = this;
 
     const TokenRedemptionProductIdsByTokenIdCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductIdsByTokenIdCache'),
-      tokenRedemptionProductIdsByTokenIdCache = new TokenRedemptionProductIdsByTokenIdCache({
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductIdsByTokenIdCache');
+
+    const tokenRedemptionProductIdsByTokenIdCache = new TokenRedemptionProductIdsByTokenIdCache({
         tokenId: oThis.tokenId
       }),
       response = await tokenRedemptionProductIdsByTokenIdCache.fetch();
@@ -128,6 +132,8 @@ class GetRedemptionProductList extends ServiceBase {
 
   /**
    * Filter product ids.
+   *
+   * @sets oThis.tokenRedemptionProductIds
    *
    * @private
    */
@@ -147,6 +153,8 @@ class GetRedemptionProductList extends ServiceBase {
   /**
    * Fetch token redemption product.
    *
+   * @sets oThis.tokenRedemptionProductDetailsMap
+   *
    * @returns {Promise<void>}
    * @private
    */
@@ -158,9 +166,10 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     const TokenRedemptionProductCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache'),
-      tokenRedemptionProductCache = new TokenRedemptionProductCache({
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
+
+    const tokenRedemptionProductCache = new TokenRedemptionProductCache({
         ids: oThis.tokenRedemptionProductIds
       }),
       response = await tokenRedemptionProductCache.fetch();
@@ -184,9 +193,9 @@ class GetRedemptionProductList extends ServiceBase {
   async _fetchProductDetailsFromMasterList() {
     const oThis = this;
 
-    let masterListProductIds = [];
+    const masterListProductIds = [];
 
-    for (let tokenRedemptionProductId in oThis.tokenRedemptionProductDetailsMap) {
+    for (const tokenRedemptionProductId in oThis.tokenRedemptionProductDetailsMap) {
       const tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
       masterListProductIds.push(tokenRedemptionProduct.redemptionProductId);
     }
@@ -217,7 +226,7 @@ class GetRedemptionProductList extends ServiceBase {
     const finalRedemptionProducts = [];
 
     for (let ind = 0; ind < oThis.tokenRedemptionProductIds.length; ind++) {
-      let tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
+      const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
         tokenRedemptionProductDetails = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId],
         redemptionProductDetails = oThis.redemptionProductDetailsMap[tokenRedemptionProductDetails.redemptionProductId];
 
@@ -233,8 +242,8 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     if (oThis.tokenRedemptionProductIds.length >= oThis.limit) {
-      oThis.responseMetaData[pagination.nextPagePayloadKey] = {
-        [pagination.paginationIdentifierKey]: {
+      oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
+        [paginationConstants.paginationIdentifierKey]: {
           page: oThis.page + 1,
           limit: oThis.limit
         }
@@ -248,35 +257,39 @@ class GetRedemptionProductList extends ServiceBase {
   }
 
   /**
-   * _defaultPageLimit
+   * Returns default page limit.
    *
+   * @returns {number}
    * @private
    */
   _defaultPageLimit() {
-    return pagination.defaultRedemptionProductListPageSize;
+    return paginationConstants.defaultRedemptionProductListPageSize;
   }
 
   /**
-   * _minPageLimit
+   * Returns minimum page limit.
    *
+   * @returns {number}
    * @private
    */
   _minPageLimit() {
-    return pagination.minRedemptionProductListPageSize;
+    return paginationConstants.minRedemptionProductListPageSize;
   }
 
   /**
-   * _maxPageLimit
+   * Returns maximum page limit.
    *
+   * @returns {number}
    * @private
    */
   _maxPageLimit() {
-    return pagination.maxRedemptionProductListPageSize;
+    return paginationConstants.maxRedemptionProductListPageSize;
   }
 
   /**
-   * _currentPageLimit
+   * Returns current page limit.
    *
+   * @returns {number}
    * @private
    */
   _currentPageLimit() {

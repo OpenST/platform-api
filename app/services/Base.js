@@ -103,7 +103,7 @@ class ServicesBaseKlass {
   /**
    * Validate token status.
    *
-   * @returns {Promise<Void>}
+   * @returns {Promise<void>}
    * @private
    */
   async _validateTokenStatus() {
