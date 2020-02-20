@@ -1,4 +1,5 @@
 const rootPrefix = '..',
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   slackWrapper = require(rootPrefix + '/lib/slack/wrapper'),
   slackConstants = require(rootPrefix + '/lib/globalConstant/slack');
 
@@ -103,7 +104,7 @@ class SlackNewRedemptionMessage {
       blocks: oThis._generateMessage()
     };
 
-    console.log('HERE========', JSON.stringify(slackMessageParams));
+    logger.debug('========slackMessageParams========', JSON.stringify(slackMessageParams));
 
     return slackWrapper.sendMessage(slackMessageParams);
   }
