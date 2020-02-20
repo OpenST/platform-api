@@ -156,7 +156,9 @@ class GetRedemptionProductById extends ServiceBase {
   }
 
   /**
-   * get availability of given product for all countries
+   * Get availability of given product for all countries.
+   *
+   * @sets oThis.availability
    *
    * @returns {Promise<never>}
    * @private
@@ -173,22 +175,22 @@ class GetRedemptionProductById extends ServiceBase {
     }
 
     const productCountriesDetails = productCountryCacheResp.data[oThis.tokenRedemptionProductId];
-    for (let countryId in productCountriesDetails) {
+    for (const countryId in productCountriesDetails) {
       countryIds.push(countryId);
     }
 
     const redemptionCountryCacheResp = await new RedemptionCountryByIdCache({ countryIds: countryIds }).fetch();
     const countriesDetails = redemptionCountryCacheResp.data;
 
-    for (let countryId in productCountriesDetails) {
-      let productCountry = productCountriesDetails[countryId],
+    for (const countryId in productCountriesDetails) {
+      const productCountry = productCountriesDetails[countryId],
         redemptionOptions = productCountry.redemptionOptions,
         countryDetails = countriesDetails[countryId],
         fiatToUSDConversion = countryDetails.conversions[quoteCurrencyConstants.USD],
         denominations = [];
 
-      for (let i = 0; i < redemptionOptions.length; i++) {
-        let amountInFiat = redemptionOptions[i],
+      for (let index = 0; index < redemptionOptions.length; index++) {
+        const amountInFiat = redemptionOptions[index],
           amountInUSD = basicHelper
             .convertToBigNumber(amountInFiat)
             .div(basicHelper.convertToBigNumber(fiatToUSDConversion)),

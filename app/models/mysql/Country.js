@@ -1,14 +1,8 @@
-/**
- * Module for country model.
- *
- * @module app/models/mysql/Country
- */
-
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 // Declare variables.
 const dbName = 'kit_saas_redemption_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -42,11 +36,11 @@ class RedemptionCountry extends ModelBase {
    * @param {string} dbRow.name
    * @param {string} dbRow.country_iso_code
    * @param {string} dbRow.currency_iso_code
-   * @param {Object} dbRow.conversions
+   * @param {string} dbRow.conversions
    * @param {string} dbRow.created_at
    * @param {string} dbRow.updated_at
    *
-   * @return {object}
+   * @returns {object}
    * @private
    */
   static _formatDbData(dbRow) {
@@ -62,22 +56,24 @@ class RedemptionCountry extends ModelBase {
   }
 
   /**
-   * cache by Country Id
+   * Get details by country ids.
    *
-   * @param countryIds
+   * @param {array<number>} countryIds
+   *
    * @returns {Promise<*|result>}
    */
   async getDetailsByCountryId(countryIds) {
-    const oThis = this,
-      countryDetails = {};
+    const oThis = this;
+
+    const countryDetails = {};
 
     const countriesData = await oThis
       .select('*')
       .where({ id: countryIds })
       .fire();
 
-    for (let i = 0; i < countriesData.length; i++) {
-      let formatedCountryData = RedemptionCountry._formatDbData(countriesData[i]);
+    for (let index = 0; index < countriesData.length; index++) {
+      const formatedCountryData = RedemptionCountry._formatDbData(countriesData[index]);
       countryDetails[formatedCountryData.id] = formatedCountryData;
     }
 
@@ -85,9 +81,10 @@ class RedemptionCountry extends ModelBase {
   }
 
   /**
-   * cache by Country ISO code
+   * Get details by country ISO code.
    *
-   * @param countryIsoCodes
+   * @param {array<string>} countryIsoCodes
+   *
    * @returns {Promise<*|result>}
    */
   async getDetailsByCountryIso(countryIsoCodes) {
@@ -96,11 +93,11 @@ class RedemptionCountry extends ModelBase {
 
     const countriesData = await oThis
       .select('*')
-      .where({ country_iso_code: countryIsoCodes })
+      .where({ country_iso_code: countryIsoCodes }) // TODO:redemptions - add index on country_iso_code.
       .fire();
 
-    for (let i = 0; i < countriesData.length; i++) {
-      let formatedCountryData = RedemptionCountry._formatDbData(countriesData[i]);
+    for (let index = 0; index < countriesData.length; index++) {
+      const formatedCountryData = RedemptionCountry._formatDbData(countriesData[index]);
       countryDetails[formatedCountryData.countryIsoCode] = formatedCountryData;
     }
 
@@ -109,9 +106,12 @@ class RedemptionCountry extends ModelBase {
 
   /**
    * Clear country cache.
-   * Note: please always clear cache by id and iso both.
+   * Note: Please always clear cache by id and countryIsoCodes both.
    *
-   * @param params
+   * @param {object} params
+   * @param {array<number>} params.countryIds
+   * @param {array<string>} params.countryIsoCodes
+   *
    * @returns {Promise<void>}
    */
   static async flushCache(params) {
