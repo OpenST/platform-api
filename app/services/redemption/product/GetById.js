@@ -60,8 +60,6 @@ class GetRedemptionProductById extends ServiceBase {
 
     await oThis._fetchTokenRedemptionProductDetails();
 
-    await oThis._fetchProductDetailsFromMasterList();
-
     await oThis._fetchPricePointsData();
 
     await oThis._fetchProductAvailability();
@@ -165,16 +163,17 @@ class GetRedemptionProductById extends ServiceBase {
    */
   async _fetchProductAvailability() {
     const oThis = this,
-      countryIds = [];
+      countryIds = [],
+      redemptionProductId = oThis.tokenRedemptionProductDetails.redemptionProductId;
 
     const productCountryCacheResp = await new RedemptionProductCountryByProductIdCache({
-      productIds: [oThis.tokenRedemptionProductId]
+      productIds: [redemptionProductId]
     }).fetch();
     if (productCountryCacheResp.isFailure()) {
       return Promise.reject(productCountryCacheResp);
     }
 
-    const productCountriesDetails = productCountryCacheResp.data[oThis.tokenRedemptionProductId];
+    const productCountriesDetails = productCountryCacheResp.data[redemptionProductId];
     for (const countryId in productCountriesDetails) {
       countryIds.push(countryId);
     }
