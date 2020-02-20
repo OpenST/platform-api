@@ -1,29 +1,51 @@
-'use strict';
-
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption');
 
+// Declare variables.
 const dbName = 'kit_saas_redemption_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
+/**
+ * Class for user redemption model.
+ *
+ * @class UserRedemptionModel
+ */
 class UserRedemptionModel extends ModelBase {
+  /**
+   * Constructor for user redemption model.
+   *
+   * @augments ModelBase
+   *
+   * @constructor
+   */
   constructor() {
     super({ dbName: dbName });
+
     const oThis = this;
 
     oThis.tableName = 'user_redemptions';
   }
 
   /**
-   * Format db data
-   * @param dbRow
+   * Format Db data.
+   *
+   * @param {object} dbRow
+   * @param {number} dbRow.id
+   * @param {string} dbRow.uuid
+   * @param {string} dbRow.user_uuid
+   * @param {number} dbRow.token_redemption_product_id
+   * @param {string} dbRow.transaction_uuid
+   * @param {string} dbRow.amount
+   * @param {string} dbRow.currency
+   * @param {number} dbRow.status
+   * @param {string} dbRow.email_address
+   *
+   * @returns {{}}
    */
   formatDbData(dbRow) {
-    const oThis = this;
-
-    const formattedRow = {
+    return {
       id: dbRow.id,
       uuid: dbRow.uuid,
       userUuid: dbRow.user_uuid,
@@ -34,20 +56,18 @@ class UserRedemptionModel extends ModelBase {
       status: userRedemptionConstants.statuses[dbRow.status],
       emailAddress: dbRow.email_address
     };
-
-    return formattedRow;
   }
 
   /**
-   * Fetch redemption uuids
+   * Fetch redemption uuids.
    *
-   * @param params
-   * @param params.userId
-   * @param params.page
-   * @param params.status
-   * @param params.limit
+   * @param {object} params
+   * @param {number} params.userId
+   * @param {number} params.page
+   * @param {number} params.limit
+   * @param {string} [params.status]
    *
-   * @returns {Promise<void>}
+   * @returns {Promise<result>}
    */
   async fetchUuidsByUserId(params) {
     const oThis = this;
@@ -55,7 +75,7 @@ class UserRedemptionModel extends ModelBase {
     const limit = params.limit,
       offset = (params.page - 1) * limit;
 
-    const query = oThis
+    const queryObject = oThis
       .select('id, uuid')
       .where({
         user_id: oThis.userId
@@ -64,17 +84,17 @@ class UserRedemptionModel extends ModelBase {
       .offset(offset);
 
     if (params.status) {
-      query.where({
-        status: params.status
+      queryObject.where({
+        status: userRedemptionConstants.statuses[params.status]
       });
     }
 
-    const Rows = await query.fire();
+    const rows = await queryObject.fire();
 
     const redemptionUuids = [];
 
-    for (let ind = 0; ind < Rows.length; ind++) {
-      const formattedRow = oThis.formatDbData(Rows[ind]);
+    for (let ind = 0; ind < rows.length; ind++) {
+      const formattedRow = oThis.formatDbData(rows[ind]);
       redemptionUuids.push(formattedRow.uuid);
     }
 
@@ -82,10 +102,9 @@ class UserRedemptionModel extends ModelBase {
   }
 
   /**
-   * Fetch redemptions
+   * Fetch redemptions.
    *
-   * @param params
-   * @param params.uuids
+   * @param {array<string>} uuids
    *
    * @returns {Promise<void>}
    */
@@ -102,7 +121,7 @@ class UserRedemptionModel extends ModelBase {
     const redemptions = {};
 
     for (let ind = 0; ind < Rows.length; ind++) {
-      let formattedRow = oThis.formatDbData(Rows[ind]);
+      const formattedRow = oThis.formatDbData(Rows[ind]);
       redemptions[formattedRow.uuid] = formattedRow;
     }
 
@@ -118,7 +137,7 @@ class UserRedemptionModel extends ModelBase {
   async insertRedemptionRequest(params) {
     const oThis = this;
 
-    let insertRsp = await oThis
+    const insertRsp = await oThis
       .insert({
         uuid: params.uuid,
         user_uuid: params.userId,
