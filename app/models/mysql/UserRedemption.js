@@ -54,7 +54,7 @@ class UserRedemptionModel extends ModelBase {
       amount: dbRow.amount,
       currency: dbRow.currency,
       status: userRedemptionConstants.statuses[dbRow.status],
-      emailAddressEncrypted: dbRow.email_address
+      emailAddress: dbRow.email_address
     };
   }
 

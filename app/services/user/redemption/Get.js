@@ -4,6 +4,7 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -12,6 +13,7 @@ const rootPrefix = '../../../..',
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
+require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 
 /**
  * Class to fetch user redemption.
@@ -74,7 +76,7 @@ class UserRedemptionGet extends ServiceBase {
 
     await oThis._validateTokenStatus();
 
-    await oThis._validateTokenUser();
+    // await oThis._validateTokenUser();
   }
 
   /**
@@ -152,6 +154,24 @@ class UserRedemptionGet extends ServiceBase {
           params_error_identifiers: ['user_not_found'],
           debug_options: { userId: oThis.userId, tokenId: oThis.tokenId, userRedemptionUuid: oThis.userRedemptionUuid }
         })
+      );
+    }
+
+    await oThis._decryptEmail();
+  }
+
+  async _decryptEmail() {
+    const oThis = this;
+    if (oThis.userRedemption.emailAddress) {
+      const UserSaltEncryptorKeyCache = oThis
+          .ic()
+          .getShadowedClassFor(coreConstants.icNameSpace, 'UserSaltEncryptorKeyCache'),
+        encryptionSaltResp = await new UserSaltEncryptorKeyCache({ tokenId: oThis.tokenId }).fetchDecryptedData();
+
+      const encryptionSalt = encryptionSaltResp.data.encryption_salt_d;
+
+      oThis.userRedemption.emailAddress = await new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).decrypt(
+        oThis.userRedemption.emailAddress
       );
     }
   }

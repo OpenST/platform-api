@@ -3,6 +3,7 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -14,6 +15,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
+require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 
 /**
  * Class to fetch user redemptions list.
@@ -214,11 +216,23 @@ class UserRedemptionList extends ServiceBase {
       uuids: oThis.redemptionUuids
     }).fetch();
 
+    const UserSaltEncryptorKeyCache = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserSaltEncryptorKeyCache'),
+      encryptionSaltResp = await new UserSaltEncryptorKeyCache({ tokenId: oThis.tokenId }).fetchDecryptedData();
+
+    const encryptionSalt = encryptionSaltResp.data.encryption_salt_d;
+
     const redemptionsMap = response.data;
     for (let index = 0; index < oThis.redemptionUuids.length; index++) {
       const redemptionDetail = redemptionsMap[oThis.redemptionUuids[index]];
 
       if (redemptionDetail) {
+        if (redemptionDetail.emailAddress) {
+          redemptionDetail.emailAddress = await new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).decrypt(
+            redemptionDetail.emailAddress
+          );
+        }
         oThis.userRedemptions.push(redemptionDetail);
       }
     }
