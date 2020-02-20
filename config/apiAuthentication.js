@@ -200,6 +200,16 @@ class ApiAuthentication {
         apiName: apiName.getRedemptionProductsList,
         route: '/redeemable-skus/',
         supportedSignatureKinds: [apiSignature.personalSignKind]
+      },
+      {
+        apiName: apiName.redemptionList,
+        route: '/users/:user_id/redemptions/',
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.redemptionGet,
+        route: '/users/:user_id/redemptions/:user_redemption_uuid/',
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];
@@ -282,16 +292,6 @@ class ApiAuthentication {
       {
         apiName: apiName.resetRecoveryOwner,
         route: '/users/:user_id/recovery-owners/',
-        supportedSignatureKinds: [apiSignature.personalSignKind]
-      },
-      {
-        apiName: apiName.redemptionList,
-        route: '/users/:user_id/redemptions/',
-        supportedSignatureKinds: [apiSignature.personalSignKind]
-      },
-      {
-        apiName: apiName.redemptionGet,
-        route: '/users/:user_id/redemptions/:user_redemption_uuid',
         supportedSignatureKinds: [apiSignature.personalSignKind]
       },
       {

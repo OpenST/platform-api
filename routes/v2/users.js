@@ -587,7 +587,7 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
   );
 });
 
-router.post('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.redemptionList;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.clientConfigStrategyRequired = true;
@@ -612,11 +612,7 @@ router.post('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, functio
   );
 });
 
-router.post('/:user_id/redemptions/:user_redemption_uuid', sanitizer.sanitizeDynamicUrlParams, function(
-  req,
-  res,
-  next
-) {
+router.get('/:user_id/redemptions/:user_redemption_uuid', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.redemptionGet;
   req.decodedParams.user_id = req.params.user_id;
   req.decodedParams.user_redemption_uuid = req.params.user_redemption_uuid;
