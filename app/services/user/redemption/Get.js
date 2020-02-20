@@ -76,7 +76,7 @@ class UserRedemptionGet extends ServiceBase {
 
     await oThis._validateTokenStatus();
 
-    // await oThis._validateTokenUser();
+    await oThis._validateTokenUser();
   }
 
   /**
