@@ -194,12 +194,12 @@ class ApiAuthentication {
       {
         apiName: apiName.getRedemptionProduct,
         route: '/redeemable-skus/:redeemable_sku_id/',
-        supportedSignatureKinds: [apiSignature.personalSignKind]
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
       },
       {
         apiName: apiName.getRedemptionProductsList,
         route: '/redeemable-skus/',
-        supportedSignatureKinds: [apiSignature.personalSignKind]
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
       },
       {
         apiName: apiName.redemptionList,
