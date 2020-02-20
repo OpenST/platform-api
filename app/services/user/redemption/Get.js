@@ -10,6 +10,7 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
 // Following require(s) for registering into instance composer.
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
