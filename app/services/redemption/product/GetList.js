@@ -7,7 +7,8 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   resultTypeConstants = require(rootPrefix + '/lib/globalConstant/resultType'),
-  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
+  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination'),
+  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
@@ -185,7 +186,9 @@ class GetRedemptionProductList extends ServiceBase {
       const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
         tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
 
-      finalRedemptionProductsArray.push(tokenRedemptionProduct);
+      if (tokenRedemptionProduct.status === tokenRedemptionProductsConstants.activeStatus) {
+        finalRedemptionProductsArray.push(tokenRedemptionProduct);
+      }
     }
 
     console.log(
