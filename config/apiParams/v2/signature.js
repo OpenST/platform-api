@@ -1047,7 +1047,20 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateMysqlPaginationIdentifier'
+      },
+      {
+        parameter: 'user_redemption_uuids',
+        validatorMethod: 'validateUuidV4Array'
+      }
+    ]
   },
 
   [apiName.redemptionGet]: {

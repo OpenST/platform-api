@@ -27,7 +27,6 @@ class GetRedemptionProductList extends ServiceBase {
    * @param {number} params.client_id
    * @param {number} params.pagination_identifier
    * @param {string} params.limit
-   * @param {string} params.status
    *
    * @augments ServiceBase
    *
