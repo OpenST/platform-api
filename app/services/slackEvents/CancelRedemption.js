@@ -45,7 +45,8 @@ class CancelRedemption extends SlackEventBase {
 
     const serviceParams = {
       userRedemptionId: oThis.eventParams.redemption_id,
-      currentAdmin: oThis.currentAdmin
+      currentAdmin: oThis.currentAdmin,
+      clientId: oThis.eventParams.client_id
     };
 
     const CancelUserRedemptionRequestLib = oThis

@@ -522,10 +522,10 @@ const v2ErrorConfig = {
     code: 'invalid',
     message: 'Invalid parameter redemption_details amount. Amount must have been changed as per current prices.'
   },
-  invalid_redemption_currency: {
+  invalid_redemption_country: {
     parameter: 'redemption_details',
     code: 'invalid',
-    message: 'Invalid parameter redemption_details currency. Currency must be in our list of applicable currencies.'
+    message: 'Invalid parameter redemption_details country. Country must be in our list of applicable countries.'
   },
   invalid_redemption_transfers: {
     parameter: 'redemption_details',
