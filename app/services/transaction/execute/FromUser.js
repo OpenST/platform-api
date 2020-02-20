@@ -302,9 +302,9 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
     if (CommonValidators.validateObject(oThis.redemptionDetails)) {
       await new UserRedemptionModel({}).insertRedemptionRequest({
-        uuid: oThis.redemptionDetails.redemption_id,
+        uuid: oThis.redemptionDetails.redemptionId,
         userId: oThis.userId,
-        redemptionProductId: oThis.redemptionDetails['redeemable_sku_id'],
+        redemptionProductId: oThis.redemptionDetails.redemptionProductId,
         transactionUuid: oThis.transactionUuid,
         amount: oThis.redemptionDetails['amount'],
         currency: oThis.redemptionDetails['currency'],
@@ -313,7 +313,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
       });
 
       const cacheKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
-      await new cacheKlass({ uuids: [oThis.redemptionDetails.redemption_id] }).clear();
+      await new cacheKlass({ uuids: [oThis.redemptionDetails.redemptionId] }).clear();
     }
   }
 }
