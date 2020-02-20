@@ -202,15 +202,15 @@ class GetRedemptionProductById extends ServiceBase {
           );
 
         denominations.push({
-          amount_in_fiat: amountInFiat,
-          amount_in_wei: amountInTokenWei.toString(10)
+          amountInFiat: amountInFiat,
+          amountInWei: amountInTokenWei.toString(10)
         });
       }
 
       oThis.availability.push({
         country: countryDetails.name,
-        country_iso_code: countryDetails.countryIsoCode,
-        currency_iso_code: countryDetails.currencyIsoCode,
+        countryIsoCode: countryDetails.countryIsoCode,
+        currencyIsoCode: countryDetails.currencyIsoCode,
         denominations: denominations
       });
     }
@@ -219,6 +219,8 @@ class GetRedemptionProductById extends ServiceBase {
   /**
    * Prepare final response.
    *
+   * @sets oThis.tokenRedemptionProductDetails
+   *
    * @returns {*|result}
    * @private
    */
@@ -226,8 +228,6 @@ class GetRedemptionProductById extends ServiceBase {
     const oThis = this;
 
     oThis.tokenRedemptionProductDetails.availability = oThis.availability;
-
-    console.log('oThis.tokenRedemptionProductDetails-------', JSON.stringify(oThis.tokenRedemptionProductDetails));
 
     return responseHelper.successWithData({
       [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
