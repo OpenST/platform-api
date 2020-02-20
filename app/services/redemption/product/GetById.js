@@ -109,22 +109,11 @@ class GetRedemptionProductById extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbd_2',
           api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['invalid_token_id'],
+          params_error_identifiers: ['invalid_redemption_product_id'],
           debug_options: {
             tokenId: oThis.tokenId,
             tokenRedemptionProductDetails: oThis.tokenRedemptionProductDetails
           }
-        })
-      );
-    }
-
-    if (oThis.tokenRedemptionProductDetails.status !== tokenRedemptionProductsConstants.activeStatus) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_rd_p_gbd_3',
-          api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['invalid_token_id'],
-          debug_options: {}
         })
       );
     }

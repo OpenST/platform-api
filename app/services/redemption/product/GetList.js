@@ -24,6 +24,7 @@ class GetRedemptionProductList extends ServiceBase {
    *
    * @param {object} params
    * @param {number} params.client_id
+   * @param {number} [params.ids] - filter on ids.
    * @param {number} params.pagination_identifier
    * @param {string} params.limit
    *
@@ -40,7 +41,7 @@ class GetRedemptionProductList extends ServiceBase {
 
     oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
     oThis.limit = params.limit;
-    oThis.tokenRedemptionProductIds = [];
+    oThis.tokenRedemptionProductIds = params.ids;
     oThis.tokenRedemptionProductDetailsMap = {};
 
     oThis.page = null;
@@ -62,9 +63,10 @@ class GetRedemptionProductList extends ServiceBase {
 
     await oThis._validateTokenStatus();
 
-    await oThis._fetchTokenRedemptionProductIds();
-
-    oThis._filterProductIds();
+    if (oThis.tokenRedemptionProductIds.length === 0) {
+      await oThis._fetchTokenRedemptionProductIds();
+      oThis._filterProductIds();
+    }
 
     await oThis._fetchTokenRedemptionProductDetails();
 
@@ -87,12 +89,15 @@ class GetRedemptionProductList extends ServiceBase {
       const parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
       oThis.page = parsedPaginationParams.page; // Override page.
       oThis.limit = parsedPaginationParams.limit; // Override limit.
+      oThis.tokenRedemptionProductIds = [];
     } else {
       oThis.page = 1;
       oThis.limit = oThis.limit || paginationConstants.defaultRedemptionProductListPageSize;
+      oThis.tokenRedemptionProductIds = oThis.tokenRedemptionProductIds || [];
     }
 
     await oThis._validatePageSize();
+    console.log('oThis.tokenRedemptionProductIds-----', oThis.tokenRedemptionProductIds);
   }
 
   /**

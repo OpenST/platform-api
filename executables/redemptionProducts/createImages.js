@@ -20,7 +20,7 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/redemptionProducts/createImages --auxChainId 2000 --images \'{"product":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-l-original.jpg","size":90821,"width":321,"height":182}},"list":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-p-original.jpg","size":193141,"width":320,"height":320}}}\' --redemptionProductId 1'
+    '    node executables/redemptionProducts/createImages --auxChainId 2000 --images \'{"detail":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-l-original.jpg","size":90821,"width":321,"height":182}},"cover":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-p-original.jpg","size":193141,"width":320,"height":320}}}\' --redemptionProductId 1'
   );
   logger.log('');
   logger.log('');

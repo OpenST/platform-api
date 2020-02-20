@@ -109,11 +109,7 @@ class TokenRedemptionProduct extends ModelBase {
 
     const dbRows = await oThis
       .select('*')
-      .where([
-        ' id IN (?) AND status = ?',
-        ids,
-        tokenRedemptionProductsConstants.invertedStatuses[tokenRedemptionProductsConstants.activeStatus]
-      ])
+      .where([' id IN (?)', ids])
       .fire();
 
     if (dbRows.length === 0) {
@@ -149,11 +145,7 @@ class TokenRedemptionProduct extends ModelBase {
 
     const dbRows = await oThis
       .select('id')
-      .where([
-        'token_id = ? AND status = ?',
-        tokenId,
-        tokenRedemptionProductsConstants.invertedStatuses[tokenRedemptionProductsConstants.activeStatus]
-      ])
+      .where(['token_id = ?', tokenId])
       .fire();
 
     for (let index = 0; index < dbRows.length; index++) {
