@@ -3,8 +3,8 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -12,10 +12,10 @@ const rootPrefix = '../../../..',
   paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
 
 // Following require(s) for registering into instance composer.
+require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
-require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 
 /**
  * Class to fetch user redemptions list.

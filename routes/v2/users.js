@@ -23,7 +23,7 @@ const rootPrefix = '../..',
   TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList'),
   UserRedemptionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserRedemptionList'),
   RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner'),
-  RedemptionFormatter = require(rootPrefix + '/lib/formatter/entity/Redemption');
+  UserRedemptionFormatter = require(rootPrefix + '/lib/formatter/entity/UserRedemption');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -599,7 +599,7 @@ router.get('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function
       metaPayload = new UserRedemptionListMetaFormatter(serviceResponse.data).perform().data;
 
     for (let ind = 0; ind < redemptions.length; ind++) {
-      const formattedRsp = new RedemptionFormatter(redemptions[ind]).perform();
+      const formattedRsp = new UserRedemptionFormatter(redemptions[ind]).perform();
       formattedRedemptions.push(formattedRsp);
     }
 
@@ -623,7 +623,7 @@ router.get('/:user_id/redemptions/:user_redemption_uuid', sanitizer.sanitizeDyna
 
   const dataFormatterFunc = async function(serviceResponse) {
     const redemption = serviceResponse.data[resultType.userRedemption],
-      formattedRsp = new RedemptionFormatter(redemption).perform();
+      formattedRsp = new UserRedemptionFormatter(redemption).perform();
 
     serviceResponse.data = {
       result_type: resultType.userRedemption,

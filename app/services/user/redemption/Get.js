@@ -12,8 +12,8 @@ const rootPrefix = '../../../..',
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
  * Class to fetch user redemption.
