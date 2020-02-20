@@ -55,7 +55,7 @@ class UserRedemptionGet extends ServiceBase {
 
     await oThis._fetchRedemption();
 
-    await oThis._returnResponse();
+    return oThis._prepareResponse();
   }
 
   /**
@@ -161,7 +161,7 @@ class UserRedemptionGet extends ServiceBase {
    * @returns {Promise<>}
    * @private
    */
-  async _returnResponse() {
+  async _prepareResponse() {
     const oThis = this;
 
     return responseHelper.successWithData({
