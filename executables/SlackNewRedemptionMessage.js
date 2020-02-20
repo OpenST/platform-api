@@ -19,19 +19,27 @@ class SlackNewRedemptionMessage {
    * @param {string} params.tokenName
    * @param {string} params.clientId
    * @param {string} params.productName
+   * @param {string} params.tokenHolderAddressLink
+   * @param {string} params.transactionViewLink
+   * @param {string} params.country
+   * @param {string} params.currency
    *
    * @constructor
    */
   constructor(params) {
     const oThis = this;
 
-    oThis.email = params.email;
     oThis.redemptionId = params.redemptionId;
     oThis.userId = params.userId;
-    oThis.amount = params.amount;
     oThis.tokenName = params.tokenName;
-    oThis.clientId = params.clientId;
+    oThis.tokenHolderAddressLink = params.tokenHolderAddressLink;
+    oThis.email = params.email;
     oThis.productName = params.productName;
+    oThis.country = params.country;
+    oThis.amount = params.amount;
+    oThis.currency = params.currency;
+    oThis.transactionViewLink = params.transactionViewLink;
+    oThis.clientId = params.clientId;
   }
 
   /**
@@ -56,14 +64,19 @@ class SlackNewRedemptionMessage {
 
     const blocks = [],
       separator = '*===================================*';
-    //todo: edit message data as needed
+
     let data = {
-      email: oThis.email,
-      tokenName: oThis.tokenName,
-      userId: oThis.userId,
-      amount: oThis.amount,
       redemptionId: oThis.redemptionId,
-      productName: oThis.productName
+      userId: oThis.userId,
+      tokenName: oThis.tokenName,
+      tokenHolderAddressLink: oThis.tokenHolderAddressLink,
+      email: oThis.email,
+      productName: oThis.productName,
+      country: oThis.country,
+      amount: oThis.amount,
+      currency: oThis.currency,
+      transactionViewLink: oThis.transactionViewLink,
+      clientId: oThis.clientId
     };
 
     blocks.push(slackConstants.addRedemptionInfoSection(data));
