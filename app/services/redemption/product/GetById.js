@@ -191,11 +191,9 @@ class GetRedemptionProductById extends ServiceBase {
 
       for (let index = 0; index < redemptionOptions.length; index++) {
         const amountInFiat = redemptionOptions[index],
-          amountInUSD = basicHelper
-            .convertToBigNumber(amountInFiat)
-            .div(basicHelper.convertToBigNumber(fiatToUSDConversion)),
           amountInTokenWei = basicHelper.getNumberOfBTFromFiat(
-            amountInUSD,
+            amountInFiat,
+            fiatToUSDConversion,
             oThis.stakeCurrencyIsHowManyUSD,
             oThis.token.conversionFactor,
             oThis.token.decimal
