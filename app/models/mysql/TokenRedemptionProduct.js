@@ -104,6 +104,7 @@ class TokenRedemptionProduct extends ModelBase {
    */
   async fetchTokenRedemptionProductsByIds(ids) {
     const oThis = this,
+      tokenRedemptionProductIds = [],
       response = {};
 
     const dbRows = await oThis
@@ -121,13 +122,17 @@ class TokenRedemptionProduct extends ModelBase {
 
     for (let index = 0; index < dbRows.length; index++) {
       response[dbRows[index].id] = TokenRedemptionProduct._formatDbData(dbRows[index]);
+      tokenRedemptionProductIds.push(dbRows[index].id);
 
       if (response[dbRows[index].id].images) {
         response[dbRows[index].id].images = urlHelper.createLongResolutions(response[dbRows[index].id].images);
       }
     }
 
-    return responseHelper.successWithData(response);
+    return responseHelper.successWithData({
+      redemptionProductIds: tokenRedemptionProductIds,
+      redemptionProductMap: response
+    });
   }
 
   /**

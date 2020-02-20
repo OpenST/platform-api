@@ -3,7 +3,6 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
@@ -44,7 +43,6 @@ class GetRedemptionProductList extends ServiceBase {
     oThis.limit = params.limit;
     oThis.tokenRedemptionProductIds = [];
     oThis.tokenRedemptionProductDetailsMap = {};
-    oThis.redemptionProductDetailsMap = {};
 
     oThis.page = null;
     oThis.responseMetaData = {
@@ -70,8 +68,6 @@ class GetRedemptionProductList extends ServiceBase {
     oThis._filterProductIds();
 
     await oThis._fetchTokenRedemptionProductDetails();
-
-    await oThis._fetchProductDetailsFromMasterList();
 
     return oThis._prepareResponse();
   }
@@ -183,39 +179,6 @@ class GetRedemptionProductList extends ServiceBase {
   }
 
   /**
-   * Fetch product details from master list.
-   *
-   * @sets oThis.redemptionProductDetailsMap
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _fetchProductDetailsFromMasterList() {
-    const oThis = this;
-
-    const masterListProductIds = [];
-
-    for (const tokenRedemptionProductId in oThis.tokenRedemptionProductDetailsMap) {
-      const tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
-      masterListProductIds.push(tokenRedemptionProduct.redemptionProductId);
-    }
-
-    if (masterListProductIds.length === 0) {
-      return;
-    }
-
-    const redemptionProductCacheRsp = await new RedemptionProductCache({ ids: masterListProductIds }).fetch();
-
-    if (redemptionProductCacheRsp.isFailure()) {
-      return Promise.reject(redemptionProductCacheRsp);
-    }
-
-    oThis.redemptionProductDetailsMap = redemptionProductCacheRsp.data;
-
-    logger.log('oThis.redemptionProductDetailsMap------', JSON.stringify(oThis.redemptionProductDetailsMap));
-  }
-
-  /**
    * Prepare final response.
    *
    * @returns {*|result}
@@ -224,22 +187,13 @@ class GetRedemptionProductList extends ServiceBase {
   _prepareResponse() {
     const oThis = this;
 
-    const finalRedemptionProducts = [];
+    const finalRedemptionProductsArray = [];
 
     for (let ind = 0; ind < oThis.tokenRedemptionProductIds.length; ind++) {
       const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
-        tokenRedemptionProductDetails = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId],
-        redemptionProductDetails = oThis.redemptionProductDetailsMap[tokenRedemptionProductDetails.redemptionProductId];
+        tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
 
-      const redemptionProduct = {
-        id: tokenRedemptionProductDetails.id,
-        name: tokenRedemptionProductDetails.name || redemptionProductDetails.name,
-        description: tokenRedemptionProductDetails.description || redemptionProductDetails.description,
-        images: tokenRedemptionProductDetails.images || redemptionProductDetails.images,
-        status: tokenRedemptionProductDetails.status,
-        uts: tokenRedemptionProductDetails.updatedTimestamp
-      };
-      finalRedemptionProducts.push(redemptionProduct);
+      finalRedemptionProductsArray.push(tokenRedemptionProduct);
     }
 
     if (oThis.tokenRedemptionProductIds.length >= oThis.limit) {
@@ -252,7 +206,7 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     return responseHelper.successWithData({
-      [resultTypeConstants.redeemableSkus]: finalRedemptionProducts,
+      [resultTypeConstants.redeemableSkus]: finalRedemptionProductsArray,
       [resultTypeConstants.meta]: oThis.responseMetaData
     });
   }

@@ -4,7 +4,6 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  RedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/sharedMulti/RedemptionProduct'),
   RedemptionProductCountryByProductIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/RedemptionProductCountryByProductId'),
   RedemptionCountryByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RedemptionCountryById'),
@@ -45,7 +44,6 @@ class GetRedemptionProductById extends ServiceBase {
     oThis.tokenRedemptionProductId = params.redemption_product_id;
 
     oThis.tokenRedemptionProductDetails = {};
-    oThis.redemptionProductDetails = {};
     oThis.availability = [];
   }
 
@@ -132,38 +130,6 @@ class GetRedemptionProductById extends ServiceBase {
   }
 
   /**
-   * Fetch product details from master list.
-   *
-   * @sets oThis.redemptionProductDetails
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _fetchProductDetailsFromMasterList() {
-    const oThis = this;
-
-    const masterListProductId = oThis.tokenRedemptionProductDetails.redemptionProductId,
-      redemptionProductCacheRsp = await new RedemptionProductCache({ ids: [masterListProductId] }).fetch();
-
-    if (redemptionProductCacheRsp.isFailure()) {
-      return Promise.reject(redemptionProductCacheRsp);
-    }
-
-    if (!CommonValidators.validateObject(redemptionProductCacheRsp.data[masterListProductId])) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_rd_p_gbd_4',
-          api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['invalid_redemption_product_id'],
-          debug_options: {}
-        })
-      );
-    }
-
-    oThis.redemptionProductDetails = redemptionProductCacheRsp.data[masterListProductId];
-  }
-
-  /**
    * This function fetches price points for a particular chainId.
    *
    * @returns {Promise<*>}
@@ -179,7 +145,7 @@ class GetRedemptionProductById extends ServiceBase {
     if (pricePointsResponse.isFailure()) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_gdd_2',
+          internal_error_identifier: 'a_s_rd_p_gbd_4',
           api_error_identifier: 'cache_issue',
           debug_options: { chainId: oThis.auxChainId }
         })
@@ -257,18 +223,10 @@ class GetRedemptionProductById extends ServiceBase {
   _prepareResponse() {
     const oThis = this;
 
-    const finalRedemptionProductDetails = {
-      id: oThis.tokenRedemptionProductDetails.id,
-      name: oThis.tokenRedemptionProductDetails.name || oThis.redemptionProductDetails.name,
-      description: oThis.tokenRedemptionProductDetails.description || oThis.redemptionProductDetails.description,
-      images: oThis.tokenRedemptionProductDetails.images || oThis.redemptionProductDetails.images,
-      status: oThis.tokenRedemptionProductDetails.status,
-      availability: oThis.availability,
-      uts: oThis.tokenRedemptionProductDetails.updatedTimestamp
-    };
+    oThis.tokenRedemptionProductDetails['availability'] = oThis.availability;
 
     return responseHelper.successWithData({
-      [resultType.redeemableSku]: finalRedemptionProductDetails
+      [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
     });
   }
 }
