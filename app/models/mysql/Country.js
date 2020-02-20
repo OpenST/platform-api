@@ -61,6 +61,12 @@ class RedemptionCountry extends ModelBase {
     };
   }
 
+  /**
+   * cache by Country Id
+   *
+   * @param countryIds
+   * @returns {Promise<*|result>}
+   */
   async getDetailsByCountryId(countryIds) {
     const oThis = this,
       countryDetails = {};
@@ -76,6 +82,45 @@ class RedemptionCountry extends ModelBase {
     }
 
     return responseHelper.successWithData(countryDetails);
+  }
+
+  /**
+   * cache by Country ISO code
+   *
+   * @param countryIsoCodes
+   * @returns {Promise<*|result>}
+   */
+  async getDetailsByCountryIso(countryIsoCodes) {
+    const oThis = this,
+      countryDetails = {};
+
+    const countriesData = await oThis
+      .select('*')
+      .where({ country_iso_code: countryIsoCodes })
+      .fire();
+
+    for (let i = 0; i < countriesData.length; i++) {
+      let formatedCountryData = RedemptionCountry._formatDbData(countriesData[i]);
+      countryDetails[formatedCountryData.countryIsoCode] = formatedCountryData;
+    }
+
+    return responseHelper.successWithData(countryDetails);
+  }
+
+  /**
+   * Clear country cache.
+   * Note: please always clear cache by id and iso both.
+   *
+   * @param params
+   * @returns {Promise<void>}
+   */
+  static async flushCache(params) {
+    const RedemptionCountryByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RedemptionCountryById'),
+      RedemptionCountryByCountryIsoCache = require(rootPrefix +
+        '/lib/cacheManagement/kitSaasMulti/RedemptionCountryByCountryIso');
+
+    await new RedemptionCountryByIdCache({ countryIds: params.countryIds }).clear();
+    await new RedemptionCountryByCountryIsoCache({ countryIsoCodes: params.countryIsoCodes }).clear();
   }
 }
 
