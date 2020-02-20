@@ -190,12 +190,10 @@ class UserRedemptionList extends ServiceBase {
   async _returnResponse() {
     const oThis = this;
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        [resultType.userRedemptions]: oThis.userRedemptions,
-        [resultType.meta]: oThis.responseMetaData
-      })
-    );
+    return responseHelper.successWithData({
+      [resultType.userRedemptions]: oThis.userRedemptions,
+      [resultType.meta]: oThis.responseMetaData
+    });
   }
 
   /**

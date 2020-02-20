@@ -1,9 +1,3 @@
-/**
- * Module to get user redemption
- *
- * @module app/services/user/redemption/Get
- */
-
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -17,13 +11,13 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
- * Class to fetch user redemption
+ * Class to fetch user redemption.
  *
  * @class GetUserRedemption
  */
 class UserRedemptionGet extends ServiceBase {
   /**
-   * Constructor to fetch user redemption list
+   * Constructor to fetch user redemption.
    *
    * @param {object} params
    * @param {number} params.client_id
@@ -34,7 +28,8 @@ class UserRedemptionGet extends ServiceBase {
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
+
     const oThis = this;
 
     oThis.clientId = params.client_id;
@@ -62,7 +57,9 @@ class UserRedemptionGet extends ServiceBase {
   }
 
   /**
-   * Fetch redemption
+   * Fetch redemption.
+   *
+   * @sets oThis.userRedemption
    *
    * @returns {Promise<void>}
    * @private
@@ -88,11 +85,9 @@ class UserRedemptionGet extends ServiceBase {
   async _returnResponse() {
     const oThis = this;
 
-    return Promise.resolve(
-      responseHelper.successWithData({
-        [resultType.userRedemption]: oThis.userRedemption
-      })
-    );
+    return responseHelper.successWithData({
+      [resultType.userRedemption]: oThis.userRedemption
+    });
   }
 }
 

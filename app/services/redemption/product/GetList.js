@@ -20,7 +20,7 @@ require(rootPrefix + '/lib/cacheManagement/chain/TokenRedemptionProductIdsByToke
  */
 class GetRedemptionProductList extends ServiceBase {
   /**
-   * Constructor to fetch user redemption list
+   * Constructor to get redemption product list.
    *
    * @param {object} params
    * @param {number} params.client_id
@@ -93,8 +93,6 @@ class GetRedemptionProductList extends ServiceBase {
       oThis.limit = oThis.limit || paginationConstants.defaultRedemptionProductListPageSize;
     }
 
-    logger.log('oThis.limit------', oThis.limit);
-
     await oThis._validatePageSize();
   }
 
@@ -139,11 +137,7 @@ class GetRedemptionProductList extends ServiceBase {
     const startPosition = (oThis.page - 1) * oThis.limit,
       offset = startPosition + oThis.limit;
 
-    logger.log('startPosition-----', startPosition);
-    logger.log('offset-----', offset);
-
     oThis.tokenRedemptionProductIds = oThis.tokenRedemptionProductIds.slice(startPosition, offset);
-    logger.log('oThis.tokenRedemptionProductIds----22------', oThis.tokenRedemptionProductIds);
   }
 
   /**
@@ -174,8 +168,6 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     oThis.tokenRedemptionProductDetailsMap = response.data;
-
-    logger.log('oThis.tokenRedemptionProductDetailsMap------', oThis.tokenRedemptionProductDetailsMap);
   }
 
   /**

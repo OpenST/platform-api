@@ -93,7 +93,7 @@ class RedemptionCountry extends ModelBase {
 
     const countriesData = await oThis
       .select('*')
-      .where({ country_iso_code: countryIsoCodes }) // TODO:redemptions - add index on country_iso_code.
+      .where({ country_iso_code: countryIsoCodes })
       .fire();
 
     for (let index = 0; index < countriesData.length; index++) {
