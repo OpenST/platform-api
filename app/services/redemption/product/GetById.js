@@ -4,16 +4,16 @@ const OSTBase = require('@ostdotcom/base'),
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
+  RedemptionCountryByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RedemptionCountryById'),
   RedemptionProductCountryByProductIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/RedemptionProductCountryByProductId'),
-  RedemptionCountryByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RedemptionCountryById'),
-  PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
-  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts'),
-  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency'),
+  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
@@ -223,7 +223,7 @@ class GetRedemptionProductById extends ServiceBase {
   _prepareResponse() {
     const oThis = this;
 
-    oThis.tokenRedemptionProductDetails['availability'] = oThis.availability;
+    oThis.tokenRedemptionProductDetails.availability = oThis.availability;
 
     return responseHelper.successWithData({
       [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
