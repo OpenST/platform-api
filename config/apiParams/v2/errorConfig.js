@@ -543,6 +543,11 @@ const v2ErrorConfig = {
     parameter: 'description',
     code: 'invalid',
     message: 'Invalid redemption product description. Description length should be less than 1000.'
+  },
+  invalid_redemption_email: {
+    parameter: 'redemption_details',
+    code: 'invalid',
+    message: 'Invalid parameter redemption_details email. For redemptions valid email is mandatory.'
   }
 };
 

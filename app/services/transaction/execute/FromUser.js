@@ -22,13 +22,11 @@ const rootPrefix = '../../../..',
   UserRedemptionModel = require(rootPrefix + '/app/models/mysql/UserRedemption'),
   userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption'),
   UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
-  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/redemption/ValidateUserRedemptionTx');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
-require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
 
 /**
  * Class
@@ -62,6 +60,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
     oThis.redemptionDetails = params.redemption_details;
+    oThis.redemptionEmail = null;
 
     oThis.sessionData = null;
   }
@@ -288,6 +287,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
     if (redemptionResponse.isSuccess() && redemptionResponse.data.redemptionDetails) {
       oThis.redemptionDetails = redemptionResponse.data.redemptionDetails;
+      oThis.redemptionEmail = redemptionResponse.data.redemptionEmail;
     }
   }
 
@@ -301,7 +301,6 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     const oThis = this;
 
     if (CommonValidators.validateObject(oThis.redemptionDetails)) {
-      const emailAddressEncrypted = await oThis._encryptUserEmailAddress();
       await new UserRedemptionModel({}).insertRedemptionRequest({
         uuid: oThis.redemptionDetails.redemption_id,
         userId: oThis.userId,
@@ -310,36 +309,12 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         amount: oThis.redemptionDetails['amount'],
         currency: oThis.redemptionDetails['currency'],
         status: userRedemptionConstants.redemptionProcessingStatus,
-        emailAddressEncrypted: emailAddressEncrypted
+        emailAddressEncrypted: oThis.redemptionEmail
       });
 
       const cacheKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
       await new cacheKlass({ uuids: [oThis.redemptionDetails.redemption_id] }).clear();
     }
-  }
-
-  /**
-   * Generate salt for user
-   *
-   * @returns {Promise<void>}
-   *
-   * @private
-   */
-  async _encryptUserEmailAddress() {
-    const oThis = this;
-
-    if (oThis.redemptionDetails['email']) {
-      let UserSaltEncryptorKeyCache = oThis
-          .ic()
-          .getShadowedClassFor(coreConstants.icNameSpace, 'UserSaltEncryptorKeyCache'),
-        encryptionSaltResp = await new UserSaltEncryptorKeyCache({ tokenId: oThis.tokenId }).fetchDecryptedData();
-
-      let encryptionSalt = encryptionSaltResp.data.encryption_salt_d;
-
-      return new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).encrypt(oThis.redemptionDetails['email']);
-    }
-
-    return null;
   }
 }
 
