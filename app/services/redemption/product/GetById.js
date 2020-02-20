@@ -224,6 +224,8 @@ class GetRedemptionProductById extends ServiceBase {
 
     oThis.tokenRedemptionProductDetails.availability = oThis.availability;
 
+    console.log('oThis.tokenRedemptionProductDetails-------', JSON.stringify(oThis.tokenRedemptionProductDetails));
+
     return responseHelper.successWithData({
       [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
     });

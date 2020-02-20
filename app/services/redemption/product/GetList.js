@@ -188,6 +188,11 @@ class GetRedemptionProductList extends ServiceBase {
       finalRedemptionProductsArray.push(tokenRedemptionProduct);
     }
 
+    console.log(
+      'oThis.tokenRedemptionProductDetailsMap-------',
+      JSON.stringify(oThis.tokenRedemptionProductDetailsMap)
+    );
+
     if (oThis.tokenRedemptionProductIds.length >= oThis.limit) {
       oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
         [paginationConstants.paginationIdentifierKey]: {
