@@ -3,13 +3,15 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  UserRedemptionModel = require(rootPrefix + '/app/models/mysql/UserRedemption'),
-  pagination = require(rootPrefix + '/lib/globalConstant/pagination'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType');
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
+  paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
 
 // Following require(s) for registering into instance composer.
+require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
@@ -26,9 +28,9 @@ class UserRedemptionList extends ServiceBase {
    * @param {number} params.client_id
    * @param {number} params.token_id
    * @param {number} params.user_id
-   * @param {number} params.pagination_identifier
-   * @param {string} params.limit
-   * @param {string} params.status
+   * @param {number} [params.pagination_identifier]
+   * @param {array} [params.user_redemption_uuids]
+   * @param {string} [params.limit]
    *
    * @augments ServiceBase
    *
@@ -41,17 +43,16 @@ class UserRedemptionList extends ServiceBase {
 
     oThis.clientId = params.client_id;
     oThis.tokenId = params.token_id;
-
     oThis.userId = params.user_id;
-    oThis.paginationIdentifier = params[pagination.paginationIdentifierKey];
+    oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
+    oThis.inputUserRedemptionUuids = params.user_redemption_uuids;
     oThis.limit = params.limit;
-    oThis.status = params.status;
 
     oThis.page = null;
     oThis.redemptionUuids = [];
     oThis.userRedemptions = [];
     oThis.responseMetaData = {
-      [pagination.nextPagePayloadKey]: {}
+      [paginationConstants.nextPagePayloadKey]: {}
     };
   }
 
@@ -66,17 +67,18 @@ class UserRedemptionList extends ServiceBase {
 
     await oThis._validateAndSanitizeParams();
 
-    await oThis._validateTokenStatus();
-
     await oThis._setRedemptionUuids();
 
     await oThis._fetchRedemptions();
 
-    await oThis._returnResponse();
+    return oThis._prepareResponse();
   }
 
   /**
-   * Sets pagination params
+   * Validate and sanitize params.
+   *
+   * @sets oThis.page, oThis.limit, oThis.redemptionUuids, oThis.userId
+   *
    * @returns {Promise}
    * @private
    */
@@ -86,53 +88,111 @@ class UserRedemptionList extends ServiceBase {
     // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
       const parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
+      oThis.inputUserRedemptionUuids = []; // Redemption Ids not allowed after first page.
       oThis.page = parsedPaginationParams.page; // Override page.
       oThis.limit = parsedPaginationParams.limit; // Override limit.
     } else {
+      oThis.inputUserRedemptionUuids = oThis.inputUserRedemptionUuids || [];
       oThis.page = 1;
-      oThis.limit = oThis.limit || pagination.defaultRedemptionListPageSize;
+      oThis.limit = oThis.limit || oThis._defaultPageLimit();
     }
+
+    // Validate input user redemption uuids.
+    for (let index = 0; index < oThis.inputUserRedemptionUuids.length; index++) {
+      oThis.redemptionUuids.push(basicHelper.sanitizeuuid(oThis.inputUserRedemptionUuids[index]));
+    }
+
+    oThis.userId = basicHelper.sanitizeuuid(oThis.userId);
+
+    await oThis._validateTokenStatus();
+
+    await oThis._validateTokenUser();
 
     await oThis._validatePageSize();
   }
 
   /**
-   * Fetch user redemption uuids
-   * @returns {Promise}
+   * Validate whether user belongs to token or not.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _validateTokenUser() {
+    const oThis = this;
+
+    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({
+        tokenId: oThis.tokenId,
+        userIds: [oThis.userId]
+      });
+
+    const cacheResponse = await tokenUserDetailsCacheObj.fetch();
+    if (cacheResponse.isFailure()) {
+      return Promise.reject(cacheResponse);
+    }
+
+    const userData = cacheResponse.data[oThis.userId];
+
+    if (!CommonValidators.validateObject(userData)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_gl_1',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
+          debug_options: { userId: oThis.userId, tokenId: oThis.tokenId }
+        })
+      );
+    }
+  }
+
+  /**
+   * Set redemption uuids.
+   *
+   * @sets oThis.redemptionUuids
+   *
+   * @returns {Promise<void>}
    * @private
    */
   async _setRedemptionUuids() {
     const oThis = this;
 
-    let response = null;
-
-    if (oThis.status) {
-      response = await new UserRedemptionModel().fetchUuidsByUserId({
-        userId: oThis.userId,
-        page: oThis.page,
-        limit: oThis.limit,
-        status: oThis.status
-      });
+    if (!oThis.inputUserRedemptionUuids || oThis.inputUserRedemptionUuids.length === 0) {
+      await oThis._fetchRedemptionUuidsFromCache();
     } else {
-      const RedemptionsByUserIdCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionIdsByUserId');
+      oThis.redemptionUuids = oThis.inputUserRedemptionUuids;
+    }
+  }
 
-      response = await new RedemptionsByUserIdCache({
-        userId: oThis.userId,
-        page: oThis.page,
-        limit: oThis.limit
-      }).fetch();
+  /**
+   * Fetch redemption uuids from cache for a user.
+   *
+   * @sets oThis.redemptionUuids
+   *
+   * @returns {Promise<never>}
+   * @private
+   */
+  async _fetchRedemptionUuidsFromCache() {
+    const oThis = this;
+
+    const RedemptionsByUserIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionIdsByUserId');
+
+    const cacheResponse = await new RedemptionsByUserIdCache({
+      userId: oThis.userId,
+      page: oThis.page,
+      limit: oThis.limit
+    }).fetch();
+    if (cacheResponse.isFailure()) {
+      return Promise.reject(cacheResponse);
     }
 
-    if (response.data.uuids.length === oThis.limit) {
-      oThis.responseMetaData[pagination.nextPagePayloadKey] = {
+    oThis.redemptionUuids = cacheResponse.data.uuids;
+
+    if (oThis.redemptionUuids.length === oThis.limit) {
+      oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
         page: oThis.page + 1,
         limit: oThis.limit
       };
     }
-
-    oThis.redemptionUuids = response.data.uuids;
   }
 
   /**
@@ -143,6 +203,10 @@ class UserRedemptionList extends ServiceBase {
    */
   async _fetchRedemptions() {
     const oThis = this;
+
+    if (oThis.redemptionUuids.length === 0) {
+      return;
+    }
 
     const RedemptionsByIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
 
@@ -187,7 +251,7 @@ class UserRedemptionList extends ServiceBase {
    * @returns {Promise<>}
    * @private
    */
-  async _returnResponse() {
+  async _prepareResponse() {
     const oThis = this;
 
     return responseHelper.successWithData({
@@ -203,7 +267,7 @@ class UserRedemptionList extends ServiceBase {
    * @private
    */
   _defaultPageLimit() {
-    return pagination.defaultRedemptionListPageSize;
+    return paginationConstants.defaultRedemptionListPageSize;
   }
 
   /**
@@ -213,7 +277,7 @@ class UserRedemptionList extends ServiceBase {
    * @private
    */
   _minPageLimit() {
-    return pagination.minRedemptionListPageSize;
+    return paginationConstants.minRedemptionListPageSize;
   }
 
   /**
@@ -223,7 +287,7 @@ class UserRedemptionList extends ServiceBase {
    * @private
    */
   _maxPageLimit() {
-    return pagination.maxRedemptionListPageSize;
+    return paginationConstants.maxRedemptionListPageSize;
   }
 
   /**

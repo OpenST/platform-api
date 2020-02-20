@@ -65,7 +65,6 @@ class UserRedemptionModel extends ModelBase {
    * @param {number} params.userId
    * @param {number} params.page
    * @param {number} params.limit
-   * @param {string} [params.status]
    *
    * @returns {Promise<result>}
    */
@@ -75,27 +74,19 @@ class UserRedemptionModel extends ModelBase {
     const limit = params.limit,
       offset = (params.page - 1) * limit;
 
-    const queryObject = oThis
-      .select('id, uuid')
+    const dbRows = await oThis
+      .select('uuid')
       .where({
-        user_id: oThis.userId
+        user_uuid: params.userId
       })
       .limit(limit)
-      .offset(offset);
-
-    if (params.status) {
-      queryObject.where({
-        status: userRedemptionConstants.statuses[params.status]
-      });
-    }
-
-    const rows = await queryObject.fire();
+      .offset(offset)
+      .fire();
 
     const redemptionUuids = [];
 
-    for (let ind = 0; ind < rows.length; ind++) {
-      const formattedRow = oThis.formatDbData(rows[ind]);
-      redemptionUuids.push(formattedRow.uuid);
+    for (let ind = 0; ind < dbRows.length; ind++) {
+      redemptionUuids.push(dbRows[ind].uuid);
     }
 
     return responseHelper.successWithData({ uuids: redemptionUuids });

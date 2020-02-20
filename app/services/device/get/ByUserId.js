@@ -60,7 +60,7 @@ class UserDeviceList extends GetDeviceBase {
   async _validateAndSanitizeParams() {
     const oThis = this;
 
-    // Parameters in paginationIdentifier take higher precedence
+    // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
       const parsedPaginationParams = oThis._parsePaginationParams(oThis.paginationIdentifier);
       oThis.addresses = []; // Addresses not allowed after first page.
