@@ -5,8 +5,7 @@ const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  resultTypeConstants = require(rootPrefix + '/lib/globalConstant/resultType'),
+  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination'),
   tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
 
@@ -121,7 +120,6 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     oThis.tokenRedemptionProductIds = response.data.productIds;
-    logger.log('oThis.tokenRedemptionProductIds-----11-----', oThis.tokenRedemptionProductIds);
   }
 
   /**
@@ -190,11 +188,6 @@ class GetRedemptionProductList extends ServiceBase {
       }
     }
 
-    console.log(
-      'oThis.tokenRedemptionProductDetailsMap-------',
-      JSON.stringify(oThis.tokenRedemptionProductDetailsMap)
-    );
-
     if (oThis.tokenRedemptionProductIds.length >= oThis.limit) {
       oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
         [paginationConstants.paginationIdentifierKey]: {
@@ -205,8 +198,8 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     return responseHelper.successWithData({
-      [resultTypeConstants.redeemableSkus]: finalRedemptionProductsArray,
-      [resultTypeConstants.meta]: oThis.responseMetaData
+      [resultType.redeemableSkus]: finalRedemptionProductsArray,
+      [resultType.meta]: oThis.responseMetaData
     });
   }
 

@@ -120,9 +120,18 @@ class UserRedemptionModel extends ModelBase {
   }
 
   /**
-   * Insert redemption request of user
+   * Insert redemption request of user.
    *
-   * @param params
+   * @param {object} params
+   * @param {string} params.uuid
+   * @param {number} params.userId
+   * @param {number} params.redemptionProductId
+   * @param {string} params.transactionUuid
+   * @param {string} params.amount
+   * @param {string} params.currency
+   * @param {string} params.status
+   * @param {string} params.emailAddressEncrypted
+   *
    * @returns {Promise<*|result>}
    */
   async insertRedemptionRequest(params) {

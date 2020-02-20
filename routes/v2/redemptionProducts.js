@@ -10,7 +10,7 @@ const rootPrefix = '../..',
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
-// Following require(s) for registering into instance composer
+// Following require(s) for registering into instance composer.
 require(rootPrefix + '/app/services/redemption/product/GetById');
 require(rootPrefix + '/app/services/redemption/product/GetList');
 
