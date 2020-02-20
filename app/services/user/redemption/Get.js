@@ -3,6 +3,8 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
@@ -22,8 +24,8 @@ class UserRedemptionGet extends ServiceBase {
    * @param {object} params
    * @param {number} params.client_id
    * @param {number} params.token_id
-   * @param {number} params.user_id
-   * @param {number} params.user_redemption_uuid
+   * @param {string} params.user_id
+   * @param {string} params.user_redemption_uuid
    *
    * @constructor
    */
@@ -49,11 +51,63 @@ class UserRedemptionGet extends ServiceBase {
   async _asyncPerform() {
     const oThis = this;
 
-    await oThis._validateTokenStatus();
+    await oThis._validateAndSanitizeParams();
 
     await oThis._fetchRedemption();
 
     await oThis._returnResponse();
+  }
+
+  /**
+   * Validate and sanitize params.
+   *
+   * @sets oThis.userId
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _validateAndSanitizeParams() {
+    const oThis = this;
+
+    oThis.userId = basicHelper.sanitizeuuid(oThis.userId);
+
+    await oThis._validateTokenStatus();
+
+    await oThis._validateTokenUser();
+  }
+
+  /**
+   * Validate whether user belongs to token or not.
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _validateTokenUser() {
+    const oThis = this;
+
+    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
+      tokenUserDetailsCacheObj = new TokenUserDetailsCache({
+        tokenId: oThis.tokenId,
+        userIds: [oThis.userId]
+      });
+
+    const cacheResponse = await tokenUserDetailsCacheObj.fetch();
+    if (cacheResponse.isFailure()) {
+      return Promise.reject(cacheResponse);
+    }
+
+    const userData = cacheResponse.data[oThis.userId];
+
+    if (!CommonValidators.validateObject(userData)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_g_1',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
+          debug_options: { userId: oThis.userId, tokenId: oThis.tokenId }
+        })
+      );
+    }
   }
 
   /**
@@ -69,15 +123,40 @@ class UserRedemptionGet extends ServiceBase {
 
     const RedemptionsByIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
 
-    const response = await new RedemptionsByIdCache({
+    const cacheResponse = await new RedemptionsByIdCache({
       uuids: [oThis.userRedemptionUuid]
     }).fetch();
+    if (cacheResponse.isFailure()) {
+      return Promise.reject(cacheResponse);
+    }
 
-    oThis.userRedemption = response.data.redemptions[oThis.userRedemptionUuid];
+    oThis.userRedemption = cacheResponse.data[oThis.userRedemptionUuid];
+
+    if (!CommonValidators.validateObject(oThis.userRedemption)) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_g_2',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['invalid_user_redemption_uuid'],
+          debug_options: { userId: oThis.userId, tokenId: oThis.tokenId, userRedemptionUuid: oThis.userRedemptionUuid }
+        })
+      );
+    }
+
+    if (oThis.userRedemption.userUuid !== oThis.userId) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_g_3',
+          api_error_identifier: 'resource_not_found',
+          params_error_identifiers: ['user_not_found'],
+          debug_options: { userId: oThis.userId, tokenId: oThis.tokenId, userRedemptionUuid: oThis.userRedemptionUuid }
+        })
+      );
+    }
   }
 
   /**
-   * Return recovery owner entity.
+   * Return service response.
    *
    * @returns {Promise<>}
    * @private

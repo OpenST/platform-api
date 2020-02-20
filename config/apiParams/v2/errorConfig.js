@@ -100,6 +100,12 @@ const v2ErrorConfig = {
     message:
       'Unable to find this user in your economy. Inspect if a correct value is being sent in user_id field and re-submit the request.'
   },
+  invalid_user_redemption_uuid: {
+    parameter: 'user_redemption_uuid',
+    code: 'invalid',
+    message:
+      'Unable to find this user redemption in your economy. Inspect if a correct value is being sent in user_redemption_uuid field and re-submit the request.'
+  },
   session_not_found: {
     parameter: 'session_address',
     code: 'invalid',
@@ -511,11 +517,6 @@ const v2ErrorConfig = {
     parameter: 'pagination_identifier',
     code: 'invalid',
     message: 'Please change the query as more than 10000 records are not supported.'
-  },
-  invalid_redemption_product_id: {
-    parameter: 'redemption_details',
-    code: 'invalid',
-    message: 'Invalid parameter redemption_details redeemable_sku_id. Please try redemption for active sku.'
   },
   invalid_redemption_amount: {
     parameter: 'redemption_details',
