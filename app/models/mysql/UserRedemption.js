@@ -54,7 +54,7 @@ class UserRedemptionModel extends ModelBase {
       amount: dbRow.amount,
       currency: dbRow.currency,
       status: userRedemptionConstants.statuses[dbRow.status],
-      emailAddress: dbRow.email_address
+      emailAddressEncrypted: dbRow.email_address
     };
   }
 
@@ -145,7 +145,8 @@ class UserRedemptionModel extends ModelBase {
         transaction_uuid: params.transactionUuid,
         amount: params.amount,
         currency: params.currency,
-        status: userRedemptionConstants.invertedStatuses[params.status]
+        status: userRedemptionConstants.invertedStatuses[params.status],
+        email_address: params.emailAddressEncrypted
       })
       .fire();
 
