@@ -110,7 +110,10 @@ class GetRedemptionProductById extends ServiceBase {
           internal_error_identifier: 'a_s_rd_p_gbd_2',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['invalid_token_id'],
-          debug_options: {}
+          debug_options: {
+            tokenId: oThis.tokenId,
+            tokenRedemptionProductDetails: oThis.tokenRedemptionProductDetails
+          }
         })
       );
     }
