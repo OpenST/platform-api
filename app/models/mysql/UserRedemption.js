@@ -38,7 +38,7 @@ class UserRedemptionModel extends ModelBase {
    * @param {number} dbRow.token_redemption_product_id
    * @param {string} dbRow.transaction_uuid
    * @param {string} dbRow.amount
-   * @param {string} dbRow.currency
+   * @param {string} dbRow.country_id
    * @param {number} dbRow.status
    * @param {string} dbRow.email_address
    *
@@ -52,7 +52,7 @@ class UserRedemptionModel extends ModelBase {
       tokenRedemptionProductId: dbRow.token_redemption_product_id,
       transactionUuid: dbRow.transaction_uuid,
       amount: dbRow.amount,
-      currency: dbRow.currency,
+      countryId: dbRow.country_id,
       status: userRedemptionConstants.statuses[dbRow.status],
       emailAddress: dbRow.email_address
     };
@@ -128,7 +128,7 @@ class UserRedemptionModel extends ModelBase {
    * @param {number} params.redemptionProductId
    * @param {string} params.transactionUuid
    * @param {string} params.amount
-   * @param {string} params.currency
+   * @param {string} params.countryId
    * @param {string} params.status
    * @param {string} params.emailAddressEncrypted
    *
@@ -144,7 +144,7 @@ class UserRedemptionModel extends ModelBase {
         token_redemption_product_id: params.redemptionProductId,
         transaction_uuid: params.transactionUuid,
         amount: params.amount,
-        currency: params.currency,
+        country_id: params.countryId,
         status: userRedemptionConstants.invertedStatuses[params.status],
         email_address: params.emailAddressEncrypted
       })
