@@ -10,9 +10,9 @@ const dbName = 'kit_saas_redemption_' + coreConstants.subEnvironment + '_' + cor
 /**
  * Class for redemption product country model.
  *
- * @class RedemptionCountry
+ * @class RedemptionCountryModel
  */
-class RedemptionCountry extends ModelBase {
+class RedemptionCountryModel extends ModelBase {
   /**
    * Constructor for country model.
    *
@@ -73,7 +73,7 @@ class RedemptionCountry extends ModelBase {
       .fire();
 
     for (let index = 0; index < countriesData.length; index++) {
-      const formatedCountryData = RedemptionCountry._formatDbData(countriesData[index]);
+      const formatedCountryData = RedemptionCountryModel._formatDbData(countriesData[index]);
       countryDetails[formatedCountryData.id] = formatedCountryData;
     }
 
@@ -88,8 +88,9 @@ class RedemptionCountry extends ModelBase {
    * @returns {Promise<*|result>}
    */
   async getDetailsByCountryIso(countryIsoCodes) {
-    const oThis = this,
-      countryDetails = {};
+    const oThis = this;
+
+    const countryDetails = {};
 
     const countriesData = await oThis
       .select('*')
@@ -97,7 +98,7 @@ class RedemptionCountry extends ModelBase {
       .fire();
 
     for (let index = 0; index < countriesData.length; index++) {
-      const formatedCountryData = RedemptionCountry._formatDbData(countriesData[index]);
+      const formatedCountryData = RedemptionCountryModel._formatDbData(countriesData[index]);
       countryDetails[formatedCountryData.countryIsoCode] = formatedCountryData;
     }
 
@@ -124,4 +125,4 @@ class RedemptionCountry extends ModelBase {
   }
 }
 
-module.exports = RedemptionCountry;
+module.exports = RedemptionCountryModel;

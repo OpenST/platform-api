@@ -12,8 +12,7 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency'),
-  tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
+  quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
