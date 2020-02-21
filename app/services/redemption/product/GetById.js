@@ -160,6 +160,7 @@ class GetRedemptionProductById extends ServiceBase {
       countryIds = [],
       redemptionProductId = oThis.tokenRedemptionProductDetails.redemptionProductId;
 
+    // currently product country map is not token dependent.
     const productCountryCacheResp = await new RedemptionProductCountryByProductIdCache({
       productIds: [redemptionProductId]
     }).fetch();
@@ -167,26 +168,25 @@ class GetRedemptionProductById extends ServiceBase {
       return Promise.reject(productCountryCacheResp);
     }
 
-    const productCountriesDetails = productCountryCacheResp.data[redemptionProductId];
-    for (const countryId in productCountriesDetails) {
+    const countryIdToDetailsMap = productCountryCacheResp.data[redemptionProductId];
+    for (const countryId in countryIdToDetailsMap) {
       countryIds.push(countryId);
     }
 
     const redemptionCountryCacheResp = await new RedemptionCountryByIdCache({ countryIds: countryIds }).fetch();
-    const countriesDetails = redemptionCountryCacheResp.data;
+    const countryIdToCountryMap = redemptionCountryCacheResp.data;
 
-    for (const countryId in productCountriesDetails) {
-      const productCountry = productCountriesDetails[countryId],
-        redemptionOptions = productCountry.redemptionOptions,
-        countryDetails = countriesDetails[countryId],
-        fiatToUSDConversion = countryDetails.conversions[quoteCurrencyConstants.USD],
+    for (const countryId in countryIdToDetailsMap) {
+      const redemptionOptions = countryIdToDetailsMap[countryId].redemptionOptions,
+        country = countryIdToCountryMap[countryId],
+        usdToLocalCurrencyConversion = country.conversions[quoteCurrencyConstants.USD],
         denominations = [];
 
       for (let index = 0; index < redemptionOptions.length; index++) {
         const amountInFiat = redemptionOptions[index],
           amountInTokenWei = basicHelper.getNumberOfBTFromFiat(
             amountInFiat,
-            fiatToUSDConversion,
+            usdToLocalCurrencyConversion,
             oThis.stakeCurrencyIsHowManyUSD,
             oThis.token.conversionFactor,
             oThis.token.decimal
@@ -199,9 +199,9 @@ class GetRedemptionProductById extends ServiceBase {
       }
 
       oThis.availability.push({
-        country: countryDetails.name,
-        countryIsoCode: countryDetails.countryIsoCode,
-        currencyIsoCode: countryDetails.currencyIsoCode,
+        country: country.name,
+        countryIsoCode: country.countryIsoCode,
+        currencyIsoCode: country.currencyIsoCode,
         denominations: denominations
       });
     }
@@ -220,6 +220,8 @@ class GetRedemptionProductById extends ServiceBase {
 
     oThis.tokenRedemptionProductDetails.availability = oThis.availability;
 
+    // TODO - redemption - use entity type constants
+    // TODO - redemption - why are we using redeemableSku inside code other than formatter?
     return responseHelper.successWithData({
       [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
     });

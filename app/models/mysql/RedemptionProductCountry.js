@@ -90,23 +90,25 @@ class RedemptionProductCountry extends ModelBase {
   /**
    * Fetch redemption product countries data for given productId and countryId.
    *
-   * @param productIds
+   * @param redemptionProductIds
    * @returns {Promise<void>}
    * @private
    */
-  async fetchDetailsByProductIds(productIds) {
+  async fetchDetailsByProductIds(redemptionProductIds) {
     const oThis = this,
       redemptionProductCountryData = {};
 
-    const redemptionProductCountriesData = await oThis
+    const redemptionProductCountryRows = await oThis
       .select('*')
-      .where({ redemption_product_id: productIds })
+      .where({ redemption_product_id: redemptionProductIds })
       .fire();
 
-    for (let i = 0; i < redemptionProductCountriesData.length; i++) {
-      let formatedDbData = RedemptionProductCountry._formatDbData(redemptionProductCountriesData[i]);
+    for (let i = 0; i < redemptionProductCountryRows.length; i++) {
+      let formatedDbData = RedemptionProductCountry._formatDbData(redemptionProductCountryRows[i]);
+
       redemptionProductCountryData[formatedDbData.redemptionProductId] =
         redemptionProductCountryData[formatedDbData.redemptionProductId] || {};
+
       redemptionProductCountryData[formatedDbData.redemptionProductId][formatedDbData.countryId] = {
         redemptionOptions: formatedDbData.redemptionOptions
       };
