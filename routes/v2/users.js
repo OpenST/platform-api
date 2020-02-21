@@ -600,7 +600,7 @@ router.get('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function
 
     for (let ind = 0; ind < redemptions.length; ind++) {
       const formattedRsp = new UserRedemptionFormatter(redemptions[ind]).perform();
-      formattedRedemptions.push(formattedRsp);
+      formattedRedemptions.push(formattedRsp.data);
     }
 
     serviceResponse.data = {
