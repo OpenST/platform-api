@@ -607,15 +607,15 @@ class BasicHelper {
     tokenDecimals
   ) {
     // This will give fiat amount in USD.
-    const fiatAmountInUsd = new BigNumber(fiatAmount).div(new BigNumber(fiatAmountConversionInUsd));
+    const fiatAmountInUsd = (new BigNumber(fiatAmount)).div(new BigNumber(fiatAmountConversionInUsd));
 
     // This will give number of stake currency tokens from fiat amount.
     const inStakeCurrency = fiatAmountInUsd.div(new BigNumber(stakeCurrencyIsHowManyFiat));
 
     // From number of stake currency tokens fetch BT amount.
-    const numberOfBts = new BigNumber(inStakeCurrency).mul(new BigNumber(tokenConversionFactor));
+    const numberOfBts = (new BigNumber(inStakeCurrency)).mul(new BigNumber(tokenConversionFactor));
 
-    return numberOfBts.mul(new BigNumber(10).toPower(tokenDecimals)).floor();
+    return numberOfBts.mul((new BigNumber(10)).toPower(tokenDecimals)).floor();
   }
 
   /**
