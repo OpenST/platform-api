@@ -736,7 +736,7 @@ const v2Signature = {
         validatorMethod: 'validateMetaPropertyForInsertion'
       },
       {
-        parameter: 'redemption_details',
+        parameter: 'redemption_meta',
         validatorMethod: 'validateObject'
       }
     ]

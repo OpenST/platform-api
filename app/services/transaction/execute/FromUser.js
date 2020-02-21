@@ -46,7 +46,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    * @param {Number} params.signature
    * @param {Number} params.signer
    * @param {Object} params.token
-   * @param {Object} params.redemption_details
+   * @param {Object} params.redemption_meta
    *
    * @constructor
    */
@@ -61,7 +61,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
-    oThis.redemptionDetails = params.redemption_details;
+    oThis.redemptionDetails = params.redemption_meta;
     oThis.redemptionEmail = null;
 
     oThis.sessionData = null;
