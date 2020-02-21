@@ -1,17 +1,9 @@
-/**
- * Module for getting user.
- *
- * @module app/services/user/get/Base
- */
-
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  basicHelper = require(rootPrefix + '/helpers/basic');
+  basicHelper = require(rootPrefix + '/helpers/basic'),
+  coreConstants = require(rootPrefix + '/config/coreConstants');
 
 // Following require(s) for registering into instance composer.
-require(rootPrefix + '/lib/cacheManagement/chain/TokenShardNumber');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 
 /**
@@ -35,7 +27,7 @@ class GetUserBase extends ServiceBase {
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -43,7 +35,6 @@ class GetUserBase extends ServiceBase {
     oThis.tokenId = params.token_id;
 
     oThis.userDetails = [];
-    oThis.userShard = null;
   }
 
   /**
@@ -66,37 +57,6 @@ class GetUserBase extends ServiceBase {
     await oThis._fetchUsersFromCache();
 
     return oThis._formatApiResponse();
-  }
-
-  /**
-   * Fetch token user shards from cache.
-   *
-   * @sets oThis.userShard
-   *
-   * @return {Promise<void>}
-   * @private
-   */
-  async _fetchTokenUsersShards() {
-    const oThis = this;
-
-    const TokenShardNumbersCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenShardNumbersCache');
-    const tokenShardNumbersCache = new TokenShardNumbersCache({
-      tokenId: oThis.tokenId
-    });
-
-    const response = await tokenShardNumbersCache.fetch();
-
-    if (!response || !response.data.user) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_u_g_b_1',
-          api_error_identifier: 'token_not_setup',
-          debug_options: {}
-        })
-      );
-    }
-
-    oThis.userShard = response.data.user;
   }
 
   /**
