@@ -41,11 +41,10 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 });
 
 /* Get redemption product by product id. */
-// TODO - redemptions - redeemable_sku_id is actually token_redemption_product_id
-router.get('/:redeemable_sku_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProduct;
   req.decodedParams.clientConfigStrategyRequired = true;
-  req.decodedParams.redemption_product_id = req.params.redeemable_sku_id; // The redeemable_sku_id from URL params.
+  req.decodedParams.redemption_product_id = req.params.redemption_product_id; // The redemption_product_id from URL params.
 
   const dataFormatterFunc = async function(serviceResponse) {
     const formattedRedemptionProduct = await new RedemptionProductExtendedFormatter(
