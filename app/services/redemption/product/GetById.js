@@ -77,6 +77,7 @@ class GetRedemptionProductById extends ServiceBase {
   async _fetchTokenRedemptionProductDetails() {
     const oThis = this;
 
+    // TODO - redemption - why ic?
     const TokenRedemptionProductCache = oThis
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
