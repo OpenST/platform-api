@@ -307,7 +307,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         redemptionProductId: oThis.redemptionDetails.redemptionProductId,
         transactionUuid: oThis.transactionUuid,
         amount: oThis.redemptionDetails['amount'],
-        currency: oThis.redemptionDetails['currency'],
+        countryId: oThis.redemptionDetails['countryId'],
         status: userRedemptionConstants.redemptionProcessingStatus,
         emailAddressEncrypted: oThis.redemptionEmail
       });
