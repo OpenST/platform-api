@@ -47,6 +47,10 @@ morgan.token('endDateTime', function getEndDateTime(req) {
   return basicHelper.logDateFormat();
 });
 
+morgan.token('memoryUsage', function getMemoryUsage(req) {
+  return process.memoryUsage().heapUsed / 1024 / 1024;
+});
+
 const startRequestLogLine = function(req, res, next) {
   let message =
     "Started '" +
@@ -293,7 +297,7 @@ app.use(customMiddleware());
 // Load Morgan
 app.use(
   morgan(
-    '[:id][:endTime] Completed with ":status" in :response-time ms at :endDateTime -  ":res[content-length] bytes" - ":remote-addr" ":remote-user" - "HTTP/:http-version :method :url" - ":referrer" - ":user-agent"'
+    '[:id][:endTime] Completed with ":status" in :response-time ms with :memoryUsage MB at :endDateTime -  ":res[content-length] bytes" - ":remote-addr" ":remote-user" - "HTTP/:http-version :method :url" - ":referrer" - ":user-agent"'
   )
 );
 
