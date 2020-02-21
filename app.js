@@ -48,18 +48,24 @@ morgan.token('endDateTime', function getEndDateTime(req) {
 });
 
 morgan.token('memoryUsage', function getMemoryUsage(req) {
-  const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  const heapDetails = process.memoryUsage();
+
+  const used = heapDetails.heapUsed / 1024 / 1024;
   return Math.round(used * 100) / 100;
 });
 
 const startRequestLogLine = function(req, res, next) {
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
   let message =
     "Started '" +
     customUrlParser.parse(req.originalUrl).pathname +
     "'  '" +
     req.method +
-    "' at " +
-    basicHelper.logDateFormat();
+    "' at '" +
+    basicHelper.logDateFormat() +
+    "' with memory '" +
+    Math.round(used * 100) / 100 +
+    " MB'";
   logger.info(message);
 
   next();
