@@ -47,11 +47,15 @@ router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, functi
   req.decodedParams.redemption_product_id = req.params.redemption_product_id; // The redemption_product_id from URL params.
 
   const dataFormatterFunc = async function(serviceResponse) {
+    // TODO - redemption - why are we using resultType and not entity type constants
+    // TODO - redemption - redeemableSku should not be used inside code.
     const formattedRedemptionProduct = await new RedemptionProductExtendedFormatter(
       serviceResponse.data[resultType.redeemableSku]
     ).perform().data;
 
     serviceResponse.data = {
+      // TODO - redemption - why are we using resultType and not entity type constants
+      // TODO - redemption - redeemableSku should not be used inside code.
       result_type: resultType.redeemableSku,
       [resultType.redeemableSku]: formattedRedemptionProduct
     };
