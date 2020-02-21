@@ -15,12 +15,14 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   signValidator = require(rootPrefix + '/lib/validators/Sign'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   UserRedemptionModel = require(rootPrefix + '/app/models/mysql/UserRedemption'),
   userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions'),
   UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
@@ -314,7 +316,28 @@ class ExecuteTxFromUser extends ExecuteTxBase {
 
       const cacheKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
       await new cacheKlass({ uuids: [oThis.redemptionDetails.redemptionId] }).clear();
+
+      await oThis._sendRedemptionInitiateWebhook();
     }
+  }
+
+  /**
+   * sendRedemption Initiate Webhook
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _sendRedemptionInitiateWebhook() {
+    const oThis = this;
+
+    const payload = {
+      userId: oThis.userId,
+      webhookKind: webhookSubscriptionsConstants.redemptionInitiatedTopic,
+      clientId: oThis.clientId,
+      userRedemptionUuid: oThis.redemptionDetails.redemptionId
+    };
+
+    return publishToPreProcessor.perform(oThis.chainId, payload);
   }
 }
 
