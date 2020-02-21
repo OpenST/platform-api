@@ -68,6 +68,7 @@ class GetRedemptionProductList extends ServiceBase {
       oThis._filterProductIds();
     }
 
+    // TODO - redemption - we need to check if the tokenRedemptionProductIds belong to the same token
     await oThis._fetchTokenRedemptionProductDetails();
 
     return oThis._prepareResponse();
@@ -96,8 +97,9 @@ class GetRedemptionProductList extends ServiceBase {
       oThis.tokenRedemptionProductIds = oThis.tokenRedemptionProductIds || [];
     }
 
+    // TODO - redemption - if ids are present and are more than max limit, then error out.
+
     await oThis._validatePageSize();
-    console.log('oThis.tokenRedemptionProductIds-----', oThis.tokenRedemptionProductIds);
   }
 
   /**
@@ -111,6 +113,7 @@ class GetRedemptionProductList extends ServiceBase {
   async _fetchTokenRedemptionProductIds() {
     const oThis = this;
 
+    // TODO - redemption - remove ic for this cache.
     const TokenRedemptionProductIdsByTokenIdCache = oThis
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductIdsByTokenIdCache');
@@ -124,6 +127,7 @@ class GetRedemptionProductList extends ServiceBase {
       return Promise.reject(response);
     }
 
+    // TODO - redemption - change data.productIds to data.redemptionProductIds
     oThis.tokenRedemptionProductIds = response.data.productIds;
   }
 
@@ -162,6 +166,8 @@ class GetRedemptionProductList extends ServiceBase {
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
 
+    // TODO - redemption - ic is not needed for this cache
+    // TODO - redemption - change ids to tokenRedemptionProductIds
     const response = await new TokenRedemptionProductCache({
       ids: oThis.tokenRedemptionProductIds
     }).fetch();
@@ -188,6 +194,7 @@ class GetRedemptionProductList extends ServiceBase {
       const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
         tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
 
+      // TODO - if ids in params, then don't check for status. Please refer Notes column in api excel.
       if (tokenRedemptionProduct.status === tokenRedemptionProductsConstants.activeStatus) {
         finalRedemptionProductsArray.push(tokenRedemptionProduct);
       }

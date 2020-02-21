@@ -20,6 +20,8 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
+    // TODO - redemption - why are we using resultType and not entity type constants
+    // TODO - redemption - redeemableSku should not be used inside code.
     const redeemableSkus = serviceResponse.data[resultType.redeemableSkus],
       formattedRedemptionProducts = [],
       metaPayload = await new RedemptionProductListMetaFormatter(serviceResponse.data).perform().data;
@@ -29,6 +31,8 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
     }
 
     serviceResponse.data = {
+      // TODO - redemption - why are we using resultType and not entity type constants
+      // TODO - redemption - redeemableSku should not be used inside code.
       result_type: resultType.redeemableSkus,
       [resultType.redeemableSkus]: formattedRedemptionProducts,
       [resultType.meta]: metaPayload
