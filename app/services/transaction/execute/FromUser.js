@@ -276,6 +276,11 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     // In this we will apply further validations on user to company transactions like Redemptions
     const oThis = this;
 
+    // If redemption details map is empty, then no need to validate
+    if (!CommonValidators.validateObject(oThis.redemptionDetails)) {
+      return;
+    }
+
     const ValidateUserRedemptionTx = oThis
       .ic()
       .getShadowedClassFor(coreConstants.icNameSpace, 'ValidateUserRedemptionTx');
