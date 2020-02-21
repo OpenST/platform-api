@@ -160,8 +160,17 @@ class UserRedemptionGet extends ServiceBase {
     await oThis._decryptEmail();
   }
 
+  /**
+   * Decrypt email.
+   *
+   * @sets oThis.userRedemption
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _decryptEmail() {
     const oThis = this;
+
     if (oThis.userRedemption.emailAddress) {
       const UserSaltEncryptorKeyCache = oThis
           .ic()

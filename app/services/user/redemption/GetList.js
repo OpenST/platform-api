@@ -198,7 +198,9 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * Fetch redemptions
+   * Fetch redemptions.
+   *
+   * @sets oThis.userRedemptions
    *
    * @returns {Promise<void>}
    * @private
@@ -260,7 +262,7 @@ class UserRedemptionList extends ServiceBase {
   }
 
   /**
-   * Return recovery owner entity.
+   * Return service response.
    *
    * @returns {Promise<>}
    * @private
