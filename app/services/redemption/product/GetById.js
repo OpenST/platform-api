@@ -130,6 +130,7 @@ class GetRedemptionProductById extends ServiceBase {
     const oThis = this,
       auxChainId = oThis.ic().configStrategy.auxGeth.chainId;
 
+    // TODO - redemption - config can be created using client id. So
     const pricePointsCacheObj = new PricePointsCache({ chainId: auxChainId }),
       pricePointsResponse = await pricePointsCacheObj.fetch();
 
