@@ -89,7 +89,10 @@ class GetRedemptionProductById extends ServiceBase {
       return Promise.reject(tokenRedemptionProductCacheResponse);
     }
 
-    if (!CommonValidators.validateObject(tokenRedemptionProductCacheResponse.data[oThis.tokenRedemptionProductId])) {
+    oThis.tokenRedemptionProductDetails = tokenRedemptionProductCacheResponse.data[oThis.tokenRedemptionProductId];
+
+    // TODO - redemption - send 404??
+    if (!CommonValidators.validateObject(oThis.tokenRedemptionProductDetails)) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbd_1',
@@ -99,8 +102,6 @@ class GetRedemptionProductById extends ServiceBase {
         })
       );
     }
-
-    oThis.tokenRedemptionProductDetails = tokenRedemptionProductCacheResponse.data[oThis.tokenRedemptionProductId];
 
     // If token id from signature is not equal to token redemption table.
     if (oThis.tokenRedemptionProductDetails.tokenId != oThis.tokenId) {
