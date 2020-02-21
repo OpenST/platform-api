@@ -27,7 +27,7 @@ class GetUserBase extends ServiceBase {
    * @constructor
    */
   constructor(params) {
-    super();
+    super(params);
 
     const oThis = this;
 
@@ -49,8 +49,6 @@ class GetUserBase extends ServiceBase {
     await oThis._validateAndSanitizeParams();
 
     await oThis._validateTokenStatus();
-
-    await oThis._fetchTokenUsersShards();
 
     await oThis._setUserIds();
 
