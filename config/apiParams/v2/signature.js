@@ -1039,15 +1039,15 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'token_id',
-        validatorMethod: 'validateNonZeroInteger'
-      },
-      {
         parameter: 'user_id',
         validatorMethod: 'validateUuidV4'
       }
     ],
     optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
       {
         parameter: 'limit',
         validatorMethod: 'validateNonZeroInteger'
@@ -1070,10 +1070,6 @@ const v2Signature = {
         validatorMethod: 'validateNonZeroInteger'
       },
       {
-        parameter: 'token_id',
-        validatorMethod: 'validateNonZeroInteger'
-      },
-      {
         parameter: 'user_id',
         validatorMethod: 'validateUuidV4'
       },
@@ -1082,7 +1078,12 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       }
     ],
-    optional: []
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
   },
 
   [apiName.createWebhook]: {
