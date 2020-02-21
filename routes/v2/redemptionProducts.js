@@ -41,6 +41,7 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 });
 
 /* Get redemption product by product id. */
+// TODO - redemptions - redeemable_sku_id is actually token_redemption_product_id
 router.get('/:redeemable_sku_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProduct;
   req.decodedParams.clientConfigStrategyRequired = true;
