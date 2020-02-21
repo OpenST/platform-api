@@ -48,7 +48,8 @@ morgan.token('endDateTime', function getEndDateTime(req) {
 });
 
 morgan.token('memoryUsage', function getMemoryUsage(req) {
-  return process.memoryUsage().heapUsed / 1024 / 1024;
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
+  return Math.round(used * 100) / 100;
 });
 
 const startRequestLogLine = function(req, res, next) {
