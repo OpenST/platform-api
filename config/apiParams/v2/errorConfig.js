@@ -194,6 +194,12 @@ const v2ErrorConfig = {
     message:
       'Max of 25 addresses as filters in an api request has been put in place to ensure the performance and reliability. No of addresses in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
+  user_redemption_uuids_more_than_allowed_limit: {
+    parameter: 'user_redemption_uuids',
+    code: 'invalid',
+    message:
+      'Max of 25 user_redemption_uuids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
+  },
   invalid_chain_id: {
     parameter: 'chain_id',
     code: 'invalid',

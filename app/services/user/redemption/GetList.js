@@ -99,6 +99,18 @@ class UserRedemptionList extends ServiceBase {
       oThis.limit = oThis.limit || oThis._defaultPageLimit();
     }
 
+    // Validate input redemption user uuids length.
+    if (oThis.inputUserRedemptionUuids && oThis.inputUserRedemptionUuids.length > oThis._maxPageLimit()) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_u_r_gl_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['user_redemption_uuids_more_than_allowed_limit'],
+          debug_options: {}
+        })
+      );
+    }
+
     // Validate input user redemption uuids.
     for (let index = 0; index < oThis.inputUserRedemptionUuids.length; index++) {
       oThis.redemptionUuids.push(basicHelper.sanitizeuuid(oThis.inputUserRedemptionUuids[index]));
@@ -138,7 +150,7 @@ class UserRedemptionList extends ServiceBase {
     if (!CommonValidators.validateObject(userData)) {
       return Promise.reject(
         responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_gl_1',
+          internal_error_identifier: 'a_s_u_r_gl_2',
           api_error_identifier: 'resource_not_found',
           params_error_identifiers: ['user_not_found'],
           debug_options: { userId: oThis.userId, tokenId: oThis.tokenId }
