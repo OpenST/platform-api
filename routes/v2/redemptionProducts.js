@@ -43,6 +43,8 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 /* Get redemption product by product id. */
 router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProduct;
+
+  // TODO - redemption - client config strategy not needed. Remove the service class from ic.
   req.decodedParams.clientConfigStrategyRequired = true;
   req.decodedParams.redemption_product_id = req.params.redemption_product_id; // The redemption_product_id from URL params.
 
