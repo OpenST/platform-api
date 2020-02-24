@@ -259,10 +259,4 @@ class GetRedemptionProductList extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(
-  GetRedemptionProductList,
-  coreConstants.icNameSpace,
-  'GetRedemptionProductList'
-);
-
-module.exports = {};
+module.exports = GetRedemptionProductList;

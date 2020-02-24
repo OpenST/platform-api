@@ -17,7 +17,7 @@ require(rootPrefix + '/app/services/redemption/product/GetList');
 /* Get all redemption products. */
 router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProductsList;
-  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.clientConfigStrategyRequired = false;
 
   const dataFormatterFunc = async function(serviceResponse) {
     const redemptionProducts = serviceResponse.data[resultType.redemptionProducts],
@@ -25,7 +25,7 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
       metaPayload = await new RedemptionProductListMetaFormatter(serviceResponse.data).perform().data;
 
     for (const index in redemptionProducts) {
-      formattedRedemptionProducts.push(await new RedemptionProductFormatter(redemptionProducts[index]).perform().data);
+      formattedRedemptionProducts.push(new RedemptionProductFormatter(redemptionProducts[index]).perform().data);
     }
 
     serviceResponse.data = {
@@ -36,7 +36,15 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   };
 
   Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetRedemptionProductList', 'r_v2_rp_1', null, dataFormatterFunc)
+    routeHelper.perform(
+      req,
+      res,
+      next,
+      '/app/services/redemption/product/GetList',
+      'r_v2_rp_1',
+      null,
+      dataFormatterFunc
+    )
   );
 });
 
@@ -49,7 +57,7 @@ router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, functi
   req.decodedParams.redemption_product_id = req.params.redemption_product_id; // The redemption_product_id from URL params.
 
   const dataFormatterFunc = async function(serviceResponse) {
-    const formattedRedemptionProduct = await new RedemptionProductExtendedFormatter(
+    const formattedRedemptionProduct = new RedemptionProductExtendedFormatter(
       serviceResponse.data[resultType.redemptionProduct]
     ).perform().data;
 
