@@ -197,7 +197,7 @@ const v2ErrorConfig = {
     parameter: 'redemption_ids',
     code: 'invalid',
     message:
-      'Max of 25 redemption_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
+      'Max of 25 redemption_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption_ids in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
   redemption_product_ids_more_than_allowed_limit: {
     parameter: 'redeemable_sku_ids',
@@ -531,20 +531,19 @@ const v2ErrorConfig = {
     message: 'Please change the query as more than 10000 records are not supported.'
   },
   invalid_redemption_amount: {
-    parameter: 'redemption_details',
+    parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_details amount. Amount must have been changed as per current prices.'
+    message: 'Invalid parameter redemption_meta amount_in_fiat. Amount must have been changed as per current prices.'
   },
   invalid_redemption_country: {
-    parameter: 'redemption_details',
+    parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_details country. Country must be in our list of applicable countries.'
+    message: 'Invalid parameter redemption_meta country_iso_code. Country must be in our list of applicable countries.'
   },
   invalid_redemption_transfers: {
-    parameter: 'redemption_details',
+    parameter: 'redemption_meta',
     code: 'invalid',
-    message:
-      'Invalid parameter redemption_details. For redemptions only one transfer can happen between user and company.'
+    message: 'Invalid parameter redemption_meta. For redemptions only one transfer can happen between user and company.'
   },
   invalid_redemption_product_name: {
     parameter: 'name',
@@ -557,9 +556,9 @@ const v2ErrorConfig = {
     message: 'Invalid redemption product description. Description length should be less than 1000.'
   },
   invalid_redemption_email: {
-    parameter: 'redemption_details',
+    parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_details email. For redemptions valid email is mandatory.'
+    message: 'Invalid parameter redemption_meta email. For redemptions valid email is mandatory.'
   }
 };
 
