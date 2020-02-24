@@ -1212,7 +1212,7 @@ const v2Signature = {
       },
       {
         parameter: 'redeemable_sku_ids',
-        validatorMethod: 'validateStringArray'
+        validatorMethod: 'validateIntegerArray'
       }
     ]
   },

@@ -216,7 +216,7 @@ class GetRedemptionProductList extends ServiceBase {
       }
     }
 
-    if (oThis.tokenRedemptionProductIds.length >= oThis.limit) {
+    if (!oThis.isFilterPresent && oThis.tokenRedemptionProductIds.length >= oThis.limit) {
       oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
         [paginationConstants.paginationIdentifierKey]: {
           page: oThis.page + 1,
