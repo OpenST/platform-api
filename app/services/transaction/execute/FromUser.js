@@ -343,7 +343,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
       userRedemptionUuid: oThis.redemptionDetails.redemptionId
     };
 
-    return publishToPreProcessor.perform(oThis.chainId, payload);
+    return publishToPreProcessor.perform(oThis.auxChainId, payload);
   }
 }
 

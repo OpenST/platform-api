@@ -586,7 +586,7 @@ class ExecuteTxBase extends ServiceBase {
 
     if (oThis.pendingTransactionInserted) {
       // We are not sending transaction failure webhook as transactionUuid is not returned to the user yet.
-      await new PendingTransactionCrud(oThis.chainId)
+      await new PendingTransactionCrud(oThis.auxChainId)
         .update({
           transactionUuid: oThis.transactionUuid,
           status: pendingTransactionConstants.failedStatus
