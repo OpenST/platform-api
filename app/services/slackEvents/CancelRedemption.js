@@ -13,30 +13,12 @@ const rootPrefix = '../../..',
  */
 class CancelRedemption extends SlackEventBase {
   /**
-   * Async perform.
-   *
-   * @returns {Promise<result>}
-   * @private
-   */
-  async _asyncPerform() {
-    const oThis = this;
-
-    await oThis._validateAndSanitizeParams();
-
-    await oThis._callCancelRedemptionService();
-
-    await oThis._postResponseToSlack();
-
-    return responseHelper.successWithData({});
-  }
-
-  /**
    * Call approve user service.
    *
    * @returns {Promise<*>}
    * @private
    */
-  async _callCancelRedemptionService() {
+  async _callRedemptionService() {
     const oThis = this;
 
     const serviceParams = {
