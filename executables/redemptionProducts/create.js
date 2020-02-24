@@ -26,14 +26,14 @@ program.on('--help', function() {
 });
 
 if (!program.redemptionProductId) {
-  if (!program.redemptionProductName || !program.redemptionProductDescription || !program.images) {
+  if (!program.redemptionProductName || !program.redemptionProductDescription) {
     program.help();
     process.exit(1);
   }
 }
 
 if (program.redemptionProductId) {
-  if (!program.redemptionProductName || !program.redemptionProductDescription || !program.images) {
+  if (!program.redemptionProductName && !program.redemptionProductDescription && !program.images) {
     program.help();
     process.exit(1);
   }

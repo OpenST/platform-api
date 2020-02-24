@@ -28,7 +28,7 @@ program.on('--help', function() {
 });
 
 if (!program.tokenRedemptionProductId) {
-  if (!program.tokenId || !program.redemptionProductId || !program.images) {
+  if (!program.tokenId || !program.redemptionProductId) {
     program.help();
     process.exit(1);
   }
