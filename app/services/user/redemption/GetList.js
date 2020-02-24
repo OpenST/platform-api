@@ -48,7 +48,7 @@ class UserRedemptionList extends ServiceBase {
     oThis.userId = params.user_id;
     oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
 
-    // TODO - redemption - filter by uuids is not needed.
+    // TODO - redemption - check all validations are applied if filter is passed.
     oThis.inputUserRedemptionUuids = params.redemption_ids;
     oThis.limit = params.limit;
 

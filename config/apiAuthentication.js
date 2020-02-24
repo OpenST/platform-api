@@ -208,7 +208,7 @@ class ApiAuthentication {
       },
       {
         apiName: apiName.redemptionGet,
-        route: '/users/:user_id/redemptions/:user_redemption_uuid/',
+        route: '/users/:user_id/redemptions/:redemption_id/',
         supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
       }
       // Note: - Urls should end with a slash. Add config above this.

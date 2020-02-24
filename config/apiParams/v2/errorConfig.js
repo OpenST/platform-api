@@ -100,11 +100,11 @@ const v2ErrorConfig = {
     message:
       'Unable to find this user in your economy. Inspect if a correct value is being sent in user_id field and re-submit the request.'
   },
-  invalid_user_redemption_uuid: {
-    parameter: 'user_redemption_uuid',
+  invalid_redemption_id: {
+    parameter: 'redemption_id',
     code: 'invalid',
     message:
-      'Unable to find this user redemption in your economy. Inspect if a correct value is being sent in user_redemption_uuid field and re-submit the request.'
+      'Unable to find this user redemption in your economy. Inspect if a correct value is being sent in redemption_id field and re-submit the request.'
   },
   session_not_found: {
     parameter: 'session_address',

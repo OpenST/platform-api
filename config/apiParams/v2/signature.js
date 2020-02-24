@@ -1056,7 +1056,6 @@ const v2Signature = {
         parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateMysqlPaginationIdentifier'
       },
-      // TODO - redemption - why have we implemented filter on uuids
       {
         parameter: 'redemption_ids',
         validatorMethod: 'validateUuidV4Array'
@@ -1075,7 +1074,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'user_redemption_uuid',
+        parameter: 'redemption_id',
         validatorMethod: 'validateUuidV4'
       }
     ],
@@ -1212,7 +1211,7 @@ const v2Signature = {
       },
       {
         parameter: 'redeemable_sku_ids',
-        validatorMethod: 'validateStringArray'
+        validatorMethod: 'validateIntegerArray'
       }
     ]
   },
