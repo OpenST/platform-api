@@ -77,11 +77,10 @@ const v2ErrorConfig = {
     message:
       'Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.'
   },
-  // TODO - redemption - send the parameter correctly.
   invalid_redemption_product_id: {
-    parameter: 'redemption_product_id',
+    parameter: 'redeemable_sku_id',
     code: 'invalid',
-    message: 'Invalid parameter redemption_product_id. Please inspect for what is being sent, rectify and re-submit.'
+    message: 'Invalid parameter redeemable_sku_id. Please inspect for what is being sent, rectify and re-submit.'
   },
   inactive_user_id: {
     parameter: 'user_id',

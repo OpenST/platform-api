@@ -121,9 +121,9 @@ class GetRedemptionProductById extends ServiceBase {
    */
   async _fetchPricePointsData() {
     const oThis = this,
-      auxChainId = oThis.ic().configStrategy.auxGeth.chainId;
+      fetchCacheRsp = await oThis._fetchClientConfigStrategy(oThis.clientId),
+      auxChainId = fetchCacheRsp.data[oThis.clientId].chainId;
 
-    // TODO - redemption - config can be created using client id. So current service is not needed in ic.
     const pricePointsCacheObj = new PricePointsCache({ chainId: auxChainId }),
       pricePointsResponse = await pricePointsCacheObj.fetch();
 
