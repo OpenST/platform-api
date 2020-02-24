@@ -289,7 +289,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
       tokenId: oThis.tokenId,
       redemptionDetails: oThis.redemptionDetails,
       transfersData: oThis.estimatedTransfers,
-      metaProperty: oThis.metaProperty
+      metaProperty: oThis.metaProperty,
+      token: oThis.token
     }).perform();
 
     if (redemptionResponse.isSuccess() && redemptionResponse.data.redemptionDetails) {
