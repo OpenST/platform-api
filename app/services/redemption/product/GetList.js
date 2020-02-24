@@ -3,6 +3,8 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  TokenRedemptionProductIdsByTokenIdCache = require(rootPrefix +
+    '/lib/cacheManagement/kitSaas/TokenRedemptionProductIdsByTokenId'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
@@ -11,7 +13,6 @@ const rootPrefix = '../../../..',
 
 // Following require(s) for registering into instance composer.
 require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
-require(rootPrefix + '/lib/cacheManagement/chain/TokenRedemptionProductIdsByTokenId');
 
 /**
  * Class to get redemption product list.
@@ -113,22 +114,15 @@ class GetRedemptionProductList extends ServiceBase {
   async _fetchTokenRedemptionProductIds() {
     const oThis = this;
 
-    // TODO - redemption - remove ic for this cache.
-    const TokenRedemptionProductIdsByTokenIdCache = oThis
-      .ic()
-      .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductIdsByTokenIdCache');
+    const tokenRedemptionProductIdsByTokenIdCacheResponse = await new TokenRedemptionProductIdsByTokenIdCache({
+      tokenId: oThis.tokenId
+    }).fetch();
 
-    const tokenRedemptionProductIdsByTokenIdCache = new TokenRedemptionProductIdsByTokenIdCache({
-        tokenId: oThis.tokenId
-      }),
-      response = await tokenRedemptionProductIdsByTokenIdCache.fetch();
-
-    if (response.isFailure()) {
-      return Promise.reject(response);
+    if (tokenRedemptionProductIdsByTokenIdCacheResponse.isFailure()) {
+      return Promise.reject(tokenRedemptionProductIdsByTokenIdCacheResponse);
     }
 
-    // TODO - redemption - change data.productIds to data.redemptionProductIds
-    oThis.tokenRedemptionProductIds = response.data.productIds;
+    oThis.tokenRedemptionProductIds = tokenRedemptionProductIdsByTokenIdCacheResponse.data.redemptionProductIds;
   }
 
   /**
