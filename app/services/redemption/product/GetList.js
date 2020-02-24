@@ -3,6 +3,7 @@ const OSTBase = require('@ostdotcom/base'),
 
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  TokenRedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/TokenRedemptionProduct'),
   TokenRedemptionProductIdsByTokenIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaas/TokenRedemptionProductIdsByTokenId'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -10,9 +11,6 @@ const rootPrefix = '../../../..',
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination'),
   tokenRedemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/tokenRedemptionProducts');
-
-// Following require(s) for registering into instance composer.
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
 
 /**
  * Class to get redemption product list.
@@ -98,7 +96,22 @@ class GetRedemptionProductList extends ServiceBase {
       oThis.tokenRedemptionProductIds = oThis.tokenRedemptionProductIds || [];
     }
 
-    // TODO - redemption - if ids are present and are more than max limit, then error out.
+    // Validate user ids length
+    if (
+      oThis.tokenRedemptionProductIds &&
+      oThis.tokenRedemptionProductIds.length > paginationConstants.maxRedemptionProductListPageSize
+    ) {
+      return Promise.reject(
+        responseHelper.paramValidationError({
+          internal_error_identifier: 'a_s_rd_p_gbl_1',
+          api_error_identifier: 'invalid_api_params',
+          params_error_identifiers: ['ids_more_than_allowed_limit'],
+          debug_options: {
+            tokenRedemptionProductIds: oThis.tokenRedemptionProductIds
+          }
+        })
+      );
+    }
 
     await oThis._validatePageSize();
   }
@@ -156,21 +169,15 @@ class GetRedemptionProductList extends ServiceBase {
       return;
     }
 
-    const TokenRedemptionProductCache = oThis
-      .ic()
-      .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
-
-    // TODO - redemption - ic is not needed for this cache
-    // TODO - redemption - change ids to tokenRedemptionProductIds
-    const response = await new TokenRedemptionProductCache({
-      ids: oThis.tokenRedemptionProductIds
+    const tokenRedemptionProductCacheResponse = await new TokenRedemptionProductCache({
+      tokenRedemptionProductIds: oThis.tokenRedemptionProductIds
     }).fetch();
 
-    if (response.isFailure()) {
-      return Promise.reject(response);
+    if (tokenRedemptionProductCacheResponse.isFailure()) {
+      return Promise.reject(tokenRedemptionProductCacheResponse);
     }
 
-    oThis.tokenRedemptionProductDetailsMap = response.data;
+    oThis.tokenRedemptionProductDetailsMap = tokenRedemptionProductCacheResponse.data;
   }
 
   /**
@@ -204,7 +211,7 @@ class GetRedemptionProductList extends ServiceBase {
     }
 
     return responseHelper.successWithData({
-      [resultType.redeemableSkus]: finalRedemptionProductsArray,
+      [resultType.redemptionProducts]: finalRedemptionProductsArray,
       [resultType.meta]: oThis.responseMetaData
     });
   }

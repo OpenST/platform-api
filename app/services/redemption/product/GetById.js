@@ -6,6 +6,7 @@ const rootPrefix = '../../../..',
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
   PricePointsCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/OstPricePoint'),
   RedemptionCountryByIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/RedemptionCountryById'),
+  TokenRedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/TokenRedemptionProduct'),
   RedemptionProductCountryByProductIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/RedemptionProductCountryByProductId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
@@ -13,9 +14,6 @@ const rootPrefix = '../../../..',
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
-
-// Following require(s) for registering into instance composer.
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenRedemptionProduct');
 
 /**
  * Class to get redemption product by id.
@@ -77,13 +75,8 @@ class GetRedemptionProductById extends ServiceBase {
   async _fetchTokenRedemptionProductDetails() {
     const oThis = this;
 
-    // TODO - redemption - why ic?
-    const TokenRedemptionProductCache = oThis
-      .ic()
-      .getShadowedClassFor(coreConstants.icNameSpace, 'TokenRedemptionProductCache');
-
     const tokenRedemptionProductCacheResponse = await new TokenRedemptionProductCache({
-      ids: [oThis.tokenRedemptionProductId]
+      tokenRedemptionProductIds: [oThis.tokenRedemptionProductId]
     }).fetch();
 
     if (tokenRedemptionProductCacheResponse.isFailure()) {
@@ -220,9 +213,8 @@ class GetRedemptionProductById extends ServiceBase {
 
     oThis.tokenRedemptionProductDetails.availability = oThis.availability;
 
-    // TODO - redemption - why are we using redeemableSku inside code other than formatter?
     return responseHelper.successWithData({
-      [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
+      [resultType.redemptionProduct]: oThis.tokenRedemptionProductDetails
     });
   }
 }

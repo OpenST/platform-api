@@ -20,19 +20,17 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    // TODO - redemption - redeemableSku should not be used inside code.
-    const redeemableSkus = serviceResponse.data[resultType.redeemableSkus],
+    const redemptionProducts = serviceResponse.data[resultType.redemptionProducts],
       formattedRedemptionProducts = [],
       metaPayload = await new RedemptionProductListMetaFormatter(serviceResponse.data).perform().data;
 
-    for (const index in redeemableSkus) {
-      formattedRedemptionProducts.push(await new RedemptionProductFormatter(redeemableSkus[index]).perform().data);
+    for (const index in redemptionProducts) {
+      formattedRedemptionProducts.push(await new RedemptionProductFormatter(redemptionProducts[index]).perform().data);
     }
 
     serviceResponse.data = {
-      // TODO - redemption - redeemableSku should not be used inside code.
-      result_type: resultType.redeemableSkus,
-      [resultType.redeemableSkus]: formattedRedemptionProducts,
+      result_type: resultType.redemptionProducts,
+      [resultType.redemptionProducts]: formattedRedemptionProducts,
       [resultType.meta]: metaPayload
     };
   };
@@ -51,15 +49,13 @@ router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, functi
   req.decodedParams.redemption_product_id = req.params.redemption_product_id; // The redemption_product_id from URL params.
 
   const dataFormatterFunc = async function(serviceResponse) {
-    // TODO - redemption - redeemableSku should not be used inside code.
     const formattedRedemptionProduct = await new RedemptionProductExtendedFormatter(
-      serviceResponse.data[resultType.redeemableSku]
+      serviceResponse.data[resultType.redemptionProduct]
     ).perform().data;
 
     serviceResponse.data = {
-      // TODO - redemption - redeemableSku should not be used inside code.
-      result_type: resultType.redeemableSku,
-      [resultType.redeemableSku]: formattedRedemptionProduct
+      result_type: resultType.redemptionProduct,
+      [resultType.redemptionProduct]: formattedRedemptionProduct
     };
   };
 
