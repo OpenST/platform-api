@@ -43,6 +43,24 @@ class SlackEventBase extends ServiceBase {
   }
 
   /**
+   * Async perform.
+   *
+   * @returns {Promise<result>}
+   * @private
+   */
+  async _asyncPerform() {
+    const oThis = this;
+
+    await oThis._validateAndSanitizeParams();
+
+    await oThis._callRedemptionService();
+
+    await oThis._postResponseToSlack();
+
+    return responseHelper.successWithData({});
+  }
+
+  /**
    * Validate parameters.
    *
    * @returns {Promise<void>}
@@ -174,6 +192,16 @@ class SlackEventBase extends ServiceBase {
         oThis.errMsg += errors[index].msg;
       }
     }
+  }
+
+  /**
+   * Call Redemption service
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _callRedemptionService() {
+    throw new Error('Sub-class to implement.');
   }
 
   /**

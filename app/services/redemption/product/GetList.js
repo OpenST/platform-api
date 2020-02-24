@@ -109,6 +109,12 @@ class GetRedemptionProductList extends ServiceBase {
       );
     }
 
+    console.log(
+      'oThis.tokenRedemptionProductIds-----',
+      oThis.tokenRedemptionProductIds,
+      oThis.tokenRedemptionProductIds.length
+    );
+
     // Check if filtered product ids present.
     if (oThis.tokenRedemptionProductIds.length > 0) {
       oThis.isFilterPresent = true;
@@ -170,6 +176,8 @@ class GetRedemptionProductList extends ServiceBase {
       return;
     }
 
+    oThis.tokenRedemptionProductIds = [...new Set(oThis.tokenRedemptionProductIds)];
+
     const tokenRedemptionProductCacheResponse = await new TokenRedemptionProductCache({
       tokenRedemptionProductIds: oThis.tokenRedemptionProductIds
     }).fetch();
@@ -196,6 +204,8 @@ class GetRedemptionProductList extends ServiceBase {
       const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
         tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
 
+      console.log('tokenRedemptionProduct------', tokenRedemptionProduct);
+
       // If token id from signature is not equal to token redemption table token id.
       if (tokenRedemptionProduct.tokenId != oThis.tokenId) {
         return Promise.reject(
@@ -211,7 +221,7 @@ class GetRedemptionProductList extends ServiceBase {
         );
       }
 
-      if (!oThis.isFilterPresent && tokenRedemptionProduct.status === tokenRedemptionProductsConstants.activeStatus) {
+      if (oThis.isFilterPresent || tokenRedemptionProduct.status === tokenRedemptionProductsConstants.activeStatus) {
         finalRedemptionProductsArray.push(tokenRedemptionProduct);
       }
     }

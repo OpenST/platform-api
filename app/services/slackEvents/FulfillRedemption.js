@@ -1,14 +1,10 @@
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../..',
   SlackEventBase = require(rootPrefix + '/app/services/slackEvents/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  FulfillRedemptionRequest = require(rootPrefix + '/lib/redemption/userRequests/Fulfill'),
   slackConstants = require(rootPrefix + '/lib/globalConstant/slack');
-
-require(rootPrefix + '/lib/redemption/userRequests/Fulfill');
 
 /**
  * Class to process approve user event.
@@ -17,30 +13,12 @@ require(rootPrefix + '/lib/redemption/userRequests/Fulfill');
  */
 class FulfillRedemption extends SlackEventBase {
   /**
-   * Async perform.
-   *
-   * @returns {Promise<result>}
-   * @private
-   */
-  async _asyncPerform() {
-    const oThis = this;
-
-    await oThis._validateAndSanitizeParams();
-
-    await oThis._callFulfillRedemptionService();
-
-    await oThis._postResponseToSlack();
-
-    return responseHelper.successWithData({});
-  }
-
-  /**
    * Call approve user service.
    *
    * @returns {Promise<*>}
    * @private
    */
-  async _callFulfillRedemptionService() {
+  async _callRedemptionService() {
     const oThis = this;
 
     const serviceParams = {
@@ -49,15 +27,9 @@ class FulfillRedemption extends SlackEventBase {
       clientId: oThis.eventParams.client_id
     };
 
-    const FulfillUserRedemptionRequestLib = oThis
-      .ic()
-      .getShadowedClassFor(coreConstants.icNameSpace, 'FulfillUserRedemptionRequest');
-
-    const fulfillUserRedemptionRsp = await new FulfillUserRedemptionRequestLib(serviceParams)
-      .perform()
-      .catch(function(err) {
-        return err;
-      });
+    const fulfillUserRedemptionRsp = await new FulfillRedemptionRequest(serviceParams).perform().catch(function(err) {
+      return err;
+    });
 
     if (fulfillUserRedemptionRsp.isFailure()) {
       oThis._setError(fulfillUserRedemptionRsp);
@@ -104,6 +76,4 @@ class FulfillRedemption extends SlackEventBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(FulfillRedemption, coreConstants.icNameSpace, 'FulfillRedemption');
-
-module.exports = {};
+module.exports = FulfillRedemption;
