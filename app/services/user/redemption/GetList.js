@@ -107,7 +107,7 @@ class UserRedemptionList extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_gl_1',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['user_redemption_uuids_more_than_allowed_limit'],
+          params_error_identifiers: ['redemption_ids_more_than_allowed_limit'],
           debug_options: {}
         })
       );

@@ -193,11 +193,17 @@ const v2ErrorConfig = {
     message:
       'Max of 25 addresses as filters in an api request has been put in place to ensure the performance and reliability. No of addresses in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
-  user_redemption_uuids_more_than_allowed_limit: {
-    parameter: 'user_redemption_uuids',
+  redemption_ids_more_than_allowed_limit: {
+    parameter: 'redemption_ids',
     code: 'invalid',
     message:
-      'Max of 25 user_redemption_uuids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
+      'Max of 25 redemption_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
+  },
+  redemption_product_ids_more_than_allowed_limit: {
+    parameter: 'redeemable_sku_ids',
+    code: 'invalid',
+    message:
+      'Max of 25 redeemable_sku_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
   invalid_chain_id: {
     parameter: 'chain_id',

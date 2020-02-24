@@ -40,6 +40,7 @@ class GetRedemptionProductList extends ServiceBase {
     oThis.tokenRedemptionProductDetailsMap = {};
 
     oThis.page = null;
+    oThis.isFilterPresent = false;
     oThis.responseMetaData = {
       [paginationConstants.nextPagePayloadKey]: {}
     };
@@ -63,7 +64,6 @@ class GetRedemptionProductList extends ServiceBase {
       oThis._filterProductIds();
     }
 
-    // TODO - redemption - we need to check if the tokenRedemptionProductIds belong to the same token
     await oThis._fetchTokenRedemptionProductDetails();
 
     return oThis._prepareResponse();
@@ -101,12 +101,17 @@ class GetRedemptionProductList extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbl_1',
           api_error_identifier: 'invalid_api_params',
-          params_error_identifiers: ['ids_more_than_allowed_limit'],
+          params_error_identifiers: ['redemption_product_ids_more_than_allowed_limit'],
           debug_options: {
             tokenRedemptionProductIds: oThis.tokenRedemptionProductIds
           }
         })
       );
+    }
+
+    // Check if filtered product ids present.
+    if (oThis.tokenRedemptionProductIds.length > 0) {
+      oThis.isFilterPresent = true;
     }
 
     await oThis._validatePageSize();
@@ -191,8 +196,22 @@ class GetRedemptionProductList extends ServiceBase {
       const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
         tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
 
-      // TODO - if ids in params, then don't check for status. Please refer Notes column in api excel.
-      if (tokenRedemptionProduct.status === tokenRedemptionProductsConstants.activeStatus) {
+      // If token id from signature is not equal to token redemption table token id.
+      if (tokenRedemptionProduct.tokenId != oThis.tokenId) {
+        return Promise.reject(
+          responseHelper.paramValidationError({
+            internal_error_identifier: 'a_s_rd_p_gbl_2',
+            api_error_identifier: 'invalid_api_params',
+            params_error_identifiers: ['invalid_redemption_product_id'],
+            debug_options: {
+              tokenId: oThis.tokenId,
+              tokenRedemptionProductDetails: tokenRedemptionProduct
+            }
+          })
+        );
+      }
+
+      if (!oThis.isFilterPresent && tokenRedemptionProduct.status === tokenRedemptionProductsConstants.activeStatus) {
         finalRedemptionProductsArray.push(tokenRedemptionProduct);
       }
     }
