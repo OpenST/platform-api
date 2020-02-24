@@ -128,20 +128,24 @@ class TokenRedemptionProduct extends ModelBase {
   }
 
   /**
-   * Fetch redemption product ids by token id.
+   * Fetch active redemption product ids by token id.
    *
    * @param {number} tokenId
    *
    * @returns {Promise<*|result>}
    */
-  async fetchProductIdsByTokenId(tokenId) {
+  async fetchActiveProductIdsByTokenId(tokenId) {
     const oThis = this;
 
     const productIds = [];
 
     const dbRows = await oThis
       .select('id')
-      .where(['token_id = ?', tokenId])
+      .where([
+        'token_id = ? AND status = ?',
+        tokenId,
+        tokenRedemptionProductsConstants.invertedStatuses[tokenRedemptionProductsConstants.activeStatus]
+      ])
       .fire();
 
     for (let index = 0; index < dbRows.length; index++) {
