@@ -117,6 +117,9 @@ class UserRedemptionList extends ServiceBase {
     for (let index = 0; index < oThis.inputUserRedemptionUuids.length; index++) {
       oThis.redemptionUuids.push(basicHelper.sanitizeuuid(oThis.inputUserRedemptionUuids[index]));
     }
+    if (oThis.redemptionUuids.length > 0) {
+      oThis.redemptionUuids = [...new Set(oThis.redemptionUuids)];
+    }
 
     oThis.userId = basicHelper.sanitizeuuid(oThis.userId);
 
@@ -172,10 +175,8 @@ class UserRedemptionList extends ServiceBase {
   async _setRedemptionUuids() {
     const oThis = this;
 
-    if (!oThis.inputUserRedemptionUuids || oThis.inputUserRedemptionUuids.length === 0) {
+    if (oThis.redemptionUuids.length == 0) {
       await oThis._fetchRedemptionUuidsFromCache();
-    } else {
-      oThis.redemptionUuids = oThis.inputUserRedemptionUuids;
     }
   }
 
@@ -203,7 +204,7 @@ class UserRedemptionList extends ServiceBase {
 
     oThis.redemptionUuids = cacheResponse.data.uuids;
 
-    if (oThis.redemptionUuids.length === oThis.limit) {
+    if (oThis.redemptionUuids.length >= oThis.limit) {
       oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
         page: oThis.page + 1,
         limit: oThis.limit
@@ -243,7 +244,11 @@ class UserRedemptionList extends ServiceBase {
     for (let index = 0; index < oThis.redemptionUuids.length; index++) {
       const redemptionDetail = redemptionsMap[oThis.redemptionUuids[index]];
 
-      if (redemptionDetail) {
+      if (
+        redemptionDetail &&
+        redemptionDetail.userUuid &&
+        redemptionDetail.userUuid.toLowerCase() == oThis.userId.toLowerCase()
+      ) {
         if (redemptionDetail.emailAddress) {
           redemptionDetail.emailAddress = await new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).decrypt(
             redemptionDetail.emailAddress

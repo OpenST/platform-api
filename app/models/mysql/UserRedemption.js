@@ -81,6 +81,7 @@ class UserRedemptionModel extends ModelBase {
       })
       .limit(limit)
       .offset(offset)
+      .order_by('id DESC')
       .fire();
 
     const redemptionUuids = [];
