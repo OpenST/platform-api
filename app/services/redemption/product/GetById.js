@@ -220,7 +220,6 @@ class GetRedemptionProductById extends ServiceBase {
 
     oThis.tokenRedemptionProductDetails.availability = oThis.availability;
 
-    // TODO - redemption - use entity type constants
     // TODO - redemption - why are we using redeemableSku inside code other than formatter?
     return responseHelper.successWithData({
       [resultType.redeemableSku]: oThis.tokenRedemptionProductDetails
