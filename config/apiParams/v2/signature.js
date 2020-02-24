@@ -1075,7 +1075,7 @@ const v2Signature = {
         validatorMethod: 'validateUuidV4'
       },
       {
-        parameter: 'user_redemption_uuid',
+        parameter: 'redemption_id',
         validatorMethod: 'validateUuidV4'
       }
     ],

@@ -28,7 +28,7 @@ class UserRedemptionGet extends ServiceBase {
    * @param {number} params.client_id
    * @param {number} params.token_id
    * @param {string} params.user_id
-   * @param {string} params.user_redemption_uuid
+   * @param {string} params.redemption_id
    *
    * @constructor
    */
@@ -41,7 +41,7 @@ class UserRedemptionGet extends ServiceBase {
     oThis.tokenId = params.token_id;
 
     oThis.userId = params.user_id;
-    oThis.userRedemptionUuid = params.user_redemption_uuid;
+    oThis.userRedemptionUuid = params.redemption_id;
     oThis.userRedemption = {};
   }
 
@@ -140,7 +140,7 @@ class UserRedemptionGet extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_g_2',
           api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['invalid_user_redemption_uuid'],
+          params_error_identifiers: ['invalid_redemption_id'],
           debug_options: { userId: oThis.userId, tokenId: oThis.tokenId, userRedemptionUuid: oThis.userRedemptionUuid }
         })
       );

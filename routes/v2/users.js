@@ -615,10 +615,10 @@ router.get('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function
   );
 });
 
-router.get('/:user_id/redemptions/:user_redemption_uuid', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+router.get('/:user_id/redemptions/:redemption_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.redemptionGet;
   req.decodedParams.user_id = req.params.user_id;
-  req.decodedParams.user_redemption_uuid = req.params.user_redemption_uuid;
+  req.decodedParams.redemption_id = req.params.redemption_id;
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
