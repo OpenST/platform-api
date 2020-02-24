@@ -86,7 +86,7 @@ class TokenRedemptionProduct extends ModelBase {
         redemption_product_id: params.redemptionProductId,
         name: params.name || null,
         description: params.description || null,
-        image: params.image || null,
+        image: JSON.stringify(params.image) || null,
         sequence_number: params.sequenceNumber,
         status: tokenRedemptionProductsConstants.invertedStatuses[params.status]
       })

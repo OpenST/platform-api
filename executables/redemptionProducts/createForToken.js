@@ -1,15 +1,8 @@
 const program = require('commander');
 
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../..',
-  ConfigStrategyByChainId = require(rootPrefix + '/helpers/configStrategy/ByChainId'),
-  TokenByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenByTokenId'),
-  ClientConfigGroupCache = require(rootPrefix + '/lib/cacheManagement/shared/ClientConfigGroup'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
-  logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response');
+  CreateTokenRedemptionProductsLib = require(rootPrefix + '/lib/redemption/products/CreateForToken'),
+  logger = require(rootPrefix + '/lib/logger/customConsoleLogger');
 
 program
   .option(
@@ -18,6 +11,7 @@ program
   )
   .option('--tokenId <tokenId>', 'Token id to associate with redemption product id.')
   .option('--redemptionProductId <redemptionProductId>', 'Redemption product Id')
+  .option('--images <images>', 'Map of images.')
   .option('--redemptionProductName <redemptionProductName>', 'Redemption product name.')
   .option('--redemptionProductDescription <redemptionProductDescription>', 'Redemption product description')
   .parse(process.argv);
@@ -26,100 +20,38 @@ program.on('--help', function() {
   logger.log('');
   logger.log('  Example:');
   logger.log('');
-  logger.log('    node executables/redemptionProducts/createForToken --tokenId 1000 --redemptionProductId 1');
+  logger.log(
+    '    node executables/redemptionProducts/createForToken --tokenId 1000 --redemptionProductId 1 --images \'{"detail":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-l-original.jpg","size":90821,"width":321,"height":182}},"cover":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-p-original.jpg","size":193141,"width":320,"height":320}}}\''
+  );
   logger.log('');
   logger.log('');
 });
 
 if (!program.tokenRedemptionProductId) {
-  if (!program.tokenId || !program.redemptionProductId) {
+  if (!program.tokenId || !program.redemptionProductId || !program.images) {
     program.help();
     process.exit(1);
   }
 }
 
-require(rootPrefix + '/lib/redemption/products/CreateForToken');
-
 class CreateTokenRedemptionProducts {
   constructor(params) {
     const oThis = this;
-    oThis.tokenId = params.tokenId;
-    oThis.redemptionProductId = params.redemptionProductId;
-    oThis.name = params.name;
-    oThis.description = params.description;
-    oThis.tokenRedemptionProductId = params.tokenRedemptionProductId;
+    oThis.tokenId = params.tokenId || null;
+    oThis.redemptionProductId = params.redemptionProductId || null;
+    oThis.name = params.name || null;
+    oThis.description = params.description || null;
+    oThis.tokenRedemptionProductId = params.tokenRedemptionProductId || null;
+
+    if (params.images) {
+      oThis.images = JSON.parse(params.images);
+    }
   }
 
   async perform() {
     const oThis = this;
 
-    await oThis._fetchClientIdByTokenId();
-
-    await oThis._fetchChainId();
-
-    await oThis.fetchConfigStrategy();
-
     await oThis._createTokenRedemptionProducts();
-  }
-
-  /**
-   * This function fetches client id using token id.
-   *
-   * @returns {Promise<never>}
-   * @private
-   */
-  async _fetchClientIdByTokenId() {
-    const oThis = this;
-
-    const cacheResponse = await new TokenByTokenId({ tokenId: oThis.tokenId }).fetch();
-
-    if (cacheResponse.isFailure() || !cacheResponse.data) {
-      return Promise.reject(
-        // This is not a param validation error because we are fetching token id and/or client id internally.
-        responseHelper.error({
-          internal_error_identifier: 'e_rp_cft_1',
-          api_error_identifier: 'something_went_wrong',
-          debug_options: {}
-        })
-      );
-    }
-
-    oThis.clientId = cacheResponse.data.clientId;
-  }
-
-  /**
-   * Fetch client config strategy.
-   *
-   * @sets oThis.auxChainId
-   *
-   * @returns {Promise<*>}
-   * @private
-   */
-  async _fetchChainId() {
-    const oThis = this;
-
-    // Fetch client config group.
-    const fetchCacheRsp = await new ClientConfigGroupCache({ clientId: oThis.clientId }).fetch();
-
-    if (fetchCacheRsp.isFailure()) {
-      return Promise.reject(fetchCacheRsp);
-    }
-
-    oThis.auxChainId = fetchCacheRsp.data[oThis.clientId].chainId;
-  }
-
-  /**
-   * Fetch config strategy.
-   *
-   * @sets oThis.ic
-   *
-   * @returns {Promise<void>}
-   */
-  async fetchConfigStrategy() {
-    const oThis = this;
-
-    const configStrategy = (await new ConfigStrategyByChainId(oThis.auxChainId).getComplete()).data;
-    oThis.ic = new InstanceComposer(configStrategy);
   }
 
   /**
@@ -131,14 +63,10 @@ class CreateTokenRedemptionProducts {
   async _createTokenRedemptionProducts() {
     const oThis = this;
 
-    const CreateTokenRedemptionProductsLib = oThis.ic.getShadowedClassFor(
-      coreConstants.icNameSpace,
-      'CreateTokenRedemptionProducts'
-    );
-
     await new CreateTokenRedemptionProductsLib({
       tokenId: oThis.tokenId,
       redemptionProductId: oThis.redemptionProductId,
+      images: oThis.images,
       name: oThis.name,
       description: oThis.description,
       tokenRedemptionProductId: oThis.tokenRedemptionProductId
@@ -149,6 +77,7 @@ class CreateTokenRedemptionProducts {
 new CreateTokenRedemptionProducts({
   tokenId: program.tokenId,
   redemptionProductId: program.redemptionProductId,
+  images: program.images,
   name: program.redemptionProductName,
   description: program.redemptionProductDescription,
   tokenRedemptionProductId: program.tokenRedemptionProductId

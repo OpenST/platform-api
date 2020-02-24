@@ -75,7 +75,7 @@ class RedemptionProduct extends ModelBase {
       .insert({
         name: params.name,
         description: params.description,
-        image: params.image || null,
+        image: JSON.stringify(params.image) || null,
         status: redemptionProductsConstants.invertedStatuses[params.status]
       })
       .fire();
