@@ -1,12 +1,8 @@
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   TokenRedemptionProductCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/TokenRedemptionProduct'),
   TokenRedemptionProductIdsByTokenIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaas/TokenRedemptionProductIdsByTokenId'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination'),

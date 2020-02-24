@@ -1,6 +1,3 @@
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
@@ -10,7 +7,6 @@ const rootPrefix = '../../../..',
   RedemptionProductCountryByProductIdCache = require(rootPrefix +
     '/lib/cacheManagement/kitSaasMulti/RedemptionProductCountryByProductId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
-  coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
   quoteCurrencyConstants = require(rootPrefix + '/lib/globalConstant/quoteCurrency');
@@ -219,10 +215,4 @@ class GetRedemptionProductById extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(
-  GetRedemptionProductById,
-  coreConstants.icNameSpace,
-  'GetRedemptionProductById'
-);
-
-module.exports = {};
+module.exports = GetRedemptionProductById;

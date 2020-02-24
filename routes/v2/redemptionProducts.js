@@ -10,10 +10,6 @@ const rootPrefix = '../..',
   sanitizer = require(rootPrefix + '/helpers/sanitizer'),
   resultType = require(rootPrefix + '/lib/globalConstant/resultType');
 
-// Following require(s) for registering into instance composer.
-require(rootPrefix + '/app/services/redemption/product/GetById');
-require(rootPrefix + '/app/services/redemption/product/GetList');
-
 /* Get all redemption products. */
 router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProductsList;
@@ -51,9 +47,7 @@ router.get('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
 /* Get redemption product by product id. */
 router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
   req.decodedParams.apiName = apiName.getRedemptionProduct;
-
-  // TODO - redemption - client config strategy not needed. Remove the service class from ic.
-  req.decodedParams.clientConfigStrategyRequired = true;
+  req.decodedParams.clientConfigStrategyRequired = false;
   req.decodedParams.redemption_product_id = req.params.redemption_product_id; // The redemption_product_id from URL params.
 
   const dataFormatterFunc = async function(serviceResponse) {
@@ -68,7 +62,15 @@ router.get('/:redemption_product_id', sanitizer.sanitizeDynamicUrlParams, functi
   };
 
   Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetRedemptionProductById', 'r_v2_rp_2', null, dataFormatterFunc)
+    routeHelper.perform(
+      req,
+      res,
+      next,
+      '/app/services/redemption/product/GetById',
+      'r_v2_rp_2',
+      null,
+      dataFormatterFunc
+    )
   );
 });
 
