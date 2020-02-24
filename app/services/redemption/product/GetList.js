@@ -19,7 +19,7 @@ class GetRedemptionProductList extends ServiceBase {
    *
    * @param {object} params
    * @param {number} params.client_id
-   * @param {number} [params.ids] - filter on ids.
+   * @param {number} [params.redeemable_sku_ids] - filter on redeemable sku ids.
    * @param {number} params.pagination_identifier
    * @param {string} params.limit
    *
@@ -36,7 +36,7 @@ class GetRedemptionProductList extends ServiceBase {
 
     oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
     oThis.limit = params.limit;
-    oThis.tokenRedemptionProductIds = params.ids;
+    oThis.tokenRedemptionProductIds = params.redeemable_sku_ids;
     oThis.tokenRedemptionProductDetailsMap = {};
 
     oThis.page = null;

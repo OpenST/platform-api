@@ -31,7 +31,7 @@ class UserRedemptionList extends ServiceBase {
    * @param {number} params.token_id
    * @param {number} params.user_id
    * @param {number} [params.pagination_identifier]
-   * @param {array} [params.user_redemption_uuids]
+   * @param {array} [params.redemption_ids]
    * @param {string} [params.limit]
    *
    * @augments ServiceBase
@@ -49,7 +49,7 @@ class UserRedemptionList extends ServiceBase {
     oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
 
     // TODO - redemption - filter by uuids is not needed.
-    oThis.inputUserRedemptionUuids = params.user_redemption_uuids;
+    oThis.inputUserRedemptionUuids = params.redemption_ids;
     oThis.limit = params.limit;
 
     oThis.page = null;
