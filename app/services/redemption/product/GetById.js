@@ -81,12 +81,11 @@ class GetRedemptionProductById extends ServiceBase {
 
     oThis.tokenRedemptionProductDetails = tokenRedemptionProductCacheResponse.data[oThis.tokenRedemptionProductId];
 
-    // TODO - redemption - send 404??
     if (!CommonValidators.validateObject(oThis.tokenRedemptionProductDetails)) {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbd_1',
-          api_error_identifier: 'resource_not_found',
+          api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_redemption_product_id'],
           debug_options: {}
         })
@@ -98,7 +97,7 @@ class GetRedemptionProductById extends ServiceBase {
       return Promise.reject(
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_rd_p_gbd_2',
-          api_error_identifier: 'resource_not_found',
+          api_error_identifier: 'invalid_api_params',
           params_error_identifiers: ['invalid_redemption_product_id'],
           debug_options: {
             tokenId: oThis.tokenId,
