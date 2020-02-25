@@ -109,12 +109,6 @@ class GetRedemptionProductList extends ServiceBase {
       );
     }
 
-    console.log(
-      'oThis.tokenRedemptionProductIds-----',
-      oThis.tokenRedemptionProductIds,
-      oThis.tokenRedemptionProductIds.length
-    );
-
     // Check if filtered product ids present.
     if (oThis.tokenRedemptionProductIds.length > 0) {
       oThis.isFilterPresent = true;
@@ -203,8 +197,6 @@ class GetRedemptionProductList extends ServiceBase {
     for (let ind = 0; ind < oThis.tokenRedemptionProductIds.length; ind++) {
       const tokenRedemptionProductId = oThis.tokenRedemptionProductIds[ind],
         tokenRedemptionProduct = oThis.tokenRedemptionProductDetailsMap[tokenRedemptionProductId];
-
-      console.log('tokenRedemptionProduct------', tokenRedemptionProduct);
 
       // If token id from signature is not equal to token redemption table token id.
       if (tokenRedemptionProduct.tokenId != oThis.tokenId) {
