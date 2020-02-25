@@ -29,6 +29,7 @@ const rootPrefix = '../../../..',
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
 require(rootPrefix + '/lib/redemption/ValidateUserRedemptionTx');
 require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
+require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
 
 /**
  * Class
@@ -320,8 +321,15 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         emailAddressEncrypted: oThis.redemptionEmail
       });
 
-      const cacheKlass = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
-      await new cacheKlass({ uuids: [oThis.redemptionDetails.redemptionId] }).clear();
+      const UserRedemptionsByUuidCacheKlass = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
+      await new UserRedemptionsByUuidCacheKlass({ uuids: [oThis.redemptionDetails.redemptionId] }).clear();
+
+      const RedemptionIdsByUserIdCacheKlass = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionIdsByUserId');
+      await new RedemptionIdsByUserIdCacheKlass({ userId: oThis.userId }).clear();
 
       await oThis._sendRedemptionInitiateWebhook();
     }
