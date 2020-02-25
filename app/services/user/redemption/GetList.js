@@ -175,7 +175,7 @@ class UserRedemptionList extends ServiceBase {
   async _setRedemptionUuids() {
     const oThis = this;
 
-    if (oThis.redemptionUuids.length == 0) {
+    if (oThis.redemptionUuids.length === 0) {
       await oThis._fetchRedemptionUuidsFromCache();
     }
   }
@@ -247,7 +247,7 @@ class UserRedemptionList extends ServiceBase {
       if (
         redemptionDetail &&
         redemptionDetail.userUuid &&
-        redemptionDetail.userUuid.toLowerCase() == oThis.userId.toLowerCase()
+        redemptionDetail.userUuid.toLowerCase() === oThis.userId.toLowerCase()
       ) {
         if (redemptionDetail.emailAddress) {
           redemptionDetail.emailAddress = await new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).decrypt(

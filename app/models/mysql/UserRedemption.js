@@ -1,5 +1,6 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption');
@@ -41,6 +42,7 @@ class UserRedemptionModel extends ModelBase {
    * @param {string} dbRow.country_id
    * @param {number} dbRow.status
    * @param {string} dbRow.email_address
+   * @param {string} dbRow.updated_at
    *
    * @returns {{}}
    */
@@ -54,7 +56,8 @@ class UserRedemptionModel extends ModelBase {
       amount: dbRow.amount,
       countryId: dbRow.country_id,
       status: userRedemptionConstants.statuses[dbRow.status],
-      emailAddress: dbRow.email_address
+      emailAddress: dbRow.email_address,
+      updatedTimestamp: basicHelper.dateToSecondsTimestamp(dbRow.updated_at)
     };
   }
 
