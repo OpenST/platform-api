@@ -165,7 +165,18 @@ class TokenRedemptionProduct extends ModelBase {
   static async flushCache(params) {
     const promisesArray = [];
 
-    // TODO: Add clear cache here.
+    if (params.ids) {
+      const TokenRedemptionProductCache = require(rootPrefix +
+        '/lib/cacheManagement/kitSaasMulti/TokenRedemptionProduct');
+      promisesArray.push(new TokenRedemptionProductCache({ tokenRedemptionProductIds: params.ids }).clear());
+    }
+
+    if (params.tokenId) {
+      const TokenRedemptionProductCache = require(rootPrefix +
+        '/lib/cacheManagement/kitSaas/TokenRedemptionProductIdsByTokenId');
+      promisesArray.push(new TokenRedemptionProductCache({ tokenId: params.tokenId }).clear());
+    }
+
     await Promise.all(promisesArray);
   }
 }
