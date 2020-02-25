@@ -4,7 +4,7 @@ const rootPrefix = '../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   urlHelper = require(rootPrefix + '/lib/redemption/UrlHelper'),
-  redemptionProductsConstants = require(rootPrefix + '/lib/globalConstant/redemptionProducts');
+  redemptionProductConstants = require(rootPrefix + '/lib/globalConstant/redemptionProduct');
 
 // Declare variables.
 const dbName = 'kit_saas_redemption_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
@@ -76,7 +76,7 @@ class RedemptionProduct extends ModelBase {
         name: params.name,
         description: params.description,
         image: JSON.stringify(params.image) || null,
-        status: redemptionProductsConstants.invertedStatuses[params.status]
+        status: redemptionProductConstants.invertedStatuses[params.status]
       })
       .fire();
 
