@@ -1,9 +1,9 @@
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
+  urlHelper = require(rootPrefix + '/lib/redemption/urlHelper'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  urlHelper = require(rootPrefix + '/lib/redemption/UrlHelper'),
   redemptionProductConstants = require(rootPrefix + '/lib/globalConstant/redemptionProduct');
 
 // Declare variables.
