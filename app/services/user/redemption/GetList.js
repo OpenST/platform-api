@@ -206,8 +206,10 @@ class UserRedemptionList extends ServiceBase {
 
     if (oThis.redemptionUuids.length >= oThis.limit) {
       oThis.responseMetaData[paginationConstants.nextPagePayloadKey] = {
-        page: oThis.page + 1,
-        limit: oThis.limit
+        [paginationConstants.paginationIdentifierKey]: {
+          page: oThis.page + 1,
+          limit: oThis.limit
+        }
       };
     }
   }
