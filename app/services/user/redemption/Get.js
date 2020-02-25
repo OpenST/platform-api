@@ -151,7 +151,7 @@ class UserRedemptionGet extends ServiceBase {
         responseHelper.paramValidationError({
           internal_error_identifier: 'a_s_u_r_g_3',
           api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['user_not_found'],
+          params_error_identifiers: ['invalid_redemption_id'],
           debug_options: { userId: oThis.userId, tokenId: oThis.tokenId, userRedemptionUuid: oThis.userRedemptionUuid }
         })
       );
