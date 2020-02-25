@@ -165,10 +165,12 @@ class TokenRedemptionProduct extends ModelBase {
   static async flushCache(params) {
     const promisesArray = [];
 
-    if (params.ids) {
+    if (params.tokenRedemptionProductIds) {
       const TokenRedemptionProductCache = require(rootPrefix +
         '/lib/cacheManagement/kitSaasMulti/TokenRedemptionProduct');
-      promisesArray.push(new TokenRedemptionProductCache({ tokenRedemptionProductIds: params.ids }).clear());
+      promisesArray.push(
+        new TokenRedemptionProductCache({ tokenRedemptionProductIds: params.tokenRedemptionProductIds }).clear()
+      );
     }
 
     if (params.tokenId) {
