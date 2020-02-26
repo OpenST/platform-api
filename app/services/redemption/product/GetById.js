@@ -148,7 +148,7 @@ class GetRedemptionProductById extends ServiceBase {
       countryIds = [],
       redemptionProductId = oThis.tokenRedemptionProductDetails.redemptionProductId;
 
-    // currently product country map is not token dependent.
+    // Currently product country map is not token dependent.
     const productCountryCacheResp = await new RedemptionProductCountryByProductIdCache({
       productIds: [redemptionProductId]
     }).fetch();
