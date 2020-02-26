@@ -19,14 +19,14 @@ program.on('--help', function() {
   logger.log('  Example:');
   logger.log('');
   logger.log(
-    '    node executables/redemptionProducts/create --redemptionProductName "Amazon" --redemptionProductDescription "This is some description." --images \'{"detail":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-l-original.jpg","size":90821,"width":321,"height":182}},"cover":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-p-original.jpg","size":193141,"width":320,"height":320}}}\''
+    '    node executables/redemptionProducts/create --redemptionProductName "Amazon" --images \'{"detail":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-l-original.jpg","size":90821,"width":321,"height":182}},"cover":{"original":{"url":"https://dxwfxs8b4lg24.cloudfront.net/ost-platform/rskus/test-p-original.jpg","size":193141,"width":320,"height":320}}}\''
   );
   logger.log('');
   logger.log('');
 });
 
 if (!program.redemptionProductId) {
-  if (!program.redemptionProductName || !program.redemptionProductDescription) {
+  if (!program.redemptionProductName) {
     program.help();
     process.exit(1);
   }
