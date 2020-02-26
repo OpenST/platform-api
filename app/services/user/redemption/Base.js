@@ -1,6 +1,3 @@
-const OSTBase = require('@ostdotcom/base'),
-  InstanceComposer = OSTBase.InstanceComposer;
-
 const rootPrefix = '../../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
@@ -27,6 +24,8 @@ class UserRedemptionBase extends ServiceBase {
    * @param {number} params.client_id
    * @param {number} params.token_id
    * @param {string} params.user_id
+   *
+   * @augments ServiceBase
    *
    * @constructor
    */
@@ -184,6 +183,4 @@ class UserRedemptionBase extends ServiceBase {
   }
 }
 
-InstanceComposer.registerAsShadowableClass(UserRedemptionBase, coreConstants.icNameSpace, 'UserRedemptionBase');
-
-module.exports = {};
+module.exports = UserRedemptionBase;
