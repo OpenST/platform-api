@@ -80,7 +80,7 @@ const v2ErrorConfig = {
   invalid_redemption_product_id: {
     parameter: 'redeemable_sku_id',
     code: 'invalid',
-    message: 'Invalid parameter redeemable_sku_id. Please inspect for what is being sent, rectify and re-submit.'
+    message: 'Invalid redeemable sku. Please inspect for what is being sent, rectify and re-submit.'
   },
   inactive_user_id: {
     parameter: 'user_id',
@@ -533,17 +533,17 @@ const v2ErrorConfig = {
   invalid_redemption_amount: {
     parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_meta amount_in_fiat. Amount must have been changed as per current prices.'
+    message: 'Invalid redemption amount. Amount must have been changed as per current prices.'
   },
   invalid_redemption_country: {
     parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_meta country_iso_code. Country must be in our list of applicable countries.'
+    message: 'Invalid redemption country. SKU is not available in this country.'
   },
   invalid_redemption_transfers: {
     parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_meta. For redemptions only one transfer can happen between user and company.'
+    message: 'Invalid redemption request. For redemptions only one transfer can happen between user and company.'
   },
   invalid_redemption_product_name: {
     parameter: 'name',
@@ -558,7 +558,7 @@ const v2ErrorConfig = {
   invalid_redemption_email: {
     parameter: 'redemption_meta',
     code: 'invalid',
-    message: 'Invalid parameter redemption_meta email. For redemptions valid email is mandatory.'
+    message: 'Invalid email address. For redemptions valid email is mandatory.'
   }
 };
 
