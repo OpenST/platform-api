@@ -2,9 +2,7 @@ const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../../..',
-  ServiceBase = require(rootPrefix + '/app/services/Base'),
-  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
-  AddressesEncryptor = require(rootPrefix + '/lib/encryptors/AddressesEncryptor'),
+  UserRedemptionBase = require(rootPrefix + '/app/services/user/redemption/Base'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -12,17 +10,14 @@ const rootPrefix = '../../../..',
   paginationConstants = require(rootPrefix + '/lib/globalConstant/pagination');
 
 // Following require(s) for registering into instance composer.
-require(rootPrefix + '/lib/cacheManagement/chain/UserSaltEncryptorKey');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/TokenUserDetail');
 require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
-require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
 
 /**
  * Class to fetch user redemptions list.
  *
  * @class UserRedemptionList
  */
-class UserRedemptionList extends ServiceBase {
+class UserRedemptionList extends UserRedemptionBase {
   /**
    * Constructor to fetch user redemptions list.
    *
@@ -30,64 +25,41 @@ class UserRedemptionList extends ServiceBase {
    * @param {number} params.client_id
    * @param {number} params.token_id
    * @param {number} params.user_id
+   * @param {array<string>} [params.redemption_ids]
    * @param {number} [params.pagination_identifier]
-   * @param {array} [params.redemption_ids]
    * @param {string} [params.limit]
    *
-   * @augments ServiceBase
+   * @augments UserRedemptionBase
    *
    * @constructor
    */
   constructor(params) {
-    super();
+    super(params);
 
     const oThis = this;
 
-    oThis.clientId = params.client_id;
-    oThis.tokenId = params.token_id;
-    oThis.userId = params.user_id;
-    oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
-
-    // TODO - redemption - check all validations are applied if filter is passed.
     oThis.inputUserRedemptionUuids = params.redemption_ids;
+    oThis.paginationIdentifier = params[paginationConstants.paginationIdentifierKey];
     oThis.limit = params.limit;
 
     oThis.page = null;
-    oThis.redemptionUuids = [];
-    oThis.userRedemptions = [];
     oThis.responseMetaData = {
       [paginationConstants.nextPagePayloadKey]: {}
     };
   }
 
   /**
-   * Async perform.
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _asyncPerform() {
-    const oThis = this;
-
-    await oThis._validateAndSanitizeParams();
-
-    await oThis._setRedemptionUuids();
-
-    await oThis._fetchRedemptions();
-
-    return oThis._prepareResponse();
-  }
-
-  /**
    * Validate and sanitize params.
    *
-   * @sets oThis.page, oThis.limit, oThis.redemptionUuids, oThis.userId
+   * @sets oThis.page, oThis.limit, oThis.redemptionUuids
    *
    * @returns {Promise}
    * @private
    */
   async _validateAndSanitizeParams() {
     const oThis = this;
+
+    await super._validateAndSanitizeParams();
 
     // Parameters in paginationIdentifier take higher precedence.
     if (oThis.paginationIdentifier) {
@@ -117,51 +89,12 @@ class UserRedemptionList extends ServiceBase {
     for (let index = 0; index < oThis.inputUserRedemptionUuids.length; index++) {
       oThis.redemptionUuids.push(basicHelper.sanitizeuuid(oThis.inputUserRedemptionUuids[index]));
     }
+
     if (oThis.redemptionUuids.length > 0) {
       oThis.redemptionUuids = [...new Set(oThis.redemptionUuids)];
     }
 
-    oThis.userId = basicHelper.sanitizeuuid(oThis.userId);
-
-    await oThis._validateTokenStatus();
-
-    await oThis._validateTokenUser();
-
     await oThis._validatePageSize();
-  }
-
-  /**
-   * Validate whether user belongs to token or not.
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _validateTokenUser() {
-    const oThis = this;
-
-    const TokenUserDetailsCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache'),
-      tokenUserDetailsCacheObj = new TokenUserDetailsCache({
-        tokenId: oThis.tokenId,
-        userIds: [oThis.userId]
-      });
-
-    const cacheResponse = await tokenUserDetailsCacheObj.fetch();
-    if (cacheResponse.isFailure()) {
-      return Promise.reject(cacheResponse);
-    }
-
-    const userData = cacheResponse.data[oThis.userId];
-
-    if (!CommonValidators.validateObject(userData)) {
-      return Promise.reject(
-        responseHelper.paramValidationError({
-          internal_error_identifier: 'a_s_u_r_gl_2',
-          api_error_identifier: 'resource_not_found',
-          params_error_identifiers: ['user_not_found'],
-          debug_options: { userId: oThis.userId, tokenId: oThis.tokenId }
-        })
-      );
-    }
   }
 
   /**
@@ -212,74 +145,6 @@ class UserRedemptionList extends ServiceBase {
         }
       };
     }
-  }
-
-  /**
-   * Fetch redemptions.
-   *
-   * @sets oThis.userRedemptions
-   *
-   * @returns {Promise<void>}
-   * @private
-   */
-  async _fetchRedemptions() {
-    const oThis = this;
-
-    if (oThis.redemptionUuids.length === 0) {
-      return;
-    }
-
-    const RedemptionsByIdCache = oThis.ic().getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
-
-    const response = await new RedemptionsByIdCache({
-      uuids: oThis.redemptionUuids
-    }).fetch();
-
-    const UserSaltEncryptorKeyCache = oThis
-        .ic()
-        .getShadowedClassFor(coreConstants.icNameSpace, 'UserSaltEncryptorKeyCache'),
-      encryptionSaltResp = await new UserSaltEncryptorKeyCache({ tokenId: oThis.tokenId }).fetchDecryptedData();
-
-    const encryptionSalt = encryptionSaltResp.data.encryption_salt_d;
-
-    const redemptionsMap = response.data;
-    for (let index = 0; index < oThis.redemptionUuids.length; index++) {
-      const redemptionDetail = redemptionsMap[oThis.redemptionUuids[index]];
-
-      if (
-        redemptionDetail &&
-        redemptionDetail.userUuid &&
-        redemptionDetail.userUuid.toLowerCase() === oThis.userId.toLowerCase()
-      ) {
-        if (redemptionDetail.emailAddress) {
-          redemptionDetail.emailAddress = await new AddressesEncryptor({ encryptionSaltD: encryptionSalt }).decrypt(
-            redemptionDetail.emailAddress
-          );
-        }
-        oThis.userRedemptions.push(redemptionDetail);
-      }
-    }
-  }
-
-  /**
-   * Return validation error.
-   *
-   * @param {string} code
-   * @param {array} paramErrors
-   * @param {object} debugOptions
-   *
-   * @return {Promise}
-   * @private
-   */
-  _validationError(code, paramErrors, debugOptions) {
-    return Promise.reject(
-      responseHelper.paramValidationError({
-        internal_error_identifier: code,
-        api_error_identifier: 'invalid_params',
-        params_error_identifiers: paramErrors,
-        debug_options: debugOptions
-      })
-    );
   }
 
   /**
