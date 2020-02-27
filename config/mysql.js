@@ -99,7 +99,7 @@ mysqlConfig['databases']['kit_saas_' + coreConstants.environment] = ['cluster5']
 
 // kit_saas_redemption database
 mysqlConfig['databases']['kit_saas_redemption_' + coreConstants.subEnvironment + '_' + coreConstants.environment] = [
-  'cluster5'
+  'cluster2'
 ];
 
 // kit_saas_big database
