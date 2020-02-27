@@ -15,14 +15,21 @@ const rootPrefix = '../../../..',
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   sessionConstants = require(rootPrefix + '/lib/globalConstant/session'),
   tokenUserConstants = require(rootPrefix + '/lib/globalConstant/tokenUser'),
+  publishToPreProcessor = require(rootPrefix + '/lib/webhooks/publishToPreProcessor'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   signValidator = require(rootPrefix + '/lib/validators/Sign'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  UserRedemptionModel = require(rootPrefix + '/app/models/mysql/UserRedemption'),
+  userRedemptionConstants = require(rootPrefix + '/lib/globalConstant/userRedemption'),
+  webhookSubscriptionsConstants = require(rootPrefix + '/lib/globalConstant/webhookSubscriptions'),
   UserRecoveryOperationsCache = require(rootPrefix + '/lib/cacheManagement/shared/UserPendingRecoveryOperations'),
   ExecuteTxBase = require(rootPrefix + '/app/services/transaction/execute/Base');
 
 require(rootPrefix + '/lib/cacheManagement/chainMulti/SessionsByAddress');
+require(rootPrefix + '/lib/redemption/ValidateUserRedemptionTx');
+require(rootPrefix + '/lib/cacheManagement/chainMulti/UserRedemptionsByUuid');
+require(rootPrefix + '/lib/cacheManagement/chain/RedemptionIdsByUserId');
 
 /**
  * Class
@@ -40,6 +47,7 @@ class ExecuteTxFromUser extends ExecuteTxBase {
    * @param {Number} params.signature
    * @param {Number} params.signer
    * @param {Object} params.token
+   * @param {Object} params.redemption_meta
    *
    * @constructor
    */
@@ -54,6 +62,8 @@ class ExecuteTxFromUser extends ExecuteTxBase {
     oThis.signature = params.signature;
     oThis.sessionKeyAddress = params.signer;
     oThis.userId = oThis.userData.userId;
+    oThis.redemptionDetails = params.redemption_meta;
+    oThis.redemptionEmail = null;
 
     oThis.sessionData = null;
   }
@@ -255,6 +265,93 @@ class ExecuteTxFromUser extends ExecuteTxBase {
         sessionData: oThis.sessionData
       });
     }
+  }
+
+  /**
+   * Custom validations over executable data
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _customValidationsOnExecutableData() {
+    // In this we will apply further validations on user to company transactions like Redemptions
+    const oThis = this;
+
+    // If redemption details map is empty, then no need to validate
+    if (!CommonValidators.validateObject(oThis.redemptionDetails)) {
+      return;
+    }
+
+    const ValidateUserRedemptionTx = oThis
+      .ic()
+      .getShadowedClassFor(coreConstants.icNameSpace, 'ValidateUserRedemptionTx');
+    let redemptionResponse = await new ValidateUserRedemptionTx({
+      clientId: oThis.clientId,
+      tokenId: oThis.tokenId,
+      redemptionDetails: oThis.redemptionDetails,
+      transfersData: oThis.estimatedTransfers,
+      metaProperty: oThis.metaProperty,
+      token: oThis.token
+    }).perform();
+
+    if (redemptionResponse.isSuccess() && redemptionResponse.data.redemptionDetails) {
+      oThis.redemptionDetails = redemptionResponse.data.redemptionDetails;
+      oThis.redemptionEmail = redemptionResponse.data.redemptionEmail;
+    }
+  }
+
+  /**
+   * Create User Redemption request, if transaction is for redemption
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _createUserRedemptionRequest() {
+    const oThis = this;
+
+    if (CommonValidators.validateObject(oThis.redemptionDetails)) {
+      await new UserRedemptionModel({}).insertRedemptionRequest({
+        uuid: oThis.redemptionDetails.redemptionId,
+        userId: oThis.userId,
+        redemptionProductId: oThis.redemptionDetails.redemptionProductId,
+        transactionUuid: oThis.transactionUuid,
+        amount: oThis.redemptionDetails['amount'],
+        countryId: oThis.redemptionDetails['countryId'],
+        status: userRedemptionConstants.redemptionProcessingStatus,
+        emailAddressEncrypted: oThis.redemptionEmail
+      });
+
+      const UserRedemptionsByUuidCacheKlass = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'UserRedemptionsByUuid');
+      await new UserRedemptionsByUuidCacheKlass({ uuids: [oThis.redemptionDetails.redemptionId] }).clear();
+
+      const RedemptionIdsByUserIdCacheKlass = oThis
+        .ic()
+        .getShadowedClassFor(coreConstants.icNameSpace, 'RedemptionIdsByUserId');
+      await new RedemptionIdsByUserIdCacheKlass({ userId: oThis.userId }).clear();
+
+      await oThis._sendRedemptionInitiateWebhook();
+    }
+  }
+
+  /**
+   * sendRedemption Initiate Webhook
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _sendRedemptionInitiateWebhook() {
+    const oThis = this;
+
+    const payload = {
+      userId: oThis.userId,
+      webhookKind: webhookSubscriptionsConstants.redemptionInitiatedTopic,
+      clientId: oThis.clientId,
+      userRedemptionUuid: oThis.redemptionDetails.redemptionId
+    };
+
+    return publishToPreProcessor.perform(oThis.auxChainId, payload);
   }
 }
 

@@ -282,6 +282,10 @@ class ConfigStrategyObject {
       kind: {
         shortName: 'kd',
         dataType: 'N'
+      },
+      redemptionDetails: {
+        shortName: 'rd',
+        dataType: 'S'
       }
     };
   }
@@ -351,6 +355,10 @@ class ConfigStrategyObject {
       toBeSyncedInEs: {
         shortName: 'sie',
         dataType: 'N'
+      },
+      redemptionDetails: {
+        shortName: 'rd',
+        dataType: 'S'
       }
     };
   }

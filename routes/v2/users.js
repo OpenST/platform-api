@@ -21,7 +21,9 @@ const rootPrefix = '../..',
   TransactionFormatter = require(rootPrefix + '/lib/formatter/entity/Transaction'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   TransactionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/TransactionList'),
-  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner');
+  UserRedemptionListMetaFormatter = require(rootPrefix + '/lib/formatter/meta/UserRedemptionList'),
+  RecoveryOwnerFormatter = require(rootPrefix + '/lib/formatter/entity/RecoveryOwner'),
+  UserRedemptionFormatter = require(rootPrefix + '/lib/formatter/entity/UserRedemption');
 
 // Following require(s) for registering into instance composer
 require(rootPrefix + '/app/services/user/Create');
@@ -56,6 +58,9 @@ require(rootPrefix + '/app/services/session/multisigOperation/RevokeSession');
 require(rootPrefix + '/app/services/session/multisigOperation/Logout');
 
 require(rootPrefix + '/app/services/recoveryOwner/get/ByRecoveryOwnerAddress');
+
+require(rootPrefix + '/app/services/user/redemption/Get');
+require(rootPrefix + '/app/services/user/redemption/GetList');
 
 /* Create user*/
 router.post('/', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -131,7 +136,7 @@ router.get('/:user_id/token-holder', sanitizer.sanitizeDynamicUrlParams, functio
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_v2_u_25', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetTokenHolder', 'r_v2_u_4', null, dataFormatterFunc));
 });
 
 /* Logout All sessions of user */
@@ -148,7 +153,7 @@ router.post('/:user_id/token-holder/logout', sanitizer.sanitizeDynamicUrlParams,
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'SessionsLogout', 'r_v2_u_18', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'SessionsLogout', 'r_v2_u_5', null, dataFormatterFunc));
 });
 
 /* Create device for user*/
@@ -165,7 +170,7 @@ router.post('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(re
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'CreateDevice', 'r_v2_u_4', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'CreateDevice', 'r_v2_u_6', null, dataFormatterFunc));
 });
 
 /* Get user pending recovery request */
@@ -192,7 +197,7 @@ router.get('/:user_id/devices/pending-recovery', sanitizer.sanitizeDynamicUrlPar
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetPendingRecovery', 'r_v2_u_26', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetPendingRecovery', 'r_v2_u_7', null, dataFormatterFunc));
 });
 
 /* Get devices by userId */
@@ -221,7 +226,7 @@ router.get('/:user_id/devices', sanitizer.sanitizeDynamicUrlParams, function(req
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'UserDeviceList', 'r_v2_u_5', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'UserDeviceList', 'r_v2_u_8', null, dataFormatterFunc));
 });
 
 /* Get User device By device Address */
@@ -245,7 +250,7 @@ router.get('/:user_id/devices/:device_address', sanitizer.sanitizeDynamicUrlPara
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceByAddress', 'r_v2_u_6', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceByAddress', 'r_v2_u_9', null, dataFormatterFunc));
 });
 
 /* Get sessions by userId */
@@ -270,7 +275,7 @@ router.get('/:user_id/sessions', sanitizer.sanitizeDynamicUrlParams, function(re
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'UserSessionList', 'r_v2_u_7', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'UserSessionList', 'r_v2_u_10', null, dataFormatterFunc));
 });
 
 /* Get User session By session Address */
@@ -290,7 +295,7 @@ router.get('/:user_id/sessions/:session_address', sanitizer.sanitizeDynamicUrlPa
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetSessionByAddress', 'r_v2_u_8', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetSessionByAddress', 'r_v2_u_11', null, dataFormatterFunc));
 });
 
 /* Get user device managers*/
@@ -309,7 +314,7 @@ router.get('/:user_id/device-managers', sanitizer.sanitizeDynamicUrlParams, func
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceManager', 'r_v2_u_9', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetDeviceManager', 'r_v2_u_12', null, dataFormatterFunc));
 });
 
 /* Create token holders */
@@ -326,7 +331,7 @@ router.post('/:user_id/activate-user', sanitizer.sanitizeDynamicUrlParams, funct
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'CreateTokenHolder', 'r_v2_u_10', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'CreateTokenHolder', 'r_v2_u_13', null, dataFormatterFunc));
 });
 
 /* Get user salt*/
@@ -343,7 +348,7 @@ router.get('/:user_id/salts', sanitizer.sanitizeDynamicUrlParams, function(req, 
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'GetUserSalt', 'r_v2_u_11', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'GetUserSalt', 'r_v2_u_14', null, dataFormatterFunc));
 });
 
 /*Authorize Device*/
@@ -360,7 +365,7 @@ router.post('/:user_id/devices/authorize', sanitizer.sanitizeDynamicUrlParams, f
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v2_u_12', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeDevice', 'r_v2_u_15', null, dataFormatterFunc));
 });
 
 /*Revoke Device*/
@@ -377,7 +382,7 @@ router.post('/:user_id/devices/revoke', sanitizer.sanitizeDynamicUrlParams, func
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeDevice', 'r_v2_u_13', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeDevice', 'r_v2_u_16', null, dataFormatterFunc));
 });
 
 /*Authorize Session*/
@@ -394,7 +399,7 @@ router.post('/:user_id/sessions/authorize', sanitizer.sanitizeDynamicUrlParams, 
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v2_u_14', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'AuthorizeSession', 'r_v2_u_17', null, dataFormatterFunc));
 });
 
 /*Revoke Session*/
@@ -411,7 +416,7 @@ router.post('/:user_id/sessions/revoke', sanitizer.sanitizeDynamicUrlParams, fun
     };
   };
 
-  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v2_u_15', null, dataFormatterFunc));
+  Promise.resolve(routeHelper.perform(req, res, next, 'RevokeSession', 'r_v2_u_18', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -439,7 +444,7 @@ router.post('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functi
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v2_u_16', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, klassGetterName, 'r_v2_u_19', null, dataFormatterFunc));
 });
 
 /* Get transaction by userId and transactionId */
@@ -459,7 +464,7 @@ router.get('/:user_id/transactions/:transaction_id', sanitizer.sanitizeDynamicUr
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v2_u_17', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetTransaction', 'r_v2_u_20', null, dataFormatterFunc));
 });
 
 router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -468,12 +473,12 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   req.decodedParams.clientConfigStrategyRequired = true;
 
   const dataFormatterFunc = async function(serviceResponse) {
-    let transactions = serviceResponse.data[resultType.transactions],
+    const transactions = serviceResponse.data[resultType.transactions],
       formattedTransactions = [],
       metaPayload = new TransactionListMetaFormatter(serviceResponse.data).perform().data;
 
-    for (let i = 0; i < transactions.length; i++) {
-      formattedTransactions.push(new TransactionFormatter(transactions[i]).perform().data);
+    for (let index = 0; index < transactions.length; index++) {
+      formattedTransactions.push(new TransactionFormatter(transactions[index]).perform().data);
     }
 
     serviceResponse.data = {
@@ -484,7 +489,7 @@ router.get('/:user_id/transactions', sanitizer.sanitizeDynamicUrlParams, functio
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v2_u_24', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetTransactionsList', 'r_v2_u_21', null, dataFormatterFunc)
   );
 });
 
@@ -502,7 +507,7 @@ router.get('/:user_id/balance', sanitizer.sanitizeDynamicUrlParams, function(req
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v2_u_19', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'GetUserBalance', 'r_v2_u_22', null, dataFormatterFunc));
 });
 
 /* Get recovery owner by address */
@@ -527,7 +532,7 @@ router.get('/:user_id/recovery-owners/:recovery_owner_address', sanitizer.saniti
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v2_u_20', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'GetRecoveryOwnerAddress', 'r_v2_u_23', null, dataFormatterFunc)
   );
 });
 
@@ -544,7 +549,7 @@ router.post('/:user_id/devices/initiate-recovery', sanitizer.sanitizeDynamicUrlP
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v2_u_21', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'InitiateRecovery', 'r_v2_u_24', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -560,7 +565,7 @@ router.post('/:user_id/devices/abort-recovery', sanitizer.sanitizeDynamicUrlPara
     };
   };
 
-  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v2_u_22', null, dataFormatterFunc));
+  return Promise.resolve(routeHelper.perform(req, res, next, 'AbortRecovery', 'r_v2_u_25', null, dataFormatterFunc));
 });
 
 router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
@@ -579,7 +584,55 @@ router.post('/:user_id/recovery-owners', sanitizer.sanitizeDynamicUrlParams, fun
   };
 
   return Promise.resolve(
-    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v2_u_23', null, dataFormatterFunc)
+    routeHelper.perform(req, res, next, 'ResetRecoveryOwner', 'r_v2_u_26', null, dataFormatterFunc)
+  );
+});
+
+router.get('/:user_id/redemptions', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.redemptionList;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const redemptions = serviceResponse.data[resultType.userRedemptions],
+      formattedRedemptions = [],
+      metaPayload = new UserRedemptionListMetaFormatter(serviceResponse.data).perform().data;
+
+    for (let ind = 0; ind < redemptions.length; ind++) {
+      const formattedRsp = new UserRedemptionFormatter(redemptions[ind]).perform();
+      formattedRedemptions.push(formattedRsp.data);
+    }
+
+    serviceResponse.data = {
+      result_type: resultType.userRedemptions,
+      [resultType.userRedemptions]: formattedRedemptions,
+      [resultType.meta]: metaPayload
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'UserRedemptionList', 'r_v2_u_27', null, dataFormatterFunc)
+  );
+});
+
+router.get('/:user_id/redemptions/:redemption_id', sanitizer.sanitizeDynamicUrlParams, function(req, res, next) {
+  req.decodedParams.apiName = apiName.redemptionGet;
+  req.decodedParams.user_id = req.params.user_id;
+  req.decodedParams.redemption_id = req.params.redemption_id;
+  req.decodedParams.clientConfigStrategyRequired = true;
+
+  const dataFormatterFunc = async function(serviceResponse) {
+    const redemption = serviceResponse.data[resultType.userRedemption],
+      formattedRsp = new UserRedemptionFormatter(redemption).perform();
+
+    serviceResponse.data = {
+      result_type: resultType.userRedemption,
+      [resultType.userRedemption]: formattedRsp.data
+    };
+  };
+
+  return Promise.resolve(
+    routeHelper.perform(req, res, next, 'UserRedemptionGet', 'r_v2_u_28', null, dataFormatterFunc)
   );
 });
 

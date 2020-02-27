@@ -1,9 +1,3 @@
-/**
- * Module to fetch balance by userId.
- *
- * @module app/services/balance/User
- */
-
 const OSTBase = require('@ostdotcom/base'),
   InstanceComposer = OSTBase.InstanceComposer;
 
@@ -47,7 +41,7 @@ class GetUserBalance extends ServiceBase {
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 

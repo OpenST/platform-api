@@ -68,7 +68,7 @@ export SA_S3_AWS_REGION='us-east-1'
 export SA_S3_AWS_MASTER_FOLDER='d-sandbox'
 export SA_S3_ANALYTICS_BUCKET='graphs.stagingost.com'
 export SA_S3_ANALYTICS_GRAPH_FOLDER='graphs'
-export SA_S3_PRICEPOINTS_URL='https://s3.amazonaws.com/logs.stagingost.com/staging/coinmarketcap/api/v2/convert'
+export SA_S3_PRICEPOINTS_URL='https://s3-eu-west-1.amazonaws.com/public.ost.com/coinmarketcap/api/v2/convert'
 
 # JWT details
 export SA_INTERNAL_API_SECRET_KEY='1somethingsarebetterkeptinenvironemntvariables'
@@ -90,3 +90,7 @@ export SA_DEFAULT_AUX_GAS_PRICE='0x3B9ACA00';
 export SA_ETHERSCAN_API_KEY='P4C1623S8AG7HSXY3SJN6BN8J8WMBI81TJ';
 
 export SA_ORIGIN_NETWORK_UPGRADE='done'
+
+export SA_SLACK_OAUTH_TOKEN='xoxb-246676767414-944000467810-Z4yaiCeflK83AfaockF4lh8N'
+export SA_SLACK_API_APP_ID='ATUK32A8Z'
+export SA_SLACK_SIGNING_SECRET='0a6eadd84f9466b455d1f0a992ac339a'

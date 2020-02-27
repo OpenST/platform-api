@@ -77,6 +77,11 @@ const v2ErrorConfig = {
     message:
       'Invalid parameter user_id. This field accepts Version 4 UUID as an input. Please inspect for what is being sent, rectify and re-submit.'
   },
+  invalid_redemption_product_id: {
+    parameter: 'redeemable_sku_id',
+    code: 'invalid',
+    message: 'Invalid redeemable sku. Please inspect for what is being sent, rectify and re-submit.'
+  },
   inactive_user_id: {
     parameter: 'user_id',
     code: 'invalid',
@@ -94,6 +99,12 @@ const v2ErrorConfig = {
     code: 'invalid',
     message:
       'Unable to find this user in your economy. Inspect if a correct value is being sent in user_id field and re-submit the request.'
+  },
+  invalid_redemption_id: {
+    parameter: 'redemption_id',
+    code: 'invalid',
+    message:
+      'Unable to find this user redemption in your economy. Inspect if a correct value is being sent in redemption_id field and re-submit the request.'
   },
   session_not_found: {
     parameter: 'session_address',
@@ -181,6 +192,18 @@ const v2ErrorConfig = {
     code: 'invalid',
     message:
       'Max of 25 addresses as filters in an api request has been put in place to ensure the performance and reliability. No of addresses in this request possibly exceeds the threshold. Please verify and re-submit.'
+  },
+  redemption_ids_more_than_allowed_limit: {
+    parameter: 'redemption_ids',
+    code: 'invalid',
+    message:
+      'Max of 25 redemption_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption_ids in this request possibly exceeds the threshold. Please verify and re-submit.'
+  },
+  redemption_product_ids_more_than_allowed_limit: {
+    parameter: 'redeemable_sku_ids',
+    code: 'invalid',
+    message:
+      'Max of 25 redeemable_sku_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
   invalid_chain_id: {
     parameter: 'chain_id',
@@ -506,6 +529,36 @@ const v2ErrorConfig = {
     parameter: 'pagination_identifier',
     code: 'invalid',
     message: 'Please change the query as more than 10000 records are not supported.'
+  },
+  invalid_redemption_amount: {
+    parameter: 'redemption_meta',
+    code: 'invalid',
+    message: 'Invalid redemption amount. Amount must have been changed as per current prices.'
+  },
+  invalid_redemption_country: {
+    parameter: 'redemption_meta',
+    code: 'invalid',
+    message: 'Invalid redemption country. SKU is not available in this country.'
+  },
+  invalid_redemption_transfers: {
+    parameter: 'redemption_meta',
+    code: 'invalid',
+    message: 'Invalid redemption request. For redemptions only one transfer can happen between user and company.'
+  },
+  invalid_redemption_product_name: {
+    parameter: 'name',
+    code: 'invalid',
+    message: 'Invalid redemption product name .'
+  },
+  invalid_redemption_product_description: {
+    parameter: 'description',
+    code: 'invalid',
+    message: 'Invalid redemption product description. Description length should be less than 1000.'
+  },
+  invalid_redemption_email: {
+    parameter: 'redemption_meta',
+    code: 'invalid',
+    message: 'Invalid email address. For redemptions valid email is mandatory.'
   }
 };
 

@@ -1,15 +1,9 @@
-/**
- * This is model for Token table.
- *
- * @module app/models/mysql/Token
- */
-
 const rootPrefix = '../../..',
-  util = require(rootPrefix + '/lib/util'),
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
+  util = require(rootPrefix + '/lib/util'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   tokenConstants = require(rootPrefix + '/lib/globalConstant/token');
 
 // Declare variables.
@@ -18,13 +12,13 @@ const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.
   invertedStatuses = util.invert(statuses);
 
 /**
- * Class for token model
+ * Class for token model.
  *
- * @class Token
+ * @class TokenModel
  */
-class Token extends ModelBase {
+class TokenModel extends ModelBase {
   /**
-   * Constructor for token model
+   * Constructor for token model.
    *
    * @augments ModelBase
    *
@@ -144,4 +138,4 @@ class Token extends ModelBase {
   }
 }
 
-module.exports = Token;
+module.exports = TokenModel;

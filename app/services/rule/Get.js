@@ -1,18 +1,10 @@
-'use strict';
-
-/**
- *  Fetch token rules.
- *
- * @module app/services/rule/Get
- */
-
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
+  TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   ruleConstants = require(rootPrefix + '/lib/globalConstant/rule'),
-  resultType = require(rootPrefix + '/lib/globalConstant/resultType'),
-  RuleCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/Rule'),
-  TokenRuleDetailsByTokenId = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenRuleDetailsByTokenId');
+  resultTypeConstants = require(rootPrefix + '/lib/globalConstant/resultType');
 
 /**
  * Class to fetch token rules.
@@ -21,18 +13,18 @@ const rootPrefix = '../../..',
  */
 class GetRule extends ServiceBase {
   /**
-   * Constructor for get devices base.
+   * Constructor to fetch token rules.
    *
-   * @param {Object} params
-   * @param {Integer} params.client_id
-   * @param {Integer} [params.token_id]
+   * @param {object} params
+   * @param {number} params.client_id
+   * @param {number} [params.token_id]
    *
    * @augments ServiceBase
    *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -41,46 +33,47 @@ class GetRule extends ServiceBase {
   }
 
   /**
-   * Async performer
+   * Async performer.
    *
    * @returns {Promise<*|result>}
+   * @private
    */
   async _asyncPerform() {
-    const oThis = this,
-      tokenIdNamesArray = [];
+    const oThis = this;
+
+    const tokenIdNamesArray = [];
 
     await oThis._validateTokenStatus();
 
-    let tokenRulesDetails = await new TokenRuleDetailsByTokenId({ tokenId: oThis.tokenId }).fetch(),
+    const tokenRulesDetails = await new TokenRuleDetailsByTokenId({ tokenId: oThis.tokenId }).fetch(),
       tokenRulesData = tokenRulesDetails.data;
 
-    for (let eachTokenRule in tokenRulesData) {
-      let ruleTokenIdNameString = '',
-        tokenRule = tokenRulesData[eachTokenRule];
-      ruleTokenIdNameString = ruleConstants.getKey(tokenRule.ruleTokenId, tokenRule.ruleName);
+    for (const eachTokenRule in tokenRulesData) {
+      const tokenRule = tokenRulesData[eachTokenRule];
+      const ruleTokenIdNameString = ruleConstants.getKey(tokenRule.ruleTokenId, tokenRule.ruleName);
       tokenIdNamesArray.push(ruleTokenIdNameString);
     }
 
-    let finalResponse = {},
+    const finalResponse = {},
       rulesArray = [],
       ruleDetails = await new RuleCache({ ruleTokenIdNames: tokenIdNamesArray }).fetch(),
       ruleDetailsData = ruleDetails.data;
 
-    for (let eachRule in ruleDetailsData) {
-      let ruleEntity = {},
+    for (const eachRule in ruleDetailsData) {
+      const ruleEntity = {},
         rule = ruleDetailsData[eachRule],
         tokenRuleEntity = tokenRulesData[rule.name];
 
-      ruleEntity['id'] = tokenRuleEntity.ruleId;
-      ruleEntity['tokenId'] = tokenRuleEntity.tokenId;
-      ruleEntity['name'] = tokenRuleEntity.ruleName;
-      ruleEntity['address'] = tokenRuleEntity.address;
-      ruleEntity['abi'] = rule.abi;
-      ruleEntity['updatedTimestamp'] = tokenRuleEntity.updatedAt;
+      ruleEntity.id = tokenRuleEntity.ruleId;
+      ruleEntity.tokenId = tokenRuleEntity.tokenId;
+      ruleEntity.name = tokenRuleEntity.ruleName;
+      ruleEntity.address = tokenRuleEntity.address;
+      ruleEntity.abi = rule.abi;
+      ruleEntity.updatedTimestamp = tokenRuleEntity.updatedAt;
 
       rulesArray.push(ruleEntity);
     }
-    finalResponse[resultType.rules] = rulesArray;
+    finalResponse[resultTypeConstants.rules] = rulesArray;
 
     return responseHelper.successWithData(finalResponse);
   }

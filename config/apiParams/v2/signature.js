@@ -734,6 +734,10 @@ const v2Signature = {
       {
         parameter: 'meta_property',
         validatorMethod: 'validateMetaPropertyForInsertion'
+      },
+      {
+        parameter: 'redemption_meta',
+        validatorMethod: 'validateObject'
       }
     ]
   },
@@ -1028,6 +1032,60 @@ const v2Signature = {
     optional: []
   },
 
+  [apiName.redemptionList]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateMysqlPaginationIdentifier'
+      },
+      {
+        parameter: 'redemption_ids',
+        validatorMethod: 'validateUuidV4Array'
+      }
+    ]
+  },
+
+  [apiName.redemptionGet]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'user_id',
+        validatorMethod: 'validateUuidV4'
+      },
+      {
+        parameter: 'redemption_id',
+        validatorMethod: 'validateUuidV4'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'token_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ]
+  },
+
   [apiName.createWebhook]: {
     mandatory: [
       {
@@ -1117,6 +1175,43 @@ const v2Signature = {
       {
         parameter: pagination.paginationIdentifierKey,
         validatorMethod: 'validateMysqlPaginationIdentifier'
+      }
+    ]
+  },
+
+  [apiName.getRedemptionProduct]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: 'redemption_product_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: []
+  },
+
+  [apiName.getRedemptionProductsList]: {
+    mandatory: [
+      {
+        parameter: 'client_id',
+        validatorMethod: 'validateNonZeroInteger'
+      }
+    ],
+    optional: [
+      {
+        parameter: 'limit',
+        validatorMethod: 'validateNonZeroInteger'
+      },
+      {
+        parameter: pagination.paginationIdentifierKey,
+        validatorMethod: 'validateMysqlPaginationIdentifier'
+      },
+      {
+        parameter: 'redeemable_sku_ids',
+        validatorMethod: 'validateIntegerArray'
       }
     ]
   },

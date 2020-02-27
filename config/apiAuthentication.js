@@ -190,6 +190,26 @@ class ApiAuthentication {
         apiName: apiName.verifyTokenDomain,
         route: '/tokens/:token_id/validate-domain/',
         supportedSignatureKinds: [apiSignature.noAuthKind]
+      },
+      {
+        apiName: apiName.getRedemptionProduct,
+        route: '/redeemable-skus/:redemption_product_id/',
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.getRedemptionProductsList,
+        route: '/redeemable-skus/',
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.redemptionList,
+        route: '/users/:user_id/redemptions/',
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
+      },
+      {
+        apiName: apiName.redemptionGet,
+        route: '/users/:user_id/redemptions/:redemption_id/',
+        supportedSignatureKinds: [apiSignature.personalSignKind, apiSignature.hmacKind]
       }
       // Note: - Urls should end with a slash. Add config above this.
     ];

@@ -368,7 +368,7 @@ class MultiSubscriptionBase extends CronBase {
    *
    * @private
    */
-  _processMessage() {
+  async _processMessage() {
     throw '_processMessage sub class to implement.';
   }
 

@@ -279,6 +279,38 @@ class BasicHelper {
   }
 
   /**
+   * Parse and regex replace processed links and user mention in slack payload
+   *
+   * @param payload
+   * @returns {Object}
+   */
+  preprocessSlackPayload(params) {
+    const oThis = this;
+
+    if (typeof params === 'string') {
+      params = params.replace(/<(http)([^>\s]*)>/gi, '$1$2');
+      params = params.replace(/<mailto:([^>\|\s]*)\|+([^><\s]*)>/gi, '$1');
+    } else if (typeof params === 'boolean' || typeof params === 'number' || params === null) {
+      // Do nothing and return param as is.
+    } else if (params instanceof Array) {
+      for (const index in params) {
+        params[index] = oThis.preprocessSlackPayload(params[index]);
+      }
+    } else if (params instanceof Object) {
+      Object.keys(params).forEach(function(key) {
+        params[key] = oThis.preprocessSlackPayload(params[key]);
+      });
+    } else if (!params) {
+      // Do nothing and return param as is.
+    } else {
+      console.error('Invalid params type in payload: ', typeof params);
+      params = '';
+    }
+
+    return params;
+  }
+
+  /**
    * Fetch Error Config.
    *
    * @param {string} apiVersion
@@ -554,6 +586,38 @@ class BasicHelper {
         })
       );
     });
+  }
+
+  /**
+   * Get number of BT from fiat amount.
+   *
+   * @param {string} fiatAmount
+   * @param {string} usdToLocalCurrencyConversion
+   * @param {string} stakeCurrencyIsHowManyUsd
+   * @param {string} tokenConversionFactor
+   * @param {number} tokenDecimals
+   *
+   * @returns {BigNumber}
+   */
+  getNumberOfBTFromFiat(
+    fiatAmount,
+    usdToLocalCurrencyConversion,
+    stakeCurrencyIsHowManyUsd,
+    tokenConversionFactor,
+    tokenDecimals
+  ) {
+    // This will give fiat amount in USD.
+    const amountInUsd = (new BigNumber(fiatAmount)).div(new BigNumber(usdToLocalCurrencyConversion));
+
+    // This will give number of stake currency tokens from fiat amount.
+    const inStakeCurrency = amountInUsd.div(new BigNumber(stakeCurrencyIsHowManyUsd));
+
+    // From number of stake currency tokens fetch BT amount.
+    const amountInBts = (new BigNumber(inStakeCurrency)).mul(new BigNumber(tokenConversionFactor));
+
+    const amountInBtLowerUnits = amountInBts.mul((new BigNumber(10)).toPower(tokenDecimals)).floor();
+
+    return amountInBtLowerUnits;
   }
 
   /**

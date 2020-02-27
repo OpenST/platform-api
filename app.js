@@ -26,6 +26,7 @@ const jwtAuth = require(rootPrefix + '/lib/jwt/jwtAuth'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.internal),
   apiName = require(rootPrefix + '/lib/globalConstant/apiName'),
+  webhookRoutes = require(rootPrefix + '/routes/webhooks/index'),
   AuthenticateApiByWebhookKeySecret = require(rootPrefix + '/lib/validateApiSignature/ByWebhookKeySecret'),
   apiSignature = require(rootPrefix + '/lib/globalConstant/apiSignature'),
   sanitizer = require(rootPrefix + '/helpers/sanitizer');
@@ -46,14 +47,25 @@ morgan.token('endDateTime', function getEndDateTime(req) {
   return basicHelper.logDateFormat();
 });
 
+morgan.token('memoryUsage', function getMemoryUsage(req) {
+  const heapDetails = process.memoryUsage();
+
+  const used = heapDetails.heapUsed / 1024 / 1024;
+  return Math.round(used * 100) / 100;
+});
+
 const startRequestLogLine = function(req, res, next) {
+  const used = process.memoryUsage().heapUsed / 1024 / 1024;
   let message =
     "Started '" +
     customUrlParser.parse(req.originalUrl).pathname +
     "'  '" +
     req.method +
-    "' at " +
-    basicHelper.logDateFormat();
+    "' at '" +
+    basicHelper.logDateFormat() +
+    "' with memory '" +
+    Math.round(used * 100) / 100 +
+    " MB'";
   logger.info(message);
 
   next();
@@ -292,9 +304,20 @@ app.use(customMiddleware());
 // Load Morgan
 app.use(
   morgan(
-    '[:id][:endTime] Completed with ":status" in :response-time ms at :endDateTime -  ":res[content-length] bytes" - ":remote-addr" ":remote-user" - "HTTP/:http-version :method :url" - ":referrer" - ":user-agent"'
+    '[:id][:endTime] Completed with ":status" in :response-time ms with :memoryUsage MB at :endDateTime -  ":res[content-length] bytes" - ":remote-addr" ":remote-user" - "HTTP/:http-version :method :url" - ":referrer" - ":user-agent"'
   )
 );
+
+app.use(function(req, res, next) {
+  var data = '';
+  req.on('data', function(chunk) {
+    data += chunk;
+  });
+  req.on('end', function() {
+    req.rawBody = data;
+  });
+  next();
+});
 
 // Helmet helps secure Express apps by setting various HTTP headers.
 app.use(helmet());
@@ -325,6 +348,12 @@ app.use(
   assignParams,
   internalRoutes
 );
+
+/**
+ * NOTE: SLACK webhooks
+ */
+
+app.use('/' + environmentInfo.urlPrefix + '/webhooks', webhookRoutes);
 
 /*
   The sanitizer piece of code should always be before routes for jwt and after validateApiSignature for sdk.
