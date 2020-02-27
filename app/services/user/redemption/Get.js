@@ -20,7 +20,7 @@ class UserRedemptionGet extends UserRedemptionBase {
    * @param {object} params
    * @param {number} params.client_id
    * @param {number} params.token_id
-   * @param {string} params.user_id
+   * @param {number} params.user_id
    * @param {string} params.redemption_id
    *
    * @augments UserRedemptionBase
