@@ -93,7 +93,7 @@ const errorConfig = {
   invalid_redemption_id: {
     parameter: 'redemption_id',
     code: 'invalid',
-    message: 'Invalid redemption id.'
+    message: 'Invalid redemption id. Please inspect for what is being sent, rectify and re-submit.'
   }
 };
 

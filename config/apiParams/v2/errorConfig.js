@@ -203,7 +203,7 @@ const v2ErrorConfig = {
     parameter: 'redeemable_sku_ids',
     code: 'invalid',
     message:
-      'Max of 25 redeemable_sku_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redemption uuids in this request possibly exceeds the threshold. Please verify and re-submit.'
+      'Max of 25 redeemable_sku_ids as filters in an api request has been put in place to ensure the performance and reliability. No of redeemable_sku_ids in this request possibly exceeds the threshold. Please verify and re-submit.'
   },
   invalid_chain_id: {
     parameter: 'chain_id',
