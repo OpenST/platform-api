@@ -29,6 +29,7 @@ class SubEnvSpecificCronSeeder {
     await oThis.insertRecoveryRequestsMonitorEntry();
     await oThis.insertWebhookErrorHandlerEntry();
     await oThis.insertTrackLatestTransaction();
+    await oThis.insertUsdToFiatCurrencyConversion();
   }
 
   /**
@@ -113,6 +114,17 @@ class SubEnvSpecificCronSeeder {
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
       });
+  }
+
+  /**
+   * Insert track latest transaction cron entry.
+   *
+   * @return {Promise<*>}
+   */
+  async insertUsdToFiatCurrencyConversion() {
+    return new InsertCrons().perform(cronProcessConstants.usdToFiatCurrencyConversion, {}).then(function(insertId) {
+      logger.log('InsertId: ', insertId);
+    });
   }
 }
 

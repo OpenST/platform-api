@@ -40,7 +40,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '27': cronProcessesConstants.webhookPreprocessor,
     '28': cronProcessesConstants.webhookProcessor,
     '29': cronProcessesConstants.webhookErrorHandler,
-    '30': cronProcessesConstants.trackLatestTransaction
+    '30': cronProcessesConstants.trackLatestTransaction,
+    '31': cronProcessesConstants.usdToFiatCurrencyConversion
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
@@ -94,13 +95,12 @@ class CronProcessesModel extends ModelBaseKlass {
    */
   async getById(id) {
     const oThis = this;
-    let response= await oThis
-      .select(['id', 'kind','kind_name','ip_address', 'params', 'status', 'last_started_at', 'last_ended_at'])
+    let response = await oThis
+      .select(['id', 'kind', 'kind_name', 'ip_address', 'params', 'status', 'last_started_at', 'last_ended_at'])
       .where({ id: id })
       .fire();
     return response;
   }
-
 
   /**
    * This method inserts an entry in the table.
