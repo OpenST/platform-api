@@ -58,21 +58,18 @@ class VerifyDomain extends ServiceBase {
   async _validateAndSanitize() {
     const oThis = this;
 
-    const parsedDomain = url.parse(oThis.domain);
+    const parsedDomain = url.parse(oThis.domain.toLowerCase());
 
-    oThis.hostname = parsedDomain.hostname.toLowerCase();
+    oThis.hostname = parsedDomain.hostname ? parsedDomain.hostname : '';
     oThis.protocol = parsedDomain.protocol ? parsedDomain.protocol.split(':')[0] : '';
 
-    console.log('==oThis.hostname=', oThis.hostname);
-    console.log('==oThis.hostname=', oThis.protocol);
-
     const validProtocols = ['http', 'https'];
-    if (validProtocols.indexOf(oThis.protocol) === -1) {
+    if (!oThis.hostname || !oThis.protocol || validProtocols.indexOf(oThis.protocol) === -1) {
       return Promise.reject(
         responseHelper.error({
           internal_error_identifier: 'a_s_t_vd_1',
           api_error_identifier: 'invalid_domain_name',
-          debug_options: {},
+          debug_options: { domain: oThis.domain },
           error_config: errorConfig
         })
       );
@@ -91,12 +88,10 @@ class VerifyDomain extends ServiceBase {
     const response = await new ValidDomainByTokenIdCache({ tokenIds: [oThis.tokenId] }).fetch();
 
     const domainData = response.data[oThis.tokenId];
-    console.log('=domainData===', domainData);
     const domainObject = domainData[oThis.hostname];
-    console.log('==domainObject==', domainObject);
 
     if (CommonValidators.validateNonEmptyObject(domainObject)) {
-      if (oThis.hostname === domainObject.hostname && oThis.protocol === domainObject.protocol) {
+      if (oThis.protocol === domainObject.protocol) {
         return responseHelper.successWithData({});
       }
 
