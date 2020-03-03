@@ -7,6 +7,7 @@ const http = require('http');
 
 const rootPrefix = '..',
   app = require(rootPrefix + '/app'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
@@ -17,15 +18,15 @@ const rootPrefix = '..',
  */
 
 function normalizePort(val) {
-  let port = parseInt(val, 10);
+  const port = parseInt(val, 10);
 
   if (isNaN(port)) {
-    // named pipe
+    // Named pipe.
     return val;
   }
 
   if (port >= 0) {
-    // port number
+    // Port number.
     return port;
   }
 
@@ -35,15 +36,13 @@ function normalizePort(val) {
 /**
  * Get port from environment and store in Express.
  */
-
-let port = normalizePort(process.env.PORT || '7001');
+const port = normalizePort(process.env.PORT || '7001');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
-
-let server = http.createServer(app);
+const server = http.createServer(app);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -62,13 +61,13 @@ function onError(error) {
     throw error;
   }
 
-  let bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
+  const bind = typeof port === 'string' ? 'Pipe ' + port : 'Port ' + port;
 
   // Handle specific listen errors with friendly messages.
   switch (error.code) {
     case 'EACCES': {
       const errorObject = responseHelper.error({
-        internal_error_identifier: `elevated_privilege_required:a_7`,
+        internal_error_identifier: 'elevated_privilege_required:a_7',
         api_error_identifier: 'elevated_privilege_required',
         debug_options: { port: bind }
       });
@@ -79,7 +78,7 @@ function onError(error) {
     }
     case 'EADDRINUSE': {
       const errorObject = responseHelper.error({
-        internal_error_identifier: `port_in_use:a_8`,
+        internal_error_identifier: 'port_in_use:a_8',
         api_error_identifier: 'port_in_use',
         debug_options: { port: bind }
       });
@@ -93,13 +92,17 @@ function onError(error) {
   }
 }
 
+if (basicHelper.isDevelopment()) {
+  // eslint-disable-next-line no-empty-function
+  process.send = process.send || function() {};
+}
+
 /**
  * Event listener for HTTP server "listening" event.
  */
-
 function onListening() {
-  let addr = server.address();
-  let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
+  const addr = server.address();
+  const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
   logger.log('Listening on ' + bind);
   process.send('ready');
 }
