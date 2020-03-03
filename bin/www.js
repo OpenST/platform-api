@@ -101,6 +101,7 @@ function onListening() {
   let addr = server.address();
   let bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
   logger.log('Listening on ' + bind);
+  process.send('ready');
 }
 
 function onTerminationSignal() {
