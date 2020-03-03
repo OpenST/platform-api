@@ -1,5 +1,3 @@
-const url = require('url');
-
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
@@ -55,16 +53,16 @@ class ValidDomain extends ModelBase {
     for (let index = 0; index < validDomainDetails.length; index++) {
       const validDomainObj = validDomainDetails[index];
       responseData[validDomainObj.token_id] = responseData[validDomainObj.token_id] || {};
-      const parsedDomain = url.parse(validDomainObj.domain.toLowerCase());
-      const hostname = parsedDomain.hostname;
-      const protocol = parsedDomain.protocol.split(':')[0];
 
-      responseData[validDomainObj.token_id][hostname] = {
-        id: validDomainObj.id,
-        tokenId: validDomainObj.token_id,
-        hostname: hostname,
-        protocol: protocol
-      };
+      const domainArray = validDomainObj.domain.toLowerCase().split('/');
+      const newDomainArray = [];
+      for (let domainArrayIndex = 0; domainArrayIndex < 3; domainArrayIndex++) {
+        newDomainArray.push(domainArray[domainArrayIndex]);
+      }
+
+      const domain = newDomainArray.join('/');
+
+      responseData[validDomainObj.token_id][domain] = 1;
     }
 
     return responseHelper.successWithData(responseData);

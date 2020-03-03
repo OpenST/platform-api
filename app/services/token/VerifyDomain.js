@@ -1,5 +1,3 @@
-const url = require('url');
-
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
@@ -58,26 +56,17 @@ class VerifyDomain extends ServiceBase {
   async _validateAndSanitize() {
     const oThis = this;
 
-    const parsedDomain = url.parse(oThis.domain.toLowerCase());
-
-    oThis.hostname = parsedDomain.hostname ? parsedDomain.hostname : '';
-    oThis.protocol = parsedDomain.protocol ? parsedDomain.protocol.split(':')[0] : '';
-
-    const validProtocols = ['http', 'https'];
-    if (!oThis.hostname || !oThis.protocol || validProtocols.indexOf(oThis.protocol) === -1) {
-      return Promise.reject(
-        responseHelper.error({
-          internal_error_identifier: 'a_s_t_vd_1',
-          api_error_identifier: 'invalid_domain_name',
-          debug_options: { domain: oThis.domain },
-          error_config: errorConfig
-        })
-      );
+    const domainArray = oThis.domain.toLowerCase().split('/');
+    const newDomainArray = [];
+    for (let domainArrayIndex = 0; domainArrayIndex < 3; domainArrayIndex++) {
+      newDomainArray.push(domainArray[domainArrayIndex]);
     }
+
+    oThis.domain = newDomainArray.join('/');
   }
 
   /**
-   * Verify domain for token
+   * Verify domain for token.
    *
    * @returns {Promise<void>}
    * @private
@@ -86,18 +75,16 @@ class VerifyDomain extends ServiceBase {
     const oThis = this;
 
     const response = await new ValidDomainByTokenIdCache({ tokenIds: [oThis.tokenId] }).fetch();
+    if (response.isFailure()) {
+      return Promise.reject(response);
+    }
 
     const domainData = response.data[oThis.tokenId];
-    const domainObject = domainData[oThis.hostname];
 
-    if (CommonValidators.validateNonEmptyObject(domainObject)) {
-      if (oThis.protocol === domainObject.protocol) {
-        return responseHelper.successWithData({});
-      }
-
+    if (!CommonValidators.validateNonEmptyObject(domainData)) {
       return Promise.reject(
         responseHelper.error({
-          internal_error_identifier: 'a_s_t_vd_2',
+          internal_error_identifier: 'a_s_t_vd_1',
           api_error_identifier: 'invalid_domain_name',
           debug_options: {},
           error_config: errorConfig
@@ -105,9 +92,15 @@ class VerifyDomain extends ServiceBase {
       );
     }
 
+    const domainExists = domainData[oThis.domain];
+
+    if (domainExists) {
+      return responseHelper.successWithData({});
+    }
+
     return Promise.reject(
       responseHelper.error({
-        internal_error_identifier: 'a_s_t_vd_3',
+        internal_error_identifier: 'a_s_t_vd_2',
         api_error_identifier: 'invalid_domain_name',
         debug_options: {},
         error_config: errorConfig
