@@ -1,38 +1,31 @@
-'use strict';
-
-/**
- * This service verifies the token domain for browser sdk
- *
- * @module app/services/token/VerifyDomain
- */
+const url = require('url');
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
+  CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  ValidDomainByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/ValidDomainByTokenId'),
   basicHelper = require(rootPrefix + '/helpers/basic'),
   apiVersions = require(rootPrefix + '/lib/globalConstant/apiVersions'),
-  ValidDomainByTokenIdCache = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/ValidDomainByTokenId'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   errorConfig = basicHelper.fetchErrorConfig(apiVersions.general);
 
-const url = require('url');
-
 /**
- * Class to verify token domain
+ * Class to verify token domain for browser sdk.
  *
- * @class
+ * @class VerifyDomain
  */
 class VerifyDomain extends ServiceBase {
   /**
-   * Constructor for VerifyDomain
+   * Constructor to verify token domain for browser sdk.
    *
-   * @param params
-   * @param params.token_id {number} - token id of the client
-   * @param params.domain {string} - domain to be verified
+   * @param {object} params
+   * @param {number} params.token_id: token id of the client
+   * @param params.domain: domain to be verified
    *
    * @constructor
    */
   constructor(params) {
-    super(params);
+    super();
 
     const oThis = this;
 
@@ -55,13 +48,35 @@ class VerifyDomain extends ServiceBase {
   }
 
   /**
-   * Validate and sanitize
+   * Validate and sanitize.
+   *
+   * @sets oThis.domain
+   *
    * @returns {Promise<never>}
    * @private
    */
   async _validateAndSanitize() {
     const oThis = this;
-    oThis.domain = url.parse(oThis.domain).hostname;
+
+    const parsedDomain = url.parse(oThis.domain);
+
+    oThis.hostname = parsedDomain.hostname.toLowerCase();
+    oThis.protocol = parsedDomain.protocol ? parsedDomain.protocol.split(':')[0] : '';
+
+    console.log('==oThis.hostname=', oThis.hostname);
+    console.log('==oThis.hostname=', oThis.protocol);
+
+    const validProtocols = ['http', 'https'];
+    if (validProtocols.indexOf(oThis.protocol) === -1) {
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_vd_1',
+          api_error_identifier: 'invalid_domain_name',
+          debug_options: {},
+          error_config: errorConfig
+        })
+      );
+    }
   }
 
   /**
@@ -76,14 +91,28 @@ class VerifyDomain extends ServiceBase {
     const response = await new ValidDomainByTokenIdCache({ tokenIds: [oThis.tokenId] }).fetch();
 
     const domainData = response.data[oThis.tokenId];
+    console.log('=domainData===', domainData);
+    const domainObject = domainData[oThis.hostname];
+    console.log('==domainObject==', domainObject);
 
-    if (domainData[oThis.domain.toLowerCase()]) {
-      return responseHelper.successWithData({});
+    if (CommonValidators.validateNonEmptyObject(domainObject)) {
+      if (oThis.hostname === domainObject.hostname && oThis.protocol === domainObject.protocol) {
+        return responseHelper.successWithData({});
+      }
+
+      return Promise.reject(
+        responseHelper.error({
+          internal_error_identifier: 'a_s_t_vd_2',
+          api_error_identifier: 'invalid_domain_name',
+          debug_options: {},
+          error_config: errorConfig
+        })
+      );
     }
 
     return Promise.reject(
       responseHelper.error({
-        internal_error_identifier: 'a_s_t_vd_2',
+        internal_error_identifier: 'a_s_t_vd_3',
         api_error_identifier: 'invalid_domain_name',
         debug_options: {},
         error_config: errorConfig
