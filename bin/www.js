@@ -7,7 +7,6 @@ const http = require('http');
 
 const rootPrefix = '..',
   app = require(rootPrefix + '/app'),
-  basicHelper = require(rootPrefix + '/helpers/basic'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
   createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
@@ -92,10 +91,8 @@ function onError(error) {
   }
 }
 
-if (basicHelper.isDevelopment()) {
-  // eslint-disable-next-line no-empty-function
-  process.send = process.send || function() {};
-}
+// eslint-disable-next-line no-empty-function
+process.send = process.send || function() {};
 
 /**
  * Event listener for HTTP server "listening" event.
