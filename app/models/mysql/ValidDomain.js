@@ -1,25 +1,19 @@
-'use strict';
-/**
- * Model to get valid domain details.
- *
- * @module aapp/models/mysql/ValidDomain
- */
 const rootPrefix = '../../..',
   ModelBase = require(rootPrefix + '/app/models/mysql/Base'),
-  responseHelper = require(rootPrefix + '/lib/formatter/response'),
-  coreConstants = require(rootPrefix + '/config/coreConstants');
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response');
 
 // Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
 
 /**
- * Class for ValidDomain model.
+ * Class for valid domain model.
  *
- * @class
+ * @class ValidDomain
  */
 class ValidDomain extends ModelBase {
   /**
-   * Constructor
+   * Constructor for valid domain model.
    *
    * @augments ModelBase
    *
@@ -59,11 +53,16 @@ class ValidDomain extends ModelBase {
     for (let index = 0; index < validDomainDetails.length; index++) {
       const validDomainObj = validDomainDetails[index];
       responseData[validDomainObj.token_id] = responseData[validDomainObj.token_id] || {};
-      responseData[validDomainObj.token_id][validDomainObj.domain.toLowerCase()] = {
-        id: validDomainObj.id,
-        tokenId: validDomainObj.token_id,
-        domain: validDomainObj.domain
-      };
+
+      const domainArray = validDomainObj.domain.toLowerCase().split('/');
+      const newDomainArray = [];
+      for (let domainArrayIndex = 0; domainArrayIndex < 3; domainArrayIndex++) {
+        newDomainArray.push(domainArray[domainArrayIndex]);
+      }
+
+      const domain = newDomainArray.join('/');
+
+      responseData[validDomainObj.token_id][domain] = 1;
     }
 
     return responseHelper.successWithData(responseData);
