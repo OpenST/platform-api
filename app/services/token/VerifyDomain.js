@@ -86,7 +86,7 @@ class VerifyDomain extends ServiceBase {
         responseHelper.error({
           internal_error_identifier: 'a_s_t_vd_1',
           api_error_identifier: 'invalid_domain_name',
-          debug_options: {},
+          debug_options: { tokenId: oThis.tokenId, inputDomain: oThis.domain },
           error_config: errorConfig
         })
       );
@@ -102,7 +102,7 @@ class VerifyDomain extends ServiceBase {
       responseHelper.error({
         internal_error_identifier: 'a_s_t_vd_2',
         api_error_identifier: 'invalid_domain_name',
-        debug_options: {},
+        debug_options: { tokenId: oThis.tokenId, inputDomain: oThis.domain },
         error_config: errorConfig
       })
     );
