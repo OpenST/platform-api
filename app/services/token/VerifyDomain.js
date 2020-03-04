@@ -18,7 +18,7 @@ class VerifyDomain extends ServiceBase {
    *
    * @param {object} params
    * @param {number} params.token_id: token id of the client
-   * @param params.domain: domain to be verified
+   * @param {string} params.domain: domain to be verified
    *
    * @constructor
    */
