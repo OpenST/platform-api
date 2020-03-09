@@ -7,8 +7,8 @@
 const rootPrefix = '../..',
   InsertCrons = require(rootPrefix + '/lib/cronProcess/InsertCrons'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
-  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency'),
-  cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+  cronProcessConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses'),
+  stakeCurrencyConstants = require(rootPrefix + '/lib/globalConstant/stakeCurrency');
 
 /**
  * Class to seed aux chain specific cron seeder.
@@ -48,6 +48,7 @@ class AuxChainSpecificCronSeeder {
     await oThis.insertGenerateGraphEntry();
     await oThis.insertWebhookPreprocessorEntry();
     await oThis.insertWebhookProcessorEntry();
+    await oThis.insertCompanyLowBalanceAlertEmailEntry();
   }
 
   /**
@@ -438,6 +439,22 @@ class AuxChainSpecificCronSeeder {
         sequenceNumber: 1,
         queueTopicSuffix: 'one',
         subscribeSubTopic: '#'
+      })
+      .then(function(insertId) {
+        logger.log('InsertId: ', insertId);
+      });
+  }
+
+  /**
+   * Insert company low balance alert email cron entry.
+   *
+   * @returns {Promise<void>}
+   */
+  async insertCompanyLowBalanceAlertEmailEntry() {
+    return new InsertCrons()
+      .perform(cronProcessConstants.companyLowBalanceAlertEmail, {
+        auxChainId: 2000,
+        groupId: 1
       })
       .then(function(insertId) {
         logger.log('InsertId: ', insertId);
