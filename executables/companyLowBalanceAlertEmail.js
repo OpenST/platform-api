@@ -140,7 +140,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
     const dbRows = await new ClientConfigGroupModel()
       .select('client_id')
-      .where({ chain_id: oThis.auxChainId })
+      .where({ chain_id: oThis.auxChainId, group_id: oThis.groupId })
       .fire();
 
     for (let index = 0; index < dbRows.length; index++) {
