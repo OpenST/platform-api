@@ -1,4 +1,3 @@
-'use strict';
 /**
  * Model to get client config strategy details.
  *
@@ -11,11 +10,12 @@ const rootPrefix = '../../..',
 
 // Declare variables.
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment;
+const has = Object.prototype.hasOwnProperty; // Cache the lookup once, in module scope.
 
 /**
  * Class for client config groups model.
  *
- * @class
+ * @class ClientConfigGroups
  */
 class ClientConfigGroups extends ModelBase {
   /**
@@ -36,10 +36,10 @@ class ClientConfigGroups extends ModelBase {
   /**
    * Inserts record
    *
-   * @param {Object} params
-   * @param {Number} params.clientId: client id
-   * @param {Number} params.chainId: chain id
-   * @param {Number} params.groupId: group id
+   * @param {object} params
+   * @param {number} params.clientId: client id
+   * @param {number} params.chainId: chain id
+   * @param {number} params.groupId: group id
    *
    * @returns {Promise<*>}
    */
@@ -47,8 +47,10 @@ class ClientConfigGroups extends ModelBase {
     const oThis = this;
 
     // Perform validations.
-    if (!params.hasOwnProperty('clientId') || !params.hasOwnProperty('chainId') || !params.hasOwnProperty('groupId')) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {clientId, chainId, groupId}';
+    if (!has.call(params, 'clientId') || !has.call(params, 'chainId') || !has.call(params, 'groupId')) {
+      throw new Error(
+        'Mandatory parameters are missing. Expected an object with the following keys: {clientId, chainId, groupId}'
+      );
     }
 
     await oThis._validateChainAndGroupIds(params.chainId, params.groupId);
@@ -65,8 +67,8 @@ class ClientConfigGroups extends ModelBase {
   /**
    * This function is just to validate chainId and group Id.
    *
-   * @param chainId
-   * @param groupId
+   * @param {number} chainId
+   * @param {number} groupId
    *
    * @returns {Promise<*>}
    *
@@ -82,7 +84,8 @@ class ClientConfigGroups extends ModelBase {
         })
       );
     }
-    return Promise.resolve(responseHelper.successWithData({}));
+
+    return responseHelper.successWithData({});
   }
 }
 
