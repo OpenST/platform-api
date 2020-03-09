@@ -58,10 +58,7 @@ class usdToFiatCurrencyConversion extends CronBase {
    * @private
    */
   async _start() {
-    const oThis = this;
-    const allCurrenciesS3Url = coreConstants.SA_S3_FIAT_PRICEPOINTS_URL + '/fiat-conversions.json';
-
-    const requestObj = new HttpRequest({ resource: allCurrenciesS3Url });
+    const requestObj = new HttpRequest({ resource: coreConstants.SA_S3_FIAT_PRICEPOINTS_PATH });
 
     const fiatConversionResp = await requestObj.get();
     let fiatConversionData = fiatConversionResp.data;
