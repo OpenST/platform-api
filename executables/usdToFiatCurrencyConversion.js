@@ -12,6 +12,9 @@ const rootPrefix = '..',
   HttpRequest = require(rootPrefix + '/lib/providers/HttpRequest'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
+  responseHelper = require(rootPrefix + '/lib/formatter/response'),
+  errorLogsConstants = require(rootPrefix + '/lib/globalConstant/errorLogs'),
+  createErrorLogsEntry = require(rootPrefix + '/lib/errorLogs/createEntry'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
 
 program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
@@ -65,7 +68,10 @@ class usdToFiatCurrencyConversion extends CronBase {
 
     if (fiatConversionData && fiatConversionData.responseData) {
       fiatConversionData = JSON.parse(fiatConversionData.responseData);
-      const fiatConversionRates = fiatConversionData.rates;
+      const fiatConversionRates = fiatConversionData.rates,
+        alertCurrencies = [],
+        countryIds = [],
+        countryIsoCodes = [];
 
       console.log('-------fiatConversionRates--------', JSON.stringify(fiatConversionRates));
 
@@ -77,14 +83,35 @@ class usdToFiatCurrencyConversion extends CronBase {
         for (let ci = 0; ci < countries.length; ci++) {
           const country = countries[ci],
             conversions = JSON.parse(country.conversions),
-            newConversionRate = fiatConversionRates[country.currency_iso_code];
+            existingConversionRate = conversions['USD'],
+            newConversionRate = fiatConversionRates[country.currency_iso_code],
+            percentageDifference = ((existingConversionRate - newConversionRate) / existingConversionRate) * 100;
 
-          conversions['USD'] = newConversionRate;
-          await new RedemptionCountryModel()
-            .update({ conversions: JSON.stringify(conversions) })
-            .where(['id=?', country.id])
-            .fire();
+          countryIds.push(country.id);
+          countryIsoCodes.push(country.country_iso_code);
+
+          if (percentageDifference > -5 && percentageDifference < 5) {
+            conversions['USD'] = newConversionRate;
+            await new RedemptionCountryModel()
+              .update({ conversions: JSON.stringify(conversions) })
+              .where(['id=?', country.id])
+              .fire();
+          } else {
+            alertCurrencies.push(country.currency_iso_code);
+          }
         }
+
+        RedemptionCountryModel.flushCache({ countryIds: countryIds, countryIsoCodes: countryIsoCodes });
+      }
+      if (alertCurrencies.length > 0) {
+        const errorObject = responseHelper.error({
+          internal_error_identifier: 'someCurrencyConversionFails:e_utfcc_1',
+          api_error_identifier: 'someCurrencyConversionFails',
+          debug_options: {
+            alertEconomies: alertCurrencies
+          }
+        });
+        await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
       }
     }
   }
