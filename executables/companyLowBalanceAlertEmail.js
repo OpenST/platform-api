@@ -58,6 +58,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
     oThis.clientIds = [];
     oThis.ic = {};
+    oThis.EconomyCache = {};
   }
 
   /**
@@ -94,10 +95,21 @@ class CompanyLowBalanceAlertEmail extends CronBase {
     // Do nothing.
   }
 
+  /**
+   * Start the cron processing.
+   *
+   * @sets oThis.EconomyCache
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
   async _start() {
     const oThis = this;
 
-    await Promise.all([oThis._fetchClientIdsForChain(), oThis._setIc()]);
+    await Promise.all([oThis._fetchClientIdsForChainAndGroup(), oThis._setIc()]);
+
+    const blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]);
+    oThis.EconomyCache = blockScannerObj.cache.Economy;
 
     for (let index = 0; index < oThis.clientIds.length; index += batchSize) {
       oThis.tokenIdMap = {};
@@ -128,14 +140,14 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   }
 
   /**
-   * Fetch client ids associated on chain.
+   * Fetch client ids associated to chain and group.
    *
    * @sets oThis.clientIds
    *
    * @returns {Promise<void>}
    * @private
    */
-  async _fetchClientIdsForChain() {
+  async _fetchClientIdsForChainAndGroup() {
     const oThis = this;
 
     const dbRows = await new ClientConfigGroupModel()
@@ -292,10 +304,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _getEconomyDetailsFromDdb(tokenIds) {
     const oThis = this;
 
-    const blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]);
-    const EconomyCache = blockScannerObj.cache.Economy;
-
-    const economyCache = new EconomyCache({
+    const economyCache = new oThis.EconomyCache({
       chainId: oThis.auxChainId,
       economyContractAddresses: oThis.economyContractAddresses
     });
@@ -332,6 +341,8 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _setCompanyTokenHolderAddress(tokenIds) {
     const oThis = this;
 
+    const TokenUserDetailsCache = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
+
     for (let index = 0; index < tokenIds.length; index++) {
       const tokenId = tokenIds[index];
 
@@ -344,8 +355,6 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       ) {
         continue;
       }
-
-      const TokenUserDetailsCache = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
 
       const tokenUserCacheResponse = await new TokenUserDetailsCache({
         tokenId: tokenId,
@@ -443,9 +452,9 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
     for (let index = 0; index < tokenIds.length; index++) {
       const tokenId = tokenIds[index];
-
       const tokenObject = oThis.tokenIdMap[tokenId];
-      if (!tokenObject.properties.includes(tokenObject.propertyToSet)) {
+
+      if (!tokenObject.propertyToSet || !tokenObject.properties.includes(tokenObject.propertyToSet)) {
         continue;
       }
 
