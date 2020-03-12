@@ -66,56 +66,78 @@ class usdToFiatCurrencyConversion extends CronBase {
     const fiatConversionResp = await requestObj.get();
     let fiatConversionData = fiatConversionResp.data;
 
-    if (fiatConversionData && fiatConversionData.responseData) {
-      fiatConversionData = JSON.parse(fiatConversionData.responseData);
-
-      // TODO - alpesh - check for success in the json.
-      const fiatConversionRates = fiatConversionData.rates,
-        alertCurrencies = [],
-        countryIds = [],
-        countryIsoCodes = [];
-
-      console.log('-------fiatConversionRates--------', JSON.stringify(fiatConversionRates));
-
-      if (fiatConversionRates) {
-        const countries = await new RedemptionCountryModel()
-          .select('*')
-          .where('id>0')
-          .fire();
-        for (let ci = 0; ci < countries.length; ci++) {
-          const country = countries[ci],
-            conversions = JSON.parse(country.conversions),
-            existingConversionRate = conversions['USD'],
-            newConversionRate = fiatConversionRates[country.currency_iso_code],
-            percentageDifference = ((existingConversionRate - newConversionRate) / existingConversionRate) * 100;
-
-          countryIds.push(country.id);
-          countryIsoCodes.push(country.country_iso_code);
-
-          // we keep 5 percent tolerance. if value changes by more than 5 %, we alert.
-          if (percentageDifference > -5 && percentageDifference < 5) {
-            conversions['USD'] = newConversionRate;
-            await new RedemptionCountryModel()
-              .update({ conversions: JSON.stringify(conversions) })
-              .where(['id=?', country.id])
-              .fire();
-          } else {
-            alertCurrencies.push(country.currency_iso_code);
-          }
+    if(!fiatConversionData || !fiatConversionData.responseData) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'someCurrencyConversionFails:e_utfcc_s_1',
+        api_error_identifier: 'someCurrencyConversionFails',
+        debug_options: {
+          fiatConversionData: fiatConversionData
         }
+      });
+      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
+      return;
+    }
 
-        RedemptionCountryModel.flushCache({ countryIds: countryIds, countryIsoCodes: countryIsoCodes });
+    fiatConversionData = JSON.parse(fiatConversionData.responseData);
+
+    if (!fiatConversionData.success) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'someCurrencyConversionFails:e_utfcc_s_2',
+        api_error_identifier: 'someCurrencyConversionFails',
+        debug_options: {
+          fiatConversionData: fiatConversionData
+        }
+      });
+      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
+      return;
+    }
+
+    const fiatConversionRates = fiatConversionData.rates,
+      alertCurrencies = [],
+      countryIds = [],
+      countryIsoCodes = [];
+
+    console.log('-------fiatConversionRates--------', JSON.stringify(fiatConversionRates));
+
+    if (fiatConversionRates) {
+      const countries = await new RedemptionCountryModel()
+        .select('*')
+        .where('id>0')
+        .fire();
+      for (let ci = 0; ci < countries.length; ci++) {
+        const country = countries[ci],
+          conversions = JSON.parse(country.conversions),
+          existingConversionRate = conversions['USD'],
+          newConversionRate = fiatConversionRates[country.currency_iso_code],
+          percentageDifference = ((existingConversionRate - newConversionRate) / existingConversionRate) * 100;
+
+        countryIds.push(country.id);
+        countryIsoCodes.push(country.country_iso_code);
+
+        // we keep 5 percent tolerance. if value changes by more than 5 %, we alert.
+        if (percentageDifference > -5 && percentageDifference < 5) {
+          conversions['USD'] = newConversionRate;
+          await new RedemptionCountryModel()
+            .update({ conversions: JSON.stringify(conversions) })
+            .where(['id=?', country.id])
+            .fire();
+        } else {
+          alertCurrencies.push(country.currency_iso_code);
+        }
       }
-      if (alertCurrencies.length > 0) {
-        const errorObject = responseHelper.error({
-          internal_error_identifier: 'someCurrencyConversionFails:e_utfcc_1',
-          api_error_identifier: 'someCurrencyConversionFails',
-          debug_options: {
-            alertEconomies: alertCurrencies
-          }
-        });
-        await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
-      }
+
+      RedemptionCountryModel.flushCache({ countryIds: countryIds, countryIsoCodes: countryIsoCodes });
+    }
+
+    if (alertCurrencies.length > 0) {
+      const errorObject = responseHelper.error({
+        internal_error_identifier: 'someCurrencyConversionFails:e_utfcc_1',
+        api_error_identifier: 'someCurrencyConversionFails',
+        debug_options: {
+          alertEconomies: alertCurrencies
+        }
+      });
+      await createErrorLogsEntry.perform(errorObject, errorLogsConstants.mediumSeverity);
     }
   }
 
