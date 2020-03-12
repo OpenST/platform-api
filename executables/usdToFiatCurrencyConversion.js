@@ -68,6 +68,8 @@ class usdToFiatCurrencyConversion extends CronBase {
 
     if (fiatConversionData && fiatConversionData.responseData) {
       fiatConversionData = JSON.parse(fiatConversionData.responseData);
+
+      // TODO - alpesh - check for success in the json.
       const fiatConversionRates = fiatConversionData.rates,
         alertCurrencies = [],
         countryIds = [],
@@ -90,6 +92,7 @@ class usdToFiatCurrencyConversion extends CronBase {
           countryIds.push(country.id);
           countryIsoCodes.push(country.country_iso_code);
 
+          // we keep 5 percent tolerance. if value changes by more than 5 %, we alert.
           if (percentageDifference > -5 && percentageDifference < 5) {
             conversions['USD'] = newConversionRate;
             await new RedemptionCountryModel()
