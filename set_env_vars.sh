@@ -69,6 +69,7 @@ export SA_S3_AWS_MASTER_FOLDER='d-sandbox'
 export SA_S3_ANALYTICS_BUCKET='graphs.stagingost.com'
 export SA_S3_ANALYTICS_GRAPH_FOLDER='graphs'
 export SA_S3_PRICEPOINTS_URL='https://s3-eu-west-1.amazonaws.com/public.ost.com/coinmarketcap/api/v2/convert'
+export SA_S3_FIAT_PRICEPOINTS_PATH='hgfasgv4567gfachsv7568cvsd6t7i6hga/hfgvh345dfgc66rch.json'
 
 # JWT details
 export SA_INTERNAL_API_SECRET_KEY='1somethingsarebetterkeptinenvironemntvariables'
