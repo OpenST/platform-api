@@ -5,6 +5,7 @@
  */
 
 const OSTBase = require('@ostdotcom/base'),
+  BigNumber = require('bignumber.js'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
