@@ -386,6 +386,10 @@ class CoreConstants {
     return process.env.SA_S3_PRICEPOINTS_URL;
   }
 
+  get SA_S3_FIAT_PRICEPOINTS_PATH() {
+    return 'https://s3-eu-west-1.amazonaws.com/public.ost.com/' + process.env.SA_S3_FIAT_PRICEPOINTS_PATH;
+  }
+
   get S3_ANALYTICS_GRAPH_FOLDER() {
     const oThis = this;
 

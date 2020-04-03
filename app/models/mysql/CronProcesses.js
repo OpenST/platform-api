@@ -43,7 +43,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '28': cronProcessesConstants.webhookProcessor,
     '29': cronProcessesConstants.webhookErrorHandler,
     '30': cronProcessesConstants.trackLatestTransaction,
-    '31': cronProcessesConstants.companyLowBalanceAlertEmail
+    '31': cronProcessesConstants.usdToFiatCurrencyConversion,
+    '32': cronProcessesConstants.companyLowBalanceAlertEmail
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
