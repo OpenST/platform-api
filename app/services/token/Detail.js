@@ -297,9 +297,7 @@ class TokenDetail extends ServiceBase {
     const oThis = this;
 
     const totalSupplyInWei = oThis.economyDetails.totalSupply,
-      tokenDecimal = oThis.token.decimal,
-      circulatingSupplyInWei = new BigNumber(totalSupplyInWei).minus(oThis.tokenHoldersBalanceBn),
-      circulatingSupply = basicHelper.toNormalPrecisionBT(circulatingSupplyInWei, tokenDecimal);
+      circulatingSupplyInWei = new BigNumber(totalSupplyInWei).minus(oThis.tokenHoldersBalanceBn);
 
     oThis.economyDetails.circulatingSupply = circulatingSupplyInWei.toString(10);
   }
