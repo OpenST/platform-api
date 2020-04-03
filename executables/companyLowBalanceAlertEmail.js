@@ -105,6 +105,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    */
   async _start() {
     const oThis = this;
+    oThis.canExit = false;
 
     await Promise.all([oThis._fetchClientIdsForChainAndGroup(), oThis._setIc()]);
 
@@ -117,11 +118,12 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
       let clientIdsBatch = oThis.clientIds.slice(index, index + batchSize);
 
-      clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
-
+      // Fetch tokens first, only those tokens whose deployment is completed.
       const tokenIdsResponse = await oThis._fetchTokenIds(clientIdsBatch);
       const tokenIds = tokenIdsResponse.tokenIds;
       clientIdsBatch = tokenIdsResponse.clientIds;
+
+      clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
 
       await oThis._fetchTokenAddresses(tokenIds);
 
@@ -132,7 +134,6 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
         oThis._checkTokenHoldersBalance(tokenIds);
 
-        oThis.canExit = false;
         await oThis._createEmailHook(tokenIds);
         oThis.canExit = true;
       }
