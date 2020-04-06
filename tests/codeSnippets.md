@@ -5,7 +5,7 @@
 let config = null;
 rootPrefix = '.'
 coreConstants = require(rootPrefix + '/config/coreConstants')
-chainId = 2000;
+chainId = 197;
 a = require('./helpers/configStrategy/ByChainId.js')
 b = new a(chainId);
 b.getComplete().then(function(r) {config = r.data});
@@ -21,6 +21,21 @@ InstanceComposer = OSTBase.InstanceComposer
 ic = new InstanceComposer(config)
 
 ```
+
+### Sample code snippets for dev-testing
+```js
+
+require('./app/services/token/Detail');
+CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenDetail');
+asso = new CreateUser({client_id:10267});
+asso.perform().then(function(r){console.log(JSON.stringify(r.data))});
+
+require('./app/services/token/getDashboardDetails.js');
+CreateUser = ic.getShadowedClassFor(coreConstants.icNameSpace, 'GetTokenDashboardDetail');
+asso = new CreateUser({client_id:10267,token_id:1185 });
+asso.perform().then(function(r){console.log(JSON.stringify(r.data))});
+```
+
 ### Associate Worker
 ```js
 

@@ -5,14 +5,17 @@
  */
 
 const OSTBase = require('@ostdotcom/base'),
+  BigNumber = require('bignumber.js'),
   InstanceComposer = OSTBase.InstanceComposer;
 
 const rootPrefix = '../../..',
   ServiceBase = require(rootPrefix + '/app/services/Base'),
   CommonValidators = require(rootPrefix + '/lib/validators/Common'),
+  GetUbtBalance = require(rootPrefix + '/lib/getBalance/Ubt'),
   TokenAddressCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenAddress'),
   StakeCurrencyById = require(rootPrefix + '/lib/cacheManagement/kitSaasMulti/StakeCurrencyById'),
   TokenCompanyUserCache = require(rootPrefix + '/lib/cacheManagement/kitSaas/TokenCompanyUserDetail'),
+  basicHelper = require(rootPrefix + '/helpers/basic'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
   logger = require(rootPrefix + '/lib/logger/customConsoleLogger'),
   responseHelper = require(rootPrefix + '/lib/formatter/response'),
@@ -55,6 +58,8 @@ class TokenDetail extends ServiceBase {
     oThis.stakeCurrencySymbol = null;
     oThis.companyTokenHolderAddresses = [];
     oThis.companyUuids = [];
+
+    oThis.tokenHoldersBalanceBn = 0;
   }
 
   /**
@@ -77,6 +82,14 @@ class TokenDetail extends ServiceBase {
     oThis.token.baseToken = oThis.stakeCurrencySymbol;
 
     await oThis._fetchTokenAddresses();
+
+    await oThis._getEconomyDetailsFromDdb();
+
+    await oThis._setCompanyTokenHolderAddress();
+
+    await oThis._getTokenHoldersBalance();
+
+    await oThis._getAdditionalEconomyDetails();
 
     return Promise.resolve(
       responseHelper.successWithData({
@@ -172,10 +185,6 @@ class TokenDetail extends ServiceBase {
 
       return Promise.resolve();
     }
-
-    await oThis._getEconomyDetailsFromDdb();
-
-    await oThis._setCompanyTokenHolderAddress();
   }
 
   /**
@@ -250,6 +259,47 @@ class TokenDetail extends ServiceBase {
       oThis.companyTokenHolderAddresses.push(userData.tokenHolderAddress);
       oThis.companyUuids.push(uuid);
     }
+  }
+
+  /**
+   * Fetch balance of all token holder addresses.
+   *
+   * @sets oThis.tokenHoldersBalanceBn
+   *
+   * @return {Promise<void>}
+   * @private
+   */
+  async _getTokenHoldersBalance() {
+    const oThis = this;
+
+    const ubtBalances = await new GetUbtBalance({
+      auxChainId: oThis.auxChainId,
+      tokenId: oThis.tokenId,
+      addresses: oThis.companyTokenHolderAddresses
+    }).perform();
+
+    for (const tha in ubtBalances) {
+      const ubtBalance = ubtBalances[tha];
+
+      oThis.tokenHoldersBalanceBn = new BigNumber(oThis.tokenHoldersBalanceBn).plus(new BigNumber(ubtBalance));
+    }
+  }
+
+  /**
+   * Compute additional economy details.
+   *
+   * @sets oThis.economyDetails
+   *
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _getAdditionalEconomyDetails() {
+    const oThis = this;
+
+    const totalSupplyInWei = oThis.economyDetails.totalSupply,
+      circulatingSupplyInWei = new BigNumber(totalSupplyInWei).minus(oThis.tokenHoldersBalanceBn);
+
+    oThis.economyDetails.circulatingSupply = circulatingSupplyInWei.toString(10);
   }
 }
 
