@@ -501,6 +501,21 @@ class CompanyLowBalanceAlertEmail extends CronBase {
     }
 
     await Promise.all(promisesArray);
+
+    // Clear token cache.
+    const cacheClearPromisesArray = [];
+    for (let index = 0; index < tokenIds.length; index++) {
+      const tokenId = tokenIds[index];
+      const tokenObject = oThis.tokenIdMap[tokenId];
+
+      if (!tokenObject.propertyToSet || !tokenObject.properties.includes(tokenObject.propertyToSet)) {
+        continue;
+      }
+
+      cacheClearPromisesArray.push(TokenModel.flushCache({ clientId: tokenObject.clientId, tokenId: tokenId }));
+    }
+
+    await Promise.all(cacheClearPromisesArray);
   }
 
   /**
