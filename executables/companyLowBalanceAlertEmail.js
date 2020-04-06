@@ -430,9 +430,9 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
       if (tokenHoldersBalance <= 1) {
         oThis.tokenIdMap[tokenId].propertyToSet = tokenConstants.zeroBalanceEmail;
-      } else if (tokenHoldersBalance < totalSupply * 0.5) {
+      } else if (tokenHoldersBalance < totalSupply * 0.05) {
         oThis.tokenIdMap[tokenId].propertyToSet = tokenConstants.veryLowBalanceEmail;
-      } else {
+      } else if (tokenHoldersBalance < totalSupply * 0.1) {
         oThis.tokenIdMap[tokenId].propertyToSet = tokenConstants.lowBalanceEmail;
       }
     }
