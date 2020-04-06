@@ -241,7 +241,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
     const oThis = this;
 
     const dbRows = await new TokenModel()
-      .select('id, name, client_id, decimal, properties')
+      .select(['id', 'name', 'client_id', 'decimal', 'properties'])
       .where({ client_id: clientIds, status: tokenConstants.invertedStatuses[tokenConstants.deploymentCompleted] })
       .fire();
 
@@ -493,7 +493,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
         new TokenModel()
           .update([
             'properties = properties | ?',
-            tokenConstants.invertedProperties[tokenConstants[tokenObject.propertyToSet]]
+            tokenConstants.invertedPropertiesConfig[tokenConstants[tokenObject.propertyToSet]]
           ])
           .where({ id: tokenId })
           .fire()
