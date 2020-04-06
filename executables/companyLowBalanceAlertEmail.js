@@ -471,13 +471,6 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       const tokenId = tokenIds[index];
       const tokenObject = oThis.tokenIdMap[tokenId];
 
-      if (tokenId == 1816 || tokenId == 1812 || tokenId == 1813) {
-        console.log('==tokenObject===', tokenObject);
-        console.log('==tokenObject===', JSON.stringify(tokenObject));
-        console.log('==tokenObject===', tokenObject.properties.includes(tokenObject.propertyToSet));
-        console.log('==tokenObject===', tokenObject.propertyToSet);
-      }
-
       if (!tokenObject.propertyToSet || tokenObject.properties.includes(tokenObject.propertyToSet)) {
         continue;
       }
@@ -487,8 +480,6 @@ class CompanyLowBalanceAlertEmail extends CronBase {
         url_prefix: environmentConstants.urlPrefix,
         subject_prefix: basicHelper.isSandboxSubEnvironment() ? 'OST Platform Sandbox' : 'OST Platform'
       };
-
-      console.log('=======Reached aage!!!', templateVars);
 
       promisesArray.push(
         // Send transactional email.
