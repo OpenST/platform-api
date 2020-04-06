@@ -27,6 +27,22 @@ const rootPrefix = '..',
   environmentConstants = require(rootPrefix + '/lib/globalConstant/environmentInfo'),
   emailServiceConstants = require(rootPrefix + '/lib/globalConstant/emailServiceApiCallHooks');
 
+program.option('--cronProcessId <cronProcessId>', 'Cron table process ID').parse(process.argv);
+
+program.on('--help', function() {
+  logger.log('');
+  logger.log('  Example:');
+  logger.log('');
+  logger.log('    node executables/balanceVerifier.js --cronProcessId 76');
+  logger.log('');
+  logger.log('');
+});
+
+if (!program.cronProcessId) {
+  program.help();
+  process.exit(1);
+}
+
 // Declare constants.
 const batchSize = 100;
 
