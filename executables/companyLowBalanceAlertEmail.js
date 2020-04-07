@@ -1,3 +1,5 @@
+return;
+
 const program = require('commander'),
   BigNumber = require('bignumber.js');
 
