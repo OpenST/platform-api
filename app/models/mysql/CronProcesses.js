@@ -1,14 +1,16 @@
-'use strict';
 /**
  * Model to get cron process and its details.
  *
  * @module /app/models/mysql/cronProcesses
  */
 const rootPrefix = '../../..',
+  ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   util = require(rootPrefix + '/lib/util'),
   coreConstants = require(rootPrefix + '/config/coreConstants'),
-  ModelBaseKlass = require(rootPrefix + '/app/models/mysql/Base'),
   cronProcessesConstants = require(rootPrefix + '/lib/globalConstant/cronProcesses');
+
+// Declare constants.
+const has = Object.prototype.hasOwnProperty; // Cache the lookup once, in module scope.
 
 const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   kinds = {
@@ -41,7 +43,8 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
     '28': cronProcessesConstants.webhookProcessor,
     '29': cronProcessesConstants.webhookErrorHandler,
     '30': cronProcessesConstants.trackLatestTransaction,
-    '31': cronProcessesConstants.usdToFiatCurrencyConversion
+    '31': cronProcessesConstants.usdToFiatCurrencyConversion,
+    '32': cronProcessesConstants.companyLowBalanceAlertEmail
   },
   statuses = {
     '1': cronProcessesConstants.runningStatus,
@@ -52,13 +55,15 @@ const dbName = 'saas_' + coreConstants.subEnvironment + '_' + coreConstants.envi
   invertedStatuses = util.invert(statuses);
 
 /**
- * Class for cron process model
+ * Class for cron process model.
  *
- * @class
+ * @class CronProcessesModel
  */
 class CronProcessesModel extends ModelBaseKlass {
   /**
-   * Constructor for cron process model
+   * Constructor for cron process model.
+   *
+   * @augments ModelBaseKlass
    *
    * @constructor
    */
@@ -89,30 +94,30 @@ class CronProcessesModel extends ModelBaseKlass {
   /**
    * This method gets the response for the id passed.
    *
-   * @param {Number} id
+   * @param {number} id
    *
-   * @returns {rows of db }
+   * @returns {{} }
    */
   async getById(id) {
     const oThis = this;
-    let response = await oThis
+
+    return oThis
       .select(['id', 'kind', 'kind_name', 'ip_address', 'params', 'status', 'last_started_at', 'last_ended_at'])
       .where({ id: id })
       .fire();
-    return response;
   }
 
   /**
    * This method inserts an entry in the table.
    *
-   * @param {Object} params
-   * @param {String} params.kind
-   * @param {String} params.ip_address
-   * @param {Number} params.chain_id
-   * @param {String} params.params
-   * @param {String} params.status
-   * @param {Number} params.lastStartTime
-   * @param {Number} params.lastEndTime
+   * @param {object} params
+   * @param {string} params.kind
+   * @param {string} params.ip_address
+   * @param {number} params.chain_id
+   * @param {string} params.params
+   * @param {string} params.status
+   * @param {number} params.lastStartTime
+   * @param {number} params.lastEndTime
    *
    * @returns {*}
    */
@@ -121,12 +126,12 @@ class CronProcessesModel extends ModelBaseKlass {
 
     // Perform validations.
     if (
-      !params.hasOwnProperty('kind') ||
-      !params.hasOwnProperty('ip_address') ||
-      !params.hasOwnProperty('status') ||
-      !params.hasOwnProperty('chain_id')
+      !has.call(params, 'kind') ||
+      !has.call(params, 'ip_address') ||
+      !has.call(params, 'status') ||
+      !has.call(params, 'chain_id')
     ) {
-      throw 'Mandatory parameters are missing.';
+      throw new Error('Mandatory parameters are missing.');
     }
 
     if (typeof params.kind !== 'string' || typeof params.ip_address !== 'string' || typeof params.status !== 'string') {
@@ -141,11 +146,11 @@ class CronProcessesModel extends ModelBaseKlass {
   /**
    * This method updates the last start time and status of an entry.
    *
-   * @param {Object} params
-   * @param {Number} params.id
-   * @param {String} params.kind
-   * @param {String} params.newLastStartTime
-   * @param {String} params.newStatus
+   * @param {object} params
+   * @param {number} params.id
+   * @param {string} params.kind
+   * @param {string} params.newLastStartTime
+   * @param {string} params.newStatus
    * @returns {Promise<*>}
    */
   async updateLastStartTimeAndStatus(params) {
@@ -153,12 +158,14 @@ class CronProcessesModel extends ModelBaseKlass {
 
     // Perform validations.
     if (
-      !params.hasOwnProperty('id') ||
-      !params.hasOwnProperty('newLastStartTime') ||
-      !params.hasOwnProperty('newStatus') ||
-      !params.hasOwnProperty('kind')
+      !has.call(params, 'id') ||
+      !has.call(params, 'newLastStartTime') ||
+      !has.call(params, 'newStatus') ||
+      !has.call(params, 'kind')
     ) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {id, kind, newLastStartTime, newStatus}';
+      throw new Error(
+        'Mandatory parameters are missing. Expected an object with the following keys: {id, kind, newLastStartTime, newStatus}'
+      );
     }
 
     params.newStatus = oThis.invertedStatuses[params.newStatus];
@@ -177,10 +184,10 @@ class CronProcessesModel extends ModelBaseKlass {
   /**
    * This method updates the last end time and status of an entry.
    *
-   * @param {Object} params
-   * @param {Number} params.id
-   * @param {Number} params.newLastEndTime
-   * @param {String} params.newStatus
+   * @param {object} params
+   * @param {number} params.id
+   * @param {number} params.newLastEndTime
+   * @param {string} params.newStatus
    * @returns {Promise<*>}
    */
   async updateLastEndTimeAndStatus(params) {
@@ -188,7 +195,9 @@ class CronProcessesModel extends ModelBaseKlass {
 
     // Perform validations.
     if (!params.id || !params.newLastEndTime || !params.newStatus) {
-      throw 'Mandatory parameters are missing. Expected an object with the following keys: {id, newLastEndTime, newStatus}';
+      throw new Error(
+        'Mandatory parameters are missing. Expected an object with the following keys: {id, newLastEndTime, newStatus}'
+      );
     }
     params.newStatus = oThis.invertedStatuses[params.newStatus];
 

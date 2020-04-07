@@ -9,7 +9,7 @@ const rootPrefix = '../../..',
 // Declare variables.
 const dbName = 'kit_saas_' + coreConstants.subEnvironment + '_' + coreConstants.environment,
   statuses = tokenConstants.statuses,
-  invertedStatuses = util.invert(statuses);
+  invertedStatuses = tokenConstants.invertedStatuses;
 
 /**
  * Class for token model.

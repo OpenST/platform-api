@@ -66,7 +66,7 @@ class usdToFiatCurrencyConversion extends CronBase {
     const fiatConversionResp = await requestObj.get();
     let fiatConversionData = fiatConversionResp.data;
 
-    if(!fiatConversionData || !fiatConversionData.responseData) {
+    if (!fiatConversionData || !fiatConversionData.responseData) {
       const errorObject = responseHelper.error({
         internal_error_identifier: 'someCurrencyConversionFails:e_utfcc_s_1',
         api_error_identifier: 'someCurrencyConversionFails',
