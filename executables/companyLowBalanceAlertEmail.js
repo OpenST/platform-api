@@ -134,12 +134,11 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
       let clientIdsBatch = oThis.clientIds.slice(index, index + batchSize);
 
-      // Fetch tokens first, only those tokens whose deployment is completed.
+      clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
+
       const tokenIdsResponse = await oThis._fetchTokenIds(clientIdsBatch);
       const tokenIds = tokenIdsResponse.tokenIds;
       clientIdsBatch = tokenIdsResponse.clientIds;
-
-      clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
 
       await oThis._fetchTokenAddresses(tokenIds);
 
