@@ -121,6 +121,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    */
   async _start() {
     const oThis = this;
+
     oThis.canExit = false;
 
     await Promise.all([oThis._fetchClientIdsForChainAndGroup(), oThis._setIc()]);
@@ -134,6 +135,11 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
       let clientIdsBatch = oThis.clientIds.slice(index, index + batchSize);
 
+      /*
+      We are fetching only those clients whose stake and mint status is completed.
+      We are making this query before the token deployment query because there might be tokens whose token deployment
+      is completed, but they might not have a completed stake and mint workflow.
+       */
       clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
 
       const tokenIdsResponse = await oThis._fetchTokenIds(clientIdsBatch);
@@ -231,7 +237,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    *
    * @param {array<number>} clientIds
    *
-   * @sets oThis.tokenIdMap,
+   * @sets oThis.tokenIdMap
    *
    * @returns {Promise<{tokenIds: array<number>, clientIds: array<number>}>}
    * @private
@@ -239,6 +245,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _fetchTokenIds(clientIds) {
     const oThis = this;
 
+    // Here, we are using the tokenDeployment status just to be extra sure.
     const dbRows = await new TokenModel()
       .select(['id', 'name', 'client_id', 'decimal', 'properties'])
       .where({ client_id: clientIds, status: tokenConstants.invertedStatuses[tokenConstants.deploymentCompleted] })
