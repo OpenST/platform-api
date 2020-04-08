@@ -122,14 +122,13 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _start() {
     const oThis = this;
 
-    oThis.canExit = false;
-
     await Promise.all([oThis._fetchClientIdsForChainAndGroup(), oThis._setIc()]);
 
     const blockScannerObj = await blockScannerProvider.getInstance([oThis.auxChainId]);
     oThis.EconomyCache = blockScannerObj.cache.Economy;
 
     for (let index = 0; index < oThis.clientIds.length; index += batchSize) {
+      oThis.canExit = false;
       oThis.tokenIdMap = {};
       oThis.economyContractAddresses = [];
 
@@ -478,7 +477,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
     const oThis = this;
 
     if (tokenIds.length === 0) {
-      return tokenIds;
+      return;
     }
 
     for (let index = 0; index < tokenIds.length; index++) {
