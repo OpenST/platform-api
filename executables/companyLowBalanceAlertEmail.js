@@ -135,6 +135,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
       let clientIdsBatch = oThis.clientIds.slice(index, index + batchSize);
       logger.log(`Client IDs in batch: ${clientIdsBatch}`);
+      logger.log(`Client IDs batch length: ${clientIdsBatch.length}`);
 
       /*
       We are fetching only those clients whose stake and mint workflow is completed.
@@ -143,9 +144,11 @@ class CompanyLowBalanceAlertEmail extends CronBase {
        */
       clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
       logger.log(`Client IDs whose stake and mint has been completed: ${clientIdsBatch}`);
+      logger.log(`Client IDs whose stake and mint has been completed length: ${clientIdsBatch.length}`);
 
       const tokenIds = await oThis._fetchTokenIds(clientIdsBatch);
       logger.log(`Token IDs batch: ${tokenIds}`);
+      logger.log(`Token IDs batch length: ${tokenIds.length}`);
 
       await oThis._fetchTokenAddresses(tokenIds);
 
@@ -185,6 +188,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
     }
 
     logger.log(`Client IDs associated with chain: ${oThis.clientIds}`);
+    logger.log(`Client IDs associated with chain length: ${oThis.clientIds.length}`);
   }
 
   /**
@@ -499,7 +503,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       }
     }
 
-    logger.log(`Final Token ID Map: ${oThis.tokenIdMap}`);
+    logger.log(`Final Token ID Map: ${JSON.stringify(oThis.tokenIdMap)}`);
   }
 
   /**
