@@ -134,16 +134,18 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       oThis.economyContractAddresses = [];
 
       let clientIdsBatch = oThis.clientIds.slice(index, index + batchSize);
+      logger.log(`Client IDs in batch: ${clientIdsBatch}`);
 
       /*
-      We are fetching only those clients whose stake and mint status is completed.
+      We are fetching only those clients whose stake and mint workflow is completed.
       We are making this query before the token deployment query because there might be tokens whose token deployment
       is completed, but they might not have a completed stake and mint workflow.
        */
       clientIdsBatch = await oThis._checkClientStakeAndMintStatus(clientIdsBatch);
+      logger.log(`Client IDs whose stake and mint has been completed: ${clientIdsBatch}`);
 
-      const tokenIdsResponse = await oThis._fetchTokenIds(clientIdsBatch);
-      const tokenIds = tokenIdsResponse.tokenIds;
+      const tokenIds = await oThis._fetchTokenIds(clientIdsBatch);
+      logger.log(`Token IDs batch: ${tokenIds}`);
 
       await oThis._fetchTokenAddresses(tokenIds);
 
@@ -155,9 +157,11 @@ class CompanyLowBalanceAlertEmail extends CronBase {
         oThis._checkTokenHoldersBalance(tokenIds);
 
         await oThis._createEmailHook(tokenIds);
-        oThis.canExit = true;
       }
+      oThis.canExit = true;
     }
+
+    oThis.canExit = true;
   }
 
   /**
@@ -179,6 +183,8 @@ class CompanyLowBalanceAlertEmail extends CronBase {
     for (let index = 0; index < dbRows.length; index++) {
       oThis.clientIds.push(dbRows[index].client_id);
     }
+
+    logger.log(`Client IDs associated with chain: ${oThis.clientIds}`);
   }
 
   /**
@@ -213,6 +219,10 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    * @private
    */
   async _checkClientStakeAndMintStatus(clientIds) {
+    if (clientIds.length === 0) {
+      return [];
+    }
+
     const dbRows = await new WorkflowModel()
       .select('DISTINCT client_id')
       .where({
@@ -238,11 +248,17 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    *
    * @sets oThis.tokenIdMap
    *
-   * @returns {Promise<{tokenIds: array<number>}>}
+   * @returns {Promise<array<number>>}
    * @private
    */
   async _fetchTokenIds(clientIds) {
     const oThis = this;
+
+    const tokenIds = [];
+
+    if (clientIds.length === 0) {
+      return tokenIds;
+    }
 
     // Here, we are using the tokenDeployment status just to be extra sure.
     const dbRows = await new TokenModel()
@@ -250,7 +266,6 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       .where({ client_id: clientIds, status: tokenConstants.invertedStatuses[tokenConstants.deploymentCompleted] })
       .fire();
 
-    const tokenIds = [];
     for (let index = 0; index < dbRows.length; index++) {
       const dbRow = dbRows[index];
       const tokenId = dbRow.id;
@@ -264,13 +279,14 @@ class CompanyLowBalanceAlertEmail extends CronBase {
           ? util.getStringsForWhichBitsAreSet(dbRow.properties, tokenConstants.invertedPropertiesConfig)
           : [],
         economyContractAddress: '',
-        totalSupply: '0',
+        totalSupply: null,
+        tokenHoldersBalance: null,
         companyTokenHolderAddresses: [],
         propertyToSet: ''
       };
     }
 
-    return { tokenIds: tokenIds };
+    return tokenIds;
   }
 
   /**
@@ -285,6 +301,10 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    */
   async _fetchTokenAddresses(tokenIds) {
     const oThis = this;
+
+    if (tokenIds.length === 0) {
+      return;
+    }
 
     const promisesArray = [];
 
@@ -324,6 +344,10 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _getEconomyDetailsFromDdb(tokenIds) {
     const oThis = this;
 
+    if (tokenIds.length === 0) {
+      return;
+    }
+
     const economyCache = new oThis.EconomyCache({
       chainId: oThis.auxChainId,
       economyContractAddresses: oThis.economyContractAddresses
@@ -360,6 +384,10 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    */
   async _setCompanyTokenHolderAddress(tokenIds) {
     const oThis = this;
+
+    if (tokenIds.length === 0) {
+      return;
+    }
 
     const TokenUserDetailsCache = oThis.ic.getShadowedClassFor(coreConstants.icNameSpace, 'TokenUserDetailsCache');
 
@@ -403,6 +431,10 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _getTokenHoldersBalance(tokenIds) {
     const oThis = this;
 
+    if (tokenIds.length === 0) {
+      return;
+    }
+
     for (let index = 0; index < tokenIds.length; index++) {
       const tokenId = tokenIds[index];
 
@@ -441,11 +473,22 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   _checkTokenHoldersBalance(tokenIds) {
     const oThis = this;
 
+    if (tokenIds.length === 0) {
+      return tokenIds;
+    }
+
     for (let index = 0; index < tokenIds.length; index++) {
       const tokenId = tokenIds[index];
 
-      const tokenHoldersBalance = parseFloat(oThis.tokenIdMap[tokenId].tokenHoldersBalance);
-      const totalSupply = parseFloat(oThis.tokenIdMap[tokenId].totalSupply);
+      let tokenHoldersBalance = oThis.tokenIdMap[tokenId].tokenHoldersBalance;
+      let totalSupply = oThis.tokenIdMap[tokenId].totalSupply;
+
+      if (tokenHoldersBalance == null || totalSupply == null) {
+        continue;
+      }
+
+      tokenHoldersBalance = parseFloat(tokenHoldersBalance);
+      totalSupply = parseFloat(totalSupply);
 
       if (tokenHoldersBalance <= 1) {
         oThis.tokenIdMap[tokenId].propertyToSet = tokenConstants.zeroBalanceEmail;
@@ -455,6 +498,8 @@ class CompanyLowBalanceAlertEmail extends CronBase {
         oThis.tokenIdMap[tokenId].propertyToSet = tokenConstants.lowBalanceEmail;
       }
     }
+
+    logger.log(`Final Token ID Map: ${oThis.tokenIdMap}`);
   }
 
   /**
@@ -468,7 +513,9 @@ class CompanyLowBalanceAlertEmail extends CronBase {
   async _createEmailHook(tokenIds) {
     const oThis = this;
 
-    const promisesArray = [];
+    if (tokenIds.length === 0) {
+      return;
+    }
 
     for (let index = 0; index < tokenIds.length; index++) {
       const tokenId = tokenIds[index];
@@ -484,41 +531,26 @@ class CompanyLowBalanceAlertEmail extends CronBase {
         subject_prefix: basicHelper.isSandboxSubEnvironment() ? 'OST Platform Sandbox' : 'OST Platform'
       };
 
-      promisesArray.push(
-        // Send transactional email.
-        new SendTransactionalMail({
-          receiverEntityId: tokenObject.clientId,
-          receiverEntityKind: emailServiceConstants.clientAllSuperAdminsReceiverEntityKind,
-          templateName: oThis.getTemplateName(tokenObject.propertyToSet),
-          templateVars: templateVars
-        }).perform(),
-        // Set property for token.
-        new TokenModel()
-          .update([
-            'properties = properties | ?',
-            tokenConstants.propertiesConfig[tokenConstants[tokenObject.propertyToSet]]
-          ])
-          .where({ id: tokenId })
-          .fire()
-      );
+      // Set property for token.
+      await new TokenModel()
+        .update([
+          'properties = properties | ?',
+          tokenConstants.propertiesConfig[tokenConstants[tokenObject.propertyToSet]]
+        ])
+        .where({ id: tokenId })
+        .fire();
+
+      // Clear token cache.
+      await TokenModel.flushCache({ clientId: tokenObject.clientId, tokenId: tokenId });
+
+      // Send transactional email.
+      await new SendTransactionalMail({
+        receiverEntityId: tokenObject.clientId,
+        receiverEntityKind: emailServiceConstants.clientAllSuperAdminsReceiverEntityKind,
+        templateName: oThis.getTemplateName(tokenObject.propertyToSet),
+        templateVars: templateVars
+      }).perform();
     }
-
-    await Promise.all(promisesArray);
-
-    // Clear token cache.
-    const cacheClearPromisesArray = [];
-    for (let index = 0; index < tokenIds.length; index++) {
-      const tokenId = tokenIds[index];
-      const tokenObject = oThis.tokenIdMap[tokenId];
-
-      if (!tokenObject.propertyToSet || tokenObject.properties.includes(tokenObject.propertyToSet)) {
-        continue;
-      }
-
-      cacheClearPromisesArray.push(TokenModel.flushCache({ clientId: tokenObject.clientId, tokenId: tokenId }));
-    }
-
-    await Promise.all(cacheClearPromisesArray);
   }
 
   /**
