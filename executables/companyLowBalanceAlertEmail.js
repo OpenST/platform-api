@@ -144,7 +144,6 @@ class CompanyLowBalanceAlertEmail extends CronBase {
 
       const tokenIdsResponse = await oThis._fetchTokenIds(clientIdsBatch);
       const tokenIds = tokenIdsResponse.tokenIds;
-      clientIdsBatch = tokenIdsResponse.clientIds;
 
       await oThis._fetchTokenAddresses(tokenIds);
 
@@ -239,7 +238,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
    *
    * @sets oThis.tokenIdMap
    *
-   * @returns {Promise<{tokenIds: array<number>, clientIds: array<number>}>}
+   * @returns {Promise<{tokenIds: array<number>}>}
    * @private
    */
   async _fetchTokenIds(clientIds) {
@@ -252,11 +251,9 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       .fire();
 
     const tokenIds = [];
-    const newClientIds = [];
     for (let index = 0; index < dbRows.length; index++) {
       const dbRow = dbRows[index];
       const tokenId = dbRow.id;
-      newClientIds.push(dbRow.client_id);
       tokenIds.push(tokenId);
 
       oThis.tokenIdMap[tokenId] = {
@@ -273,7 +270,7 @@ class CompanyLowBalanceAlertEmail extends CronBase {
       };
     }
 
-    return { tokenIds: tokenIds, clientIds: newClientIds };
+    return { tokenIds: tokenIds };
   }
 
   /**
