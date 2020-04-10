@@ -12,7 +12,7 @@
     "@openst/openst.js": "0.10.0",
     "@openstfoundation/mosaic-anchor.js": "https://github.com/OpenSTFoundation/mosaic-anchor.js.git#develop",
     "@ostdotcom/base": "^2.0.0",
-    "@ostdotcom/cache": "1.0.8-beta.4",
+    "@ostdotcom/cache": "1.0.8-beta.6",
     "@ostdotcom/notification": "1.0.7",
     "@ostdotcom/ost-block-scanner": "1.0.2-beta.3",
     "@ostdotcom/ost-dynamic-gas-price": "1.0.4",
