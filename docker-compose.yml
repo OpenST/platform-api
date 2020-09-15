@@ -1,0 +1,17 @@
+version: "3"
+services:
+  origin:
+    image: ""
+  ostblocks:
+    image: ""
+  ddb:
+    image: amazon/dynamodb-local:latest
+    container_name: ddb
+    hostname: ddb
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+  platform:
+    image: ""
+  block_scanner:
+    image: ""
