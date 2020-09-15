@@ -1,3 +1,5 @@
+# note: values for development usage and deprecated as of 2020 09
+
 # Core ENV Details
 export SA_ENVIRONMENT='development'
 export SA_SUB_ENVIRONMENT='sandbox'
