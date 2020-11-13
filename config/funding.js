@@ -6,6 +6,7 @@
 
 const rootPrefix = '..',
   chainAddressConstants = require(rootPrefix + '/lib/globalConstant/chainAddress'),
+  coreConstants = require(rootPrefix + '/config/coreConstants'),
   tokenAddressConstants = require(rootPrefix + '/lib/globalConstant/tokenAddress');
 
 const fundingAmounts = {};
@@ -14,50 +15,50 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
   originGas: {
     // origin deployer
     [chainAddressConstants.originDeployerKind]: {
-      fundAmount: '0.2941',
-      thresholdAmount: '0.1541'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.02810' : '0.01400',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.01405' : '0.0070'
     },
 
     // origin anchor owner
     [chainAddressConstants.originAnchorOrgContractOwnerKind]: {
-      fundAmount: '0.00006',
-      thresholdAmount: '0.00006'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00006' : '0',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00003' : '0',
     },
 
     // origin ST organization owner
     [chainAddressConstants.stOrgContractOwnerKind]: {
-      fundAmount: '0.00012',
-      thresholdAmount: '0.00012'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00012' : '0',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00006' : '0'
     },
 
     // origin anchor admin
     [chainAddressConstants.originAnchorOrgContractAdminKind]: {
-      fundAmount: '0.0048',
-      thresholdAmount: '0.0024'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.0001' : '0.0001',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00005' : '0.00005'
     },
 
     // token origin admin
     [chainAddressConstants.originDefaultBTOrgContractAdminKind]: {
-      fundAmount: '0.0024',
-      thresholdAmount: '0.0012'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00012' : '0.00012',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00006' : '0.00006'
     },
 
     // token origin worker.
     [chainAddressConstants.originDefaultBTOrgContractWorkerKind]: {
-      fundAmount: '0.002',
-      thresholdAmount: '0.001'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00010' : '0.00010',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00005' : '0.00005'
     },
 
     // facilitator
     [chainAddressConstants.interChainFacilitatorKind]: {
-      fundAmount: '0.1044',
-      thresholdAmount: '0.0522'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00540' : '0.00540',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.0027' : '0.0027'
     },
 
     // stable coin deployer
     [chainAddressConstants.originStableCoinDeployerKind]: {
-      fundAmount: '0.00498',
-      thresholdAmount: '0.00498'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00498' : '0',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00249' : '0'
     }
   },
 
