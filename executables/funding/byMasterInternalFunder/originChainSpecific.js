@@ -257,7 +257,7 @@ class FundByMasterInternalFunderOriginChainSpecific extends CronBase {
 
     oThis.alertConfig[chainAddressConstants.masterInternalFunderKind].minEthRequirement = maxEthBalanceToFund
       .mul(basicHelper.convertToBigNumber(originMaxGasPriceMultiplierWithBuffer))
-      .mul(basicHelper.convertToBigNumber(0.6));
+      .mul(basicHelper.convertToBigNumber(0.4));
 
     const granterEthRequirement = basicHelper.convertToBigNumber(grantConstants.grantEthValueInWei);
 

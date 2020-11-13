@@ -259,6 +259,10 @@ class CoreConstants {
     return process.env.SA_BUFFER_ORIGIN_GAS_PRICE;
   }
 
+  get FUND_FOR_CHAIN_SETUP() {
+    return process.env.SA_FUND_FOR_CHAIN_SETUP == 1;
+  }
+
   get icNameSpace() {
     return 'saas::SaasNamespace';
   }
