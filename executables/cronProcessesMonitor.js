@@ -92,21 +92,21 @@ class CronProcessesMonitorExecutable extends CronBase {
       },
       // Restart interval time for periodic crons should match with devops-cron config file.
       [cronProcessesConstants.periodicCronsType]: {
-        [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses]: 5 * 60 * 1000,
-        [cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific]: 5 * 60 * 1000,
-        [cronProcessesConstants.fundBySealerAuxChainSpecific]: 5 * 60 * 1000,
-        [cronProcessesConstants.fundByTokenAuxFunderAuxChainSpecific]: 5 * 60 * 1000,
-        [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses]: 5 * 60 * 1000,
+        [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificChainAddresses]: 60 * 60 * 1000,
+        [cronProcessesConstants.fundByMasterInternalFunderOriginChainSpecific]: 60 * 60 * 1000,
+        [cronProcessesConstants.fundBySealerAuxChainSpecific]: 60 * 60 * 1000,
+        [cronProcessesConstants.fundByTokenAuxFunderAuxChainSpecific]: 60 * 60 * 1000,
+        [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificTokenFunderAddresses]: 60 * 60 * 1000,
         [cronProcessesConstants.fundByMasterInternalFunderAuxChainSpecificInterChainFacilitatorAddresses]:
-          6 * 60 * 1000,
-        [cronProcessesConstants.fundByTokenAuxFunderToExTxWorkers]: 15 * 60 * 1000,
-        [cronProcessesConstants.originToAuxStateRootSync]: 1 * 24 * 60 * 60 * 1000,
-        [cronProcessesConstants.auxToOriginStateRootSync]: 1 * 24 * 60 * 60 * 1000,
-        [cronProcessesConstants.updatePriceOraclePricePoints]: 55 * 60 * 1000,
-        [cronProcessesConstants.executeRecovery]: 10 * 60 * 1000,
-        [cronProcessesConstants.updateRealtimeGasPrice]: 5 * 60 * 1000,
-        [cronProcessesConstants.balanceVerifier]: 5 * 60 * 1000,
-        [cronProcessesConstants.recoveryRequestsMonitor]: 30 * 60 * 1000
+          60 * 60 * 1000,
+        [cronProcessesConstants.fundByTokenAuxFunderToExTxWorkers]: 60 * 60 * 1000,
+        [cronProcessesConstants.originToAuxStateRootSync]: 10 * 24 * 60 * 60 * 1000,
+        [cronProcessesConstants.auxToOriginStateRootSync]: 10 * 24 * 60 * 60 * 1000,
+        [cronProcessesConstants.updatePriceOraclePricePoints]: 60 * 60 * 1000,
+        [cronProcessesConstants.executeRecovery]: 60 * 60 * 1000,
+        [cronProcessesConstants.updateRealtimeGasPrice]: 60 * 60 * 1000,
+        [cronProcessesConstants.balanceVerifier]: 24 * 60 * 60 * 1000,
+        [cronProcessesConstants.recoveryRequestsMonitor]: 60 * 60 * 1000
       }
     };
 
