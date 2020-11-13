@@ -33,8 +33,8 @@ fundingAmounts[chainAddressConstants.masterInternalFunderKind] = {
 
     // origin anchor admin
     [chainAddressConstants.originAnchorOrgContractAdminKind]: {
-      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.0001' : '0.0001',
-      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.00005' : '0.00005'
+      fundAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.001' : '0.001',
+      thresholdAmount: coreConstants.FUND_FOR_CHAIN_SETUP ? '0.0005' : '0.0005'
     },
 
     // token origin admin
