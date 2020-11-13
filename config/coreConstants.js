@@ -260,7 +260,7 @@ class CoreConstants {
   }
 
   get FUND_FOR_CHAIN_SETUP() {
-    return process.env.SA_FUND_FOR_CHAIN_SETUP;
+    return process.env.SA_FUND_FOR_CHAIN_SETUP == 1;
   }
 
   get icNameSpace() {
